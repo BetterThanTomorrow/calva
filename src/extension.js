@@ -13,12 +13,12 @@ function updateStatusbar(state) {
     } else {
         statusbar_connection.text = "nrepl - no connection";
     }
-    statusbar_type.text = state.session_type;
-    switch (state.session_type) {
-        case SESSION_TYPE.CLJ:
+    statusbar_type.text = state.session_type.statusbar;
+    switch (state.session_type.id) {
+        case SESSION_TYPE.CLJ.id:
             statusbar_type.color = "rgb(88,129,216)";
             break;
-        case SESSION_TYPE.CLJS:
+        case SESSION_TYPE.CLJS.id:
             statusbar_type.color = "rgb(99,177,50)";
             break;
         default:
@@ -34,11 +34,18 @@ function findSession(state, current, sessions) {
     let tmpClient = nreplClient.connect({host: state.hostname, port: state.port})
         .once('connect', function() {
             tmpClient.evaluate('(js/parseFloat "3.14")', "user", sessions[current], function(err, results) {
-                if(results[0].hasOwnProperty('value') && results[0].value === "3.14") {
-                    state.session = sessions[current];
-                    state.session_type = SESSION_TYPE.CLJS;
+                for(var r = 0; r < results.length; r++) {
+                    let result = results[r];
+                    if(result.value && result.value === "3.14") {
+                        state.session = sessions[current];
+                        state.session_type = SESSION_TYPE.CLJS;
+                    } else if (result.ex) {
+                        console.log("EXCEPTION!! HANDLE IT");
+                        console.log(JSON.stringify(result));
+                    } else if (result.status && result.status[0] === "done") {
+                        tmpClient.end();
+                    }
                 }
-                tmpClient.end();
             });
         })
         .once('end', function() {
@@ -49,18 +56,23 @@ function findSession(state, current, sessions) {
                     state.session = sessions[0];
                     state.session_type = SESSION_TYPE.CLJ;
                 }
-            } else {
-                findSession(state, (current - 1), sessions);
+            } else if (state.session === null) {
+                findSession(state, (current + 1), sessions);
             }
-            //Update statusbar accordingly
             updateStatusbar(state);
         });
+};
+
+function getNamespace(text) {
+    let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
+    return match ? match[1] : 'user';
 };
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     updateStatusbar(state);
+
     let connectToREPL = vscode.commands.registerCommand('visualclojure.connectToREPL', function () {
         vscode.window.showInputBox({
                 placeHolder: "Enter existing nREPL hostname:port here...",
@@ -72,14 +84,52 @@ function activate(context) {
                     let [hostname, port] = url.split(':');
                     state.hostname = hostname;
                     state.port = port;
-                    state.connection = nreplClient.connect({host : state.hostname, port: state.port}).once('connect', function() {
-                        state.connection.lsSessions(function (err, results) {
+                    let lsSessionClient = nreplClient.connect({host : state.hostname, port: state.port}).once('connect', function() {
+                        state.connected = true;
+                        lsSessionClient.lsSessions(function (err, results) {
                             findSession(state, 0, results[0].sessions);
+                            lsSessionClient.end();
                         });
                     });
             });
     });
     context.subscriptions.push(connectToREPL);
+
+    let evaluateExpression = vscode.commands.registerCommand('visualclojure.evaluateExpression', function () {
+        if(state.connected) {
+            let editor = vscode.window.activeTextEditor;
+            if (editor !== undefined) {
+                let filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1);
+                let filetype = editor.document.fileName.substr(filetypeIndex,
+                                                               editor.document.fileName.length);
+                if(state.session_type.supports.indexOf(filetype) >= 0) {
+                    let documentText = editor.document.getText();
+                    let selection = editor.selection;
+                    let isSelection = !selection.isEmpty;
+                    if (isSelection) {
+                        let code = editor.document.getText(selection);
+                        let evalClient = nreplClient.connect({host: state.hostname, port: state.port}).once('connect', function() {
+                            evalClient.evaluate(code, getNamespace(documentText), state.session, function (err, results) {
+                                for(var r = 0; r < results.length; r++) {
+                                    let result = results[r];
+                                    console.log(JSON.stringify(result));
+                                    if(result.hasOwnProperty('value')) {
+                                        vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
+                                    } else if (result.ex) {
+                                        console.log("EXCEPTION!! HANDLE IT");
+                                        console.log(JSON.stringify(result));
+                                    } else if (result.status && result.status[0] === "done") {
+                                        evalClient.end();
+                                    }
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    });
+    context.subscriptions.push(evaluateExpression);    
 }
 exports.activate = activate;
 

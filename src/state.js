@@ -6,6 +6,5 @@ module.exports = {
     session : null,
     session_type: SESSION_TYPE.NONE,
     connected: false,
-    connection: null,
     last_communication: null
 }

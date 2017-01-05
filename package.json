@@ -3,7 +3,7 @@
     "displayName": "visualclojure",
     "description": "clj(s) support for visual studio code",
     "version": "0.0.1",
-    "publisher": "stiansivertsen",
+    "publisher": "sivertsenstian",
     "engines": {
         "vscode": "^1.5.0"
     },
@@ -16,9 +16,13 @@
     "main": "./src/extension",
     "contributes": {
         "commands": [{
-            "command": "visualclojure.connectToREPL",
-            "title": "VisualClojure: Connect to an existing nREPL session"
-        }]
+                        "command": "visualclojure.connectToREPL",
+                        "title": "VisualClojure: Connect to an existing nREPL session"
+                    }, 
+                    {
+                        "command": "visualclojure.evaluateExpression",
+                        "title": "VisualClojure: Evaluate selected expression"
+                    }]
     },
     "scripts": {
         "postinstall": "node ./node_modules/vscode/bin/install",
@@ -34,6 +38,7 @@
         "bencoder": "^0.0.5",
         "buffer": "^5.0.2",
         "net": "^1.0.2",
-        "nrepl-client": "0.2.3"
+        "stream": "^0.0.2",
+        "util": "^0.10.3"
     }
 }
