@@ -22,6 +22,10 @@
                     {
                         "command": "visualclojure.evaluateExpression",
                         "title": "VisualClojure: Evaluate selected expression"
+                    },
+                    {
+                        "command": "visualclojure.evaluateFile",
+                        "title": "VisualClojure: Evaluate current file"
                     }]
     },
     "scripts": {
