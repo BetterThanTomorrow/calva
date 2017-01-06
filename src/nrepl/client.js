@@ -183,7 +183,7 @@ function stdin(connection, stdin, callback) {
 };
 
 function connect(options) {
-    var con           = net.connect(options),
+    var con           = net.createConnection(options),//net.connect(options),
         messageStream = createMessageStream(options.verbose, con);
     con.sessions      = [];
     con.messageStream = messageStream;

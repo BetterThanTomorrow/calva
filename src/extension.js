@@ -6,6 +6,8 @@ var state = require('./state'); //initial state
 var statusbar_connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 var statusbar_type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
+var outputChannel = vscode.window.createOutputChannel("visualclojure:output");
+
 function updateStatusbar(state) {
     console.log("updating statusbar!");
     if (state.hostname) {
@@ -31,21 +33,27 @@ function updateStatusbar(state) {
 };
 
 function findSession(state, current, sessions) {
+    let expectedResultCount = 1; //TODO: to fix issue with cider-nrepl returning duplicate evaluations
+                                //Should fix this in a nicer way, when I figure out why this is happening
+                                //Some info here: https://github.com/jasongilman/proto-repl/issues/57
     let tmpClient = nreplClient.connect({
             host: state.hostname,
             port: state.port
         })
         .once('connect', function () {
             tmpClient.evaluate('(js/parseFloat "3.14")', "user", sessions[current], function (err, results) {
-                for (var r = 0; r < results.length; r++) {
-                    let result = results[r];
-                    if (result.value && result.value === "3.14") {
-                        state.session = sessions[current];
-                        state.session_type = SESSION_TYPE.CLJS;
-                    } else if (result.ex) {
-                        console.log("EXCEPTION!! HANDLE IT");
-                        console.log(JSON.stringify(result));
+                if (expectedResultCount > 0) {
+                    for (var r = 0; r < results.length; r++) {
+                        let result = results[r];
+                        if (result.value && result.value === "3.14") {
+                            state.session = sessions[current];
+                            state.session_type = SESSION_TYPE.CLJS;
+                        } else if (result.ex) {
+                            console.log("EXCEPTION!! HANDLE IT");
+                            console.log(JSON.stringify(result));
+                        }
                     }
+                    expectedResultCount--;
                     tmpClient.end();
                 }
             });
@@ -207,10 +215,8 @@ function activate(context) {
                         selection = editor.selection,
                         isSelection = !selection.isEmpty,
                         code = '';
-
                     if (isSelection) { //text selected by user, try to evaluate it
                         code = editor.document.getText(selection);
-
                         //If a '(' or ')' is selected, evaluate the expression within
                         if(code === '(') {
                             let currentPosition = selection.active,
@@ -248,22 +254,46 @@ function activate(context) {
                         }
                     }
                     if (code.length > 0) {
+                        outputChannel.clear();
+                        outputChannel.appendLine("Evaluating \n" + code);
+                        outputChannel.appendLine("----------------------------");
+                        let expectedResultCount = 1; //TODO: to fix issue with cider-nrepl returning duplicate evaluations
+                                                         //Should fix this in a nicer way, when I figure out why this is happening
+                                                         //Some info here: https://github.com/jasongilman/proto-repl/issues/57
                         let evalClient = nreplClient.connect({
                             host: state.hostname,
                             port: state.port
                         }).once('connect', function () {
-                            evalClient.evaluate(code, getNamespace(documentText), state.session, function (err, results) {
-                                for (var r = 0; r < results.length; r++) {
-                                    let result = results[r];
-                                    console.log(JSON.stringify(result));
-                                    if (result.hasOwnProperty('value')) {
-                                        vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
-                                    } else if (result.ex) {
-                                        vscode.window.showErrorMessage("Error evaluating the selected expressions");
-                                        console.log("EXCEPTION!! HANDLE IT");
-                                        console.log(JSON.stringify(result));
+                            let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1),
+                                fileName = editor.document.fileName.substr(fileNameIndex, editor.document.fileName.length),
+                                filePath = editor.document.fileName,
+                                evaluatedCode = "(ns " + getNamespace(documentText) + ") " + code;
+
+                            evalClient.loadFile(evaluatedCode, fileName, filePath, state.session, function (err, results) {
+                                if (expectedResultCount > 0) {
+                                    for (var r = 0; r < results.length; r++) {
+                                        let result = results[r];
+                                        if (result.hasOwnProperty('out')) {
+                                            outputChannel.appendLine("side effects:");
+                                            outputChannel.append(result.out);
+                                        }
+                                        else if (result.hasOwnProperty('value')) {
+                                            outputChannel.appendLine("=>")
+                                            outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
+                                            vscode.window.showInformationMessage("Evaluation OK!");
+                                        } else if (result.ex) {
+                                            vscode.window.showErrorMessage("Error evaluating the selected expressions");
+                                            console.log("EXCEPTION!! HANDLE IT");
+                                            console.log(JSON.stringify(result));
+                                        }
                                     }
+                                    outputChannel.appendLine("----------- done -----------\n");
+                                    outputChannel.show(true);
+                                    expectedResultCount--;
                                     evalClient.end();
+                                } else {
+                                    console.log("MORE STUFF!");
+                                    console.log(JSON.stringify(results));
                                 }
                             });
                         });
@@ -295,6 +325,8 @@ function activate(context) {
                                 port: state.port
                             }).once('connect', function () {
                                 evalClient.loadFile(documentText, fileName, filePath, state.session, function (err, results) {
+                                    console.log("EVALUATING FILE!");
+
                                     for (var r = 0; r < results.length; r++) {
                                         let result = results[r];
                                         console.log(JSON.stringify(result));
@@ -305,8 +337,8 @@ function activate(context) {
                                             console.log("EXCEPTION!! HANDLE IT");
                                             console.log(JSON.stringify(result));
                                         }
-                                        evalClient.end();
                                     }
+                                    evalClient.end();
                                 });
                             });
                     }
