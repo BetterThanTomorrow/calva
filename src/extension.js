@@ -31,12 +31,15 @@ function updateStatusbar(state) {
 };
 
 function findSession(state, current, sessions) {
-    let tmpClient = nreplClient.connect({host: state.hostname, port: state.port})
-        .once('connect', function() {
-            tmpClient.evaluate('(js/parseFloat "3.14")', "user", sessions[current], function(err, results) {
-                for(var r = 0; r < results.length; r++) {
+    let tmpClient = nreplClient.connect({
+            host: state.hostname,
+            port: state.port
+        })
+        .once('connect', function () {
+            tmpClient.evaluate('(js/parseFloat "3.14")', "user", sessions[current], function (err, results) {
+                for (var r = 0; r < results.length; r++) {
                     let result = results[r];
-                    if(result.value && result.value === "3.14") {
+                    if (result.value && result.value === "3.14") {
                         state.session = sessions[current];
                         state.session_type = SESSION_TYPE.CLJS;
                     } else if (result.ex) {
@@ -47,9 +50,9 @@ function findSession(state, current, sessions) {
                 }
             });
         })
-        .once('end', function() {
+        .once('end', function () {
             //If last session, check if found
-            if(current === (sessions.length - 1) && state.session === null ) {
+            if (current === (sessions.length - 1) && state.session === null) {
                 //Default to first session if no cljs-session is found, and treat it as a clj-session
                 if (sessions.length > 0) {
                     state.session = sessions[0];
@@ -67,8 +70,103 @@ function getNamespace(text) {
     return match ? match[1] : 'user';
 };
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+//using algorithm from: http://stackoverflow.com/questions/15717436/js-regex-to-match-everything-inside-braces-including-nested-braces-i-want/27088184#27088184
+function getContentToNextBracket(block) {
+    var currPos = 0,
+        openBrackets = 0,
+        stillSearching = true,
+        waitForChar = false;
+
+    while (stillSearching && currPos <= block.length) {
+        var currChar = block.charAt(currPos);
+        if (!waitForChar) {
+            switch (currChar) {
+                case '(':
+                    openBrackets++;
+                    break;
+                case ')':
+                    openBrackets--;
+                    break;
+                case '"':
+                case "'":
+                    waitForChar = currChar;
+                    break;
+                case '/':
+                    var nextChar = block.charAt(currPos + 1);
+                    if (nextChar === '/') {
+                        waitForChar = '\n';
+                    } else if (nextChar === '*') {
+                        waitForChar = '*/';
+                    }
+                    break;
+            }
+        } else {
+            if (currChar === waitForChar) {
+                if (waitForChar === '"' || waitForChar === "'") {
+                    block.charAt(currPos - 1) !== '\\' && (waitForChar = false);
+                } else {
+                    waitForChar = false;
+                }
+            } else if (currChar === '*') {
+                block.charAt(currPos + 1) === '/' && (waitForChar = false);
+            }
+        }
+        currPos++
+        if (openBrackets === 0) {
+            stillSearching = false;
+        }
+    }
+    return block.substr(0, currPos);
+};
+
+function getContentToPreviousBracket(block) {
+    var currPos = (block.length - 1),
+        openBrackets = 0,
+        stillSearching = true,
+        waitForChar = false;
+
+    while (stillSearching && currPos >= 0) {
+        var currChar = block.charAt(currPos);
+        if (!waitForChar) {
+            switch (currChar) {
+                case '(':
+                    openBrackets--;
+                    break;
+                case ')':
+                    openBrackets++;
+                    break;
+                case '"':
+                case "'":
+                    waitForChar = currChar;
+                    break;
+                case '/':
+                    var nextChar = block.charAt(currPos + 1);
+                    if (nextChar === '/') {
+                        waitForChar = '\n';
+                    } else if (nextChar === '*') {
+                        waitForChar = '*/';
+                    }
+                    break;
+            }
+        } else {
+            if (currChar === waitForChar) {
+                if (waitForChar === '"' || waitForChar === "'") {
+                    block.charAt(currPos - 1) !== '\\' && (waitForChar = false);
+                } else {
+                    waitForChar = false;
+                }
+            } else if (currChar === '*') {
+                block.charAt(currPos + 1) === '/' && (waitForChar = false);
+            }
+        }
+        currPos--
+        if (openBrackets === 0) {
+            stillSearching = false;
+        }
+    }
+    return block.substr(currPos + 1, block.length);
+};
+
 function activate(context) {
     updateStatusbar(state);
 
@@ -80,39 +178,85 @@ function activate(context) {
                 ignoreFocusOut: true
             })
             .then(function (url) {
-                    let [hostname, port] = url.split(':');
-                    state.hostname = hostname;
-                    state.port = port;
-                    let lsSessionClient = nreplClient.connect({host : state.hostname, port: state.port}).once('connect', function() {
-                        state.connected = true;
-                        lsSessionClient.lsSessions(function (err, results) {
-                            findSession(state, 0, results[0].sessions);
-                            lsSessionClient.end();
-                        });
+                let [hostname, port] = url.split(':');
+                state.hostname = hostname;
+                state.port = port;
+                let lsSessionClient = nreplClient.connect({
+                    host: state.hostname,
+                    port: state.port
+                }).once('connect', function () {
+                    state.connected = true;
+                    lsSessionClient.lsSessions(function (err, results) {
+                        findSession(state, 0, results[0].sessions);
+                        lsSessionClient.end();
                     });
+                });
             });
     });
     context.subscriptions.push(connectToREPL);
 
     let evaluateExpression = vscode.commands.registerCommand('visualclojure.evaluateExpression', function () {
-        if(state.connected) {
+        if (state.connected) {
             let editor = vscode.window.activeTextEditor;
             if (editor !== undefined) {
-                let filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1);
-                let filetype = editor.document.fileName.substr(filetypeIndex,
-                                                               editor.document.fileName.length);
-                if(state.session_type.supports.indexOf(filetype) >= 0) {
-                    let documentText = editor.document.getText();
-                    let selection = editor.selection;
-                    let isSelection = !selection.isEmpty;
-                    if (isSelection) {
-                        let code = editor.document.getText(selection);
-                        let evalClient = nreplClient.connect({host: state.hostname, port: state.port}).once('connect', function() {
+                let filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1),
+                    filetype = editor.document.fileName.substr(filetypeIndex,
+                        editor.document.fileName.length);
+                if (state.session_type.supports.indexOf(filetype) >= 0) {
+                    let documentText = editor.document.getText(),
+                        selection = editor.selection,
+                        isSelection = !selection.isEmpty,
+                        code = '';
+
+                    if (isSelection) { //text selected by user, try to evaluate it
+                        code = editor.document.getText(selection);
+
+                        //If a '(' or ')' is selected, evaluate the expression within
+                        if(code === '(') {
+                            let currentPosition = selection.active,
+                                previousPosition = currentPosition.with(currentPosition.line, (currentPosition.character - 1)),
+                                lastLine = editor.document.lineCount,
+                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(lastLine - 1).text.length), 
+                                textSelection = new vscode.Selection(previousPosition, endPosition);
+                            code = getContentToNextBracket(editor.document.getText(textSelection));
+                        } else if (code === ')') {
+                            let currentPosition = selection.active,
+                                startPosition = currentPosition.with(0, 0),
+                                textSelection = new vscode.Selection(startPosition, currentPosition);
+                            code = getContentToPreviousBracket(editor.document.getText(textSelection));
+                        }
+                    } else { //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
+                        let currentPosition = selection.active,
+                            nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
+                            previousPosition = currentPosition.with(currentPosition.line, (currentPosition.character - 1)),
+                            nextSelection = new vscode.Selection(currentPosition, nextPosition),
+                            previousSelection = new vscode.Selection(previousPosition, currentPosition),
+                            nextChar = editor.document.getText(nextSelection),
+                            prevChar = editor.document.getText(previousSelection);
+
+                        if (nextChar === '(' || prevChar === '(') {
+                            let lastLine = editor.document.lineCount,
+                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(lastLine - 1).text.length),
+                                startPosition = (nextChar === '(') ? currentPosition : previousPosition, 
+                                textSelection = new vscode.Selection(startPosition, endPosition);
+                            code = getContentToNextBracket(editor.document.getText(textSelection));
+                        } else if (nextChar === ')' || prevChar === ')') {
+                            let startPosition = currentPosition.with(0, 0),
+                                endPosition = (prevChar === ')') ? currentPosition : nextPosition, 
+                                textSelection = new vscode.Selection(startPosition, endPosition);
+                            code = getContentToPreviousBracket(editor.document.getText(textSelection));
+                        }
+                    }
+                    if (code.length > 0) {
+                        let evalClient = nreplClient.connect({
+                            host: state.hostname,
+                            port: state.port
+                        }).once('connect', function () {
                             evalClient.evaluate(code, getNamespace(documentText), state.session, function (err, results) {
-                                for(var r = 0; r < results.length; r++) {
+                                for (var r = 0; r < results.length; r++) {
                                     let result = results[r];
                                     console.log(JSON.stringify(result));
-                                    if(result.hasOwnProperty('value')) {
+                                    if (result.hasOwnProperty('value')) {
                                         vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
                                     } else if (result.ex) {
                                         vscode.window.showErrorMessage("Error evaluating the selected expressions");
@@ -130,39 +274,41 @@ function activate(context) {
             }
         }
     });
-    context.subscriptions.push(evaluateExpression);    
+    context.subscriptions.push(evaluateExpression);
 
     let evaluateFile = vscode.commands.registerCommand('visualclojure.evaluateFile', function () {
-        if(state.connected) {
+        if (state.connected) {
             let editor = vscode.window.activeTextEditor;
             if (editor !== undefined) {
                 let filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1);
                 let filetype = editor.document.fileName.substr(filetypeIndex,
-                                                               editor.document.fileName.length);
-                if(state.session_type.supports.indexOf(filetype) >= 0) {
+                    editor.document.fileName.length);
+                if (state.session_type.supports.indexOf(filetype) >= 0) {
                     let documentText = editor.document.getText();
                     let hasText = documentText.length > 0;
                     if (hasText) {
-                        let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1);
-                        let fileName = editor.document.fileName.substr(fileNameIndex,       
-                                                                       editor.document.fileName.length);
-                        let filePath = editor.document.fileName;
-                        let evalClient = nreplClient.connect({host: state.hostname, port: state.port}).once('connect', function() {
-                            evalClient.loadFile(documentText, fileName, filePath, state.session, function (err, results) {
-                                for(var r = 0; r < results.length; r++) {
-                                    let result = results[r];
-                                    console.log(JSON.stringify(result));
-                                    if(result.hasOwnProperty('value')) {
-                                        vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
-                                    } else if (result.ex) {
-                                        vscode.window.showErrorMessage("Error evaluating " + fileName);
-                                        console.log("EXCEPTION!! HANDLE IT");
+                        let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1),
+                            fileName = editor.document.fileName.substr(fileNameIndex, editor.document.fileName.length),
+                            filePath = editor.document.fileName,
+                            evalClient = nreplClient.connect({
+                                host: state.hostname,
+                                port: state.port
+                            }).once('connect', function () {
+                                evalClient.loadFile(documentText, fileName, filePath, state.session, function (err, results) {
+                                    for (var r = 0; r < results.length; r++) {
+                                        let result = results[r];
                                         console.log(JSON.stringify(result));
+                                        if (result.hasOwnProperty('value')) {
+                                            vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
+                                        } else if (result.ex) {
+                                            vscode.window.showErrorMessage("Error evaluating " + fileName);
+                                            console.log("EXCEPTION!! HANDLE IT");
+                                            console.log(JSON.stringify(result));
+                                        }
+                                        evalClient.end();
                                     }
-                                    evalClient.end();
-                                }
+                                });
                             });
-                        });
                     }
                 } else {
                     vscode.window.showErrorMessage("Filetype " + filetype + " not supported by current repl => " + state.session_type.statusbar);
@@ -170,7 +316,7 @@ function activate(context) {
             }
         }
     });
-    context.subscriptions.push(evaluateFile);    
+    context.subscriptions.push(evaluateFile);
 }
 exports.activate = activate;
 
