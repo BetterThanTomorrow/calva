@@ -214,9 +214,9 @@ function activate(context) {
                         //If a '(' or ')' is selected, evaluate the expression within
                         if(code === '(') {
                             let currentPosition = selection.active,
-                                previousPosition = currentPosition.with(currentPosition.line, (currentPosition.character - 1)),
+                                previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
                                 lastLine = editor.document.lineCount,
-                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(lastLine - 1).text.length), 
+                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(Math.max(lastLine - 1, 0)).text.length), 
                                 textSelection = new vscode.Selection(previousPosition, endPosition);
                             code = getContentToNextBracket(editor.document.getText(textSelection));
                         } else if (code === ')') {
@@ -228,7 +228,7 @@ function activate(context) {
                     } else { //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
                         let currentPosition = selection.active,
                             nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
-                            previousPosition = currentPosition.with(currentPosition.line, (currentPosition.character - 1)),
+                            previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
                             nextSelection = new vscode.Selection(currentPosition, nextPosition),
                             previousSelection = new vscode.Selection(previousPosition, currentPosition),
                             nextChar = editor.document.getText(nextSelection),
@@ -236,7 +236,7 @@ function activate(context) {
 
                         if (nextChar === '(' || prevChar === '(') {
                             let lastLine = editor.document.lineCount,
-                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(lastLine - 1).text.length),
+                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(Math.max(lastLine - 1, 0)).text.length),
                                 startPosition = (nextChar === '(') ? currentPosition : previousPosition, 
                                 textSelection = new vscode.Selection(startPosition, endPosition);
                             code = getContentToNextBracket(editor.document.getText(textSelection));
