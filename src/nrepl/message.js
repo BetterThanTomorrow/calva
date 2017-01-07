@@ -24,9 +24,10 @@ function listSessionsMsg() {
     };
 };
 
-function evaluateMsg(state, code) {
+function evaluateMsg(state, ns, code) {
     return {
         op: operation.EVALUATE,
+        ns: ns,
         code: code,
         session: state.session
     };

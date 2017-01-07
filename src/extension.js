@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const nreplClient = require('./nrepl/client');
 const SESSION_TYPE = require('./nrepl/session_type');
+const nreplMsg = require('./nrepl/message');
 
 var state = require('./state'); //initial state
 var statusbar_connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -33,29 +34,24 @@ function updateStatusbar(state) {
 };
 
 function findSession(state, current, sessions) {
-    let expectedResultCount = 1; //TODO: to fix issue with cider-nrepl returning duplicate evaluations
-                                //Should fix this in a nicer way, when I figure out why this is happening
-                                //Some info here: https://github.com/jasongilman/proto-repl/issues/57
-    let tmpClient = nreplClient.connect({
+    let tmpClient = nreplClient.create({
             host: state.hostname,
             port: state.port
         })
         .once('connect', function () {
-            tmpClient.evaluate('(js/parseFloat "3.14")', "user", sessions[current], function (err, results) {
-                if (expectedResultCount > 0) {
-                    for (var r = 0; r < results.length; r++) {
-                        let result = results[r];
-                        if (result.value && result.value === "3.14") {
-                            state.session = sessions[current];
-                            state.session_type = SESSION_TYPE.CLJS;
-                        } else if (result.ex) {
-                            console.log("EXCEPTION!! HANDLE IT");
-                            console.log(JSON.stringify(result));
-                        }
+            let msg = nreplMsg.testSession(sessions[current]); 
+            tmpClient.send(msg, function (results) {
+                for(var i = 0; i < results.length; i++) {
+                    let result = results[i];
+                    if (result.value && result.value === "3.14") {
+                        state.session = sessions[current];
+                        state.session_type = SESSION_TYPE.CLJS;
+                    } else if (result.ex) {
+                        console.log("EXCEPTION!! HANDLE IT");
+                        console.log(JSON.stringify(result));
                     }
-                    expectedResultCount--;
-                    tmpClient.end();
                 }
+                tmpClient.end();
             });
         })
         .once('end', function () {
@@ -189,12 +185,13 @@ function activate(context) {
                 let [hostname, port] = url.split(':');
                 state.hostname = hostname;
                 state.port = port;
-                let lsSessionClient = nreplClient.connect({
+                let lsSessionClient = nreplClient.create({
                     host: state.hostname,
                     port: state.port
                 }).once('connect', function () {
                     state.connected = true;
-                    lsSessionClient.lsSessions(function (err, results) {
+                    let msg = nreplMsg.listSessions();
+                    lsSessionClient.send(msg, function (results) {
                         findSession(state, 0, results[0].sessions);
                         lsSessionClient.end();
                     });
@@ -257,44 +254,30 @@ function activate(context) {
                         outputChannel.clear();
                         outputChannel.appendLine("Evaluating \n" + code);
                         outputChannel.appendLine("----------------------------");
-                        let expectedResultCount = 1; //TODO: to fix issue with cider-nrepl returning duplicate evaluations
-                                                         //Should fix this in a nicer way, when I figure out why this is happening
-                                                         //Some info here: https://github.com/jasongilman/proto-repl/issues/57
-                        let evalClient = nreplClient.connect({
+                        let evalClient = nreplClient.create({
                             host: state.hostname,
                             port: state.port
                         }).once('connect', function () {
-                            let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1),
-                                fileName = editor.document.fileName.substr(fileNameIndex, editor.document.fileName.length),
-                                filePath = editor.document.fileName,
-                                evaluatedCode = "(ns " + getNamespace(documentText) + ") " + code;
-
-                            evalClient.loadFile(evaluatedCode, fileName, filePath, state.session, function (err, results) {
-                                if (expectedResultCount > 0) {
-                                    for (var r = 0; r < results.length; r++) {
-                                        let result = results[r];
-                                        if (result.hasOwnProperty('out')) {
-                                            outputChannel.appendLine("side effects:");
-                                            outputChannel.append(result.out);
-                                        }
-                                        else if (result.hasOwnProperty('value')) {
-                                            outputChannel.appendLine("=>")
-                                            outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
-                                            vscode.window.showInformationMessage("Evaluation OK!");
-                                        } else if (result.ex) {
-                                            vscode.window.showErrorMessage("Error evaluating the selected expressions");
-                                            console.log("EXCEPTION!! HANDLE IT");
-                                            console.log(JSON.stringify(result));
-                                        }
+                            let msg = nreplMsg.evaluate(state, getNamespace(documentText), code);
+                            evalClient.send(msg, function (results) {
+                                for(var i = 0; i < results.length; i++) {
+                                    let result = results[i];
+                                    if (result.hasOwnProperty('out')) {
+                                        outputChannel.appendLine("side effects:");
+                                        outputChannel.append(result.out);
                                     }
-                                    outputChannel.appendLine("----------- done -----------\n");
-                                    outputChannel.show(true);
-                                    expectedResultCount--;
-                                    evalClient.end();
-                                } else {
-                                    console.log("MORE STUFF!");
-                                    console.log(JSON.stringify(results));
+                                    else if (result.hasOwnProperty('value')) {
+                                        outputChannel.appendLine("=>")
+                                        outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
+                                    } else if (result.ex) {
+                                        vscode.window.showErrorMessage("Error evaluating the selected expressions");
+                                        console.log("EXCEPTION!! HANDLE IT");
+                                        console.log(JSON.stringify(result));
+                                    }
                                 }
+                                outputChannel.appendLine("----------- done -----------\n");
+                                outputChannel.show(true);
+                                evalClient.end();
                             });
                         });
                     }
@@ -324,12 +307,10 @@ function activate(context) {
                                 host: state.hostname,
                                 port: state.port
                             }).once('connect', function () {
-                                evalClient.loadFile(documentText, fileName, filePath, state.session, function (err, results) {
-                                    console.log("EVALUATING FILE!");
-
+                                let msg = nreplMsg.loadFile(state, documentText, fileName, filePath);
+                                evalClient.send(msg, function (results) {
                                     for (var r = 0; r < results.length; r++) {
                                         let result = results[r];
-                                        console.log(JSON.stringify(result));
                                         if (result.hasOwnProperty('value')) {
                                             vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
                                         } else if (result.ex) {
