@@ -8,6 +8,7 @@ var statusbar_connection = vscode.window.createStatusBarItem(vscode.StatusBarAli
 var statusbar_type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
 var outputChannel = vscode.window.createOutputChannel("VisualClojure");
+let diagnosticCollection = vscode.languages.createDiagnosticCollection('VisualClojure: Evaluation errors');
 
 function updateStatusbar(state) {
     if (state.hostname) {
@@ -38,13 +39,17 @@ function findSession(state, current, sessions) {
             port: state.port
         })
         .once('connect', function () {
-            let msg = nreplMsg.testSession(sessions[current]); 
+            let msg = nreplMsg.testSession(sessions[current]);
             tmpClient.send(msg, function (results) {
-                for(var i = 0; i < results.length; i++) {
+                for (var i = 0; i < results.length; i++) {
                     let result = results[i];
                     if (result.value && result.value === "3.14") {
                         state.session = sessions[current];
                         state.session_type = SESSION_TYPE.CLJS;
+
+                        state.cljs_session = sessions[current];
+                        state.clj_session = sessions[current + 1];
+
                     } else if (result.ex) {
                         console.log("EXCEPTION!! HANDLE IT");
                         console.log(JSON.stringify(result));
@@ -170,6 +175,46 @@ function getContentToPreviousBracket(block) {
     return block.substr(currPos + 1, block.length);
 };
 
+function handleException(ex) {
+    diagnosticCollection.clear();
+    let exClient = nreplClient.create({
+        host: state.hostname,
+        port: state.port
+    }).once('connect', function () {
+        let msg = nreplMsg.stacktrace(state);
+        exClient.send(msg, (results) => {
+            for(let r = 0; r < results.length; r++) {
+                let result = results[r];
+                console.log("new ex:");
+                console.log(result);
+                
+                let errLine = result.line - 1,
+                    errChar = result.column - 1,
+                    errFile = result.file,
+                    errFileUri = null,
+                    errMsg = result.message,
+                    editor = vscode.window.activeTextEditor;
+
+                if (errFile) {
+                    errFileUri = vscode.Uri.file(errFile);
+                } else {
+                    errFileUri = editor.document.uri;
+                }
+
+                if(errLine >= 0  && errChar >= 0) {
+                    let errPos = new vscode.Position(errLine, errChar);
+                    editor.selection = new vscode.Selection(errPos, errPos);
+                    let errLineLength = editor.document.lineAt(errLine).text.length;
+
+                    diagnosticCollection.set(errFileUri, [new vscode.Diagnostic(new vscode.Range(errLine, errChar, errLine, errLineLength),
+                        errMsg, vscode.DiagnosticSeverity.Error)]);
+                }
+            }
+            exClient.end();
+        });
+    });
+};
+
 function activate(context) {
     updateStatusbar(state);
 
@@ -214,11 +259,11 @@ function activate(context) {
                     if (isSelection) { //text selected by user, try to evaluate it
                         code = editor.document.getText(selection);
                         //If a '(' or ')' is selected, evaluate the expression within
-                        if(code === '(') {
+                        if (code === '(') {
                             let currentPosition = selection.active,
                                 previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
                                 lastLine = editor.document.lineCount,
-                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(Math.max(lastLine - 1, 0)).text.length), 
+                                endPosition = currentPosition.with(lastLine, editor.document.lineAt(Math.max(lastLine - 1, 0)).text.length),
                                 textSelection = new vscode.Selection(previousPosition, endPosition);
                             code = getContentToNextBracket(editor.document.getText(textSelection));
                         } else if (code === ')') {
@@ -239,12 +284,12 @@ function activate(context) {
                         if (nextChar === '(' || prevChar === '(') {
                             let lastLine = editor.document.lineCount,
                                 endPosition = currentPosition.with(lastLine, editor.document.lineAt(Math.max(lastLine - 1, 0)).text.length),
-                                startPosition = (nextChar === '(') ? currentPosition : previousPosition, 
+                                startPosition = (nextChar === '(') ? currentPosition : previousPosition,
                                 textSelection = new vscode.Selection(startPosition, endPosition);
                             code = getContentToNextBracket(editor.document.getText(textSelection));
                         } else if (nextChar === ')' || prevChar === ')') {
                             let startPosition = currentPosition.with(0, 0),
-                                endPosition = (prevChar === ')') ? currentPosition : nextPosition, 
+                                endPosition = (prevChar === ')') ? currentPosition : nextPosition,
                                 textSelection = new vscode.Selection(startPosition, endPosition);
                             code = getContentToPreviousBracket(editor.document.getText(textSelection));
                         }
@@ -259,16 +304,15 @@ function activate(context) {
                         }).once('connect', function () {
                             let msg = nreplMsg.evaluate(state, getNamespace(documentText), code);
                             evalClient.send(msg, function (results) {
-                                for(var i = 0; i < results.length; i++) {
+                                for (var i = 0; i < results.length; i++) {
                                     let result = results[i];
                                     if (result.hasOwnProperty('out')) {
                                         outputChannel.appendLine("side effects:");
                                         outputChannel.append(result.out);
-                                    }
-                                    else if (result.hasOwnProperty('value')) {
+                                    } else if (result.hasOwnProperty('value')) {
                                         outputChannel.appendLine("Evaluation: success");
                                         outputChannel.appendLine("=>")
-                                        outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
+                                        outputChannel.appendLine((result.value.length > 0 ? result.value : "no result.."));
                                     } else if (result.ex) {
                                         vscode.window.showErrorMessage("Error evaluating the selected expressions");
                                         console.log("EXCEPTION!! HANDLE IT");
@@ -303,37 +347,45 @@ function activate(context) {
                         let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1),
                             fileName = editor.document.fileName.substr(fileNameIndex, editor.document.fileName.length),
                             filePath = editor.document.fileName;
-                            
-                            outputChannel.clear();
-                            outputChannel.appendLine("Evaluating  " + fileName);
-                            outputChannel.appendLine("----------------------------");
 
-                            let evalClient = nreplClient.create({
-                                host: state.hostname,
-                                port: state.port
-                            }).once('connect', function () {
-                                let msg = nreplMsg.loadFile(state, documentText, fileName, filePath);
-                                evalClient.send(msg, function (results) {
-                                    for (var r = 0; r < results.length; r++) {
-                                        let result = results[r];
-                                        if (result.hasOwnProperty('out')) {
-                                            outputChannel.appendLine("side effects:");
-                                            outputChannel.append(result.out);
-                                        } else if (result.hasOwnProperty('value')) {
-                                            outputChannel.appendLine("Evaluation: success");
-                                            outputChannel.appendLine("=>")
-                                            outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
-                                        } else if (result.ex) {
-                                            vscode.window.showErrorMessage("Error evaluating " + fileName);
-                                            console.log("EXCEPTION!! HANDLE IT");
-                                            console.log(JSON.stringify(result));
-                                        }
+                        outputChannel.clear();
+                        outputChannel.appendLine("Evaluating  " + fileName);
+                        outputChannel.appendLine("----------------------------");
+
+                        let evalClient = nreplClient.create({
+                            host: state.hostname,
+                            port: state.port
+                        }).once('connect', function () {
+                            let msg = nreplMsg.loadFile(state, documentText, fileName, filePath);
+                            evalClient.send(msg, function (results) {
+                                for (var r = 0; r < results.length; r++) {
+                                    let result = results[r];
+                                    if (result.hasOwnProperty('out')) {
+                                        outputChannel.appendLine("side effects:");
+                                        outputChannel.append(result.out);
+                                    } else if (result.hasOwnProperty('value')) {
+                                        outputChannel.appendLine("Evaluation: success");
+                                        outputChannel.appendLine("=>")
+                                        outputChannel.appendLine((result.value.length > 0 ? result.value : "no result.."));
+                                    } else if (result.ex) {
+                                        vscode.window.showErrorMessage("Error evaluating " + fileName);
+                                        outputChannel.appendLine("Evaluation: failure");
+                                        outputChannel.appendLine("=>");
+                                        outputChannel.appendLine(result.ex);
+                                        console.log(JSON.stringify(results));
+                                        console.log(JSON.stringify(result));
+                                        
+                                        console.log(JSON.stringify(state));
+                                        console.log(result.ex.session);
+
+                                        handleException(result);
                                     }
-                                    outputChannel.appendLine("----------- done -----------\n");
-                                    outputChannel.show(true);
-                                    evalClient.end();
-                                });
+                                }
+                                outputChannel.appendLine("----------- done -----------\n");
+                                outputChannel.show(true);
+                                evalClient.end();
                             });
+                        });
                     }
                 } else {
                     vscode.window.showErrorMessage("Filetype " + filetype + " not supported by current repl => " + state.session_type.statusbar);
