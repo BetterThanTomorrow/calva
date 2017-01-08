@@ -7,10 +7,9 @@ var state = require('./state'); //initial state
 var statusbar_connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 var statusbar_type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
-var outputChannel = vscode.window.createOutputChannel("visualclojure:output");
+var outputChannel = vscode.window.createOutputChannel("VisualClojure");
 
 function updateStatusbar(state) {
-    console.log("updating statusbar!");
     if (state.hostname) {
         statusbar_connection.text = "nrepl://" + state.hostname + ":" + state.port;
     } else {
@@ -267,6 +266,7 @@ function activate(context) {
                                         outputChannel.append(result.out);
                                     }
                                     else if (result.hasOwnProperty('value')) {
+                                        outputChannel.appendLine("Evaluation: success");
                                         outputChannel.appendLine("=>")
                                         outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
                                     } else if (result.ex) {
@@ -302,8 +302,13 @@ function activate(context) {
                     if (hasText) {
                         let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1),
                             fileName = editor.document.fileName.substr(fileNameIndex, editor.document.fileName.length),
-                            filePath = editor.document.fileName,
-                            evalClient = nreplClient.connect({
+                            filePath = editor.document.fileName;
+                            
+                            outputChannel.clear();
+                            outputChannel.appendLine("Evaluating  " + fileName);
+                            outputChannel.appendLine("----------------------------");
+
+                            let evalClient = nreplClient.create({
                                 host: state.hostname,
                                 port: state.port
                             }).once('connect', function () {
@@ -311,14 +316,21 @@ function activate(context) {
                                 evalClient.send(msg, function (results) {
                                     for (var r = 0; r < results.length; r++) {
                                         let result = results[r];
-                                        if (result.hasOwnProperty('value')) {
-                                            vscode.window.showInformationMessage("=> " + (result.value.length > 0 ? result.value : "no result.."));
+                                        if (result.hasOwnProperty('out')) {
+                                            outputChannel.appendLine("side effects:");
+                                            outputChannel.append(result.out);
+                                        } else if (result.hasOwnProperty('value')) {
+                                            outputChannel.appendLine("Evaluation: success");
+                                            outputChannel.appendLine("=>")
+                                            outputChannel.appendLine((result.value.length > 0 ?  result.value : "no result.."));
                                         } else if (result.ex) {
                                             vscode.window.showErrorMessage("Error evaluating " + fileName);
                                             console.log("EXCEPTION!! HANDLE IT");
                                             console.log(JSON.stringify(result));
                                         }
                                     }
+                                    outputChannel.appendLine("----------- done -----------\n");
+                                    outputChannel.show(true);
                                     evalClient.end();
                                 });
                             });
