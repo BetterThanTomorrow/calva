@@ -10,6 +10,8 @@ var statusbar_type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment
 var outputChannel = vscode.window.createOutputChannel("VisualClojure");
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('VisualClojure: Evaluation errors');
 
+let evaluateFile;
+
 function updateStatusbar(state) {
     if (state.hostname) {
         statusbar_connection.text = "nrepl://" + state.hostname + ":" + state.port;
@@ -68,6 +70,8 @@ function findSession(state, current, sessions) {
                 }
             } else if (state.session === null) {
                 findSession(state, (current + 1), sessions);
+            } else {
+                evaluateFile();
             }
             updateStatusbar(state);
         });
@@ -373,7 +377,6 @@ function activate(context) {
                                         outputChannel.appendLine("=>")
                                         outputChannel.appendLine((result.value.length > 0 ? result.value : "no result.."));
                                     } else if (result.ex) {
-                                        vscode.window.showErrorMessage("Error evaluating the selected expression(s)");
                                         outputChannel.appendLine("Evaluation: failure");
                                         outputChannel.appendLine("=>");
                                         outputChannel.appendLine(result.ex);
@@ -394,20 +397,22 @@ function activate(context) {
     });
     context.subscriptions.push(evaluateExpression);
 
-    let evaluateFile = vscode.commands.registerCommand('visualclojure.evaluateFile', function () {
+    evaluateFile = function (document = null) {
         if (state.connected) {
             let editor = vscode.window.activeTextEditor;
+            document = document === null ? editor.document : document;
+
             if (editor !== undefined) {
-                let filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1);
-                let filetype = editor.document.fileName.substr(filetypeIndex,
-                    editor.document.fileName.length);
+                let filetypeIndex = (document.fileName.lastIndexOf('.') + 1);
+                let filetype = document.fileName.substr(filetypeIndex,
+                    document.fileName.length);
                 if (state.session_type.supports.indexOf(filetype) >= 0) {
-                    let documentText = editor.document.getText();
+                    let documentText = document.getText();
                     let hasText = documentText.length > 0;
                     if (hasText) {
-                        let fileNameIndex = (editor.document.fileName.lastIndexOf('\\') + 1),
-                            fileName = editor.document.fileName.substr(fileNameIndex, editor.document.fileName.length),
-                            filePath = editor.document.fileName;
+                        let fileNameIndex = (document.fileName.lastIndexOf('\\') + 1),
+                            fileName = document.fileName.substr(fileNameIndex, document.fileName.length),
+                            filePath = document.fileName;
 
                         outputChannel.clear();
                         outputChannel.appendLine("Evaluating  " + fileName);
@@ -430,7 +435,6 @@ function activate(context) {
                                         outputChannel.appendLine("=>")
                                         outputChannel.appendLine((result.value.length > 0 ? result.value : "no result.."));
                                     } else if (result.ex) {
-                                        vscode.window.showErrorMessage("Error evaluating " + fileName);
                                         outputChannel.appendLine("Evaluation: failure");
                                         outputChannel.appendLine("=>");
                                         outputChannel.appendLine(result.ex);
@@ -448,8 +452,18 @@ function activate(context) {
                 }
             }
         }
-    });
-    context.subscriptions.push(evaluateFile);
+    };
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', evaluateFile));
+
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
+        evaluateFile(document);
+    }));
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
+        evaluateFile(document);
+    }));
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
+        evaluateFile(document);
+    }));
 }
 exports.activate = activate;
 
