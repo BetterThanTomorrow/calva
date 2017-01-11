@@ -214,6 +214,9 @@ function handleException(exceptions, isSelection = false) {
                     if (result.hasOwnProperty('err') && result.err.indexOf("WARNING:") !== -1) {
                         errorMsg += "\n" + result.err.substring(result.err.indexOf("WARNING:"), result.err.indexOf("at line"));
                     }
+                    if (result.hasOwnProperty('err') && result.err.indexOf("TypeError:") !== -1) {
+                        errorMsg += "\n" + result.err;
+                    }
 
                 }
                 if(!errorHasBeenMarked) {

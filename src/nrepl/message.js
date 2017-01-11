@@ -7,7 +7,8 @@ var operation = {
     CLONE: "clone",
     CLOSE: "close",
     STACKTRACE: "stacktrace",
-    INFO: "info"
+    INFO: "info",
+    REFRESH: "refresh"
 }
 
 function testSessionMsg(session) {
@@ -82,6 +83,13 @@ function closeMsg(state) {
     };
 };
 
+function refreshMsg(state) {
+    return {
+        op: operation.REFRESH,
+        session: state.session
+    };
+};
+
 module.exports = {
     evaluate: evaluateMsg,
     listSessions: listSessionsMsg,
@@ -91,5 +99,6 @@ module.exports = {
     info: infoMsg,
     stacktrace: stacktraceMsg,
     clone: cloneMsg,
-    close: closeMsg
+    close: closeMsg,
+    refresh: refreshMsg
 };
