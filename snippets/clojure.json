@@ -1,0 +1,32 @@
+{
+  ".source.cljs": {
+        "Print to console": {
+            "prefix": "log",
+            "body": [
+                "(js/console.log(\"$1\"))",
+                "$2"
+            ],
+            "description": "Log output to console"
+        }
+  },
+
+  ".source.clj": {
+      "Define a new public fn": {
+          "prefix": "defn",
+          "body": [
+              "(defn ${name} [${args}] ${body})",
+                "$1"
+          ],
+          "description": "INSERT SNIPPET: Defines a new public function"
+      },
+      "Define a new private fn": {
+          "prefix": "defn-",
+          "body": [
+              "(defn- ${name} [${args}] ${body})",
+                "$1"
+          ],
+          "description": "INSERT SNIPPET: Defines a new private function"
+      }
+  }
+
+}

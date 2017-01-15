@@ -26,6 +26,10 @@
                     {
                         "command": "visualclojure.evaluateFile",
                         "title": "VisualClojure: Evaluate current file"
+                    }],
+        "snippets": [{
+                        "language": "clojure",
+                        "path": "./snippets/clojure.json"
                     }]
     },
     "scripts": {
