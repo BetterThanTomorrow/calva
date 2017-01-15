@@ -467,10 +467,10 @@ function activate(context) {
         evaluateFile(document);
     }));
 
-    class HoverProviderTest {
+    class HoverProvider {
         constructor() {
             this.wordBinders = ['/', '-'];
-            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here, '*' not supported by bencoder
+            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
         }
 
         formatDocString (arglist, doc) {
@@ -561,7 +561,126 @@ function activate(context) {
             }
         }
     }
-    context.subscriptions.push(vscode.languages.registerHoverProvider(CLOJURE_MODE, new HoverProviderTest()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(CLOJURE_MODE, new HoverProvider()));
+
+    class CompletionItemProvider {
+        constructor () {
+            this.wordBinders = ['/', '-'];
+            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
+            this.mappings = {
+                            'nil': vscode.CompletionItemKind.Value,
+                            'macro': vscode.CompletionItemKind.Value,
+                            'class': vscode.CompletionItemKind.Class,
+                            'keyword': vscode.CompletionItemKind.Keyword,
+                            'namespace': vscode.CompletionItemKind.Module,
+                            'function': vscode.CompletionItemKind.Function,
+                            'special-form': vscode.CompletionItemKind.Keyword,
+                            'var': vscode.CompletionItemKind.Variable,
+                            'method': vscode.CompletionItemKind.Method
+                            };
+        }
+
+        getActualWord(document, position, selected, word) {
+            if(selected !== undefined) { 
+                let preChar = document.lineAt(position.line).text.slice(selected.start.character - 1, selected.start.character),
+                postChar = document.lineAt(position.line).text.slice(selected.end.character, selected.end.character + 1);
+
+                if (this.wordBinders.indexOf(preChar) !== -1) {
+                    let prePosition = new vscode.Position(selected.start.line, selected.start.character - 1),
+                        preSelected = document.getWordRangeAtPosition(prePosition),
+                        preText = document.getText(new vscode.Range(preSelected.start, preSelected.end));
+
+                    return this.getActualWord(document, prePosition, new vscode.Range(preSelected.start, selected.end), preText + preChar + word);
+                } else if (this.wordBinders.indexOf(postChar) !== -1) {
+                    let postPosition = new vscode.Position(selected.end.line, selected.end.character + 1),
+                        postSelected = document.getWordRangeAtPosition(postPosition),
+                        postText = document.getText(new vscode.Range(postSelected.start, postSelected.end));
+
+                    return this.getActualWord(document, postPosition, new vscode.Range(selected.start, postSelected.end), word + postChar + postText);
+                } else {
+                    return word
+                }
+
+            } else {
+                let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
+                    isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
+                if(this.specialWords.indexOf(selectedChar) !== -1 && isFn) {
+                    return selectedChar;
+                } else {
+                    console.error("Unsupported selectedChar '" + selectedChar + "'");
+                    return word;
+                }
+            } 
+        }
+
+        provideCompletionItems (document, position, token) {
+             let selected = document.getWordRangeAtPosition(position),
+                selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
+                text = this.getActualWord(document, position, selected, selectedText),
+                scope = this;
+            if(state.connected) {
+                return new Promise((resolve, reject) => {
+                    let completionClient = nreplClient.create({
+                        host: state.hostname,
+                        port: state.port
+                    }).once('connect', () => {
+                        let msg = nreplMsg.complete(state, getNamespace(document.getText()), text),
+                        completions = [];
+                        completionClient.send(msg, function (results) {
+                            for (var r = 0; r < results.length; r++) {
+                                let result = results[r];
+                                if(result.hasOwnProperty('completions')) {
+                                    for(let c = 0; c < result.completions.length; c++) {
+                                        let item = result.completions[c];
+                                        completions.push({
+                                            label: item.candidate,
+                                            kind: scope.mappings[item.type] || vscode.CompletionItemKind.Text,
+                                            insertText: item[0] === '.' ? item.slice(1) : item
+                                        });
+                                    }
+                                }
+                            }
+                            if(completions.length > 0) {
+                                resolve(new vscode.CompletionList(completions, false));
+                            } else {
+                                reject("No completions found");
+                            }
+                            completionClient.end();
+                        });
+                    });
+                });
+            } else {
+                return new vscode.Hover("Not connected to nREPL..");
+            }
+        }
+
+        resolveCompletionItem (item, token) {
+            return new Promise((resolve, reject) => {
+                if(state.connected) {
+                    let completionClient = nreplClient.create({
+                        host: state.hostname,
+                        port: state.port
+                    }).once('connect', () => {
+                        let document = vscode.window.activeTextEditor.document,
+                        msg = nreplMsg.info(state, getNamespace(document.getText()), item.label);
+                        completionClient.send(msg, function (results) {
+                            for (var r = 0; r < results.length; r++) {
+                                let result = results[r];
+                                if (result.hasOwnProperty('doc')) {
+                                    item.documentation = result.doc;
+                                }
+                            }
+                            resolve(item);
+                            completionClient.end();
+                        })
+                    })
+                }  else {
+                    reject("Not connected to nREPL");
+                }
+            });
+        }
+    }
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(CLOJURE_MODE, new CompletionItemProvider()));
 }
 exports.activate = activate;
 
