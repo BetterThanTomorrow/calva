@@ -1,13 +1,20 @@
 {
     "name": "visualclojure",
-    "displayName": "visualclojure",
+    "displayName": "visual:clojure",
     "description": "clj(s) support for visual studio code",
+    "icon": "assets/icon.png",
     "version": "0.0.1",
     "publisher": "sivertsenstian",
+    "author": {
+        "name": "Stian Sivertsen",
+        "email": "sivertsenstian@gmail.com"
+    },
     "engines": {
         "vscode": "^1.5.0"
     },
     "categories": [
+        "Languages",
+        "Snippets",
         "Other"
     ],
     "activationEvents": [
