@@ -1,5 +1,6 @@
 # visual code
 .vscode
+*.visx
 
 # Logs
 logs
