@@ -3,10 +3,10 @@ const helpers = require('./helpers');
 const nreplClient = require('../nrepl/client');
 const nreplMsg = require('../nrepl/message');
 
-function evaluateExpression(state, document = null) {
+function evaluateExpression(state, document = {}) {
     if (state.connected) {
         let editor = vscode.window.activeTextEditor;
-        document = document === null ? editor.document : document;
+        document = document.hasOwnProperty('fileName') ? document : editor.document;
         if (editor !== undefined) {
             let filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
                 filetype = document.fileName.substr(filetypeIndex,
@@ -93,10 +93,10 @@ function evaluateExpression(state, document = null) {
     }
 };
 
-function evaluateFile(state, document = null) {
+function evaluateFile(state, document = {}) {
     if (state.connected) {
         let editor = vscode.window.activeTextEditor;
-        document = document === null ? editor.document : document;
+        document = document.hasOwnProperty('fileName') ? document : editor.document ;
 
         if (editor !== undefined) {
             let filetypeIndex = (document.fileName.lastIndexOf('.') + 1),

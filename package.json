@@ -23,7 +23,7 @@
     "main": "./src/extension",
     "contributes": {
         "commands": [{
-                        "command": "visualclojure.connectToREPL",
+                        "command": "visualclojure.connect",
                         "title": "VisualClojure: Connect to an existing nREPL session"
                     }, 
                     {
@@ -37,7 +37,22 @@
         "snippets": [{
                         "language": "clojure",
                         "path": "./snippets/clojure.json"
-                    }]
+                    }],
+        "keybindings": [{
+                            "command": "visualclojure.connect",
+                            "key": "alt+c",
+                            "mac": "alt+c"
+                        },
+                        {
+                            "command": "visualclojure.evaluateExpression",
+                            "key": "alt+Enter",
+                            "mac": "alt+Enter"
+                        },
+                        {
+                            "command": "visualclojure.evaluateFile",
+                            "key": "alt+f5",
+                            "mac": "alt+f5"
+                        }]
     },
     "scripts": {
         "postinstall": "node ./node_modules/vscode/bin/install",

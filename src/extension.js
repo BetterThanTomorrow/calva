@@ -14,7 +14,7 @@ function activate(context) {
     helpers.updateStatusbar(state);
 
     //COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.connectToREPL', clojureConnect.initialConnection.bind(null, state)));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.connect', clojureConnect.initialConnection.bind(null, state)));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateExpression', clojureEvaluation.evaluateExpression.bind(null, state)));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', clojureEvaluation.evaluateFile.bind(null, state)));
 
@@ -22,7 +22,7 @@ function activate(context) {
     context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
         clojureEvaluation.evaluateFile(state, document);
     }));
-    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((document) => {
         clojureEvaluation.evaluateFile(state, document);
     }));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
