@@ -29,7 +29,7 @@ function evaluateMsg(session, ns, code) {
     return {
         op: operation.EVALUATE,
         ns: ns,
-        code: code.replace(/"/g, '\\"'),
+        code: code, //.replace(/"/g, '\\"')
         session: session
     };
 };
