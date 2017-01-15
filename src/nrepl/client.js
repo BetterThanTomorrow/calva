@@ -69,7 +69,7 @@ function send (msg, callback) {
 };
 
 module.exports = {
-    create: create,
-    send: send
+    create,
+    send
 };
 

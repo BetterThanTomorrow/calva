@@ -4,7 +4,7 @@
     "description": "clj(s) support for visual studio code",
     "icon": "assets/icon.png",
     "version": "0.0.1",
-    "publisher": "sivertsenstian",
+    "publisher": "stiansivertsen",
     "author": {
         "name": "Stian Sivertsen",
         "email": "sivertsenstian@gmail.com"
