@@ -1,4 +1,9 @@
 const vscode = require('vscode');
+
+const os = require('os');
+const fs = require('fs');
+const JSZip = require('jszip');
+
 const nreplClient = require('./nrepl/client');
 const SESSION_TYPE = require('./nrepl/session_type');
 const nreplMsg = require('./nrepl/message');
@@ -467,105 +472,8 @@ function activate(context) {
         evaluateFile(document);
     }));
 
-    class HoverProvider {
-        constructor() {
-            this.wordBinders = ['/', '-'];
-            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
-        }
-
-        formatDocString (arglist, doc) {
-            let result = '';
-            if(arglist !== 'undefined'){
-                result += '**signature:**\n\n'
-                result += arglist.substring(1, arglist.length - 1)
-                                .replace(/\]\ \[/g, ']\n\n[');
-            }
-            if(doc !== 'undefined'){
-                result += '\n\n**description:**\n\n'
-                result += '```clojure\n' + doc.replace(/\s\s+/g, ' ') + '\n```';
-            }
-            result += '';
-            return result.length > 0 ? result : "";
-         }
-
-        getActualWord(document, position, selected, word) {
-            if(selected !== undefined) { 
-                let preChar = document.lineAt(position.line).text.slice(selected.start.character - 1, selected.start.character),
-                postChar = document.lineAt(position.line).text.slice(selected.end.character, selected.end.character + 1);
-
-                if (this.wordBinders.indexOf(preChar) !== -1) {
-                    let prePosition = new vscode.Position(selected.start.line, selected.start.character - 1),
-                        preSelected = document.getWordRangeAtPosition(prePosition),
-                        preText = document.getText(new vscode.Range(preSelected.start, preSelected.end));
-
-                    return this.getActualWord(document, prePosition, new vscode.Range(preSelected.start, selected.end), preText + preChar + word);
-                } else if (this.wordBinders.indexOf(postChar) !== -1) {
-                    let postPosition = new vscode.Position(selected.end.line, selected.end.character + 1),
-                        postSelected = document.getWordRangeAtPosition(postPosition),
-                        postText = document.getText(new vscode.Range(postSelected.start, postSelected.end));
-
-                    return this.getActualWord(document, postPosition, new vscode.Range(selected.start, postSelected.end), word + postChar + postText);
-                } else {
-                    return word
-                }
-
-            } else {
-                let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
-                    isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
-                if(this.specialWords.indexOf(selectedChar) !== -1 && isFn) {
-                    return selectedChar;
-                } else {
-                    console.error("Unsupported selectedChar '" + selectedChar + "'");
-                    return word;
-                }
-            } 
-        }
-
-        provideHover (document, position, token) {
-            let selected = document.getWordRangeAtPosition(position),
-                selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
-                text = this.getActualWord(document, position, selected, selectedText),
-                arglist = "",
-                docstring = "",
-                scope = this;
-            if(state.connected) {
-                return new Promise((resolve, reject) => {
-                    let infoClient = nreplClient.create({
-                        host: state.hostname,
-                        port: state.port
-                    }).once('connect', () => {
-                        let msg = nreplMsg.info(state, getNamespace(document.getText()), text);
-                        infoClient.send(msg, function (results) {
-                            for (var r = 0; r < results.length; r++) {
-                                let result = results[r];
-                                
-                                arglist += result['arglists-str'];
-                                docstring += result.doc;
-                            }
-                            infoClient.end();
-                            if (docstring.length === 0) {
-                                reject("Docstring not found for " + text);
-                            } else {
-                                let result = scope.formatDocString(arglist, docstring);
-                                if(result.length === 0) {
-                                    reject("Docstring not found for " + text);
-                                } else {
-                                    resolve(new vscode.Hover(result));
-                                }
-                            }
-                        });
-                    });
-                });
-            } else {
-                return new vscode.Hover("Not connected to nREPL..");
-            }
-        }
-    }
-    context.subscriptions.push(vscode.languages.registerHoverProvider(CLOJURE_MODE, new HoverProvider()));
-
     class CompletionItemProvider {
         constructor () {
-            this.wordBinders = ['/', '-'];
             this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
             this.mappings = {
                             'nil': vscode.CompletionItemKind.Value,
@@ -581,27 +489,7 @@ function activate(context) {
         }
 
         getActualWord(document, position, selected, word) {
-            if(selected !== undefined) { 
-                let preChar = document.lineAt(position.line).text.slice(selected.start.character - 1, selected.start.character),
-                postChar = document.lineAt(position.line).text.slice(selected.end.character, selected.end.character + 1);
-
-                if (this.wordBinders.indexOf(preChar) !== -1) {
-                    let prePosition = new vscode.Position(selected.start.line, selected.start.character - 1),
-                        preSelected = document.getWordRangeAtPosition(prePosition),
-                        preText = document.getText(new vscode.Range(preSelected.start, preSelected.end));
-
-                    return this.getActualWord(document, prePosition, new vscode.Range(preSelected.start, selected.end), preText + preChar + word);
-                } else if (this.wordBinders.indexOf(postChar) !== -1) {
-                    let postPosition = new vscode.Position(selected.end.line, selected.end.character + 1),
-                        postSelected = document.getWordRangeAtPosition(postPosition),
-                        postText = document.getText(new vscode.Range(postSelected.start, postSelected.end));
-
-                    return this.getActualWord(document, postPosition, new vscode.Range(selected.start, postSelected.end), word + postChar + postText);
-                } else {
-                    return word
-                }
-
-            } else {
+            if(selected === undefined) { 
                 let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
                     isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
                 if(this.specialWords.indexOf(selectedChar) !== -1 && isFn) {
@@ -610,7 +498,9 @@ function activate(context) {
                     console.error("Unsupported selectedChar '" + selectedChar + "'");
                     return word;
                 }
-            } 
+            } else {
+                return word;
+            }
         }
 
         provideCompletionItems (document, position, token) {
@@ -681,6 +571,202 @@ function activate(context) {
         }
     }
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(CLOJURE_MODE, new CompletionItemProvider()));
+
+
+      class DefinitionProvider {
+        constructor () {
+            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
+        }
+
+        getActualWord(document, position, selected, word) {
+            if(selected === undefined) { 
+                let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
+                    isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
+                if(this.specialWords.indexOf(selectedChar) !== -1 && isFn) {
+                    return selectedChar;
+                } else {
+                    console.error("Unsupported selectedChar '" + selectedChar + "'");
+                    return word;
+                }
+            } else {
+                return word;
+            }
+        }
+
+        provideDefinition (document, position, token) {
+             let selected = document.getWordRangeAtPosition(position),
+                selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
+                text = this.getActualWord(document, position, selected, selectedText),
+                location = null,
+                scope = this;
+            if(state.connected) {
+                return new Promise((resolve, reject) => {
+                    let defClient = nreplClient.create({
+                        host: state.hostname,
+                        port: state.port
+                    }).once('connect', () => {
+                        let msg = nreplMsg.info(state, getNamespace(document.getText()), text);
+                        defClient.send(msg, function (results) {
+                            for (var r = 0; r < results.length; r++) {
+                                let result = results[r];
+                                if(result.hasOwnProperty('file') && result.file.length > 0) {
+                                    location = new vscode.Location(vscode.Uri.parse(result.file), 
+                                                                   new vscode.Position(result.line - 1, result.column));
+                                }
+                            }
+                            if(location !== null) {
+                                resolve(location);
+                            } else {
+                                reject("No definition found");
+                            }
+                            defClient.end();
+                        });
+                    });
+                });
+            } else {
+                return new vscode.Hover("Not connected to nREPL..");
+            }
+        }
+    }
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(CLOJURE_MODE, new DefinitionProvider()));    
+
+    class HoverProvider {
+        constructor() {
+            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
+        }
+
+        formatDocString (arglist, doc) {
+            let result = '';
+            if(arglist !== 'undefined'){
+                result += '**signature:**\n\n'
+                result += arglist.substring(1, arglist.length - 1)
+                                .replace(/\]\ \[/g, ']\n\n[');
+            }
+            if(doc !== 'undefined'){
+                result += '\n\n**description:**\n\n'
+                result += '```clojure\n' + doc.replace(/\s\s+/g, ' ') + '\n```';
+            }
+            result += '';
+            return result.length > 0 ? result : "";
+         }
+
+        getActualWord(document, position, selected, word) {
+            if(selected === undefined) { 
+                let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
+                    isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
+                if(this.specialWords.indexOf(selectedChar) !== -1 && isFn) {
+                    return selectedChar;
+                } else {
+                    console.error("Unsupported selectedChar '" + selectedChar + "'");
+                    return word;
+                }
+            } else {
+                return word;
+            }
+        }
+
+        provideHover (document, position, token) {
+            let selected = document.getWordRangeAtPosition(position),
+                selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
+                text = this.getActualWord(document, position, selected, selectedText),
+                arglist = "",
+                docstring = "",
+                scope = this;
+            if(state.connected) {
+                return new Promise((resolve, reject) => {
+                    let infoClient = nreplClient.create({
+                        host: state.hostname,
+                        port: state.port
+                    }).once('connect', () => {
+                        let msg = nreplMsg.info(state, getNamespace(document.getText()), text);
+                        infoClient.send(msg, function (results) {
+                            for (var r = 0; r < results.length; r++) {
+                                let result = results[r];
+                                
+                                arglist += result['arglists-str'];
+                                docstring += result.doc;
+                            }
+                            infoClient.end();
+                            if (docstring.length === 0) {
+                                reject("Docstring not found for " + text);
+                            } else {
+                                let result = scope.formatDocString(arglist, docstring);
+                                if(result.length === 0) {
+                                    reject("Docstring not found for " + text);
+                                } else {
+                                    resolve(new vscode.Hover(result));
+                                }
+                            }
+                        });
+                    });
+                });
+            } else {
+                return new vscode.Hover("Not connected to nREPL..");
+            }
+        }
+    }
+    context.subscriptions.push(vscode.languages.registerHoverProvider(CLOJURE_MODE, new HoverProvider()));
+
+    class ClojureLanguageConfiguration {
+        constructor() {
+            this.wordPattern = /[\w\-\.:<>\*][\w\d\.\\/\-\?<>\*!]+/;
+            this.indentationRules = {
+                                        decreaseIndentPattern: undefined,
+                                        increaseIndentPattern: /^\s*\(.*[^)]\s*$/
+                                    }
+        }
+    }
+    vscode.languages.setLanguageConfiguration(CLOJURE_MODE.language, new ClojureLanguageConfiguration());
+
+
+    class TextDocumentContentProvider {
+         constructor () {
+            this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
+        }
+
+        getActualWord(document, position, selected, word) {
+            if(selected === undefined) { 
+                let selectedChar = document.lineAt(position.line).text.slice(position.character, position.character + 1),
+                    isFn = document.lineAt(position.line).text.slice(position.character - 1, position.character) === "(";
+                if(this.specialWords.indexOf(selectedChar) !== -1 && isFn) {
+                    return selectedChar;
+                } else {
+                    console.error("Unsupported selectedChar '" + selectedChar + "'");
+                    return word;
+                }
+            } else {
+                return word;
+            }
+        }
+
+        provideTextDocumentContent (uri, token) {
+            if(state.connected) {
+                return new Promise((resolve, reject) => {
+                    let rawPath = uri.path,
+                        pathToFileInJar = rawPath.slice(rawPath.search('!/') + 2),
+                        pathToJar = rawPath.slice('file:'.length);
+
+                    pathToJar = pathToJar.slice(0,pathToJar.search('!'));
+                    if (os.platform() === 'win32') {
+                        pathToJar = pathToJar.replace(/\//g, '\\').slice(1);
+                    }
+                    
+                    fs.readFile(pathToJar, (err, data) => {
+                        let zip = new JSZip();
+                        zip.loadAsync(data).then((new_zip) => {
+                            new_zip.file(pathToFileInJar).async("string").then((value) => {
+                                resolve(value);
+                            })
+                        })
+                    });
+                });
+            } else {
+                console.warn("Unable to provide textdocumentcontent, not connected to nREPL");
+            }
+        }
+    }
+    vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
+
 }
 exports.activate = activate;
 
