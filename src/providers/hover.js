@@ -30,14 +30,16 @@ module.exports = class HoverProvider {
             text = helpers.getActualWord(document, position, selected, selectedText),
             arglist = "",
             docstring = "",
-            scope = this;
+            scope = this,
+            filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
+            filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
         if (this.state.connected) {
             return new Promise((resolve, reject) => {
                 let infoClient = nreplClient.create({
                     host: scope.state.hostname,
                     port: scope.state.port
                 }).once('connect', () => {
-                    let msg = nreplMsg.info(scope.state, helpers.getNamespace(document.getText()), text);
+                    let msg = nreplMsg.info(scope.state.session[filetype], helpers.getNamespace(document.getText()), text);
                     infoClient.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {
                             let result = results[r];

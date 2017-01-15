@@ -1,8 +1,8 @@
 module.exports = {
     CLJS: {
         id: 100,
-        statusbar: "(cljs)",
-        supports: ["cljc", "cljs"]
+        statusbar: "(clj/cljs)",
+        supports: ["cljc", "clj", "cljs"]
     },
     CLJ: {
         id: 200,

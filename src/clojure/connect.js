@@ -16,15 +16,11 @@ function findSession(state, current, sessions) {
                 for (var i = 0; i < results.length; i++) {
                     let result = results[i];
                     if (result.value && result.value === "3.14") {
-                        state.session = sessions[current];
                         state.session_type = SESSION_TYPE.CLJS;
-
-                        state.cljs_session = sessions[current];
-                        state.clj_session = sessions[current + 1];
-
+                        state.session.cljs = sessions[current];
                     } else if (result.ex) {
-                        console.log("EXCEPTION!! HANDLE IT");
-                        console.log(JSON.stringify(result));
+                        state.session.clj = sessions[current];
+                        state.session.cljc = sessions[current];
                     }
                 }
                 tmpClient.end();
@@ -35,10 +31,11 @@ function findSession(state, current, sessions) {
             if (current === (sessions.length - 1) && state.session === null) {
                 //Default to first session if no cljs-session is found, and treat it as a clj-session
                 if (sessions.length > 0) {
-                    state.session = sessions[0];
+                    state.session.clj = sessions[current];
+                    state.session.cljc = sessions[current];
                     state.session_type = SESSION_TYPE.CLJ;
                 }
-            } else if (state.session === null) {
+            } else if (Object.keys(state.session).length !== 3) {
                 findSession(state, (current + 1), sessions);
             } else {
                 //Check the initial file where the command is called from

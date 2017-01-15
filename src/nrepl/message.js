@@ -25,68 +25,68 @@ function listSessionsMsg() {
     };
 };
 
-function evaluateMsg(state, ns, code) {
+function evaluateMsg(session, ns, code) {
     return {
         op: operation.EVALUATE,
         ns: ns,
-        code: code,
-        session: state.session
+        code: code.replace(/"/g, '\\"'),
+        session: session
     };
 };
 
-function loadFileMsg(state, fileContent, fileName, filePath) {
+function loadFileMsg(session, fileContent, fileName, filePath) {
     return {
         op: operation.LOAD_FILE,
         file : fileContent,
         "file-name": fileName,
         "file-path": filePath,
-        session : state.session
+        session : session
     };
 };
 
-function completeMsg(state, namespace, symbol) {
+function completeMsg(session, namespace, symbol) {
     return {
         op: operation.COMPLETE,
         symbol: symbol,
         ns: namespace,
-        session : state.session
+        session : session
     };
 };
 
-function infoMsg(state, namespace, symbol) {
+function infoMsg(session, namespace, symbol) {
     return {
         op: operation.INFO,
         symbol: symbol,
         ns: namespace,
-        session : state.session
+        session : session
     };
 };
 
-function stacktraceMsg(state) {
+function stacktraceMsg(session) {
     return {
         op: operation.STACKTRACE,
-        session : state.session
+        session : session
     };
 };
 
-function cloneMsg(state) {
+function cloneMsg(session) {
     return {
         op: operation.CLONE,
-        session : state.session
+        session : session
     };
 };
 
-function closeMsg(state) {
+function closeMsg(session) {
     return {
         op: operation.CLOSE,
-        session : state.session
+        session : session
     };
 };
 
-function refreshMsg(state) {
+function refreshMsg(session) {
     return {
         op: operation.REFRESH,
-        session: state.session
+        session: session
     };
 };
 

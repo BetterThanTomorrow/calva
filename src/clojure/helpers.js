@@ -121,14 +121,16 @@ function getContentToPreviousBracket(block) {
 };
 
 function handleException(state, exceptions, isSelection = false) {
-    let errorHasBeenMarked = false;
+    let errorHasBeenMarked = false,
+        editor = vscode.window.activeTextEditor,
+        filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1),
+        filetype = editor.document.fileName.substr(filetypeIndex, editor.document.fileName.length);
     state.diagnosticCollection.clear();
     let exClient = nreplClient.create({
         host: state.hostname,
         port: state.port
     }).once('connect', function () {
-        let msg = nreplMsg.stacktrace(state),
-            editor = vscode.window.activeTextEditor,
+        let msg = nreplMsg.stacktrace(state.session[filetype]),
             errLine = null,
             errChar = null,
             errFileUri = editor.document.uri;

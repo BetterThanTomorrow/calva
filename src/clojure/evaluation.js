@@ -62,7 +62,7 @@ function evaluateExpression(state, document = null) {
                         host: state.hostname,
                         port: state.port
                     }).once('connect', function () {
-                        let msg = nreplMsg.evaluate(state, helpers.getNamespace(documentText), code);
+                        let msg = nreplMsg.evaluate(state.session[filetype], helpers.getNamespace(documentText), code);
                         evalClient.send(msg, function (results) {
                             for (var i = 0; i < results.length; i++) {
                                 let result = results[i];
@@ -99,9 +99,8 @@ function evaluateFile(state, document = null) {
         document = document === null ? editor.document : document;
 
         if (editor !== undefined) {
-            let filetypeIndex = (document.fileName.lastIndexOf('.') + 1);
-            let filetype = document.fileName.substr(filetypeIndex,
-                document.fileName.length);
+            let filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
+                filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
             if (state.session_type.supports.indexOf(filetype) >= 0) {
                 let documentText = document.getText();
                 let hasText = documentText.length > 0;
@@ -119,7 +118,7 @@ function evaluateFile(state, document = null) {
                         host: state.hostname,
                         port: state.port
                     }).once('connect', function () {
-                        let msg = nreplMsg.loadFile(state, documentText, fileName, filePath);
+                        let msg = nreplMsg.loadFile(state.session[filetype], documentText, fileName, filePath);
                         evalClient.send(msg, function (results) {
                             for (var r = 0; r < results.length; r++) {
                                 let result = results[r];
