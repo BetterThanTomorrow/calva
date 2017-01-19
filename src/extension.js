@@ -22,9 +22,6 @@ function activate(context) {
     context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
         clojureEvaluation.evaluateFile(state, document);
     }));
-    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((document) => {
-        clojureEvaluation.evaluateFile(state, document);
-    }));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
         clojureEvaluation.evaluateFile(state, document);
     }));
