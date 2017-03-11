@@ -1,7 +1,20 @@
 # Change Log
 All notable changes to the "visual:clojure" extension will be documented in this file.
 
-## [Pre-releases 0.1]
+## [Pre-releases]
+
+## [0.0.2] - 11.03.2017
+### Added
+* Initial readme/howto
+
+### Fixed
+* Now properly connects to a pure Clojure REPL
+
+### Removed
+* Annoying warning-msg when the current file is not supported by the connected REPL.
+
+## [0.0.1] - Initial release
+### Added
 * Most of the basic functionality now kinda works for both clj and cljs
     * Connect to existing nREPL and determine if it is running a cljs-session. Default shortcut: alt+c
         * Supports and stores both cljs and clj sessions, using the appropriate one for ops based on file-extension 

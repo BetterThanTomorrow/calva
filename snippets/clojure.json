@@ -3,21 +3,29 @@
         "Print to console": {
             "prefix": "log",
             "body": [
-                "(js/console.log(\"$1\"))",
+                "(js/console.log \"$1\")",
                 "$2"
             ],
-            "description": "Log output to console"
+            "description": "vsclj: Log output to browsers console"
         }
   },
 
   ".source.clj": {
+      "Create a new namespace": {
+        "prefix": "ns",
+          "body": [
+              "(ns ${name} [${args}] ${body})",
+                "$1"
+          ],
+          "description": "vsclj: Defines a new public function"
+      },
       "Define a new public fn": {
           "prefix": "defn",
           "body": [
               "(defn ${name} [${args}] ${body})",
                 "$1"
           ],
-          "description": "INSERT SNIPPET: Defines a new public function"
+          "description": "vsclj: Defines a new public function"
       },
       "Define a new private fn": {
           "prefix": "defn-",
@@ -25,7 +33,7 @@
               "(defn- ${name} [${args}] ${body})",
                 "$1"
           ],
-          "description": "INSERT SNIPPET: Defines a new private function"
+          "description": "vsclj: Defines a new private function"
       }
   }
 

@@ -1,16 +1,21 @@
 {
     "name": "visualclojure",
     "displayName": "visual:clojure",
-    "description": "clj(s) support for visual studio code",
+    "description": "Clojure and ClojureScript support",
     "icon": "assets/icon.png",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "stiansivertsen",
     "author": {
         "name": "Stian Sivertsen",
         "email": "sivertsenstian@gmail.com"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sivertsenstian/visualclojure.git"
+
+    },
     "engines": {
-        "vscode": "^1.5.0"
+        "vscode": "^0.10.0"
     },
     "categories": [
         "Languages",
@@ -55,16 +60,10 @@
                         }]
     },
     "scripts": {
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
+        "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "typescript": "^2.0.3",
         "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "eslint": "^3.6.0",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32",
         "bencoder": "^0.0.5",
         "buffer": "^5.0.2",
         "net": "^1.0.2",
