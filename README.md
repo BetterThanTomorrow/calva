@@ -88,11 +88,12 @@ read more about this [here](https://github.com/bhauman/lein-figwheel/wiki/Using-
 
 If you have created a figwheel-project from a template (using e.g. lein new), you should be good to go as long as you start the repl in the projects folder.  
 
-So instead of running ```lein figwheel dev``` you will need to run ```lein repl``` and then start the figwheel REPL using    
-```(start-figwheel!)```
+So instead of running ```lein figwheel dev``` you will need to run ```lein repl```
+and then start the figwheel REPL using ```(start-figwheel!)```  
 
 I like to keep a start.clj file in my projects for this, and use (load-file "start.clj") to start:
 sample start.clj  
+
 ```
  (use 'figwheel-sidecar.repl-api)
  (start-figwheel!)
