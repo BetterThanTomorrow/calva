@@ -69,7 +69,7 @@ function getContentToNextBracket(block) {
             stillSearching = false;
         }
     }
-    return block.substr(0, currPos);
+    return [currPos, block.substr(0, currPos)];
 };
 
 function getContentToPreviousBracket(block) {
@@ -117,7 +117,7 @@ function getContentToPreviousBracket(block) {
             stillSearching = false;
         }
     }
-    return block.substr(currPos + 1, block.length);
+    return [currPos, block.substr(currPos + 1, block.length)];
 };
 
 function handleException(state, exceptions, isSelection = false) {
@@ -136,7 +136,7 @@ function handleException(state, exceptions, isSelection = false) {
             errFileUri = editor.document.uri;
 
         exClient.send(msg, (results) => {
-            if (results.length === 2 && results[0].status[0] === "no-error" && results[1].status[0] === "done") {
+            if (results.length === 2 && results[0].hasOwnProperty('status') && results[0].status[0] === "no-error" && results[1].status[0] === "done") {
                 let errorMsg = "Error when evaluating this expression..";
                 for(let r = 0; r < exceptions.length; r++) {
                     let result = exceptions[r];

@@ -15,7 +15,8 @@ function evaluateExpression(state, document = {}) {
                 let documentText = document.getText(),
                     selection = editor.selection,
                     isSelection = !selection.isEmpty,
-                    code = '';
+                    code = '',
+                    offset = 0;
                 if (isSelection) { //text selected by user, try to evaluate it
                     code = document.getText(selection);
                     //If a '(' or ')' is selected, evaluate the expression within
@@ -25,12 +26,12 @@ function evaluateExpression(state, document = {}) {
                             lastLine = document.lineCount,
                             endPosition = currentPosition.with(lastLine, document.lineAt(Math.max(lastLine - 1, 0)).text.length),
                             textSelection = new vscode.Selection(previousPosition, endPosition);
-                        code = helpers.getContentToNextBracket(document.getText(textSelection));
+                        [offset, code]  = helpers.getContentToNextBracket(document.getText(textSelection));
                     } else if (code === ')') {
                         let currentPosition = selection.active,
                             startPosition = currentPosition.with(0, 0),
                             textSelection = new vscode.Selection(startPosition, currentPosition);
-                        code = helpers.getContentToPreviousBracket(document.getText(textSelection));
+                        [offset, code]  = helpers.getContentToPreviousBracket(document.getText(textSelection));
                     }
                 } else { //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
                     let currentPosition = selection.active,
@@ -46,12 +47,12 @@ function evaluateExpression(state, document = {}) {
                             endPosition = currentPosition.with(lastLine, document.lineAt(Math.max(lastLine - 1, 0)).text.length),
                             startPosition = (nextChar === '(') ? currentPosition : previousPosition,
                             textSelection = new vscode.Selection(startPosition, endPosition);
-                        code = helpers.getContentToNextBracket(document.getText(textSelection));
+                        [offset, code]  =  helpers.getContentToNextBracket(document.getText(textSelection));
                     } else if (nextChar === ')' || prevChar === ')') {
                         let startPosition = currentPosition.with(0, 0),
                             endPosition = (prevChar === ')') ? currentPosition : nextPosition,
                             textSelection = new vscode.Selection(startPosition, endPosition);
-                        code = helpers.getContentToPreviousBracket(document.getText(textSelection));
+                        [offset, code]  = helpers.getContentToPreviousBracket(document.getText(textSelection));
                     }
                 }
                 if (code.length > 0) {
@@ -86,8 +87,6 @@ function evaluateExpression(state, document = {}) {
                         });
                     });
                 }
-            } else {
-                vscode.window.showErrorMessage("Filetype " + filetype + " not supported by current nREPL => " + state.session_type.statusbar);
             }
         }
     }
@@ -110,7 +109,7 @@ function evaluateFile(state, document = {}) {
                         filePath = document.fileName;
 
                     state.outputChannel.clear();
-                    state.outputChannel.appendLine("Evaluating  " + fileName);
+                    state.outputChannel.appendLine("Compiling  " + fileName);
                     state.outputChannel.appendLine("----------------------------");
 
                     state.diagnosticCollection.clear();
@@ -142,8 +141,6 @@ function evaluateFile(state, document = {}) {
                         });
                     });
                 }
-            } else {
-                vscode.window.showErrorMessage("Filetype " + filetype + " not supported by current repl => " + state.session_type.statusbar);
             }
         }
     }
