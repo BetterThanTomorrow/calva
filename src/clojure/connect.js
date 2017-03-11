@@ -28,14 +28,14 @@ function findSession(state, current, sessions) {
         })
         .once('end', function () {
             //If last session, check if found
-            if (current === (sessions.length - 1) && state.session === null) {
+            if (current === (sessions.length - 1) && !state.session.hasOwnProperty('cljs')) {
                 //Default to first session if no cljs-session is found, and treat it as a clj-session
                 if (sessions.length > 0) {
                     state.session.clj = sessions[current];
                     state.session.cljc = sessions[current];
                     state.session_type = SESSION_TYPE.CLJ;
                 }
-            } else if (Object.keys(state.session).length !== 3) {
+            } else if (Object.keys(state.session).length !== 3){
                 findSession(state, (current + 1), sessions);
             } else {
                 //Check the initial file where the command is called from
