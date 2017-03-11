@@ -100,7 +100,7 @@ sample start.clj
  (cljs-repl)
 ```
 
-But you can ofcourse also do it manually in the nREPL:  
+But you can also do it manually in the nREPL:  
 **NOTE:** You need to connect to the browser to activate figwheels the cljs-repl session.  
 ![Figwheel REPL](/assets/howto/figwheel.gif)
 
