@@ -1,7 +1,26 @@
 const vscode = require('vscode');
+const find = require('find');
+const fs = require('fs');
 const nreplClient = require('../nrepl/client');
 const nreplMsg = require('../nrepl/message');
 const SESSION_TYPE = require('../nrepl/session_type');
+
+function trySetReplPort(state) {
+    let path = vscode.workspace.rootPath,
+        port = null;
+    return new Promise((resolve, _) => {
+        find.file(/\.nrepl-port$/, path, (files) => {
+            if(files.length > 0) {
+                fs.readFile(files[0], 'utf8', (err, data) => {
+                    if(!err) {
+                        state.port = parseFloat(data);
+                        resolve(state);
+                    }
+                });
+            }
+        });
+    });
+}
 
 function getNamespace(text) {
     let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
@@ -141,9 +160,9 @@ function handleException(state, exceptions, isSelection = false) {
                 for(let r = 0; r < exceptions.length; r++) {
                     let result = exceptions[r];
                     if(result.hasOwnProperty('err')
-                      && result.err.indexOf("line") !== -1 
+                      && result.err.indexOf("line") !== -1
                       && result.err.indexOf("column") !== -1) {
-                        errorHasBeenMarked = true;  
+                        errorHasBeenMarked = true;
                         let errorParts = result.err;
                         if (errorParts.indexOf("starting at line") !== -1 && errorParts.indexOf("and column") !== -1) {
                             errorParts = result.err.split(' ');
@@ -167,10 +186,10 @@ function handleException(state, exceptions, isSelection = false) {
 
                 }
                 if(!errorHasBeenMarked) {
-                    state.diagnosticCollection.set(editor.document.uri, 
-                                                [new vscode.Diagnostic(new vscode.Range(editor.selection.start.line, 
-                                                editor.selection.start.character, 
-                                                editor.selection.start.line, 
+                    state.diagnosticCollection.set(editor.document.uri,
+                                                [new vscode.Diagnostic(new vscode.Range(editor.selection.start.line,
+                                                editor.selection.start.character,
+                                                editor.selection.start.line,
                                                 editor.document.lineAt(editor.selection.start.line).text.length),
                                 errorMsg, vscode.DiagnosticSeverity.Error)]);
                 } else if(errLine >= 0  && errChar >= 0) {
@@ -180,7 +199,7 @@ function handleException(state, exceptions, isSelection = false) {
                     }
                     let errPos = new vscode.Position(errLine, errChar),
                         errLineLength = editor.document.lineAt(errLine).text.length;
-                    
+
                     editor.selection = new vscode.Selection(errPos, errPos);
                     state.diagnosticCollection.set(errFileUri, [new vscode.Diagnostic(new vscode.Range(errLine, errChar, errLine, errLineLength),
                         errorMsg, vscode.DiagnosticSeverity.Error)]);
@@ -222,10 +241,10 @@ function handleException(state, exceptions, isSelection = false) {
 };
 
 function updateStatusbar(state) {
-    if (state.hostname) {
+    if (state.hostname && state.port) {
         state.statusbar_connection.text = "nrepl://" + state.hostname + ":" + state.port;
     } else {
-        state.statusbar_connection.text = "nrepl - no connection";
+        state.statusbar_connection.text = "nrepl - click to connect";
     }
     state.statusbar_type.text = state.session_type.statusbar;
     switch (state.session_type.id) {
@@ -239,8 +258,12 @@ function updateStatusbar(state) {
             state.statusbar_type.color = "rgb(192,192,192)";
             break;
     }
+    state.statusbar_connection.command = "visualclojure.connect";
+    state.statusbar_type.command = "visualclojure.toggleSession";
+
     state.statusbar_connection.show();
     state.statusbar_type.show();
+
 };
 
 
@@ -250,5 +273,6 @@ module.exports = {
     handleException,
     getContentToNextBracket,
     getContentToPreviousBracket,
-    updateStatusbar
+    updateStatusbar,
+    trySetReplPort
 };
