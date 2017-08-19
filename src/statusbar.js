@@ -7,8 +7,6 @@ const type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
 function update() {
     let current = state.deref();
-    console.log("UPDATING STATUSBAR!");
-    console.log(current);
 
     if (current.get('connected')) {
         connection.text = "nrepl://" + current.get('hostname') + ":" + current.get('port');
