@@ -8,6 +8,7 @@ const ClojureLanguageConfiguration = require('./language');
 const CompletionItemProvider = require('./providers/completion');
 const TextDocumentContentProvider = require('./providers/content');
 const HoverProvider = require('./providers/hover');
+const DefinitionProvider = require('./providers/definition');
 const SignatureProvider = require('./providers/signature');
 
 // const vscode = require('vscode');
@@ -34,6 +35,7 @@ function activate(context) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
     //context.subscriptions.push(vscode.languages.registerSignatureProvider(state.mode, new SignatureProvider()));
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
