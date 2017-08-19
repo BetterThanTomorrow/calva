@@ -12,7 +12,6 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/sivertsenstian/visualclojure.git"
-
     },
     "engines": {
         "vscode": "^0.10.0"
@@ -27,54 +26,62 @@
     ],
     "main": "./src/extension",
     "contributes": {
-        "commands": [{
-                        "command": "visualclojure.connect",
-                        "title": "VisualClojure: Connect to an existing nREPL session"
-                    },
-                    {
-                        "command": "visualclojure.evaluateExpression",
-                        "title": "VisualClojure: Evaluate selected expression"
-                    },
-                    {
-                        "command": "visualclojure.evaluateFile",
-                        "title": "VisualClojure: Evaluate current file"
-                    },
-                    {
-                        "command": "visualclojure.toggleSession",
-                        "title": "VisualClojure: Toggle between clj clj/cljs session"
-                    }],
-        "snippets": [{
-                        "language": "clojure",
-                        "path": "./snippets/clojure.json"
-                    }],
-        "keybindings": [{
-                            "command": "visualclojure.connect",
-                            "key": "alt+c",
-                            "mac": "alt+c"
-                        },
-                        {
-                            "command": "visualclojure.evaluateExpression",
-                            "key": "alt+Enter",
-                            "mac": "alt+Enter"
-                        },
-                        {
-                            "command": "visualclojure.evaluateFile",
-                            "key": "alt+f5",
-                            "mac": "alt+f5"
-                        }]
+        "commands": [
+            {
+                "command": "visualclojure.connect",
+                "title": "VisualClojure: Connect to an existing nREPL session"
+            },
+            {
+                "command": "visualclojure.evaluateExpression",
+                "title": "VisualClojure: Evaluate selected expression"
+            },
+            {
+                "command": "visualclojure.evaluateFile",
+                "title": "VisualClojure: Evaluate current file"
+            },
+            {
+                "command": "visualclojure.toggleSession",
+                "title": "VisualClojure: Toggle between clj clj/cljs session"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "clojure",
+                "path": "./snippets/clojure.json"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "visualclojure.connect",
+                "key": "alt+c",
+                "mac": "alt+c"
+            },
+            {
+                "command": "visualclojure.evaluateExpression",
+                "key": "alt+Enter",
+                "mac": "alt+Enter"
+            },
+            {
+                "command": "visualclojure.evaluateFile",
+                "key": "alt+f5",
+                "mac": "alt+f5"
+            }
+        ]
     },
     "scripts": {
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "vscode": "^1.1.0",
-        "bencoder": "^0.0.5",
+        "bencode": "^1.0.0",
         "buffer": "^5.0.2",
-        "find": "^0.2.7",
+        "find": "0.2.7",
+        "immutable": "^3.8.1",
+        "immutable-cursor": "^2.0.1",
         "jszip": "^3.1.3",
         "lodash": "^4.17.4",
         "net": "^1.0.2",
         "stream": "^0.0.2",
         "util": "^0.10.3",
+        "vscode": "^1.1.2"
     }
 }

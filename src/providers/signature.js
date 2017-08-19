@@ -5,25 +5,16 @@ const repl = require('../repl/client');
 const message = require('../repl/message');
 const {getNamespace, getActualWord} = require('../utilities');
 
-module.exports = class HoverProvider {
+module.exports = class SignatureProvider {
     constructor() {
         this.state = state;
     }
 
-    formatDocString(doc) {
-        let result = '';
-        if (doc !== 'undefined') {
-            result += '```clojure\n' + doc.replace(/\s\s+/g, ' ') + '\n```';
-        }
-        result += '';
-        return result.length > 0 ? result : "";
-    }
-
-    provideHover(document, position, token) {
+    provideSignatureHelp(document, position, token) {
         let selected = document.getWordRangeAtPosition(position),
             selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
             text = getActualWord(document, position, selected, selectedText),
-            docstring = "",
+            arglist = [],
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
@@ -36,17 +27,25 @@ module.exports = class HoverProvider {
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {
                             let result = results[r];
-                            docstring += result.doc;
+                            if (result.hasOwnProperty('arglits-str')) {
+                                arglist.push(result['arglists-str']);
+                            }
                         }
                         client.end();
-                        if (docstring.length === 0) {
-                            reject("Docstring not found for " + text);
+                        if (arglist.length === 0) {
+                            reject("Signature not found for " + text);
                         } else {
-                            let result = scope.formatDocString(docstring);
+                            let result = arglist;
                             if (result.length === 0) {
-                                reject("Docstring not found for " + text);
+                                reject("Signature not found for " + text);
                             } else {
-                                resolve(new vscode.Hover(result));
+                                let sh = new vscode.SignatureHelp();
+                                let si = [];
+                                for(var i = 0; i < arglist.length; i++) {
+                                    si.push(new vscode.SignatureInformation("Label", arglist[i]));
+                                }
+                                sh.signatures = si;
+                                resolve(sh);
                             }
                         }
                     });
