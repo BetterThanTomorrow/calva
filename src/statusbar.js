@@ -10,7 +10,7 @@ function update() {
     console.log("UPDATING STATUSBAR!");
     console.log(current);
 
-    if (current.get('connection')) {
+    if (current.get('connected')) {
         connection.text = "nrepl://" + current.get('hostname') + ":" + current.get('port');
     } else {
         connection.text = "nrepl - click to connect";

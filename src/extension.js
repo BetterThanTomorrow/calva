@@ -23,8 +23,10 @@ const SignatureProvider = require('./providers/signature');
 function activate(context) {
     //Set the language configuration for vscode when using this extension
     vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
-    console.log("ITS WORKING!");
     statusbar.update();
+
+    //Try to connect using an existing .nrepl-port file, searching the root-directory
+    connector.autoConnect();
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.connect', connector.connect));
@@ -32,7 +34,7 @@ function activate(context) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureProvider(state.mode, new SignatureProvider()));
+    //context.subscriptions.push(vscode.languages.registerSignatureProvider(state.mode, new SignatureProvider()));
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
     // //COMMANDS

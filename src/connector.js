@@ -1,14 +1,24 @@
 const vscode = require('vscode');
+const find = require('find');
+const fs = require('fs');
 const state = require ('./state');
 const statusbar = require('./statusbar');
 const repl = require('./repl/client');
 const message = require('./repl/message');
 
+function connectToHost (hostname, port) {
+    let client = repl.create({hostname, port}).once('connect', function () {
+        state.cursor.set("connected", true);
+        let msg = message.listSessions();
+        client.send(msg, function (results) {
+            findSession(0, results[0].sessions);
+            client.end();
+        });
+    });
+}
+
 function findSession(session, sessions) {
     let current = state.deref();
-    console.log("STATE?!");
-    console.log(current);
-
     let client = repl.create()
     .once('connect', function () {
         let msg = message.testSession(sessions[session]);
@@ -49,23 +59,37 @@ function connect() {
         value: "localhost:",
         ignoreFocusOut: true
     })
-    .then(function (url) {
+    .then(function(url) {
         let [hostname, port] = url.split(':');
         state.cursor.set("hostname", hostname);
         state.cursor.set("port", port);
-        console.log("CONNECTING!");
-        console.log(state.deref());
-        let client = repl.create({hostname, port}).once('connect', function () {
-            state.cursor.set("connected", true);
-            let msg = message.listSessions();
-            client.send(msg, function (results) {
-                findSession(0, results[0].sessions);
-                client.end();
-            });
+        connectToHost(hostname, port);
+    });
+};
+
+function autoConnect() {
+    let path = vscode.workspace.rootPath,
+        port = null
+        current = state.deref();;
+    return new Promise((resolve, _) => {
+        find.file(/\.nrepl-port$/, path, (files) => {
+            if(files.length > 0) {
+                fs.readFile(files[0], 'utf8', (err, data) => {
+                    if(!err) {
+                        let hostname = "localhost",
+                            port = parseFloat(data);
+
+                        state.cursor.set("hostname", hostname);
+                        state.cursor.set("port", port);
+                        connectToHost(hostname, port);
+                    }
+                });
+            }
         });
     });
 };
 
 module.exports = {
-    connect
+    connect,
+    autoConnect
 };
