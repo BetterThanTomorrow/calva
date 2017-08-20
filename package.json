@@ -29,19 +29,38 @@
         "commands": [
             {
                 "command": "visualclojure.connect",
-                "title": "VisualClojure: Connect to an existing nREPL session"
+                "title": "connect",
+                "category": "visualclojure"
             },
             {
                 "command": "visualclojure.evaluateExpression",
-                "title": "VisualClojure: Evaluate selected expression"
+                "title": "evaluate: selected expression",
+                "category": "visualclojure"
             },
             {
                 "command": "visualclojure.evaluateFile",
-                "title": "VisualClojure: Evaluate current file"
+                "title": "evaluate: current file",
+                "category": "visualclojure"
             },
             {
                 "command": "visualclojure.toggleSession",
-                "title": "VisualClojure: Toggle between clj clj/cljs session"
+                "title": "toggle session",
+                "category": "visualclojure"
+            },
+            {
+                "command": "visualclojure.refresh",
+                "title": "refresh: changed files",
+                "category": "visualclojure"
+            },
+            {
+                "command": "visualclojure.refreshAll",
+                "title": "refresh: all files (in dependency order)",
+                "category": "visualclojure"
+            },
+            {
+                "command": "visualclojure.refreshClear",
+                "title": "refresh: clear",
+                "category": "visualclojure"
             }
         ],
         "snippets": [

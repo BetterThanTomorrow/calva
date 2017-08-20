@@ -8,7 +8,9 @@ var operation = {
     CLOSE: "close",
     STACKTRACE: "stacktrace",
     INFO: "info",
-    REFRESH: "refresh"
+    REFRESH: "refresh",
+    REFRESH_ALL: "refresh-all",
+    REFRESH_CLEAR: "refresh-clear"
 }
 
 function testSessionMsg(session) {
@@ -90,6 +92,20 @@ function refreshMsg(session) {
     };
 };
 
+function refreshAllMsg(session) {
+    return {
+        op: operation.REFRESH_ALL,
+        session: session
+    };
+};
+
+function refreshClearMsg(session) {
+    return {
+        op: operation.REFRESH_CLEAR,
+        session: session
+    };
+};
+
 module.exports = {
     evaluate: evaluateMsg,
     listSessions: listSessionsMsg,
@@ -100,5 +116,7 @@ module.exports = {
     stacktrace: stacktraceMsg,
     clone: cloneMsg,
     close: closeMsg,
-    refresh: refreshMsg
+    refresh: refreshMsg,
+    refreshAll: refreshAllMsg,
+    refreshClear: refreshClearMsg
 };

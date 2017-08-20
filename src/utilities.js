@@ -1,3 +1,5 @@
+const vscode = require('vscode');
+
 function getNamespace(text) {
     let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
     return match ? match[1] : 'user';
@@ -18,7 +20,16 @@ function getActualWord(document, position, selected, word) {
     }
 };
 
+function getFileType(document) {
+    let editor = vscode.window.activeTextEditor,
+        doc = document.hasOwnProperty('fileName') ? document : editor.document,
+        filetypeIndex = (doc.fileName.lastIndexOf('.') + 1);
+
+    return doc.fileName.substr(filetypeIndex, doc.fileName.length);
+};
+
 module.exports = {
     getNamespace,
-    getActualWord
+    getActualWord,
+    getFileType
 };
