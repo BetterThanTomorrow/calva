@@ -20,16 +20,19 @@ function getActualWord(document, position, selected, word) {
     }
 };
 
-function getFileType(document) {
-    let editor = vscode.window.activeTextEditor,
-        doc = document.hasOwnProperty('fileName') ? document : editor.document,
-        filetypeIndex = (doc.fileName.lastIndexOf('.') + 1);
+function getDocument(document) {
+  return document.hasOwnProperty('fileName') ? document : vscode.window.activeTextEditor.document;
+};
 
-    return doc.fileName.substr(filetypeIndex, doc.fileName.length);
+function getFileType(document) {
+  let doc = getDocument(document);
+  filetypeIndex = (doc.fileName.lastIndexOf('.') + 1);
+  return doc.fileName.substr(filetypeIndex, doc.fileName.length);
 };
 
 module.exports = {
     getNamespace,
     getActualWord,
-    getFileType
+    getFileType,
+    getDocument
 };

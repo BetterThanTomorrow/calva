@@ -10,7 +10,8 @@ var operation = {
     INFO: "info",
     REFRESH: "refresh",
     REFRESH_ALL: "refresh-all",
-    REFRESH_CLEAR: "refresh-clear"
+    REFRESH_CLEAR: "refresh-clear",
+    FORMAT_CODE: "format-code"
 }
 
 function testSessionMsg(session) {
@@ -31,7 +32,7 @@ function evaluateMsg(session, ns, code) {
     return {
         op: operation.EVALUATE,
         ns: ns,
-        code: code, //.replace(/"/g, '\\"')
+        code: code,
         session: session
     };
 };

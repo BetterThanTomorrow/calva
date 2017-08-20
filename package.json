@@ -61,6 +61,11 @@
                 "command": "visualclojure.refreshClear",
                 "title": "refresh: clear",
                 "category": "visualclojure"
+            },
+            {
+                "command": "visualclojure.formatDocument",
+                "title": "format: current file",
+                "category": "visualclojure"
             }
         ],
         "snippets": [

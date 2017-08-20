@@ -11,6 +11,7 @@ const HoverProvider = require('./providers/hover');
 const DefinitionProvider = require('./providers/definition');
 
 const RefreshMiddleWare = require('./repl/middleware/refresh');
+const FormatMiddleWare = require('./repl/middleware/format');
 
 function activate(context) {
     //Set the language configuration for vscode when using this extension
@@ -25,6 +26,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refresh', RefreshMiddleWare.refreshChanged));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refreshAll', RefreshMiddleWare.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refreshClear', RefreshMiddleWare.refreshClear));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.formatDocument', FormatMiddleWare.formatDocument));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
@@ -36,10 +38,12 @@ function activate(context) {
     context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
         //clojureEvaluation.evaluateFile(state, document);
         RefreshMiddleWare.refreshChanged(document);
+        FormatMiddleWare.formatDocument(document);
     }));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
         //clojureEvaluation.evaluateFile(state, document);
         RefreshMiddleWare.refreshChanged(document);
+        FormatMiddleWare.formatDocument(document);
     }));
 }
 
