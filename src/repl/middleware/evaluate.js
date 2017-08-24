@@ -3,7 +3,8 @@ const _ = require('lodash');
 const state = require ('../../state');
 const repl = require('../client');
 const message = require('../message');
-const {getDocument, getFileName, getFileType, getNamespace, getActualWord} = require('../../utilities');
+const {getDocument, getFileName, getFileType, getNamespace, getActualWord,
+       getContentToNextBracket, getContentToPreviousBracket} = require('../../utilities');
 
 const ERROR = {DEFAULT: "Unknown error..",
                ILLEGAL_ARGUMENT: "java.lang.IllegalArgumentException"};
@@ -34,9 +35,19 @@ function logError (error) {
     chan.appendLine("at line: " + error.line + " and column: " + error.column)
 };
 
-function logSuccess () {
+function logSuccess (results) {
     let chan = state.deref().get('outputChannel');
     chan.appendLine("Evaluation completed successfully");
+    _.each(results, (r) => {
+        let value = r.hasOwnProperty("value") ? r.value : null;
+        let out = r.hasOwnProperty("out") ? r.out : null;
+        if (value !== null) {
+            chan.appendLine("=>\n" + value);
+        }
+        if (out !== null) {
+            chan.appendLine("out:\n" + out);
+        }
+    });
 };
 
 function markError (error) {
@@ -182,8 +193,122 @@ function getWarnings (results) {
     return warnings;
 };
 
-function evaluateSelection() {
+function evaluateSelection(document = {}) {
+    let current = state.deref(),
+    diagnostic = current.get('diagnosticCollection'),
+    chan = current.get('outputChannel'),
+    doc = getDocument(document),
+    session = current.get(getFileType(doc));
 
+    diagnostic.clear();
+    chan.clear();
+    if (current.get('connected')) {
+        let editor = vscode.window.activeTextEditor,
+            selection = editor.selection,
+            code = ""
+            offset = 0;
+
+        if (!selection.isEmpty) { //text selected by user, try to evaluate it
+            code = doc.getText(selection);
+            if (code === '(') {
+                let currentPosition = selection.active,
+                    previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
+                    lastLine = doc.lineCount,
+                    endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
+                    textSelection = new vscode.Selection(previousPosition, endPosition);
+                [offset, code]  = getContentToNextBracket(doc.getText(textSelection));
+            } else if (code === ')') {
+                let currentPosition = selection.active,
+                    startPosition = currentPosition.with(0, 0),
+                    textSelection = new vscode.Selection(startPosition, currentPosition);
+                [offset, code]  = getContentToPreviousBracket(doc.getText(textSelection));
+            }
+        } else { //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
+            let currentPosition = selection.active,
+            nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
+            previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
+            nextSelection = new vscode.Selection(currentPosition, nextPosition),
+            previousSelection = new vscode.Selection(previousPosition, currentPosition),
+            nextChar = doc.getText(nextSelection),
+            prevChar = doc.getText(previousSelection);
+
+            if (nextChar === '(' || prevChar === '(') {
+                let lastLine = doc.lineCount,
+                    endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
+                    startPosition = (nextChar === '(') ? currentPosition : previousPosition,
+                    textSelection = new vscode.Selection(startPosition, endPosition);
+                [offset, code]  =  getContentToNextBracket(doc.getText(textSelection));
+            } else if (nextChar === ')' || prevChar === ')') {
+                let startPosition = currentPosition.with(0, 0),
+                    endPosition = (prevChar === ')') ? currentPosition : nextPosition,
+                    textSelection = new vscode.Selection(startPosition, endPosition);
+                [offset, code]  = getContentToPreviousBracket(doc.getText(textSelection));
+            }
+        }
+
+        if (code.length > 0) {
+            chan.appendLine("Evaluating:");
+            chan.appendLine(code);
+            chan.appendLine("----------------------------");
+            new Promise((resolve, reject) => {
+                let evalClient = repl.create().once('connect', () => {
+                    evalClient.send({op: "eval",
+                                     ns: getNamespace(doc.getText()),
+                                     code,
+                                     session}, (result) => {
+                        evalClient.end();
+                        resolve(result);
+                    });
+                }).once('end', () => {
+                    reject("failed?");
+                });
+            }).then((loadFileResults) => {
+                let exceptions = _.some(loadFileResults, "ex"),
+                    errors = _.some(loadFileResults, "err");
+
+                if (!exceptions && !errors) {
+                    logSuccess(loadFileResults);
+                }
+
+                if (exceptions) {
+                    new Promise((resolve, reject) => {
+                        let stackTraceClient = repl.create().once('connect', () => {
+                            stackTraceClient.send({op: "stacktrace", session}, (result) => {
+                                stackTraceClient.end();
+                                resolve(result);
+                            });
+                        }).once('end', () => {
+                            reject("failed?");
+                        });
+                    }).then((stackTraceResult) => {
+                        let [line, column] = getLineAndColumn(stackTraceResult);
+                        let [type, reason] = getReason(stackTraceResult);
+                        let error = evaluationError({line, column, type, reason, file: doc.fileName});
+                        logError(error);
+                        markError(error);
+                    }).catch((error) => {
+                        console.log("ERROR REJECTED! STACKTRACE!");
+                        console.log(error);
+                    });
+                }
+                if (errors) {
+                    let warnings = getWarnings(loadFileResults);
+                    warnings.forEach(w => {
+                        logWarning(w);
+                        markWarning(w);
+                    });
+                    if (warnings.length === 0) {
+                        console.log("Errors in results, but no warnings!");
+                        console.log(loadFileResults);
+                        chan.appendLine("Evaluation failed..");
+                    }
+                }
+            }).catch((error) => {
+                console.log("ERROR REJECTED! EVAL!");
+                console.log(error);
+            });
+        }
+    }
 };
 
 function evaluateFile(document = {}) {
@@ -220,7 +345,7 @@ function evaluateFile(document = {}) {
                 errors = _.some(loadFileResults, "err");
 
             if (!exceptions && !errors) {
-                logSuccess();
+                logSuccess(loadFileResults);
             }
 
             if (exceptions) {
@@ -250,6 +375,11 @@ function evaluateFile(document = {}) {
                     logWarning(w);
                     markWarning(w);
                 });
+                if (warnings.length === 0) {
+                    console.log("Errors in results, but no warnings!");
+                    console.log(loadFileResults);
+                    chan.appendLine("Evaluation failed..");
+                }
             }
         }).catch((error) => {
             console.log("ERROR REJECTED! LOADFILE!");

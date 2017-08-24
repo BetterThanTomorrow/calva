@@ -46,6 +46,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refreshClear', RefreshMiddleWare.refreshClear));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.formatDocument', FormatMiddleWare.formatDocument));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', EvaluateMiddleWare.evaluateFile));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));

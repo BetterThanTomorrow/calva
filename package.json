@@ -64,13 +64,13 @@
                 "category": "visualclojure"
             },
             {
-                "command": "visualclojure.evaluateExpression",
-                "title": "evaluate: selected expression",
+                "command": "visualclojure.evaluateSelection",
+                "title": "evaluate selection or current form",
                 "category": "visualclojure"
             },
             {
                 "command": "visualclojure.evaluateFile",
-                "title": "evaluate: current file",
+                "title": "evaluate current file",
                 "category": "visualclojure"
             },
             {
@@ -112,7 +112,7 @@
                 "mac": "alt+c"
             },
             {
-                "command": "visualclojure.evaluateExpression",
+                "command": "visualclojure.evaluateSelection",
                 "key": "alt+Enter",
                 "mac": "alt+Enter"
             },
