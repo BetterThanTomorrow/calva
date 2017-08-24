@@ -58,7 +58,6 @@ function markError (error) {
 
 function logWarning (warning) {
     let chan = state.deref().get('outputChannel');
-    console.log(warning);
     chan.appendLine(warning.type + ": " + warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
@@ -89,14 +88,16 @@ function markWarning (warning) {
     diagnostic.set(editor.document.uri,
                    [new vscode.Diagnostic(new vscode.Range(line, column, line, lineLength),
                                           warning.reason,
-                                          vscode.DiagnosticSeverity.Warning)]);
+                                          vscode.DiagnosticSeverity.Error)]);
 };
 
 function getReason (results) {
     let illegal_arguments = _.filter(results, {class: ERROR.ILLEGAL_ARGUMENT});
     if (illegal_arguments.length > 0) {
-        console.log(illegal_arguments);
         return [ERROR.ILLEGAL_ARGUMENT, illegal_arguments[0].message];
+    } else {
+        console.log("UNKOWN REASON..");
+        console.log(results);
     }
     return [ERROR.DEFAULT, "Something went wrong.."];
 };
@@ -104,10 +105,13 @@ function getReason (results) {
 function getLineAndColumn (results) {
     let line = null, column = null,
         hasLine = (s) => { return (s.indexOf(":line") !== -1 || s.indexOf("line") !== -1); };
-        hasCol = (s) => { return (s.indexOf(":column") !== -1 || s.indexOf("column") !== -1); };
+        hasCol = (s) => { return (s.indexOf(":column") !== -1 || s.indexOf("column") !== -1 || s.indexOf("col") !== -1 || s.indexOf(":col") !== -1); };
         extractWordPlacement = (words, word) => {for (var w = 0; w < words.length; w++) {
                                                     if (words[w].indexOf(word) !== -1) {
-                                                        return words[w].replace(word, "").trim();
+                                                        return words[w].replace(word, "")
+                                                                       .replace("}", "")
+                                                                       .replace("{","")
+                                                                       .trim();
                                                 }}}
     for(var r = 0; r < results.length; r++) {
         if (line !== null && column !== null) break;
@@ -123,11 +127,9 @@ function getLineAndColumn (results) {
         if (line === null) {
             if (data !== null && hasLine(data)) {
                 let words = data.replace(" ", "").split(",");
-                console.log(words);
                 line = extractWordPlacement(words, ":line");
             } else if (message !== null && hasLine(message)) {
                 let words = message.split(" ");
-                console.log(words);
                 line = extractWordPlacement(words, "line");
             }
         }
@@ -135,16 +137,16 @@ function getLineAndColumn (results) {
         if (column === null) {
             if (data !== null && hasCol(data)) {
                 let words = data.replace(" ", "").split(",");
-                console.log(words);
-                column = extractWordPlacement(words, ":column");
+                column = extractWordPlacement(words, ":column")
+                       || extractWordPlacement(words, ":col");
+
             } else if (message !== null && hasCol(message)) {
                 let words = message.split(" ");
-                console.log(words);
-                column = extractWordPlacement(words, "column");
+                column = extractWordPlacement(words, "column")
+                       || extractWordPlacement(words, "col");
             }
         }
     }
-    console.log("line: " + line + " and column: " + column);
     return [parseInt(line,10), parseInt(column, 10)];
 };
 
@@ -191,66 +193,67 @@ function evaluateFile(document = {}) {
 
     diagnostic.clear();
     if (current.get('connected')) {
-        let loadFileResults = null,
-            stacktraceResults = null,
-            warnings = [],
-            error = null,
-            fileName = getFileName(doc),
+        let fileName = getFileName(doc),
             namespace = getNamespace(doc.getText()),
-            session = current.get(getFileType(doc)),
-            load_file = {op: "load-file",
-                         file: doc.getText(),
-                         "file-name": fileName,
-                         "file-path": doc.fileName,
-                         session},
-            stacktrace = {op: "stacktrace", session},
+            session = current.get(getFileType(doc));
+
             chan = current.get('outputChannel');
             chan.clear();
             chan.appendLine("Evaluating file: " + fileName);
             chan.appendLine("----------------------------");
-        let loadfileClient = repl.create().once('connect', () => {
-            loadfileClient.send(load_file, (lfr) => {
-                loadFileResults = lfr;
-                console.log("loaded file?");
-                console.log(loadFileResults);
-                if (_.some(loadFileResults, "ex")) {
-                    let stackTraceClient = repl.create().once('connect', () => {
-                        stackTraceClient.send(stacktrace, (str) => {
-                            stackTraceResult = str;
-                            console.log("stacktrace?");
-                            console.log(stackTraceResult);
 
-                            let [line, column] = getLineAndColumn(stackTraceResult);
-                            let [type, reason] = getReason(stackTraceResult);
-
-                            error = evaluationError({line, column, type, reason, file: doc.fileName});
-                            logError(error);
-                            markError(error);
-
-                            stackTraceClient.end();
-                        });
-                    });
-                }
-                if (_.some(loadFileResults, "err")) {
-                    warnings = getWarnings(loadFileResults);
-                    warnings.forEach(w => {
-                        logWarning(w);
-                        markWarning(w);
-                    });
-                }
-
-                if (warnings.length === 0 && error === null) {
-                    logSuccess();
-                }
-                loadfileClient.end();
+        new Promise((resolve, reject) => {
+            let loadfileClient = repl.create().once('connect', () => {
+                loadfileClient.send({op: "load-file",
+                                     file: doc.getText(),
+                                     "file-name": fileName,
+                                     "file-path": doc.fileName,
+                                     session}, (result) => {
+                    loadfileClient.end();
+                    resolve(result);
+                });
+            }).once('end', () => {
+                reject("failed?");
             });
-        }).once('end', function() {
-            console.log("loaded file!");
-            //Fallback if stacktrace fails.
-            setTimeout(() => {
-                console.log(loadFileResults);
-                console.log(stacktraceResults);
-            }, 500);
+        }).then((loadFileResults) => {
+            let exceptions = _.some(loadFileResults, "ex"),
+                errors = _.some(loadFileResults, "err");
+
+            if (!exceptions && !errors) {
+                logSuccess();
+            }
+
+            if (exceptions) {
+                new Promise((resolve, reject) => {
+                    let stackTraceClient = repl.create().once('connect', () => {
+                        stackTraceClient.send({op: "stacktrace", session}, (result) => {
+                            stackTraceClient.end();
+                            resolve(result);
+                        });
+                    }).once('end', () => {
+                        reject("failed?");
+                    });
+                }).then((stackTraceResult) => {
+                    let [line, column] = getLineAndColumn(stackTraceResult);
+                    let [type, reason] = getReason(stackTraceResult);
+                    let error = evaluationError({line, column, type, reason, file: doc.fileName});
+                    logError(error);
+                    markError(error);
+                }).catch((error) => {
+                    console.log("ERROR REJECTED! STACKTRACE!");
+                    console.log(error);
+                });
+            }
+            if (errors) {
+                let warnings = getWarnings(loadFileResults);
+                warnings.forEach(w => {
+                    logWarning(w);
+                    markWarning(w);
+                });
+            }
+        }).catch((error) => {
+            console.log("ERROR REJECTED! LOADFILE!");
+            console.log(error);
         });
     }
 };
