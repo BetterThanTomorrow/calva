@@ -7,10 +7,8 @@ const support = {
     CLJS: ["cljc", "cljs"],
     CLJ: ["cljc", "clj"]
 };
-
-
-
-var data = Immutable.fromJS({
+var data;
+const initialData = {
     hostname: null,
     port: null,
     clj: null,
@@ -18,7 +16,9 @@ var data = Immutable.fromJS({
     connected: false,
     outputChannel: vscode.window.createOutputChannel("VisualClojure"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('VisualClojure: Evaluation errors')
-});
+};
+
+reset();
 
 const cursor = ImmutableCursor.from(data, [], (nextState, currentState) => {
 	data = Immutable.fromJS(nextState);
@@ -28,9 +28,25 @@ function deref() {
     return data;
 };
 
+function reset() {
+    data = Immutable.fromJS(initialData);
+};
+
+function config() {
+    let configOptions = vscode.workspace.getConfiguration('visualclojure');
+    return {
+        format: configOptions.get("formatOnSave"),
+        refresh: configOptions.get("refreshOnSave"),
+        eval: configOptions.get("evalOnSave"),
+        connect: configOptions.get("autoConnect")
+    };
+};
+
 module.exports = {
     cursor,
     support,
     mode,
-    deref
+    deref,
+    reset,
+    config
 };

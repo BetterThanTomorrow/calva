@@ -5,14 +5,15 @@ const message = require('../message');
 const {getDocument, getFileType} = require('../../utilities');
 const ignoreNextSave = [];
 
-function formatDocument(document) {
-    let current = state.deref();
-    if (document.languageId !== 'clojure' || ignoreNextSave.length > 0) {
+function formatDocument(document = {}) {
+    let current = state.deref(),
+        doc = getDocument(document);
+
+    if (doc.languageId !== 'clojure' || ignoreNextSave.length > 0) {
         return;
     }
 
     if(current.get('connected')) {
-        let doc = getDocument(document);
         let client = repl.create().once('connect', () => {
             let msg = {op: "format-code",
                        code: doc.getText(),
@@ -22,10 +23,10 @@ function formatDocument(document) {
                 let formattedDocument = results[0]["formatted-code"],
                     active = vscode.window.activeTextEditor;
 
-                if (active.document === document) {
+                if (active.document === doc) {
                     active.edit(editor => editor.replace(wholeDocument, formattedDocument));
-                    ignoreNextSave.push(document);
-                    document.save().then(() => {
+                    ignoreNextSave.push(doc);
+                    doc.save().then(() => {
                         ignoreNextSave.pop();
                     });;
                 }

@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const state = require ('../../state');
 const repl = require('../client');
 const message = require('../message');
-const {getFileType} = require('../../utilities');
+const {getFileType, getDocument} = require('../../utilities');
 
 function logResults (results) {
     let reloaded = [];
@@ -23,10 +23,12 @@ function logResults (results) {
 };
 
 function refreshChanged(document = {}) {
-    let current = state.deref();
+    let current = state.deref(),
+        doc = getDocument(document);
+
     if(current.get('connected')) {
-        let client = repl.create().once('connect', () => {
-            let msg = message.refresh(current.get(getFileType(document)));
+         client = repl.create().once('connect', () => {
+            let msg = message.refresh(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 logResults(results);
                 client.end();
@@ -36,10 +38,11 @@ function refreshChanged(document = {}) {
 };
 
 function refreshAll(document = {}) {
-    let current = state.deref();
+    let current = state.deref(),
+        doc = getDocument(document);
     if(current.get('connected')) {
         let client = repl.create().once('connect', () => {
-            let msg = message.refreshAll(current.get(getFileType(document)));
+            let msg = message.refreshAll(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 logResults(results);
                 client.end();
@@ -49,10 +52,11 @@ function refreshAll(document = {}) {
 };
 
 function refreshClear(document = {}) {
-    let current = state.deref();
+    let current = state.deref(),
+        doc = getDocument(document);
     if(current.get('connected')) {
         let client = repl.create().once('connect', () => {
-            let msg = message.refreshClear(current.get(getFileType(document)));
+            let msg = message.refreshClear(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 let chan = current.get('outputChannel');
                     chan.clear();

@@ -52,19 +52,43 @@ function findSession(session, sessions) {
 };
 
 function connect() {
-    let current = state.deref();
-    vscode.window.showInputBox({
-        placeHolder: "Enter existing nREPL hostname:port here...",
-        prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
-        value: "localhost:",
-        ignoreFocusOut: true
-    })
-    .then(function(url) {
-        let [hostname, port] = url.split(':');
-        state.cursor.set("hostname", hostname);
-        state.cursor.set("port", port);
-        connectToHost(hostname, port);
+    let current = state.deref(),
+        path = vscode.workspace.rootPath,
+        hostname = "localhost",
+        port = null;
+    new Promise((resolve, reject) => {
+        find.file(/\.nrepl-port$/, path, (files) => {
+            if(files.length > 0) {
+                fs.readFile(files[0], 'utf8', (err, data) => {
+                    if(!err) {
+                        resolve(data);
+                    } else {
+                        reject("");
+                    }
+                });
+            } else {
+                reject("");
+            }
+        });
+    }).then((port) => {
+        vscode.window.showInputBox({
+            placeHolder: "Enter existing nREPL hostname:port here...",
+            prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
+            value: "localhost:" + port,
+            ignoreFocusOut: true
+        })
+        .then(function(url) {
+            let [hostname, port] = url.split(':');
+            state.cursor.set("hostname", hostname);
+            state.cursor.set("port", port);
+            connectToHost(hostname, port);
+        });
     });
+};
+
+function reconnect() {
+    state.reset();
+    autoConnect();
 };
 
 function autoConnect() {
@@ -91,5 +115,6 @@ function autoConnect() {
 
 module.exports = {
     connect,
+    reconnect,
     autoConnect
 };

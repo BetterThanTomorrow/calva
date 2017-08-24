@@ -30,9 +30,15 @@ function getFileType(document) {
   return doc.fileName.substr(filetypeIndex, doc.fileName.length);
 };
 
+function getFileName(document) {
+  let fileNameIndex = (document.fileName.lastIndexOf('\\') + 1);
+  return document.fileName.substr(fileNameIndex, document.fileName.length)
+};
+
 module.exports = {
     getNamespace,
     getActualWord,
+    getDocument,
     getFileType,
-    getDocument
+    getFileName
 };

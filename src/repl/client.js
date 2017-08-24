@@ -47,11 +47,26 @@ function create (options) {
     if (_options !== null) {
         let con = net.createConnection(_options);
         con.send = send.bind(con);
+
+        con.on('error', (e) => {
+            console.log("ERROR");
+            console.log(e);
+            if (e.code === 'EADDRINUSE') {
+                console.log('Address in use, retrying...');
+                setTimeout(() => {
+                server.close();
+                server.listen(PORT, HOST);
+                }, 1000);
+            }
+        });
+
         return con;
     }
 };
 
 function send (msg, callback) {
+    console.log("sending msg: " + msg.op);
+
     let buffer = Buffer.from(''),
     encodedMsg = bencoder.encode(msg);
     let chunks = [];
