@@ -9,18 +9,26 @@ module.exports = class HoverProvider {
         this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
     }
 
-    formatDocString(arglist, doc) {
+    formatDocString(nsname, arglist, doc) {
         let result = '';
+        if (nsname.length > 0 && nsname !== 'undefined') {
+            result += '**' + nsname + '**  ';
+            result += '\n';
+        }
+
+        // Format the different signatures for the fn
         if (arglist !== 'undefined') {
-            result += '**signature:**\n\n'
-            result += arglist.substring(1, arglist.length - 1)
-                .replace(/\]\ \[/g, ']\n\n[');
+            result += arglist.substring(0, arglist.length)
+                             .replace(/\]/g, ']_')
+                             .replace(/\[/g, '* _[');
+            result += '\n\n';
         }
+
+        // Format the actual docstring
         if (doc !== 'undefined') {
-            result += '\n\n**description:**\n\n'
-            result += '```clojure\n' + doc.replace(/\s\s+/g, ' ') + '\n```';
+            result += doc.replace(/\s\s+/g, ' ');
+            result += '  ';
         }
-        result += '';
         return result.length > 0 ? result : "";
     }
 
@@ -28,8 +36,9 @@ module.exports = class HoverProvider {
         let selected = document.getWordRangeAtPosition(position),
             selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
             text = helpers.getActualWord(document, position, selected, selectedText),
-            arglist = "",
             docstring = "",
+            arglist = "",
+            nsname = "",
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
@@ -43,15 +52,17 @@ module.exports = class HoverProvider {
                     infoClient.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {
                             let result = results[r];
-
-                            arglist += result['arglists-str'];
-                            docstring += result.doc;
+                                docstring += result.doc;
+                                arglist += result['arglists-str'];
+                                if(result.hasOwnProperty('ns') && result.hasOwnProperty('name')) {
+                                  nsname = result.ns + "/" + result.name;
+                                }
                         }
                         infoClient.end();
                         if (docstring.length === 0) {
                             reject("Docstring not found for " + text);
                         } else {
-                            let result = scope.formatDocString(arglist, docstring);
+                            let result = scope.formatDocString(nsname, arglist, docstring);
                             if (result.length === 0) {
                                 reject("Docstring not found for " + text);
                             } else {

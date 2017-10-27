@@ -4,6 +4,8 @@ const nreplClient = require('../nrepl/client');
 const nreplMsg = require('../nrepl/message');
 const SESSION_TYPE = require('../nrepl/session_type');
 const clojureEvaluation = require('./evaluation');
+const find = require('find');
+const fs = require('fs');
 
 function findSession(state, current, sessions) {
     let tmpClient = nreplClient.create({
@@ -45,31 +47,75 @@ function findSession(state, current, sessions) {
         });
 };
 
-function initialConnection(state) {
-    vscode.window.showInputBox({
-        placeHolder: "Enter existing nREPL hostname:port here...",
-        prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
-        value: "localhost:",
-        ignoreFocusOut: true
-    })
+function connectToHost(state) {
+    let lsSessionClient = nreplClient.create({
+        host: state.hostname,
+        port: state.port
+    }).once('connect', function () {
+        state.connected = true;
+        let msg = nreplMsg.listSessions();
+        lsSessionClient.send(msg, function (results) {
+            findSession(state, 0, results[0].sessions);
+            lsSessionClient.end();
+        });
+    });
+};
+
+function initialConnection(current) {
+    let path = vscode.workspace.rootPath,
+        hostname = "localhost",
+        port = null;
+    new Promise((resolve, reject) => {
+        find.file(/\.nrepl-port$/, path, (files) => {
+            if(files.length > 0) {
+                fs.readFile(files[0], 'utf8', (err, data) => {
+                    if(!err) {
+                        resolve(data);
+                    } else {
+                        reject("");
+                    }
+                });
+            } else {
+                reject("");
+            }
+        });
+    }).then((port) => {
+        vscode.window.showInputBox({
+            placeHolder: "Enter existing nREPL hostname:port here...",
+            prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
+            value: "localhost:" + port,
+            ignoreFocusOut: true
+        })
         .then(function (url) {
             let [hostname, port] = url.split(':');
-            state.hostname = hostname;
-            state.port = port;
-            let lsSessionClient = nreplClient.create({
-                host: state.hostname,
-                port: state.port
-            }).once('connect', function () {
-                state.connected = true;
-                let msg = nreplMsg.listSessions();
-                lsSessionClient.send(msg, function (results) {
-                    findSession(state, 0, results[0].sessions);
-                    lsSessionClient.end();
-                });
-            });
+            current.hostname = hostname;
+            current.port = port;
+            connectToHost(current);
         });
+    });
+};
+
+function autoConnect(current) {
+    let path = vscode.workspace.rootPath,
+        port = null;
+    return new Promise((resolve, _) => {
+        find.file(/\.nrepl-port$/, path, (files) => {
+            if(files.length > 0) {
+                fs.readFile(files[0], 'utf8', (err, data) => {
+                    if(!err) {
+                        let hostname = "localhost",
+                            port = parseFloat(data);
+                            current.hostname = hostname;
+                            current.port = port;
+                        connectToHost(current);;
+                    }
+                });
+            }
+        });
+    });
 };
 
 module.exports = {
-    initialConnection
+    initialConnection,
+    autoConnect
 };

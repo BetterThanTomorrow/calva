@@ -1,7 +1,13 @@
 const vscode = require('vscode');
+const _ = require('lodash');
 const nreplClient = require('../nrepl/client');
 const nreplMsg = require('../nrepl/message');
 const SESSION_TYPE = require('../nrepl/session_type');
+
+const ERROR = {DEFAULT: "Unknown error..",
+ILLEGAL_ARGUMENT: "java.lang.IllegalArgumentException"};
+
+const WARNING = {DEFAULT: "Warning"};
 
 function getNamespace(text) {
     let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
@@ -120,6 +126,66 @@ function getContentToPreviousBracket(block) {
     return [currPos, block.substr(currPos + 1, block.length)];
 };
 
+
+function getReason (results) {
+    let illegal_arguments = _.filter(results, {class: ERROR.ILLEGAL_ARGUMENT});
+    if (illegal_arguments.length > 0) {
+        return [ERROR.ILLEGAL_ARGUMENT, illegal_arguments[0].message];
+    } else {
+        console.log("UNKOWN REASON..");
+        console.log(results);
+    }
+    return [ERROR.DEFAULT, "Something went wrong.."];
+};
+
+function getLineAndColumn (results) {
+    let line = null, column = null,
+        hasLine = (s) => { return (s.indexOf(":line") !== -1 || s.indexOf("line") !== -1); };
+        hasCol = (s) => { return (s.indexOf(":column") !== -1 || s.indexOf("column") !== -1 || s.indexOf("col") !== -1 || s.indexOf(":col") !== -1); };
+        extractWordPlacement = (words, word) => {for (var w = 0; w < words.length; w++) {
+                                                    if (words[w].indexOf(word) !== -1) {
+                                                        return words[w].replace(word, "")
+                                                                       .replace("}", "")
+                                                                       .replace("{","")
+                                                                       .trim();
+                                                }}}
+    for(var r = 0; r < results.length; r++) {
+        if (line !== null && column !== null) break;
+
+        let data = null, message = null;
+        if (results[r].hasOwnProperty('data')) {
+            data = results[r].data;
+        }
+        if (results[r].hasOwnProperty('message')) {
+            message = results[r].message;
+        }
+
+        if (line === null) {
+            if (data !== null && hasLine(data)) {
+                let words = data.replace(" ", "").split(",");
+                line = extractWordPlacement(words, ":line");
+            } else if (message !== null && hasLine(message)) {
+                let words = message.split(" ");
+                line = extractWordPlacement(words, "line");
+            }
+        }
+
+        if (column === null) {
+            if (data !== null && hasCol(data)) {
+                let words = data.replace(" ", "").split(",");
+                column = extractWordPlacement(words, ":column")
+                       || extractWordPlacement(words, ":col");
+
+            } else if (message !== null && hasCol(message)) {
+                let words = message.split(" ");
+                column = extractWordPlacement(words, "column")
+                       || extractWordPlacement(words, "col");
+            }
+        }
+    }
+    return [parseInt(line,10), parseInt(column, 10)];
+};
+
 function handleException(state, exceptions, isSelection = false) {
     let errorHasBeenMarked = false,
         editor = vscode.window.activeTextEditor,
@@ -136,14 +202,35 @@ function handleException(state, exceptions, isSelection = false) {
             errFileUri = editor.document.uri;
 
         exClient.send(msg, (results) => {
-            if (results.length === 2 && results[0].hasOwnProperty('status') && results[0].status[0] === "no-error" && results[1].status[0] === "done") {
-                let errorMsg = "Error when evaluating this expression..";
+            let [rtype, rreason] = getReason(results);
+            let [rline, rcolumn] = getLineAndColumn(results);
+            let errorMsg = "Error when evaluating this expression..";
+
+            if (rline !== null) {
+                let errLine = rline - 1,
+                    errChar = rcolumn - 1,
+                    editor = vscode.window.activeTextEditor,
+                    errFileUri = editor.document.uri,
+                    errMsg = rtype + ": " + rreason;
+
+                if(errLine >= 0  && errChar >= 0) {
+                    if(!editor.selection.isEmpty) {
+                        errLine = errLine + editor.selection.start.line;
+                        errChar = errChar + editor.selection.start.character;
+                    }
+                    let errLineLength = editor.document.lineAt(errLine).text.length;
+
+                    state.diagnosticCollection.set(errFileUri, [new vscode.Diagnostic(new vscode.Range(errLine, errChar, errLine, errLineLength),
+                        errMsg, vscode.DiagnosticSeverity.Error)]);
+                }
+            }
+            else if (results.length === 2 && results[0].hasOwnProperty('status') && results[0].status[0] === "no-error" && results[1].status[0] === "done") {
                 for(let r = 0; r < exceptions.length; r++) {
                     let result = exceptions[r];
                     if(result.hasOwnProperty('err')
-                      && result.err.indexOf("line") !== -1 
+                      && result.err.indexOf("line") !== -1
                       && result.err.indexOf("column") !== -1) {
-                        errorHasBeenMarked = true;  
+                        errorHasBeenMarked = true;
                         let errorParts = result.err;
                         if (errorParts.indexOf("starting at line") !== -1 && errorParts.indexOf("and column") !== -1) {
                             errorParts = result.err.split(' ');
@@ -167,10 +254,10 @@ function handleException(state, exceptions, isSelection = false) {
 
                 }
                 if(!errorHasBeenMarked) {
-                    state.diagnosticCollection.set(editor.document.uri, 
-                                                [new vscode.Diagnostic(new vscode.Range(editor.selection.start.line, 
-                                                editor.selection.start.character, 
-                                                editor.selection.start.line, 
+                    state.diagnosticCollection.set(editor.document.uri,
+                                                [new vscode.Diagnostic(new vscode.Range(editor.selection.start.line,
+                                                editor.selection.start.character,
+                                                editor.selection.start.line,
                                                 editor.document.lineAt(editor.selection.start.line).text.length),
                                 errorMsg, vscode.DiagnosticSeverity.Error)]);
                 } else if(errLine >= 0  && errChar >= 0) {
@@ -178,10 +265,7 @@ function handleException(state, exceptions, isSelection = false) {
                         errLine = errLine + editor.selection.start.line;
                         errChar = errChar + editor.selection.start.character;
                     }
-                    let errPos = new vscode.Position(errLine, errChar),
-                        errLineLength = editor.document.lineAt(errLine).text.length;
-                    
-                    editor.selection = new vscode.Selection(errPos, errPos);
+                    let errLineLength = editor.document.lineAt(errLine).text.length;
                     state.diagnosticCollection.set(errFileUri, [new vscode.Diagnostic(new vscode.Range(errLine, errChar, errLine, errLineLength),
                         errorMsg, vscode.DiagnosticSeverity.Error)]);
                 }
@@ -206,9 +290,6 @@ function handleException(state, exceptions, isSelection = false) {
                             errLine = errLine + editor.selection.start.line;
                             errChar = errChar + editor.selection.start.character;
                         }
-
-                        let errPos = new vscode.Position(errLine, errChar);
-                        editor.selection = new vscode.Selection(errPos, errPos);
                         let errLineLength = editor.document.lineAt(errLine).text.length;
 
                         state.diagnosticCollection.set(errFileUri, [new vscode.Diagnostic(new vscode.Range(errLine, errChar, errLine, errLineLength),
@@ -243,9 +324,13 @@ function updateStatusbar(state) {
     state.statusbar_type.show();
 };
 
+function getDocument(document) {
+    return document.hasOwnProperty('fileName') ? document : vscode.window.activeTextEditor.document;
+  };
 
 module.exports = {
     getActualWord,
+    getDocument,
     getNamespace,
     handleException,
     getContentToNextBracket,

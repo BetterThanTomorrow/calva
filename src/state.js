@@ -7,7 +7,7 @@ module.exports = {
     session : {},
     session_type: SESSION_TYPE.NONE,
     connected: false,
-    
+
     statusbar_connection: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left),
     statusbar_type: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left),
     outputChannel: vscode.window.createOutputChannel("VisualClojure"),
