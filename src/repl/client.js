@@ -1,5 +1,6 @@
 const state = require('../state');
 const net = require('net');
+const io = require('socket.io-client');
 const Buffer = require('buffer').Buffer;
 const bencoder = require('bencode');
 
@@ -46,18 +47,19 @@ function create (options) {
     }
     if (_options !== null) {
         let con = net.createConnection(_options);
+        //let con = io("nrepl://" + _options.hostname + ":" + port);
         con.send = send.bind(con);
 
         con.on('error', (e) => {
             console.log("ERROR");
             console.log(e);
-            if (e.code === 'EADDRINUSE') {
-                console.log('Address in use, retrying...');
-                setTimeout(() => {
-                server.close();
-                server.listen(PORT, HOST);
-                }, 1000);
-            }
+        });
+
+        con.setTimeout(10000);
+        con.on('timeout', () => {
+          console.log('socket timeout');
+          con.end();
+          con.destroy();
         });
 
         return con;

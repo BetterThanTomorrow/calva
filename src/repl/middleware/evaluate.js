@@ -53,18 +53,20 @@ function logSuccess (results) {
 function markError (error) {
     let position = new vscode.Position(error.line, error.column),
         diagnostic = state.deref().get('diagnosticCollection'),
-        editor = vscode.window.activeTextEditor;
+        editor = vscode.window.activeTextEditor,
+        errors = diagnostic.get(editor.document.uri) || [],
+        newErrors = errors.slice();
 
-    editor.selection = new vscode.Selection(position, position);
     let line = error.line - 1,
-        column = error.column,
         lineLength = editor.document.lineAt(line).text.length,
+        column = error.column || lineLength,
         lineText = editor.document.lineAt(line).text.substring(column, lineLength),
         firstWordStart = column + lineText.indexOf(" ");
 
-    diagnostic.set(editor.document.uri, [new vscode.Diagnostic(new vscode.Range(line, column, line, firstWordStart),
+        newErrors.push(new vscode.Diagnostic(new vscode.Range(line, column, line, firstWordStart),
                                                                 error.reason,
-                                                                vscode.DiagnosticSeverity.Error)]);
+                                             vscode.DiagnosticSeverity.Error));
+        diagnostic.set(editor.document.uri, newErrors);
 };
 
 function logWarning (warning) {
@@ -89,17 +91,18 @@ function markWarning (warning) {
 
     let position = new vscode.Position(warning.line, warning.column),
         diagnostic = state.deref().get('diagnosticCollection'),
-        editor = vscode.window.activeTextEditor;
+        editor = vscode.window.activeTextEditor,
+        warnings = diagnostic.get(editor.document.uri) || [],
+        newWarnings = warnings.slice();
 
-    editor.selection = new vscode.Selection(position, position);
     let line = Math.max(0, (warning.line - 1)),
         column = warning.column,
         lineLength = editor.document.lineAt(line).text.length;
 
-    diagnostic.set(editor.document.uri,
-                   [new vscode.Diagnostic(new vscode.Range(line, column, line, lineLength),
+    newWarnings.push(new vscode.Diagnostic(new vscode.Range(line, column, line, lineLength),
                                           warning.reason,
-                                          vscode.DiagnosticSeverity.Error)]);
+                     vscode.DiagnosticSeverity.Warning));
+    diagnostic.set(editor.document.uri, newWarnings)
 };
 
 function getReason (results) {
@@ -158,7 +161,10 @@ function getLineAndColumn (results) {
             }
         }
     }
-    return [parseInt(line,10), parseInt(column, 10)];
+    let iLine = parseInt(line,10) || 0,
+        iCol = parseInt(column, 10) || null;
+
+    return [iLine, iCol];
 };
 
 function getWarnings (results) {
@@ -200,7 +206,7 @@ function evaluateSelection(document = {}) {
     doc = getDocument(document),
     session = current.get(getFileType(doc));
 
-    diagnostic.clear();
+    diagnostic.delete(doc.uri);
     chan.clear();
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
@@ -313,10 +319,10 @@ function evaluateSelection(document = {}) {
 
 function evaluateFile(document = {}) {
     let current = state.deref(),
-        diagnostic = current.get('diagnosticCollection')
+        diagnostic = current.get('diagnosticCollection'),
         doc = getDocument(document);
 
-    diagnostic.clear();
+    diagnostic.delete(doc.uri);
     if (current.get('connected')) {
         let fileName = getFileName(doc),
             namespace = getNamespace(doc.getText()),
@@ -333,12 +339,11 @@ function evaluateFile(document = {}) {
                                      file: doc.getText(),
                                      "file-name": fileName,
                                      "file-path": doc.fileName,
-                                     session}, (result) => {
+                                     session},
+                (result) => {
                     loadfileClient.end();
                     resolve(result);
                 });
-            }).once('end', () => {
-                reject("failed?");
             });
         }).then((loadFileResults) => {
             let exceptions = _.some(loadFileResults, "ex"),
@@ -355,32 +360,38 @@ function evaluateFile(document = {}) {
                             stackTraceClient.end();
                             resolve(result);
                         });
-                    }).once('end', () => {
-                        reject("failed?");
                     });
                 }).then((stackTraceResult) => {
                     let [line, column] = getLineAndColumn(stackTraceResult);
                     let [type, reason] = getReason(stackTraceResult);
-                    let error = evaluationError({line, column, type, reason, file: doc.fileName});
+                    let error = null;
+
+                    if (stackTraceResult[0].hasOwnProperty("column")) {
+                        let err =  stackTraceResult[0];
+                        error = evaluationError({line: err.line,
+                                                 column: err.column,
+                                                 type: err.class,
+                                                 reason: err.message,
+                                                 file: doc.fileName});
+                    } else {
+                        error = evaluationError({line, column, type, reason, file: doc.fileName});
+                    }
                     logError(error);
                     markError(error);
-                }).catch((error) => {
-                    console.log("ERROR REJECTED! STACKTRACE!");
-                    console.log(error);
                 });
             }
-            if (errors) {
-                let warnings = getWarnings(loadFileResults);
-                warnings.forEach(w => {
-                    logWarning(w);
-                    markWarning(w);
-                });
-                if (warnings.length === 0) {
-                    console.log("Errors in results, but no warnings!");
-                    console.log(loadFileResults);
-                    chan.appendLine("Evaluation failed..");
-                }
-            }
+            // if (errors) {
+            //     let warnings = getWarnings(loadFileResults);
+            //     warnings.forEach(w => {
+            //         logWarning(w);
+            //         markWarning(w);
+            //     });
+            //     if (warnings.length === 0) {
+            //         console.log("Errors in results, but no warnings!");
+            //         console.log(loadFileResults);
+            //         chan.appendLine("Evaluation failed..");
+            //     }
+            // }
         }).catch((error) => {
             console.log("ERROR REJECTED! LOADFILE!");
             console.log(error);

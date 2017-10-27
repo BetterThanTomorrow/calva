@@ -15,12 +15,17 @@ const FormatMiddleWare = require('./repl/middleware/format');
 const EvaluateMiddleWare = require('./repl/middleware/evaluate');
 
 function onSave (document) {
-    let {format, save, refresh} = state.config();
+    let {format, eval, refresh} = state.config();
+
+    if (document.languageId !== 'clojure' || FormatMiddleWare.ignoreNextSave.length > 0) {
+        return;
+    }
+
     if (refresh) {
         RefreshMiddleWare.refreshChanged(document);
     }
     if (format) {
-        FormatMiddleWare.formatDocument(document);
+        //FormatMiddleWare.formatDocument(document);
     }
     if (eval) {
         EvaluateMiddleWare.evaluateFile(document);

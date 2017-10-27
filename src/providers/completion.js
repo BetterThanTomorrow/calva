@@ -8,7 +8,6 @@ const {getNamespace, getActualWord} = require('../utilities');
 module.exports = class CompletionItemProvider {
     constructor() {
         this.state = state;
-        this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
         this.mappings = {
             'nil': vscode.CompletionItemKind.Value,
             'macro': vscode.CompletionItemKind.Value,
