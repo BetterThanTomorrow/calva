@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const _ = require('lodash');
 const cmd = require('node-cmd');
 const state = require ('../../state');
-const repl = require('../client');
+const repl = require('nrepl-client');
 const message = require('../message');
 const {getDocument, getFileName, getFileType, getNamespace, getActualWord, getStartExpression,
        getContentToNextBracket, getContentToPreviousBracket} = require('../../utilities');
@@ -155,7 +155,8 @@ function lintFile(document = {}) {
                     //If no errors - Load file using nrepl
                     if (current.get('connected')) {
                         new Promise((resolve, reject) => {
-                            let loadfileClient = repl.create().once('connect', () => {
+                            let connection = current.get("connection"),
+                                loadfileClient = repl.connect(connection).once('connect', () => {
                                 loadfileClient.send({op: "load-file",
                                                         file: doc.getText(),
                                                         "file-name": fileName,

@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const _ = require('lodash');
 const state = require ('../../state');
-const repl = require('../client');
+const repl = require('nrepl-client');
 const message = require('../message');
 const {getDocument, getFileName, getFileType, getNamespace, getActualWord,
        getContentToNextBracket, getContentToPreviousBracket} = require('../../utilities');
@@ -204,7 +204,8 @@ function evaluateSelection(document = {}) {
     diagnostic = current.get('diagnosticCollection'),
     chan = current.get('outputChannel'),
     doc = getDocument(document),
-    session = current.get(getFileType(doc));
+    session = current.get(getFileType(doc)),
+    connection = current.get("connection");
 
     diagnostic.delete(doc.uri);
     chan.clear();
@@ -257,11 +258,11 @@ function evaluateSelection(document = {}) {
             chan.appendLine(code);
             chan.appendLine("----------------------------");
             new Promise((resolve, reject) => {
-                let evalClient = repl.create().once('connect', () => {
+                let evalClient = repl.connect(connection).once('connect', () => {
                     evalClient.send({op: "eval",
                                      ns: getNamespace(doc.getText()),
                                      code,
-                                     session}, (result) => {
+                                     session}, (err, result) => {
                         evalClient.end();
                         resolve(result);
                     });
@@ -278,8 +279,8 @@ function evaluateSelection(document = {}) {
 
                 if (exceptions) {
                     new Promise((resolve, reject) => {
-                        let stackTraceClient = repl.create().once('connect', () => {
-                            stackTraceClient.send({op: "stacktrace", session}, (result) => {
+                        let stackTraceClient = repl.connect(connection).once('connect', () => {
+                            stackTraceClient.send({op: "stacktrace", session}, (err, result) => {
                                 stackTraceClient.end();
                                 resolve(result);
                             });
@@ -326,7 +327,8 @@ function evaluateFile(document = {}) {
     if (current.get('connected')) {
         let fileName = getFileName(doc),
             namespace = getNamespace(doc.getText()),
-            session = current.get(getFileType(doc));
+            session = current.get(getFileType(doc)),
+            connection = current.get("connection");
 
             chan = current.get('outputChannel');
             chan.clear();
@@ -334,13 +336,13 @@ function evaluateFile(document = {}) {
             chan.appendLine("----------------------------");
 
         new Promise((resolve, reject) => {
-            let loadfileClient = repl.create().once('connect', () => {
+            let loadfileClient = repl.connect(connection).once('connect', () => {
                 loadfileClient.send({op: "load-file",
                                      file: doc.getText(),
                                      "file-name": fileName,
                                      "file-path": doc.fileName,
                                      session},
-                (result) => {
+                (err, result) => {
                     loadfileClient.end();
                     resolve(result);
                 });
@@ -355,8 +357,8 @@ function evaluateFile(document = {}) {
 
             if (exceptions) {
                 new Promise((resolve, reject) => {
-                    let stackTraceClient = repl.create().once('connect', () => {
-                        stackTraceClient.send({op: "stacktrace", session}, (result) => {
+                    let stackTraceClient = repl.connect(connection).once('connect', () => {
+                        stackTraceClient.send({op: "stacktrace", session}, (err, result) => {
                             stackTraceClient.end();
                             resolve(result);
                         });

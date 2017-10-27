@@ -3,14 +3,15 @@ const find = require('find');
 const fs = require('fs');
 const state = require ('./state');
 const statusbar = require('./statusbar');
-const repl = require('./repl/client');
+const repl = require('nrepl-client');
 const message = require('./repl/message');
 
 function connectToHost (hostname, port) {
-    let client = repl.create({hostname, port}).once('connect', function () {
+    let client = repl.connect({hostname, port}).once('connect', function () {
         state.cursor.set("connected", true);
+        state.cursor.set("connection", {hostname, port});
         let msg = message.listSessions();
-        client.send(msg, function (results) {
+        client.send(msg, function (err, results) {
             findSession(0, results[0].sessions);
             client.end();
         });
@@ -18,11 +19,11 @@ function connectToHost (hostname, port) {
 }
 
 function findSession(session, sessions) {
-    let current = state.deref();
-    let client = repl.create()
-    .once('connect', function () {
+    let current = state.deref(),
+        connection = current.get("connection");
+    let client = repl.connect(connection).once('connect', function () {
         let msg = message.testSession(sessions[session]);
-        client.send(msg, function (results) {
+        client.send(msg, function (err, results) {
             for (var i = 0; i < results.length; i++) {
                 let result = results[i];
                 if (result.value && result.value === "3.14") {
