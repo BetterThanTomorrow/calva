@@ -15,12 +15,12 @@
 		"Other"
 	],
 	"keywords": [
-    "bracket",
-    "brackets",
-    "match",
-    "matching",
+		"bracket",
+		"brackets",
+		"match",
+		"matching",
 		"clojure"
-  ],
+	],
 	"activationEvents": [
 		"onLanguage:clojure"
 	],
@@ -43,5 +43,10 @@
 		"vscode": "^1.1.5",
 		"typescript": "^2.5.3",
 		"@types/node": "7.0.4"
+	},
+	"__metadata": {
+		"id": "0438d476-077e-4fe0-8f2d-de9fb30901ff",
+		"publisherDisplayName": "Nikita Prokopov",
+		"publisherId": "8fe0f11e-8bd6-4cf2-9ee6-acead847e970"
 	}
 }
