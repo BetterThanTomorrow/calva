@@ -2,7 +2,7 @@
 	"name": "clojure-warrior",
 	"displayName": "Clojure Warrior",
 	"description": "Extension for Clojure development",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"publisher": "tonsky",
 	"license": "MIT",
 	"maintainers": [
@@ -14,9 +14,17 @@
 	"categories": [
 		"Other"
 	],
+	"keywords": [
+    "bracket",
+    "brackets",
+    "match",
+    "matching",
+		"clojure"
+  ],
 	"activationEvents": [
 		"onLanguage:clojure"
 	],
+	"icon": "extras/icon.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tonsky/clojure-warrior.git"

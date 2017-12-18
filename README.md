@@ -1,14 +1,16 @@
 # Clojure Warrior
 
+<img src="https://raw.githubusercontent.com/tonsky/clojure-warrior/master/extras/icon.png" width="128px" height="128px">
+
 Visual Studio Code extension for Clojure development
 
 ## Features
 
-The only feature for now is rainbow brackets:
+The only feature right now is rainbow brackets:
 
-- Checks for nesting correctness
+- Choose bracket color based on nesting level
 - Properly handles strings, comments and escaped characters
-- Highlights mistakenly placed parens
+- Highlights misplaced brackets
 
 ![Screenshot](https://raw.githubusercontent.com/tonsky/clojure-warrior/master/extras/screenshot.png)
 
