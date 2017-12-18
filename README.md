@@ -8,7 +8,8 @@ Visual Studio Code extension for Clojure development
 
 The only feature right now is rainbow brackets:
 
-- Choose bracket color based on nesting level
+- Chooses bracket color based on nesting level
+- Harmonious colors
 - Properly handles strings, comments and escaped characters
 - Highlights misplaced brackets
 
