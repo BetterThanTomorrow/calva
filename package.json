@@ -2,7 +2,7 @@
 	"name": "clojure-warrior",
 	"displayName": "Clojure Warrior",
 	"description": "Extension for Clojure development",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "tonsky",
 	"license": "MIT",
 	"maintainers": [
@@ -33,6 +33,33 @@
 		"url": "https://github.com/tonsky/clojure-warrior/issues"
 	},
 	"main": "./out/extension",
+	"contributes": {
+  	"configuration": {
+      "type": "object",
+      "title": "BracketPair",
+			"properties": {
+				"clojureWarrior.bracketColors": {
+					"type": "array",
+					"items": { "type": "string" },
+					"default": ["#000", "#BF4640", "#BF7140", "#BF9B40", "#B9BF40", "#8EBF40", "#64BF40", "#40BF46", "#40BF71", "#40BF9B", "#40B9BF", "#408EBF"],
+					"description": "Bracket colors",
+					"scope": "resource"
+				},
+				"clojureWarrior.cycleBracketColors": {
+					"type": "boolean",
+					"default": true,
+					"description": "If nesting level is greater than amount of colors, start counting over",
+					"scope": "resource"
+				},
+				"clojureWarrior.misplacedBracketStyle": {
+					"type": "object",
+					"default": null,
+					"description": "Style of misplaced bracket",
+					"scope": "resource"
+				}
+			}
+		}
+	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",

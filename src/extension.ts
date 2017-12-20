@@ -1,30 +1,12 @@
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-
-	const decorationTypes = [
-    "#000",
-    "#BF4640",
-    "#BF7140",
-    "#BF9B40",
-    "#B9BF40",
-    "#8EBF40",
-    "#64BF40",
-    "#40BF46",
-    "#40BF71",
-    "#40BF9B",
-    "#40B9BF",
-    "#408EBF"
-  ].map(color => vscode.window.createTextEditorDecorationType({color: color}));
-
-	const incorrectType = vscode.window.createTextEditorDecorationType({
-		color: "#fff",
-		backgroundColor: "rgba(204,51,51,1)"
-	});
-
 	const pairs = { ")": "(", "]": "[", "}": "{"};
-
-	let activeEditor = vscode.window.activeTextEditor;
+	let activeEditor = vscode.window.activeTextEditor,
+			configuration,
+			decorationTypes,
+			incorrectType,
+			cycle: boolean;
 
 	if (activeEditor) {
 		triggerUpdateDecorations();
@@ -43,6 +25,20 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}, null, context.subscriptions);
 
+	vscode.workspace.onDidChangeConfiguration(event => {
+		configuration = undefined;
+		triggerUpdateDecorations();
+	}, null, context.subscriptions);
+
+	function reloadConfig() {
+		if (activeEditor && configuration === undefined) {
+			configuration = vscode.workspace.getConfiguration("clojureWarrior", activeEditor.document.uri);
+			decorationTypes = configuration.get("bracketColors").map(color => vscode.window.createTextEditorDecorationType({color: color}));
+			cycle = configuration.get("cycleBracketColors");
+			incorrectType = vscode.window.createTextEditorDecorationType(configuration.get("misplacedBracketStyle") || { "color": "#fff", "backgroundColor": "#c33" });
+		}
+	}
+
 	var timeout = null;
 	function triggerUpdateDecorations() {
 		if (timeout) {
@@ -55,10 +51,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function updateDecorations() {
 		if (!activeEditor) return;
-		const regexp = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n)/g,
-		      text   = activeEditor.document.getText(),
-		      decorations: vscode.DecorationOptions[][] = decorationTypes.map(()=>[]),
-		      incorrect: vscode.DecorationOptions[] = [];
+		reloadConfig();
+
+		const regexp      = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n)/g,
+		      text        = activeEditor.document.getText(),
+		      decorations = decorationTypes.map(()=>[]),
+		      incorrect   = [],
+					len         = decorationTypes.length,
+					colorIndex  = cycle ? (i => i % len) : (i => Math.min(i, len-1));
+
 		let match,
 		    in_string = false,
 				in_comment = false,
@@ -81,7 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 				const startPos   = activeEditor.document.positionAt(match.index),
 				      endPos     = startPos.translate(0,1),
 							decoration = { range: new vscode.Range(startPos, endPos) };
-				decorations[stack.length % decorationTypes.length].push(decoration);
+				decorations[colorIndex(stack.length)].push(decoration);
 				stack += word;
 				continue;
 			} else if (word === ")" || word === "]" || word === "}") {
@@ -90,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
 							decoration = { range: new vscode.Range(startPos, endPos) };
 				if (stack.length > 0 && stack[stack.length-1] === pairs[word]) {
 					stack = stack.substring(0, stack.length - 1);
-					decorations[stack.length % decorationTypes.length].push(decoration);
+					decorations[colorIndex(stack.length)].push(decoration);
 					continue;
 				} else {
 					incorrect.push(decoration);

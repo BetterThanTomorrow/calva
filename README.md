@@ -15,6 +15,14 @@ The only feature right now is rainbow brackets:
 
 ![Screenshot](https://raw.githubusercontent.com/tonsky/clojure-warrior/master/extras/screenshot.png)
 
+## Configuration
+
+| Key | Meaning | Example |
+| --- | ------- | ------- |
+| `"clojureWarrior.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
+| `"clojureWarrior.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
+| `"clojureWarrior.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
+
 ## Installation
 
 1. Go to `Extensions`
