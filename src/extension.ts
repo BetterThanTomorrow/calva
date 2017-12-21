@@ -1,12 +1,19 @@
 import * as vscode from 'vscode';
+import { Position, Range } from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-	const pairs = { ")": "(", "]": "[", "}": "{"};
-	let activeEditor = vscode.window.activeTextEditor,
-			configuration,
-			decorationTypes,
-			incorrectType,
-			cycle: boolean;
+	const pairs = { ")": "(", "]": "[", "}": "{"};	
+	function opening(char) { return char==="(" || char==="[" || char==="{"; }
+	function closing(char) { return char===")" || char==="]" || char==="}"; }
+	function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
+
+	let activeEditor:  vscode.TextEditor = vscode.window.activeTextEditor,
+			configuration: vscode.WorkspaceConfiguration,
+			rainbowTypes:  vscode.TextEditorDecorationType[],
+			cycleRainbow:  boolean,
+			misplacedType: vscode.TextEditorDecorationType,
+			matchedType:   vscode.TextEditorDecorationType,
+			bracketPairs:  Map<string, Position> = new Map();
 
 	if (activeEditor) {
 		triggerUpdateDecorations();
@@ -17,6 +24,10 @@ export function activate(context: vscode.ExtensionContext) {
 		if (editor) {
 			triggerUpdateDecorations();
 		}
+	}, null, context.subscriptions);
+
+	vscode.window.onDidChangeTextEditorSelection(event => {
+		matchPairs();
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeTextDocument(event => {
@@ -30,12 +41,15 @@ export function activate(context: vscode.ExtensionContext) {
 		triggerUpdateDecorations();
 	}, null, context.subscriptions);
 
+	
 	function reloadConfig() {
 		if (activeEditor && configuration === undefined) {
 			configuration = vscode.workspace.getConfiguration("clojureWarrior", activeEditor.document.uri);
-			decorationTypes = configuration.get("bracketColors").map(color => vscode.window.createTextEditorDecorationType({color: color}));
-			cycle = configuration.get("cycleBracketColors");
-			incorrectType = vscode.window.createTextEditorDecorationType(configuration.get("misplacedBracketStyle") || { "color": "#fff", "backgroundColor": "#c33" });
+			rainbowTypes = configuration.get<string[]>("bracketColors").map(color => vscode.window.createTextEditorDecorationType({color: color}));
+			cycleRainbow = configuration.get("cycleBracketColors");
+			misplacedType = vscode.window.createTextEditorDecorationType(configuration.get("misplacedBracketStyle") || { "color": "#fff", "backgroundColor": "#c33" });
+			matchedType = vscode.window.createTextEditorDecorationType(configuration.get("matchedBracketStyle") || {"backgroundColor": "#E0E0E0"});
+			vscode.workspace.getConfiguration().update('editor.matchBrackets', false, true);
 		}
 	}
 
@@ -53,55 +67,103 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!activeEditor) return;
 		reloadConfig();
 
-		const regexp      = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n)/g,
-		      text        = activeEditor.document.getText(),
-		      decorations = decorationTypes.map(()=>[]),
-		      incorrect   = [],
-					len         = decorationTypes.length,
-					colorIndex  = cycle ? (i => i % len) : (i => Math.min(i, len-1));
+		const regexp     = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n)/g,
+					doc        = activeEditor.document,
+		      text       = doc.getText(),
+		      rainbow    = rainbowTypes.map(()=>[]),
+		      misplaced  = [],
+					len        = rainbowTypes.length,
+					colorIndex = cycleRainbow ? (i => i % len) : (i => Math.min(i, len-1));
 
 		let match,
 		    in_string = false,
 				in_comment = false,
-				stack = "";
+				stack = [],
+				stack_depth = 0;
+		bracketPairs = new Map();
 		while (match = regexp.exec(text)) {
-			let word = match[0];
+			let char = match[0];
 			if (in_comment) {
-				if (word === "\n") { in_comment = false; continue; }
-			} else if (word[0] === "\\") {
+				if (char === "\n") { in_comment = false; continue; }
+			} else if (char[0] === "\\") {
 				continue;
 			} else if (in_string) {
-				if (word === "\"") { in_string = false; continue; }
-			} else if (word === ";") {
-				in_comment = true; continue;
-			} else if (word === "\"") {
-				in_string = true; continue;
-			} else if (word === "\n") {
+				if (char === "\"") { in_string = false; continue; }
+			} else if (char === ";") {
+				in_comment = true;
 				continue;
-			} else if (word === "(" || word === "[" || word === "{") {
-				const startPos   = activeEditor.document.positionAt(match.index),
-				      endPos     = startPos.translate(0,1),
-							decoration = { range: new vscode.Range(startPos, endPos) };
-				decorations[colorIndex(stack.length)].push(decoration);
-				stack += word;
+			} else if (char === "\"") {
+				in_string = true;
 				continue;
-			} else if (word === ")" || word === "]" || word === "}") {
-				const startPos   = activeEditor.document.positionAt(match.index),
-				      endPos     = startPos.translate(0,1),
-							decoration = { range: new vscode.Range(startPos, endPos) };
-				if (stack.length > 0 && stack[stack.length-1] === pairs[word]) {
-					stack = stack.substring(0, stack.length - 1);
-					decorations[colorIndex(stack.length)].push(decoration);
-					continue;
-				} else {
-					incorrect.push(decoration);
-					continue;
+			} else if (char === "\n") {
+				continue;
+			} else if (opening(char)) {
+				const pos = activeEditor.document.positionAt(match.index),
+							decoration = { range: new Range(pos, pos.translate(0,1)) };
+				rainbow[colorIndex(stack_depth)].push(decoration);
+				++stack_depth;
+				stack.push({ char: char, pos: pos, pair_idx: undefined});
+				continue;
+			} else if (closing(char)) {
+				const pos = activeEditor.document.positionAt(match.index),
+				      decoration = { range: new Range(pos, pos.translate(0,1)) };
+				var pair_idx = stack.length - 1;
+				while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
+					pair_idx = stack[pair_idx].pair_idx - 1;
 				}
+				if (pair_idx === undefined || pair_idx < 0 || stack[pair_idx].char !== pairs[char]) {
+					misplaced.push(decoration);
+				} else {
+					let pair = stack[pair_idx];
+					stack.push({ char: char, pos: pos, pair_idx: pair_idx });
+					bracketPairs.set(position_str(pos), pair.pos);
+					bracketPairs.set(position_str(pair.pos), pos);
+					--stack_depth;
+					rainbow[colorIndex(stack_depth)].push(decoration);
+				}
+				continue;
 			}
 		}
-		for (var i=0; i<decorationTypes.length; ++i) {
-		  activeEditor.setDecorations(decorationTypes[i], decorations[i]);
+		for (var i=0; i<rainbowTypes.length; ++i) {
+		  activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
 		}
-		activeEditor.setDecorations(incorrectType, incorrect);
+		activeEditor.setDecorations(misplacedType, misplaced);
+		matchPairs();
+	}
+
+	function matchPairs() {
+		if (!activeEditor) return;
+		reloadConfig();
+		const matches = [],
+		      doc = activeEditor.document;
+		activeEditor.selections.forEach(selection => {
+			if (selection.isEmpty) {
+				const cursor = selection.start,
+				      cursor_before = cursor.character > 0 ? cursor.translate(0,-1) : undefined,
+							range_before  = !!cursor_before ? new Range(cursor_before, cursor) : undefined,
+							char_before   = !!range_before ? doc.getText(range_before) : undefined,
+							cursor_after  = cursor.translate(0,1),
+							range_after   = cursor_after.line === cursor.line ? new Range(cursor, cursor_after) : undefined,
+							char_after    = !!range_after ? doc.getText(range_after) : undefined;
+
+				// check before cursor
+				if (closing(char_before)/* || !opening(char_after)*/) {
+					let match = bracketPairs.get(position_str(cursor_before));
+					if (match !== undefined) {
+						matches.push({range: range_before});
+						matches.push({range: new Range(match, match.translate(0,1))});
+					}
+				}
+				// check after cursor
+				if (opening(char_after)/* || !closing(char_before)*/) {
+					let match = bracketPairs.get(position_str(cursor));
+					if (match !== undefined) {
+						matches.push({range: range_after});
+						matches.push({range: new Range(match, match.translate(0,1))});
+					}
+				}
+			}
+		});
+		activeEditor.setDecorations(matchedType, matches);	
 	}
 }
