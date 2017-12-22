@@ -25,11 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
 	}, null, context.subscriptions);
 
 	vscode.window.onDidChangeTextEditorSelection(event => {
-		scheduleMatchPairs();
+		if (event.textEditor === vscode.window.activeTextEditor)
+			scheduleMatchPairs();
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeTextDocument(event => {
-		if (activeEditor && event.document === activeEditor.document)
+		j
 			scheduleRainbowBrackets();
 	}, null, context.subscriptions);
 
@@ -140,30 +141,28 @@ export function activate(context: vscode.ExtensionContext) {
 		const matches = [],
 		      doc = activeEditor.document;
 		activeEditor.selections.forEach(selection => {
-			if (selection.isEmpty) {
-				const cursor = selection.start,
-				      cursor_before = cursor.character > 0 ? cursor.translate(0,-1) : undefined,
-							range_before  = !!cursor_before ? new Range(cursor_before, cursor) : undefined,
-							char_before   = !!range_before ? doc.getText(range_before) : undefined,
-							cursor_after  = cursor.translate(0,1),
-							range_after   = cursor_after.line === cursor.line ? new Range(cursor, cursor_after) : undefined,
-							char_after    = !!range_after ? doc.getText(range_after) : undefined;
+			const cursor        = selection.active,
+						cursor_before = cursor.character > 0 ? cursor.translate(0,-1) : undefined,
+						range_before  = !!cursor_before ? new Range(cursor_before, cursor) : undefined,
+						char_before   = !!range_before ? doc.getText(range_before) : undefined,
+						cursor_after  = cursor.translate(0,1),
+						range_after   = cursor_after.line === cursor.line ? new Range(cursor, cursor_after) : undefined,
+						char_after    = !!range_after ? doc.getText(range_after) : undefined;
 
-				// check before cursor
-				if (closing(char_before)/* || !opening(char_after)*/) {
-					let match = bracketPairs.get(position_str(cursor_before));
-					if (match !== undefined) {
-						matches.push({range: range_before});
-						matches.push({range: new Range(match, match.translate(0,1))});
-					}
+			// check before cursor
+			if (closing(char_before)/* || !opening(char_after)*/) {
+				let match = bracketPairs.get(position_str(cursor_before));
+				if (match !== undefined) {
+					matches.push({range: range_before});
+					matches.push({range: new Range(match, match.translate(0,1))});
 				}
-				// check after cursor
-				if (opening(char_after)/* || !closing(char_before)*/) {
-					let match = bracketPairs.get(position_str(cursor));
-					if (match !== undefined) {
-						matches.push({range: range_after});
-						matches.push({range: new Range(match, match.translate(0,1))});
-					}
+			}
+			// check after cursor
+			if (opening(char_after)/* || !closing(char_before)*/) {
+				let match = bracketPairs.get(position_str(cursor));
+				if (match !== undefined) {
+					matches.push({range: range_after});
+					matches.push({range: new Range(match, match.translate(0,1))});
 				}
 			}
 		});
