@@ -35,19 +35,38 @@
 	"main": "./out/extension",
 	"contributes": {
 		"commands": [
-			{ "command": "clojureWarrior.jumpToMatchingBracket",
-				"title": "Clojure Warrior: Jump to matching bracket" },
-			{ "command": "clojureWarrior.selectToMatchingBracket",
-				"title": "Clojure Warrior: Select to matching bracket" }
+			{
+				"command": "clojureWarrior.jumpToMatchingBracket",
+				"title": "Clojure Warrior: Jump to matching bracket"
+			},
+			{
+				"command": "clojureWarrior.selectToMatchingBracket",
+				"title": "Clojure Warrior: Select to matching bracket"
+			}
 		],
-  	"configuration": {
-      "type": "object",
-      "title": "BracketPair",
+		"configuration": {
+			"type": "object",
+			"title": "BracketPair",
 			"properties": {
 				"clojureWarrior.bracketColors": {
 					"type": "array",
-					"items": { "type": "string" },
-					"default": ["#000", "#BF4640", "#BF7140", "#BF9B40", "#B9BF40", "#8EBF40", "#64BF40", "#40BF46", "#40BF71", "#40BF9B", "#40B9BF", "#408EBF"],
+					"items": {
+						"type": "string"
+					},
+					"default": [
+						"#000",
+						"#BF4640",
+						"#BF7140",
+						"#BF9B40",
+						"#B9BF40",
+						"#8EBF40",
+						"#64BF40",
+						"#40BF46",
+						"#40BF71",
+						"#40BF9B",
+						"#40B9BF",
+						"#408EBF"
+					],
 					"description": "Bracket colors",
 					"scope": "resource"
 				},
@@ -82,6 +101,9 @@
 		"vscode": "^1.1.5",
 		"typescript": "^2.5.3",
 		"@types/node": "7.0.4"
+	},
+	"dependencies": {
+		"lodash.isequal": "^4.5.0"
 	},
 	"__metadata": {
 		"id": "0438d476-077e-4fe0-8f2d-de9fb30901ff",

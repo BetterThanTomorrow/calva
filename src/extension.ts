@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Position, Range, Selection } from 'vscode';
+import * as isEqual from 'lodash.isequal';
 
 export function activate(context: vscode.ExtensionContext) {
 	const pairs = { ")": "(", "]": "[", "}": "{"};	
@@ -8,23 +9,30 @@ export function activate(context: vscode.ExtensionContext) {
 	function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
 	function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; } 
 
+	vscode.commands.registerCommand("clojureWarrior.jumpToMatchingBracket", jumpToMatchingBracket);
+	vscode.commands.registerCommand("clojureWarrior.selectToMatchingBracket", selectToMatchingBracket);
+
 	let activeEditor:  vscode.TextEditor = vscode.window.activeTextEditor,
 			configuration: vscode.WorkspaceConfiguration,
+			rainbowColors,
 			rainbowTypes:  vscode.TextEditorDecorationType[],
-			cycleRainbow:  boolean,
+			cycleBracketColors,
+			misplacedBracketStyle,
 			misplacedType: vscode.TextEditorDecorationType,
+			matchedBracketStyle,
 			matchedType:   vscode.TextEditorDecorationType,
-			bracketPairs:  Map<string, Position> = new Map();
+			bracketPairs:  Map<string, Position> = new Map(),
+      rainbowTimer = undefined,
+	    matchTimer   = undefined;
 
-	if (activeEditor)
-		scheduleRainbowBrackets();
+	if (is_clojure(activeEditor))
+		reloadConfig();
 
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		activeEditor = editor;
-		// console.log("onDidChangeActiveTextEditor", editor.document.languageId);
 		if (is_clojure(editor)) {
-			scheduleRainbowBrackets();
 			vscode.workspace.getConfiguration().update('editor.matchBrackets', false, true);
+			scheduleRainbowBrackets();
 		} else
 			vscode.workspace.getConfiguration().update('editor.matchBrackets', undefined, true);
 	}, null, context.subscriptions);
@@ -40,22 +48,49 @@ export function activate(context: vscode.ExtensionContext) {
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeConfiguration(event => {
-		configuration = undefined;
+		reloadConfig();
 		scheduleRainbowBrackets();
 	}, null, context.subscriptions);
 	
 	function reloadConfig() {
-		if (activeEditor && configuration === undefined) {
-			configuration = vscode.workspace.getConfiguration("clojureWarrior", activeEditor.document.uri);
-			rainbowTypes = configuration.get<string[]>("bracketColors").map(color => vscode.window.createTextEditorDecorationType({color: color}));
-			cycleRainbow = configuration.get("cycleBracketColors");
-			misplacedType = vscode.window.createTextEditorDecorationType(configuration.get("misplacedBracketStyle") || { "color": "#fff", "backgroundColor": "#c33" });
-			matchedType = vscode.window.createTextEditorDecorationType(configuration.get("matchedBracketStyle") || {"backgroundColor": "#E0E0E0"});
+		if (activeEditor) {
+			let configuration = vscode.workspace.getConfiguration("clojureWarrior", activeEditor.document.uri),
+			    dirty = false;
+
+			if (!isEqual(rainbowColors, configuration.get<string[]>("bracketColors"))) {
+				if (!!rainbowTypes)
+					rainbowTypes.forEach(type => activeEditor.setDecorations(type, []));
+				rainbowColors = configuration.get<string[]>("bracketColors"),
+				rainbowTypes = rainbowColors.map(color => vscode.window.createTextEditorDecorationType({color: color}));
+				dirty = true;
+			}
+
+			if (cycleBracketColors !== configuration.get<boolean>("cycleBracketColors")) {
+				cycleBracketColors = configuration.get<boolean>("cycleBracketColors");
+				dirty = true;
+			}
+			
+			if (!isEqual(misplacedBracketStyle, configuration.get("misplacedBracketStyle"))) {
+				if (!!misplacedType)
+					activeEditor.setDecorations(misplacedType, []);
+				misplacedBracketStyle = configuration.get("misplacedBracketStyle");
+				misplacedType = vscode.window.createTextEditorDecorationType(misplacedBracketStyle || { "color": "#fff", "backgroundColor": "#c33" });
+				dirty = true;
+			}
+
+			if (!isEqual(matchedBracketStyle, configuration.get("matchedBracketStyle"))) {
+				if (!!matchedType)
+					activeEditor.setDecorations(matchedType, []);
+				matchedBracketStyle = configuration.get("matchedBracketStyle");
+				matchedType = vscode.window.createTextEditorDecorationType(matchedBracketStyle || {"backgroundColor": "#E0E0E0"});
+				dirty = true;
+			}
+
+			if (dirty)
+				scheduleRainbowBrackets();
 		}
 	}
 
-	var rainbowTimer = null,
-	    matchTimer = null;
 	function scheduleRainbowBrackets() {
 		if (rainbowTimer)
 			clearTimeout(rainbowTimer);
@@ -64,6 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (is_clojure(activeEditor))
 			rainbowTimer = setTimeout(updateRainbowBrackets, 16);
 	}
+
 	function scheduleMatchPairs() {
 		if (matchTimer)
 			clearTimeout(matchTimer);
@@ -73,7 +109,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function updateRainbowBrackets() {
 		if (!is_clojure(activeEditor)) return;
-		reloadConfig();
 
 		const regexp     = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n)/g,
 					doc        = activeEditor.document,
@@ -81,7 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
 		      rainbow    = rainbowTypes.map(()=>[]),
 		      misplaced  = [],
 					len        = rainbowTypes.length,
-					colorIndex = cycleRainbow ? (i => i % len) : (i => Math.min(i, len-1));
+					colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len-1));
 
 		let match,
 		    in_string = false,
@@ -161,7 +196,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function matchPairs() {
 		if (!is_clojure(activeEditor)) return;
-		reloadConfig();
+
 		const matches = [],
 		      doc = activeEditor.document;
 		activeEditor.selections.forEach(selection => {
@@ -182,7 +217,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function jumpToMatchingBracket() {
 		if (!is_clojure(activeEditor)) return;
-		reloadConfig();
+
 		const doc = activeEditor.document;
 
 		activeEditor.selections = activeEditor.selections.map(selection => {
@@ -200,7 +235,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function selectToMatchingBracket() {
 		if (!is_clojure(activeEditor)) return;
-		reloadConfig();
+
 		const doc = activeEditor.document;
 
 		activeEditor.selections = activeEditor.selections.map(selection => {
@@ -215,7 +250,4 @@ export function activate(context: vscode.ExtensionContext) {
 				return selection;
 		});
 	}
-
-	vscode.commands.registerCommand("clojureWarrior.jumpToMatchingBracket", jumpToMatchingBracket);
-	vscode.commands.registerCommand("clojureWarrior.selectToMatchingBracket", selectToMatchingBracket);
 }
