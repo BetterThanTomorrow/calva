@@ -34,6 +34,12 @@
 	},
 	"main": "./out/extension",
 	"contributes": {
+		"commands": [
+			{ "command": "clojureWarrior.jumpToMatchingBracket",
+				"title": "Clojure Warrior: Jump to matching bracket" },
+			{ "command": "clojureWarrior.selectToMatchingBracket",
+				"title": "Clojure Warrior: Select to matching bracket" }
+		],
   	"configuration": {
       "type": "object",
       "title": "BracketPair",
