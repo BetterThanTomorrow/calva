@@ -6,18 +6,23 @@ Visual Studio Code extension for Clojure development
 
 ## Features
 
-The only two features for now are rainbow brackets:
+Rainbow brackets:
 
 - Chooses bracket color based on nesting level
 - Harmonious colors
 - Properly handles strings, comments and escaped characters
 - Highlights misplaced brackets
 
-and bracket pair matching:
+Bracket pair matching:
 
 - Higlights corresponding bracket pair to the one under the cursor
 - Considers bracket directon and cursor position relative to it
 - Only highlights pair when cursor is standing _outside_ the expression (right after the closed bracket or right before opening one)
+
+Jump to matching bracket commands:
+
+- Jump to corresponding bracket pair (same rules as in bracket pair matching): `clojureWarrior.jumpToMatchingBracket`
+- Select a region between cursor and matching bracket (including brackets): `clojureWarrior.selectToMatchingBracket`
 
 ![Screenshot](https://raw.githubusercontent.com/tonsky/clojure-warrior/master/extras/screenshot.png)
 

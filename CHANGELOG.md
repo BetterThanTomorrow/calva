@@ -1,3 +1,10 @@
+# 0.1.3
+
+- New command: `clojureWarrior.jumpToMatchingBracket`
+- New command: `clojureWarrior.selectToMatchingBracket`
+- `editor.matchBrackets` is set to false only for Clojure editors
+- `matchPairs` is scheduled asynchronously not to slow down text editing
+
 # 0.1.2
 
 - Highlight bracket pairs
