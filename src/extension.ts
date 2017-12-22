@@ -22,8 +22,11 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		activeEditor = editor;
 		// console.log("onDidChangeActiveTextEditor", editor.document.languageId);
-		if (is_clojure(editor))
+		if (is_clojure(editor)) {
 			scheduleRainbowBrackets();
+			vscode.workspace.getConfiguration().update('editor.matchBrackets', false, true);
+		} else
+			vscode.workspace.getConfiguration().update('editor.matchBrackets', undefined, true);
 	}, null, context.subscriptions);
 
 	vscode.window.onDidChangeTextEditorSelection(event => {
@@ -48,7 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
 			cycleRainbow = configuration.get("cycleBracketColors");
 			misplacedType = vscode.window.createTextEditorDecorationType(configuration.get("misplacedBracketStyle") || { "color": "#fff", "backgroundColor": "#c33" });
 			matchedType = vscode.window.createTextEditorDecorationType(configuration.get("matchedBracketStyle") || {"backgroundColor": "#E0E0E0"});
-			vscode.workspace.getConfiguration(undefined, activeEditor.document.uri).update('editor.matchBrackets', false, true);
 		}
 	}
 
