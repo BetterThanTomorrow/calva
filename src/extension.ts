@@ -15,32 +15,28 @@ export function activate(context: vscode.ExtensionContext) {
 			matchedType:   vscode.TextEditorDecorationType,
 			bracketPairs:  Map<string, Position> = new Map();
 
-	if (activeEditor) {
-		triggerUpdateDecorations();
-	}
+	if (activeEditor)
+		scheduleRainbowBrackets();
 
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		activeEditor = editor;
-		if (editor) {
-			triggerUpdateDecorations();
-		}
+		if (editor)
+			scheduleRainbowBrackets();
 	}, null, context.subscriptions);
 
 	vscode.window.onDidChangeTextEditorSelection(event => {
-		matchPairs();
+		scheduleMatchPairs();
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeTextDocument(event => {
-		if (activeEditor && event.document === activeEditor.document) {
-			triggerUpdateDecorations();
-		}
+		if (activeEditor && event.document === activeEditor.document)
+			scheduleRainbowBrackets();
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeConfiguration(event => {
 		configuration = undefined;
-		triggerUpdateDecorations();
+		scheduleRainbowBrackets();
 	}, null, context.subscriptions);
-
 	
 	function reloadConfig() {
 		if (activeEditor && configuration === undefined) {
@@ -53,17 +49,24 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-	var timeout = null;
-	function triggerUpdateDecorations() {
-		if (timeout) {
-			clearTimeout(timeout);
-		}
-		if (activeEditor && activeEditor.document.languageId === 'clojure') {
-			timeout = setTimeout(updateDecorations, 16);
-		}
+	var rainbowTimer = null,
+	    matchTimer = null;
+	function scheduleRainbowBrackets() {
+		if (rainbowTimer)
+			clearTimeout(rainbowTimer);
+		if (matchTimer) // because updateRainbowBrackets triggers matchPairs
+			clearTimeout(matchTimer);
+		if (activeEditor && activeEditor.document.languageId === 'clojure')
+			rainbowTimer = setTimeout(updateRainbowBrackets, 16);
+	}
+	function scheduleMatchPairs() {
+		if (matchTimer)
+			clearTimeout(matchTimer);
+		if (activeEditor && activeEditor.document.languageId === 'clojure')
+			matchTimer = setTimeout(matchPairs, 16);
 	}
 
-	function updateDecorations() {
+	function updateRainbowBrackets() {
 		if (!activeEditor) return;
 		reloadConfig();
 
