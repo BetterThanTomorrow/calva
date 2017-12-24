@@ -1,3 +1,8 @@
+# 0.1.4
+
+- More distinct rainbow colors by default
+- Default settings support both dark and light themes
+
 # 0.1.3
 
 - New command: `clojureWarrior.jumpToMatchingBracket`

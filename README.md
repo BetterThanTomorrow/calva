@@ -9,7 +9,7 @@ Visual Studio Code extension for Clojure development
 Rainbow brackets:
 
 - Chooses bracket color based on nesting level
-- Harmonious colors
+- Distinct bracket colors, plays well with [Alabaster theme](https://marketplace.visualstudio.com/items?itemName=tonsky.theme-alabaster)
 - Properly handles strings, comments and escaped characters
 - Highlights misplaced brackets
 

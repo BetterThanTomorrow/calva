@@ -2,7 +2,7 @@
 	"name": "clojure-warrior",
 	"displayName": "Clojure Warrior",
 	"description": "Extension for Clojure development",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"publisher": "tonsky",
 	"license": "MIT",
 	"maintainers": [
@@ -53,20 +53,7 @@
 					"items": {
 						"type": "string"
 					},
-					"default": [
-						"#000",
-						"#BF4640",
-						"#BF7140",
-						"#BF9B40",
-						"#B9BF40",
-						"#8EBF40",
-						"#64BF40",
-						"#40BF46",
-						"#40BF71",
-						"#40BF9B",
-						"#40B9BF",
-						"#408EBF"
-					],
+					"default": null,
 					"description": "Bracket colors",
 					"scope": "resource"
 				},
