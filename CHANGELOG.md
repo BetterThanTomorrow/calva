@@ -1,3 +1,10 @@
+# 0.1.5
+
+- Don’t show matched brackets inside selection (#4)
+- Do not alter `editor.matchBrackets` in config dynamically (#3)
+- Showing matching bracket immediately since it’s fast (#5)
+- Jump to match should scroll if needed (#2)
+
 # 0.1.4
 
 - More distinct rainbow colors by default
