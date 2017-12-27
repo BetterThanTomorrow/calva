@@ -37,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.window.onDidChangeTextEditorSelection(event => {
 		if (event.textEditor === vscode.window.activeTextEditor && is_clojure(event.textEditor))
-			scheduleMatchPairs();
+			matchPairs();
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeTextDocument(event => {
@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
 				if (!!matchedType)
 					activeEditor.setDecorations(matchedType, []);
 				matchedBracketStyle = configuration.get("matchedBracketStyle");
-				matchedType = vscode.window.createTextEditorDecorationType(matchedBracketStyle || {light: {backgroundColor: "#E0E0E0"}, dark: {backgroundColor: "#444"}});
+				matchedType = vscode.window.createTextEditorDecorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
 				dirty = true;
 			}
 
@@ -99,17 +99,8 @@ export function activate(context: vscode.ExtensionContext) {
 	function scheduleRainbowBrackets() {
 		if (rainbowTimer)
 			clearTimeout(rainbowTimer);
-		if (matchTimer) // because updateRainbowBrackets triggers matchPairs
-			clearTimeout(matchTimer);
 		if (is_clojure(activeEditor))
 			rainbowTimer = setTimeout(updateRainbowBrackets, 16);
-	}
-
-	function scheduleMatchPairs() {
-		if (matchTimer)
-			clearTimeout(matchTimer);
-		if (is_clojure(activeEditor))
-			matchTimer = setTimeout(matchPairs, 16);
 	}
 
 	function updateRainbowBrackets() {
