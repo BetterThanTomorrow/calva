@@ -50,11 +50,16 @@ export function activate(context: vscode.ExtensionContext) {
 		scheduleRainbowBrackets();
 	}, null, context.subscriptions);
 	
-	function textDecoration(color) {
+	function decorationType(opts) {
+		opts.rangeBehavior = vscode.DecorationRangeBehavior.ClosedClosed;
+		return vscode.window.createTextEditorDecorationType(opts);
+	}
+
+	function colorDecorationType(color) {
 		if (isArray(color))
-			return vscode.window.createTextEditorDecorationType({light: {color: color[0]}, dark: {color: color[1]}});
+			return decorationType({light: {color: color[0]}, dark: {color: color[1]}});
 		else
-			return vscode.window.createTextEditorDecorationType({color: color});
+			return decorationType({color: color});
 	}
 
 	function reloadConfig() {
@@ -66,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 				if (!!rainbowTypes)
 					rainbowTypes.forEach(type => activeEditor.setDecorations(type, []));
 				rainbowColors = configuration.get<string[]>("bracketColors") || [["#000", "#ccc"], "#0098e6", "#e16d6d", "#3fa455", "#c968e6", "#999", "#ce7e00"];
-				rainbowTypes = rainbowColors.map(textDecoration);
+				rainbowTypes = rainbowColors.map(colorDecorationType);
 				dirty = true;
 			}
 
@@ -79,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
 				if (!!misplacedType)
 					activeEditor.setDecorations(misplacedType, []);
 				misplacedBracketStyle = configuration.get("misplacedBracketStyle");
-				misplacedType = vscode.window.createTextEditorDecorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, dark: {color: "#ccc", backgroundColor: "#933"}});
+				misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, dark: {color: "#ccc", backgroundColor: "#933"}});
 				dirty = true;
 			}
 
@@ -87,7 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
 				if (!!matchedType)
 					activeEditor.setDecorations(matchedType, []);
 				matchedBracketStyle = configuration.get("matchedBracketStyle");
-				matchedType = vscode.window.createTextEditorDecorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
+				matchedType = decorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
 				dirty = true;
 			}
 

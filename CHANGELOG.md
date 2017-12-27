@@ -1,3 +1,7 @@
+# 0.1.6
+
+- Avoid bracket styles bleeding into text typed next to them
+
 # 0.1.5
 
 - Don’t show matched brackets inside selection (#4)
