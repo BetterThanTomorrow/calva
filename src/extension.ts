@@ -31,11 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		activeEditor = editor;
-		if (is_clojure(editor)) {
-			vscode.workspace.getConfiguration().update('editor.matchBrackets', false, true);
+		if (is_clojure(editor))
 			scheduleRainbowBrackets();
-		} else
-			vscode.workspace.getConfiguration().update('editor.matchBrackets', undefined, true);
 	}, null, context.subscriptions);
 
 	vscode.window.onDidChangeTextEditorSelection(event => {
