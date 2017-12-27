@@ -227,6 +227,7 @@ export function activate(context: vscode.ExtensionContext) {
 			else
 				return selection;
 		});
+		activeEditor.revealRange(activeEditor.selections[0]);
 	}
 
 	function selectToMatchingBracket() {
@@ -245,5 +246,6 @@ export function activate(context: vscode.ExtensionContext) {
 			else
 				return selection;
 		});
+		activeEditor.revealRange(new Range(activeEditor.selections[0].active, activeEditor.selections[0].active));
 	}
 }
