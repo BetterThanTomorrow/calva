@@ -209,8 +209,8 @@ export function activate(context: vscode.ExtensionContext) {
 		      doc = activeEditor.document;
 		activeEditor.selections.forEach(selection => {
 			const cursor        = selection.active,
-						match_before  = matchBefore(doc, cursor),
-						match_after   = matchAfter(doc, cursor);
+						match_before  = cursor.isBeforeOrEqual(selection.anchor) && matchBefore(doc, cursor),
+						match_after   = cursor.isAfterOrEqual(selection.anchor) && matchAfter(doc, cursor);
 			if (!!match_before) {
 				matches.push({range: new Range(cursor.translate(0,-1), cursor)});
 				matches.push({range: new Range(match_before, match_before.translate(0,1))});
