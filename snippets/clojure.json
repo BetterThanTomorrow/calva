@@ -1,40 +1,40 @@
-{
-  ".source.cljs": {
-        "Print to console": {
-            "prefix": "log",
-            "body": [
-                "(js/console.log \"$1\")",
-                "$2"
-            ],
-            "description": "vsclj: Log output to browsers console"
-        }
-  },
+// {
+//   ".source.cljs": {
+//         "Print to console": {
+//             "prefix": "log",
+//             "body": [
+//                 "(js/console.log \"$1\")",
+//                 "$2"
+//             ],
+//             "description": "vsclj: Log output to browsers console"
+//         }
+//   },
 
-  ".source.clj": {
-      "Create a new namespace": {
-        "prefix": "ns",
-          "body": [
-              "(ns ${name} [${args}] ${body})",
-                "$1"
-          ],
-          "description": "vsclj: Defines a new public function"
-      },
-      "Define a new public fn": {
-          "prefix": "defn",
-          "body": [
-              "(defn ${name} [${args}] ${body})",
-                "$1"
-          ],
-          "description": "vsclj: Defines a new public function"
-      },
-      "Define a new private fn": {
-          "prefix": "defn-",
-          "body": [
-              "(defn- ${name} [${args}] ${body})",
-                "$1"
-          ],
-          "description": "vsclj: Defines a new private function"
-      }
-  }
+//   ".source.clj": {
+//       "Create a new namespace": {
+//         "prefix": "ns",
+//           "body": [
+//               "(ns ${name} [${args}] ${body})",
+//                 "$1"
+//           ],
+//           "description": "vsclj: Defines a new public function"
+//       },
+//       "Define a new public fn": {
+//           "prefix": "defn",
+//           "body": [
+//               "(defn ${name} [${args}] ${body})",
+//                 "$1"
+//           ],
+//           "description": "vsclj: Defines a new public function"
+//       },
+//       "Define a new private fn": {
+//           "prefix": "defn-",
+//           "body": [
+//               "(defn- ${name} [${args}] ${body})",
+//                 "$1"
+//           ],
+//           "description": "vsclj: Defines a new private function"
+//       }
+//   }
 
-}
+// }

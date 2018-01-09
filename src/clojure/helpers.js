@@ -5,7 +5,9 @@ const nreplMsg = require('../nrepl/message');
 const SESSION_TYPE = require('../nrepl/session_type');
 
 const ERROR = {DEFAULT: "Unknown error..",
-ILLEGAL_ARGUMENT: "java.lang.IllegalArgumentException"};
+ILLEGAL_ARGUMENT: "java.lang.IllegalArgumentException",
+EXCEPTION_INFO: "clojure.lang.ExceptionInfo",
+COMPILER_EXCEPTION: "clojure.lang.Compiler$CompilerException"};
 
 const WARNING = {DEFAULT: "Warning"};
 
@@ -126,15 +128,24 @@ function getContentToPreviousBracket(block) {
     return [currPos, block.substr(currPos + 1, block.length)];
 };
 
-
 function getReason (results) {
-    let illegal_arguments = _.filter(results, {class: ERROR.ILLEGAL_ARGUMENT});
+    let illegal_arguments = _.filter(results, {class: ERROR.ILLEGAL_ARGUMENT}),
+        compiler_exceptions = _.filter(results, {class: ERROR.COMPILER_EXCEPTION}),
+        exInfos = _.filter(results, {class: ERROR.EXCEPTION_INFO});
+
     if (illegal_arguments.length > 0) {
         return [ERROR.ILLEGAL_ARGUMENT, illegal_arguments[0].message];
-    } else {
-        console.log("UNKOWN REASON..");
-        console.log(results);
+    } else if (compiler_exceptions.length > 0) {
+        return [ERROR.COMPILER_EXCEPTION, compiler_exceptions[0].message];
     }
+    else if (exInfos.length > 0) {
+        let msg = _.map(exInfos, "message").join(", "),
+            lindx = msg.lastIndexOf("]") + 1,
+            einfomsg = msg.substr(lindx,msg.length);
+        return [ERROR.EXCEPTION_INFO, einfomsg];
+    }
+    console.log("UNKOWN REASON..");
+    console.log(results);
     return [ERROR.DEFAULT, "Something went wrong.."];
 };
 
@@ -167,6 +178,8 @@ function getLineAndColumn (results) {
             } else if (message !== null && hasLine(message)) {
                 let words = message.split(" ");
                 line = extractWordPlacement(words, "line");
+            } else if (results[r].hasOwnProperty("line")) {
+                line = results[r].line;
             }
         }
 
@@ -180,6 +193,8 @@ function getLineAndColumn (results) {
                 let words = message.split(" ");
                 column = extractWordPlacement(words, "column")
                        || extractWordPlacement(words, "col");
+            } else if (results[r].hasOwnProperty("column")) {
+                column = results[r].column;
             }
         }
     }
