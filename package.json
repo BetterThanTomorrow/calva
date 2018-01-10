@@ -136,7 +136,6 @@
         "lodash": "4.17.4",
         "net": "1.0.2",
         "node-cmd": "^3.0.0",
-        "nrepl-client": "^0.2.3",
         "socket.io-client": "^2.0.4",
         "stream": "0.0.2",
         "util": "0.10.3",

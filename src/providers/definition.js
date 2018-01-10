@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const state = require('../state');
 
-const repl = require('nrepl-client');
+const repl = require('../repl/client');
 const message = require('../repl/message');
 const {getNamespace, getActualWord} = require('../utilities');
 
@@ -21,8 +21,7 @@ module.exports = class DefinitionProvider {
         if (this.state.deref().get('connected')) {
             return new Promise((resolve, reject) => {
                 let current = scope.state.deref(),
-                    connection = current.get("connection"),
-                    client = repl.connect(connection).once('connect', () => {
+                client = repl.create().once('connect', () => {
                     let msg = message.info(current.get(filetype),
                                            getNamespace(document.getText()), text);
                     client.send(msg, function (results) {

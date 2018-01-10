@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const state = require('../state');
 
-const repl = require('nrepl-client');
+const repl = require('../repl/client');
 const message = require('../repl/message');
 const {getNamespace, getActualWord} = require('../utilities');
 
@@ -55,7 +55,7 @@ module.exports = class HoverProvider {
                         client = current.get("repl");
                         let msg = message.info(current.get(filetype),
                                             getNamespace(document.getText()), text);
-                        client.send(msg, function (err, results) {
+                        client.send(msg, function (results) {
                             if (results.length === 1
                                 && results[0].status[0] === "done"
                                 && results[0].status[1] === "no-info") {

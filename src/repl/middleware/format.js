@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const state = require ('../../state');
-const repl = require('nrepl-client');
+const repl = require('../client');
 const message = require('../message');
 const {getDocument, getFileType} = require('../../utilities');
 const ignoreNextSave = [];
@@ -14,8 +14,7 @@ function formatDocument(document = {}) {
     }
 
     if(current.get('connected')) {
-        let connection = current.get("connection"),
-            client = repl.connect(connection).once('connect', () => {
+        let client = repl.create().once('connect', () => {
             let msg = {op: "format-code",
                        code: doc.getText(),
                        session: current.get(getFileType(doc))};

@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const state = require ('../../state');
-const repl = require('nrepl-client');
+const repl = require('../client');
 const message = require('../message');
 const {getFileType, getDocument} = require('../../utilities');
 
@@ -24,11 +24,10 @@ function logResults (results) {
 
 function refreshChanged(document = {}) {
     let current = state.deref(),
-        doc = getDocument(document),
-        connection = current.get("connection");
+        doc = getDocument(document);
 
     if(current.get('connected')) {
-         client = repl.connect(connection).once('connect', () => {
+         client = repl.create().once('connect', () => {
             let msg = message.refresh(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 logResults(results);
@@ -40,10 +39,9 @@ function refreshChanged(document = {}) {
 
 function refreshAll(document = {}) {
     let current = state.deref(),
-        doc = getDocument(document),
-        connection = current.get("connection");
+        doc = getDocument(document);
     if(current.get('connected')) {
-        let client = repl.connect(connection).once('connect', () => {
+        let client = repl.create().once('connect', () => {
             let msg = message.refreshAll(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 logResults(results);
@@ -55,10 +53,9 @@ function refreshAll(document = {}) {
 
 function refreshClear(document = {}) {
     let current = state.deref(),
-        doc = getDocument(document),
-        connection = current.get("connection");
+        doc = getDocument(document);
     if(current.get('connected')) {
-        let client = repl.connect(connection).once('connect', () => {
+        let client = repl.create().once('connect', () => {
             let msg = message.refreshClear(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 let chan = current.get('outputChannel');

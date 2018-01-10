@@ -14,7 +14,6 @@ const initialData = {
     clj: null,
     cljs: null,
     connected: false,
-    connection: null,
     outputChannel: vscode.window.createOutputChannel("VisualClojure"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('VisualClojure: Evaluation errors')
 };
