@@ -1,15 +1,16 @@
+const state = require('../state');
 const os = require('os');
 const fs = require('fs');
 const JSZip = require('jszip');
 
 module.exports = class TextDocumentContentProvider {
-    constructor(state) {
+    constructor() {
         this.state = state;
-        this.specialWords = ['-', '+', '/', '*']; //TODO: Add more here
     }
 
     provideTextDocumentContent(uri, token) {
-        if (this.state.connected) {
+        let current = this.state.deref();
+        if (current.get('connected')) {
             return new Promise((resolve, reject) => {
                 let rawPath = uri.path,
                     pathToFileInJar = rawPath.slice(rawPath.search('!/') + 2),
