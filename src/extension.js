@@ -2,10 +2,6 @@ const vscode = require('vscode');
 const state = require('./state');
 const statusbar = require('./statusbar');
 const connector = require('./connector');
-const {
-    getFileType
-} = require("./utilities");
-
 const ClojureLanguageConfiguration = require('./language');
 
 const CompletionItemProvider = require('./providers/completion');
@@ -21,30 +17,17 @@ function onSave(document) {
     let {
         evaluate,
         lint
-    } = state.config(),
-        filetype = getFileType(document);
+    } = state.config();
 
     if (document.languageId !== 'clojure') {
         return;
     }
 
     if (evaluate) {
-        if (filetype == "cljs") {
-            EvaluateMiddleWare.evaluateFile(document);
-        } else if (filetype == "clj") {
-            EvaluateMiddleWare.evaluateFile(document);
-        } else if (filetype == "cljc") {
-            EvaluateMiddleWare.evaluateFile(document);
-        }
+        EvaluateMiddleWare.evaluateFile(document);
     }
     if (lint) {
-        if (filetype == "cljs") {
-            LintMiddleWare.lintDocument(document);
-        } else if (filetype == "clj") {
-            LintMiddleWare.lintDocument(document);
-        } else if (filetype == "cljc") {
-            LintMiddleWare.lintDocument(document);
-        }
+        LintMiddleWare.lintDocument(document);
     }
 };
 
