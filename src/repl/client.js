@@ -1,15 +1,15 @@
 const state = require('../state');
 const net = require('net');
-const io = require('socket.io-client');
 const Buffer = require('buffer').Buffer;
-const bencoder = require('bencode');
+const bencoder = require('bencoder');
 
 const CONTINUATION_ERROR_MESSAGE = "Unexpected continuation: \"";
+
 function decode(decodedResult) {
     if (decodedResult.rest.length === 0)
         return decodedResult;
     try {
-        const decodedObj = bencoder.decode(decodedResult.rest, 'utf8');
+        const decodedObj = bencoder.decode(decodedResult.rest);
         decodedResult.decodedObjects.push(decodedObj);
         decodedResult.rest = Buffer.from('');
         return decodedResult;
@@ -21,7 +21,7 @@ function decode(decodedResult) {
             const rest = decodedResult.rest;
             const encodedObj = rest.slice(0, rest.length - unexpectedContinuation.length);
 
-            decodedResult.decodedObjects.push(bencoder.decode(encodedObj, 'utf8'));
+            decodedResult.decodedObjects.push(bencoder.decode(encodedObj));
             decodedResult.rest = Buffer.from(unexpectedContinuation);
 
             return decode(decodedResult);
@@ -36,18 +36,19 @@ function isDone(chunks) {
     return lastObj && lastObj.status && lastObj.status.indexOf('done') !== -1;
 };
 
-function create (options) {
+function create(options) {
     let current = state.deref(),
         _options = null;
     if (current.get('connected')) {
-        _options = {hostname: current.get('hostname'),
-                    port: current.get('port')}
+        _options = {
+            hostname: current.get('hostname'),
+            port: current.get('port')
+        }
     } else {
         _options = options;
     }
     if (_options !== null) {
         let con = net.createConnection(_options);
-        //let con = io("nrepl://" + _options.hostname + ":" + port);
         con.send = send.bind(con);
 
         con.on('error', (e) => {
@@ -55,33 +56,30 @@ function create (options) {
             console.log(e);
         });
 
-        con.setTimeout(10000);
-        con.on('timeout', () => {
-          console.log('socket timeout');
-          con.end();
-          con.destroy();
-        });
-
         return con;
     }
 };
 
-function send (msg, callback) {
-    console.log("sending msg: " + msg.op);
-
+function send(msg, callback) {
     let buffer = Buffer.from(''),
-    encodedMsg = bencoder.encode(msg);
+        encodedMsg = bencoder.encode(msg);
     let chunks = [];
     this.on('data', (chunk) => {
         try {
             buffer = Buffer.concat([buffer, chunk]);
-            let {decodedObjects, rest} = decode({ decodedObjects: [], rest: buffer });
+            let {
+                decodedObjects,
+                rest
+            } = decode({
+                decodedObjects: [],
+                rest: buffer
+            });
             buffer = rest;
             let validDecodedObjects = decodedObjects.reduce((objs, obj) => {
-                    if (!isDone(objs))
-                        objs.push(obj);
-                    return objs;
-                }, []);
+                if (!isDone(objs))
+                    objs.push(obj);
+                return objs;
+            }, []);
 
             chunks.push(...validDecodedObjects)
 
@@ -93,11 +91,10 @@ function send (msg, callback) {
             console.error(error);
         }
     });
-    this.write(encodedMsg);
+    this.write(encodedMsg, 'binary');
 };
 
 module.exports = {
     create,
     send
 };
-

@@ -2,10 +2,9 @@ const vscode = require('vscode');
 const Immutable = require('immutable');
 const ImmutableCursor = require('immutable-cursor');
 
-const mode = { language: 'clojure', scheme: 'file'};
-const support = {
-    CLJS: ["cljc", "cljs"],
-    CLJ: ["cljc", "clj"]
+const mode = {
+    language: 'clojure',
+    scheme: 'file'
 };
 var data;
 const initialData = {
@@ -21,7 +20,7 @@ const initialData = {
 reset();
 
 const cursor = ImmutableCursor.from(data, [], (nextState, currentState) => {
-	data = Immutable.fromJS(nextState);
+    data = Immutable.fromJS(nextState);
 });
 
 function deref() {
@@ -36,15 +35,14 @@ function config() {
     let configOptions = vscode.workspace.getConfiguration('visualclojure');
     return {
         format: configOptions.get("formatOnSave"),
-        refresh: configOptions.get("refreshOnSave"),
-        eval: configOptions.get("evalOnSave"),
+        evaluate: configOptions.get("evalOnSave"),
+        lint: configOptions.get("lintOnSave"),
         connect: configOptions.get("autoConnect")
     };
 };
 
 module.exports = {
     cursor,
-    support,
     mode,
     deref,
     reset,

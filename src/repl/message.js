@@ -40,10 +40,10 @@ function evaluateMsg(session, ns, code) {
 function loadFileMsg(session, fileContent, fileName, filePath) {
     return {
         op: operation.LOAD_FILE,
-        file : fileContent,
+        file: fileContent,
         "file-name": fileName,
         "file-path": filePath,
-        session : session
+        session: session
     };
 };
 
@@ -52,7 +52,7 @@ function completeMsg(session, namespace, symbol) {
         op: operation.COMPLETE,
         symbol: symbol,
         ns: namespace,
-        session : session
+        session: session
     };
 };
 
@@ -61,28 +61,28 @@ function infoMsg(session, namespace, symbol) {
         op: operation.INFO,
         symbol: symbol,
         ns: namespace,
-        session : session
+        session: session
     };
 };
 
 function stacktraceMsg(session) {
     return {
         op: operation.STACKTRACE,
-        session : session
+        session: session
     };
 };
 
 function cloneMsg(session) {
     return {
         op: operation.CLONE,
-        session : session
+        session: session
     };
 };
 
 function closeMsg(session) {
     return {
         op: operation.CLOSE,
-        session : session
+        session: session
     };
 };
 

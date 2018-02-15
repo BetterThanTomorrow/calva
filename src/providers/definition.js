@@ -3,7 +3,10 @@ const state = require('../state');
 
 const repl = require('../repl/client');
 const message = require('../repl/message');
-const {getNamespace, getActualWord} = require('../utilities');
+const {
+    getNamespace,
+    getActualWord
+} = require('../utilities');
 
 module.exports = class DefinitionProvider {
     constructor() {
@@ -21,25 +24,25 @@ module.exports = class DefinitionProvider {
         if (this.state.deref().get('connected')) {
             return new Promise((resolve, reject) => {
                 let current = scope.state.deref(),
-                client = repl.create().once('connect', () => {
-                    let msg = message.info(current.get(filetype),
-                                           getNamespace(document.getText()), text);
-                    client.send(msg, function (results) {
-                        for (var r = 0; r < results.length; r++) {
-                            let result = results[r];
-                            if (result.hasOwnProperty('file') && result.file.length > 0) {
-                                let pos = new vscode.Position(result.line - 1, result.column);
-                                location = new vscode.Location(vscode.Uri.parse(result.file), pos);
+                    client = repl.create().once('connect', () => {
+                        let msg = message.info(current.get(filetype),
+                            getNamespace(document.getText()), text);
+                        client.send(msg, function (results) {
+                            for (var r = 0; r < results.length; r++) {
+                                let result = results[r];
+                                if (result.hasOwnProperty('file') && result.file.length > 0) {
+                                    let pos = new vscode.Position(result.line - 1, result.column);
+                                    location = new vscode.Location(vscode.Uri.parse(result.file), pos);
+                                }
                             }
-                        }
-                        if (location !== null) {
-                            resolve(location);
-                        } else {
-                            reject("No definition found");
-                        }
-                        client.end();
+                            if (location !== null) {
+                                resolve(location);
+                            } else {
+                                reject("No definition found");
+                            }
+                            client.end();
+                        });
                     });
-                });
             });
         } else {
             return new vscode.Hover("Not connected to nREPL..");

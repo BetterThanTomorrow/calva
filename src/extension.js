@@ -2,6 +2,9 @@ const vscode = require('vscode');
 const state = require('./state');
 const statusbar = require('./statusbar');
 const connector = require('./connector');
+const {
+    getFileType
+} = require("./utilities");
 
 const ClojureLanguageConfiguration = require('./language');
 
@@ -9,34 +12,54 @@ const CompletionItemProvider = require('./providers/completion');
 const TextDocumentContentProvider = require('./providers/content');
 const HoverProvider = require('./providers/hover');
 const DefinitionProvider = require('./providers/definition');
+const FormatingProvider = require('./providers/formater');
 
-const RefreshMiddleWare = require('./repl/middleware/refresh');
-const FormatMiddleWare = require('./repl/middleware/format');
 const EvaluateMiddleWare = require('./repl/middleware/evaluate');
+const LintMiddleWare = require('./repl/middleware/lint');
 
-function onSave (document) {
-    let {format, eval, refresh} = state.config();
+function onSave(document) {
+    let {
+        evaluate,
+        lint
+    } = state.config(),
+        filetype = getFileType(document);
 
-    if (document.languageId !== 'clojure' || FormatMiddleWare.ignoreNextSave.length > 0) {
+    if (document.languageId !== 'clojure') {
         return;
     }
 
-    if (refresh) {
-        RefreshMiddleWare.refreshChanged(document);
+    if (evaluate) {
+        if (filetype == "cljs") {
+            EvaluateMiddleWare.evaluateFile(document);
+        } else if (filetype == "clj") {
+            EvaluateMiddleWare.evaluateFile(document);
+        } else if (filetype == "cljc") {
+            EvaluateMiddleWare.evaluateFile(document);
+        }
     }
-    if (format) {
-        //FormatMiddleWare.formatDocument(document);
-    }
-    if (eval) {
-        EvaluateMiddleWare.evaluateFile(document);
+    if (lint) {
+        if (filetype == "cljs") {
+            LintMiddleWare.lintDocument(document);
+        } else if (filetype == "clj") {
+            LintMiddleWare.lintDocument(document);
+        } else if (filetype == "cljc") {
+            LintMiddleWare.lintDocument(document);
+        }
     }
 };
 
 function activate(context) {
-    let {connect} = state.config();
+    let {
+        connect
+    } = state.config();
     //Set the language configuration for vscode when using this extension
     vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
     statusbar.update();
+
+    //Set visualclojures output channel to active
+    let chan = state.deref().get('outputChannel');
+    chan.show();
+
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
     if (connect) {
@@ -46,17 +69,15 @@ function activate(context) {
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.reconnect', connector.reconnect));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refresh', RefreshMiddleWare.refreshChanged));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refreshAll', RefreshMiddleWare.refreshAll));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.refreshClear', RefreshMiddleWare.refreshClear));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.formatDocument', FormatMiddleWare.formatDocument));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', EvaluateMiddleWare.evaluateFile));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.lintFile', LintMiddleWare.lintDocument));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(state.mode, new FormatingProvider()))
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
     // //EVENTS

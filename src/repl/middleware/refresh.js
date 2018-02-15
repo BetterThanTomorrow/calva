@@ -1,10 +1,13 @@
 const vscode = require('vscode');
-const state = require ('../../state');
+const state = require('../../state');
 const repl = require('../client');
 const message = require('../message');
-const {getFileType, getDocument} = require('../../utilities');
+const {
+    getFileType,
+    getDocument
+} = require('../../utilities');
 
-function logResults (results) {
+function logResults(results) {
     let reloaded = [];
     for (var r = 0; r < results.length; r++) {
         if (results[r].hasOwnProperty('reloading') && results[r].reloading.length > 0) {
@@ -26,8 +29,8 @@ function refreshChanged(document = {}) {
     let current = state.deref(),
         doc = getDocument(document);
 
-    if(current.get('connected')) {
-         client = repl.create().once('connect', () => {
+    if (current.get('connected')) {
+        client = repl.create().once('connect', () => {
             let msg = message.refresh(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 logResults(results);
@@ -40,7 +43,7 @@ function refreshChanged(document = {}) {
 function refreshAll(document = {}) {
     let current = state.deref(),
         doc = getDocument(document);
-    if(current.get('connected')) {
+    if (current.get('connected')) {
         let client = repl.create().once('connect', () => {
             let msg = message.refreshAll(current.get(getFileType(doc)));
             client.send(msg, function (results) {
@@ -54,13 +57,13 @@ function refreshAll(document = {}) {
 function refreshClear(document = {}) {
     let current = state.deref(),
         doc = getDocument(document);
-    if(current.get('connected')) {
+    if (current.get('connected')) {
         let client = repl.create().once('connect', () => {
             let msg = message.refreshClear(current.get(getFileType(doc)));
             client.send(msg, function (results) {
                 let chan = current.get('outputChannel');
-                    chan.clear();
-                    chan.appendLine("Refresh clear: " + results[0].status[0] + " \n");
+                chan.clear();
+                chan.appendLine("Refresh clear: " + results[0].status[0] + " \n");
                 client.end();
             });
         });

@@ -1,4 +1,3 @@
-
 const vscode = require('vscode');
 const state = require('./state');
 
@@ -14,7 +13,7 @@ function update() {
         connection.text = "nrepl - click to connect";
     }
 
-    if(current.get('cljs') !== null) {
+    if (current.get('cljs') !== null) {
         type.color = "rgb(145,220,71)";
         type.text = "(cljs)"
     } else if (current.get('clj') !== null) {
@@ -25,7 +24,7 @@ function update() {
         type.text = "(-)"
     }
     connection.command = "visualclojure.connect";
-    type.command = "visualclojure.toggleSession";
+    //type.command = "visualclojure.toggleSession";
 
     connection.show();
     type.show();
