@@ -118,6 +118,8 @@
         "immutable-cursor": "2.0.1",
         "jszip": "3.1.3",
         "lodash": "4.17.4",
-        "vscode": "^1.1.4"
+        "vscode": "^1.1.4",
+        "buffer": "^5.0.7",
+        "net": "1.0.2"
     }
 }
