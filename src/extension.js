@@ -54,6 +54,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', EvaluateMiddleWare.evaluateFile));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.lintFile', LintMiddleWare.lintDocument));
 
     // PROVIDERS

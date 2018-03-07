@@ -12,13 +12,16 @@ const {
     logError,
     ERROR_TYPE,
     getContentToNextBracket,
+    getPrettyPrintCode,
     getContentToPreviousBracket
 } = require('../../utilities');
 
-function evaluateSelection(document = {}) {
+function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = current.get('outputChannel'),
+        //doc = '(pprint ' + getDocument(document) + ')',
         doc = getDocument(document),
+        pprint = options.pprint || false,
         session = current.get(getFileType(doc));
 
     chan.clear();
@@ -72,7 +75,7 @@ function evaluateSelection(document = {}) {
             let evalClient = null;
             new Promise((resolve, reject) => {
                 evalClient = repl.create().once('connect', () => {
-                    let msg = message.evaluate(session, getNamespace(doc.getText()), code);
+                    let msg = message.evaluate(session, getNamespace(doc.getText()), (pprint ? getPrettyPrintCode(code) : code));
                     evalClient.send(msg, (result) => {
                         let exceptions = _.some(result, "ex"),
                             errors = _.some(result, "err");
@@ -93,6 +96,10 @@ function evaluateSelection(document = {}) {
             });
         }
     }
+};
+
+function evaluateSelectionPrettyPrint(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 };
 
 function evaluateFile(document = {}) {
@@ -135,4 +142,5 @@ function evaluateFile(document = {}) {
 module.exports = {
     evaluateFile,
     evaluateSelection,
+    evaluateSelectionPrettyPrint,
 };

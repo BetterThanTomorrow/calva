@@ -3,7 +3,7 @@
     "displayName": "visual:clojure",
     "description": "Clojure and ClojureScript support",
     "icon": "assets/icon.png",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "publisher": "stiansivertsen",
     "author": {
         "name": "Stian Sivertsen",
@@ -70,6 +70,11 @@
                 "category": "visualclojure"
             },
             {
+                "command": "visualclojure.evaluateSelectionPrettyPrint",
+                "title": "evaluate selection or current form, and pretty print",
+                "category": "visualclojure"
+            },
+            {
                 "command": "visualclojure.evaluateFile",
                 "title": "evaluate current file",
                 "category": "visualclojure"
@@ -95,6 +100,11 @@
                 "command": "visualclojure.evaluateSelection",
                 "key": "alt+v e",
                 "mac": "alt+v e"
+            },
+            {
+                "command": "visualclojure.evaluateSelectionPrettyPrint",
+                "key": "alt+v p",
+                "mac": "alt+v p"
             },
             {
                 "command": "visualclojure.evaluateFile",
