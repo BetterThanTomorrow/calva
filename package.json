@@ -83,6 +83,16 @@
                 "command": "visualclojure.lintFile",
                 "title": "lint current file",
                 "category": "visualclojure"
+            },
+            {
+                "command": "visualclojure.runNamespaceTests",
+                "title": "Run tests for current namespace",
+                "category": "visualclojure"
+            },
+            {
+                "command": "visualclojure.runAllTests",
+                "title": "Run all tests",
+                "category": "visualclojure"
             }
         ],
         "keybindings": [
@@ -115,6 +125,16 @@
                 "command": "visualclojure.lintFile",
                 "key": "alt+v l",
                 "mac": "alt+v l"
+            },
+            {
+                "command": "visualclojure.runNamespaceTests",
+                "key": "alt+v t",
+                "mac": "alt+v t"
+            },
+            {
+                "command": "visualclojure.runAllTests",
+                "key": "alt+v shift+t",
+                "mac": "alt+v shift+t"
             }
         ]
     },

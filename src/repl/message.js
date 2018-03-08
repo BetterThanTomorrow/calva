@@ -11,7 +11,9 @@ var operation = {
     REFRESH: "refresh",
     REFRESH_ALL: "refresh-all",
     REFRESH_CLEAR: "refresh-clear",
-    FORMAT_CODE: "format-code"
+    FORMAT_CODE: "format-code",
+    TEST: "test",
+    TEST_ALL: "test-all"
 }
 
 function testSessionMsg(session) {
@@ -107,6 +109,21 @@ function refreshClearMsg(session) {
     };
 };
 
+function testMsg(session) {
+    return {
+        op: operation.TEST,
+        session: session
+    };
+};
+
+function testAllMsg(session) {
+    return {
+        op: operation.TEST_ALL,
+        session: session,
+        'load?': 1
+    };
+};
+
 module.exports = {
     evaluate: evaluateMsg,
     listSessions: listSessionsMsg,
@@ -119,5 +136,7 @@ module.exports = {
     close: closeMsg,
     refresh: refreshMsg,
     refreshAll: refreshAllMsg,
-    refreshClear: refreshClearMsg
+    refreshClear: refreshClearMsg,
+    test: testMsg,
+    testAll: testAllMsg
 };

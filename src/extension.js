@@ -12,6 +12,7 @@ const FormatingProvider = require('./providers/formater');
 
 const EvaluateMiddleWare = require('./repl/middleware/evaluate');
 const LintMiddleWare = require('./repl/middleware/lint');
+const TestRunnerMiddleWare = require('./repl/middleware/testRunner');
 
 function onSave(document) {
     let {
@@ -56,6 +57,8 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.lintFile', LintMiddleWare.lintDocument));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTests));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.runAllTests', TestRunnerMiddleWare.runAllTests));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));

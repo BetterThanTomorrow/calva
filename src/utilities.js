@@ -171,6 +171,17 @@ function logSuccess(results) {
     });
 };
 
+function logTestResults(results) {
+    let chan = state.deref().get('outputChannel'),
+        resultsP = results;
+    _.each(results, r => {
+        let summary = r.hasOwnProperty("summary") ? r.summary : null;
+        if (summary !== null) {
+            chan.appendLine(JSON.stringify(summary));
+        }
+    });
+};
+
 function logError(error) {
     let chan = state.deref().get('outputChannel');
 
@@ -263,5 +274,6 @@ module.exports = {
     markError,
     logWarning,
     markWarning,
-    logSuccess
+    logSuccess,
+    logTestResults
 };

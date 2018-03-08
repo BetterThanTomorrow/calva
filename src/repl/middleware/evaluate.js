@@ -12,23 +12,23 @@ const {
     logError,
     ERROR_TYPE,
     getContentToNextBracket,
-    getPrettyPrintCode,
-    getContentToPreviousBracket
+    getContentToPreviousBracket,
+    getPrettyPrintCode
 } = require('../../utilities');
 
-function evaluateText(text, startMsg, errorMsg, document = {}) {
+function evaluateMsg(msg, startStr, errorStr, document = {}) {
     let current = state.deref(),
-        doc = getDocument(document),
-        session = current.get(getFileType(doc)),
-        chan = current.get('outputChannel');
+    doc = getDocument(document),
+    session = current.get(getFileType(doc)),
+    chan = current.get('outputChannel');
 
     chan.clear();
-    chan.appendLine(startMsg);
+    chan.appendLine(startStr);
     chan.appendLine("----------------------------");
     let evalClient = null;
     new Promise((resolve, reject) => {
         evalClient = repl.create().once('connect', () => {
-            evalClient.send(text, (result) => {
+            evalClient.send(msg, (result) => {
                 let exceptions = _.some(result, "ex"),
                 errors = _.some(result, "err");
                 if (!exceptions && !errors) {
@@ -37,7 +37,7 @@ function evaluateText(text, startMsg, errorMsg, document = {}) {
                 } else {
                     logError({
                         type: ERROR_TYPE.ERROR,
-                        reason: "Error, " + errorMsg + ": " + _.find(result, "err").err
+                        reason: "Error, " + errorStr + ": " + _.find(result, "err").err
                     });
                 }
                 reject(result);
@@ -48,13 +48,22 @@ function evaluateText(text, startMsg, errorMsg, document = {}) {
     });
 };
 
+function evaluateText(text, startStr, errorStr, document = {}) {
+    let current = state.deref(),
+        doc = getDocument(document),
+        session = current.get(getFileType(doc)),
+        msg = message.evaluate(session, getNamespace(doc.getText()), text);
+
+    if (current.get('connected')) {
+        evaluateMsg(msg, startStr, errorStr);
+    }
+}
+
 function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
     chan = current.get('outputChannel'),
-    //doc = '(pprint ' + getDocument(document) + ')',
     doc = getDocument(document),
     pprint = options.pprint || false,
-    runTests = options.runTests || true,
     session = current.get(getFileType(doc));
 
     chan.clear();
@@ -78,34 +87,35 @@ function evaluateSelection(document = {}, options = {}) {
                 textSelection = new vscode.Selection(startPosition, currentPosition);
                 [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
             }
-        } else { //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
-        let currentPosition = selection.active,
-        nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
-        previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
-        nextSelection = new vscode.Selection(currentPosition, nextPosition),
-        previousSelection = new vscode.Selection(previousPosition, currentPosition),
-        nextChar = doc.getText(nextSelection),
-        prevChar = doc.getText(previousSelection);
+        } else {
+            //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
+            let currentPosition = selection.active,
+            nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
+            previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
+            nextSelection = new vscode.Selection(currentPosition, nextPosition),
+            previousSelection = new vscode.Selection(previousPosition, currentPosition),
+            nextChar = doc.getText(nextSelection),
+            prevChar = doc.getText(previousSelection);
 
-        if (nextChar === '(' || prevChar === '(') {
-            let lastLine = doc.lineCount,
-            endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
-            startPosition = (nextChar === '(') ? currentPosition : previousPosition,
-            textSelection = new vscode.Selection(startPosition, endPosition);
-            [offset, code] = getContentToNextBracket(doc.getText(textSelection));
-        } else if (nextChar === ')' || prevChar === ')') {
-            let startPosition = currentPosition.with(0, 0),
-            endPosition = (prevChar === ')') ? currentPosition : nextPosition,
-            textSelection = new vscode.Selection(startPosition, endPosition);
-            [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
+            if (nextChar === '(' || prevChar === '(') {
+                let lastLine = doc.lineCount,
+                endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
+                startPosition = (nextChar === '(') ? currentPosition : previousPosition,
+                textSelection = new vscode.Selection(startPosition, endPosition);
+                [offset, code] = getContentToNextBracket(doc.getText(textSelection));
+            } else if (nextChar === ')' || prevChar === ')') {
+                let startPosition = currentPosition.with(0, 0),
+                endPosition = (prevChar === ')') ? currentPosition : nextPosition,
+                textSelection = new vscode.Selection(startPosition, endPosition);
+                [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
+            }
+        }
+
+        if (code.length > 0) {
+            let msg = message.evaluate(session, getNamespace(doc.getText()), (pprint ? getPrettyPrintCode(code) : code));
+            evaluateMsg(msg, "Evaluating: " + msg.code, "unable to evaluate sexp");
         }
     }
-
-    if (code.length > 0) {
-        let text = message.evaluate(session, getNamespace(doc.getText()), (pprint ? getPrettyPrintCode(code) : code));
-        evaluateText(text, "Evaluating:", "unable to evaluate sexp");
-    }
-}
 };
 
 function evaluateSelectionPrettyPrint(document = {}, options = {}) {
@@ -119,13 +129,14 @@ function evaluateFile(document = {}) {
     if (current.get('connected')) {
         let fileName = getFileName(doc);
         session = current.get(getFileType(doc)),
-        text = message.loadFile(session, doc.getText(), fileName, doc.fileName);
+        msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
 
-        evaluateText(text, "Evaluating file: " + fileName, "unable to evaluate file");
+        evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file");
     }
 };
 
 module.exports = {
+    evaluateText,
     evaluateFile,
     evaluateSelection,
     evaluateSelectionPrettyPrint,
