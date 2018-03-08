@@ -85,7 +85,7 @@ function evaluateSelection(document = {}, options = {}) {
                         } else {
                             logError({
                                 type: ERROR_TYPE.ERROR,
-                                reason: "Error: unable to evaluate sexp"
+                                reason: "Error: unable to evaluate sexp: " + _.find(result, "err").err
                             });
                         }
                         reject(result);
@@ -127,7 +127,7 @@ function evaluateFile(document = {}) {
                     } else {
                         logError({
                             type: ERROR_TYPE.ERROR,
-                            reason: "Error: unable to evaluate file"
+                            reason: "Error: unable to evaluate file: " + _.find(result, "err").err
                         });
                     }
                     reject(result);
