@@ -196,8 +196,8 @@ function logTestResults(responses) {
         }
         if (summary !== null) {
             if (summary.test > 0) {
-                chan.appendLine("\n" + summary.test + " tests finished, " + 
-                                (summary.error + summary.fail == 0 ? "👍 all passing 👍" : "😭 some failing. 😭"))
+                chan.appendLine("\n" + summary.test + " tests finished, " +
+                                (summary.error + summary.fail == 0 ? "all passing 👍" : "some failing. 😭"))
             } else {
                 chan.appendLine("\nNo tests found. 😱")
             }
