@@ -39,11 +39,13 @@ function evaluateMsg(msg, startStr, errorStr, document = {}) {
                         type: ERROR_TYPE.ERROR,
                         reason: "Error, " + errorStr + ": " + _.find(result, "err").err
                     });
+                    reject(result);
                 }
-                reject(result);
             });
         });
     }).then(() => {
+        evalClient.end();
+    }).catch(() => {
         evalClient.end();
     });
 };

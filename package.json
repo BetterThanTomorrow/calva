@@ -3,7 +3,7 @@
     "displayName": "visual:clojure",
     "description": "Clojure and ClojureScript support",
     "icon": "assets/icon.png",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "publisher": "stiansivertsen",
     "author": {
         "name": "Stian Sivertsen",
