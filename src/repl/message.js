@@ -109,9 +109,10 @@ function refreshClearMsg(session) {
     };
 };
 
-function testMsg(session) {
+function testMsg(session, ns) {
     return {
         op: operation.TEST,
+        ns: ns,
         session: session
     };
 };

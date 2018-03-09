@@ -7,6 +7,7 @@ const {
 } = require('./evaluate');
 const {
     getDocument,
+    getNamespace,
     getFileType,
     logSuccess,
     logTestResults,
@@ -15,23 +16,15 @@ const {
     ERROR_TYPE,
 } = require('../../utilities');
 
-function runNamespaceTests(document = {}) {
-    let runTestsCode = '(clojure.test/run-tests *ns*)';
-    evaluateText(runTestsCode, 'Running tests for current namespace:', 'failed running tests');
-};
-
-function runAllTests(document = {}) {
-//    let runTestsCode = '(clojure.test/run-all-tests)';
-//    evaluateText(runTestsCode, 'Running all tests:', 'failed running tests');
+function runTests(msg, startStr, errorStr, document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
-        session = current.get(getFileType(doc)),
-        msg = message.testAll(session);
+        session = current.get(getFileType(doc));
 
     if (current.get('connected')) {
         chan = current.get('outputChannel');
         chan.clear();
-        chan.appendLine("Running all tests");
+        chan.appendLine(startStr);
         chan.appendLine("----------------------------");
         let testClient = null;
         new Promise((resolve, reject) => {
@@ -45,7 +38,7 @@ function runAllTests(document = {}) {
                     } else {
                         logError({
                             type: ERROR_TYPE.ERROR,
-                            reason: "Error running all tests: " + _.find(result, "err").err
+                            reason: "Error " + errorStr + ":" + _.find(result, "err").err
                         });
                         reject(result);
                     }
@@ -57,6 +50,24 @@ function runAllTests(document = {}) {
             testClient.end();
         });
     }
+}
+
+function runAllTests(document = {}) {
+    let current = state.deref(),
+        doc = getDocument(document),
+        session = current.get(getFileType(doc)),
+        msg = message.testAll(session);
+
+    runTests(msg, "Running all tests", "running all tests");
+};
+
+function runNamespaceTests(document = {}) {
+    let current = state.deref(),
+        doc = getDocument(document),
+        session = current.get(getFileType(doc)),
+        msg = message.test(session, getNamespace(doc.getText()));
+
+    runTests(msg, "Running tests", "running tests");
 };
 
 module.exports = {
