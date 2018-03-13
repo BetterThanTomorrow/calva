@@ -171,41 +171,6 @@ function logSuccess(results) {
     });
 };
 
-function logTestResults(responses) {
-    let chan = state.deref().get('outputChannel');
-    _.each(responses, response => {
-        let results = response.results || null,
-            summary = response.summary || null;
-        if (results !== null) {
-            _.each(results, (tests, ns) => {
-                _.each(tests, (asserts, test) => {
-                    _.each(asserts, a => {
-                        if (a.type == "error") {
-                            chan.appendLine("ERROR in: " + ns + ": " + a.file + ", line " + a.line +
-                                            ": " + test + ": " + (a.context || "") + ":\n" +
-                                            "  error: " + a.error + "\n  expected: " + a.expected);
-                        }
-                        if (a.type == "fail") {
-                            chan.appendLine("FAIL in: " + a.file + ":" + a.line +
-                                            ": " + test + ": " + (a.context || "") + ":\n" +
-                                            "  expected: " + a.expected + "\n  actual: " + a.actual);
-                        }
-                    })
-                })
-            })
-        }
-        if (summary !== null) {
-            if (summary.test > 0) {
-                chan.appendLine("\n" + summary.test + " tests finished, " +
-                                (summary.error + summary.fail == 0 ? "all passing 👍" : "some failing. 😭"))
-            } else {
-                chan.appendLine("\nNo tests found. 😱")
-            }
-            chan.appendLine(JSON.stringify(summary));
-        }
-    });
-};
-
 function logError(error) {
     let chan = state.deref().get('outputChannel');
 
@@ -298,6 +263,5 @@ module.exports = {
     markError,
     logWarning,
     markWarning,
-    logSuccess,
-    logTestResults
+    logSuccess
 };
