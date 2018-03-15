@@ -13,8 +13,8 @@ const initialData = {
     clj: null,
     cljs: null,
     connected: false,
-    outputChannel: vscode.window.createOutputChannel("VisualClojure"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('VisualClojure: Evaluation errors')
+    outputChannel: vscode.window.createOutputChannel("clojure4vscode"),
+    diagnosticCollection: vscode.languages.createDiagnosticCollection('clojure4vscode: Evaluation errors')
 };
 
 reset();
@@ -32,7 +32,7 @@ function reset() {
 };
 
 function config() {
-    let configOptions = vscode.workspace.getConfiguration('visualclojure');
+    let configOptions = vscode.workspace.getConfiguration('clojure4vscode');
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),

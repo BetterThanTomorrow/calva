@@ -1,12 +1,12 @@
-# visual:clojure
+# clojure4vscode
 
 ## How, what and why?
 
-* Create a nice developer-environment for ClojureScript, that is not dependent on me using Emacs :)
-* Most of the existing extensions that I found had variable/good support for Clojure, but none existed for ClojureScript!
+* Create a nice developer-environment for both ClojureScript and Clojure, inspired by Emacs CIDER
 
-This extension is mostly geared towards creating a nice ClojureScript developer experience, but will actively try to support
-both clj and cljs as much as possible.
+You think it looks very similar to the visual:clojure extension? It's because it is based on that. 🤠
+
+This version adds some tricks like running tests and allowing you to edit clojure files using clojure (evaluating and replacing inline, e feature Emacs CIDER has that I like a lot). NB: ** You shouldn't run both extensions, beacuse that will get confused. **
 
 ![Features](/assets/howto/features.gif)
 
@@ -21,17 +21,18 @@ both clj and cljs as much as possible.
 * Interactive REPL From visual code 
   * Compile files
   * Evaluate forms
+    * Pretty printed results (if you want to)
+    * Replace evaluated code with the result
+  * Run tests
+    * Failed tests added to Problems tab/diagnostics
+    * Run all tests or tests for current namespace
+  * Auto-connects to existing repl using 'repl-port'-file
 * Supports all clojure filetypes, clj, cljc and cljs.
  * cljc evaluted using clj-REPL session
 
 ## Future stuff
-* Better error-support for cljs
 * Add more / useful snippets
 * Start REPL directly from code
-* Auto-connect to existing repl using 'repl-port'-file
-* Add signature-provider for better function signature assistance
-* Visualize scoped vars
-* Debugger(?)
 * Other (please add suggestions as issues)
 
 ## Getting started
@@ -109,7 +110,7 @@ But you can also do it manually in the nREPL:
 
 Now that we have a working clj/cljs REPL running, we can connect from vscode using the extension!  
 Make sure that the REPL is up and running (it has a user-namespace prompt ```user=>```)  
-To connect either use the shortcut:  ```Alt + C``` (default), or the command ```VisualClojure: Connect to an existing nREPL session```  
+To connect either use the shortcut:  ```Alt + C``` (default), or the command ```clojure4vscode: Connect to an existing nREPL session```  
 When the input-field is displayed enter the correct REPL **port** and you should see a notification in the lower-left indicating the sessions found.  
 
 ![Connect from VSCode](/assets/howto/connect.gif)

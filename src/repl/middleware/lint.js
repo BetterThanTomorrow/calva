@@ -74,13 +74,13 @@ function lintDocument(document = {}) {
         let nojoker = error.code == "ENOENT";
         if (nojoker) {
             let errmsg = "linting error: unable to locate 'joker' on path",
-                autolintmsg = "You have autolinting enabled. If you want to disable auto-linting set visualclojure.lintOnSave to false in settings";
-            vscode.window.showErrorMessage("VISUALCLOJURE " + errmsg);
+                autolintmsg = "You have autolinting enabled. If you want to disable auto-linting set clojure4vscode.lintOnSave to false in settings";
+            vscode.window.showErrorMessage("clojure4vscode " + errmsg);
             if (lint) {
-                vscode.window.showWarningMessage("VISUALCLOJURE " + autolintmsg);
+                vscode.window.showWarningMessage("clojure4vscode " + autolintmsg);
             }
         } else {
-            vscode.window.showErrorMessage("VISUALCLOJURE " + "linting error: " + error.message);
+            vscode.window.showErrorMessage("clojure4vscode " + "linting error: " + error.message);
         }
     });
 };
