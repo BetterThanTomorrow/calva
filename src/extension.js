@@ -56,6 +56,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', EvaluateMiddleWare.evaluateFile));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
+    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.lintFile', LintMiddleWare.lintDocument));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTests));
     context.subscriptions.push(vscode.commands.registerCommand('visualclojure.runAllTests', TestRunnerMiddleWare.runAllTests));
