@@ -1,20 +1,20 @@
 {
-    "name": "visualclojure",
-    "displayName": "visual:clojure",
-    "description": "Clojure and ClojureScript support",
-    "icon": "assets/icon.png",
-    "version": "2.0.2",
-    "publisher": "stiansivertsen",
+    "name": "clojure4vscode",
+    "displayName": "Clojure 4 vscode",
+    "description": "Clojure and ClojureScript support, Emacs CIDER inspired",
+    "icon": "assets/clojure4vscode.png",
+    "version": "1.0.0",
+    "publisher": "cospaia",
     "author": {
-        "name": "Stian Sivertsen",
-        "email": "sivertsenstian@gmail.com"
+        "name": "Peter Strömberg",
+        "email": "pez@pezius.com"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/sivertsenstian/visualclojure.git"
+        "url": "https://github.com/PEZ/clojure4vscode"
     },
     "engines": {
-        "vscode": "^0.10.0"
+        "vscode": "^1.10.0"
     },
     "categories": [
         "Languages",
@@ -29,24 +29,24 @@
     "contributes": {
         "configuration": {
             "type": "object",
-            "title": "Parinfer",
+            "title": "clojure4vscode",
             "properties": {
                 "clojure.format.enable": {
                     "type": "boolean",
                     "default": true,
                     "description": "Enable/disable cljfmt as clojure formatter."
                 },
-                "visualclojure.evalOnSave": {
+                "clojure4vscode.evalOnSave": {
                     "type": "boolean",
                     "default": true,
                     "description": "Run load-file when opening a new file and on file save"
                 },
-                "visualclojure.lintOnSave": {
+                "clojure4vscode.lintOnSave": {
                     "type": "boolean",
                     "default": true,
                     "description": "Run joker-linting when opening a new file and on file save"
                 },
-                "visualclojure.autoConnect": {
+                "clojure4vscode.autoConnect": {
                     "type": "boolean",
                     "default": true,
                     "description": "Try to connect to nREPL on start using the .nrepl-port file"
@@ -55,94 +55,94 @@
         },
         "commands": [
             {
-                "command": "visualclojure.connect",
+                "command": "clojure4vscode.connect",
                 "title": "connect",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.reconnect",
+                "command": "clojure4vscode.reconnect",
                 "title": "reconnect",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.evaluateSelection",
+                "command": "clojure4vscode.evaluateSelection",
                 "title": "evaluate selection or current form",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.evaluateSelectionPrettyPrint",
+                "command": "clojure4vscode.evaluateSelectionPrettyPrint",
                 "title": "evaluate selection or current form, and pretty print",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.evaluateSelectionReplace",
+                "command": "clojure4vscode.evaluateSelectionReplace",
                 "title": "evaluate selection or current form, and replace it with the result",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.evaluateFile",
+                "command": "clojure4vscode.evaluateFile",
                 "title": "evaluate current file",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.lintFile",
+                "command": "clojure4vscode.lintFile",
                 "title": "lint current file",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.runNamespaceTests",
+                "command": "clojure4vscode.runNamespaceTests",
                 "title": "Run tests for current namespace",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             },
             {
-                "command": "visualclojure.runAllTests",
+                "command": "clojure4vscode.runAllTests",
                 "title": "Run all tests",
-                "category": "visualclojure"
+                "category": "clojure4vscode"
             }
         ],
         "keybindings": [
             {
-                "command": "visualclojure.connect",
+                "command": "clojure4vscode.connect",
                 "key": "alt+v c",
                 "mac": "alt+v c"
             },
             {
-                "command": "visualclojure.reconnect",
+                "command": "clojure4vscode.reconnect",
                 "key": "alt+v r",
                 "mac": "alt+v r"
             },
             {
-                "command": "visualclojure.evaluateSelection",
+                "command": "clojure4vscode.evaluateSelection",
                 "key": "alt+v e",
                 "mac": "alt+v e"
             },
             {
-                "command": "visualclojure.evaluateSelectionPrettyPrint",
+                "command": "clojure4vscode.evaluateSelectionPrettyPrint",
                 "key": "alt+v p",
                 "mac": "alt+v p"
             },
             {
-                "command": "visualclojure.evaluateSelectionReplace",
+                "command": "clojure4vscode.evaluateSelectionReplace",
                 "key": "alt+v r",
                 "mac": "alt+v r"
             },
             {
-                "command": "visualclojure.evaluateFile",
+                "command": "clojure4vscode.evaluateFile",
                 "key": "alt+v enter",
                 "mac": "alt+v enter"
             },
             {
-                "command": "visualclojure.lintFile",
+                "command": "clojure4vscode.lintFile",
                 "key": "alt+v l",
                 "mac": "alt+v l"
             },
             {
-                "command": "visualclojure.runNamespaceTests",
+                "command": "clojure4vscode.runNamespaceTests",
                 "key": "alt+v t",
                 "mac": "alt+v t"
             },
             {
-                "command": "visualclojure.runAllTests",
+                "command": "clojure4vscode.runAllTests",
                 "key": "alt+v shift+t",
                 "mac": "alt+v shift+t"
             }

@@ -40,7 +40,7 @@ function activate(context) {
     vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
     statusbar.update();
 
-    //Set visualclojures output channel to active
+    //Set clojure4vscodes output channel to active
     let chan = state.deref().get('outputChannel');
     chan.show();
 
@@ -51,15 +51,15 @@ function activate(context) {
     }
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.connect', connector.connect));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.reconnect', connector.reconnect));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateFile', EvaluateMiddleWare.evaluateFile));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.lintFile', LintMiddleWare.lintDocument));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTests));
-    context.subscriptions.push(vscode.commands.registerCommand('visualclojure.runAllTests', TestRunnerMiddleWare.runAllTests));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.connect', connector.connect));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.reconnect', connector.reconnect));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateFile', EvaluateMiddleWare.evaluateFile));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.lintFile', LintMiddleWare.lintDocument));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTests));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.runAllTests', TestRunnerMiddleWare.runAllTests));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));

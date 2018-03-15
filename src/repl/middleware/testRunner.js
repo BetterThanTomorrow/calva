@@ -16,7 +16,7 @@ const {
     ERROR_TYPE,
 } = require('../../utilities');
 
-let diagnosticCollection = vscode.languages.createDiagnosticCollection('visualclojure');
+let diagnosticCollection = vscode.languages.createDiagnosticCollection('clojure4vscode');
 
 function logAndMarkTestResults(responsesArray) {
     let chan = state.deref().get('outputChannel'),

@@ -23,8 +23,8 @@ function update() {
         type.color = "rgb(192,192,192)"
         type.text = "(-)"
     }
-    connection.command = "visualclojure.connect";
-    //type.command = "visualclojure.toggleSession";
+    connection.command = "clojure4vscode.connect";
+    //type.command = "clojure4vscode.toggleSession";
 
     connection.show();
     type.show();
