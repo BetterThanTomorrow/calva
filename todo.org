@@ -1,0 +1,8 @@
+* Clojure 4 VS Code
+
+** Bugs
+** TODO REPL connection broken for cljc files
+
+** Neat things on the wishlist
+** TODO Use cljfmt for pretty print
+** TODO Pretty pring evaluate-replace 
