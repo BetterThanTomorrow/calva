@@ -32,6 +32,7 @@ function findSession(session, sessions) {
                         state.cursor.set("cljs", sessions[session]);
                     } else if (result.ex && current.get("clj") === null) {
                         state.cursor.set("clj", sessions[session]);
+                        state.cursor.set("cljc", sessions[session]);
                     }
                 }
                 client.end();
@@ -43,6 +44,7 @@ function findSession(session, sessions) {
                 //Default to first session if no cljs-session is found, and treat it as a clj-session
                 if (sessions.length > 0) {
                     state.cursor.set("clj", sessions[session]);
+                    state.cursor.set("cljc", sessions[session]);
                 }
             } else if ((session + 1) <= (sessions.length - 1) &&
                 (current.get("cljs") === null || current.get("clj") === null)) {
