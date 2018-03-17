@@ -8,6 +8,6 @@ Eternal list of things to do.
 * Neat things on the wishlist
 * TODO Report testresults as they come in
 Currently running all tests in a large project is a slow feedback thing to do.
-* TODO Use cljfmt for pretty print
-* TODO Pretty pring evaluate-replace
-* TODO Test namespace on save
+* DONE Use cider for pretty print
+* DONE Pretty pring evaluate-replace
+* DONE Test namespace on save
