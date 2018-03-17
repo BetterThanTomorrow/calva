@@ -37,6 +37,7 @@ function config() {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
         lint: configOptions.get("lintOnSave"),
+        test: configOptions.get("testOnSave"),
         connect: configOptions.get("autoConnect")
     };
 };

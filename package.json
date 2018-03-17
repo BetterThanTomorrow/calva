@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 vscode",
     "description": "Clojure and ClojureScript support, Emacs CIDER inspired",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -50,6 +50,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Try to connect to nREPL on start using the .nrepl-port file"
+                },
+                "clojure4vscode.testOnSave": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Run namespace tests when opening a new file and on file save"
                 }
             }
         },

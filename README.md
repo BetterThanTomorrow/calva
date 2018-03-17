@@ -1,12 +1,21 @@
 # clojure4vscode
 
-## How, what and why?
+## Raison d´être
+Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript.
 
-* Create a nice developer-environment for both ClojureScript and Clojure, inspired by Emacs CIDER
+You think this extension looks very similar to the visual:clojure extension? It's because it is based on that. 🤠
 
-You think it looks very similar to the visual:clojure extension? It's because it is based on that. 🤠
+This extensions then adds some tricks:
+- Running tests through the REPL connection, and mark them in the Problems tab
+    - Run namespace tests: `alt+v t`
+    - Run all tests: `alt+v a`
+    - User setting to evaluate namespace on save/open file (defaults to **on**)
+- Evaluate code and replace it in the editor, inline: `alt+v e`
+- Pretty printing evaluation resuls: `alt+v p`
+- Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
+- Error message when evaluation fails
 
-This version adds some tricks like running tests and allowing you to edit clojure files using clojure (evaluating and replacing inline, e feature Emacs CIDER has that I like a lot). NB: ** You shouldn't run both extensions, beacuse that will get confused. **
+NB: ** You shouldn't run both extensions, beacuse that will get very confused. **
 
 ![Features](/assets/howto/features.gif)
 
@@ -31,11 +40,8 @@ This version adds some tricks like running tests and allowing you to edit clojur
  * cljc evaluted using clj-REPL session
 
 ## Future stuff
-* Add more / useful snippets
-* Start REPL directly from code
-* Other (please add suggestions as issues)
+* I want an integrated REPL!
 
-## Getting started
 ### Dependencies
 * Uses nrepl for evaluation / communication
 * Uses cider-nrepl for added nrepl functionality
