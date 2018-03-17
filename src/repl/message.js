@@ -13,7 +13,8 @@ var operation = {
     REFRESH_CLEAR: "refresh-clear",
     FORMAT_CODE: "format-code",
     TEST: "test",
-    TEST_ALL: "test-all"
+    TEST_ALL: "test-all",
+    PPRINT: "pprint"
 }
 
 function testSessionMsg(session) {
@@ -30,14 +31,26 @@ function listSessionsMsg() {
     };
 };
 
-function evaluateMsg(session, ns, code) {
-    return {
+function evaluateMsg(session, ns, code, pprint = false) {
+    let msg = {
         op: operation.EVALUATE,
         ns: ns,
         code: code,
+        session: session,
+    };
+    if (pprint) {
+        msg.pprint = 1;
+    }
+    return msg;
+};
+
+function formatMsg(session, code) {
+    return {
+        op: operation.PPRINT,
+        code: code,
         session: session
     };
-};
+}
 
 function loadFileMsg(session, fileContent, fileName, filePath) {
     return {
@@ -139,5 +152,6 @@ module.exports = {
     refreshAll: refreshAllMsg,
     refreshClear: refreshClearMsg,
     test: testMsg,
-    testAll: testAllMsg
+    testAll: testAllMsg,
+    format: formatMsg
 };
