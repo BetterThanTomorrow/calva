@@ -141,15 +141,6 @@ function getContentToPreviousBracket(block) {
     return [currPos, block.substr(currPos + 1, block.length)];
 };
 
-function getPrettyPrintCode(code) {
-    let isCljs = state.deref().get('cljs');
-    if (isCljs) {
-        return "(cljs.pprint/pprint " + code + ")";
-    } else {
-        return "(clojure.pprint/pprint " + code + ")";
-    }
-};
-
 // ERROR HELPERS
 const ERROR_TYPE = {
     WARNING: "warning",
@@ -255,7 +246,6 @@ module.exports = {
     getFileType,
     getFileName,
     getContentToNextBracket,
-    getPrettyPrintCode,
     getContentToPreviousBracket,
     specialWords,
     ERROR_TYPE,

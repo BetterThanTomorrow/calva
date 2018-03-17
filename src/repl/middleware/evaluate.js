@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const _ = require('lodash');
 const state = require('../../state');
 const repl = require('../client');
+const format = require('./format');
 const message = require('../message');
 const {
     getDocument,
@@ -12,8 +13,7 @@ const {
     logError,
     ERROR_TYPE,
     getContentToNextBracket,
-    getContentToPreviousBracket,
-    getPrettyPrintCode
+    getContentToPreviousBracket
 } = require('../../utilities');
 
 function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
@@ -21,10 +21,10 @@ function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     doc = getDocument(document),
     session = current.get(getFileType(doc)),
     chan = current.get('outputChannel');
-
+    
     chan.appendLine(startStr);
     chan.appendLine("----------------------------");
-
+    
     let evalClient = null;
     evaluationResult = "";
     new Promise((resolve, reject) => {
@@ -51,22 +51,12 @@ function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     });
 };
 
-function evaluateMsgAndLog(msg, startStr, errorStr, document = {}) {
-    let current = state.deref(),
-    doc = getDocument(document),
-    session = current.get(getFileType(doc));
-
-    evaluateMsg(msg, startStr, errorStr, (result) => {
-        logSuccess(result);
-    });
-};
-
 function evaluateText(text, startStr, errorStr, document = {}) {
     let current = state.deref(),
     doc = getDocument(document),
     session = current.get(getFileType(doc)),
     msg = message.evaluate(session, getNamespace(doc.getText()), text);
-
+    
     if (current.get('connected')) {
         evaluateMsgAndLog(msg, startStr, errorStr);
     }
@@ -80,7 +70,7 @@ function evaluateSelection(document = {}, options = {}) {
     replace = options.replace || false,
     session = current.get(getFileType(doc)),
     codeSelection = null;
-
+    
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
         selection = editor.selection,
@@ -88,7 +78,7 @@ function evaluateSelection(document = {}, options = {}) {
         textSelection = selection,
         offset = 0,
         code = "";
-
+        
         if (!selection.isEmpty) { //text selected by user, try to evaluate it
             code = doc.getText(selection);
             if (code === '(') {
@@ -96,14 +86,14 @@ function evaluateSelection(document = {}, options = {}) {
                 previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
                 lastLine = doc.lineCount,
                 endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length);
-
+                
                 textSelection = new vscode.Selection(previousPosition, endPosition);
                 [offset, code] = getContentToNextBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(previousPosition, doc.positionAt(doc.offsetAt(previousPosition) + code.length));
             } else if (code === ')') {
                 let currentPosition = selection.active,
                 startPosition = currentPosition.with(0, 0);
-
+                
                 textSelection = new vscode.Selection(startPosition, currentPosition);
                 [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(doc.positionAt(offset + 1), currentPosition);
@@ -117,54 +107,58 @@ function evaluateSelection(document = {}, options = {}) {
             previousSelection = new vscode.Selection(previousPosition, currentPosition),
             nextChar = doc.getText(nextSelection),
             prevChar = doc.getText(previousSelection);
-
+            
             if (nextChar === '(' || prevChar === '(') {
                 let lastLine = doc.lineCount,
                 endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
                 startPosition = (nextChar === '(') ? currentPosition : previousPosition;
-
+                
                 textSelection = new vscode.Selection(startPosition, endPosition);
                 [offset, code] = getContentToNextBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + code.length));
             } else if (nextChar === ')' || prevChar === ')') {
                 let startPosition = currentPosition.with(0, 0),
                 endPosition = (prevChar === ')') ? currentPosition : nextPosition;
-
+                
                 textSelection = new vscode.Selection(startPosition, endPosition);
                 [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(doc.positionAt(offset + 1), endPosition);
             }
         }
-
+        
         if (code.length > 0) {
-            let msg = message.evaluate(session, getNamespace(doc.getText()), (pprint ? getPrettyPrintCode(code) : code));
-            if (replace) {
-                evaluateMsg(msg,  "Evaluating: " + msg.code, "unable to evaluate sexp", (results) => {
-                    let value = null;
-                    _.each(results, (r) => {
-                        if (r.hasOwnProperty("value")) {
-                            value = r.value
-                        }
-                    });
-                    if (value !== null) {
-                        let edit = vscode.TextEdit.replace(codeSelection, value);
+            let msg = message.evaluate(session, getNamespace(doc.getText()), code, pprint),
+                c = codeSelection.start.character,
+                re = new RegExp("^\\s{" + c + "}", "gm");
+            evaluateMsg(msg,  "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
+                let result = null;
+                _.each(results, (r) => {
+                    if (r.hasOwnProperty("value")) {
+                        result = r.value;
+                    } else if (r.hasOwnProperty("pprint-out")) {
+                        result = r["pprint-out"].replace(/\n$/, "");;    
+                    }
+                });
+                if (result !== null) {
+                    if (replace) {
+                        let edit = vscode.TextEdit.replace(codeSelection, result);
                         let wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
-                        chan.appendLine("Evaluation failed?");
+                        chan.appendLine(result);
                     }
-                });
-            } else {
-                evaluateMsgAndLog(msg, "Evaluating: " + msg.code, "unable to evaluate sexp");
-            }
+                } else {
+                    chan.appendLine("Evaluation failed?");
+                }
+            });
         }
     }
 };
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: true }));
 };
 
 function evaluateSelectionPrettyPrint(document = {}, options = {}) {
@@ -174,12 +168,12 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
 function evaluateFile(document = {}) {
     let current = state.deref(),
     doc = getDocument(document);
-
+    
     if (current.get('connected')) {
         let fileName = getFileName(doc);
         session = current.get(getFileType(doc)),
         msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
-
+        
         evaluateMsgAndLog(msg, "Evaluating file: " + fileName, "unable to evaluate file");
     }
 };
