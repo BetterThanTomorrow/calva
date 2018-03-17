@@ -1,6 +1,7 @@
 # clojure4vscode
 
 ## Raison d´être
+
 Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript.
 
 You think this extension looks very similar to the visual:clojure extension? It's because it is based on that. 🤠
@@ -13,7 +14,7 @@ This extensions then adds some tricks:
 - Evaluate code and replace it in the editor, inline: `alt+v e`
 - Pretty printing evaluation resuls: `alt+v p`
 - Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
-- Error message when evaluation fails
+- Error information when evaluation fails (at least a hint)
 
 NB: ** You shouldn't run both extensions, beacuse that will get very confused. **
 
@@ -41,6 +42,7 @@ NB: ** You shouldn't run both extensions, beacuse that will get very confused. *
 
 ## Future stuff
 * I want an integrated REPL!
+* Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ### Dependencies
 * Uses nrepl for evaluation / communication
