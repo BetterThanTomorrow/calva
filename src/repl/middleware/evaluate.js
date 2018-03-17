@@ -22,7 +22,6 @@ function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     session = current.get(getFileType(doc)),
     chan = current.get('outputChannel');
 
-    chan.clear();
     chan.appendLine(startStr);
     chan.appendLine("----------------------------");
 
@@ -82,7 +81,6 @@ function evaluateSelection(document = {}, options = {}) {
     session = current.get(getFileType(doc)),
     codeSelection = null;
 
-    chan.clear();
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
         selection = editor.selection,

@@ -17,7 +17,8 @@ const TestRunnerMiddleWare = require('./repl/middleware/testRunner');
 function onSave(document) {
     let {
         evaluate,
-        lint
+        lint,
+        test
     } = state.config();
 
     if (document.languageId !== 'clojure') {
@@ -29,6 +30,9 @@ function onSave(document) {
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
+    }
+    if (test) {
+        TestRunnerMiddleWare.runNamespaceTests(document);
     }
 };
 

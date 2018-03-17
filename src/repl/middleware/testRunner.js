@@ -18,7 +18,7 @@ const {
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('clojure4vscode');
 
-function logAndMarkTestResults(responsesArray) {
+function markTestResults(responsesArray, log = true) {
     let chan = state.deref().get('outputChannel'),
         diagnostics = {},
         total_summary = {};
@@ -32,24 +32,28 @@ function logAndMarkTestResults(responsesArray) {
                     _.each(tests, (asserts, test) => {
                         _.each(asserts, a => {
                             if (a.type == "error") {
-                                chan.appendLine("ERROR in: " + ns + ": " + a.file + ", line " + a.line +
-                                                ": " + test + ": " + (a.context || "") + ":\n" +
-                                                "  error: " + a.error + "\n  expected: " + a.expected);
+                                if (log) {
+                                    chan.appendLine("ERROR in: " + ns + ": " + a.file + ", line " + a.line +
+                                                    ": " + test + ": " + (a.context || "") + ":\n" +
+                                                    "  error: " + a.error + "\n  expected: " + a.expected);
+                                }
                             }
                             if (a.type == "fail") {
                                 let msg = "failure in test: " + test +
                                           " context: " + a.context + ", expected " +
                                           a.expected + ", got: " + a.actual,
-                                          err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000),
-                                                                      msg,
-                                                                      vscode.DiagnosticSeverity.Error);
+                                    err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000),
+                                                                msg,
+                                                                vscode.DiagnosticSeverity.Error);
                                 if (!diagnostics[a.file]) {
                                     diagnostics[a.file] = [];
                                 }
                                 diagnostics[a.file].push(err);
-                                chan.appendLine("FAIL in: " + a.file + ":" + a.line +
-                                                ": " + test + ": " + (a.context || "") + ":\n" +
-                                                "  expected: " + a.expected + "\n  actual: " + a.actual);
+                                if (log) {
+                                    chan.appendLine("FAIL in: " + a.file + ":" + a.line +
+                                                    ": " + test + ": " + (a.context || "") + ":\n" +
+                                                    "  expected: " + a.expected + "\n  actual: " + a.actual);
+                                }
                             }
                         })
                     })
@@ -64,14 +68,15 @@ function logAndMarkTestResults(responsesArray) {
     });
     if (total_summary !== null) {
         let hasProblems = total_summary.error + total_summary.fail > 0;
-
-        chan.appendLine("\n" + (total_summary.test > 0 ?
-                                total_summary.test + " tests finished, " +
-                                (!hasProblems ? "all passing 👍" :
-                                 "problems found. 😭" +
-                                 " errors: " + total_summary.error + ", failures: " + total_summary.fail) :
-                                "No tests found. 😱") +
-                        ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
+        if (log) {
+            chan.appendLine("\n" + (total_summary.test > 0 ?
+                                    total_summary.test + " tests finished, " +
+                                    (!hasProblems ? "all passing 👍" :
+                                     "problems found. 😭" +
+                                     " errors: " + total_summary.error + ", failures: " + total_summary.fail) :
+                                    "No tests found. 😱") +
+                            ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
+        }
 
         if (total_summary.test > 0) {
             if (hasProblems) {
@@ -92,16 +97,17 @@ function logAndMarkTestResults(responsesArray) {
     }
 };
 
-function runTests(messages, startStr, errorStr, document = {}) {
+function runTests(messages, startStr, errorStr, log = true, document = {}) {
     let current = state.deref(),
     doc = getDocument(document),
     session = current.get(getFileType(doc));
     
     if (current.get('connected')) {
         chan = current.get('outputChannel');
-        chan.clear();
-        chan.appendLine(startStr);
-        chan.appendLine("----------------------------");
+        if (log) {
+            chan.appendLine(startStr);
+            chan.appendLine("----------------------------");    
+        }
         let testClient = null,
             results = [],
             errors = 0,
@@ -132,7 +138,7 @@ function runTests(messages, startStr, errorStr, document = {}) {
                 if (i < messages.length - 1) {
                     loop(i + 1);
                 } else {
-                    logAndMarkTestResults(results);
+                    markTestResults(results);
                 }
             }).catch(() => {
                 testClient.end();
@@ -150,7 +156,7 @@ function runAllTests(document = {}) {
     runTests([msg], "Running all tests", "running all tests");
 };
 
-function runNamespaceTests(document = {}) {
+function getNamespaceTestMessages(document = {}) {
     let current = state.deref(),
     doc = getDocument(document),
     session = current.get(getFileType(doc)),
@@ -160,7 +166,10 @@ function runNamespaceTests(document = {}) {
     if (!ns.endsWith('-test')) {
         messages.push(message.test(session, ns + '-test'));
     }
-    runTests(messages, "Running tests", "running tests");
+    return messages;
+}
+function runNamespaceTests(document = {}) {
+    runTests(getNamespaceTestMessages(), "Running tests", "running tests");
 };
 
 module.exports = {
