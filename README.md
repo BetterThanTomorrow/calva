@@ -1,6 +1,6 @@
-# clojure4vscode
+# Clojure 4 VS Code
 
-Clojure and ClojureScript support for Visual Studio Code, powered by Cider nREPL.
+[Clojure and ClojureScript support for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), powered by Cider nREPL.
 
 ## Raison d´être
 
