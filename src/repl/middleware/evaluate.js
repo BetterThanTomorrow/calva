@@ -18,20 +18,20 @@ const {
 
 function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     let current = state.deref(),
-    doc = getDocument(document),
-    session = current.get(getFileType(doc)),
-    chan = current.get('outputChannel');
-    
+        doc = getDocument(document),
+        session = current.get(getFileType(doc)),
+        chan = current.get('outputChannel');
+
     chan.appendLine(startStr);
     chan.appendLine("----------------------------");
-    
+
     let evalClient = null;
     evaluationResult = "";
     new Promise((resolve, reject) => {
         evalClient = repl.create().once('connect', () => {
             evalClient.send(msg, (result) => {
                 let exceptions = _.some(result, "ex"),
-                errors = _.some(result, "err");
+                    errors = _.some(result, "err");
                 if (!exceptions && !errors) {
                     resolve(result);
                 } else {
@@ -51,49 +51,38 @@ function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     });
 };
 
-function evaluateText(text, startStr, errorStr, document = {}) {
-    let current = state.deref(),
-    doc = getDocument(document),
-    session = current.get(getFileType(doc)),
-    msg = message.evaluate(session, getNamespace(doc.getText()), text);
-    
-    if (current.get('connected')) {
-        evaluateMsgAndLog(msg, startStr, errorStr);
-    }
-}
-
 function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
-    chan = current.get('outputChannel'),
-    doc = getDocument(document),
-    pprint = options.pprint || false,
-    replace = options.replace || false,
-    session = current.get(getFileType(doc)),
-    codeSelection = null;
-    
+        chan = current.get('outputChannel'),
+        doc = getDocument(document),
+        pprint = options.pprint || false,
+        replace = options.replace || false,
+        session = current.get(getFileType(doc)),
+        codeSelection = null;
+
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
-        selection = editor.selection,
-        codeSelection = selection,
-        textSelection = selection,
-        offset = 0,
-        code = "";
-        
+            selection = editor.selection,
+            codeSelection = selection,
+            textSelection = selection,
+            offset = 0,
+            code = "";
+
         if (!selection.isEmpty) { //text selected by user, try to evaluate it
             code = doc.getText(selection);
             if (code === '(') {
                 let currentPosition = selection.active,
-                previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
-                lastLine = doc.lineCount,
-                endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length);
-                
+                    previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
+                    lastLine = doc.lineCount,
+                    endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length);
+
                 textSelection = new vscode.Selection(previousPosition, endPosition);
                 [offset, code] = getContentToNextBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(previousPosition, doc.positionAt(doc.offsetAt(previousPosition) + code.length));
             } else if (code === ')') {
                 let currentPosition = selection.active,
-                startPosition = currentPosition.with(0, 0);
-                
+                    startPosition = currentPosition.with(0, 0);
+
                 textSelection = new vscode.Selection(startPosition, currentPosition);
                 [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(doc.positionAt(offset + 1), currentPosition);
@@ -101,42 +90,42 @@ function evaluateSelection(document = {}, options = {}) {
         } else {
             //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
             let currentPosition = selection.active,
-            nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
-            previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
-            nextSelection = new vscode.Selection(currentPosition, nextPosition),
-            previousSelection = new vscode.Selection(previousPosition, currentPosition),
-            nextChar = doc.getText(nextSelection),
-            prevChar = doc.getText(previousSelection);
-            
+                nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
+                previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
+                nextSelection = new vscode.Selection(currentPosition, nextPosition),
+                previousSelection = new vscode.Selection(previousPosition, currentPosition),
+                nextChar = doc.getText(nextSelection),
+                prevChar = doc.getText(previousSelection);
+
             if (nextChar === '(' || prevChar === '(') {
                 let lastLine = doc.lineCount,
-                endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
-                startPosition = (nextChar === '(') ? currentPosition : previousPosition;
-                
+                    endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
+                    startPosition = (nextChar === '(') ? currentPosition : previousPosition;
+
                 textSelection = new vscode.Selection(startPosition, endPosition);
                 [offset, code] = getContentToNextBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + code.length));
             } else if (nextChar === ')' || prevChar === ')') {
                 let startPosition = currentPosition.with(0, 0),
-                endPosition = (prevChar === ')') ? currentPosition : nextPosition;
-                
+                    endPosition = (prevChar === ')') ? currentPosition : nextPosition;
+
                 textSelection = new vscode.Selection(startPosition, endPosition);
                 [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(doc.positionAt(offset + 1), endPosition);
             }
         }
-        
+
         if (code.length > 0) {
             let msg = message.evaluate(session, getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
-            evaluateMsg(msg,  "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
+            evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
                 let result = null;
                 _.each(results, (r) => {
                     if (r.hasOwnProperty("value")) {
                         result = r.value;
                     } else if (r.hasOwnProperty("pprint-out")) {
-                        result = r["pprint-out"].replace(/\n$/, "");;    
+                        result = r["pprint-out"].replace(/\n$/, "");;
                     }
                 });
                 if (result !== null) {
@@ -167,19 +156,33 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
 
 function evaluateFile(document = {}) {
     let current = state.deref(),
-    doc = getDocument(document);
-    
+        doc = getDocument(document),
+        chan = current.get('outputChannel');
+
     if (current.get('connected')) {
-        let fileName = getFileName(doc);
-        session = current.get(getFileType(doc)),
-        msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
-        
-        evaluateMsgAndLog(msg, "Evaluating file: " + fileName, "unable to evaluate file");
+        let fileName = getFileName(doc),
+            session = current.get(getFileType(doc)),
+            msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
+
+        evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
+            let result = null;
+            _.each(results, (r) => {
+                if (r.hasOwnProperty("value")) {
+                    result = r.value;
+                } else if (r.hasOwnProperty("pprint-out")) {
+                    result = r["pprint-out"].replace(/\n$/, "");;
+                }
+            });
+            if (result !== null) {
+                chan.appendLine(result);
+            } else {
+                chan.appendLine("Evaluation failed?");
+            }
+        });
     }
 };
 
 module.exports = {
-    evaluateText,
     evaluateFile,
     evaluateSelection,
     evaluateSelectionPrettyPrint,
