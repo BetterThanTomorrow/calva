@@ -7,6 +7,7 @@ const {
     getDocument,
     getNamespace,
     getFileType,
+    getSession,
     logSuccess,
     logError,
     logWarning,
@@ -97,7 +98,7 @@ function markTestResults(responsesArray, log = true) {
 function runTests(messages, startStr, errorStr, log = true, document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
-        session = current.get(getFileType(doc));
+        session = getSession(getFileType(doc));
 
     if (current.get('connected')) {
         chan = current.get('outputChannel');
@@ -147,7 +148,7 @@ function runTests(messages, startStr, errorStr, log = true, document = {}) {
 function runAllTests(document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
-        session = current.get(getFileType(doc)),
+        session = getSession(getFileType(doc)),
         msg = message.testAll(session);
 
     runTests([msg], "Running all tests", "running all tests");
@@ -156,7 +157,7 @@ function runAllTests(document = {}) {
 function getNamespaceTestMessages(document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
-        session = current.get(getFileType(doc)),
+        session = getSession(getFileType(doc)),
         ns = getNamespace(doc.getText()),
         messages = [message.test(session, ns)];
 

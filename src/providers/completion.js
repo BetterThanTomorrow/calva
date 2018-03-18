@@ -4,7 +4,8 @@ const repl = require('../repl/client');
 const message = require('../repl/message');
 const {
     getNamespace,
-    getActualWord
+    getActualWord,
+    getSession
 } = require('../utilities');
 
 module.exports = class CompletionItemProvider {
@@ -34,32 +35,32 @@ module.exports = class CompletionItemProvider {
             return new Promise((resolve, reject) => {
                 let current = this.state.deref(),
                     client = repl.create()
-                    .once('connect', () => {
-                        let msg = message.complete(current.get(filetype),
+                        .once('connect', () => {
+                            let msg = message.complete(getSession(filetype),
                                 getNamespace(document.getText()), text),
-                            completions = [];
-                        client.send(msg, function (results) {
-                            for (var r = 0; r < results.length; r++) {
-                                let result = results[r];
-                                if (result.hasOwnProperty('completions')) {
-                                    for (let c = 0; c < result.completions.length; c++) {
-                                        let item = result.completions[c];
-                                        completions.push({
-                                            label: item.candidate,
-                                            kind: scope.mappings[item.type] || vscode.CompletionItemKind.Text,
-                                            insertText: item[0] === '.' ? item.slice(1) : item
-                                        });
+                                completions = [];
+                            client.send(msg, function (results) {
+                                for (var r = 0; r < results.length; r++) {
+                                    let result = results[r];
+                                    if (result.hasOwnProperty('completions')) {
+                                        for (let c = 0; c < result.completions.length; c++) {
+                                            let item = result.completions[c];
+                                            completions.push({
+                                                label: item.candidate,
+                                                kind: scope.mappings[item.type] || vscode.CompletionItemKind.Text,
+                                                insertText: item[0] === '.' ? item.slice(1) : item
+                                            });
+                                        }
                                     }
                                 }
-                            }
-                            if (completions.length > 0) {
-                                resolve(new vscode.CompletionList(completions, false));
-                            } else {
-                                reject("No completions found");
-                            }
-                            client.end();
+                                if (completions.length > 0) {
+                                    resolve(new vscode.CompletionList(completions, false));
+                                } else {
+                                    reject("No completions found");
+                                }
+                                client.end();
+                            });
                         });
-                    });
             });
         } else {
             return new vscode.Hover("Connect to repl for auto-complete..");
@@ -75,7 +76,7 @@ module.exports = class CompletionItemProvider {
             if (current.get('connected')) {
                 let client = repl.create().once('connect', () => {
                     let document = vscode.window.activeTextEditor.document,
-                        msg = message.info(current.get(filetype),
+                        msg = message.info(getSession(filetype),
                             getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {

@@ -44,6 +44,20 @@ function getFileName(document) {
     return document.fileName.substr(fileNameIndex, document.fileName.length)
 };
 
+function getSession(fileType = undefined) {
+    let doc = getDocument({}),
+        current = state.deref();
+
+    if (fileType === undefined) {
+        fileType = getFileType(doc);
+    }
+    if (fileType.match(/'^clj[sc]?/)) {
+        return current.get(fileType);
+    } else {
+        return current.get('clj');
+    }
+}
+
 //using algorithm from: http://stackoverflow.com/questions/15717436/js-regex-to-match-everything-inside-braces-including-nested-braces-i-want/27088184#27088184
 function getContentToNextBracket(block) {
     var currPos = 0,
@@ -245,6 +259,7 @@ module.exports = {
     getDocument,
     getFileType,
     getFileName,
+    getSession,
     getContentToNextBracket,
     getContentToPreviousBracket,
     specialWords,

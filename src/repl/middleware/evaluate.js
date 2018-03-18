@@ -9,6 +9,7 @@ const {
     getFileName,
     getFileType,
     getNamespace,
+    getSession,
     logSuccess,
     logError,
     ERROR_TYPE,
@@ -19,7 +20,7 @@ const {
 function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
-        session = current.get(getFileType(doc)),
+        session = getSession(getFileType(doc)),
         chan = current.get('outputChannel');
 
     chan.appendLine(startStr);
@@ -57,7 +58,7 @@ function evaluateSelection(document = {}, options = {}) {
         doc = getDocument(document),
         pprint = options.pprint || false,
         replace = options.replace || false,
-        session = current.get(getFileType(doc)),
+        session = getSession(getFileType(doc)),
         codeSelection = null;
 
     if (current.get('connected')) {
@@ -161,7 +162,7 @@ function evaluateFile(document = {}) {
 
     if (current.get('connected')) {
         let fileName = getFileName(doc),
-            session = current.get(getFileType(doc)),
+            session = getSession(getFileType(doc)),
             msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {

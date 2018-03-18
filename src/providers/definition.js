@@ -5,7 +5,8 @@ const repl = require('../repl/client');
 const message = require('../repl/message');
 const {
     getNamespace,
-    getActualWord
+    getActualWord,
+    getSession
 } = require('../utilities');
 
 module.exports = class DefinitionProvider {
@@ -25,7 +26,7 @@ module.exports = class DefinitionProvider {
             return new Promise((resolve, reject) => {
                 let current = scope.state.deref(),
                     client = repl.create().once('connect', () => {
-                        let msg = message.info(current.get(filetype),
+                        let msg = message.info(getSession(filetype),
                             getNamespace(document.getText()), text);
                         client.send(msg, function (results) {
                             for (var r = 0; r < results.length; r++) {
