@@ -19,7 +19,7 @@ function connectToHost(hostname, port) {
             client.end();
         });
     });
-}
+};
 
 function findSession(session, sessions) {
     let current = state.deref();
@@ -29,9 +29,9 @@ function findSession(session, sessions) {
             client.send(msg, (results) => {
                 for (var i = 0; i < results.length; i++) {
                     let result = results[i];
-                    if (result.value && result.value === "3.14" && current.get("cljs") === null) {
+                    if (result.value && result.value === "3.14" && utilities.getSession("cljs") === null) {
                         state.cursor.set("cljs", sessions[session]);
-                    } else if (result.ex && current.get("clj") === null) {
+                    } else if (result.ex && utilities.getSession("clj") === null) {
                         state.cursor.set("clj", sessions[session]);
                         state.cursor.set("cljc", sessions[session]);
                     }
@@ -41,14 +41,14 @@ function findSession(session, sessions) {
         })
         .once('end', () => {
             //If last session, check if found
-            if (session === (sessions.length - 1) && current.get("cljs") === null) {
+            if (session === (sessions.length - 1) && utilities.getSession("cljs") === null) {
                 //Default to first session if no cljs-session is found, and treat it as a clj-session
                 if (sessions.length > 0) {
                     state.cursor.set("clj", sessions[session]);
                     state.cursor.set("cljc", sessions[session]);
                 }
             } else if ((session + 1) <= (sessions.length - 1) &&
-                (current.get("cljs") === null || current.get("clj") === null)) {
+                (utilities.getSession("cljs") === null || utilities.getSession("clj") === null)) {
                 findSession((session + 1), sessions);
             } else {
                 //Check the initial file where the command is called from
@@ -119,10 +119,10 @@ function toggleCLJCSession() {
     let current = state.deref();
 
     if (current.get('connected')) {
-        if (current.get('cljc') == current.get('cljs')) {
-            state.cursor.set('cljc', current.get('clj'));
-        } else if (current.get('cljc') == current.get('clj')) {
-            state.cursor.set('cljc', current.get('cljs'));
+        if (utilities.getSession('cljc') == utilities.getSession('cljs')) {
+            state.cursor.set('cljc', utilities.getSession('clj'));
+        } else if (utilities.getSession('cljc') == utilities.getSession('clj')) {
+            state.cursor.set('cljc', utilities.getSession('cljs'));
         }
         statusbar.update();
     }

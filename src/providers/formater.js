@@ -3,7 +3,8 @@ const state = require('../state');
 const repl = require('../repl/client');
 const {
     getDocument,
-    getFileType
+    getFileType,
+    getSession
 } = require('../utilities');
 
 module.exports = class DocumentFormattingEditProvider {
@@ -22,7 +23,7 @@ module.exports = class DocumentFormattingEditProvider {
                     let msg = {
                         op: "format-code",
                         code: doc.getText(),
-                        session: current.get(getFileType(doc))
+                        session: getSession(getFileType(doc))
                     };
                     client.send(msg, function (results) {
                         let r = results[0];

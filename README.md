@@ -16,6 +16,7 @@ This extensions then adds some tricks:
 - Evaluate code and replace it in the editor, inline: `alt+v e`
 - Pretty printing evaluation resuls: `alt+v p`
 - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
+- Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
 - Error information when evaluation fails (at least a hint)
 
 NB: **You shouldn't run both extensions, beacuse that will get very confused.**
