@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 vscode",
     "description": "Clojure and ClojureScript support, Emacs CIDER inspired",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -113,8 +113,8 @@
             },
             {
                 "command": "clojure4vscode.reconnect",
-                "key": "alt+v r",
-                "mac": "alt+v r"
+                "key": "alt+v shift+C",
+                "mac": "alt+v shift+C"
             },
             {
                 "command": "clojure4vscode.evaluateSelection",
