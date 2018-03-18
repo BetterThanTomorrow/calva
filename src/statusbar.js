@@ -1,11 +1,14 @@
 const vscode = require('vscode');
 const state = require('./state');
+const util = require('./utilities');
 
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
 function update() {
-    let current = state.deref();
+    let current = state.deref(),
+        doc = util.getDocument({}),
+        fileType = util.getFileType(doc);
 
     if (current.get('connected')) {
         connection.text = "nrepl://" + current.get('hostname') + ":" + current.get('port');
@@ -13,10 +16,13 @@ function update() {
         connection.text = "nrepl - click to connect";
     }
 
-    if (current.get('cljs') !== null) {
+    if (fileType == 'cljs' && current.get('cljs') !== null) {
         type.color = "rgb(145,220,71)";
         type.text = "(cljs)"
-    } else if (current.get('clj') !== null) {
+    } else if (fileType == 'clj' & current.get('clj') !== null) {
+        type.color = "rgb(144,180,254)";
+        type.text = "(clj)"
+    } else if (fileType == 'cljc' & current.get('cljc') !== null) {
         type.color = "rgb(144,180,254)";
         type.text = "(clj)"
     } else {
