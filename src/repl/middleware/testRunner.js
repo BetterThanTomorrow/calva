@@ -4,9 +4,6 @@ const state = require('../../state');
 const repl = require('../client');
 const message = require('../message');
 const {
-    evaluateText
-} = require('./evaluate');
-const {
     getDocument,
     getNamespace,
     getFileType,
@@ -34,25 +31,25 @@ function markTestResults(responsesArray, log = true) {
                             if (a.type == "error") {
                                 if (log) {
                                     chan.appendLine("ERROR in: " + ns + ": " + a.file + ", line " + a.line +
-                                                    ": " + test + ": " + (a.context || "") + ":\n" +
-                                                    "  error: " + a.error + "\n  expected: " + a.expected);
+                                        ": " + test + ": " + (a.context || "") + ":\n" +
+                                        "  error: " + a.error + "\n  expected: " + a.expected);
                                 }
                             }
                             if (a.type == "fail") {
                                 let msg = "failure in test: " + test +
-                                          " context: " + a.context + ", expected " +
-                                          a.expected + ", got: " + a.actual,
+                                    " context: " + a.context + ", expected " +
+                                    a.expected + ", got: " + a.actual,
                                     err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000),
-                                                                msg,
-                                                                vscode.DiagnosticSeverity.Error);
+                                        msg,
+                                        vscode.DiagnosticSeverity.Error);
                                 if (!diagnostics[a.file]) {
                                     diagnostics[a.file] = [];
                                 }
                                 diagnostics[a.file].push(err);
                                 if (log) {
                                     chan.appendLine("FAIL in: " + a.file + ":" + a.line +
-                                                    ": " + test + ": " + (a.context || "") + ":\n" +
-                                                    "  expected: " + a.expected + "\n  actual: " + a.actual);
+                                        ": " + test + ": " + (a.context || "") + ":\n" +
+                                        "  expected: " + a.expected + "\n  actual: " + a.actual);
                                 }
                             }
                         })
@@ -70,12 +67,12 @@ function markTestResults(responsesArray, log = true) {
         let hasProblems = total_summary.error + total_summary.fail > 0;
         if (log) {
             chan.appendLine("\n" + (total_summary.test > 0 ?
-                                    total_summary.test + " tests finished, " +
-                                    (!hasProblems ? "all passing 👍" :
-                                     "problems found. 😭" +
-                                     " errors: " + total_summary.error + ", failures: " + total_summary.fail) :
-                                    "No tests found. 😱") +
-                            ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
+                total_summary.test + " tests finished, " +
+                (!hasProblems ? "all passing 👍" :
+                    "problems found. 😭" +
+                    " errors: " + total_summary.error + ", failures: " + total_summary.fail) :
+                "No tests found. 😱") +
+                ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
         }
 
         if (total_summary.test > 0) {
@@ -89,7 +86,7 @@ function markTestResults(responsesArray, log = true) {
                         // way of dealing with that. Maybe check for the right `ns`in the file?)
                         vscode.workspace.findFiles('**/' + fileName, undefined).then((uri) => {
                             diagnosticCollection.set(uri[0], errors);
-                        });                            
+                        });
                     }
                 });
             }
@@ -99,14 +96,14 @@ function markTestResults(responsesArray, log = true) {
 
 function runTests(messages, startStr, errorStr, log = true, document = {}) {
     let current = state.deref(),
-    doc = getDocument(document),
-    session = current.get(getFileType(doc));
-    
+        doc = getDocument(document),
+        session = current.get(getFileType(doc));
+
     if (current.get('connected')) {
         chan = current.get('outputChannel');
         if (log) {
             chan.appendLine(startStr);
-            chan.appendLine("----------------------------");    
+            chan.appendLine("----------------------------");
         }
         let testClient = null,
             results = [],
@@ -122,7 +119,7 @@ function runTests(messages, startStr, errorStr, log = true, document = {}) {
                         exceptions += _.some(result, "ex");
                         errors += _.some(result, "err");
                         if (!exceptions && !errors) {
-                            resolve(result);                                
+                            resolve(result);
                         } else {
                             logError({
                                 type: ERROR_TYPE.ERROR,
@@ -149,20 +146,20 @@ function runTests(messages, startStr, errorStr, log = true, document = {}) {
 
 function runAllTests(document = {}) {
     let current = state.deref(),
-    doc = getDocument(document),
-    session = current.get(getFileType(doc)),
-    msg = message.testAll(session);
-    
+        doc = getDocument(document),
+        session = current.get(getFileType(doc)),
+        msg = message.testAll(session);
+
     runTests([msg], "Running all tests", "running all tests");
 };
 
 function getNamespaceTestMessages(document = {}) {
     let current = state.deref(),
-    doc = getDocument(document),
-    session = current.get(getFileType(doc)),
-    ns = getNamespace(doc.getText()),
-    messages = [message.test(session, ns)];
-    
+        doc = getDocument(document),
+        session = current.get(getFileType(doc)),
+        ns = getNamespace(doc.getText()),
+        messages = [message.test(session, ns)];
+
     if (!ns.endsWith('-test')) {
         messages.push(message.test(session, ns + '-test'));
     }

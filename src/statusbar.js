@@ -10,27 +10,29 @@ function update() {
         doc = util.getDocument({}),
         fileType = util.getFileType(doc);
 
+    type.command = null;
+    connection.command = "clojure4vscode.connect";
+
     if (current.get('connected')) {
         connection.text = "nrepl://" + current.get('hostname') + ":" + current.get('port');
+        type.color = "rgb(145,220,71)";
+        if (fileType == 'cljs' && current.get('cljs') !== null) {
+            type.text = "(cljs)"
+        } else if (fileType == 'clj' & current.get('clj') !== null) {
+            type.text = "(clj)"
+        } else if (fileType == 'cljc' & current.get('cljc') !== null) {
+            type.text = "(cljc/" + (current.get('cljc') == current.get('clj') ? 'clj' : 'cljs') + ")"
+            type.command = "clojure4vscode.toggleCLJCSession";
+        } else {
+            type.color = "rgb(192,192,192)"
+            type.text = "(-)"
+        }
     } else {
         connection.text = "nrepl - click to connect";
-    }
-
-    if (fileType == 'cljs' && current.get('cljs') !== null) {
-        type.color = "rgb(145,220,71)";
-        type.text = "(cljs)"
-    } else if (fileType == 'clj' & current.get('clj') !== null) {
-        type.color = "rgb(144,180,254)";
-        type.text = "(clj)"
-    } else if (fileType == 'cljc' & current.get('cljc') !== null) {
-        type.color = "rgb(144,180,254)";
-        type.text = "(clj)"
-    } else {
         type.color = "rgb(192,192,192)"
         type.text = "(-)"
     }
-    connection.command = "clojure4vscode.connect";
-    //type.command = "clojure4vscode.toggleSession";
+
 
     connection.show();
     type.show();
