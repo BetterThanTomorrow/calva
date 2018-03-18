@@ -15,10 +15,10 @@ This extensions then adds some tricks:
     - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Evaluate code and replace it in the editor, inline: `alt+v e`
 - Pretty printing evaluation resuls: `alt+v p`
-- Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
+- Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
 - Error information when evaluation fails (at least a hint)
 
-NB: ** You shouldn't run both extensions, beacuse that will get very confused. **
+NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 
 ![Features](/assets/howto/features.gif)
 
@@ -137,3 +137,5 @@ There are 3 different states that the extensions connection can be in:
 I hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ❤️
+
+**Clojure 4 VS Code** works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit) and [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer).

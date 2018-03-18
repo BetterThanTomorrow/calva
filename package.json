@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 vscode",
     "description": "Clojure and ClojureScript support, Emacs CIDER inspired",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -70,6 +70,11 @@
                 "category": "clojure4vscode"
             },
             {
+                "command": "clojure4vscode.toggleCLJConnectionKB",
+                "title": "toggle repl connection used for CLJC files",
+                "category": "clojure4vscode"
+            },
+            {
                 "command": "clojure4vscode.evaluateSelection",
                 "title": "evaluate selection or current form",
                 "category": "clojure4vscode"
@@ -113,8 +118,13 @@
             },
             {
                 "command": "clojure4vscode.reconnect",
-                "key": "alt+v shift+C",
-                "mac": "alt+v shift+C"
+                "key": "alt+v shift+c",
+                "mac": "alt+v shift+c"
+            },
+            {
+                "command": "clojure4vscode.toggleCLJConnection",
+                "key": "alt+v alt+c",
+                "mac": "alt+v alt+c"
             },
             {
                 "command": "clojure4vscode.evaluateSelection",

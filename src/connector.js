@@ -5,6 +5,7 @@ const state = require('./state');
 const statusbar = require('./statusbar');
 const repl = require('./repl/client');
 const message = require('./repl/message');
+const utilities = require('./utilities');
 
 function connectToHost(hostname, port) {
     let client = repl.create({
@@ -75,11 +76,11 @@ function connect() {
         });
     }).then((port) => {
         vscode.window.showInputBox({
-                placeHolder: "Enter existing nREPL hostname:port here...",
-                prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
-                value: "localhost:" + port,
-                ignoreFocusOut: true
-            })
+            placeHolder: "Enter existing nREPL hostname:port here...",
+            prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
+            value: "localhost:" + port,
+            ignoreFocusOut: true
+        })
             .then(function (url) {
                 let [hostname, port] = url.split(':');
                 state.cursor.set("hostname", hostname);
@@ -114,8 +115,32 @@ function autoConnect() {
     });
 };
 
+function toggleCLJCSession() {
+    let current = state.deref();
+
+    if (current.get('connected')) {
+        if (current.get('cljc') == current.get('cljs')) {
+            state.cursor.set('cljc', current.get('clj'));
+        } else if (current.get('cljc') == current.get('clj')) {
+            state.cursor.set('cljc', current.get('cljs'));
+        }
+        statusbar.update();
+    }
+}
+
+function toggleCLJCSessionKB() {
+    // If toggling from the keyboard, only comply if the current filetype is cljc
+    let doc = utilities.getDocument({}),
+        fileType = utilities.getFileType;
+    if (fileType == 'cljc') {
+        toggleCLJCSession();
+    }
+}
+
 module.exports = {
     connect,
     reconnect,
-    autoConnect
+    autoConnect,
+    toggleCLJCSession,
+    toggleCLJCSessionKB
 };

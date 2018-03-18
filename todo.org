@@ -6,8 +6,7 @@ Eternal list of things to do.
 * DONE REPL connection broken for cljc files
 
 * Neat things on the wishlist
-* TODO When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl.
-They currently always go to the Clojure repl.
+* DONE When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl.
 * TODO Report test results as they come in
 Currently running all tests in a large project is a slow feedback thing to do.
 * DONE Use cider for pretty print
