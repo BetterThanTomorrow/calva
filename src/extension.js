@@ -58,7 +58,6 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.toggleCLJCSession', connector.toggleCLJCSession));
-    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.toggleCLJCSessionKB', connector.toggleCLJCSessionKB));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateFile', EvaluateMiddleWare.evaluateFile));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));

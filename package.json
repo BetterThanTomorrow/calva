@@ -70,7 +70,7 @@
                 "category": "clojure4vscode"
             },
             {
-                "command": "clojure4vscode.toggleCLJConnectionKB",
+                "command": "clojure4vscode.toggleCLJCSession",
                 "title": "toggle repl connection used for CLJC files",
                 "category": "clojure4vscode"
             },
@@ -122,7 +122,7 @@
                 "mac": "alt+v shift+c"
             },
             {
-                "command": "clojure4vscode.toggleCLJConnection",
+                "command": "clojure4vscode.toggleCLJCSession",
                 "key": "alt+v alt+c",
                 "mac": "alt+v alt+c"
             },
