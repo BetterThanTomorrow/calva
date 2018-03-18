@@ -11,10 +11,10 @@ function connectToHost(hostname, port) {
     let client = repl.create({
         hostname,
         port
-    }).once('connect', function () {
+    }).once('connect', () => {
         state.cursor.set("connected", true);
         let msg = message.listSessions();
-        client.send(msg, function (results) {
+        client.send(msg, (results) => {
             findSession(0, results[0].sessions);
             client.end();
         });
@@ -24,9 +24,9 @@ function connectToHost(hostname, port) {
 function findSession(session, sessions) {
     let current = state.deref();
     let client = repl.create()
-        .once('connect', function () {
+        .once('connect', () => {
             let msg = message.testSession(sessions[session]);
-            client.send(msg, function (results) {
+            client.send(msg, (results) => {
                 for (var i = 0; i < results.length; i++) {
                     let result = results[i];
                     if (result.value && result.value === "3.14" && current.get("cljs") === null) {
@@ -39,7 +39,7 @@ function findSession(session, sessions) {
                 client.end();
             });
         })
-        .once('end', function () {
+        .once('end', () => {
             //If last session, check if found
             if (session === (sessions.length - 1) && current.get("cljs") === null) {
                 //Default to first session if no cljs-session is found, and treat it as a clj-session
@@ -127,20 +127,9 @@ function toggleCLJCSession() {
         statusbar.update();
     }
 }
-
-function toggleCLJCSessionKB() {
-    // If toggling from the keyboard, only comply if the current filetype is cljc
-    let doc = utilities.getDocument({}),
-        fileType = utilities.getFileType;
-    if (fileType == 'cljc') {
-        toggleCLJCSession();
-    }
-}
-
 module.exports = {
     connect,
     reconnect,
     autoConnect,
-    toggleCLJCSession,
-    toggleCLJCSessionKB
+    toggleCLJCSession
 };
