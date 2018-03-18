@@ -41,7 +41,8 @@ NB: **You shouldn't run both extensions, beacuse that will get very confused.**
     * Run all tests or tests for current namespace
   * Auto-connects to existing repl using 'repl-port'-file
 * Supports all clojure filetypes, clj, cljc and cljs.
- * cljc evaluted using clj-REPL session
+ * When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl
+* Enables `clj` repl in all files (not just Clojure files).
 
 ## Future stuff
 * When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl. (They currently always go to the Clojure repl.)
