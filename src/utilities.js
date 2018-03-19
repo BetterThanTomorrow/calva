@@ -51,7 +51,7 @@ function getSession(fileType = undefined) {
     if (fileType === undefined) {
         fileType = getFileType(doc);
     }
-    if (fileType.match(/'^clj[sc]?/)) {
+    if (fileType.match(/^clj[sc]?/)) {
         return current.get(fileType);
     } else {
         return current.get('clj');
