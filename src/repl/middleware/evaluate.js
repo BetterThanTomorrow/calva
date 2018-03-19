@@ -170,8 +170,6 @@ function evaluateFile(document = {}) {
             _.each(results, (r) => {
                 if (r.hasOwnProperty("value")) {
                     result = r.value;
-                } else if (r.hasOwnProperty("pprint-out")) {
-                    result = r["pprint-out"].replace(/\n$/, "");;
                 }
             });
             if (result !== null) {

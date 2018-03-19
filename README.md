@@ -1,6 +1,6 @@
 # Clojure 4 VS Code
 
-[Clojure and ClojureScript support for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), powered by Cider nREPL.
+[Clojure and ClojureScript support. nREPL powered. Emacs CIDER inspired.](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), powered by Cider nREPL.
 
 ## Raison d´être
 
@@ -23,7 +23,7 @@ NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 
 ![Features](/assets/howto/features.gif)
 
-![underline error](/assets/howto/error.png)  
+![underline error](/assets/howto/error.png)
 
 ## Current features
 * Intellisense
@@ -31,7 +31,7 @@ NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 * Go to / Peek at definition
 * View docstrings on hover
 * View function signatures on hover
-* Interactive REPL From visual code 
+* Interactive REPL From visual code
   * Compile files
   * Evaluate forms
     * Pretty printed results (if you want to)
@@ -91,16 +91,16 @@ If you want to use ClojureScript, you start its repl off of the repl you have ju
 
 Yay! 🥂 🤘 🍻
 
-Read on for some pointers on this if you are not familiar. 
+Read on for some pointers on this if you are not familiar.
 
 #### Figwheel
 
 Most people use Figwheel (bacause awesome).
 
 **To initiate a figwheel-repl you need the figwheel-sidecar dependency -> [figwheel-sidecar "0.5.8"] as well correct cljs classpaths**
-read more about this [here](https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl)  
+read more about this [here](https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl)
 
-If you have created a figwheel-project from a template (using e.g. lein new), you should be good to go as long as you start the repl in the projects folder.  
+If you have created a figwheel-project from a template (using e.g. lein new), you should be good to go as long as you start the repl in the projects folder.
 
 Having started the initial repl like above with ```lein repl```, initiate figwheel from there (beacuse reasons stated above). Then:
 
@@ -113,26 +113,26 @@ Having started the initial repl like above with ```lein repl```, initiate figwhe
 I can recommend adding a start function to your projects `dev` namespace to pack these calls into something like:
 
 ```
-dev=> (start) 
+dev=> (start)
 ```
 
 #### W/o Figwheel
 
-If you want to start a ClojureScript REPL-session sans Figwheel, you can start this from the existing clojure-REPL that we just created.  
-Using piggieback we can initiate a cljs-repl using e.g. rhino:  
+If you want to start a ClojureScript REPL-session sans Figwheel, you can start this from the existing clojure-REPL that we just created.
+Using piggieback we can initiate a cljs-repl using e.g. rhino:
 
-Run the following command in the REPL to start a cljs-session with rhino: ```(cemerick.piggieback/cljs-repl (cljs.repl.rhino/repl-env))```  
+Run the following command in the REPL to start a cljs-session with rhino: ```(cemerick.piggieback/cljs-repl (cljs.repl.rhino/repl-env))```
 
 ## Control the connection to the active REPL from vscode
 
-The extension connects automatically, but if you need to restart the repl you might need to connect it explicitly: 
-Use the command `clojure4vscode: Connect to an existing nREPL session` (shortcut:  `alt+v c`).  
-An input-field is displayed showing default host and port. Submit and you will get the repl connection restored.  
+The extension connects automatically, but if you need to restart the repl you might need to connect it explicitly:
+Use the command `clojure4vscode: Connect to an existing nREPL session` (shortcut:  `alt+v c`).
+An input-field is displayed showing default host and port. Submit and you will get the repl connection restored.
 
-There are 3 different states that the extensions connection can be in:  
- ![clj connection](/assets/howto/status_clj.png)  
- ![cljs connection](/assets/howto/status_cljs.png)  
- ![no connection](/assets/howto/status_not_connected.png)  
+There are 3 different states that the extensions connection can be in:
+ ![clj connection](/assets/howto/status_clj.png)
+ ![cljs connection](/assets/howto/status_cljs.png)
+ ![no connection](/assets/howto/status_not_connected.png)
 
 ## Happy coding
 
