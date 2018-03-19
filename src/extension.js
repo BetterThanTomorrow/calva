@@ -2,6 +2,8 @@ const vscode = require('vscode');
 const state = require('./state');
 const statusbar = require('./statusbar');
 const connector = require('./connector');
+const greet = require('./greet');
+
 const ClojureLanguageConfiguration = require('./language');
 
 const CompletionItemProvider = require('./providers/completion');
@@ -83,6 +85,8 @@ function activate(context) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         statusbar.update();
     }));
+
+    greet.activationGreetings(chan);
 }
 
 exports.activate = activate;
