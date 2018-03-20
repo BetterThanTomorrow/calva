@@ -4,6 +4,7 @@ const state = require('../../state');
 const repl = require('../client');
 const format = require('./format');
 const message = require('../message');
+const annotations = require('../../providers/annotations');
 const {
     getDocument,
     getFileName,
@@ -137,6 +138,15 @@ function evaluateSelection(document = {}, options = {}) {
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
+                        let decoration = annotations.evaluated('=> ' + result);
+                        decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
+                        editor.setDecorations(annotations.evalAnnotationDecoration, [decoration]);
+                        setTimeout(() => {
+                            let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
+                                editor.setDecorations(annotations.evalAnnotationDecoration, []);
+                                subscription.dispose();
+                            });
+                        }, 100);
                         chan.appendLine(result);
                     }
                 } else {

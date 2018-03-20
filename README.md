@@ -1,6 +1,6 @@
 # Clojure 4 VS Code
 
-[Clojure and ClojureScript support. nREPL powered. Emacs CIDER inspired.](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), powered by Cider nREPL.
+[Clojure and ClojureScript support.](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). nREPL powered. Emacs CIDER inspired.
 
 ## Raison d´être
 
