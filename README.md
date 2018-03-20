@@ -6,14 +6,17 @@
 
 Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript.
 
-You think this extension looks very similar to the visual:clojure extension? It's because it is based on that. 🤠
+![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
+
+You think this extension looks very similar to the visual:clojure extension? It's because it is based on that one. 🤠
 
 This extensions then adds some tricks:
 - Running tests through the REPL connection, and mark them in the Problems tab
     - Run namespace tests: `alt+v t`
     - Run all tests: `alt+v a`
     - User setting to evaluate namespace on save/open file (defaults to **on**)
-- Evaluate code and replace it in the editor, inline: `alt+v e`
+- Evaluate code and show the results as annotation in the editor: `alt+v e`
+- Evaluate code and replace it in the editor, inline: `alt+v r`
 - Pretty printing evaluation resuls: `alt+v p`
 - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
 - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
@@ -21,7 +24,11 @@ This extensions then adds some tricks:
 
 NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 
+Demo: Peek at defintions, etcetera:
+
 ![Features](/assets/howto/features.gif)
+
+Demo lint errors are marked in the editor. (As are unit test failures)
 
 ![underline error](/assets/howto/error.png)
 

@@ -12,8 +12,8 @@ function evaluated(contentText) {
     return {
         renderOptions: {
             before: {
-                backgroundColor: "none",
-                color: "lightgrey",
+                backgroundColor: new vscode.ThemeColor("editor.backgroundColor"),
+                color: new vscode.ThemeColor("editorCodeLens.foreground"),
                 contentText: contentText,
                 fontWeight: 'normal',
                 fontStyle: 'normal'

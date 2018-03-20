@@ -1,6 +1,10 @@
 # Change Log
 Notable changes to CLojure 4 VS Code.
 
+## [1.1.11] - 20.03.2018
+- Add inline annotations for interactive code evaluation results.
+
+![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
 ## [1.1.9] - 18.03.2018
 - Add toggle for switching which repl connection is used for `cljc` files, `clj` or `cljs`.
