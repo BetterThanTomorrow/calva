@@ -7,8 +7,9 @@ Notable changes to CLojure 4 VS Code.
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
 ## [1.1.9] - 18.03.2018
-- Add toggle for switching which repl connection is used for `cljc` files, `clj` or `cljs`.
+- Add toggle for switching which repl connection is used for `cljc` files, `clj` or `cljs`. ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 - `clj` repl connected to all file types, meaning you can evaluate clojure code in, say, Markdown files.
+
 
 ## [1,1.3] - 17.03.2018
 - User setting to evaluate namespace on save/open file (defaults to **on**)

@@ -51,6 +51,10 @@ Demo lint errors are marked in the editor. (As are unit test failures)
  * When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl
 * Enables `clj` repl in all files (not just Clojure files).
 
+Demo switch between clj and cljs repl sessions for cljc files:
+
+![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
+
 ## Future stuff
 * When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl. (They currently always go to the Clojure repl.)
 * I want an integrated REPL!
