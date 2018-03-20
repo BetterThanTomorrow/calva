@@ -138,15 +138,17 @@ function evaluateSelection(document = {}, options = {}) {
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
-                        let decoration = annotations.evaluated('=> ' + result);
-                        decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
-                        editor.setDecorations(annotations.evalAnnotationDecoration, [decoration]);
-                        setTimeout(() => {
-                            let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
-                                editor.setDecorations(annotations.evalAnnotationDecoration, []);
-                                subscription.dispose();
-                            });
-                        }, 100);
+                        if (!pprint) {
+                            let decoration = annotations.evaluated('=> ' + result.replace(/\n/g, " "), editor);
+                            decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
+                            editor.setDecorations(annotations.evalAnnotationDecoration, [decoration]);
+                            setTimeout(() => {
+                                let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
+                                    editor.setDecorations(annotations.evalAnnotationDecoration, []);
+                                    subscription.dispose();
+                                });
+                            }, 100);
+                        }
                         chan.appendLine(result);
                     }
                 } else {
