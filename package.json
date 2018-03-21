@@ -58,6 +58,11 @@
                 }
             }
         },
+        "configurationDefaults": {
+            "[clojure]": {
+                "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`"
+            }
+        },
         "commands": [
             {
                 "command": "clojure4vscode.connect",
