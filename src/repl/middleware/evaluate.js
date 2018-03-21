@@ -147,7 +147,7 @@ function evaluateSelection(document = {}, options = {}) {
                                     editor.setDecorations(annotations.evalAnnotationDecoration, []);
                                     subscription.dispose();
                                 });
-                            }, 100);
+                            }, 250);
                         }
                         chan.appendLine(result);
                     }

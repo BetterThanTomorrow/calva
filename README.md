@@ -1,10 +1,10 @@
 # Clojure 4 VS Code
 
-[Clojure and ClojureScript support.](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). nREPL powered. Emacs CIDER inspired.
+[Clojure and ClojureScript support](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). nREPL powered. Emacs CIDER inspired.
 
 ## Raison d´être
 
-Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript.
+Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to code as well, I will.
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
@@ -23,6 +23,10 @@ This extensions then adds some tricks:
 - Error information when evaluation fails (at least a hint)
 
 NB: **You shouldn't run both extensions, beacuse that will get very confused.**
+
+## Autolinting
+
+The extension comes with autolinting disabled. This is because
 
 Demo: Peek at defintions, etcetera:
 
@@ -61,8 +65,8 @@ Demo switch between clj and cljs repl sessions for cljc files:
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ## Dependencies
-* Uses nrepl for evaluation / communication
-* Uses cider-nrepl for added nrepl functionality
+
+Uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
 
 Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
 
@@ -77,11 +81,19 @@ If you are only using Clojure then you are all set.
 
 Add piggiback and its nrepl middleware `wrap-cljs-repl`:
 
-```
+```clojure
 {:user {:plugins [[cider/cider-nrepl "0.16.0"]]
         :dependencies [[com.cemerick/piggieback "0.2.2"]
                        [org.clojure/tools.nrepl "0.2.12"]]
         :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
+```
+
+### Autolinting
+
+The linting is disabled by default. To use it you need Joker installed, and then enable:
+
+```json
+"clojure4vscode.lintOnSave": true
 ```
 
 ## Connecting to the REPL

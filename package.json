@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 VS Code",
     "description": "Clojure and ClojureScript support. nREPL powered. Emacs CIDER inspired.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.1.11",
+    "version": "1.1.12",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -43,7 +43,7 @@
                 },
                 "clojure4vscode.lintOnSave": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Run joker-linting when opening a new file and on file save"
                 },
                 "clojure4vscode.autoConnect": {
