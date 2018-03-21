@@ -70,6 +70,8 @@ function evaluateSelection(document = {}, options = {}) {
             offset = 0,
             code = "";
 
+        editor.setDecorations(annotations.evalAnnotationDecoration, []);
+
         if (!selection.isEmpty) { //text selected by user, try to evaluate it
             code = doc.getText(selection);
             if (code === '(') {
