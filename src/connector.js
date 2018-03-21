@@ -22,7 +22,9 @@ function connectToHost(hostname, port) {
 };
 
 function findSession(session, sessions) {
-    let current = state.deref();
+    let current = state.deref(),
+    chan = current.get('outputChannel');
+
     let client = repl.create()
         .once('connect', () => {
             let msg = message.testSession(sessions[session]);
@@ -31,9 +33,12 @@ function findSession(session, sessions) {
                     let result = results[i];
                     if (result.value && result.value === "3.14" && util.getSession("cljs") === null) {
                         state.cursor.set("cljs", sessions[session]);
+                        chan.appendLine("Connected session: cljs");
                     } else if (result.ex && util.getSession("clj") === null) {
                         state.cursor.set("clj", sessions[session]);
+                        chan.appendLine("Connected session: clj");
                         state.cursor.set("cljc", sessions[session]);
+                        chan.appendLine("clj session used for cljc");
                     }
                 }
                 client.end();
@@ -82,6 +87,7 @@ function connect() {
             ignoreFocusOut: true
         })
             .then(function (url) {
+                // state.reset(); TODO see if this should be done
                 let [hostname, port] = url.split(':');
                 state.cursor.set("hostname", hostname);
                 state.cursor.set("port", port);
@@ -96,6 +102,11 @@ function reconnect() {
 };
 
 function autoConnect() {
+    let current = state.deref(),
+        chan = state.deref().get('outputChannel');
+
+    chan.appendLine("Looking for nREPL sessions...");
+
     let path = vscode.workspace.rootPath;
     return new Promise((resolve, _) => {
         find.file(/\.nrepl-port$/, path, (files) => {
