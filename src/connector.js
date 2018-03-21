@@ -8,11 +8,17 @@ const message = require('./repl/message');
 const util = require('./utilities');
 
 function connectToHost(hostname, port) {
+    let current = state.deref(),
+    chan = state.deref().get('outputChannel');
+
+    chan.appendLine("Hooking up nREPL sessions...");
+
     let client = repl.create({
         hostname,
         port
     }).once('connect', () => {
         state.cursor.set("connected", true);
+        state.cursor.set("connecting", false);
         let msg = message.listSessions();
         client.send(msg, (results) => {
             findSession(0, results[0].sessions);
@@ -26,58 +32,58 @@ function findSession(session, sessions) {
     chan = current.get('outputChannel');
 
     let client = repl.create()
-        .once('connect', () => {
-            let msg = message.testSession(sessions[session]);
-            client.send(msg, (results) => {
-                for (var i = 0; i < results.length; i++) {
-                    let result = results[i];
-                    if (result.value && result.value === "3.14" && util.getSession("cljs") === null) {
-                        state.cursor.set("cljs", sessions[session]);
-                        chan.appendLine("Connected session: cljs");
-                    } else if (result.ex && util.getSession("clj") === null) {
-                        state.cursor.set("clj", sessions[session]);
-                        chan.appendLine("Connected session: clj");
-                        state.cursor.set("cljc", sessions[session]);
-                        chan.appendLine("clj session used for cljc");
-                    }
-                }
-                client.end();
-            });
-        })
-        .once('end', () => {
-            //If last session, check if found
-            if (session === (sessions.length - 1) && util.getSession("cljs") === null) {
-                //Default to first session if no cljs-session is found, and treat it as a clj-session
-                if (sessions.length > 0) {
+    .once('connect', () => {
+        let msg = message.testSession(sessions[session]);
+        client.send(msg, (results) => {
+            for (var i = 0; i < results.length; i++) {
+                let result = results[i];
+                if (result.value && result.value === "3.14" && util.getSession("cljs") === null) {
+                    state.cursor.set("cljs", sessions[session]);
+                    chan.appendLine("Connected session: cljs");
+                } else if (result.ex && util.getSession("clj") === null) {
                     state.cursor.set("clj", sessions[session]);
+                    chan.appendLine("Connected session: clj");
                     state.cursor.set("cljc", sessions[session]);
+                    chan.appendLine("cljs files will use clj session");
                 }
-            } else if ((session + 1) <= (sessions.length - 1) &&
-                (util.getSession("cljs") === null || util.getSession("clj") === null)) {
-                findSession((session + 1), sessions);
-            } else {
-                //Check the initial file where the command is called from
-                //TODO FIXME -clojureEvaluation.evaluateFile(state);
             }
-            statusbar.update();
+            client.end();
         });
+    })
+    .once('end', () => {
+        //If last session, check if found
+        if (session === (sessions.length - 1) && util.getSession("cljs") === null) {
+            //Default to first session if no cljs-session is found, and treat it as a clj-session
+            if (sessions.length > 0) {
+                state.cursor.set("clj", sessions[session]);
+                state.cursor.set("cljc", sessions[session]);
+            }
+        } else if ((session + 1) <= (sessions.length - 1) &&
+        (util.getSession("cljs") === null || util.getSession("clj") === null)) {
+            findSession((session + 1), sessions);
+        } else {
+            //Check the initial file where the command is called from
+            //TODO FIXME -clojureEvaluation.evaluateFile(state);
+        }
+        statusbar.update();
+    });
 };
 
 function connect() {
     let path = vscode.workspace.rootPath;
+
+    state.cursor.set('connecting', true);
+    statusbar.update();
+
     new Promise((resolve, reject) => {
-        find.file(/\.nrepl-port$/, path, (files) => {
-            if (files.length > 0) {
-                fs.readFile(files[0], 'utf8', (err, data) => {
-                    if (!err) {
-                        resolve(data);
-                    } else {
-                        reject("");
-                    }
-                });
-            } else {
-                reject("");
-            }
+        find.eachfile(/\.nrepl-port$/, path, (file) => {
+            fs.readFile(file, 'utf8', (err, data) => {
+                if (!err) {
+                    resolve(data);
+                } else {
+                    reject("");
+                }
+            });
         });
     }).then((port) => {
         vscode.window.showInputBox({
@@ -86,42 +92,39 @@ function connect() {
             value: "localhost:" + port,
             ignoreFocusOut: true
         })
-            .then(function (url) {
-                // state.reset(); TODO see if this should be done
-                let [hostname, port] = url.split(':');
-                state.cursor.set("hostname", hostname);
-                state.cursor.set("port", port);
-                connectToHost(hostname, port);
-            });
+        .then(function (url) {
+            // state.reset(); TODO see if this should be done
+            let [hostname, port] = url.split(':');
+            state.cursor.set("hostname", hostname);
+            state.cursor.set("port", port);
+            connectToHost(hostname, port);
+        });
+    }).catch(() => {
+        state.cursor.set('connecting', false);
+        statusbar.update();
     });
 };
 
 function reconnect() {
     state.reset();
-    autoConnect();
+    connect();
 };
 
 function autoConnect() {
-    let current = state.deref(),
-        chan = state.deref().get('outputChannel');
+    let  path = vscode.workspace.rootPath;
 
-    chan.appendLine("Looking for nREPL sessions...");
-
-    let path = vscode.workspace.rootPath;
     return new Promise((resolve, _) => {
-        find.file(/\.nrepl-port$/, path, (files) => {
-            if (files.length > 0) {
-                fs.readFile(files[0], 'utf8', (err, data) => {
-                    if (!err) {
-                        let hostname = "localhost",
-                            port = parseFloat(data);
+        find.eachfile(/\.nrepl-port$/, path, (file) => {
+            fs.readFile(file, 'utf8', (err, data) => {
+                if (!err) {
+                    let hostname = "localhost",
+                    port = parseFloat(data);
 
-                        state.cursor.set("hostname", hostname);
-                        state.cursor.set("port", port);
-                        connectToHost(hostname, port);
-                    }
-                });
-            }
+                    state.cursor.set("hostname", hostname);
+                    state.cursor.set("port", port);
+                    connectToHost(hostname, port);
+                }
+            });
         });
     });
 };

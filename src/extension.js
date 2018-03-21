@@ -40,21 +40,16 @@ function onSave(document) {
 
 function activate(context) {
     let {
-        connect
+        autoConnect
     } = state.config();
     //Set the language configuration for vscode when using this extension
     vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
+
     statusbar.update();
 
     //Set clojure4vscodes output channel to active
     let chan = state.deref().get('outputChannel');
     chan.show();
-
-
-    //Try to connect using an existing .nrepl-port file, searching the root-directory
-    if (connect) {
-        connector.autoConnect();
-    }
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.connect', connector.connect));
@@ -87,6 +82,12 @@ function activate(context) {
     }));
 
     greet.activationGreetings(chan);
+
+    //Try to connect using an existing .nrepl-port file, searching the root-directory
+    if (autoConnect) {
+        connector.autoConnect();
+    }
+
 }
 
 exports.activate = activate;

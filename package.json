@@ -14,7 +14,7 @@
         "url": "https://github.com/PEZ/clojure4vscode"
     },
     "engines": {
-        "vscode": "^1.10.0"
+        "vscode": "^1.17.0"
     },
     "categories": [
         "Languages",
@@ -173,13 +173,13 @@
     },
     "dependencies": {
         "bencoder": "0.0.5",
-        "find": "0.2.7",
+        "buffer": "^5.0.7",
+        "find": "0.2.9",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
         "jszip": "3.1.3",
         "lodash": "4.17.4",
-        "vscode": "^1.1.4",
-        "buffer": "^5.0.7",
-        "net": "1.0.2"
+        "net": "1.0.2",
+        "vscode": "^1.1.4"
     }
 }

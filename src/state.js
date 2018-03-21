@@ -13,6 +13,7 @@ const initialData = {
     clj: null,
     cljs: null,
     connected: false,
+    connecting: config().autoConnect ? true : false,
     outputChannel: vscode.window.createOutputChannel("clojure4vscode"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('clojure4vscode: Evaluation errors')
 };
@@ -38,7 +39,7 @@ function config() {
         evaluate: configOptions.get("evalOnSave"),
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
-        connect: configOptions.get("autoConnect")
+        autoConnect: configOptions.get("autoConnect")
     };
 };
 
