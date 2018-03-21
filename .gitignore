@@ -1,9 +1,6 @@
 # visual code
 *.visx
 
-# npm
-package-lock.json
-
 # Logs
 logs
 *.log

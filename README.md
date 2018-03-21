@@ -146,17 +146,6 @@ Using piggieback we can initiate a cljs-repl using e.g. rhino:
 
 Run the following command in the REPL to start a cljs-session with rhino: ```(cemerick.piggieback/cljs-repl (cljs.repl.rhino/repl-env))```
 
-## Control the connection to the active REPL from vscode
-
-The extension connects automatically, but if you need to restart the repl you might need to connect it explicitly:
-Use the command `clojure4vscode: Connect to an existing nREPL session` (shortcut:  `alt+v c`).
-An input-field is displayed showing default host and port. Submit and you will get the repl connection restored.
-
-There are 3 different states that the extensions connection can be in:
- ![clj connection](/assets/howto/status_clj.png)
- ![cljs connection](/assets/howto/status_cljs.png)
- ![no connection](/assets/howto/status_not_connected.png)
-
 ## Happy coding
 
 I hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
