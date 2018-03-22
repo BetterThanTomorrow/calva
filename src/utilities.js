@@ -70,9 +70,13 @@ function getContentToNextBracket(block) {
         if (!waitForChar) {
             switch (currChar) {
                 case '(':
+                case '[':
+                case '{':
                     openBrackets++;
                     break;
                 case ')':
+                case ']':
+                case '}':
                     openBrackets--;
                     break;
                 case '"':
@@ -118,9 +122,13 @@ function getContentToPreviousBracket(block) {
         if (!waitForChar) {
             switch (currChar) {
                 case '(':
+                case '[':
+                case '{':
                     openBrackets--;
                     break;
                 case ')':
+                case ']':
+                case '}':
                     openBrackets++;
                     break;
                 case '"':
