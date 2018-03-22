@@ -58,6 +58,37 @@ function getSession(fileType = undefined) {
     }
 }
 
+function getFormSelection(selection, doc) {
+    let currentPosition = selection.active,
+        nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
+        previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
+        nextSelection = new vscode.Selection(currentPosition, nextPosition),
+        previousSelection = new vscode.Selection(previousPosition, currentPosition),
+        nextChar = doc.getText(nextSelection), prevChar = doc.getText(previousSelection),
+        codeSelection = null,
+        startBracketRE = /^[\(\[\{]$/,
+        endBracketRE = /^[\)\]\}]$/;
+
+    if (nextChar.match(startBracketRE) || prevChar.match(startBracketRE)) {
+        let lastLine = doc.lineCount,
+            endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
+            startPosition = nextChar.match(startBracketRE) ? currentPosition : previousPosition,
+            bracket = doc.getText(nextChar.match(startBracketRE) ? nextSelection : previousSelection),
+            textSelection = new vscode.Selection(startPosition, endPosition);
+
+        codeSelection = getSelectionToNextBracket(doc, textSelection, startPosition, bracket);
+    }
+    else if (nextChar.match(endBracketRE) || prevChar.match(endBracketRE)) {
+        let startPosition = currentPosition.with(0, 0),
+            endPosition = prevChar.match(endBracketRE) ? currentPosition : nextPosition,
+            bracket = doc.getText(prevChar.match(endBracketRE) ? previousSelection : nextSelection),
+            textSelection = new vscode.Selection(startPosition, endPosition);
+
+        codeSelection = getSelectionToPreviousBracket(doc, textSelection, endPosition, bracket);
+    }
+    return codeSelection;
+}
+
 //using algorithm from: http://stackoverflow.com/questions/15717436/js-regex-to-match-everything-inside-braces-including-nested-braces-i-want/27088184#27088184
 function getSelectionToNextBracket(doc, selection, startPosition, startBracket) {
     var block = doc.getText(selection),
@@ -262,8 +293,7 @@ module.exports = {
     getFileType,
     getFileName,
     getSession,
-    getSelectionToNextBracket,
-    getSelectionToPreviousBracket,
+    getFormSelection,
     specialWords,
     ERROR_TYPE,
     logError,
