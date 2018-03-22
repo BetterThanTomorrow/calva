@@ -59,28 +59,24 @@ function getSession(fileType = undefined) {
 }
 
 //using algorithm from: http://stackoverflow.com/questions/15717436/js-regex-to-match-everything-inside-braces-including-nested-braces-i-want/27088184#27088184
-function getContentToNextBracket(block) {
+function getContentToNextBracket(block, startBracket) {
     var currPos = 0,
         openBrackets = 0,
         stillSearching = true,
-        waitForChar = false;
+        waitForChar = false,
+        endBracket = startBracket === '(' ? ')' : startBracket === '[' ? ']' : '}';
 
     while (stillSearching && currPos <= block.length) {
         var currChar = block.charAt(currPos);
         if (!waitForChar) {
             switch (currChar) {
-                case '(':
-                case '[':
-                case '{':
+                case startBracket:
                     openBrackets++;
                     break;
-                case ')':
-                case ']':
-                case '}':
+                case endBracket:
                     openBrackets--;
                     break;
                 case '"':
-                case "'":
                     waitForChar = currChar;
                     break;
                 case '/':
@@ -94,7 +90,7 @@ function getContentToNextBracket(block) {
             }
         } else {
             if (currChar === waitForChar) {
-                if (waitForChar === '"' || waitForChar === "'") {
+                if (waitForChar === '"') {
                     block.charAt(currPos - 1) !== '\\' && (waitForChar = false);
                 } else {
                     waitForChar = false;
@@ -111,28 +107,24 @@ function getContentToNextBracket(block) {
     return [currPos, block.substr(0, currPos)];
 };
 
-function getContentToPreviousBracket(block) {
+function getContentToPreviousBracket(block, endBracket) {
     var currPos = (block.length - 1),
         openBrackets = 0,
         stillSearching = true,
-        waitForChar = false;
+        waitForChar = false,
+        startBracket = endBracket === ')' ? '(' : endBracket === ']' ? '[' : '{';
 
     while (stillSearching && currPos >= 0) {
         var currChar = block.charAt(currPos);
         if (!waitForChar) {
             switch (currChar) {
-                case '(':
-                case '[':
-                case '{':
+                case startBracket:
                     openBrackets--;
                     break;
-                case ')':
-                case ']':
-                case '}':
+                case endBracket:
                     openBrackets++;
                     break;
                 case '"':
-                case "'":
                     waitForChar = currChar;
                     break;
                 case '/':
@@ -146,7 +138,7 @@ function getContentToPreviousBracket(block) {
             }
         } else {
             if (currChar === waitForChar) {
-                if (waitForChar === '"' || waitForChar === "'") {
+                if (waitForChar === '"') {
                     block.charAt(currPos - 1) !== '\\' && (waitForChar = false);
                 } else {
                     waitForChar = false;

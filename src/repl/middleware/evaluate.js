@@ -87,19 +87,23 @@ function evaluateSelection(document = {}, options = {}) {
             if (nextChar.match(startBracketRE) || prevChar.match(startBracketRE)) {
                 let lastLine = doc.lineCount,
                     endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
-                    startPosition = nextChar.match(startBracketRE) ? currentPosition : previousPosition;
+                    startPosition = nextChar.match(startBracketRE) ? currentPosition : previousPosition,
+                    bracket = doc.getText(nextChar.match(startBracketRE) ? nextSelection : previousSelection);
 
                 textSelection = new vscode.Selection(startPosition, endPosition);
-                [offset, code] = getContentToNextBracket(doc.getText(textSelection));
+                [offset, code] = getContentToNextBracket(doc.getText(textSelection), bracket);
                 codeSelection = new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + code.length));
             } else if (nextChar.match(endBracketRE) || prevChar.match(endBracketRE)) {
                 let startPosition = currentPosition.with(0, 0),
-                    endPosition = prevChar.match(endBracketRE) ? currentPosition : nextPosition;
+                    endPosition = prevChar.match(endBracketRE) ? currentPosition : nextPosition,
+                    bracket = doc.getText(prevChar.match(endBracketRE) ? previousSelection : nextSelection);
 
                 textSelection = new vscode.Selection(startPosition, endPosition);
-                [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
+                [offset, code] = getContentToPreviousBracket(doc.getText(textSelection), bracket);
                 codeSelection = new vscode.Selection(doc.positionAt(offset + 1), endPosition);
             }
+        } else {
+            code = doc.getText(selection);
         }
 
         if (code.length > 0) {
