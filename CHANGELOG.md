@@ -1,6 +1,9 @@
 # Change Log
 Notable changes to CLojure 4 VS Code.
 
+## [1.1.15] - 20.03.2018
+- Evaluates vectors and maps with the same ”smart” selection as for lists.
+
 ## [1.1.11] - 20.03.2018
 - Add inline annotations for interactive code evaluation results.
 
