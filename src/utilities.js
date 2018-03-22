@@ -58,9 +58,8 @@ function getSession(fileType = undefined) {
     }
 }
 
-function getFormSelection(selection, doc) {
-    let currentPosition = selection.active,
-        nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
+function getFormSelection(doc, currentPosition) {
+    let nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
         previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
         nextSelection = new vscode.Selection(currentPosition, nextPosition),
         previousSelection = new vscode.Selection(previousPosition, currentPosition),
