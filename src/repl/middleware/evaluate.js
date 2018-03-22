@@ -58,22 +58,22 @@ function evaluateSelection(document = {}, options = {}) {
         doc = getDocument(document),
         pprint = options.pprint || false,
         replace = options.replace || false,
-        session = getSession(getFileType(doc)),
-        codeSelection = null;
+        session = getSession(getFileType(doc));
 
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
             selection = editor.selection,
-            codeSelection = selection,
-            code = "";
+            codeSelection = null;
+        code = "";
 
         editor.setDecorations(annotations.evalAnnotationDecoration, []);
 
         if (selection.isEmpty) {
-            codeSelection = getFormSelection(selection, doc);
+            codeSelection = getFormSelection(doc, selection.active);
             code = doc.getText(codeSelection);
         } else {
-            code = doc.getText(selection);
+            codeSelection = selection,
+                code = doc.getText(selection);
         }
 
         if (code.length > 0) {
