@@ -59,8 +59,9 @@ function getSession(fileType = undefined) {
 }
 
 //using algorithm from: http://stackoverflow.com/questions/15717436/js-regex-to-match-everything-inside-braces-including-nested-braces-i-want/27088184#27088184
-function getContentToNextBracket(block, startBracket) {
-    var currPos = 0,
+function getSelectionToNextBracket(doc, selection, startPosition, startBracket) {
+    var block = doc.getText(selection),
+        currPos = 0,
         openBrackets = 0,
         stillSearching = true,
         waitForChar = false,
@@ -104,11 +105,12 @@ function getContentToNextBracket(block, startBracket) {
             stillSearching = false;
         }
     }
-    return [currPos, block.substr(0, currPos)];
+    return new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + currPos));
 };
 
-function getContentToPreviousBracket(block, endBracket) {
-    var currPos = (block.length - 1),
+function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) {
+    var block = doc.getText(selection),
+        currPos = (block.length - 1),
         openBrackets = 0,
         stillSearching = true,
         waitForChar = false,
@@ -152,7 +154,7 @@ function getContentToPreviousBracket(block, endBracket) {
             stillSearching = false;
         }
     }
-    return [currPos, block.substr(currPos + 1, block.length)];
+    return new vscode.Selection(doc.positionAt(currPos + 1), endPosition);
 };
 
 // ERROR HELPERS
@@ -260,8 +262,8 @@ module.exports = {
     getFileType,
     getFileName,
     getSession,
-    getContentToNextBracket,
-    getContentToPreviousBracket,
+    getSelectionToNextBracket,
+    getSelectionToPreviousBracket,
     specialWords,
     ERROR_TYPE,
     logError,

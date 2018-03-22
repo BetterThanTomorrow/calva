@@ -14,8 +14,8 @@ const {
     logSuccess,
     logError,
     ERROR_TYPE,
-    getContentToNextBracket,
-    getContentToPreviousBracket
+    getSelectionToNextBracket,
+    getSelectionToPreviousBracket
 } = require('../../utilities');
 
 function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
@@ -91,16 +91,16 @@ function evaluateSelection(document = {}, options = {}) {
                     bracket = doc.getText(nextChar.match(startBracketRE) ? nextSelection : previousSelection);
 
                 textSelection = new vscode.Selection(startPosition, endPosition);
-                [offset, code] = getContentToNextBracket(doc.getText(textSelection), bracket);
-                codeSelection = new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + code.length));
+                codeSelection = getSelectionToNextBracket(doc, textSelection, startPosition, bracket);
+                code = doc.getText(codeSelection);
             } else if (nextChar.match(endBracketRE) || prevChar.match(endBracketRE)) {
                 let startPosition = currentPosition.with(0, 0),
                     endPosition = prevChar.match(endBracketRE) ? currentPosition : nextPosition,
                     bracket = doc.getText(prevChar.match(endBracketRE) ? previousSelection : nextSelection);
 
                 textSelection = new vscode.Selection(startPosition, endPosition);
-                [offset, code] = getContentToPreviousBracket(doc.getText(textSelection), bracket);
-                codeSelection = new vscode.Selection(doc.positionAt(offset + 1), endPosition);
+                codeSelection = getSelectionToPreviousBracket(doc, textSelection, endPosition, bracket);
+                code = doc.getText(codeSelection);
             }
         } else {
             code = doc.getText(selection);
