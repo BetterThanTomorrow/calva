@@ -14,8 +14,7 @@ const {
     logSuccess,
     logError,
     ERROR_TYPE,
-    getSelectionToNextBracket,
-    getSelectionToPreviousBracket
+    getFormSelection,
 } = require('../../utilities');
 
 function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
@@ -66,42 +65,13 @@ function evaluateSelection(document = {}, options = {}) {
         let editor = vscode.window.activeTextEditor,
             selection = editor.selection,
             codeSelection = selection,
-            textSelection = selection,
-            offset = 0,
             code = "";
 
         editor.setDecorations(annotations.evalAnnotationDecoration, []);
-        startBracketRE = /^[\(\[\{]$/;
-        endBracketRE = /^[\)\]\}]$/;
 
         if (selection.isEmpty) {
-            //no text selected, check if cursor at a start or end of a form and evaluate the expression within
-            let currentPosition = selection.active,
-                nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
-                previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
-                nextSelection = new vscode.Selection(currentPosition, nextPosition),
-                previousSelection = new vscode.Selection(previousPosition, currentPosition),
-                nextChar = doc.getText(nextSelection),
-                prevChar = doc.getText(previousSelection);
-
-            if (nextChar.match(startBracketRE) || prevChar.match(startBracketRE)) {
-                let lastLine = doc.lineCount,
-                    endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
-                    startPosition = nextChar.match(startBracketRE) ? currentPosition : previousPosition,
-                    bracket = doc.getText(nextChar.match(startBracketRE) ? nextSelection : previousSelection);
-
-                textSelection = new vscode.Selection(startPosition, endPosition);
-                codeSelection = getSelectionToNextBracket(doc, textSelection, startPosition, bracket);
-                code = doc.getText(codeSelection);
-            } else if (nextChar.match(endBracketRE) || prevChar.match(endBracketRE)) {
-                let startPosition = currentPosition.with(0, 0),
-                    endPosition = prevChar.match(endBracketRE) ? currentPosition : nextPosition,
-                    bracket = doc.getText(prevChar.match(endBracketRE) ? previousSelection : nextSelection);
-
-                textSelection = new vscode.Selection(startPosition, endPosition);
-                codeSelection = getSelectionToPreviousBracket(doc, textSelection, endPosition, bracket);
-                code = doc.getText(codeSelection);
-            }
+            codeSelection = getFormSelection(selection, doc);
+            code = doc.getText(codeSelection);
         } else {
             code = doc.getText(selection);
         }
