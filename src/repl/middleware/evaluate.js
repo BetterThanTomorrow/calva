@@ -71,28 +71,11 @@ function evaluateSelection(document = {}, options = {}) {
             code = "";
 
         editor.setDecorations(annotations.evalAnnotationDecoration, []);
+        startBracketRE = /^[\(\[\{]$/;
+        endBracketRE = /^[\)\]\}]$/;
 
-        if (!selection.isEmpty) { //text selected by user, try to evaluate it
-            code = doc.getText(selection);
-            if (code === '(') {
-                let currentPosition = selection.active,
-                    previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
-                    lastLine = doc.lineCount,
-                    endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length);
-
-                textSelection = new vscode.Selection(previousPosition, endPosition);
-                [offset, code] = getContentToNextBracket(doc.getText(textSelection));
-                codeSelection = new vscode.Selection(previousPosition, doc.positionAt(doc.offsetAt(previousPosition) + code.length));
-            } else if (code === ')') {
-                let currentPosition = selection.active,
-                    startPosition = currentPosition.with(0, 0);
-
-                textSelection = new vscode.Selection(startPosition, currentPosition);
-                [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
-                codeSelection = new vscode.Selection(doc.positionAt(offset + 1), currentPosition);
-            }
-        } else {
-            //no text selected, check if cursor at a start '(' or end ')' and evaluate the expression within
+        if (selection.isEmpty) {
+            //no text selected, check if cursor at a start or end of a form and evaluate the expression within
             let currentPosition = selection.active,
                 nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
                 previousPosition = currentPosition.with(currentPosition.line, Math.max((currentPosition.character - 1), 0)),
@@ -101,17 +84,17 @@ function evaluateSelection(document = {}, options = {}) {
                 nextChar = doc.getText(nextSelection),
                 prevChar = doc.getText(previousSelection);
 
-            if (nextChar === '(' || prevChar === '(') {
+            if (nextChar.match(startBracketRE) || prevChar.match(startBracketRE)) {
                 let lastLine = doc.lineCount,
                     endPosition = currentPosition.with(lastLine, doc.lineAt(Math.max(lastLine - 1, 0)).text.length),
-                    startPosition = (nextChar === '(') ? currentPosition : previousPosition;
+                    startPosition = nextChar.match(startBracketRE) ? currentPosition : previousPosition;
 
                 textSelection = new vscode.Selection(startPosition, endPosition);
                 [offset, code] = getContentToNextBracket(doc.getText(textSelection));
                 codeSelection = new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + code.length));
-            } else if (nextChar === ')' || prevChar === ')') {
+            } else if (nextChar.match(endBracketRE) || prevChar.match(endBracketRE)) {
                 let startPosition = currentPosition.with(0, 0),
-                    endPosition = (prevChar === ')') ? currentPosition : nextPosition;
+                    endPosition = prevChar.match(endBracketRE) ? currentPosition : nextPosition;
 
                 textSelection = new vscode.Selection(startPosition, endPosition);
                 [offset, code] = getContentToPreviousBracket(doc.getText(textSelection));
