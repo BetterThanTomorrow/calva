@@ -8,25 +8,30 @@ Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporti
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
-You think this extension looks very similar to the visual:clojure extension? It's because it is based on that one. 🤠
+You think this extension looks very similar to the **visual:clojure** extension? It's because it is based on that one. 🤠
 
 This extensions then adds some tricks:
 - Running tests through the REPL connection, and mark them in the Problems tab
-    - Run namespace tests: `alt+v t`
-    - Run all tests: `alt+v a`
-    - User setting to evaluate namespace on save/open file (defaults to **on**)
-- Evaluate code and show the results as annotation in the editor: `alt+v e`
-- Evaluate code and replace it in the editor, inline: `alt+v r`
-- Pretty printing evaluation resuls: `alt+v p`
-- Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
-- Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
-- Error information when evaluation fails (at least a hint)
+  - Run namespace tests: `alt+v t`
+  - Run all tests: `alt+v a`
+  - User setting to evaluate namespace on save/open file (defaults to **on**)
+- Improved code evaluation
+  - Evaluate code and show the results as annotation in the editor: `alt+v e`
+  - Evaluate code and replace it in the editor, inline: `alt+v r`
+  - Pretty printing evaluation resuls: `alt+v p`
+  - Error information when evaluation fails (at least a hint)
+  - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
+  - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
+  - The evaluation commands will auto-”detect” vectors and maps as well as list. (It still will only auto-detect up to the next or previous bracket, and thus will miss things like reader markers, like conditional `#?`, before lists, and more. I am working on fixing that, se below under Future Stuff.)
 
 NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 
 ## Autolinting
 
-The extension comes with autolinting disabled. This is because
+The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
+```
+"clojure4vscode.lintOnSave": true
+```
 
 Demo: Peek at defintions, etcetera:
 
@@ -36,7 +41,7 @@ Demo lint errors are marked in the editor. (As are unit test failures)
 
 ![underline error](/assets/howto/error.png)
 
-## Current features
+## Current Features
 * Intellisense
 * Underlining compile-time errors
 * Go to / Peek at definition
@@ -59,14 +64,17 @@ Demo switch between clj and cljs repl sessions for cljc files:
 
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
-## Future stuff
+## Future Stuff
+* Evaluate commands should auto-detect forms inlcuding things like `'()`, `#{}`, and `#?()`. (Currently working on this one.)
 * Custom user commands to execute over the REPL connection
 * I want an integrated REPL!
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ## Dependencies
 
-Uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
+(See also about Autolinting above.)
+
+Clojure 4 VS Code uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
 
 Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
 
@@ -88,14 +96,6 @@ Add piggiback and its nrepl middleware `wrap-cljs-repl`:
         :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 ```
 
-### Autolinting
-
-The linting is disabled by default. To use it you need Joker installed, and then enable:
-
-```json
-"clojure4vscode.lintOnSave": true
-```
-
 ## Connecting to the REPL
 
 Clojure 4 VS Code will automatically connect to the nrepl session, but it does not start the repl for you. Start it from the terminal/command prompt if it is not running. Leiningen users do it like so:
@@ -110,7 +110,7 @@ Yay! 🍾 🎆 ✨
 
 ### ClojureScript REPL
 
-If you want to use ClojureScript, you start its repl off of the repl you have just started, i.e. **not** using `lein figwheel` because then the extension will not know how to connect. Open the porject in VS Code and the extension will connect to the ClojureScript repl for `cljs` files and to the Clojure repl for `clj` and `cljc` files.
+If you want to use ClojureScript, you start its repl off of the repl you have just started, i.e. **not** using `lein figwheel` because then the extension will not know how to connect. Open the project in VS Code and the extension will connect to the ClojureScript repl for `cljs` files and to the Clojure repl for `clj` and `cljc` files.
 
 Yay! 🥂 🤘 🍻
 
