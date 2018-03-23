@@ -110,14 +110,6 @@ function getSelectionToNextBracket(doc, selection, startPosition, startBracket) 
                 case '"':
                     waitForChar = currChar;
                     break;
-                case '/':
-                    var nextChar = block.charAt(currPos + 1);
-                    if (nextChar === '/') {
-                        waitForChar = '\n';
-                    } else if (nextChar === '*') {
-                        waitForChar = '*/';
-                    }
-                    break;
             }
         } else {
             if (currChar === waitForChar) {
@@ -126,8 +118,6 @@ function getSelectionToNextBracket(doc, selection, startPosition, startBracket) 
                 } else {
                     waitForChar = false;
                 }
-            } else if (currChar === '*') {
-                block.charAt(currPos + 1) === '/' && (waitForChar = false);
             }
         }
         currPos++
@@ -159,14 +149,6 @@ function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) 
                 case '"':
                     waitForChar = currChar;
                     break;
-                case '/':
-                    var nextChar = block.charAt(currPos + 1);
-                    if (nextChar === '/') {
-                        waitForChar = '\n';
-                    } else if (nextChar === '*') {
-                        waitForChar = '*/';
-                    }
-                    break;
             }
         } else {
             if (currChar === waitForChar) {
@@ -175,8 +157,6 @@ function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) 
                 } else {
                     waitForChar = false;
                 }
-            } else if (currChar === '*') {
-                block.charAt(currPos + 1) === '/' && (waitForChar = false);
             }
         }
         currPos--
