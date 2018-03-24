@@ -88,17 +88,39 @@ function getFormSelection(doc, currentPosition) {
     return codeSelection;
 }
 
+function findSexpStartFromOpeningBracket(block, start, endBracket) {
+    if (block.charAt(start).match(/['`]/)) {
+        // Quote form: '()
+        // Syntax quote: `()
+        start--;
+    }
+    else if (endBracket.match(/[\}\)]/) && block.charAt(start).match(/\#/)) {
+        // Sets: #{}
+        // Functions: #()
+        start--;
+    }
+    else if (endBracket === ')') {
+        // Conditionals: #?(), #?@()
+        // Deref: @()
+        let readerMacroMatch = block.substr(Math.max(start - 2, 0), Math.min(start + 1, 3)).match(/(#\?@?|@)$/);
+        if (readerMacroMatch) {
+            start -= readerMacroMatch[0].length;
+        }
+    }
+    return start;
+}
+
 //using algorithm from: http://stackoverflow.com/questions/15717436/js-regex-to-match-everything-inside-braces-including-nested-braces-i-want/27088184#27088184
 function getSelectionToNextBracket(doc, selection, startPosition, startBracket) {
     var block = doc.getText(selection),
-        currPos = 0,
+        end = 0,
         openBrackets = 0,
         stillSearching = true,
         waitForChar = false,
         endBracket = startBracket === '(' ? ')' : startBracket === '[' ? ']' : '}';
 
-    while (stillSearching && currPos <= block.length) {
-        var currChar = block.charAt(currPos);
+    while (stillSearching && end <= block.length) {
+        var currChar = block.charAt(end);
         if (!waitForChar) {
             switch (currChar) {
                 case startBracket:
@@ -114,30 +136,31 @@ function getSelectionToNextBracket(doc, selection, startPosition, startBracket) 
         } else {
             if (currChar === waitForChar) {
                 if (waitForChar === '"') {
-                    block.charAt(currPos - 1) !== '\\' && (waitForChar = false);
+                    block.charAt(end - 1) !== '\\' && (waitForChar = false);
                 } else {
                     waitForChar = false;
                 }
             }
         }
-        currPos++
+        end++
         if (openBrackets === 0) {
             stillSearching = false;
         }
     }
-    return new vscode.Selection(startPosition, doc.positionAt(doc.offsetAt(startPosition) + currPos));
+    start = findSexpStartFromOpeningBracket(doc.getText(), doc.offsetAt(startPosition) - 1, endBracket);
+    return new vscode.Selection(doc.positionAt(start + 1), doc.positionAt(doc.offsetAt(startPosition) + end));
 };
 
 function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) {
     var block = doc.getText(selection),
-        currPos = (block.length - 1),
+        start = (block.length - 1),
         openBrackets = 0,
         stillSearching = true,
         waitForChar = false,
         startBracket = endBracket === ')' ? '(' : endBracket === ']' ? '[' : '{';
 
-    while (stillSearching && currPos >= 0) {
-        var currChar = block.charAt(currPos);
+    while (stillSearching && start >= 0) {
+        var currChar = block.charAt(start);
         if (!waitForChar) {
             switch (currChar) {
                 case startBracket:
@@ -153,34 +176,19 @@ function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) 
         } else {
             if (currChar === waitForChar) {
                 if (waitForChar === '"') {
-                    block.charAt(currPos - 1) !== '\\' && (waitForChar = false);
+                    block.charAt(start - 1) !== '\\' && (waitForChar = false);
                 } else {
                     waitForChar = false;
                 }
             }
         }
-        currPos--
+        start--
         if (openBrackets === 0) {
             stillSearching = false;
         }
     }
-    if (block.charAt(currPos).match(/['`]/)) {
-        // Quote form: '()
-        // Syntax quote: `()
-        currPos--;
-    } else if (endBracket === '}' && block.charAt(currPos).match(/\#/)) {
-        // Sets: #{}
-        currPos--;
-    } else if (endBracket === ')') {
-        // Conditionals: #?(), #?@()
-        // Deref: @()
-        let readerMacroMatch = block.substr(Math.max(currPos - 2, 0), Math.min(currPos + 1, 3)).match(/(#\?@?|@)$/);
-        if (readerMacroMatch) {
-            currPos -= readerMacroMatch[0].length;
-        }
-        // Ignore: #_(), #_[], #_{}
-    }
-    return new vscode.Selection(doc.positionAt(currPos + 1), endPosition);
+    start = findSexpStartFromOpeningBracket(block, start, endBracket);
+    return new vscode.Selection(doc.positionAt(start + 1), endPosition);
 };
 
 // ERROR HELPERS
