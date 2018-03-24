@@ -164,6 +164,22 @@ function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) 
             stillSearching = false;
         }
     }
+    if (block.charAt(currPos).match(/['`]/)) {
+        // Quote form: '()
+        // Syntax quote: `()
+        currPos--;
+    } else if (endBracket === '}' && block.charAt(currPos).match(/\#/)) {
+        // Sets: #{}
+        currPos--;
+    } else if (endBracket === ')') {
+        // Conditionals: #?(), #?@()
+        // Deref: @()
+        let readerMacroMatch = block.substr(Math.max(currPos - 2, 0), Math.min(currPos + 1, 3)).match(/(#\?@?|@)$/);
+        if (readerMacroMatch) {
+            currPos -= readerMacroMatch[0].length;
+        }
+        // Ignore: #_(), #_[], #_{}
+    }
     return new vscode.Selection(doc.positionAt(currPos + 1), endPosition);
 };
 
