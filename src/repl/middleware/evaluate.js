@@ -67,6 +67,7 @@ function evaluateSelection(document = {}, options = {}) {
         code = "";
 
         editor.setDecorations(annotations.evalAnnotationDecoration, []);
+        editor.setDecorations(annotations.evalSelectionDecorationType, []);
 
         if (selection.isEmpty) {
             codeSelection = getFormSelection(doc, selection.active);
@@ -98,13 +99,17 @@ function evaluateSelection(document = {}, options = {}) {
                         chan.appendLine("Replaced inline.")
                     } else {
                         if (!pprint) {
-                            let decoration = annotations.evaluated('=> ' + result.replace(/\n/g, " "), editor);
-                            decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
-                            editor.setDecorations(annotations.evalAnnotationDecoration, [decoration]);
+                            let evalDecoration = annotations.evaluated(' => ' + result.replace(/\n/g, " ") + " ", editor),
+                                evalSelectionDecoration = {};
+                            evalDecoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
+                            evalSelectionDecoration.range = codeSelection;
+                            editor.setDecorations(annotations.evalSelectionDecorationType, [evalSelectionDecoration]);
+                            editor.setDecorations(annotations.evalAnnotationDecoration, [evalDecoration]);
                             setTimeout(() => {
                                 let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
-                                    editor.setDecorations(annotations.evalAnnotationDecoration, []);
                                     subscription.dispose();
+                                    editor.setDecorations(annotations.evalAnnotationDecoration, []);
+                                    editor.setDecorations(annotations.evalSelectionDecorationType, []);
                                 });
                             }, 250);
                         }

@@ -2,8 +2,21 @@ const vscode = require('vscode');
 
 const evalAnnotationDecoration = vscode.window.createTextEditorDecorationType({
     before: {
-        margin: '0 1em 0 1em',
-        textDecoration: 'none'
+        textDecoration: 'none',
+        fontWeight: 'normal',
+        fontStyle: 'normal',
+    },
+    light: {
+        before: {
+            color: 'black',
+            backgroundColor: 'white',
+        },
+    },
+    dark: {
+        before: {
+            color: 'white',
+            backgroundColor: 'black',
+        }
     },
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
@@ -12,17 +25,20 @@ function evaluated(contentText) {
     return {
         renderOptions: {
             before: {
-                backgroundColor: new vscode.ThemeColor("editor.backgroundColor"),
-                color: new vscode.ThemeColor("editorCodeLens.foreground"),
                 contentText: contentText,
-                fontWeight: 'normal',
-                fontStyle: 'normal'
-            }
-        }
+            },
+        },
     }
 }
 
+const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType({
+    overviewRulerColor: 'blue',
+    backgroundColor: new vscode.ThemeColor('editor.wordHighlightStrongBackground'),
+    overviewRulerLane: vscode.OverviewRulerLane.Right,
+});
+
 module.exports = {
     evalAnnotationDecoration,
-    evaluated
+    evaluated,
+    evalSelectionDecorationType
 }
