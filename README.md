@@ -58,7 +58,6 @@ Demo switch between clj and cljs repl sessions for cljc files:
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
 ## Future Stuff
-* Evaluate commands should auto-detect forms inlcuding things like `'()`, `#{}`, and `#?()`. (Currently working on this one.)
 * Custom user commands to execute over the REPL connection
 * I want an integrated REPL!
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
