@@ -36,9 +36,10 @@ function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
                 if (!exceptions && !errors) {
                     resolve(result);
                 } else {
+                    let err = _.find(result, "err").err;
                     logError({
                         type: ERROR_TYPE.ERROR,
-                        reason: "Error, " + errorStr + ": " + _.find(result, "err").err
+                        reason: "Error, " + errorStr + ": " + err
                     });
                     reject(result);
                 }
@@ -47,8 +48,9 @@ function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
     }).then((result) => {
         evalClient.end();
         callback(result);
-    }).catch(() => {
+    }).catch((result) => {
         evalClient.end();
+        callback(result, true);
     });
 };
 
@@ -81,25 +83,28 @@ function evaluateSelection(document = {}, options = {}) {
             let msg = message.evaluate(session, getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
-            evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
+            evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
                 let result = null;
                 _.each(results, (r) => {
-                    if (r.hasOwnProperty("value")) {
+                    if (r.hasOwnProperty("err")) {
+                        result = r.err;
+                        return false;
+                    } else if (r.hasOwnProperty("value")) {
                         result = r.value;
                     } else if (r.hasOwnProperty("pprint-out")) {
                         result = r["pprint-out"].replace(/\n$/, "");;
                     }
                 });
                 if (result !== null) {
-                    if (replace) {
+                    if (replace && !hasError) {
                         let edit = vscode.TextEdit.replace(codeSelection, result);
                         let wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
-                        if (!pprint) {
-                            let evalDecoration = annotations.evaluated(' => ' + result.replace(/\n/g, " ") + " ", editor),
+                        if ((replace && hasError) || !pprint) {
+                            let evalDecoration = annotations.evaluated(' => ' + result.replace(/\n/g, " ") + " ", hasError),
                                 evalSelectionDecoration = {};
                             evalDecoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
                             evalSelectionDecoration.range = codeSelection;

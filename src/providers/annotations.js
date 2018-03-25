@@ -6,26 +6,26 @@ const evalAnnotationDecoration = vscode.window.createTextEditorDecorationType({
         fontWeight: 'normal',
         fontStyle: 'normal',
     },
-    light: {
-        before: {
-            color: 'black',
-            backgroundColor: 'white',
-        },
-    },
-    dark: {
-        before: {
-            color: 'white',
-            backgroundColor: 'black',
-        }
-    },
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
-function evaluated(contentText) {
+function evaluated(contentText, hasError) {
     return {
         renderOptions: {
             before: {
                 contentText: contentText,
+            },
+            light: {
+                before: {
+                    color: hasError ? 'rgb(255, 127, 127)' : 'black',
+                    backgroundColor: 'white',
+                },
+            },
+            dark: {
+                before: {
+                    color: hasError ? 'rgb(255, 175, 175)' : 'white',
+                    backgroundColor: 'black',
+                }
             },
         },
     }
