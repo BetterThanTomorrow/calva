@@ -26,13 +26,6 @@ This extensions then adds some tricks:
 
 NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 
-## Autolinting
-
-The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
-```
-"clojure4vscode.lintOnSave": true
-```
-
 Demo: Peek at defintions, etcetera:
 
 ![Features](/assets/howto/features.gif)
@@ -70,6 +63,13 @@ Demo switch between clj and cljs repl sessions for cljc files:
 * I want an integrated REPL!
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
+## Autolinting
+
+The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
+```
+"clojure4vscode.lintOnSave": true
+```
+
 ## Dependencies
 
 (See also about Autolinting above.)
@@ -104,7 +104,7 @@ Clojure 4 VS Code will automatically connect to the nrepl session, but it does n
 $ lein repl
 ```
 
-Adding whatever options you need. WHen the repl has started, if you only use Clojure, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
+WHen the repl has started, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
 
 Yay! 🍾 🎆 ✨
 
