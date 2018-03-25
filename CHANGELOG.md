@@ -1,13 +1,18 @@
 # Change Log
 Notable changes to CLojure 4 VS Code.
 
+## [1.1.20] - 25.03.2018
+- Auto detection of forms to evaluate now condiders reader macro characters prepending the forms. E.g. before if you tried to evaluate say `#{:a :b :c}` with the cursor placed directly adjacent to the starting or ending curly braces only `{:a :b :c}` would be autodetected and evaluated.
+- Highlighting of auto detected forms being evaluated.
+- Rendering evaluation errors in the editor the same way as successful (but in red to quickly indicate that the evaluation errored).
+
+![Evaluation demo](/assets/howto/evaluate.gif)
+
 ## [1.1.15] - 20.03.2018
 - Evaluates vectors and maps with the same ”smart” selection as for lists.
 
 ## [1.1.11] - 20.03.2018
 - Add inline annotations for interactive code evaluation results.
-
-![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
 ## [1.1.9] - 18.03.2018
 - Add toggle for switching which repl connection is used for `cljc` files, `clj` or `cljs`.
