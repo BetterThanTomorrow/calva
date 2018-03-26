@@ -32,6 +32,11 @@
             "url": "https://img.shields.io/badge/clojurians-editors-blue.svg?logo=slack",
             "href": "https://clojurians.slack.com/messages/editors/",
             "description": "Let's talk in the #editors channel on the Clojurians Slack"
+        },
+        {
+            "url": "https://img.shields.io/badge/vscode--dev--community-clojure-blue.svg?logo=slack",
+            "href": "https://vscode-dev-community.slack.com/messages/clojure/",
+            "description": "See you in the #clojure channel on the VS Code Dev Slack"
         }
     ],
     "activationEvents": [
