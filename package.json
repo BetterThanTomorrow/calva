@@ -1,9 +1,9 @@
 {
     "name": "clojure4vscode",
     "displayName": "Clojure 4 VS Code",
-    "description": "Clojure and ClojureScript support. nREPL powered. Emacs CIDER inspired.",
+    "description": "nREPL powered Clojure and ClojureScript support. Interactive programming, Emacs CIDER inspired.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.1.20",
+    "version": "1.1.21",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -13,6 +13,7 @@
         "type": "git",
         "url": "https://github.com/PEZ/clojure4vscode"
     },
+    "license": "MIT",
     "engines": {
         "vscode": "^1.17.0"
     },
@@ -21,6 +22,17 @@
         "Linters",
         "Formatters",
         "Other"
+    ],
+    "galleryBanner": {
+        "color": "#344D81",
+        "theme": "dark"
+    },
+    "badges": [
+        {
+            "url": "https://img.shields.io/badge/clojurians-editors-blue.svg?logo=slack",
+            "href": "https://clojurians.slack.com/messages/editors/",
+            "description": "Let's talk in the #editors channel on the Clojurians Slack"
+        }
     ],
     "activationEvents": [
         "onLanguage:clojure"
