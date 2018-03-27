@@ -121,7 +121,7 @@ function evaluateSelection(document = {}, options = {}) {
                         chan.appendLine(result);
                     }
                 } else {
-                    chan.appendLine("Evaluation failed?");
+                    chan.appendLine("Evaluation failed for unknown reasons. Sometimes it helps evaluating the file first.");
                 }
             });
         }
