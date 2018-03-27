@@ -1,6 +1,12 @@
 # Change Log
 Notable changes to CLojure 4 VS Code.
 
+## [1.2.0] - 28.03.2018
+- Terminal REPLs
+  - Integrates REPL sessions from the Terminal tab and lets you do stuff like load current namespace ad evaluate code from the editor in the REPL.
+- Connection and reconnection stabilization
+  - Conecting the editor REPLs was a bit unstable. Now more stable (but there are still some quirks).
+
 ## [1.1.20] - 25.03.2018
 - Auto detection of forms to evaluate now condiders reader macro characters prepending the forms. E.g. before if you tried to evaluate say `#{:a :b :c}` with the cursor placed directly adjacent to the starting or ending curly braces only `{:a :b :c}` would be autodetected and evaluated.
 - Highlighting of auto detected forms being evaluated.

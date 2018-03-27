@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 VS Code",
     "description": "nREPL powered Clojure and ClojureScript support. Interactive programming, Emacs CIDER inspired.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.1.21",
+    "version": "1.2.0",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -72,6 +72,16 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Run namespace tests when opening a new file and on file save"
+                },
+                "clojure4vscode.connectREPLCommand": {
+                    "type": "string",
+                    "default": "lein repl :connect",
+                    "description": "Shell command to connect to the REPL (host:port will be appended)"
+                },
+                "clojure4vscode.startCLJSREPLCommand": {
+                    "type": "string",
+                    "default": "(cljs-repl)",
+                    "description": "Clojure command to start the ClojureScript REPL off of the Clojure REPL"
                 }
             }
         },
@@ -130,6 +140,26 @@
                 "command": "clojure4vscode.runAllTests",
                 "title": "Run all tests",
                 "category": "clojure4vscode"
+            },
+            {
+                "command": "clojure4vscode.openREPLTerminal",
+                "title": "Open REPL terminal",
+                "category": "clojure4vscode"
+            },
+            {
+                "command": "clojure4vscode.loadNamespace",
+                "title": "Load current namespace in REPL terminal",
+                "category": "clojure4vscode"
+            },
+            {
+                "command": "clojure4vscode.setREPLNamespace",
+                "title": "Switch namespace in current terminal REPL to namespace of this file",
+                "category": "clojure4vscode"
+            },
+            {
+                "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
+                "title": "Evaluate current form (or selection) in REPL terminal",
+                "category": "clojure4vscode"
             }
         ],
         "keybindings": [
@@ -182,6 +212,26 @@
                 "command": "clojure4vscode.runAllTests",
                 "key": "alt+v shift+t",
                 "mac": "alt+v shift+t"
+            },
+            {
+                "command": "clojure4vscode.openREPLTerminal",
+                "key": "alt+v z",
+                "mac": "alt+v z"
+            },
+            {
+                "command": "clojure4vscode.loadNamespace",
+                "key": "alt+v alt+n",
+                "mac": "alt+v alt+n"
+            },
+            {
+                "command": "clojure4vscode.setREPLNamespace",
+                "key": "alt+v n",
+                "mac": "alt+v n"
+            },
+            {
+                "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
+                "key": "alt+v alt+e",
+                "mac": "alt+v alt+e"
             }
         ]
     },

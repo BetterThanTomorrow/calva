@@ -6,14 +6,26 @@
 
 Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to code as well, I will.
 
+Demo: evaluate files
+
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
+Demo: Peek at defintions, etcetera:
+
+![Features](/assets/howto/features.gif)
+
+Demo: lint errors are marked in the editor. (As are unit test failures)
+
+![underline error](/assets/howto/error.png)
+
+### Based off of Visual Clojure
 You think this extension looks very similar to the **visual:clojure** extension? It's because it is based on that one. 🤠
 
 This extensions then adds some tricks:
 - Running tests through the REPL connection, and mark them in the Problems tab
   - Run namespace tests: `alt+v t`
   - Run all tests: `alt+v a`
+  - Marks test failures using the Problem tab
   - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Improved code evaluation
   - Evaluate code and show the results as annotation in the editor: `alt+v e`
@@ -23,43 +35,32 @@ This extensions then adds some tricks:
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
   - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
   - The evaluation commands will auto-”detect” vectors and maps as well as list. (It still will only auto-detect up to the next or previous bracket, and thus will miss things like reader markers, like conditional `#?`, before lists, and more. I am working on fixing that, se below under Future Stuff.)
+- Integrated REPLs using the Terminal tab (I call them **Terminal REPLs**)
+  - Switch to current namespace in the terminal REPL: `alt+v n`
+  - Load current namespace in the terminal REPL: `alt+v alt+n`
+  - Evaluate code from the editor to the terminal REPL: `alt+v alt+e`
+  - The extension defaults to trying to use **Leiningen** for connecting, but is somewhat prepared for other tools. Check the `clojure4vscode.connectREPLCommand` user setting (untested, please let me know if it works or not).
+- When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl
+- Enables `clj` repl in all files (not just Clojure files).
+
+Demo: switch between clj and cljs repl sessions for cljc files:
+
+![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
 NB: **You shouldn't run both extensions, beacuse that will get very confused.**
 
-Demo: Peek at defintions, etcetera:
-
-![Features](/assets/howto/features.gif)
-
-Demo lint errors are marked in the editor. (As are unit test failures)
-
-![underline error](/assets/howto/error.png)
-
 ## Current Features
+The above mentioned, plus:
 * Intellisense
 * Underlining compile-time errors
 * Go to / Peek at definition
 * View docstrings on hover
 * View function signatures on hover
-* Interactive REPL From visual code
-  * Compile files
-  * Evaluate forms
-    * Pretty printed results (if you want to)
-    * Replace evaluated code with the result
-  * Run tests
-    * Failed tests added to Problems tab/diagnostics
-    * Run all tests or tests for current namespace
-  * Auto-connects to existing repl using 'repl-port'-file
 * Supports all clojure filetypes, clj, cljc and cljs.
- * When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl
-* Enables `clj` repl in all files (not just Clojure files).
 
-Demo switch between clj and cljs repl sessions for cljc files:
-
-![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
 ## Future Stuff
 * Custom user commands to execute over the REPL connection
-* I want an integrated REPL!
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ## Autolinting

@@ -98,10 +98,11 @@ function markTestResults(responsesArray, log = true) {
 function runTests(messages, startStr, errorStr, log = true, document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
-        session = getSession(getFileType(doc));
-
-    if (current.get('connected')) {
+        session = getSession(getFileType(doc)),
         chan = current.get('outputChannel');
+
+    chan.show();
+    if (current.get('connected')) {
         if (log) {
             chan.appendLine(startStr);
             chan.appendLine("----------------------------");

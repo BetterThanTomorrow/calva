@@ -45,6 +45,12 @@ function getFileName(document) {
     return document.fileName.substr(fileNameIndex, document.fileName.length)
 };
 
+function getDocumentNamespace(document = {}) {
+    let doc = getDocument(document);
+
+    return getNamespace(doc.getText());
+}
+
 function getSession(fileType = undefined) {
     let doc = getDocument({}),
         current = state.deref();
@@ -320,6 +326,7 @@ module.exports = {
     getStartExpression,
     getActualWord,
     getDocument,
+    getDocumentNamespace,
     getFileType,
     getFileName,
     getSession,
