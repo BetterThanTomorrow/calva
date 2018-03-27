@@ -20,19 +20,16 @@ function update() {
         connection.tooltip = "Click to reset connection";
         connection.command = "clojure4vscode.reconnect";
         type.color = "rgb(145,220,71)";
-        if (fileType == 'cljs' && util.getSession('cljs') !== null) {
-            type.text = "(cljs)";
-            type.tooltip = "Connected to cljs repl";
-        } else if (fileType == 'clj' && util.getSession('clj') !== null) {
-            type.text = "(clj)"
-            type.tooltip = "Connected to clj repl";
-        } else if (fileType == 'cljc' && util.getSession('cljc') !== null) {
-            type.text = "(cljc/" + (util.getSession('cljc') == util.getSession('clj') ? 'clj' : 'cljs') + ")"
+        if (fileType == 'cljc' && util.getREPLSessionType() !== null) {
+            type.text = "(cljc/" + util.getREPLSessionType() + ")"
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
                 type.command = "clojure4vscode.toggleCLJCSession";
-                type.tooltip = "Click to use " + (util.getSession('cljc') == util.getSession('clj') ? 'cljs' : 'clj') + " repl for cljc";
+                type.tooltip = "Click to use " + (util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj') + " repl for cljc";
             }
-        } else {
+        } else if (util.getREPLSessionType() === 'cljs') {
+            type.text = "(cljs)";
+            type.tooltip = "Connected to cljs repl";
+        } else if (util.getREPLSessionType() === 'clj') {
             type.text = "(clj)"
             type.tooltip = "Connected to clj repl";
         }

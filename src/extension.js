@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const state = require('./state');
-const statusbar = require('./statusbar');
+const status = require('./status');
 const connector = require('./connector');
 const greet = require('./greet');
 
@@ -45,7 +45,7 @@ function activate(context) {
     //Set the language configuration for vscode when using this extension
     vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
 
-    statusbar.update();
+    status.update();
 
     //Set clojure4vscodes output channel to active
     let chan = state.deref().get('outputChannel');
@@ -78,7 +78,7 @@ function activate(context) {
         onSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        statusbar.update();
+        status.update();
     }));
 
     greet.activationGreetings(chan);

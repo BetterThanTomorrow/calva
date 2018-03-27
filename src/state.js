@@ -12,6 +12,7 @@ const initialData = {
     port: null,
     clj: null,
     cljs: null,
+    terminal: null,
     connected: false,
     connecting: config().autoConnect ? true : false,
     outputChannel: vscode.window.createOutputChannel("clojure4vscode"),

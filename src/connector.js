@@ -6,10 +6,13 @@ const statusbar = require('./statusbar');
 const repl = require('./repl/client');
 const message = require('./repl/message');
 const util = require('./utilities');
+const status = require('./status');
+const terminal = require('./terminal');
+const evaluate = require('./repl/middleware/evaluate');
 
 function connectToHost(hostname, port) {
     let current = state.deref(),
-    chan = state.deref().get('outputChannel');
+        chan = state.deref().get('outputChannel');
 
     chan.appendLine("Hooking up nREPL sessions...");
 
@@ -29,51 +32,56 @@ function connectToHost(hostname, port) {
 
 function findSession(session, sessions) {
     let current = state.deref(),
-    chan = current.get('outputChannel');
+        chan = current.get('outputChannel');
 
     let client = repl.create()
-    .once('connect', () => {
-        let msg = message.testSession(sessions[session]);
-        client.send(msg, (results) => {
-            for (var i = 0; i < results.length; i++) {
-                let result = results[i];
-                if (result.value && result.value === "3.14" && util.getSession("cljs") === null) {
-                    state.cursor.set("cljs", sessions[session]);
-                    chan.appendLine("Connected session: cljs");
-                } else if (result.ex && util.getSession("clj") === null) {
-                    state.cursor.set("clj", sessions[session]);
-                    chan.appendLine("Connected session: clj");
-                    state.cursor.set("cljc", sessions[session]);
-                    chan.appendLine("cljs files will use clj session");
+        .once('connect', () => {
+            let msg = message.testSession(sessions[session]);
+            client.send(msg, (results) => {
+                for (var i = 0; i < results.length; i++) {
+                    let result = results[i];
+                    if (result.ex) {
+                        if (!util.getSession("clj")) {
+                            state.cursor.set("clj", sessions[session]);
+                            state.cursor.set("cljc", sessions[session]);
+                            chan.appendLine("Connected session: clj");
+                            chan.appendLine('cljc files will use the clj REPL. (You can toggle this, if a cljs REPL is available)');
+                            terminal.createREPLTerminal('clj', chan);
+                        }
+                    } else if (result.value && result.value === "3.14") {
+                        if (!util.getSession("cljs")) {
+                            state.cursor.set("cljs", sessions[session]);
+                            chan.appendLine("Connected session: cljs");
+                            terminal.createREPLTerminal('cljs', chan);
+                        }
+                    }
                 }
-            }
-            client.end();
-        });
-    })
-    .once('end', () => {
-        //If last session, check if found
-        if (session === (sessions.length - 1) && util.getSession("cljs") === null) {
-            //Default to first session if no cljs-session is found, and treat it as a clj-session
-            if (sessions.length > 0) {
+                client.end();
+            });
+        })
+        .once('end', () => {
+            //If last session, check if found
+            if (session === (sessions.length - 1) && util.getSession("cljs") === null) {
+                //Default to first session if no cljs-session is found, and treat it as a clj-session
                 state.cursor.set("clj", sessions[session]);
                 state.cursor.set("cljc", sessions[session]);
+            } else if ((session + 1) <= (sessions.length - 1) &&
+                (util.getSession("cljs") === null || util.getSession("clj") === null)) {
+                findSession((session + 1), sessions);
+            } else {
+                //Check the initial file where the command is called from
+                //TODO FIXME -clojureEvaluation.evaluateFile(state);
+                evaluate.evaluateFile();
             }
-        } else if ((session + 1) <= (sessions.length - 1) &&
-        (util.getSession("cljs") === null || util.getSession("clj") === null)) {
-            findSession((session + 1), sessions);
-        } else {
-            //Check the initial file where the command is called from
-            //TODO FIXME -clojureEvaluation.evaluateFile(state);
-        }
-        statusbar.update();
-    });
+            status.update();
+        });
 };
 
 function connect() {
     let path = vscode.workspace.rootPath;
 
     state.cursor.set('connecting', true);
-    statusbar.update();
+    status.update();
 
     new Promise((resolve, reject) => {
         find.eachfile(/\.nrepl-port$/, path, (file) => {
@@ -92,16 +100,16 @@ function connect() {
             value: "localhost:" + port,
             ignoreFocusOut: true
         })
-        .then(function (url) {
-            // state.reset(); TODO see if this should be done
-            let [hostname, port] = url.split(':');
-            state.cursor.set("hostname", hostname);
-            state.cursor.set("port", port);
-            connectToHost(hostname, port);
-        });
+            .then(function (url) {
+                // state.reset(); TODO see if this should be done
+                let [hostname, port] = url.split(':');
+                state.cursor.set("hostname", hostname);
+                state.cursor.set("port", port);
+                connectToHost(hostname, port);
+            });
     }).catch(() => {
         state.cursor.set('connecting', false);
-        statusbar.update();
+        status.update();
     });
 };
 
@@ -111,14 +119,14 @@ function reconnect() {
 };
 
 function autoConnect() {
-    let  path = vscode.workspace.rootPath;
+    let path = vscode.workspace.rootPath;
 
     return new Promise((resolve, _) => {
         find.eachfile(/\.nrepl-port$/, path, (file) => {
             fs.readFile(file, 'utf8', (err, data) => {
                 if (!err) {
                     let hostname = "localhost",
-                    port = parseFloat(data);
+                        port = parseFloat(data);
 
                     state.cursor.set("hostname", hostname);
                     state.cursor.set("port", port);
@@ -138,7 +146,7 @@ function toggleCLJCSession() {
         } else if (util.getSession('cljc') == util.getSession('clj')) {
             state.cursor.set('cljc', util.getSession('cljs'));
         }
-        statusbar.update();
+        status.update();
     }
 }
 

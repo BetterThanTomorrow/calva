@@ -3,6 +3,7 @@ const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const _ = require('lodash');
 const state = require('./state');
 
+
 function getNamespace(text) {
     let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
     return match ? match[1] : 'user';
@@ -288,6 +289,32 @@ function markWarning(warning) {
     diagnostic.set(editor.document.uri, warnings);
 };
 
+
+function updateREPLSessionType() {
+    let current = state.deref(),
+        doc = getDocument({}),
+        fileType = getFileType(doc);
+
+    if (current.get('connected')) {
+        if (fileType == 'cljs' && getSession('cljs') !== null) {
+            state.cursor.set('current-session-type', 'cljs');
+        } else if (fileType == 'clj' && getSession('clj') !== null) {
+            state.cursor.set('current-session-type', 'clj');
+        } else if (fileType == 'cljc' && getSession('cljc') !== null) {
+            state.cursor.set('current-session-type', getSession('cljc') == getSession('clj') ? 'clj' : 'cljs');
+        } else {
+            state.cursor.set('current-session-type', 'clj');
+        }
+    } else {
+        state.cursor.set('current-session-type', null);
+    }
+}
+
+function getREPLSessionType() {
+    let current = state.deref();
+    return current.get('current-session-type');
+}
+
 module.exports = {
     getNamespace,
     getStartExpression,
@@ -303,5 +330,7 @@ module.exports = {
     markError,
     logWarning,
     markWarning,
-    logSuccess
+    logSuccess,
+    updateREPLSessionType,
+    getREPLSessionType
 };
