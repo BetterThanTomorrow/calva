@@ -14,6 +14,10 @@ function connectToHost(hostname, port) {
     let current = state.deref(),
         chan = state.deref().get('outputChannel');
 
+    state.cursor.set('clj', null);
+    state.cursor.set('cljs', null);
+    state.cursor.set('cljc', null);
+
     chan.appendLine("Hooking up nREPL sessions...");
 
     let client = repl.create({
@@ -69,8 +73,6 @@ function findSession(session, sessions) {
                 (util.getSession("cljs") === null || util.getSession("clj") === null)) {
                 findSession((session + 1), sessions);
             } else {
-                //Check the initial file where the command is called from
-                //TODO FIXME -clojureEvaluation.evaluateFile(state);
                 evaluate.evaluateFile();
             }
             status.update();
