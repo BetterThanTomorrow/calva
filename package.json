@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 VS Code",
     "description": "nREPL powered Clojure and ClojureScript support. Interactive programming, Emacs CIDER inspired.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -107,6 +107,11 @@
                 "category": "clojure4vscode"
             },
             {
+                "command": "clojure4vscode.selectCurrentForm",
+                "title": "evaluate selection or current form",
+                "category": "clojure4vscode"
+            },
+            {
                 "command": "clojure4vscode.evaluateSelection",
                 "title": "evaluate selection or current form",
                 "category": "clojure4vscode"
@@ -177,6 +182,11 @@
                 "command": "clojure4vscode.toggleCLJCSession",
                 "key": "alt+v alt+c",
                 "mac": "alt+v alt+c"
+            },
+            {
+                "command": "clojure4vscode.selectCurrentForm",
+                "key": "alt+v s",
+                "mac": "alt+v s"
             },
             {
                 "command": "clojure4vscode.evaluateSelection",

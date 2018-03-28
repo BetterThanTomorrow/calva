@@ -16,6 +16,7 @@ const FormatingProvider = require('./providers/formater');
 const EvaluateMiddleWare = require('./repl/middleware/evaluate');
 const LintMiddleWare = require('./repl/middleware/lint');
 const TestRunnerMiddleWare = require('./repl/middleware/testRunner');
+const select = require('./repl/middleware/select');
 
 function onSave(document) {
     let {
@@ -56,6 +57,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.toggleCLJCSession', connector.toggleCLJCSession));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateFile', EvaluateMiddleWare.evaluateFile));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
