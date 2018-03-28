@@ -103,7 +103,7 @@ function evaluateSelection(document = {}, options = {}) {
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
-                        if ((replace && hasError) || !pprint) {
+                        if (hasError || !pprint) {
                             let evalDecoration = annotations.evaluated(' => ' + result.replace(/\n/g, " ") + " ", hasError),
                                 evalSelectionDecoration = {};
                             evalDecoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
@@ -119,6 +119,9 @@ function evaluateSelection(document = {}, options = {}) {
                             }, 250);
                         }
                         chan.appendLine(result);
+                        if (pprint) {
+                            chan.show();
+                        }
                     }
                 } else {
                     chan.appendLine("Evaluation failed for unknown reasons. Sometimes it helps evaluating the file first.");
