@@ -101,7 +101,6 @@ function runTests(messages, startStr, errorStr, log = true, document = {}) {
         session = getSession(getFileType(doc)),
         chan = current.get('outputChannel');
 
-    chan.show();
     if (current.get('connected')) {
         if (log) {
             chan.appendLine(startStr);
@@ -155,6 +154,13 @@ function runAllTests(document = {}) {
     runTests([msg], "Running all tests", "running all tests");
 };
 
+function runAllTestsCommand() {
+    let chan = state.deref().get('outputChannel');
+
+    chan.show();
+    runAllTests();
+};
+
 function getNamespaceTestMessages(document = {}) {
     let current = state.deref(),
         doc = getDocument(document),
@@ -167,11 +173,22 @@ function getNamespaceTestMessages(document = {}) {
     }
     return messages;
 }
+
 function runNamespaceTests(document = {}) {
     runTests(getNamespaceTestMessages(), "Running tests", "running tests");
 };
 
+function runNamespaceTestsCommand() {
+    let chan = state.deref().get('outputChannel');
+
+    chan.show();
+    runNamespaceTests();
+};
+
+
 module.exports = {
     runNamespaceTests,
-    runAllTests
+    runNamespaceTestsCommand,
+    runAllTests,
+    runAllTestsCommand
 };
