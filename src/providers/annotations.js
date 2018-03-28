@@ -37,8 +37,32 @@ const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType
     overviewRulerLane: vscode.OverviewRulerLane.Right,
 });
 
+function decorateResults(decoration, codeSelection, editor) {
+    decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
+    editor.setDecorations(evalAnnotationDecoration, [decoration]);
+    setTimeout(() => {
+        let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
+            subscription.dispose();
+            editor.setDecorations(evalAnnotationDecoration, []);
+        });
+    }, 350);
+}
+
+function decorateSelection(decoration, codeSelection, editor) {
+    decoration.range = codeSelection;
+    editor.setDecorations(evalSelectionDecorationType, [decoration]);
+    setTimeout(() => {
+        let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
+            subscription.dispose();
+            editor.setDecorations(evalSelectionDecorationType, []);
+        });
+    }, 350);
+}
+
 module.exports = {
     evalAnnotationDecoration,
     evaluated,
-    evalSelectionDecorationType
+    evalSelectionDecorationType,
+    decorateResults,
+    decorateSelection
 }

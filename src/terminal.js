@@ -2,7 +2,8 @@ const vscode = require('vscode');
 const _ = require('lodash');
 const state = require('./state');
 const util = require('./utilities');
-const evaluate = require('./repl/middleware/evaluate')
+const evaluate = require('./repl/middleware/evaluate');
+const annotations = require('./providers/annotations');
 
 function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
@@ -101,10 +102,11 @@ function evalCurrentFormInREPLTerminal(keepFocus = true) {
 
     if (selection.isEmpty) {
         codeSelection = util.getFormSelection(doc, selection.active);
+        annotations.decorateSelection({}, codeSelection, editor);
         code = doc.getText(codeSelection);
     } else {
-        codeSelection = selection,
-            code = doc.getText(selection);
+        codeSelection = selection;
+        code = doc.getText(selection);
     }
     if (code !== "") {
         sendTextToREPLTerminal(code, true)

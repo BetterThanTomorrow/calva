@@ -104,19 +104,10 @@ function evaluateSelection(document = {}, options = {}) {
                         chan.appendLine("Replaced inline.")
                     } else {
                         if (hasError || !pprint) {
-                            let evalDecoration = annotations.evaluated(' => ' + result.replace(/\n/g, " ") + " ", hasError),
+                            let evalDecoration = annotations.evaluated(' => ' + result + " ", hasError),
                                 evalSelectionDecoration = {};
-                            evalDecoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
-                            evalSelectionDecoration.range = codeSelection;
-                            editor.setDecorations(annotations.evalSelectionDecorationType, [evalSelectionDecoration]);
-                            editor.setDecorations(annotations.evalAnnotationDecoration, [evalDecoration]);
-                            setTimeout(() => {
-                                let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
-                                    subscription.dispose();
-                                    editor.setDecorations(annotations.evalAnnotationDecoration, []);
-                                    editor.setDecorations(annotations.evalSelectionDecorationType, []);
-                                });
-                            }, 250);
+                            annotations.decorateSelection(evalSelectionDecoration, codeSelection, editor);
+                            annotations.decorateResults(evalDecoration, codeSelection, editor);
                         }
                         chan.appendLine(result);
                         if (pprint) {
