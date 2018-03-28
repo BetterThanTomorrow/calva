@@ -144,24 +144,28 @@ function evaluateFile(document = {}) {
         doc = getDocument(document),
         chan = current.get('outputChannel');
 
-    if (current.get('connected')) {
-        let fileName = getFileName(doc),
-            session = getSession(getFileType(doc)),
-            msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
+    if (doc.isDirty) {
+        doc.save();
+    } else {
+        if (current.get('connected')) {
+            let fileName = getFileName(doc),
+                session = getSession(getFileType(doc)),
+                msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
 
-        evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
-            let result = null;
-            _.each(results, (r) => {
-                if (r.hasOwnProperty("value")) {
-                    result = r.value;
+            evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
+                let result = null;
+                _.each(results, (r) => {
+                    if (r.hasOwnProperty("value")) {
+                        result = r.value;
+                    }
+                });
+                if (result !== null) {
+                    chan.appendLine(result);
+                } else {
+                    chan.appendLine("Evaluation failed?");
                 }
             });
-            if (result !== null) {
-                chan.appendLine(result);
-            } else {
-                chan.appendLine("Evaluation failed?");
-            }
-        });
+        }
     }
 };
 

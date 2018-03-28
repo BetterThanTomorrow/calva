@@ -2,6 +2,7 @@ const vscode = require('vscode');
 const _ = require('lodash');
 const state = require('./state');
 const util = require('./utilities');
+const evaluate = require('./repl/middleware/evaluate')
 
 function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
@@ -29,22 +30,34 @@ function createREPLTerminal(sessionType, outputChan) {
     }
 }
 
-function openREPLTerminal() {
+function openREPLTerminal(keepFocus = true) {
     let current = state.deref(),
         chan = current.get('outputChannel'),
         sessionType = util.getREPLSessionType(),
         terminal = current.get(terminalSlug(sessionType));
 
     if (terminal) {
-        terminal.show(true);
+        terminal.show(keepFocus);
     }
     else {
         chan.appendLine("No REPL terminal found. Try reconnecting the REPL sessions.");
     }
 }
 
+function openREPLTerminalCommand() {
+    openREPLTerminal(false);
+}
+
 function loadNamespace() {
-    _setREPLNamespace(true);
+    setREPLNamespace(true, false);
+}
+
+function loadNamespaceCommand() {
+    let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
+    if (terminal) {
+        terminal.show();
+        loadNamespace();
+    }
 }
 
 function sendTextToREPLTerminal(text, addNewline = false) {
@@ -61,21 +74,25 @@ function sendTextToREPLTerminal(text, addNewline = false) {
     }
 }
 
-function _setREPLNamespace(reload = false) {
+function setREPLNamespace(reload = false, keepFocus = true) {
     let nameSpace = util.getDocumentNamespace();
 
     if (reload) {
-        sendTextToREPLTerminal("(require '" + nameSpace + " :reload-all)", true);
+        evaluate.evaluateFile();
     }
     sendTextToREPLTerminal("(in-ns '" + nameSpace + ")", true);
-    openREPLTerminal();
+    openREPLTerminal(keepFocus);
 }
 
-function setREPLNamespace() {
-    _setREPLNamespace(false);
+function setREPLNamespaceCommand() {
+    let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
+    if (terminal) {
+        terminal.show();
+        setREPLNamespace(false, false);
+    }
 }
 
-function evalCurrentFormInREPLTerminal() {
+function evalCurrentFormInREPLTerminal(keepFocus = true) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -92,13 +109,21 @@ function evalCurrentFormInREPLTerminal() {
     if (code !== "") {
         sendTextToREPLTerminal(code, true)
     }
-    openREPLTerminal();
+    openREPLTerminal(keepFocus);
+}
+
+function evalCurrentFormInREPLTerminalCommand() {
+    evalCurrentFormInREPLTerminal(false);
 }
 
 module.exports = {
     createREPLTerminal,
     openREPLTerminal,
+    openREPLTerminalCommand,
     loadNamespace,
+    loadNamespaceCommand,
     setREPLNamespace,
-    evalCurrentFormInREPLTerminal
+    setREPLNamespaceCommand,
+    evalCurrentFormInREPLTerminal,
+    evalCurrentFormInREPLTerminalCommand
 }
