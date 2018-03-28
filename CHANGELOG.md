@@ -1,6 +1,9 @@
 # Change Log
 Notable changes to CLojure 4 VS Code.
 
+## [1.2.1] - 28.03.2018
+- Select current (auto-detected) form
+
 ## [1.2.0] - 28.03.2018
 - Terminal REPLs
   - Integrates REPL sessions from the Terminal tab and lets you do stuff like load current namespace ad evaluate code from the editor in the REPL.

@@ -6,8 +6,11 @@ Eternal list of things to do.
 * DONE REPL connection broken for cljc files
 
 * Neat things on the wishlist
-* DONE When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl.
 * TODO Report test results as they come in
+* TODO Rerun of last failing tests
+* TODO Select current form
+* DONE Integrated REPL prompts
+* DONE When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl.
 Currently running all tests in a large project is a slow feedback thing to do.
 * DONE Use cider for pretty print
 * DONE Pretty pring evaluate-replace

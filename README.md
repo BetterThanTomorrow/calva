@@ -27,6 +27,7 @@ This extensions then adds some tricks:
   - Run all tests: `alt+v a`
   - Marks test failures using the Problem tab
   - User setting to evaluate namespace on save/open file (defaults to **on**)
+  - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Improved code evaluation
   - Evaluate code and show the results as annotation in the editor: `alt+v e`
   - Evaluate code and replace it in the editor, inline: `alt+v r`
@@ -42,6 +43,7 @@ This extensions then adds some tricks:
   - The extension defaults to trying to use **Leiningen** for connecting, but is somewhat prepared for other tools. Check the `clojure4vscode.connectREPLCommand` user setting (untested, please let me know if it works or not).
 - When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl
 - Enables `clj` repl in all files (not just Clojure files).
+- Selection of current form: `alt+v s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
 Demo: switch between clj and cljs repl sessions for cljc files:
 
@@ -60,6 +62,8 @@ The above mentioned, plus:
 
 
 ## Future Stuff
+* Test reporting while tests are being run. HIGH PRIORITY.
+* Rerun of last failing tests.
 * Custom user commands to execute over the REPL connection
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
