@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 VS Code",
     "description": "nREPL powered Clojure and ClojureScript support. Interactive programming, Emacs CIDER inspired.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -258,5 +258,13 @@
         "lodash": "4.17.4",
         "net": "1.0.2",
         "vscode": "^1.1.4"
+    },
+    "devDependencies": {
+        "eslint": "^4.19.1",
+        "eslint-config-standard": "^11.0.0",
+        "eslint-plugin-import": "^2.9.0",
+        "eslint-plugin-node": "^6.0.1",
+        "eslint-plugin-promise": "^3.7.0",
+        "eslint-plugin-standard": "^3.0.1"
     }
 }

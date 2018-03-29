@@ -2,7 +2,6 @@ const vscode = require('vscode');
 const _ = require('lodash');
 const state = require('../../state');
 const repl = require('../client');
-const format = require('./format');
 const message = require('../message');
 const annotations = require('../../providers/annotations');
 const {
@@ -11,23 +10,18 @@ const {
     getFileType,
     getNamespace,
     getSession,
-    logSuccess,
     logError,
     ERROR_TYPE,
     getFormSelection,
 } = require('../../utilities');
 
-function evaluateMsg(msg, startStr, errorStr, callback, document = {}) {
+function evaluateMsg(msg, startStr, errorStr, callback) {
     let current = state.deref(),
-        doc = getDocument(document),
-        session = getSession(getFileType(doc)),
         chan = current.get('outputChannel');
 
     chan.appendLine(startStr);
-    chan.appendLine("----------------------------");
 
     let evalClient = null;
-    evaluationResult = "";
     new Promise((resolve, reject) => {
         evalClient = repl.create().once('connect', () => {
             evalClient.send(msg, (result) => {
@@ -65,11 +59,10 @@ function evaluateSelection(document = {}, options = {}) {
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
             selection = editor.selection,
-            codeSelection = null;
-        code = "";
+            codeSelection = null,
+            code = "";
 
-        editor.setDecorations(annotations.evalAnnotationDecoration, []);
-        editor.setDecorations(annotations.evalSelectionDecorationType, []);
+        annotations.clearEvaluationDecorations(editor);
 
         if (selection.isEmpty) {
             codeSelection = getFormSelection(doc, selection.active);
@@ -103,16 +96,15 @@ function evaluateSelection(document = {}, options = {}) {
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
-                        if (hasError || !pprint) {
-                            let evalDecoration = annotations.evaluated(' => ' + result + " ", hasError),
-                                evalSelectionDecoration = {};
-                            annotations.decorateSelection(evalSelectionDecoration, codeSelection, editor);
-                            annotations.decorateResults(evalDecoration, codeSelection, editor);
+                        annotations.decorateSelection(codeSelection, editor);
+                        chan.append('=> ');
+                        if (pprint) {
+                            chan.appendLine('');
+                            chan.show();
+                        } else {
+                            annotations.decorateResults(' => ' + result + " ", hasError, codeSelection, editor);
                         }
                         chan.appendLine(result);
-                        if (pprint) {
-                            chan.show();
-                        }
                     }
                 } else {
                     chan.appendLine("Evaluation failed for unknown reasons. Sometimes it helps evaluating the file first.");
