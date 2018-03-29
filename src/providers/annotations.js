@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 
-const evalAnnotationDecoration = vscode.window.createTextEditorDecorationType({
+const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
         textDecoration: 'none',
         fontWeight: 'normal',
@@ -37,22 +37,27 @@ const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType
     overviewRulerLane: vscode.OverviewRulerLane.Right,
 });
 
-function decorateResults(decoration, codeSelection, editor) {
+function clearEvaluationDecorations(editor) {
+    editor.setDecorations(evalResultsDecorationType, []);
+    editor.setDecorations(evalSelectionDecorationType, []);
+}
+
+function decorateResults(resultString, hasError, codeSelection, editor) {
+    let decoration = evaluated(resultString, hasError)
     decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
-    editor.setDecorations(evalAnnotationDecoration, [decoration]);
+    editor.setDecorations(evalResultsDecorationType, [decoration]);
     setTimeout(() => {
-        let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
+        let subscription = vscode.window.onDidChangeTextEditorSelection(() => {
             subscription.dispose();
-            editor.setDecorations(evalAnnotationDecoration, []);
+            editor.setDecorations(evalResultsDecorationType, []);
         });
     }, 350);
 }
 
-function decorateSelection(decoration, codeSelection, editor) {
-    decoration.range = codeSelection;
-    editor.setDecorations(evalSelectionDecorationType, [decoration]);
+function decorateSelection(codeSelection, editor) {
+    editor.setDecorations(evalSelectionDecorationType, [{ range: codeSelection }]);
     setTimeout(() => {
-        let subscription = vscode.window.onDidChangeTextEditorSelection((e) => {
+        let subscription = vscode.window.onDidChangeTextEditorSelection(() => {
             subscription.dispose();
             editor.setDecorations(evalSelectionDecorationType, []);
         });
@@ -60,9 +65,10 @@ function decorateSelection(decoration, codeSelection, editor) {
 }
 
 module.exports = {
-    evalAnnotationDecoration,
+    evalResultsDecorationType,
     evaluated,
     evalSelectionDecorationType,
+    clearEvaluationDecorations,
     decorateResults,
     decorateSelection
 }

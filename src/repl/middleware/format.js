@@ -9,8 +9,7 @@ const {
 
 
 function formatCode(code, document = {}) {
-    let current = state.deref(),
-        doc = getDocument(document),
+    let doc = getDocument(document),
         formatClient = null;
     return new Promise((resolve, reject) => {
         formatClient = repl.create().once('connect', () => {

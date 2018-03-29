@@ -1,5 +1,4 @@
 const vscode = require('vscode');
-const _ = require('lodash');
 const state = require('./state');
 const util = require('./utilities');
 const evaluate = require('./repl/middleware/evaluate');
@@ -100,9 +99,10 @@ function evalCurrentFormInREPLTerminal(keepFocus = true) {
         codeSelection = null,
         code = "";
 
+    annotations.clearEvaluationDecorations(editor);
     if (selection.isEmpty) {
         codeSelection = util.getFormSelection(doc, selection.active);
-        annotations.decorateSelection({}, codeSelection, editor);
+        annotations.decorateSelection(codeSelection, editor);
         code = doc.getText(codeSelection);
     } else {
         codeSelection = selection;

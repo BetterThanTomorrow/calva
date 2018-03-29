@@ -8,9 +8,7 @@ const {
     getNamespace,
     getFileType,
     getSession,
-    logSuccess,
     logError,
-    logWarning,
     ERROR_TYPE,
 } = require('../../utilities');
 
@@ -95,16 +93,13 @@ function markTestResults(responsesArray, log = true) {
     }
 };
 
-function runTests(messages, startStr, errorStr, log = true, document = {}) {
+function runTests(messages, startStr, errorStr, log = true) {
     let current = state.deref(),
-        doc = getDocument(document),
-        session = getSession(getFileType(doc)),
         chan = current.get('outputChannel');
 
     if (current.get('connected')) {
         if (log) {
             chan.appendLine(startStr);
-            chan.appendLine("----------------------------");
         }
         let testClient = null,
             results = [],
@@ -146,8 +141,7 @@ function runTests(messages, startStr, errorStr, log = true, document = {}) {
 }
 
 function runAllTests(document = {}) {
-    let current = state.deref(),
-        doc = getDocument(document),
+    let doc = getDocument(document),
         session = getSession(getFileType(doc)),
         msg = message.testAll(session);
 
@@ -162,8 +156,7 @@ function runAllTestsCommand() {
 };
 
 function getNamespaceTestMessages(document = {}) {
-    let current = state.deref(),
-        doc = getDocument(document),
+    let doc = getDocument(document),
         session = getSession(getFileType(doc)),
         ns = getNamespace(doc.getText()),
         messages = [message.test(session, ns)];
@@ -175,7 +168,7 @@ function getNamespaceTestMessages(document = {}) {
 }
 
 function runNamespaceTests(document = {}) {
-    runTests(getNamespaceTestMessages(), "Running tests", "running tests");
+    runTests(getNamespaceTestMessages(document), "Running tests", "running tests");
 };
 
 function runNamespaceTestsCommand() {
