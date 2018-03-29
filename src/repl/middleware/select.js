@@ -3,7 +3,7 @@ const util = require('../../utilities');
 
 function selectCurrentForm(document = {}) {
     let editor = vscode.window.activeTextEditor,
-        doc = util.getDocument({}),
+        doc = util.getDocument(document),
         selection = editor.selection,
         codeSelection = null;
 

@@ -3,7 +3,7 @@
     "displayName": "Clojure 4 VS Code",
     "description": "nREPL powered Clojure and ClojureScript support. Interactive programming, Emacs CIDER inspired.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.4",
+    "version": "1.2.5",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",

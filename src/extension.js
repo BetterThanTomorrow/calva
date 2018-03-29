@@ -85,14 +85,18 @@ function activate(context) {
         onSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        status.update();
+        status.update(editor);
     }));
 
     greet.activationGreetings(chan);
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
     if (autoConnect) {
-        connector.autoConnect();
+        connector.autoConnect().catch((err) => {
+            chan.appendLine("Failed to connect: " + err + "\nDo you have a REPL running? (Autoconnect can be switched of in User Settings.)");
+        });
+    } else {
+        chan.appendLine("Autoconnect disabled in User Settings.")
     }
 
 }
