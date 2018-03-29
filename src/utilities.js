@@ -35,8 +35,8 @@ function getDocument(document) {
 };
 
 function getFileType(document) {
-    let doc = getDocument(document);
-    filetypeIndex = (doc.fileName.lastIndexOf('.') + 1);
+    let doc = getDocument(document),
+        filetypeIndex = (doc.fileName.lastIndexOf('.') + 1);
     return doc.fileName.substr(filetypeIndex, doc.fileName.length);
 };
 
@@ -154,7 +154,7 @@ function getSelectionToNextBracket(doc, selection, startPosition, startBracket) 
             stillSearching = false;
         }
     }
-    start = findSexpStartFromOpeningBracket(doc.getText(), doc.offsetAt(startPosition) - 1, endBracket);
+    const start = findSexpStartFromOpeningBracket(doc.getText(), doc.offsetAt(startPosition) - 1, endBracket);
     return new vscode.Selection(doc.positionAt(start + 1), doc.positionAt(doc.offsetAt(startPosition) + end));
 };
 
@@ -237,8 +237,7 @@ function markError(error) {
         error.column = 0;
     }
 
-    let position = new vscode.Position(error.line, error.column),
-        diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = state.deref().get('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -277,8 +276,7 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let position = new vscode.Position(warning.line, warning.column),
-        diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = state.deref().get('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
