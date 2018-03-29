@@ -2,7 +2,6 @@ const vscode = require('vscode');
 const find = require('find');
 const fs = require('fs');
 const state = require('./state');
-const statusbar = require('./statusbar');
 const repl = require('./repl/client');
 const message = require('./repl/message');
 const util = require('./utilities');
@@ -11,8 +10,7 @@ const terminal = require('./terminal');
 const evaluate = require('./repl/middleware/evaluate');
 
 function connectToHost(hostname, port) {
-    let current = state.deref(),
-        chan = state.deref().get('outputChannel');
+    let chan = state.deref().get('outputChannel');
 
     state.cursor.set('clj', null);
     state.cursor.set('cljs', null);
@@ -123,7 +121,7 @@ function reconnect() {
 function autoConnect() {
     let path = vscode.workspace.rootPath;
 
-    return new Promise((resolve, _) => {
+    return new Promise((resolve, reject) => {
         find.eachfile(/\.nrepl-port$/, path, (file) => {
             fs.readFile(file, 'utf8', (err, data) => {
                 if (!err) {
@@ -133,6 +131,10 @@ function autoConnect() {
                     state.cursor.set("hostname", hostname);
                     state.cursor.set("port", port);
                     connectToHost(hostname, port);
+                    resolve();
+                }
+                else {
+                    reject(err);
                 }
             });
         });
