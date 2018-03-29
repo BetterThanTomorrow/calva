@@ -1,4 +1,3 @@
-const vscode = require('vscode');
 const util = require('./utilities');
 const statusbar = require('./statusbar');
 
