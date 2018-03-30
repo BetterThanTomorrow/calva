@@ -1,10 +1,10 @@
-# Clojure 4 VS Code
+# Calva: Clojure 4 VS Code
 
-[Clojure and ClojureScript support](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). nREPL powered. Emacs CIDER inspired.
+[Clojure and ClojureScript support](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). nREPL and Cider powered.
 
 ## Raison d´être
 
-Try to bring as much of the Emacs CIDER experience as I can to VS Code. Supporting both Clojure and ClojureScript. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to code as well, I will.
+Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to code as well, I will.
 
 Demo: evaluate files
 
@@ -19,9 +19,9 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 ![underline error](/assets/howto/error.png)
 
 ### Based off of Visual Clojure
-You think this extension looks very similar to the **visual:clojure** extension? It's because it is based on that one. 🤠
+You think Calva looks similar to the **visual:clojure** extension? It's because it is based on that one. 🤠
 
-This extensions then adds some tricks:
+Calva then adds some tricks:
 - Running tests through the REPL connection, and mark them in the Problems tab
   - Run namespace tests: `alt+v t`
   - Run all tests: `alt+v a`
@@ -78,7 +78,7 @@ The extension comes with autolinting disabled. This is because you will need to 
 
 (See also about Autolinting above.)
 
-Clojure 4 VS Code uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
+Calva uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
 
 Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
 
@@ -102,7 +102,7 @@ Add piggiback and its nrepl middleware `wrap-cljs-repl`:
 
 ## Connecting to the REPL
 
-Clojure 4 VS Code will automatically connect to the nrepl session, but it does not start the repl for you. Start it from the terminal/command prompt if it is not running. Leiningen users do it like so:
+Calva defaults to automatically connecting to a running nrepl session, it does not start the repl for you. Start it from the terminal/command prompt if it is not running. Leiningen users do it like so:
 
 ```
 $ lein repl
@@ -156,4 +156,4 @@ I hope you will find tons of use for this extension! Please let me know what you
 
 ❤️
 
-**Clojure 4 VS Code** works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit) and [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer).
+**Calva** works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit) and [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer).

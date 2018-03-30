@@ -1,7 +1,7 @@
 {
     "name": "clojure4vscode",
-    "displayName": "Clojure 4 VS Code",
-    "description": "nREPL powered Clojure and ClojureScript support. Interactive programming, Emacs CIDER inspired.",
+    "displayName": "Calva: Clojure 4 VS Code",
+    "description": "Cider nREPL powered Clojure and ClojureScript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
     "version": "1.2.5",
     "publisher": "cospaia",
