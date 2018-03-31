@@ -37,7 +37,7 @@ module.exports = class DocumentFormattingEditProvider {
                             reject(null);
                         } else if (r.status.length === 1 && r.status.indexOf("done") !== -1) {
                             const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length - 1))
-                            let formattedDocument = [vscode.TextEdit.replace(fullRange, results[0]["formatted-code"])]
+                            let formattedDocument = [vscode.TextEdit.replace(fullRange, r["formatted-code"])]
                             resolve(formattedDocument);
                         } else {
                             console.log("UNHANDLED FORMAT ERROR");

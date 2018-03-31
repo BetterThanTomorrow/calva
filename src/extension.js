@@ -11,7 +11,7 @@ const CompletionItemProvider = require('./providers/completion');
 const TextDocumentContentProvider = require('./providers/content');
 const HoverProvider = require('./providers/hover');
 const DefinitionProvider = require('./providers/definition');
-const FormatingProvider = require('./providers/formater');
+const FormattingProvider = require('./providers/formatter');
 
 const EvaluateMiddleWare = require('./repl/middleware/evaluate');
 const LintMiddleWare = require('./repl/middleware/lint');
@@ -74,7 +74,7 @@ function activate(context) {
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(state.mode, new FormatingProvider()))
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(state.mode, new FormattingProvider()))
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
     // //EVENTS
