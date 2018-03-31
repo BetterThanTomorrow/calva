@@ -37,7 +37,6 @@ class DocumentFormattingEditProvider {
                         } else if (r.status.length === 1 && r.status.indexOf("done") !== -1) {
                             const fullRange = new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length))
                             let reformat = vscode.TextEdit.replace(fullRange, r["formatted-code"]);
-                            chan.appendLine(r["formatted-code"])
                             resolve([reformat]);
                         } else {
                             chan.appendLine("UNHANDLED FORMAT ERROR");
