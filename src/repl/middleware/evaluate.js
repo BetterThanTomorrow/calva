@@ -143,7 +143,7 @@ function evaluateFile(document = {}) {
                     }
                 });
                 if (result !== null) {
-                    chan.appendLine(result);
+                    chan.appendLine("=> " + result);
                 } else {
                     chan.appendLine("Evaluation failed?");
                 }
