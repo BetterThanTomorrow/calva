@@ -25,14 +25,17 @@ function calculateIndent(lines) {
                     : (x + first.length + 2)
             );
         }
+
         if (char === '[' || char === '{') {
             openBrackets.push(x + 1)
         }
+
         if (char === ')' || char === ']' || char === '}') {
             openBrackets.pop()
         }
 
         x++
+
         if (x >= lines[y].length) {
             x = 0
             y++
