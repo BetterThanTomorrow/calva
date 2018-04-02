@@ -12,6 +12,7 @@ const TextDocumentContentProvider = require('./providers/content');
 const HoverProvider = require('./providers/hover');
 const DefinitionProvider = require('./providers/definition');
 const FormattingProvider = require('./providers/formatter');
+const ClojureOnTypeFormattingProvider = require('./providers/ontype_formatter');
 
 const EvaluateMiddleWare = require('./repl/middleware/evaluate');
 const LintMiddleWare = require('./repl/middleware/lint');
@@ -74,7 +75,9 @@ function activate(context) {
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(state.mode, new FormattingProvider()))
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(state.mode, new FormattingProvider()));
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(state.mode, new ClojureOnTypeFormattingProvider(), "\n"));
+
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
     // //EVENTS

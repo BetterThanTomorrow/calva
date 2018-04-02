@@ -1,9 +1,9 @@
 module.exports = class ClojureLanguageConfiguration {
     constructor() {
-        this.wordPattern = /[\w\-\.:<>\*][\w\d\.\\/\-\?<>\*!]+/;
+        this.wordPattern = /[^\s()[\]{};"\\]+/;
         this.indentationRules = {
-            decreaseIndentPattern: undefined,
-            increaseIndentPattern: /^\s*\(.*[^)]\s*$/
-        }
+            increaseIndentPattern: /^.*\([^)"]*$/,
+            decreaseIndentPattern: undefined
+        };
     }
 };
