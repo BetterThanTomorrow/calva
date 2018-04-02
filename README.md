@@ -44,6 +44,7 @@ Calva then adds some tricks:
 - When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl
 - Enables `clj` repl in all files (not just Clojure files).
 - Selection of current form: `alt+v s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
+- Autoindent according to: https://github.com/bbatsov/clojure-style-guide
 
 Demo: switch between clj and cljs repl sessions for cljc files:
 
