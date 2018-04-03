@@ -24,7 +24,7 @@ You think Calva looks similar to the **visual:clojure** extension? It's because 
 Calva then adds some tricks:
 - Running tests through the REPL connection, and mark them in the Problems tab
   - Run namespace tests: `alt+v t`
-  - Run all tests: `alt+v a`
+  - Run all tests: `alt+v shift+t`
   - Marks test failures using the Problem tab
   - User setting to evaluate namespace on save/open file (defaults to **on**)
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
