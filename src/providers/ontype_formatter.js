@@ -9,6 +9,8 @@ const oneIndentForms = ['fn', 'def', 'defn', 'ns', 'let', 'for', 'loop',
     'doseq', 'dotimes'
 ]
 
+const quotes = ["'", "`"];
+
 function calculateIndent(lines) {
     let x = 0,
         y = 0,
@@ -16,14 +18,23 @@ function calculateIndent(lines) {
 
     while (true) {
         const char = lines[y][x];
+        let prevChar = null;
+
+        if (x > 0) {
+            prevChar = lines[y][x - 1];
+        }
 
         if (char === '(') {
-            const first = lines[y].slice(x + 1).split(' ')[0]
+            const tokens = lines[y].slice(x + 1).split(' '),
+                first = tokens[0],
+                second = tokens.length > 1 ? tokens[1] : null;
 
             openBrackets.push(
                 oneIndentForms.includes(first)
                     ? (x + 2)
-                    : (x + first.length + 2)
+                    : second && !(quotes.includes(prevChar)) && !first.match(/^\[/)
+                        ? (x + first.length + 2)
+                        : (x + 1)
             );
         }
 

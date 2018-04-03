@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure 4 VS Code",
     "description": "Cider nREPL powered Clojure and ClojureScript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.10",
+    "version": "1.2.11",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -18,7 +18,7 @@
         "vscode": "^1.17.0"
     },
     "categories": [
-        "Programming Languages",
+        "Languages",
         "Linters",
         "Formatters",
         "Other"
