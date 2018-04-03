@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure 4 VS Code",
     "description": "Cider nREPL powered Clojure and ClojureScript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.9",
+    "version": "1.2.10",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -18,7 +18,7 @@
         "vscode": "^1.17.0"
     },
     "categories": [
-        "Languages",
+        "Programming Languages",
         "Linters",
         "Formatters",
         "Other"
@@ -73,6 +73,11 @@
                     "default": true,
                     "description": "Run namespace tests when opening a new file and on file save"
                 },
+                "clojure4vscode.autoAdjustIndent": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Auto adjusts indent for new lines (clashes with Parinfer, toggle with alt+v tab)"
+                },
                 "clojure4vscode.connectREPLCommand": {
                     "type": "string",
                     "default": "lein repl :connect",
@@ -88,7 +93,8 @@
         "configurationDefaults": {
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-                "editor.formatOnType": true
+                "editor.formatOnType": true,
+                "editor.autoIndent": true
             }
         },
         "commands": [
@@ -165,6 +171,11 @@
             {
                 "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
                 "title": "Evaluate current form (or selection) in REPL terminal",
+                "category": "clojure4vscode"
+            },
+            {
+                "command": "clojure4vscode.toggleAutoAdjustIndent",
+                "title": "Toggle auto adjusting of indent for new lines",
                 "category": "clojure4vscode"
             }
         ],
@@ -243,6 +254,11 @@
                 "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
                 "key": "alt+v alt+e",
                 "mac": "alt+v alt+e"
+            },
+            {
+                "command": "clojure4vscode.toggleAutoAdjustIndent",
+                "key": "alt+v tab",
+                "mac": "alt+v tab"
             }
         ]
     },

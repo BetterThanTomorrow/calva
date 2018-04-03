@@ -70,6 +70,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.loadNamespace', terminal.loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.setREPLNamespace', terminal.setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.evalCurrentFormInREPLTerminal', terminal.evalCurrentFormInREPLTerminalCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.toggleAutoAdjustIndent', ClojureOnTypeFormattingProvider.toggleAutoAdjustIndentCommand));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));

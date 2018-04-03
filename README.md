@@ -151,10 +151,24 @@ Using piggieback we can initiate a cljs-repl using e.g. rhino:
 
 Run the following command in the REPL to start a cljs-session with rhino: ```(cemerick.piggieback/cljs-repl (cljs.repl.rhino/repl-env))```
 
+
+## Other stuff
+**Calva** works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit)
+
+However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer) clashes with the auto adjustment of indents feature. Therefore Calva provides a command for toggling the auto adjustment off and on (`alt+v tab`), just like Parinfer has commands for enabling and disabling its assistance.
+
+I recommend these settings for keeping auto adjust of indents on:
+```json
+    "parinfer.defaultMode": "disabled",
+    "clojure4vscode.autoAdjustIndent": true,
+```
+
+Switch them around if you prefer to default to Parinfer on.
+
+I'll be looking for a solution to this problem.
+
 ## Happy coding
 
 I hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ❤️
-
-**Calva** works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit) and [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer).
