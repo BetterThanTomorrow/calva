@@ -1,5 +1,6 @@
 const vscode = require('vscode');
 const state = require('../state');
+const status = require('../status');
 
 // Adapted from the Atom clojure-indent extension: https://github.com/Ciebiada/clojure-indent
 
@@ -56,18 +57,27 @@ class ClojureOnTypeFormattingEditProvider {
         this.state = state;
     }
 
-    provideOnTypeFormattingEdits(document, position, ch, options) {
-        let rangeUptoHere = new vscode.Range(new vscode.Position(0, 0), position),
-            lines = document.getText(rangeUptoHere).split('\n'),
-            indent = calculateIndent(lines),
-            startPosition = position.with(position.line, 0),
-            endPosition = position;
+    static toggleAutoAdjustIndentCommand() {
+        state.cursor.set("autoAdjustIndent", !state.deref().get("autoAdjustIndent"));
+        status.update();
+    }
 
-        if (endPosition.character != indent) {
-            if (endPosition.character > indent) {
-                return [vscode.TextEdit.delete(new vscode.Range(endPosition.with(endPosition.line, indent), endPosition))];
+    provideOnTypeFormattingEdits(document, position, ch, options) {
+        if (this.state.deref().get("autoAdjustIndent")) {
+            let rangeUptoHere = new vscode.Range(new vscode.Position(0, 0), position),
+                lines = document.getText(rangeUptoHere).split('\n'),
+                indent = calculateIndent(lines),
+                startPosition = position.with(position.line, 0),
+                endPosition = position;
+
+            if (endPosition.character != indent) {
+                if (endPosition.character > indent) {
+                    return [vscode.TextEdit.delete(new vscode.Range(endPosition.with(endPosition.line, indent), endPosition))];
+                } else {
+                    return [vscode.TextEdit.insert(startPosition, ' '.repeat(indent - endPosition.character))];
+                }
             } else {
-                return [vscode.TextEdit.insert(startPosition, ' '.repeat(indent - endPosition.character))];
+                return null;
             }
         } else {
             return null;

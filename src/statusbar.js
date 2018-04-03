@@ -4,16 +4,21 @@ const util = require('./utilities');
 
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const indent = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 
 function update() {
     let current = state.deref(),
         doc = util.getDocument({}),
-        fileType = util.getFileType(doc);
+        fileType = util.getFileType(doc),
+        autoAdjustIndent = current.get('autoAdjustIndent');
 
     type.command = null;
     type.tooltip = "Repl type (clj or cljs)";
     connection.command = null;
     connection.tooltip = "Repl connection status";
+    indent.text = "AAI: " + (autoAdjustIndent ? "on" : "off");
+    indent.command = "clojure4vscode.toggleAutoAdjustIndent";
+    indent.tooltip = (autoAdjustIndent ? "Disable" : "Enable") + " auto adjustment of indents for new lines"
 
     if (current.get('connected')) {
         connection.text = "nrepl://" + current.get('hostname') + ":" + current.get('port');
@@ -46,6 +51,7 @@ function update() {
 
     connection.show();
     type.show();
+    indent.show();
 };
 
 module.exports = {

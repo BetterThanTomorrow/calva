@@ -1,8 +1,11 @@
 # Change Log
 Notable changes to CLojure 4 VS Code.
 
-## [1.2.8] - 28.03.2018
-- Autoindent more close to this Clojure Style Guide: https://github.com/bbatsov/clojure-style-guide
+## [1.2.10] - 03.04.2018
+- Add command for toggling automatic adjusment of indentation for new lines (`alt+v tab`)
+
+## [1.2.8] - 02.04.2018
+- Auto adjust indent more close to this Clojure Style Guide: https://github.com/bbatsov/clojure-style-guide
 
 ## [1.2.1] - 28.03.2018
 - Select current (auto-detected) form
