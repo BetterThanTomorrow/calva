@@ -84,7 +84,7 @@ Calva uses nrepl for evaluation / communication, and cider-nrepl for added nrepl
 Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
 
 ```
-{:user {:plugins [[cider/cider-nrepl "0.16.0"]]
+{:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
         :dependencies [[org.clojure/tools.nrepl "0.2.12"]]}
 ```
 
@@ -95,7 +95,7 @@ If you are only using Clojure then you are all set.
 Add piggiback and its nrepl middleware `wrap-cljs-repl`:
 
 ```clojure
-{:user {:plugins [[cider/cider-nrepl "0.16.0"]]
+{:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
         :dependencies [[com.cemerick/piggieback "0.2.2"]
                        [org.clojure/tools.nrepl "0.2.12"]]
         :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
