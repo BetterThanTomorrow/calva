@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure 4 VS Code",
     "description": "Cider nREPL powered Clojure and ClojureScript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.11",
+    "version": "1.2.12",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -154,6 +154,11 @@
                 "category": "clojure4vscode"
             },
             {
+                "command": "clojure4vscode.rerunTests",
+                "title": "Run previus tests again",
+                "category": "clojure4vscode"
+            },
+            {
                 "command": "clojure4vscode.openREPLTerminal",
                 "title": "Open REPL terminal",
                 "category": "clojure4vscode"
@@ -231,9 +236,9 @@
                 "mac": "alt+v t"
             },
             {
-                "command": "clojure4vscode.runAllTests",
-                "key": "alt+v shift+t",
-                "mac": "alt+v shift+t"
+                "command": "clojure4vscode.rerunTests",
+                "key": "alt+v ctrl+t",
+                "mac": "alt+v ctrl+t"
             },
             {
                 "command": "clojure4vscode.openREPLTerminal",

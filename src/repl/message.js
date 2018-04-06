@@ -14,6 +14,7 @@ var operation = {
     FORMAT_CODE: "format-code",
     TEST: "test",
     TEST_ALL: "test-all",
+    RETEST: "retest",
     PPRINT: "pprint"
 }
 
@@ -138,6 +139,14 @@ function testAllMsg(session) {
     };
 };
 
+function rerunTestsMsg(session) {
+    return {
+        op: operation.RETEST,
+        session: session
+    };
+};
+
+
 module.exports = {
     evaluate: evaluateMsg,
     listSessions: listSessionsMsg,
@@ -153,5 +162,7 @@ module.exports = {
     refreshClear: refreshClearMsg,
     test: testMsg,
     testAll: testAllMsg,
-    format: formatMsg
+    rerunTestsMsg,
+    format: formatMsg,
+    operation: operation
 };

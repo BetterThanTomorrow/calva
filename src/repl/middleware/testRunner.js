@@ -131,7 +131,11 @@ function runTests(messages, startStr, errorStr, log = true) {
                 if (i < messages.length - 1) {
                     loop(i + 1);
                 } else {
-                    markTestResults(results);
+                    if ((messages[0].op === message.operation.RETEST) && (results[0][0]["testing-ns"].length < 1)) {
+                        chan.appendLine("No tests to rerun. (They probably all passed last time 🤘")
+                    } else {
+                        markTestResults(results);
+                    }
                 }
             }).catch(() => {
                 testClient.end();
@@ -178,10 +182,25 @@ function runNamespaceTestsCommand() {
     runNamespaceTests();
 };
 
+function rerunTests(document = {}) {
+    let doc = getDocument(document),
+        session = getSession(getFileType(doc)),
+        msg = message.rerunTestsMsg(session);
+
+    runTests([msg], "Retesting", "retesting");
+};
+
+function rerunTestsCommand() {
+    state.deref().get('outputChannel').show();
+    rerunTests();
+};
+
+
 
 module.exports = {
     runNamespaceTests,
     runNamespaceTestsCommand,
     runAllTests,
-    runAllTestsCommand
+    runAllTestsCommand,
+    rerunTestsCommand
 };
