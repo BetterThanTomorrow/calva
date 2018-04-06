@@ -75,6 +75,13 @@ The extension comes with autolinting disabled. This is because you will need to 
 "clojure4vscode.lintOnSave": true
 ```
 
+### Unrecognized macros
+One thing to note with this linter is that it doesn't do a full scan of all files and does not recognize macros it doesn't know about. Leading to false complains about `Unable to resolve symbol x`. You might now and then tell it about macros you use. Create a `.joker` file somewhere in the path from the root of your project to where you are using the macro (I prefer to have it in the project root), and add:
+```
+{:known-macros [some-ns/some-macro some-other-ns/some-other-macro]}
+```
+Read more about Joker's linter mode here: https://github.com/candid82/joker#linter-mode
+
 ## Dependencies
 
 (See also about Autolinting above.)
