@@ -3,6 +3,8 @@ const state = require('./state');
 const util = require('./utilities');
 const evaluate = require('./repl/middleware/evaluate');
 const annotations = require('./providers/annotations');
+const select = require('./repl/middleware/select');
+
 
 function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
@@ -101,7 +103,7 @@ function evalCurrentFormInREPLTerminal(keepFocus = true) {
 
     annotations.clearEvaluationDecorations(editor);
     if (selection.isEmpty) {
-        codeSelection = util.getFormSelection(doc, selection.active);
+        codeSelection = select.getFormSelection(doc, selection.active);
         annotations.decorateSelection(codeSelection, editor);
         code = doc.getText(codeSelection);
     } else {

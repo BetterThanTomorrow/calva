@@ -4,6 +4,7 @@ const state = require('../../state');
 const repl = require('../client');
 const message = require('../message');
 const annotations = require('../../providers/annotations');
+const select = require('./select');
 const {
     getDocument,
     getFileName,
@@ -12,7 +13,6 @@ const {
     getSession,
     logError,
     ERROR_TYPE,
-    getFormSelection,
 } = require('../../utilities');
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
@@ -65,7 +65,7 @@ function evaluateSelection(document = {}, options = {}) {
         annotations.clearEvaluationDecorations(editor);
 
         if (selection.isEmpty) {
-            codeSelection = getFormSelection(doc, selection.active);
+            codeSelection = select.getFormSelection(doc, selection.active);
             code = doc.getText(codeSelection);
         } else {
             codeSelection = selection,
