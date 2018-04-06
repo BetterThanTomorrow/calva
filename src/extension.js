@@ -19,7 +19,7 @@ const LintMiddleWare = require('./repl/middleware/lint');
 const TestRunnerMiddleWare = require('./repl/middleware/testRunner');
 const select = require('./repl/middleware/select');
 
-function onSave(document) {
+function onDidSave(document) {
     let {
         evaluate,
         lint,
@@ -40,6 +40,17 @@ function onSave(document) {
         TestRunnerMiddleWare.runNamespaceTests(document);
     }
 };
+
+function onDidOpen(document) {
+    if (document.languageId !== 'clojure') {
+        return;
+    }
+
+    EvaluateMiddleWare.evaluateFile(document);
+    LintMiddleWare.lintDocument(document);
+    TestRunnerMiddleWare.runNamespaceTests(document);
+};
+
 
 function activate(context) {
     let {
@@ -66,6 +77,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.lintFile', LintMiddleWare.lintDocument));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.openREPLTerminal', terminal.openREPLTerminalCommand));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.loadNamespace', terminal.loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('clojure4vscode.setREPLNamespace', terminal.setREPLNamespaceCommand));
@@ -83,10 +95,10 @@ function activate(context) {
 
     // //EVENTS
     context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
-        onSave(document);
+        onDidOpen(document);
     }));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
-        onSave(document);
+        onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update(editor);
