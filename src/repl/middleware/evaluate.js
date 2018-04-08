@@ -90,7 +90,8 @@ function evaluateSelection(document = {}, options = {}) {
                 });
                 if (result !== null) {
                     if (replace && !hasError) {
-                        let edit = vscode.TextEdit.replace(codeSelection, result);
+                        const indent = ' '.repeat(c);
+                        let edit = vscode.TextEdit.replace(codeSelection, result.replace(/\n/gm, "\n" + indent));
                         let wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
