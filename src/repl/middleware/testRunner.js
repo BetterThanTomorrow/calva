@@ -132,7 +132,7 @@ function runTests(messages, startStr, errorStr, log = true) {
                     loop(i + 1);
                 } else {
                     if ((messages[0].op === message.operation.RETEST) && (results[0][0]["testing-ns"].length < 1)) {
-                        chan.appendLine("No tests to rerun. (They probably all passed last time 🤘")
+                        chan.appendLine("No tests to rerun. (They probably all passed last time 🤘)")
                     } else {
                         markTestResults(results);
                     }
