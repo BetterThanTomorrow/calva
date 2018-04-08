@@ -99,14 +99,17 @@ If you are only using Clojure then you are all set.
 
 ### For Clojurescript
 
-Add piggiback and its nrepl middleware `wrap-cljs-repl`:
+Most ClojureScript projects has this setup in the project configuration file. But you can have it configured in your profiles.clj as well. A complete repl profile (from Calva's point of view, will look like so:
 
 ```clojure
 {:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
-        :dependencies [[com.cemerick/piggieback "0.2.2"]
-                       [org.clojure/tools.nrepl "0.2.12"]]
+        :dependencies [[org.clojure/tools.nrepl "0.2.12"]
+                       [com.cemerick/piggieback "0.2.2"]
+                       [figwheel-sidecar "0.5.14"]]
         :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 ```
+
+(Assuming Figwheel.)
 
 ## Connecting to the REPL
 
