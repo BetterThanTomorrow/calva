@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure 4 VS Code",
     "description": "Cider nREPL powered Clojure and ClojureScript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.2.13",
+    "version": "1.2.14",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -76,7 +76,7 @@
                 "clojure4vscode.autoAdjustIndent": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Auto adjusts indent for new lines (clashes with Parinfer, toggle with alt+v tab)"
+                    "description": "Auto adjusts indent for new lines (clashes with Parinfer, toggle with ctrl+alt+v tab)"
                 },
                 "clojure4vscode.connectREPLCommand": {
                     "type": "string",
@@ -187,83 +187,67 @@
         "keybindings": [
             {
                 "command": "clojure4vscode.connect",
-                "key": "alt+v c",
-                "mac": "alt+v c"
+                "key": "ctrl+alt+v c"
             },
             {
                 "command": "clojure4vscode.reconnect",
-                "key": "alt+v shift+c",
-                "mac": "alt+v shift+c"
+                "key": "ctrl+alt+v shift+c"
             },
             {
                 "command": "clojure4vscode.toggleCLJCSession",
-                "key": "alt+v alt+c",
-                "mac": "alt+v alt+c"
+                "key": "ctrl+alt+v alt+c"
             },
             {
                 "command": "clojure4vscode.selectCurrentForm",
-                "key": "alt+v s",
-                "mac": "alt+v s"
+                "key": "ctrl+alt+v s"
             },
             {
                 "command": "clojure4vscode.evaluateSelection",
-                "key": "alt+v e",
-                "mac": "alt+v e"
+                "key": "ctrl+alt+v e"
             },
             {
                 "command": "clojure4vscode.evaluateSelectionPrettyPrint",
-                "key": "alt+v p",
-                "mac": "alt+v p"
+                "key": "ctrl+alt+v p"
             },
             {
                 "command": "clojure4vscode.evaluateSelectionReplace",
-                "key": "alt+v r",
-                "mac": "alt+v r"
+                "key": "ctrl+alt+v r"
             },
             {
                 "command": "clojure4vscode.evaluateFile",
-                "key": "alt+v enter",
-                "mac": "alt+v enter"
+                "key": "ctrl+alt+v enter"
             },
             {
                 "command": "clojure4vscode.lintFile",
-                "key": "alt+v l",
-                "mac": "alt+v l"
+                "key": "ctrl+alt+v l"
             },
             {
                 "command": "clojure4vscode.runNamespaceTests",
-                "key": "alt+v t",
-                "mac": "alt+v t"
+                "key": "ctrl+alt+v t"
             },
             {
                 "command": "clojure4vscode.rerunTests",
-                "key": "alt+v ctrl+t",
-                "mac": "alt+v ctrl+t"
+                "key": "ctrl+alt+v ctrl+t"
             },
             {
                 "command": "clojure4vscode.openREPLTerminal",
-                "key": "alt+v z",
-                "mac": "alt+v z"
+                "key": "ctrl+alt+v z"
             },
             {
                 "command": "clojure4vscode.loadNamespace",
-                "key": "alt+v alt+n",
-                "mac": "alt+v alt+n"
+                "key": "ctrl+alt+v alt+n"
             },
             {
                 "command": "clojure4vscode.setREPLNamespace",
-                "key": "alt+v n",
-                "mac": "alt+v n"
+                "key": "ctrl+alt+v n"
             },
             {
                 "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
-                "key": "alt+v alt+e",
-                "mac": "alt+v alt+e"
+                "key": "ctrl+alt+v alt+e"
             },
             {
                 "command": "clojure4vscode.toggleAutoAdjustIndent",
-                "key": "alt+v tab",
-                "mac": "alt+v tab"
+                "key": "ctrl+alt+v tab"
             }
         ]
     },

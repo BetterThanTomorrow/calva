@@ -1,8 +1,14 @@
 # Change Log
-Notable changes to CLojure 4 VS Code.
+Changes to Calva that I remembered to log.
+
+## [1.2.14] - 06.04.2018
+- Change all keyboard shortcuts to use prefix `ctrl+alt+v`, due to old prefix not working on some alterate keybpard layouts. See [Issue #9](https://github.com/PEZ/clojure4vscode/issues/9).
+
+## [1.2.12] - 06.04.2018
+- Add command for re-running previously failing tests (`ctrl+alt+v ctrl+t`). 
 
 ## [1.2.10] - 03.04.2018
-- Add command for toggling automatic adjusment of indentation for new lines (`alt+v tab`)
+- Add command for toggling automatic adjustment of indentation for new lines (`ctrl+alt+v tab`)
 
 ## [1.2.8] - 02.04.2018
 - Auto adjust indent more close to this Clojure Style Guide: https://github.com/bbatsov/clojure-style-guide
@@ -43,10 +49,10 @@ Notable changes to CLojure 4 VS Code.
 ## [1.1.1] - 16.03.2018
 - Relase of v1, based on **visual:clojure** v2.0, adding:
     - Running tests through the REPL connection, and mark them in the Problems tab
-        - Run namespace tests: `alt+v t`
-        - Run all tests: `alt+v a`
-    - Evaluate code and replace it in the editor, inline: `alt+v e`
+        - Run namespace tests: `ctrl+alt+v t`
+        - Run all tests: `ctrl+alt+v a`
+    - Evaluate code and replace it in the editor, inline: `ctrl+alt+v e`
     - Error message when evaluation fails
-    - Pretty printing evaluation resuls: `alt+v p`
+    - Pretty printing evaluation resuls: `ctrl+alt+v p`
     - Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
 

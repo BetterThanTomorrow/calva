@@ -23,27 +23,29 @@ You think Calva looks similar to the **visual:clojure** extension? It's because 
 
 Calva then adds some tricks:
 - Running tests through the REPL connection, and mark them in the Problems tab
-  - Run namespace tests: `alt+v t`
-  - Run all tests: `alt+v shift+t`
+  - Run namespace tests: `ctrl+alt+v t`
+  - Run all tests: `ctrl+alt+v shift+t`
+  - Rerun previously failing tests: `ctrl+alt+v ctrl+t`
   - Marks test failures using the Problem tab
-  - User setting to evaluate namespace on save/open file (defaults to **on**)
+  - User setting for running namespace tests on save (defaults to **on**)
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Improved code evaluation
-  - Evaluate code and show the results as annotation in the editor: `alt+v e`
-  - Evaluate code and replace it in the editor, inline: `alt+v r`
-  - Pretty printing evaluation resuls: `alt+v p`
+  - Evaluate code and show the results as annotation in the editor: `ctrl+alt+v e`
+  - Evaluate code and replace it in the editor, inline: `ctrl+alt+v r`
+  - Pretty printing evaluation resuls: `ctrl+alt+v p`
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
   - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
   - The evaluation commands will auto-”detect” vectors and maps as well as list. (It still will only auto-detect up to the next or previous bracket, and thus will miss things like reader markers, like conditional `#?`, before lists, and more. I am working on fixing that, se below under Future Stuff.)
+  - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Integrated REPLs using the Terminal tab (I call them **Terminal REPLs**)
-  - Switch to current namespace in the terminal REPL: `alt+v n`
-  - Load current namespace in the terminal REPL: `alt+v alt+n`
-  - Evaluate code from the editor to the terminal REPL: `alt+v alt+e`
+  - Switch to current namespace in the terminal REPL: `ctrl+alt+v n`
+  - Load current namespace in the terminal REPL: `ctrl+alt+v alt+n`
+  - Evaluate code from the editor to the terminal REPL: `ctrl+alt+v alt+e`
   - The extension defaults to trying to use **Leiningen** for connecting, but is somewhat prepared for other tools. Check the `clojure4vscode.connectREPLCommand` user setting (untested, please let me know if it works or not).
 - When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl
 - Enables `clj` repl in all files (not just Clojure files).
-- Selection of current form: `alt+v s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
+- Selection of current form: `ctrl+alt+v s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 - Autoindent according to: https://github.com/bbatsov/clojure-style-guide
 
 Demo: switch between clj and cljs repl sessions for cljc files:
@@ -63,9 +65,10 @@ The above mentioned, plus:
 
 
 ## Future Stuff
+
 * Test reporting while tests are being run. HIGH PRIORITY.
-* Rerun of last failing tests.
-* Custom user commands to execute over the REPL connection
+* Custom user commands to execute over the REPL connection.
+* Commands to start the REPLs from VS Code, injecting dependencies automatically.
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ## Autolinting
@@ -165,7 +168,7 @@ Run the following command in the REPL to start a cljs-session with rhino: ```(ce
 ## Other stuff
 **Calva** works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit)
 
-However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer) clashes with the auto adjustment of indents feature. Therefore Calva provides a command for toggling the auto adjustment off and on (`alt+v tab`), just like Parinfer has commands for enabling and disabling its assistance.
+However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer) clashes with the auto adjustment of indents feature. Therefore Calva provides a command for toggling the auto adjustment off and on (`ctrl+alt+v tab`), just like Parinfer has commands for enabling and disabling its assistance.
 
 I recommend these settings for keeping auto adjust of indents on:
 ```json
