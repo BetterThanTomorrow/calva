@@ -90,9 +90,9 @@ function evaluateSelection(document = {}, options = {}) {
                 });
                 if (result !== null) {
                     if (replace && !hasError) {
-                        const indent = ' '.repeat(c);
-                        let edit = vscode.TextEdit.replace(codeSelection, result.replace(/\n/gm, "\n" + indent));
-                        let wsEdit = new vscode.WorkspaceEdit();
+                        const indent = ' '.repeat(c),
+                            edit = vscode.TextEdit.replace(codeSelection, result.replace(/\n/gm, "\n" + indent)),
+                            wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
@@ -103,7 +103,7 @@ function evaluateSelection(document = {}, options = {}) {
                             chan.appendLine('');
                             chan.show();
                         } else {
-                            annotations.decorateResults(' => ' + result + " ", hasError, codeSelection, editor);
+                            annotations.decorateResults(' => ' + result.replace(/\n/gm, " ") + " ", hasError, codeSelection, editor);
                         }
                         chan.appendLine(result);
                     }
