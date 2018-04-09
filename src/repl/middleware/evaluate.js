@@ -123,33 +123,30 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 };
 
-function evaluateFile(document = {}) {
+function evaluateFile(document = {}, callback) {
     let current = state.deref(),
         doc = getDocument(document),
         chan = current.get('outputChannel');
 
-    if (doc.isDirty) {
-        doc.save();
-    } else {
-        if (current.get('connected')) {
-            let fileName = getFileName(doc),
-                session = getSession(getFileType(doc)),
-                msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
+    if (current.get('connected')) {
+        let fileName = getFileName(doc),
+            session = getSession(getFileType(doc)),
+            msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
 
-            evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
-                let result = null;
-                _.each(results, (r) => {
-                    if (r.hasOwnProperty("value")) {
-                        result = r.value;
-                    }
-                });
-                if (result !== null) {
-                    chan.appendLine("=> " + result);
-                } else {
-                    chan.appendLine("Evaluation failed?");
+        evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
+            let result = null;
+            _.each(results, (r) => {
+                if (r.hasOwnProperty("value")) {
+                    result = r.value;
                 }
             });
-        }
+            if (result !== null) {
+                chan.appendLine("=> " + result);
+            } else {
+                chan.appendLine("Evaluation failed?");
+            }
+            callback();
+        });
     }
 };
 
