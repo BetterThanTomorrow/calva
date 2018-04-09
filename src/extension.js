@@ -30,14 +30,15 @@ function onDidSave(document) {
         return;
     }
 
-    if (evaluate) {
-        EvaluateMiddleWare.evaluateFile(document);
+    if (test) {
+        if (test) {
+            TestRunnerMiddleWare.runNamespaceTests(document);
+        }
+    } else if (evaluate) {
+        EvaluateMiddleWare.evaluateFile(document, () => { });
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
-    }
-    if (test) {
-        TestRunnerMiddleWare.runNamespaceTests(document);
     }
 };
 

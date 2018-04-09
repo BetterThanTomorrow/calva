@@ -3,6 +3,7 @@ const _ = require('lodash');
 const state = require('../../state');
 const repl = require('../client');
 const message = require('../message');
+const evaluate = require('./evaluate');
 const {
     getDocument,
     getNamespace,
@@ -172,28 +173,30 @@ function getNamespaceTestMessages(document = {}) {
 }
 
 function runNamespaceTests(document = {}) {
-    runTests(getNamespaceTestMessages(document), "Running tests", "running tests");
-};
+    evaluate.evaluateFile({}, () => {
+        runTests(getNamespaceTestMessages(document), "Running tests", "running tests");
+    });
+}
 
 function runNamespaceTestsCommand() {
-    let chan = state.deref().get('outputChannel');
-
-    chan.show();
+    state.deref().get('outputChannel').show();
     runNamespaceTests();
-};
+}
 
 function rerunTests(document = {}) {
     let doc = getDocument(document),
         session = getSession(getFileType(doc)),
         msg = message.rerunTestsMsg(session);
 
-    runTests([msg], "Retesting", "retesting");
-};
+    evaluate.evaluateFile({}, () => {
+        runTests([msg], "Retesting", "retesting");
+    });
+}
 
 function rerunTestsCommand() {
     state.deref().get('outputChannel').show();
     rerunTests();
-};
+}
 
 
 
