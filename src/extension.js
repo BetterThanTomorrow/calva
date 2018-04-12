@@ -35,7 +35,7 @@ function onDidSave(document) {
             TestRunnerMiddleWare.runNamespaceTests(document);
         }
     } else if (evaluate) {
-        EvaluateMiddleWare.evaluateFile(document, () => { });
+        EvaluateMiddleWare.evaluateFile(document);
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
@@ -47,7 +47,6 @@ function onDidOpen(document) {
         return;
     }
 
-    EvaluateMiddleWare.evaluateFile(document);
     LintMiddleWare.lintDocument(document);
     TestRunnerMiddleWare.runNamespaceTests(document);
 };

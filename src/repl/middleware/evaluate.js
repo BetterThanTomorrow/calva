@@ -123,7 +123,7 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 };
 
-function evaluateFile(document = {}, callback) {
+function evaluateFile(document = {}, callback = () => { }) {
     let current = state.deref(),
         doc = getDocument(document),
         chan = current.get('outputChannel');
