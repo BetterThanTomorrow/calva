@@ -91,7 +91,7 @@ function stacktraceMsg(session) {
 function cloneMsg(session) {
     return {
         op: operation.CLONE,
-        session: session
+        //session: session
     };
 };
 

@@ -24,10 +24,13 @@ function connectToHost(hostname, port) {
     }).once('connect', () => {
         state.cursor.set("connected", true);
         state.cursor.set("connecting", false);
-        let msg = message.listSessions();
-        client.send(msg, (results) => {
-            findSession(0, results[0].sessions);
-            client.end();
+        let msg = message.clone();
+        client.send(msg, results => {
+            let msg = message.listSessions();
+            client.send(msg, (results) => {
+                findSession(0, results[0].sessions);
+                client.end();
+            });
         });
     });
 };
