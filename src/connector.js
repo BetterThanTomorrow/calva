@@ -12,9 +12,11 @@ const evaluate = require('./repl/middleware/evaluate');
 function connectToHost(hostname, port) {
     let chan = state.deref().get('outputChannel');
 
+    state.cursor.set('connecting', true);
     state.cursor.set('clj', null);
     state.cursor.set('cljs', null);
     state.cursor.set('cljc', null);
+    status.update();
 
     chan.appendLine("Hooking up nREPL sessions...");
 
@@ -41,7 +43,7 @@ function findSession(session, sessions) {
 
     let client = repl.create()
         .once('connect', () => {
-            let msg = message.testSession(sessions[session]);
+            let msg = message.checkSessionType(sessions[session]);
             client.send(msg, (results) => {
                 for (var i = 0; i < results.length; i++) {
                     let result = results[i];
@@ -82,9 +84,6 @@ function findSession(session, sessions) {
 
 function connect() {
     let path = vscode.workspace.rootPath;
-
-    state.cursor.set('connecting', true);
-    status.update();
 
     new Promise((resolve, reject) => {
         find.eachfile(/\.nrepl-port$/, path, (file) => {

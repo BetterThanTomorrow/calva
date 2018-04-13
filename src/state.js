@@ -14,7 +14,7 @@ const initialData = {
     cljs: null,
     terminal: null,
     connected: false,
-    connecting: config().autoConnect ? true : false,
+    connecting: false,
     outputChannel: vscode.window.createOutputChannel("clojure4vscode"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('clojure4vscode: Evaluation errors'),
     autoAdjustIndent: config().autoAdjustIndent

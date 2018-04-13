@@ -18,7 +18,7 @@ var operation = {
     PPRINT: "pprint"
 }
 
-function testSessionMsg(session) {
+function checkSessionTypeMsg(session) {
     return {
         op: operation.EVALUATE,
         code: '(js/parseFloat "3.14")',
@@ -150,7 +150,7 @@ function rerunTestsMsg(session) {
 module.exports = {
     evaluate: evaluateMsg,
     listSessions: listSessionsMsg,
-    testSession: testSessionMsg,
+    checkSessionType: checkSessionTypeMsg,
     loadFile: loadFileMsg,
     complete: completeMsg,
     info: infoMsg,
