@@ -103,6 +103,9 @@ function activate(context) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update(editor);
     }));
+    context.subscriptions.push(new vscode.Disposable(() => {
+        connector.disconnect();
+    }));
 
     greet.activationGreetings(chan);
 

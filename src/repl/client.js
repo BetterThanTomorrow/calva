@@ -37,6 +37,39 @@ function isDone(chunks) {
 };
 
 function create(options) {
+    let send = function (msg, callback) {
+        let buffer = Buffer.from(''),
+            encodedMsg = bencoder.encode(msg);
+        let chunks = [];
+        this.on('data', (chunk) => {
+            try {
+                buffer = Buffer.concat([buffer, chunk]);
+                let {
+                    decodedObjects,
+                    rest
+                } = decode({
+                    decodedObjects: [],
+                    rest: buffer
+                });
+                buffer = rest;
+                let validDecodedObjects = decodedObjects.reduce((objs, obj) => {
+                    if (!isDone(objs))
+                        objs.push(obj);
+                    return objs;
+                }, []);
+
+                chunks.push(...validDecodedObjects)
+
+                if (isDone(chunks)) {
+                    callback(chunks);
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        this.write(encodedMsg, 'binary');
+    };
     let current = state.deref(),
         _options = null;
     if (current.get('connected')) {
@@ -60,41 +93,8 @@ function create(options) {
     }
 };
 
-function send(msg, callback) {
-    let buffer = Buffer.from(''),
-        encodedMsg = bencoder.encode(msg);
-    let chunks = [];
-    this.on('data', (chunk) => {
-        try {
-            buffer = Buffer.concat([buffer, chunk]);
-            let {
-                decodedObjects,
-                rest
-            } = decode({
-                decodedObjects: [],
-                rest: buffer
-            });
-            buffer = rest;
-            let validDecodedObjects = decodedObjects.reduce((objs, obj) => {
-                if (!isDone(objs))
-                    objs.push(obj);
-                return objs;
-            }, []);
 
-            chunks.push(...validDecodedObjects)
-
-            if (isDone(chunks)) {
-                callback(chunks);
-            }
-
-        } catch (error) {
-            console.error(error);
-        }
-    });
-    this.write(encodedMsg, 'binary');
-};
 
 module.exports = {
-    create,
-    send
+    create
 };
