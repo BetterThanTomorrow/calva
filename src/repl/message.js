@@ -89,10 +89,13 @@ function stacktraceMsg(session) {
 };
 
 function cloneMsg(session) {
-    return {
+    let msg = {
         op: operation.CLONE,
-        //session: session
     };
+    if (session) {
+        msg.session = session;
+    }
+    return msg;
 };
 
 function closeMsg(session) {
