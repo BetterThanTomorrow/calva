@@ -4,6 +4,14 @@ const _ = require('lodash');
 const state = require('./state');
 
 
+function getCljsReplStartCode() {
+    return vscode.workspace.getConfiguration('clojure4vscode').startCLJSREPLCommand;
+}
+
+function getShadowCljsReplStartCode(build) {
+    return '(shadow.cljs.devtools.api/nrepl-select ' + build + ')';
+}
+
 function getNamespace(text) {
     let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
     return match ? match[1] : 'user';
@@ -203,5 +211,7 @@ module.exports = {
     markWarning,
     logSuccess,
     updateREPLSessionType,
-    getREPLSessionType
+    getREPLSessionType,
+    getCljsReplStartCode,
+    getShadowCljsReplStartCode
 };

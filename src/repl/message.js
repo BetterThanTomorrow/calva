@@ -1,4 +1,6 @@
 'use strict';
+const util = require('../utilities');
+
 var operation = {
     EVALUATE: "eval",
     LIST_SESSIONS: "ls-sessions",
@@ -16,6 +18,22 @@ var operation = {
     TEST_ALL: "test-all",
     RETEST: "retest",
     PPRINT: "pprint"
+}
+
+function startCljsReplMsg(session) {
+    return {
+        op: operation.EVALUATE,
+        code: util.getCljsReplStartCode(),
+        session: session
+    };
+}
+
+function startShadowCljsReplMsg(session, build) {
+    return {
+        op: operation.EVALUATE,
+        code: util.getShadowCljsReplStartCode(build),
+        session: session
+    };
 }
 
 function checkSessionTypeMsg(session) {
@@ -167,5 +185,7 @@ module.exports = {
     testAll: testAllMsg,
     rerunTestsMsg,
     format: formatMsg,
-    operation: operation
+    operation: operation,
+    startCljsReplMsg,
+    startShadowCljsReplMsg
 };
