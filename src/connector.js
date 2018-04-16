@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const _ = require('lodash');
-const find = require('find');
 const fs = require('fs');
 const state = require('./state');
 const repl = require('./repl/client');
@@ -9,6 +8,44 @@ const util = require('./utilities');
 const status = require('./status');
 const terminal = require('./terminal');
 const evaluate = require('./repl/middleware/evaluate');
+const edn = require('jsedn');
+
+function projectDir() {
+    let path = vscode.workspace.rootPath + "/" + vscode.workspace.getConfiguration('clojure4vscode').get("projectRootDirectory").replace(/^\/|\/$/g, "");
+
+    if (fs.existsSync(path)) {
+        return path;
+    } else {
+        return vscode.workspace.rootPath;
+    }
+}
+
+function shadowNReplPortFile() {
+    return projectDir() + '/.shadow-cljs/nrepl.port';
+}
+
+function shadowConfigFile() {
+    return projectDir() + '/shadow-cljs.edn';
+}
+
+function isShadowCljs() {
+    return fs.existsSync(shadowNReplPortFile());
+}
+
+function shadowBuilds() {
+    let parsed = edn.parse(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
+        keys = parsed.at(edn.kw(':builds')).keys;
+    return _.map(keys, 'name');
+}
+
+function nreplPortFile() {
+    if (fs.existsSync(shadowNReplPortFile())) {
+        return shadowNReplPortFile();
+    }
+    else {
+        return projectDir() + '/.nrepl-port'
+    }
+}
 
 function disconnect(options = null, callback = () => { }) {
     let chan = state.deref().get('outputChannel'),
@@ -18,10 +55,10 @@ function disconnect(options = null, callback = () => { }) {
         connections++;
         let client = repl.create(options).once('connect', () => {
             client.send(message.close(util.getSession("clj")), () => {
+                client.end();
                 connections--;
                 state.cursor.set('clj', null);
-                chan.appendLine("Disconnected CLJ session");
-                client.end();
+                chan.appendLine("Disconnected session: clj");
                 if (connections == 0) {
                     callback();
                 }
@@ -32,10 +69,10 @@ function disconnect(options = null, callback = () => { }) {
         connections++;
         let client = repl.create(options).once('connect', () => {
             client.send(message.close(util.getSession("cljs")), () => {
+                client.end();
                 connections--;
                 state.cursor.set('cljs', null)
-                chan.appendLine("Disconnected CLJS session");
-                client.end();
+                chan.appendLine("Disconnected session: cljs");
                 if (connections == 0) {
                     callback();
                 }
@@ -51,120 +88,127 @@ function disconnect(options = null, callback = () => { }) {
     }
 }
 
-function connectToHost(hostname, port) {
+function connectToHost(hostname, port, shadowBuild = undefined) {
     let chan = state.deref().get('outputChannel');
 
-    disconnect({ hostname, port }, () => {
-        state.cursor.set('connecting', true);
-        status.update();
+    if (isShadowCljs() && shadowBuild === undefined) {
+        chan.appendLine("This looks like a shadow-cljs coding session.");
+        vscode.window.showQuickPick(shadowBuilds(), {
+            placeHolder: "Select which shadow-cljs build to connect to",
+            ignoreFocusOut: true
+        }).then(build => {
+            if (build !== undefined) {
+                connectToHost(hostname, port, build);
+            }
+        });
+    } else {
+        disconnect({ hostname, port }, () => {
+            state.cursor.set('connecting', true);
+            status.update();
 
-        chan.appendLine("Hooking up nREPL sessions...");
+            chan.appendLine("Hooking up nREPL sessions...");
 
-        let client = repl.create({
-            hostname,
-            port
-        }).once('connect', () => {
-            client.send(message.clone(), cloneResults => {
-                let newSession = _.find(cloneResults, 'new-session')['new-session'];
-
-                if (newSession) {
+            let client = repl.create({
+                hostname,
+                port
+            }).once('connect', () => {
+                client.send(message.clone(), cloneResults => {
                     client.end();
-                    listSessions(hostname, port, sessions => {
-                        findSession(hostname, port, sessions.length - 1, sessions);
-                    });
-                } else {
-                    chan.appendLine("Failed cloning while connecting to a nrepl session.");
-                }
+                    let cljSession = _.find(cloneResults, 'new-session')['new-session'];
+                    if (cljSession) {
+                        state.cursor.set("clj", cljSession);
+                        state.cursor.set("cljc", cljSession);
+                        state.cursor.set("connected", true);
+                        state.cursor.set("connecting", false);
+                        status.update();
+                        chan.appendLine("Connected session: clj");
+                        terminal.createREPLTerminal('clj', null, chan);
+
+                        makeCljsSessionClone(hostname, port, cljSession, shadowBuild, cljsSession => {
+                            if (cljsSession) {
+                                state.cursor.set("cljs", cljsSession);
+                                chan.appendLine("Connected session: cljs");
+                                terminal.createREPLTerminal('cljs', shadowBuild, chan);
+                            }
+                            chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
+                            evaluate.evaluateFile();
+                            status.update();
+                        });
+                    } else {
+                        state.cursor.set("connected", false);
+                        state.cursor.set("connecting", false);
+                        chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
+                    }
+                });
             });
         });
-    });
+    }
 };
 
-function listSessions(hostname, port, callback) {
+function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
+    let chan = state.deref().get('outputChannel');
+
     let client = repl.create({ hostname, port }).once('connect', () => {
-        client.send(message.listSessions(), results => {
+        client.send(message.clone(session), results => {
             client.end();
-            callback(results[0].sessions);
+            let cljsSession = _.find(results, 'new-session')['new-session'];
+            if (cljsSession) {
+                let client = repl.create({ hostname, port }).once('connect', () => {
+                    let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) : message.startCljsReplMsg(cljsSession);
+                    client.send(msg, cljsResults => {
+                        client.end();
+                        let valueResult = _.find(cljsResults, 'value'),
+                            nsResult = _.find(cljsResults, 'ns');
+                        if ((!shadowBuild && nsResult) || (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild))) {
+                            callback(cljsSession);
+                        }
+                        else {
+                            if (shadowBuild) {
+                                chan.appendLine("Failed starting cljs repl for shadow-cljs build: " + shadowBuild);
+                                console.log(cljsResults);
+                            }
+                            callback(null);
+                        }
+                    })
+                });
+            }
         });
     });
 }
 
-function findSession(hostname, port, session, sessions) {
+function connect() {
     let current = state.deref(),
         chan = current.get('outputChannel');
 
-    let client = repl.create({ hostname, port })
-        .once('connect', () => {
-            let msg = message.checkSessionType(sessions[session]);
-            client.send(msg, (results) => {
-                let exResult = _.find(results, 'ex'),
-                    valueResult = _.find(results, 'value');
-                if (exResult) {
-                    if (!util.getSession("clj")) {
-                        state.cursor.set("clj", sessions[session]);
-                        state.cursor.set("cljc", sessions[session]);
-                        chan.appendLine("Connected session: clj");
-                        chan.appendLine('cljc files will use the clj REPL. (You can toggle this, if a cljs REPL is available)');
-                        terminal.createREPLTerminal('clj', chan);
-                    }
-                } else if (valueResult && valueResult.value === "3.14") {
-                    if (!util.getSession("cljs")) {
-                        state.cursor.set("cljs", sessions[session]);
-                        chan.appendLine("Connected session: cljs");
-                        terminal.createREPLTerminal('cljs', chan);
-                    }
-                }
-                client.end();
-            });
-        })
-        .once('end', () => {
-            //If last session, check if found
-            if (session > 0 &&
-                (util.getSession("clj") === null || util.getSession("cljs") === null)) {
-                findSession(hostname, port, session - 1, sessions);
-            } else if (util.getSession('clj') || util.getSession('cljs')) {
-                state.cursor.set("connected", true);
-                state.cursor.set("connecting", false);
-                evaluate.evaluateFile();
-            } else {
-                state.cursor.set("connected", false);
-                state.cursor.set("connecting", false);
-                chan.appendLine("Failed connecting. Calva needs a REPL started before it can connect.");
-            }
-            status.update();
-        });
-};
-
-function connect() {
-    let path = vscode.workspace.rootPath;
-
     new Promise((resolve, reject) => {
-        find.eachfile(/\.nrepl-port$/, path, (file) => {
-            fs.readFile(file, 'utf8', (err, data) => {
+        if (fs.existsSync(nreplPortFile())) {
+            fs.readFile(nreplPortFile(), 'utf8', (err, data) => {
                 if (!err) {
                     resolve(data);
                 } else {
-                    reject("");
+                    reject(err);
                 }
             });
-        });
+        }
     }).then((port) => {
         vscode.window.showInputBox({
             placeHolder: "Enter existing nREPL hostname:port here...",
             prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
             value: "localhost:" + port,
             ignoreFocusOut: true
-        })
-            .then(function (url) {
-                // state.reset(); TODO see if this should be done
+        }).then(function (url) {
+            // state.reset(); TODO see if this should be done
+            if (url !== undefined) {
                 let [hostname, port] = url.split(':');
                 state.cursor.set("hostname", hostname);
                 state.cursor.set("port", port);
                 connectToHost(hostname, port);
-            });
-    }).catch(() => {
+            }
+        });
+    }).catch((err) => {
         state.cursor.set('connecting', false);
         status.update();
+        chan.appendLine("Failed reading nrepl port file: " + err);
     });
 };
 
@@ -174,11 +218,12 @@ function reconnect() {
 };
 
 function autoConnect() {
-    let path = vscode.workspace.rootPath;
+    let current = state.deref(),
+        chan = current.get('outputChannel');
 
     return new Promise((resolve, reject) => {
-        find.eachfile(/\.nrepl-port$/, path, (file) => {
-            fs.readFile(file, 'utf8', (err, data) => {
+        if (fs.existsSync(nreplPortFile())) {
+            fs.readFile(nreplPortFile(), 'utf8', (err, data) => {
                 if (!err) {
                     let hostname = "localhost",
                         port = parseFloat(data);
@@ -192,7 +237,13 @@ function autoConnect() {
                     reject(err);
                 }
             });
-        });
+        } else {
+            reject(null);
+        }
+    }).catch(err => {
+        state.cursor.set('connecting', false);
+        status.update();
+        chan.appendLine("Connection failed: " + (err ? err : "No nrepl port file found."));
     });
 };
 

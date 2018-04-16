@@ -22,7 +22,7 @@ const initialData = {
 
 reset();
 
-const cursor = ImmutableCursor.from(data, [], (nextState, currentState) => {
+const cursor = ImmutableCursor.from(data, [], (nextState) => {
     data = Immutable.fromJS(nextState);
 });
 

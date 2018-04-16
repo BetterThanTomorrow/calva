@@ -10,7 +10,7 @@ function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
 }
 
-function createREPLTerminal(sessionType, outputChan) {
+function createREPLTerminal(sessionType, shadowBuild, outputChan) {
     let current = state.deref(),
         configOptions = vscode.workspace.getConfiguration('clojure4vscode'),
         slug = terminalSlug(sessionType),
@@ -26,10 +26,14 @@ function createREPLTerminal(sessionType, outputChan) {
         state.cursor.set(slug, terminal);
         terminal.sendText(configOptions.connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port'));
         if (sessionType === 'cljs') {
-            terminal.sendText(configOptions.startCLJSREPLCommand);
+            if (shadowBuild) {
+                terminal.sendText(util.getShadowCljsReplStartCode(shadowBuild));
+            } else {
+                terminal.sendText(util.getCljsReplStartCode());
+            }
         }
-        outputChan.appendLine('Terminal created for: ' + terminalName);
     }
+    outputChan.appendLine('Terminal created for: ' + terminalName);
 }
 
 function openREPLTerminal(keepFocus = true) {
