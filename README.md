@@ -142,6 +142,8 @@ Yay! 🍾 🎆 ✨
 
 ### ClojureScript REPL
 
+For Calva to be able to connect the Clojurescript repl, your ClojureScript app needs to be running and connected to the repl session. (Calva is at the moment only tested with browser apps, but might work with other project types as well anyway.)
+
 #### shadow-cljs projects
 
 When Calva detects a shadow-cljs project it will read the `shadow-cljs.edn` configuration file and give you a list of build ids to pick from. Pick the build you started the app from and ClojureScript power should get injected into your favorite editor.
