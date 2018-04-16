@@ -22,6 +22,7 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 You think Calva looks similar to the **visual:clojure** extension? It's because it is based on that one. 🤠
 
 Calva then adds some tricks:
+- Works with [shadow-cljs](http://shadow-cljs.org).
 - Running tests through the REPL connection, and mark them in the Problems tab
   - Run namespace tests: `ctrl+alt+v t`
   - Run all tests: `ctrl+alt+v shift+t`
@@ -102,6 +103,9 @@ If you are only using Clojure then you are all set.
 
 ### For Clojurescript
 
+This depends some on wether the project is powered by **Figwheel** or **shadow-cljs** or something else.
+
+#### Figwheel ####
 Most ClojureScript projects has this setup in the project configuration file. But you can have it configured in your profiles.clj as well. A complete repl profile (from Calva's point of view, will look like so:
 
 ```clojure
@@ -112,7 +116,9 @@ Most ClojureScript projects has this setup in the project configuration file. Bu
         :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 ```
 
-(Assuming Figwheel.)
+#### shadow-cljs
+
+Shadow-cljs comes with its dependencies preloaded. No need for you to add anything anywhere as long as you have a working shadow-cljs project.
 
 ## Connecting to the REPL
 
@@ -122,21 +128,30 @@ Calva defaults to automatically connecting to a running nrepl session, it does n
 $ lein repl
 ```
 
-WHen the repl has started, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
+Shadow-cljs folks do not need to start an interactive repl. It's enough to start the app like so:
+
+```
+$ shadow-cljs watch app
+```
+
+(Replace `app` with whatever build you want to start.)
+
+When the repl (or app) is running, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
 
 Yay! 🍾 🎆 ✨
 
 ### ClojureScript REPL
 
+#### shadow-cljs projects
+
+When Calva detects a shadow-cljs project it will read the `shadow-cljs.edn` configuration file and give you a list of build ids to pick from. Pick the build you started the app from and ClojureScript power should get injected into your favorite editor.
+
+#### Figwheel projects
 If you want to use ClojureScript, you start its repl off of the repl you have just started, i.e. **not** using `lein figwheel` because then the extension will not know how to connect. Open the project in VS Code and the extension will connect to the ClojureScript repl for `cljs` files and to the Clojure repl for `clj` and `cljc` files.
 
 Yay! 🥂 🤘 🍻
 
 Read on for some pointers on this if you are not familiar.
-
-#### Figwheel
-
-Most people use Figwheel (bacause awesome).
 
 **To initiate a figwheel-repl you need the figwheel-sidecar dependency -> [figwheel-sidecar "0.5.8"] as well correct cljs classpaths**
 read more about this [here](https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl)
@@ -156,13 +171,6 @@ I can recommend adding a start function to your projects `dev` namespace to pack
 ```
 dev=> (start)
 ```
-
-#### W/o Figwheel
-
-If you want to start a ClojureScript REPL-session sans Figwheel, you can start this from the existing clojure-REPL that we just created.
-Using piggieback we can initiate a cljs-repl using e.g. rhino:
-
-Run the following command in the REPL to start a cljs-session with rhino: ```(cemerick.piggieback/cljs-repl (cljs.repl.rhino/repl-env))```
 
 
 ## Other stuff

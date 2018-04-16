@@ -1,6 +1,9 @@
 # Change Log
 Changes to Calva that I remembered to log.
 
+## [1.3.0] - 16.04.2018
+- Add support for [shadow-cljs](http://shadow-cljs.org). Please contact me with any information on how this is working for you out there.
+
 ## [1.2.14] - 06.04.2018
 - Change all keyboard shortcuts to use prefix `ctrl+alt+v`, due to old prefix not working on some alterate keybpard layouts. See [Issue #9](https://github.com/PEZ/clojure4vscode/issues/9).
 
