@@ -126,11 +126,12 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
 function evaluateFile(document = {}, callback = () => { }) {
     let current = state.deref(),
         doc = getDocument(document),
+        fileName = getFileName(doc),
+        fileType = getFileType(doc),
         chan = current.get('outputChannel');
 
-    if (current.get('connected')) {
-        let fileName = getFileName(doc),
-            session = getSession(getFileType(doc)),
+    if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+        let session = getSession(getFileType(doc)),
             msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
@@ -143,7 +144,7 @@ function evaluateFile(document = {}, callback = () => { }) {
             if (result !== null) {
                 chan.appendLine("=> " + result);
             } else {
-                chan.appendLine("Evaluation failed?");
+                chan.appendLine("No results from file evaluation.");
             }
             callback();
         });
