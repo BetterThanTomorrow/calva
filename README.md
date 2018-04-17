@@ -43,7 +43,6 @@ Calva then adds some tricks:
   - Switch to current namespace in the terminal REPL: `ctrl+alt+v n`
   - Load current namespace in the terminal REPL: `ctrl+alt+v alt+n`
   - Evaluate code from the editor to the terminal REPL: `ctrl+alt+v alt+e`
-  - The extension defaults to trying to use **Leiningen** for connecting, but is somewhat prepared for other tools. Check the `clojure4vscode.connectREPLCommand` user setting (untested, please let me know if it works or not).
 - When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl
 - Enables `clj` repl in all files (not just Clojure files).
 - Selection of current form: `ctrl+alt+v s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
@@ -118,7 +117,7 @@ Most ClojureScript projects has this setup in the project configuration file. Bu
 
 #### shadow-cljs
 
-Shadow-cljs comes with its dependencies preloaded. No need for you to add anything anywhere as long as you have a working shadow-cljs project.
+You need this `cider-nrepl` in your classpath. Add `[cider/cider-nrepl "0.16.0"]` to the `:dependencies` map in the`shadow-cljs.edn` project config. Shadow-cljs will autoinject the other requirements when it encounters cider-nrepl.
 
 ## Connecting to the REPL
 
@@ -139,6 +138,8 @@ $ shadow-cljs watch app
 When the repl (or app) is running, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
 
 Yay! 🍾 🎆 ✨
+
+**Note** If your workspace root is not the same as the project root of your Clojure project you must tell Calva which sub directory is the project root. Search for `projectRootDirectory` in settings and modify the workspace settings. This path should be relative to the workspace root (which is why it defaults to `.`).
 
 ### ClojureScript REPL
 
