@@ -111,11 +111,10 @@ function activate(context) {
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
     if (autoConnect) {
-        connector.autoConnect().catch((err) => {
-            chan.appendLine("Failed to connect: " + err + "\nDo you have a REPL running? (Autoconnect can be switched of in User Settings.)");
-        });
+        chan.appendLine("Autoconnecting... (This can be switched of in Settings)");
+        connector.autoConnect();
     } else {
-        chan.appendLine("Autoconnect disabled in User Settings.")
+        chan.appendLine("Autoconnect disabled in Settings.")
     }
 
 }
