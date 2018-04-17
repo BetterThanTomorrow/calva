@@ -131,7 +131,7 @@ function connectToHost(hostname, port, shadowBuild = undefined) {
                                 terminal.createREPLTerminal('cljs', shadowBuild, chan);
                             }
                             chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
-                            evaluate.evaluateFile();
+                            //evaluate.evaluateFile();
                             status.update();
                         });
                     } else {
