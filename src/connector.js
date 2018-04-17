@@ -7,7 +7,7 @@ const message = require('./repl/message');
 const util = require('./utilities');
 const status = require('./status');
 const terminal = require('./terminal');
-const evaluate = require('./repl/middleware/evaluate');
+//const evaluate = require('./repl/middleware/evaluate');
 const edn = require('jsedn');
 
 function projectDir() {
