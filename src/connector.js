@@ -176,7 +176,37 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
     });
 }
 
-function connect() {
+function promptForNreplUrlAndConnect(port) {
+    let current = state.deref(),
+        chan = current.get('outputChannel');
+
+    vscode.window.showInputBox({
+        placeHolder: "Enter existing nREPL hostname:port here...",
+        prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
+        value: "localhost:" + (port ? port : ""),
+        ignoreFocusOut: true
+    }).then(function (url) {
+        // state.reset(); TODO see if this should be done
+        if (url !== undefined) {
+            let [hostname, port] = url.split(':'),
+                parsedPort = parseFloat(port);
+            if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
+                state.cursor.set("hostname", hostname);
+                state.cursor.set("port", parsedPort);
+                connectToHost(hostname, parsedPort);
+            } else {
+                chan.appendLine("Bad url: " + url);
+                state.cursor.set('connecting', false);
+                status.update();
+            }
+        } else {
+            state.cursor.set('connecting', false);
+            status.update();
+        }
+    });
+}
+
+function connect(isAutoConnect = false) {
     let current = state.deref(),
         chan = current.get('outputChannel');
 
@@ -184,31 +214,30 @@ function connect() {
         if (fs.existsSync(nreplPortFile())) {
             fs.readFile(nreplPortFile(), 'utf8', (err, data) => {
                 if (!err) {
-                    resolve(data);
+                    resolve(parseFloat(data));
                 } else {
                     reject(err);
                 }
             });
+        } else {
+            resolve(null);
         }
     }).then((port) => {
-        vscode.window.showInputBox({
-            placeHolder: "Enter existing nREPL hostname:port here...",
-            prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
-            value: "localhost:" + port,
-            ignoreFocusOut: true
-        }).then(function (url) {
-            // state.reset(); TODO see if this should be done
-            if (url !== undefined) {
-                let [hostname, port] = url.split(':');
-                state.cursor.set("hostname", hostname);
+        if (port) {
+            if (isAutoConnect) {
+                state.cursor.set("hostname", "localhost");
                 state.cursor.set("port", port);
-                connectToHost(hostname, port);
+                connectToHost("localhost", port);
+            } else {
+                promptForNreplUrlAndConnect(port);
             }
-        });
+        } else {
+            chan.appendLine("No nrepl port file found");
+            promptForNreplUrlAndConnect(port);
+        }
     }).catch((err) => {
-        state.cursor.set('connecting', false);
-        status.update();
-        chan.appendLine("Failed reading nrepl port file: " + err);
+        chan.appendLine("Error reading nrepl port file: " + err);
+        promptForNreplUrlAndConnect(null);
     });
 };
 
@@ -218,34 +247,8 @@ function reconnect() {
 };
 
 function autoConnect() {
-    let current = state.deref(),
-        chan = current.get('outputChannel');
-
-    return new Promise((resolve, reject) => {
-        if (fs.existsSync(nreplPortFile())) {
-            fs.readFile(nreplPortFile(), 'utf8', (err, data) => {
-                if (!err) {
-                    let hostname = "localhost",
-                        port = parseFloat(data);
-
-                    state.cursor.set("hostname", hostname);
-                    state.cursor.set("port", port);
-                    connectToHost(hostname, port);
-                    resolve();
-                }
-                else {
-                    reject(err);
-                }
-            });
-        } else {
-            reject(null);
-        }
-    }).catch(err => {
-        state.cursor.set('connecting', false);
-        status.update();
-        chan.appendLine("Connection failed: " + (err ? err : "No nrepl port file found."));
-    });
-};
+    connect(true);
+}
 
 function toggleCLJCSession() {
     let current = state.deref();
