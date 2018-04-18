@@ -47,8 +47,9 @@ function onDidOpen(document) {
         return;
     }
 
-    LintMiddleWare.lintDocument(document);
-    //TestRunnerMiddleWare.runNamespaceTests(document);
+    if (state.config().lint) {
+        LintMiddleWare.lintDocument(document);
+    }
 };
 
 
