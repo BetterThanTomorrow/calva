@@ -49,41 +49,53 @@ function nreplPortFile() {
 
 function disconnect(options = null, callback = () => { }) {
     let chan = state.deref().get('outputChannel'),
-        connections = 0;
+        connections = [];
 
-    if (util.getSession("clj")) {
-        connections++;
+
+    ['clj', 'cljs'].forEach(sessionType => {
+        if (util.getSession(sessionType)) {
+            connections.push([sessionType, util.getSession(sessionType)]);
+        }
+        state.cursor.set(sessionType, null);
+    });
+    state.cursor.set("connected", false);
+    state.cursor.set('cljc', null);
+    status.update();
+
+    let n = connections.length;
+    if (n > 0) {
         let client = repl.create(options).once('connect', () => {
-            client.send(message.close(util.getSession("clj")), () => {
+            client.send(message.listSessions(), results => {
                 client.end();
-                connections--;
-                state.cursor.set('clj', null);
-                chan.appendLine("Disconnected session: clj");
-                if (connections == 0) {
+                let sessions = _.find(results, 'sessions')['sessions'];
+                if (sessions) {
+                    connections.forEach(connection => {
+                        let sessionType = connection[0],
+                            sessionId = connection[1]
+                        if (sessions.indexOf(sessionId) != -1) {
+                            let client = repl.create(options).once('connect', () => {
+                                client.send(message.close(sessionId), () => {
+                                    client.end();
+                                    n--;
+                                    state.cursor.set(sessionType, null);
+                                    chan.appendLine("Disconnected session: " + sessionType);
+                                    if (n == 0) {
+                                        callback();
+                                    }
+                                });
+                            });
+                        } else {
+                            if (--n == 0) {
+                                callback();
+                            }
+                        }
+                    });
+                } else {
                     callback();
                 }
             });
         });
-    }
-    if (util.getSession("cljs")) {
-        connections++;
-        let client = repl.create(options).once('connect', () => {
-            client.send(message.close(util.getSession("cljs")), () => {
-                client.end();
-                connections--;
-                state.cursor.set('cljs', null)
-                chan.appendLine("Disconnected session: cljs");
-                if (connections == 0) {
-                    callback();
-                }
-            });
-        });
-    }
-
-    if (connections == 0) {
-        state.cursor.set("connected", false);
-        state.cursor.set('cljc', null);
-        status.update();
+    } else {
         callback();
     }
 }
