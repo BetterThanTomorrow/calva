@@ -1,9 +1,9 @@
 {
     "name": "clojure4vscode",
-    "displayName": "Calva: Clojure 4 VS Code",
-    "description": "Cider nREPL powered Clojure and ClojureScript Interactive programming support.",
+    "displayName": "Calva: Clojure for VS Code",
+    "description": "Cider nREPL powered Clojure and Clojurescript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.3.4",
+    "version": "1.3.5",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -22,6 +22,12 @@
         "Linters",
         "Formatters",
         "Other"
+    ],
+    "keywords": [
+        "cider",
+        "nrepl",
+        "repl",
+        "interactive programming"
     ],
     "galleryBanner": {
         "color": "#344D81",
