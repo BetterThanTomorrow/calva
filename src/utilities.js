@@ -5,7 +5,7 @@ const state = require('./state');
 
 
 function getCljsReplStartCode() {
-    return vscode.workspace.getConfiguration('clojure4vscode').startCLJSREPLCommand;
+    return vscode.workspace.getConfiguration('calva').startCLJSREPLCommand;
 }
 
 function getShadowCljsReplStartCode(build) {

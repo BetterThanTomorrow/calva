@@ -11,7 +11,7 @@ const terminal = require('./terminal');
 const edn = require('jsedn');
 
 function projectDir() {
-    let path = vscode.workspace.rootPath + "/" + vscode.workspace.getConfiguration('clojure4vscode').get("projectRootDirectory").replace(/^\/|\/$/g, "");
+    let path = vscode.workspace.rootPath + "/" + vscode.workspace.getConfiguration('calva').get("projectRootDirectory").replace(/^\/|\/$/g, "");
 
     if (fs.existsSync(path)) {
         return path;

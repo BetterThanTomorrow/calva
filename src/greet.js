@@ -10,7 +10,7 @@ function activationGreetings(chan) {
     chan.appendLine("");
 
     if (!state.config().lint) {
-        chan.appendLine("NOTE: Autolinting is disabled. You need to enable \"clojure4vscode.lintOnSave\" in your editor settings to use it. But first install Joker: https://github.com/candid82/joker")
+        chan.appendLine("NOTE: Autolinting is disabled. You need to enable \"calva.lintOnSave\" in your editor settings to use it. But first install Joker: https://github.com/candid82/joker")
     }
     chan.appendLine("-".repeat(3));
 }

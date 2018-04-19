@@ -13,7 +13,7 @@ const {
     ERROR_TYPE,
 } = require('../../utilities');
 
-let diagnosticCollection = vscode.languages.createDiagnosticCollection('clojure4vscode');
+let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function markTestResults(responsesArray, log = true) {
     let chan = state.deref().get('outputChannel'),

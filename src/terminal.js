@@ -12,7 +12,7 @@ function terminalSlug(sessionSlug) {
 
 function createREPLTerminal(sessionType, shadowBuild, outputChan) {
     let current = state.deref(),
-        configOptions = vscode.workspace.getConfiguration('clojure4vscode'),
+        configOptions = vscode.workspace.getConfiguration('calva'),
         slug = terminalSlug(sessionType),
         terminalName = (sessionType === 'clj' ? 'Clojure' : 'CojureScript') + ' REPL',
         terminal = null;
