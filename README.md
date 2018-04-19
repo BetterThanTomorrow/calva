@@ -75,7 +75,7 @@ The above mentioned, plus:
 
 The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
 ```
-"clojure4vscode.lintOnSave": true
+"calva.lintOnSave": true
 ```
 
 ### Unrecognized macros
@@ -184,7 +184,7 @@ However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebr
 I recommend these settings for keeping auto adjust of indents on:
 ```json
     "parinfer.defaultMode": "disabled",
-    "clojure4vscode.autoAdjustIndent": true,
+    "calva.autoAdjustIndent": true,
 ```
 
 Switch them around if you prefer to default to Parinfer on.

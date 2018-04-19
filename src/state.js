@@ -15,8 +15,8 @@ const initialData = {
     terminal: null,
     connected: false,
     connecting: false,
-    outputChannel: vscode.window.createOutputChannel("clojure4vscode"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('clojure4vscode: Evaluation errors'),
+    outputChannel: vscode.window.createOutputChannel("calva"),
+    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
     autoAdjustIndent: config().autoAdjustIndent
 };
 
@@ -35,7 +35,7 @@ function reset() {
 };
 
 function config() {
-    let configOptions = vscode.workspace.getConfiguration('clojure4vscode');
+    let configOptions = vscode.workspace.getConfiguration('calva');
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),

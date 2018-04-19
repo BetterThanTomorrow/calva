@@ -52,49 +52,49 @@
     "contributes": {
         "configuration": {
             "type": "object",
-            "title": "clojure4vscode",
+            "title": "Calva",
             "properties": {
                 "clojure.format.enable": {
                     "type": "boolean",
                     "default": true,
                     "description": "Enable/disable cljfmt as clojure formatter"
                 },
-                "clojure4vscode.evalOnSave": {
+                "calva.evalOnSave": {
                     "type": "boolean",
                     "default": true,
                     "description": "Run load-file when opening a new file and on file save"
                 },
-                "clojure4vscode.lintOnSave": {
+                "calva.lintOnSave": {
                     "type": "boolean",
                     "default": false,
                     "description": "Run joker-linting when opening a new file and on file save"
                 },
-                "clojure4vscode.autoConnect": {
+                "calva.autoConnect": {
                     "type": "boolean",
                     "default": true,
                     "description": "Try to connect to nREPL on start using the .nrepl-port file"
                 },
-                "clojure4vscode.testOnSave": {
+                "calva.testOnSave": {
                     "type": "boolean",
                     "default": true,
                     "description": "Run namespace tests when opening a new file and on file save"
                 },
-                "clojure4vscode.autoAdjustIndent": {
+                "calva.autoAdjustIndent": {
                     "type": "boolean",
                     "default": true,
                     "description": "Auto adjusts indent for new lines (clashes with Parinfer, toggle with ctrl+alt+v tab)"
                 },
-                "clojure4vscode.connectREPLCommand": {
+                "calva.connectREPLCommand": {
                     "type": "string",
                     "default": "lein repl :connect",
                     "description": "Shell command to connect to the REPL (host:port will be appended)"
                 },
-                "clojure4vscode.startCLJSREPLCommand": {
+                "calva.startCLJSREPLCommand": {
                     "type": "string",
                     "default": "(cljs-repl)",
                     "description": "Clojure command to start the ClojureScript REPL off of the Clojure REPL"
                 },
-                "clojure4vscode.projectRootDirectory": {
+                "calva.projectRootDirectory": {
                     "type": "string",
                     "default": ".",
                     "description": "The root directory of your Clojure project, relative to the Workspace root"
@@ -110,154 +110,154 @@
         },
         "commands": [
             {
-                "command": "clojure4vscode.connect",
+                "command": "calva.connect",
                 "title": "Connect",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.reconnect",
+                "command": "calva.reconnect",
                 "title": "Reconnect",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.toggleCLJCSession",
+                "command": "calva.toggleCLJCSession",
                 "title": "Toggle REPL connection used for CLJC files",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.selectCurrentForm",
+                "command": "calva.selectCurrentForm",
                 "title": "Select current form",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.evaluateSelection",
+                "command": "calva.evaluateSelection",
                 "title": "Evaluate selection or current form",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.evaluateSelectionPrettyPrint",
+                "command": "calva.evaluateSelectionPrettyPrint",
                 "title": "Evaluate selection or current form, and pretty print",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.evaluateSelectionReplace",
+                "command": "calva.evaluateSelectionReplace",
                 "title": "Evaluate selection or current form, and replace it with the result",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.evaluateFile",
+                "command": "calva.evaluateFile",
                 "title": "Evaluate current file",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.lintFile",
+                "command": "calva.lintFile",
                 "title": "Lint current file",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.runNamespaceTests",
+                "command": "calva.runNamespaceTests",
                 "title": "Run tests for current namespace",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.runAllTests",
+                "command": "calva.runAllTests",
                 "title": "Run all tests",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.rerunTests",
+                "command": "calva.rerunTests",
                 "title": "Run previus tests again",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.openREPLTerminal",
+                "command": "calva.openREPLTerminal",
                 "title": "Open REPL terminal",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.loadNamespace",
+                "command": "calva.loadNamespace",
                 "title": "Load current namespace in REPL terminal",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.setREPLNamespace",
+                "command": "calva.setREPLNamespace",
                 "title": "Switch namespace in current terminal REPL to namespace of this file",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
+                "command": "calva.evalCurrentFormInREPLTerminal",
                 "title": "Evaluate current form (or selection) in REPL terminal",
                 "category": "Calva"
             },
             {
-                "command": "clojure4vscode.toggleAutoAdjustIndent",
+                "command": "calva.toggleAutoAdjustIndent",
                 "title": "Toggle auto adjusting of indent for new lines",
                 "category": "Calva"
             }
         ],
         "keybindings": [
             {
-                "command": "clojure4vscode.connect",
+                "command": "calva.connect",
                 "key": "ctrl+alt+v c"
             },
             {
-                "command": "clojure4vscode.reconnect",
+                "command": "calva.reconnect",
                 "key": "ctrl+alt+v shift+c"
             },
             {
-                "command": "clojure4vscode.toggleCLJCSession",
+                "command": "calva.toggleCLJCSession",
                 "key": "ctrl+alt+v alt+c"
             },
             {
-                "command": "clojure4vscode.selectCurrentForm",
+                "command": "calva.selectCurrentForm",
                 "key": "ctrl+alt+v s"
             },
             {
-                "command": "clojure4vscode.evaluateSelection",
+                "command": "calva.evaluateSelection",
                 "key": "ctrl+alt+v e"
             },
             {
-                "command": "clojure4vscode.evaluateSelectionPrettyPrint",
+                "command": "calva.evaluateSelectionPrettyPrint",
                 "key": "ctrl+alt+v p"
             },
             {
-                "command": "clojure4vscode.evaluateSelectionReplace",
+                "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+v r"
             },
             {
-                "command": "clojure4vscode.evaluateFile",
+                "command": "calva.evaluateFile",
                 "key": "ctrl+alt+v enter"
             },
             {
-                "command": "clojure4vscode.lintFile",
+                "command": "calva.lintFile",
                 "key": "ctrl+alt+v l"
             },
             {
-                "command": "clojure4vscode.runNamespaceTests",
+                "command": "calva.runNamespaceTests",
                 "key": "ctrl+alt+v t"
             },
             {
-                "command": "clojure4vscode.rerunTests",
+                "command": "calva.rerunTests",
                 "key": "ctrl+alt+v ctrl+t"
             },
             {
-                "command": "clojure4vscode.openREPLTerminal",
+                "command": "calva.openREPLTerminal",
                 "key": "ctrl+alt+v z"
             },
             {
-                "command": "clojure4vscode.loadNamespace",
+                "command": "calva.loadNamespace",
                 "key": "ctrl+alt+v alt+n"
             },
             {
-                "command": "clojure4vscode.setREPLNamespace",
+                "command": "calva.setREPLNamespace",
                 "key": "ctrl+alt+v n"
             },
             {
-                "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
+                "command": "calva.evalCurrentFormInREPLTerminal",
                 "key": "ctrl+alt+v alt+e"
             },
             {
-                "command": "clojure4vscode.toggleAutoAdjustIndent",
+                "command": "calva.toggleAutoAdjustIndent",
                 "key": "ctrl+alt+v tab"
             }
         ]

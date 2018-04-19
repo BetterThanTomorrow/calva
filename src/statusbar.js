@@ -17,18 +17,18 @@ function update() {
     connection.command = null;
     connection.tooltip = "Repl connection status";
     indent.text = "AAI: " + (autoAdjustIndent ? "on" : "off");
-    indent.command = "clojure4vscode.toggleAutoAdjustIndent";
+    indent.command = "calva.toggleAutoAdjustIndent";
     indent.tooltip = (autoAdjustIndent ? "Disable" : "Enable") + " auto adjustment of indents for new lines"
 
     if (current.get('connected')) {
         connection.text = "nrepl://" + current.get('hostname') + ":" + current.get('port');
         connection.tooltip = "Click to reset connection";
-        connection.command = "clojure4vscode.reconnect";
+        connection.command = "calva.reconnect";
         type.color = "rgb(145,220,71)";
         if (fileType == 'cljc' && util.getREPLSessionType() !== null) {
             type.text = "(cljc/" + util.getREPLSessionType() + ")"
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
-                type.command = "clojure4vscode.toggleCLJCSession";
+                type.command = "calva.toggleCLJCSession";
                 type.tooltip = "Click to use " + (util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj') + " repl for cljc";
             }
         } else if (util.getREPLSessionType() === 'cljs') {
@@ -44,7 +44,7 @@ function update() {
         type.text = "(…)";
     } else {
         connection.text = "nrepl - click to connect";
-        connection.command = "clojure4vscode.connect";
+        connection.command = "calva.connect";
         type.color = "rgb(192,192,192)";
         type.text = "(-)";
     }
