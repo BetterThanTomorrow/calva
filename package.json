@@ -51,7 +51,7 @@
                 "clojure.format.enable": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Enable/disable cljfmt as clojure formatter."
+                    "description": "Enable/disable cljfmt as clojure formatter"
                 },
                 "clojure4vscode.evalOnSave": {
                     "type": "boolean",
