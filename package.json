@@ -105,47 +105,47 @@
         "commands": [
             {
                 "command": "clojure4vscode.connect",
-                "title": "connect",
+                "title": "Connect",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.reconnect",
-                "title": "reconnect",
+                "title": "Reconnect",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.toggleCLJCSession",
-                "title": "toggle repl connection used for CLJC files",
+                "title": "Toggle REPL connection used for CLJC files",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.selectCurrentForm",
-                "title": "evaluate selection or current form",
+                "title": "Select current form",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateSelection",
-                "title": "evaluate selection or current form",
+                "title": "Evaluate selection or current form",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateSelectionPrettyPrint",
-                "title": "evaluate selection or current form, and pretty print",
+                "title": "Evaluate selection or current form, and pretty print",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateSelectionReplace",
-                "title": "evaluate selection or current form, and replace it with the result",
+                "title": "Evaluate selection or current form, and replace it with the result",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateFile",
-                "title": "evaluate current file",
+                "title": "Evaluate current file",
                 "category": "Calva"
             },
             {
                 "command": "clojure4vscode.lintFile",
-                "title": "lint current file",
+                "title": "Lint current file",
                 "category": "Calva"
             },
             {
