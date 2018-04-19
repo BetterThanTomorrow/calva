@@ -106,87 +106,87 @@
             {
                 "command": "clojure4vscode.connect",
                 "title": "connect",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.reconnect",
                 "title": "reconnect",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.toggleCLJCSession",
                 "title": "toggle repl connection used for CLJC files",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.selectCurrentForm",
                 "title": "evaluate selection or current form",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateSelection",
                 "title": "evaluate selection or current form",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateSelectionPrettyPrint",
                 "title": "evaluate selection or current form, and pretty print",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateSelectionReplace",
                 "title": "evaluate selection or current form, and replace it with the result",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evaluateFile",
                 "title": "evaluate current file",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.lintFile",
                 "title": "lint current file",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.runNamespaceTests",
                 "title": "Run tests for current namespace",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.runAllTests",
                 "title": "Run all tests",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.rerunTests",
                 "title": "Run previus tests again",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.openREPLTerminal",
                 "title": "Open REPL terminal",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.loadNamespace",
                 "title": "Load current namespace in REPL terminal",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.setREPLNamespace",
                 "title": "Switch namespace in current terminal REPL to namespace of this file",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.evalCurrentFormInREPLTerminal",
                 "title": "Evaluate current form (or selection) in REPL terminal",
-                "category": "clojure4vscode"
+                "category": "Calva"
             },
             {
                 "command": "clojure4vscode.toggleAutoAdjustIndent",
                 "title": "Toggle auto adjusting of indent for new lines",
-                "category": "clojure4vscode"
+                "category": "Calva"
             }
         ],
         "keybindings": [
