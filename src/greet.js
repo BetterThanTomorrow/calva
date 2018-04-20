@@ -1,7 +1,7 @@
 const state = require('./state');
 
 function activationGreetings(chan) {
-    chan.appendLine("Calva activated. Happy Clojure coding! ❤️");
+    chan.appendLine("Calva activated. Happy Clojure(script) coding! ❤️");
     chan.appendLine("Please file any feature requests or bug reports here: https://github.com/PEZ/clojure4vscode/issues");
     chan.appendLine("I will also respond to any @pez mentions in the #editors channel of the Clojurians Slack: https://clojurians.slack.com/messages/editors/");
     chan.appendLine("");
