@@ -11,7 +11,7 @@ const terminal = require('./terminal');
 const edn = require('jsedn');
 
 function projectDir() {
-    let path = vscode.workspace.rootPath + "/" + vscode.workspace.getConfiguration('calva').get("projectRootDirectory").replace(/^\/|\/$/g, "");
+    let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
 
     if (fs.existsSync(path)) {
         return path;
@@ -244,7 +244,7 @@ function connect(isAutoConnect = false) {
                 promptForNreplUrlAndConnect(port);
             }
         } else {
-            chan.appendLine("No nrepl port file found");
+            chan.appendLine('No nrepl port file found. Calva does not start the nrepl for you. If your nrepl is running outside of your project, you need to give Calva the url manually. Otherwise, you might need to adjust "calva.projectRootDirectory" in Workspace Settings. (Unfortunately you will need to restart Code to get the setting to be honored, I am looking at how to fix that.) ');
             promptForNreplUrlAndConnect(port);
         }
     }).catch((err) => {
