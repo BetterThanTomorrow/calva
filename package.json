@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure for VS Code",
     "description": "Cider nREPL powered Clojure and Clojurescript Interactive programming support.",
     "icon": "assets/clojure4vscode.png",
-    "version": "1.3.5",
+    "version": "1.3.6",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
