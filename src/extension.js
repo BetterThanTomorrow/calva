@@ -108,6 +108,10 @@ function activate(context) {
         connector.disconnect();
     }));
 
+    // context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
+    //     console.log(event);
+    // }));
+
     greet.activationGreetings(chan);
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
@@ -117,7 +121,7 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
-
+    chan.show();
 }
 
 exports.activate = activate;
