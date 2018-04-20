@@ -134,7 +134,7 @@ function connectToHost(hostname, port, shadowBuild = undefined) {
                         state.cursor.set("connecting", false);
                         status.update();
                         chan.appendLine("Connected session: clj");
-                        terminal.createREPLTerminal('clj', null, chan);
+                        terminal.createREPLTerminal('clj', shadowBuild, chan);
 
                         makeCljsSessionClone(hostname, port, cljSession, shadowBuild, cljsSession => {
                             if (cljsSession) {

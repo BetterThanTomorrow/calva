@@ -5,6 +5,8 @@ const evaluate = require('./repl/middleware/evaluate');
 const annotations = require('./providers/annotations');
 const select = require('./repl/middleware/select');
 
+const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'shadow-cljs clj-repl';
+const CONNECT_SHADOW_CLJS_CLJS_REPL = 'shadow-cljs cljs-repl';
 
 function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
@@ -24,16 +26,17 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
 
     if (terminal) {
         state.cursor.set(slug, terminal);
-        terminal.sendText(configOptions.connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port'));
-        if (sessionType === 'cljs') {
-            if (shadowBuild) {
-                terminal.sendText(util.getShadowCljsReplStartCode(shadowBuild));
-            } else {
-                terminal.sendText(util.getCljsReplStartCode());
-            }
+        connectCommand = shadowBuild ?
+                             (sessionType === 'cljs' ?
+                                 CONNECT_SHADOW_CLJS_CLJS_REPL + ' ' + shadowBuild :
+                                 CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
+                             configOptions.connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
+        terminal.sendText(connectCommand);
+        if (!shadowBuild && sessionType === 'cljs') {
+            terminal.sendText(util.getCljsReplStartCode());
         }
+        outputChan.appendLine('Terminal created for: ' + terminalName);
     }
-    outputChan.appendLine('Terminal created for: ' + terminalName);
 }
 
 function openREPLTerminal(keepFocus = true) {
