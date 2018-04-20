@@ -63,13 +63,11 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 
 ![underline error](/assets/howto/error.png)
 
-## Current Features
-The above mentioned, plus:
-
 
 ## Future Stuff
 
 * Test reporting while tests are being run. HIGH PRIORITY.
+* Open as many REPLs as you like.
 * Custom user commands to execute over the REPL connection.
 * Commands to start the REPLs from VS Code, injecting dependencies automatically.
 * Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
@@ -135,12 +133,10 @@ $ lein repl
 Shadow-cljs folks do not need to start an interactive repl. It's enough to start the app like so:
 
 ```
-$ shadow-cljs watch app
+$ shadow-cljs watch <build>
 ```
 
-(Replace `app` with whatever build you want to start.)
-
-When the repl (or app) is running, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
+When the app is running, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
 
 Yay! 🍾 🎆 ✨
 
