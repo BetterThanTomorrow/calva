@@ -244,7 +244,7 @@ function connect(isAutoConnect = false) {
                 promptForNreplUrlAndConnect(port);
             }
         } else {
-            chan.appendLine('No nrepl port file found. Calva does not start the nrepl for you. If your nrepl is running outside of your project, you need to give Calva the url manually. Otherwise, you might need to adjust "calva.projectRootDirectory" in Workspace Settings. (Unfortunately you will need to restart Code to get the setting to be honored, I am looking at how to fix that.) ');
+            chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
             promptForNreplUrlAndConnect(port);
         }
     }).catch((err) => {
