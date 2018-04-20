@@ -42,7 +42,8 @@ function config() {
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
         autoConnect: configOptions.get("autoConnect"),
-        autoAdjustIndent: configOptions.get("autoAdjustIndent")
+        autoAdjustIndent: configOptions.get("autoAdjustIndent"),
+        projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, "")
     };
 };
 
