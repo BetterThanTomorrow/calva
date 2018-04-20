@@ -43,6 +43,7 @@ function config() {
         test: configOptions.get("testOnSave"),
         autoConnect: configOptions.get("autoConnect"),
         autoAdjustIndent: configOptions.get("autoAdjustIndent"),
+        connectREPLCommand: configOptions.get("connectREPLCommand"),
         projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, "")
     };
 };

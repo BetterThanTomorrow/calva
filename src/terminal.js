@@ -14,7 +14,6 @@ function terminalSlug(sessionSlug) {
 
 function createREPLTerminal(sessionType, shadowBuild, outputChan) {
     let current = state.deref(),
-        configOptions = vscode.workspace.getConfiguration('calva'),
         slug = terminalSlug(sessionType),
         terminalName = (sessionType === 'clj' ? 'Clojure' : 'CojureScript') + ' REPL',
         terminal = null;
@@ -30,7 +29,7 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
                              (sessionType === 'cljs' ?
                                  CONNECT_SHADOW_CLJS_CLJS_REPL + ' ' + shadowBuild :
                                  CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
-                             configOptions.connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
+                             state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
         terminal.sendText(connectCommand);
         if (!shadowBuild && sessionType === 'cljs') {
             terminal.sendText(util.getCljsReplStartCode());
