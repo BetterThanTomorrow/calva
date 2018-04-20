@@ -15,7 +15,7 @@ const initialData = {
     terminal: null,
     connected: false,
     connecting: false,
-    outputChannel: vscode.window.createOutputChannel("calva"),
+    outputChannel: vscode.window.createOutputChannel("(💌 Calva)"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
     autoAdjustIndent: config().autoAdjustIndent
 };
