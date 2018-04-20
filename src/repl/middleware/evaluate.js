@@ -101,7 +101,7 @@ function evaluateSelection(document = {}, options = {}) {
                         chan.append('=> ');
                         if (pprint) {
                             chan.appendLine('');
-                            chan.show();
+                            chan.show(true);
                         } else {
                             annotations.decorateResults(' => ' + result.replace(/\n/gm, " ") + " ", hasError, codeSelection, editor);
                         }

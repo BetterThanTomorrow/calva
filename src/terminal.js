@@ -25,11 +25,11 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
 
     if (terminal) {
         state.cursor.set(slug, terminal);
-        connectCommand = shadowBuild ?
-                             (sessionType === 'cljs' ?
-                                 CONNECT_SHADOW_CLJS_CLJS_REPL + ' ' + shadowBuild :
-                                 CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
-                             state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
+        let connectCommand = shadowBuild ?
+            (sessionType === 'cljs' ?
+                CONNECT_SHADOW_CLJS_CLJS_REPL + ' ' + shadowBuild :
+                CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
+            state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
         terminal.sendText(connectCommand);
         if (!shadowBuild && sessionType === 'cljs') {
             terminal.sendText(util.getCljsReplStartCode());
