@@ -87,12 +87,12 @@
                 "calva.connectREPLCommand": {
                     "type": "string",
                     "default": "lein repl :connect",
-                    "description": "Shell command to connect to the REPL (host:port will be appended)"
+                    "description": "Shell command used by the 'Terminal REPL' to connect to the nREPL (host:port will be appended)"
                 },
                 "calva.startCLJSREPLCommand": {
                     "type": "string",
                     "default": "(cljs-repl)",
-                    "description": "Clojure command to start the ClojureScript REPL off of the Clojure REPL"
+                    "description": "Clojure command to start the ClojureScript REPL off of the Clojure REPL. (This setting is not used for shadow-cljs sessions)"
                 },
                 "calva.projectRootDirectory": {
                     "type": "string",
