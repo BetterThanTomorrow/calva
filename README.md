@@ -201,6 +201,6 @@ I'll be looking for a solution to this problem.
 
 ## Happy coding
 
-I hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
+I hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or chat me (@pez) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Or tweet me: [@pappapez](https://twitter.com/pappapez)
 
 ❤️
