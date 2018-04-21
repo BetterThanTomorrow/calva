@@ -1,10 +1,11 @@
-# Calva: Clojure 4 VS Code
+# Calva: Clojure & Clojurescript interactive programming made easy
 
-[Clojure and ClojureScript support](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). nREPL and Cider powered.
+[Integrated REPL, linting, inline eval and more for VSCode](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
+
 
 ## Raison d´être
 
-Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to code as well, I will.
+Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, I will.
 
 Demo: evaluate files
 
