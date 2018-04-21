@@ -1,7 +1,7 @@
 {
     "name": "clojure4vscode",
-    "displayName": "Calva: Clojure for VS Code",
-    "description": "Cider nREPL powered Clojure and Clojurescript Interactive programming support.",
+    "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
+    "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/clojure4vscode.png",
     "version": "1.3.7",
     "publisher": "cospaia",
