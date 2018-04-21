@@ -1,4 +1,5 @@
 const vscode = require('vscode');
+const _ = require('lodash');
 const state = require('./state');
 const util = require('./utilities');
 const evaluate = require('./repl/middleware/evaluate');
@@ -126,6 +127,32 @@ function evalCurrentFormInREPLTerminalCommand() {
     evalCurrentFormInREPLTerminal(false);
 }
 
+function sendCustomCommandSnippetToREPLTerminalCommand() {
+    let chan = state.deref().get('outputChannel'),
+        commands = state.config().customCommandSnippets,
+        commandPicks = _.map(commands, c => {
+            return c.name + ": " + c.command;
+        });
+
+    if (commands && commands.length > 0) {
+        vscode.window.showQuickPick(commandPicks, {
+            placeHolder: "Select command snippet",
+            ignoreFocusOut: true
+        }).then(pick => {
+            if (pick !== undefined) {
+                let name = pick.replace(/:.*/gm, ""),
+                    command = _.find(commands, c => { return c['name'] == name })['command'];
+                if (command) {
+                    openREPLTerminal();
+                    sendTextToREPLTerminal(command, true)
+                }
+            }
+        });
+    } else {
+        chan.appendLine("No command snippets configured. Configure commands in calva.customCommandSnippets.");
+    }
+}
+
 module.exports = {
     createREPLTerminal,
     openREPLTerminal,
@@ -135,5 +162,6 @@ module.exports = {
     setREPLNamespace,
     setREPLNamespaceCommand,
     evalCurrentFormInREPLTerminal,
-    evalCurrentFormInREPLTerminalCommand
+    evalCurrentFormInREPLTerminalCommand,
+    sendCustomCommandSnippetToREPLTerminalCommand
 }

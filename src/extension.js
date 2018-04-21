@@ -83,6 +83,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', terminal.loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', terminal.setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLTerminal', terminal.evalCurrentFormInREPLTerminalCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.sendCustomCommandToTerminalREPL', terminal.sendCustomCommandSnippetToREPLTerminalCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleAutoAdjustIndent', ClojureOnTypeFormattingProvider.toggleAutoAdjustIndentCommand));
 
     // PROVIDERS

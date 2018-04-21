@@ -98,6 +98,11 @@
                     "type": "string",
                     "default": ".",
                     "description": "The root directory of your Clojure project, relative to the Workspace root"
+                },
+                "calva.customCommandSnippets": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Custom commands that can be sent to the active REPL."
                 }
             }
         },
@@ -193,6 +198,11 @@
                 "command": "calva.toggleAutoAdjustIndent",
                 "title": "Toggle auto adjusting of indent for new lines",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.sendCustomCommandToTerminalREPL",
+                "title": "Send a predefined (by you) command to the terminal repl",
+                "category": "Calva"
             }
         ],
         "keybindings": [
@@ -259,6 +269,10 @@
             {
                 "command": "calva.toggleAutoAdjustIndent",
                 "key": "ctrl+alt+v tab"
+            },
+            {
+                "command": "calva.sendCustomCommandToTerminalREPL",
+                "key": "ctrl+alt+v space"
             }
         ]
     },
