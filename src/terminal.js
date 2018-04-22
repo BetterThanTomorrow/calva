@@ -83,10 +83,10 @@ function sendTextToREPLTerminal(text, addNewline = false) {
     }
 }
 
-function setREPLNamespace(reload = false, keepFocus = true) {
+function setREPLNamespace(load = false, keepFocus = true) {
     let nameSpace = util.getDocumentNamespace();
 
-    if (reload) {
+    if (load) {
         evaluate.evaluateFile();
     }
     sendTextToREPLTerminal("(in-ns '" + nameSpace + ")", true);
@@ -127,25 +127,41 @@ function evalCurrentFormInREPLTerminalCommand() {
     evalCurrentFormInREPLTerminal(false);
 }
 
+/*
+(defmacro with-ns
+  "Evaluates body in another namespace. ns is either a namespace
+   object or a symbol. This makes it possible to define functions in
+   namespaces other than the current one."
+  [ns & body]
+  `(binding [*ns* (the-ns ~ns)]
+     ~@(map (fn [form] `(eval '~form)) body)))
+*/
+
 function sendCustomCommandSnippetToREPLTerminalCommand() {
     let chan = state.deref().get('outputChannel'),
         commands = state.config().customCommandSnippets,
         commandPicks = _.map(commands, c => {
             return c.name + ": " + c.command;
-        });
+        }),
+        commandsDict = {};
+
+    commands.forEach(c => {
+        commandsDict[c.name + ": " + c.command] = c;
+    });
 
     if (commands && commands.length > 0) {
         vscode.window.showQuickPick(commandPicks, {
             placeHolder: "Select command snippet",
             ignoreFocusOut: true
         }).then(pick => {
-            if (pick !== undefined) {
-                let name = pick.replace(/:.*/gm, ""),
-                    command = _.find(commands, c => { return c['name'] == name })['command'];
-                if (command) {
-                    openREPLTerminal();
-                    sendTextToREPLTerminal(command, true)
+            if (pick && commandsDict[pick] && commandsDict[pick].command) {
+                let command = commandsDict[pick].command,
+                    ns = commandsDict[pick].ns;
+                if (ns) {
+                    command = "(with-bindings {#'*ns* '" + ns + "} '" + command + ")";
                 }
+                openREPLTerminal();
+                sendTextToREPLTerminal(command, true)
             }
         });
     } else {
