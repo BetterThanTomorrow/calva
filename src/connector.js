@@ -166,7 +166,7 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                         }
                         else {
                             if (shadowBuild) {
-                                chan.appendLine("Failed starting cljs repl for shadow-cljs build: " + shadowBuild);
+                                chan.appendLine(`Failed starting cljs repl for shadow-cljs build: ${shadowBuild}. Is the build running and conected?`);
                                 console.log(cljsResults);
                             }
                             callback(null);
