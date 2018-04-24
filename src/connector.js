@@ -10,22 +10,12 @@ const terminal = require('./terminal');
 //const evaluate = require('./repl/middleware/evaluate');
 const edn = require('jsedn');
 
-function projectDir() {
-    let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
-
-    if (fs.existsSync(path)) {
-        return path;
-    } else {
-        return vscode.workspace.rootPath;
-    }
-}
-
 function shadowNReplPortFile() {
-    return projectDir() + '/.shadow-cljs/nrepl.port';
+    return util.getProjectDir() + '/.shadow-cljs/nrepl.port';
 }
 
 function shadowConfigFile() {
-    return projectDir() + '/shadow-cljs.edn';
+    return util.getProjectDir() + '/shadow-cljs.edn';
 }
 
 function isShadowCljs() {
@@ -43,7 +33,7 @@ function nreplPortFile() {
         return shadowNReplPortFile();
     }
     else {
-        return projectDir() + '/.nrepl-port'
+        return util.getProjectDir() + '/.nrepl-port'
     }
 }
 
