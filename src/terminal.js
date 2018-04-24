@@ -5,8 +5,8 @@ const evaluate = require('./repl/middleware/evaluate');
 const annotations = require('./providers/annotations');
 const select = require('./repl/middleware/select');
 
-const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'shadow-cljs clj-repl';
-const CONNECT_SHADOW_CLJS_CLJS_REPL = 'shadow-cljs cljs-repl';
+const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
+const CONNECT_SHADOW_CLJS_CLJS_REPL = 'npx shadow-cljs cljs-repl';
 
 function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
