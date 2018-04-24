@@ -2,7 +2,18 @@ const vscode = require('vscode');
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const _ = require('lodash');
 const state = require('./state');
+const fs = require('fs');
 
+
+function getProjectDir() {
+    let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
+
+    if (fs.existsSync(path)) {
+        return path;
+    } else {
+        return vscode.workspace.rootPath;
+    }
+}
 
 function getCljsReplStartCode() {
     return vscode.workspace.getConfiguration('calva').startCLJSREPLCommand;
@@ -195,6 +206,7 @@ function getREPLSessionType() {
 }
 
 module.exports = {
+    getProjectDir,
     getNamespace,
     getStartExpression,
     getActualWord,
