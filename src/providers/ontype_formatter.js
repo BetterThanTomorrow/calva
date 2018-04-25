@@ -6,7 +6,7 @@ const status = require('../status');
 
 const oneIndentForms = ['fn', 'def', 'defn', 'ns', 'let', 'for', 'loop',
     'when', 'when-let', 'if', 'if-let', 'if-not', 'when-not', 'cond', 'do',
-    'doseq', 'dotimes'
+    'doseq', 'dotimes', 'deftest', 'testing', 'defn-'
 ]
 
 const quotes = ["'", "`"];
