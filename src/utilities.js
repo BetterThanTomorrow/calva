@@ -3,6 +3,7 @@ const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const _ = require('lodash');
 const state = require('./state');
 const fs = require('fs');
+const syntaxQuoteSymbol = "`";
 
 
 function getProjectDir() {
@@ -45,7 +46,7 @@ function getActualWord(document, position, selected, word) {
             return "";
         }
     } else {
-        return word;
+        return (word && word.startsWith(syntaxQuoteSymbol)) ? word.substr(1) : word;
     }
 };
 
