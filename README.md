@@ -5,11 +5,7 @@
 
 ## Raison d´être
 
-<<<<<<< HEAD
 Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If we can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, we will.
-=======
-Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, I will.
->>>>>>> 2b825c05d9436659736cfe95a4210271e487e508
 
 Demo: evaluate files
 

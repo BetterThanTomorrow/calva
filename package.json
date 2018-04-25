@@ -3,11 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/clojure4vscode.png",
-<<<<<<< HEAD
     "version": "1.3.9",
-=======
-    "version": "1.3.8",
->>>>>>> 2b825c05d9436659736cfe95a4210271e487e508
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
