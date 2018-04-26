@@ -5,7 +5,7 @@ const repl = require('../repl/client');
 const message = require('../repl/message');
 const {
     getNamespace,
-    getActualWord,
+    getWordAtPosition,
     getSession
 } = require('../utilities');
 
@@ -15,9 +15,7 @@ module.exports = class DefinitionProvider {
     }
 
     provideDefinition(document, position, token) {
-        let selected = document.getWordRangeAtPosition(position),
-            selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
-            text = getActualWord(document, position, selected, selectedText),
+        let text = getWordAtPosition(document, position),
             location = null,
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),

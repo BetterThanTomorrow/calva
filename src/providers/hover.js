@@ -4,7 +4,7 @@ const repl = require('../repl/client');
 const message = require('../repl/message');
 const {
     getNamespace,
-    getActualWord
+    getWordAtPosition
 } = require('../utilities');
 
 module.exports = class HoverProvider {
@@ -35,11 +35,7 @@ module.exports = class HoverProvider {
     }
 
     provideHover(document, position, _) {
-        let selected = document.getWordRangeAtPosition(position),
-            selectedText = selected !== undefined ?
-            document.getText(new vscode.Range(selected.start, selected.end)) :
-            "",
-            text = getActualWord(document, position, selected, selectedText),
+        let text = getWordAtPosition(document, position),
             docstring = "",
             arglist = "",
             nsname = "",
