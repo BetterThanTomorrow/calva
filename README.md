@@ -1,6 +1,6 @@
-# Calva: Clojure & Clojurescript interactive programming made easy
+# Calva: Clojure & Clojurescript support for VS Code
 
-[Integrated REPL, linting, inline eval and more for VSCode](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
+[Integrated REPL, linting, inline eval, test runner, and more](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
 
 
 ## Raison d´être
