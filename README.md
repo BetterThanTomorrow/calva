@@ -209,6 +209,6 @@ Calva started off as a clone of the promising (but abandoned) **visual:clojure**
 
 ## Happy coding
 
-We hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or chat us (@pez, @pedrorgirardi) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
+We hope you will find tons of use for this extension! Please let us know what you think or want. PRs welcome, file an issue or chat us (@pez, @pedrorgirardi) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
 
 ❤️
