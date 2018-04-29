@@ -5,32 +5,14 @@ const state = require('./state');
 const repl = require('./repl/client');
 const message = require('./repl/message');
 const util = require('./utilities');
+const shadow = require('./shadow');
 const status = require('./status');
 const terminal = require('./terminal');
 //const evaluate = require('./repl/middleware/evaluate');
-const edn = require('jsedn');
-
-function shadowNReplPortFile() {
-    return util.getProjectDir() + '/.shadow-cljs/nrepl.port';
-}
-
-function shadowConfigFile() {
-    return util.getProjectDir() + '/shadow-cljs.edn';
-}
-
-function isShadowCljs() {
-    return fs.existsSync(shadowNReplPortFile());
-}
-
-function shadowBuilds() {
-    let parsed = edn.parse(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
-        keys = parsed.at(edn.kw(':builds')).keys;
-    return _.map(keys, 'name');
-}
 
 function nreplPortFile() {
-    if (fs.existsSync(shadowNReplPortFile())) {
-        return shadowNReplPortFile();
+    if (fs.existsSync(shadow.shadowNReplPortFile())) {
+        return shadow.shadowNReplPortFile();
     }
     else {
         return util.getProjectDir() + '/.nrepl-port'
@@ -93,9 +75,9 @@ function disconnect(options = null, callback = () => { }) {
 function connectToHost(hostname, port, shadowBuild = undefined) {
     let chan = state.deref().get('outputChannel');
 
-    if (isShadowCljs() && shadowBuild === undefined) {
+    if (shadow.isShadowCljs() && shadowBuild === undefined) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
-        vscode.window.showQuickPick(shadowBuilds(), {
+        vscode.window.showQuickPick(shadow.shadowBuilds(), {
             placeHolder: "Select which shadow-cljs build to connect to",
             ignoreFocusOut: true
         }).then(build => {
@@ -161,11 +143,15 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                         client.end();
                         let valueResult = _.find(cljsResults, 'value'),
                             nsResult = _.find(cljsResults, 'ns');
-                        if ((!shadowBuild && nsResult) || (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild))) {
+                        if (!shadowBuild && nsResult) {
+                            state.cursor.set('shadowBuild', null);
                             callback(cljsSession);
-                        }
-                        else {
+                        } else if (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild)) {
+                            state.cursor.set('shadowBuild', shadowBuild);
+                            callback(cljsSession);
+                        } else {
                             if (shadowBuild) {
+                                state.cursor.set('shadowBuild', null);
                                 chan.appendLine(`Failed starting cljs repl for shadow-cljs build: ${shadowBuild}. Is the build running and conected?`);
                                 console.log(cljsResults);
                             }
@@ -245,7 +231,7 @@ function connect(isAutoConnect = false) {
 
 function reconnect() {
     state.reset();
-    connect();
+    connect(true);
 };
 
 function autoConnect() {
