@@ -191,7 +191,7 @@ Consider adding a `(start)` function in your projects `dev` namespace to pack th
 ## Other stuff
 
 ### Paredit & Parinfer
-Calva works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit)
+Calva works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=cospaia.paredit-revived). Make sure you use the maintained version. We call it **Paredit Revived**.
 
 However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer) clashes with the auto adjustment of indents feature. Therefore Calva provides a command for toggling the auto adjustment off and on (`ctrl+alt+v tab`), just like Parinfer has commands for enabling and disabling its assistance.
 
