@@ -1,5 +1,5 @@
 # visual code
-*.visx
+*.vsix
 .vscode/settings.json
 
 # Logs
