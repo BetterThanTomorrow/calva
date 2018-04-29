@@ -72,96 +72,100 @@ function disconnect(options = null, callback = () => { }) {
     }
 }
 
-function connectToHost(hostname, port, shadowBuild = undefined) {
+function connectToHost(hostname, port) {
     let chan = state.deref().get('outputChannel');
 
-    if (shadow.isShadowCljs() && shadowBuild === undefined) {
+    disconnect({ hostname, port }, () => {
+        state.cursor.set('connecting', true);
+        status.update();
+
+        chan.appendLine("Hooking up nREPL sessions...");
+
+        let client = repl.create({
+            hostname,
+            port
+        }).once('connect', () => {
+            client.send(message.clone(), cloneResults => {
+                client.end();
+                let cljSession = _.find(cloneResults, 'new-session')['new-session'];
+                if (cljSession) {
+                    state.cursor.set("clj", cljSession);
+                    state.cursor.set("cljc", cljSession);
+                    state.cursor.set("connected", true);
+                    state.cursor.set("connecting", false);
+                    status.update();
+                    chan.appendLine("Connected session: clj");
+                    terminal.createREPLTerminal('clj', null, chan);
+
+                    makeCljsSessionClone(hostname, port, cljSession, null, (cljsSession, shadowBuild) => {
+                        if (cljsSession) {
+                            setUpCljsRepl(cljsSession, chan, shadowBuild);
+                        }
+                        chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
+                        //evaluate.evaluateFile();
+                        status.update();
+                    });
+                } else {
+                    state.cursor.set("connected", false);
+                    state.cursor.set("connecting", false);
+                    chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
+                }
+            });
+        });
+    });
+};
+
+function setUpCljsRepl(cljsSession, chan, shadowBuild) {
+    state.cursor.set("cljs", cljsSession);
+    chan.appendLine("Connected session: cljs");
+    terminal.createREPLTerminal('cljs', shadowBuild, chan);
+}
+
+function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
+    let chan = state.deref().get('outputChannel');
+
+    if (shadow.isShadowCljs() && !shadowBuild) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
         vscode.window.showQuickPick(shadow.shadowBuilds(), {
             placeHolder: "Select which shadow-cljs build to connect to",
             ignoreFocusOut: true
         }).then(build => {
-            if (build !== undefined) {
-                connectToHost(hostname, port, build);
+            if (build) {
+                makeCljsSessionClone(hostname, port, session, build, callback);
             }
         });
     } else {
-        disconnect({ hostname, port }, () => {
-            state.cursor.set('connecting', true);
-            status.update();
-
-            chan.appendLine("Hooking up nREPL sessions...");
-
-            let client = repl.create({
-                hostname,
-                port
-            }).once('connect', () => {
-                client.send(message.clone(), cloneResults => {
-                    client.end();
-                    let cljSession = _.find(cloneResults, 'new-session')['new-session'];
-                    if (cljSession) {
-                        state.cursor.set("clj", cljSession);
-                        state.cursor.set("cljc", cljSession);
-                        state.cursor.set("connected", true);
-                        state.cursor.set("connecting", false);
-                        status.update();
-                        chan.appendLine("Connected session: clj");
-                        terminal.createREPLTerminal('clj', shadowBuild, chan);
-
-                        makeCljsSessionClone(hostname, port, cljSession, shadowBuild, cljsSession => {
-                            if (cljsSession) {
-                                state.cursor.set("cljs", cljsSession);
-                                chan.appendLine("Connected session: cljs");
-                                terminal.createREPLTerminal('cljs', shadowBuild, chan);
+        let client = repl.create({ hostname, port }).once('connect', () => {
+            client.send(message.clone(session), results => {
+                client.end();
+                let cljsSession = _.find(results, 'new-session')['new-session'];
+                if (cljsSession) {
+                    let client = repl.create({ hostname, port }).once('connect', () => {
+                        let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) : message.startCljsReplMsg(cljsSession);
+                        client.send(msg, cljsResults => {
+                            client.end();
+                            let valueResult = _.find(cljsResults, 'value'),
+                                nsResult = _.find(cljsResults, 'ns');
+                            if (!shadowBuild && nsResult) {
+                                state.cursor.set('shadowBuild', null);
+                                callback(cljsSession);
+                            } else if (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild)) {
+                                state.cursor.set('shadowBuild', shadowBuild);
+                                callback(cljsSession, shadowBuild);
+                            } else {
+                                if (shadowBuild) {
+                                    state.cursor.set('shadowBuild', null);
+                                    chan.appendLine(`Failed starting cljs repl for shadow-cljs build: ${shadowBuild}. Is the build running and conected?`);
+                                    console.log(cljsResults);
+                                }
+                                callback(null);
                             }
-                            chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
-                            //evaluate.evaluateFile();
-                            status.update();
-                        });
-                    } else {
-                        state.cursor.set("connected", false);
-                        state.cursor.set("connecting", false);
-                        chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
-                    }
-                });
+                        })
+                    });
+                }
             });
         });
     }
-};
-
-function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
-    let chan = state.deref().get('outputChannel');
-
-    let client = repl.create({ hostname, port }).once('connect', () => {
-        client.send(message.clone(session), results => {
-            client.end();
-            let cljsSession = _.find(results, 'new-session')['new-session'];
-            if (cljsSession) {
-                let client = repl.create({ hostname, port }).once('connect', () => {
-                    let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) : message.startCljsReplMsg(cljsSession);
-                    client.send(msg, cljsResults => {
-                        client.end();
-                        let valueResult = _.find(cljsResults, 'value'),
-                            nsResult = _.find(cljsResults, 'ns');
-                        if (!shadowBuild && nsResult) {
-                            state.cursor.set('shadowBuild', null);
-                            callback(cljsSession);
-                        } else if (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild)) {
-                            state.cursor.set('shadowBuild', shadowBuild);
-                            callback(cljsSession);
-                        } else {
-                            if (shadowBuild) {
-                                state.cursor.set('shadowBuild', null);
-                                chan.appendLine(`Failed starting cljs repl for shadow-cljs build: ${shadowBuild}. Is the build running and conected?`);
-                                console.log(cljsResults);
-                            }
-                            callback(null);
-                        }
-                    })
-                });
-            }
-        });
-    });
 }
 
 function promptForNreplUrlAndConnect(port) {
@@ -251,10 +255,26 @@ function toggleCLJCSession() {
     }
 }
 
+function recreateCljsRepl() {
+    let current = state.deref(),
+        cljSession = util.getSession('clj'),
+        chan = current.get('outputChannel'),
+        hostname = current.get('hostname'),
+        port = current.get('port');
+
+    makeCljsSessionClone(hostname, port, cljSession, null, (session, shadowBuild) => {
+        if (session) {
+            setUpCljsRepl(session, chan, shadowBuild);
+        }
+        status.update();
+    })
+}
+
 module.exports = {
     connect,
     disconnect,
     reconnect,
     autoConnect,
-    toggleCLJCSession
+    toggleCLJCSession,
+    recreateCljsRepl
 };

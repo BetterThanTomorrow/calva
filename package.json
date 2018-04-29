@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.11",
+    "version": "1.3.13",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",
@@ -194,6 +194,11 @@
                 "command": "calva.toggleAutoAdjustIndent",
                 "title": "Toggle auto adjusting of indent for new lines",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.recreateCljsRepl",
+                "title": "Attach (or re-attach) a Clojurescript session",
+                "category": "Calva"
             }
         ],
         "keybindings": [
@@ -208,6 +213,10 @@
             {
                 "command": "calva.toggleCLJCSession",
                 "key": "ctrl+alt+v alt+c"
+            },
+            {
+                "command": "calva.recreateCljsRepl",
+                "key": "ctrl+alt+v ctrl+c"
             },
             {
                 "command": "calva.selectCurrentForm",
