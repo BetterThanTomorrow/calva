@@ -106,6 +106,7 @@ function activate(context) {
     }));
     context.subscriptions.push(new vscode.Disposable(() => {
         connector.disconnect();
+        chan.dispose();
     }));
 
     // context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
