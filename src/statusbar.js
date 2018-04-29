@@ -21,7 +21,7 @@ function update() {
     connection.command = null;
     connection.tooltip = "Repl connection status";
     shadow.text = null;
-    shadow.command = "calva.reconnect";
+    shadow.command = "calva.recreateCljsRepl";
     shadow.tooltip = null;
     indent.text = "AAI: " + (autoAdjustIndent ? "on" : "off");
     indent.command = "calva.toggleAutoAdjustIndent";

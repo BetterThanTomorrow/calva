@@ -4,6 +4,7 @@ const util = require('./utilities');
 const evaluate = require('./repl/middleware/evaluate');
 const annotations = require('./providers/annotations');
 const select = require('./repl/middleware/select');
+const shadow = require('./shadow');
 
 const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
 const CONNECT_SHADOW_CLJS_CLJS_REPL = 'npx shadow-cljs cljs-repl';
@@ -25,9 +26,9 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
 
     if (terminal) {
         state.cursor.set(slug, terminal);
-        let connectCommand = shadowBuild ?
+        let connectCommand = shadow.isShadowCljs() ?
             (sessionType === 'cljs' ?
-                CONNECT_SHADOW_CLJS_CLJS_REPL + ' ' + shadowBuild :
+                `${CONNECT_SHADOW_CLJS_CLJS_REPL} ${shadowBuild}` :
                 CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
             state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
         terminal.sendText(connectCommand);

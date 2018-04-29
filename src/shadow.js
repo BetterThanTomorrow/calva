@@ -1,6 +1,7 @@
 const fs = require('fs');
 const _ = require('lodash');
 const edn = require('jsedn');
+const state = require('./state');
 const util = require('./utilities');
 
 function shadowNReplPortFile() {
@@ -21,8 +22,13 @@ function shadowBuilds() {
     return _.map(keys, 'name');
 }
 
+function shadowBuild() {
+    return state.deref().get('shadowBuild');
+}
+
 module.exports = {
     isShadowCljs,
     shadowNReplPortFile,
-    shadowBuilds
+    shadowBuilds,
+    shadowBuild
 }
