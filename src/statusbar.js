@@ -28,7 +28,8 @@ function update() {
     indent.tooltip = (autoAdjustIndent ? "Disable" : "Enable") + " auto adjustment of indents for new lines"
 
     if (current.get('connected')) {
-        connection.text = "nrepl ⚡️";
+        connection.text = "nREPL $(zap)";
+        connection.color = "rgb(253, 208, 35)";
         connection.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connection.command = "calva.connect";
         type.color = "rgb(145,220,71)";
@@ -55,11 +56,11 @@ function update() {
             }
         }
     } else if (current.get('connecting')) {
-        connection.text = "nrepl - trying to connect";
+        connection.text = "nREPL - trying to connect";
         type.color = "rgb(63,192,192)";
         type.text = "...";
     } else {
-        connection.text = "nrepl not connected";
+        connection.text = "nREPL $(zap)";
         connection.tooltip = "Click to connect";
         connection.command = "calva.connect";
         type.color = "rgb(192,192,192)";
