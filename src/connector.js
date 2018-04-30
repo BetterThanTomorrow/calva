@@ -171,6 +171,7 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                     let failed = `Failed to clone nREPL session for ClojureScript REPL`;
                     console.error(failed, results);
                     chan.appendLine(failed);
+                    callback(null);
                 }
             });
         });
