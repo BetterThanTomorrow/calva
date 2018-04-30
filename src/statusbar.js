@@ -16,19 +16,27 @@ function update() {
         autoAdjustIndent = current.get('autoAdjustIndent'),
         shadowBuild = current.get('shadowBuild');
 
+    let disconnectedColor = "rgb(192,192,192)";
+
     type.command = null;
-    type.tooltip = "Repl type (clj or cljs)";
+    type.text = "Disconnected";
+    type.tooltip = "No active REPL session";
+    type.color = disconnectedColor;
+
     connection.command = null;
-    connection.tooltip = "Repl connection status";
+    connection.tooltip = "REPL connection status";
+
     shadow.text = null;
     shadow.command = "calva.recreateCljsRepl";
     shadow.tooltip = null;
+
     indent.text = "AAI: " + (autoAdjustIndent ? "on" : "off");
     indent.command = "calva.toggleAutoAdjustIndent";
     indent.tooltip = (autoAdjustIndent ? "Disable" : "Enable") + " auto adjustment of indents for new lines"
 
     if (current.get('connected')) {
-        connection.text = "nrepl ⚡️";
+        connection.text = "nREPL $(zap)";
+        connection.color = "rgb(253, 208, 35)";
         connection.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connection.command = "calva.connect";
         type.color = "rgb(145,220,71)";
@@ -36,34 +44,31 @@ function update() {
             type.text = "cljc/" + util.getREPLSessionType()
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
                 type.command = "calva.toggleCLJCSession";
-                type.tooltip = `Click to use ${(util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} repl for cljc`;
+                type.tooltip = `Click to use ${(util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
             }
         } else if (util.getREPLSessionType() === 'cljs') {
             type.text = "cljs";
-            type.tooltip = "Connected to cljs repl";
+            type.tooltip = "Connected to ClojureScript REPL";
         } else if (util.getREPLSessionType() === 'clj') {
             type.text = "clj"
-            type.tooltip = "Connected to clj repl";
+            type.tooltip = "Connected to Clojure REPL";
         }
         if (shadow_util.isShadowCljs()) {
             if (shadowBuild !== null && util.getREPLSessionType() === 'cljs') {
                 shadow.text = shadowBuild;
-                shadow.tooltip = "Click to connect to another shadow-cljs build";
+                shadow.tooltip = "Click to connect to another Shadow CLJS build";
             } else if (shadowBuild === null) {
                 shadow.text = "no build connected"
-                shadow.tooltip = "Click to connect to a shadow-cljs build";
+                shadow.tooltip = "Click to connect to a Shadow CLJS build";
             }
         }
     } else if (current.get('connecting')) {
-        connection.text = "nrepl - trying to connect";
-        type.color = "rgb(63,192,192)";
-        type.text = "...";
+        connection.text = "nREPL - trying to connect";
     } else {
-        connection.text = "nrepl not connected";
+        connection.text = "nREPL $(zap)";
         connection.tooltip = "Click to connect";
+        connection.color = disconnectedColor;
         connection.command = "calva.connect";
-        type.color = "rgb(192,192,192)";
-        type.text = "...";
     }
 
     connection.show();
