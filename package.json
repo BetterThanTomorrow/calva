@@ -48,7 +48,7 @@
     "activationEvents": [
         "onLanguage:clojure"
     ],
-    "main": "./src/extension",
+    "main": "./src/js/extension",
     "contributes": {
         "configuration": {
             "type": "object",
