@@ -153,19 +153,24 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                                 state.cursor.set('shadowBuild', shadowBuild);
                                 callback(cljsSession, shadowBuild);
                             } else {
-                                let failed = `Failed to start ClojureScript REPL with command: ${msg.code}`;
-                                console.error(failed, cljsResults);
-                                chan.appendLine(failed);
-
                                 if (shadowBuild) {
+                                    let failed = `Failed starting cljs repl for shadow-cljs build: ${shadowBuild}`;
                                     state.cursor.set('shadowBuild', null);
-                                    chan.appendLine(`Failed starting cljs repl for shadow-cljs build: ${shadowBuild}. Is the build running and conected?`);
-                                    console.log(cljsResults);
+                                    chan.appendLine(`${failed}. Is the build running and conected?`);
+                                    console.error(failed, cljsResults);
+                                } else {
+                                    let failed = `Failed to start ClojureScript REPL with command: ${msg.code}`;
+                                    console.error(failed, cljsResults);
+                                    chan.appendLine(`${failed}. Is the app running in the browser and conected?`);
                                 }
                                 callback(null);
                             }
                         })
                     });
+                } else {
+                    let failed = `Failed to clone nREPL session for ClojureScript REPL`;
+                    console.error(failed, results);
+                    chan.appendLine(failed);
                 }
             });
         });
