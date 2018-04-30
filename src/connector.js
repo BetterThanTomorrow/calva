@@ -153,6 +153,10 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                                 state.cursor.set('shadowBuild', shadowBuild);
                                 callback(cljsSession, shadowBuild);
                             } else {
+                                let failed = `Failed to start ClojureScript REPL with command: ${msg.code}`;
+                                console.error(failed, cljsResults);
+                                chan.appendLine(failed);
+
                                 if (shadowBuild) {
                                     state.cursor.set('shadowBuild', null);
                                     chan.appendLine(`Failed starting cljs repl for shadow-cljs build: ${shadowBuild}. Is the build running and conected?`);
