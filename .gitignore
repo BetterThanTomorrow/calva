@@ -47,4 +47,7 @@ jspm_packages
 .shadow-cljs/
 out-cljs/
 .nrepl-port
-src/js/calva/
+dist/
+pom.xml
+.idea
+*.iml

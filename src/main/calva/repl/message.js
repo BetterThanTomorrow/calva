@@ -1,5 +1,5 @@
 'use strict';
-const util = require('../utilities');
+import util from '../utilities';
 
 var operation = {
     EVALUATE: "eval",
@@ -42,13 +42,13 @@ function checkSessionTypeMsg(session) {
         code: '(js/parseFloat "3.14")',
         session: session
     };
-};
+}
 
 function listSessionsMsg() {
     return {
         op: operation.LIST_SESSIONS
     };
-};
+}
 
 function evaluateMsg(session, ns, code, pprint = false) {
     let msg = {
@@ -61,7 +61,7 @@ function evaluateMsg(session, ns, code, pprint = false) {
         msg.pprint = 1;
     }
     return msg;
-};
+}
 
 function formatMsg(session, code) {
     return {
@@ -79,7 +79,7 @@ function loadFileMsg(session, fileContent, fileName, filePath) {
         "file-path": filePath,
         session: session
     };
-};
+}
 
 function completeMsg(session, namespace, symbol) {
     return {
@@ -88,7 +88,7 @@ function completeMsg(session, namespace, symbol) {
         ns: namespace,
         session: session
     };
-};
+}
 
 function infoMsg(session, namespace, symbol) {
     return {
@@ -97,14 +97,14 @@ function infoMsg(session, namespace, symbol) {
         ns: namespace,
         session: session
     };
-};
+}
 
 function stacktraceMsg(session) {
     return {
         op: operation.STACKTRACE,
         session: session
     };
-};
+}
 
 function cloneMsg(session) {
     let msg = {
@@ -114,35 +114,35 @@ function cloneMsg(session) {
         msg.session = session;
     }
     return msg;
-};
+}
 
 function closeMsg(session) {
     return {
         op: operation.CLOSE,
         session: session
     };
-};
+}
 
 function refreshMsg(session) {
     return {
         op: operation.REFRESH,
         session: session
     };
-};
+}
 
 function refreshAllMsg(session) {
     return {
         op: operation.REFRESH_ALL,
         session: session
     };
-};
+}
 
 function refreshClearMsg(session) {
     return {
         op: operation.REFRESH_CLEAR,
         session: session
     };
-};
+}
 
 function testMsg(session, ns) {
     return {
@@ -150,7 +150,7 @@ function testMsg(session, ns) {
         ns: ns,
         session: session
     };
-};
+}
 
 function testAllMsg(session) {
     return {
@@ -158,17 +158,17 @@ function testAllMsg(session) {
         session: session,
         'load?': 1
     };
-};
+}
 
 function rerunTestsMsg(session) {
     return {
         op: operation.RETEST,
         session: session
     };
-};
+}
 
 
-module.exports = {
+export default {
     evaluate: evaluateMsg,
     listSessions: listSessionsMsg,
     checkSessionType: checkSessionTypeMsg,

@@ -1,23 +1,20 @@
-const vscode = require('vscode');
-const state = require('./state');
-const status = require('./status');
-const connector = require('./connector');
-const greet = require('./greet');
-const terminal = require('./terminal');
-
-const ClojureLanguageConfiguration = require('./language');
-
-const CompletionItemProvider = require('./providers/completion');
-const TextDocumentContentProvider = require('./providers/content');
-const HoverProvider = require('./providers/hover');
-const DefinitionProvider = require('./providers/definition');
-const FormattingProvider = require('./providers/formatter');
-const ClojureOnTypeFormattingProvider = require('./providers/ontype_formatter');
-
-const EvaluateMiddleWare = require('./repl/middleware/evaluate');
-const LintMiddleWare = require('./repl/middleware/lint');
-const TestRunnerMiddleWare = require('./repl/middleware/testRunner');
-const select = require('./repl/middleware/select');
+import vscode from 'vscode';
+import state from './state';
+import status from './status';
+import connector from './connector';
+import greet from './greet';
+import terminal from './terminal';
+import ClojureLanguageConfiguration from './language';
+import CompletionItemProvider from './providers/completion';
+import TextDocumentContentProvider from './providers/content';
+import HoverProvider from './providers/hover';
+import DefinitionProvider from './providers/definition';
+import FormattingProvider from './providers/formatter';
+import ClojureOnTypeFormattingProvider from './providers/ontype_formatter';
+import EvaluateMiddleWare from './repl/middleware/evaluate';
+import LintMiddleWare from './repl/middleware/lint';
+import TestRunnerMiddleWare from './repl/middleware/testRunner';
+import select from './repl/middleware/select';
 
 function onDidSave(document) {
     let {
@@ -40,7 +37,7 @@ function onDidSave(document) {
     if (lint) {
         LintMiddleWare.lintDocument(document);
     }
-};
+}
 
 function onDidOpen(document) {
     if (document.languageId !== 'clojure') {
@@ -50,7 +47,7 @@ function onDidOpen(document) {
     if (state.config().lint) {
         LintMiddleWare.lintDocument(document);
     }
-};
+}
 
 
 function activate(context) {
@@ -126,7 +123,5 @@ function activate(context) {
     chan.show(true);
 }
 
-exports.activate = activate;
-
 function deactivate() { }
-exports.deactivate = deactivate;
+export { activate, deactivate };

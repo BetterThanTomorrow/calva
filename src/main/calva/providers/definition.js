@@ -1,15 +1,10 @@
-const vscode = require('vscode');
-const state = require('../state');
+import vscode from 'vscode';
+import state from '../state';
+import repl from '../repl/client';
+import message from '../repl/message';
+import { getNamespace, getWordAtPosition, getSession } from '../utilities';
 
-const repl = require('../repl/client');
-const message = require('../repl/message');
-const {
-    getNamespace,
-    getWordAtPosition,
-    getSession
-} = require('../utilities');
-
-module.exports = class DefinitionProvider {
+export default class DefinitionProvider {
     constructor() {
         this.state = state;
     }

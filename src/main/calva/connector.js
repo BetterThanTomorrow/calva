@@ -1,13 +1,13 @@
-const vscode = require('vscode');
-const _ = require('lodash');
-const fs = require('fs');
-const state = require('./state');
-const repl = require('./repl/client');
-const message = require('./repl/message');
-const util = require('./utilities');
-const shadow = require('./shadow');
-const status = require('./status');
-const terminal = require('./terminal');
+import vscode from 'vscode';
+import _ from 'lodash';
+import fs from 'fs';
+import state from './state';
+import repl from './repl/client';
+import message from './repl/message';
+import util from './utilities';
+import shadow from './shadow';
+import status from './status';
+import terminal from './terminal';
 //const evaluate = require('./repl/middleware/evaluate');
 
 function nreplPortFile() {
@@ -113,7 +113,7 @@ function connectToHost(hostname, port) {
             });
         });
     });
-};
+}
 
 function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
@@ -241,12 +241,12 @@ function connect(isAutoConnect = false) {
         chan.appendLine("Error reading nrepl port file: " + err);
         promptForNreplUrlAndConnect(null);
     });
-};
+}
 
 function reconnect() {
     state.reset();
     connect(true);
-};
+}
 
 function autoConnect() {
     connect(true);
@@ -280,7 +280,7 @@ function recreateCljsRepl() {
     })
 }
 
-module.exports = {
+export default {
     connect,
     disconnect,
     reconnect,

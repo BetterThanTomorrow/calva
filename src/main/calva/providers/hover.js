@@ -1,13 +1,10 @@
-const vscode = require('vscode');
-const state = require('../state');
-const repl = require('../repl/client');
-const message = require('../repl/message');
-const {
-    getNamespace,
-    getWordAtPosition
-} = require('../utilities');
+import vscode from 'vscode';
+import state from '../state';
+import repl from '../repl/client';
+import message from '../repl/message';
+import { getNamespace, getWordAtPosition } from '../utilities';
 
-module.exports = class HoverProvider {
+export default class HoverProvider {
     constructor() {
         this.state = state;
     }
@@ -88,4 +85,4 @@ module.exports = class HoverProvider {
             return new vscode.Hover("Not connected to nREPL..");
         }
     }
-}
+};

@@ -1,17 +1,10 @@
-const vscode = require('vscode');
-const _ = require('lodash');
-const state = require('../../state');
-const repl = require('../client');
-const { message } = require('../../calva/main');
-const evaluate = require('./evaluate');
-const {
-    getDocument,
-    getNamespace,
-    getFileType,
-    getSession,
-    logError,
-    ERROR_TYPE,
-} = require('../../utilities');
+import vscode from 'vscode';
+import _ from 'lodash';
+import state from '../../state';
+import repl from '../client';
+import message from 'goog:calva.repl.message';
+import evaluate from './evaluate';
+import { getDocument, getNamespace, getFileType, getSession, logError, ERROR_TYPE } from '../../utilities';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -92,7 +85,7 @@ function markTestResults(responsesArray, log = true) {
             }
         }
     }
-};
+}
 
 function runTests(messages, startStr, errorStr, log = true) {
     let current = state.deref(),
@@ -151,14 +144,14 @@ function runAllTests(document = {}) {
         msg = message.testAll(session);
 
     runTests([msg], "Running all tests", "running all tests");
-};
+}
 
 function runAllTestsCommand() {
     let chan = state.deref().get('outputChannel');
 
     chan.show();
     runAllTests();
-};
+}
 
 function getNamespaceTestMessages(document = {}) {
     let doc = getDocument(document),
@@ -200,7 +193,7 @@ function rerunTestsCommand() {
 
 
 
-module.exports = {
+export default {
     runNamespaceTests,
     runNamespaceTestsCommand,
     runAllTests,

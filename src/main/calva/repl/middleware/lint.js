@@ -1,16 +1,7 @@
-const vscode = require('vscode');
-const {
-    spawn
-} = require('child_process');
-const state = require('../../state');
-const {
-    logError,
-    markError,
-    logWarning,
-    markWarning,
-    ERROR_TYPE,
-    getDocument
-} = require('../../utilities');
+import vscode from 'vscode';
+import { spawn } from 'child_process';
+import state from '../../state';
+import { logError, markError, logWarning, markWarning, ERROR_TYPE, getDocument } from '../../utilities';
 const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/
 
 function parseJokerLine(jokerOutput) {
@@ -83,8 +74,8 @@ function lintDocument(document = {}) {
             vscode.window.showErrorMessage("calva " + "linting error: " + error.message);
         }
     });
-};
+}
 
-module.exports = {
+export default {
     lintDocument
 };

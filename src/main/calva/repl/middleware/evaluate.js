@@ -1,19 +1,11 @@
-const vscode = require('vscode');
-const _ = require('lodash');
-const state = require('../../state');
-const repl = require('../client');
-const message = require('../message');
-const annotations = require('../../providers/annotations');
-const select = require('./select');
-const {
-    getDocument,
-    getFileName,
-    getFileType,
-    getNamespace,
-    getSession,
-    logError,
-    ERROR_TYPE,
-} = require('../../utilities');
+import vscode from 'vscode';
+import _ from 'lodash';
+import state from '../../state';
+import repl from '../client';
+import message from '../message';
+import annotations from '../../providers/annotations';
+import select from './select';
+import { getDocument, getFileName, getFileType, getNamespace, getSession, logError, ERROR_TYPE } from '../../utilities';
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
     let current = state.deref(),
@@ -46,7 +38,7 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
         evalClient.end();
         callback(result, true);
     });
-};
+}
 
 function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
@@ -113,15 +105,15 @@ function evaluateSelection(document = {}, options = {}) {
             });
         }
     }
-};
+}
 
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: true }));
-};
+}
 
 function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
-};
+}
 
 function evaluateFile(document = {}, callback = () => { }) {
     let current = state.deref(),
@@ -149,9 +141,9 @@ function evaluateFile(document = {}, callback = () => { }) {
             callback();
         });
     }
-};
+}
 
-module.exports = {
+export default {
     evaluateFile,
     evaluateSelection,
     evaluateSelectionPrettyPrint,

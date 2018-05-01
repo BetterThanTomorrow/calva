@@ -1,7 +1,7 @@
-const state = require('../state');
-const net = require('net');
-const Buffer = require('buffer').Buffer;
-const bencoder = require('bencoder');
+import state from '../state';
+import net from 'net';
+import { Buffer } from 'buffer';
+import bencoder from 'bencoder';
 
 const CONTINUATION_ERROR_MESSAGE = "Unexpected continuation: \"";
 
@@ -29,12 +29,12 @@ function decode(decodedResult) {
             return decodedResult;
         }
     }
-};
+}
 
 function isDone(chunks) {
     let lastObj = [...chunks].pop();
     return lastObj && lastObj.status && lastObj.status.indexOf('done') !== -1;
-};
+}
 
 function send(msg, callback) {
     let buffer = Buffer.from(''),
@@ -92,10 +92,10 @@ function create(options) {
 
         return con;
     }
-};
+}
 
 
 
-module.exports = {
+export default {
     create
 };

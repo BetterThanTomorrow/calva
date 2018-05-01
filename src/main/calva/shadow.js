@@ -1,8 +1,8 @@
-const fs = require('fs');
-const _ = require('lodash');
-const edn = require('jsedn');
-const state = require('./state');
-const util = require('./utilities');
+import fs from 'fs';
+import _ from 'lodash';
+import edn from 'jsedn';
+import state from './state';
+import util from './utilities';
 
 function shadowNReplPortFile() {
     return util.getProjectDir() + '/.shadow-cljs/nrepl.port';
@@ -26,9 +26,9 @@ function shadowBuild() {
     return state.deref().get('shadowBuild');
 }
 
-module.exports = {
+export default {
     isShadowCljs,
     shadowNReplPortFile,
     shadowBuilds,
     shadowBuild
-}
+};

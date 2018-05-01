@@ -1,16 +1,18 @@
 {:source-paths
- ["src/cljs"]
+ ["src/main"]
+
+ :nrepl {:port 8303}
 
  :dependencies
- [[org.clojure/core.async  "0.4.474"]
+ [[org.clojure/core.async "0.4.474"]
   [cider/cider-nrepl "0.16.0"]
   [org.clojure/tools.nrepl "0.2.12"]]
 
  :builds
  {:calva
   {:target :node-library
-   :output-dir "out-cljs"
-   :output-to "src/js/calva/main.js"
-   :exports {:message repl.message/message}
-   :modules {:main {:entries [repl.message]}}
+   :output-to "dist/calva.js"
+   :exports calva.extension/exports
+   :js-options
+   {:language-out :no-transpile}
    :devtools {}}}}
