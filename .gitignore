@@ -47,5 +47,7 @@ jspm_packages
 .shadow-cljs/
 out-cljs/
 .nrepl-port
-src/js/main.js
 dist/
+pom.xml
+.idea
+*.iml

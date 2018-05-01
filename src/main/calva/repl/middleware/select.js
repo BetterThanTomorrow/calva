@@ -1,5 +1,5 @@
-const vscode = require('vscode');
-const util = require('../../utilities');
+import vscode from 'vscode';
+import util from '../../utilities';
 
 function getFormSelection(doc, currentPosition) {
     let nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
@@ -92,7 +92,7 @@ function getSelectionToNextBracket(doc, selection, startPosition, startBracket) 
     }
     const start = findSexpStartFromOpeningBracket(doc.getText(), doc.offsetAt(startPosition) - 1, endBracket);
     return new vscode.Selection(doc.positionAt(start + 1), doc.positionAt(doc.offsetAt(startPosition) + end));
-};
+}
 
 function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) {
     var block = doc.getText(selection),
@@ -132,7 +132,7 @@ function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) 
     }
     start = findSexpStartFromOpeningBracket(block, start, endBracket);
     return new vscode.Selection(doc.positionAt(start + 1), endPosition);
-};
+}
 
 function selectCurrentForm(document = {}) {
     let editor = vscode.window.activeTextEditor,
@@ -148,7 +148,7 @@ function selectCurrentForm(document = {}) {
     }
 }
 
-module.exports = {
+export default {
     getFormSelection,
     selectCurrentForm
-}
+};

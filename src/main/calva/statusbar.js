@@ -1,7 +1,7 @@
-const vscode = require('vscode');
-const state = require('./state');
-const util = require('./utilities');
-const shadow_util = require('./shadow');
+import vscode from 'vscode';
+import state from './state';
+import util from './utilities';
+import shadow_util from './shadow';
 
 
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -79,8 +79,8 @@ function update() {
         shadow.hide();
     }
     indent.show();
-};
-
-module.exports = {
-    update
 }
+
+export default {
+    update
+};

@@ -1,6 +1,6 @@
-const vscode = require('vscode');
-const state = require('../state');
-const status = require('../status');
+import vscode from 'vscode';
+import state from '../state';
+import status from '../status';
 
 // Adapted from the Atom clojure-indent extension: https://github.com/Ciebiada/clojure-indent
 
@@ -96,4 +96,4 @@ class ClojureOnTypeFormattingEditProvider {
     }
 }
 
-module.exports = ClojureOnTypeFormattingEditProvider;
+export default ClojureOnTypeFormattingEditProvider;

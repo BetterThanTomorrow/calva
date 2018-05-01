@@ -1,4 +1,4 @@
-const state = require('./state');
+import state from './state';
 
 function activationGreetings(chan) {
     chan.appendLine("Calva activated. Happy Clojure(script) coding! ❤️");
@@ -17,6 +17,6 @@ function activationGreetings(chan) {
     chan.appendLine("-".repeat(3));
 }
 
-module.exports = {
+export default {
     activationGreetings
 };

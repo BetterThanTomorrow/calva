@@ -1,4 +1,4 @@
-module.exports = class ClojureLanguageConfiguration {
+export default class ClojureLanguageConfiguration {
     constructor() {
         this.wordPattern = /[^\s()[\]{};"\\]+/;
         this.indentationRules = {

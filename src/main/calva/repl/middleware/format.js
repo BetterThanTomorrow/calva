@@ -1,11 +1,7 @@
-const state = require('../../state');
-const repl = require('../client');
-const message = require('../message');
-const {
-    getDocument,
-    getFileType,
-    getSession
-} = require('../../utilities');
+import state from '../../state';
+import repl from '../client';
+import message from '../message';
+import { getDocument, getFileType, getSession } from '../../utilities';
 
 
 function formatCode(code, document = {}) {
@@ -42,6 +38,6 @@ function formatCode(code, document = {}) {
     });
 }
 
-module.exports = {
+export default {
     formatCode
 };

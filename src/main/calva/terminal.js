@@ -1,10 +1,10 @@
-const vscode = require('vscode');
-const state = require('./state');
-const util = require('./utilities');
-const evaluate = require('./repl/middleware/evaluate');
-const annotations = require('./providers/annotations');
-const select = require('./repl/middleware/select');
-const shadow = require('./shadow');
+import vscode from 'vscode';
+import state from './state';
+import util from './utilities';
+import evaluate from './repl/middleware/evaluate';
+import annotations from './providers/annotations';
+import select from './repl/middleware/select';
+import shadow from './shadow';
 
 const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
 const CONNECT_SHADOW_CLJS_CLJS_REPL = 'npx shadow-cljs cljs-repl';
@@ -127,7 +127,7 @@ function evalCurrentFormInREPLTerminalCommand() {
     evalCurrentFormInREPLTerminal(false);
 }
 
-module.exports = {
+export default {
     createREPLTerminal,
     openREPLTerminal,
     openREPLTerminalCommand,
@@ -137,4 +137,4 @@ module.exports = {
     setREPLNamespaceCommand,
     evalCurrentFormInREPLTerminal,
     evalCurrentFormInREPLTerminalCommand
-}
+};

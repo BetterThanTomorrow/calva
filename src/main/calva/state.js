@@ -1,6 +1,6 @@
-const vscode = require('vscode');
-const Immutable = require('immutable');
-const ImmutableCursor = require('immutable-cursor');
+import vscode from 'vscode';
+import Immutable from 'immutable';
+import ImmutableCursor from 'immutable-cursor';
 
 const mode = {
     language: 'clojure',
@@ -29,11 +29,11 @@ const cursor = ImmutableCursor.from(data, [], (nextState) => {
 
 function deref() {
     return data;
-};
+}
 
 function reset() {
     data = Immutable.fromJS(initialData);
-};
+}
 
 function config() {
     let configOptions = vscode.workspace.getConfiguration('calva');
@@ -47,9 +47,9 @@ function config() {
         connectREPLCommand: configOptions.get("connectREPLCommand"),
         projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, "")
     };
-};
+}
 
-module.exports = {
+export default {
     cursor,
     mode,
     deref,

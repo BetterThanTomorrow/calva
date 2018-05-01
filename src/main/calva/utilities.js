@@ -1,8 +1,8 @@
-const vscode = require('vscode');
+import vscode from 'vscode';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
-const _ = require('lodash');
-const state = require('./state');
-const fs = require('fs');
+import _ from 'lodash';
+import state from './state';
+import fs from 'fs';
 const syntaxQuoteSymbol = "`";
 
 
@@ -27,7 +27,7 @@ function getShadowCljsReplStartCode(build) {
 function getNamespace(text) {
     let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
     return match ? match[1] : 'user';
-};
+}
 
 function getStartExpression(text) {
     let match = text.match(/^\(([^\)]+)[\)]+/g);
@@ -48,7 +48,7 @@ function getActualWord(document, position, selected, word) {
     } else {
         return (word && word.startsWith(syntaxQuoteSymbol)) ? word.substr(1) : word;
     }
-};
+}
 
 function getWordAtPosition(document, position) {
     let selected = document.getWordRangeAtPosition(position), selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "", text = getActualWord(document, position, selected, selectedText);
@@ -57,18 +57,18 @@ function getWordAtPosition(document, position) {
 
 function getDocument(document) {
     return document.hasOwnProperty('fileName') ? document : vscode.window.activeTextEditor.document;
-};
+}
 
 function getFileType(document) {
     let doc = getDocument(document),
         filetypeIndex = (doc.fileName.lastIndexOf('.') + 1);
     return doc.fileName.substr(filetypeIndex, doc.fileName.length);
-};
+}
 
 function getFileName(document) {
     let fileNameIndex = (document.fileName.lastIndexOf('\\') + 1);
     return document.fileName.substr(fileNameIndex, document.fileName.length)
-};
+}
 
 function getDocumentNamespace(document = {}) {
     let doc = getDocument(document);
@@ -109,7 +109,7 @@ function logSuccess(results) {
             chan.appendLine("out:\n" + out);
         }
     });
-};
+}
 
 function logError(error) {
     let chan = state.deref().get('outputChannel');
@@ -119,7 +119,7 @@ function logError(error) {
         error.column !== undefined && error.column !== null) {
         chan.appendLine("at line: " + error.line + " and column: " + error.column)
     }
-};
+}
 
 function markError(error) {
     if (error.line === null) {
@@ -146,7 +146,7 @@ function markError(error) {
     let errors = (existing !== undefined && existing.length > 0) ? [...existing, err] :
         [err];
     diagnostic.set(editor.document.uri, errors);
-};
+}
 
 function logWarning(warning) {
     let chan = state.deref().get('outputChannel');
@@ -158,7 +158,7 @@ function logWarning(warning) {
             chan.appendLine("at line: " + warning.line)
         }
     }
-};
+}
 
 function markWarning(warning) {
     if (warning.line === null) {
@@ -183,7 +183,7 @@ function markWarning(warning) {
     let warnings = (existing !== undefined && existing.length > 0) ? [...existing, warn] :
         [warn];
     diagnostic.set(editor.document.uri, warnings);
-};
+}
 
 
 function updateREPLSessionType() {
@@ -211,7 +211,7 @@ function getREPLSessionType() {
     return current.get('current-session-type');
 }
 
-module.exports = {
+export default {
     getProjectDir,
     getNamespace,
     getStartExpression,
