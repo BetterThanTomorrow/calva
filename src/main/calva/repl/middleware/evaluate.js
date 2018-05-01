@@ -65,7 +65,7 @@ function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
-            let msg = message.evaluate(session, getNamespace(doc.getText()), code, pprint),
+            let msg = message.evaluateMsg(session, getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
             evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
@@ -124,7 +124,7 @@ function evaluateFile(document = {}, callback = () => { }) {
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         let session = getSession(getFileType(doc)),
-            msg = message.loadFile(session, doc.getText(), fileName, doc.fileName);
+            msg = message.loadFileMsg(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
             let result = null;

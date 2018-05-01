@@ -3,7 +3,7 @@ import _ from 'lodash';
 import fs from 'fs';
 import state from './state';
 import repl from './repl/client';
-import message from './repl/message';
+import message from 'goog:calva.repl.message';
 import util from './utilities';
 import shadow from './shadow';
 import status from './status';
@@ -37,7 +37,7 @@ function disconnect(options = null, callback = () => { }) {
     let n = connections.length;
     if (n > 0) {
         let client = repl.create(options).once('connect', () => {
-            client.send(message.listSessions(), results => {
+            client.send(message.listSessionsMsg(), results => {
                 client.end();
                 let sessions = _.find(results, 'sessions')['sessions'];
                 if (sessions) {
@@ -46,7 +46,7 @@ function disconnect(options = null, callback = () => { }) {
                             sessionId = connection[1]
                         if (sessions.indexOf(sessionId) != -1) {
                             let client = repl.create(options).once('connect', () => {
-                                client.send(message.close(sessionId), () => {
+                                client.send(message.closeMsg(sessionId), () => {
                                     client.end();
                                     n--;
                                     state.cursor.set(sessionType, null);
@@ -85,7 +85,7 @@ function connectToHost(hostname, port) {
             hostname,
             port
         }).once('connect', () => {
-            client.send(message.clone(), cloneResults => {
+            client.send(message.cloneMsg(), cloneResults => {
                 client.end();
                 let cljSession = _.find(cloneResults, 'new-session')['new-session'];
                 if (cljSession) {
@@ -136,7 +136,7 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
         });
     } else {
         let client = repl.create({ hostname, port }).once('connect', () => {
-            client.send(message.clone(session), results => {
+            client.send(message.cloneMsg(session), results => {
                 client.end();
                 let cljsSession = _.find(results, 'new-session')['new-session'];
                 if (cljsSession) {

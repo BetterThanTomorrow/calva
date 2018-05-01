@@ -30,7 +30,7 @@ export default class CompletionItemProvider {
                 let current = this.state.deref(),
                     client = repl.create()
                         .once('connect', () => {
-                            let msg = message.complete(getSession(filetype),
+                            let msg = message.completeMsg(getSession(filetype),
                                 getNamespace(document.getText()), text),
                                 completions = [];
                             client.send(msg, function (results) {
@@ -70,7 +70,7 @@ export default class CompletionItemProvider {
             if (current.get('connected')) {
                 let client = repl.create().once('connect', () => {
                     let document = vscode.window.activeTextEditor.document,
-                        msg = message.info(getSession(filetype),
+                        msg = message.infoMsg(getSession(filetype),
                             getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {

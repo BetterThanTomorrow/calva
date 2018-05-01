@@ -2,6 +2,8 @@ import state from '../state';
 import net from 'net';
 import { Buffer } from 'buffer';
 import bencoder from 'bencoder';
+import migration from 'goog:calva.migration';
+
 
 const CONTINUATION_ERROR_MESSAGE = "Unexpected continuation: \"";
 
@@ -38,7 +40,7 @@ function isDone(chunks) {
 
 function send(msg, callback) {
     let buffer = Buffer.from(''),
-        encodedMsg = bencoder.encode(msg);
+        encodedMsg = bencoder.encode(migration.jsify(msg));
     let chunks = [];
     this.on('data', (chunk) => {
         try {

@@ -9,7 +9,7 @@ function formatCode(code, document = {}) {
         formatClient = null;
     return new Promise((resolve, reject) => {
         formatClient = repl.create().once('connect', () => {
-            let msg = message.format(getSession(getFileType(doc)), code);
+            let msg = message.formatMsg(getSession(getFileType(doc)), code);
             formatClient.send(msg, function (results) {
                 let r = results[0];
                 if (r.status.indexOf("format-code-error") !== -1) {

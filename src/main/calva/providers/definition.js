@@ -19,7 +19,7 @@ export default class DefinitionProvider {
             return new Promise((resolve, reject) => {
                 let current = scope.state.deref(),
                     client = repl.create().once('connect', () => {
-                        let msg = message.info(getSession(filetype),
+                        let msg = message.infoMsg(getSession(filetype),
                             getNamespace(document.getText()), text);
                         client.send(msg, function (results) {
                             for (var r = 0; r < results.length; r++) {

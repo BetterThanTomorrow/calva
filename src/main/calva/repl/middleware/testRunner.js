@@ -141,7 +141,7 @@ function runTests(messages, startStr, errorStr, log = true) {
 function runAllTests(document = {}) {
     let doc = getDocument(document),
         session = getSession(getFileType(doc)),
-        msg = message.testAll(session);
+        msg = message.testAllMsg(session);
 
     runTests([msg], "Running all tests", "running all tests");
 }
@@ -157,10 +157,10 @@ function getNamespaceTestMessages(document = {}) {
     let doc = getDocument(document),
         session = getSession(getFileType(doc)),
         ns = getNamespace(doc.getText()),
-        messages = [message.test(session, ns)];
+        messages = [message.testMsg(session, ns)];
 
     if (!ns.endsWith('-test')) {
-        messages.push(message.test(session, ns + '-test'));
+        messages.push(message.testMsg(session, ns + '-test'));
     }
     return messages;
 }

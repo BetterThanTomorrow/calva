@@ -48,38 +48,38 @@ export default class HoverProvider {
             return new Promise((resolve, reject) => {
                 let current = this.state.deref(),
                     client = repl.create()
-                    .once('connect', () => {
-                        let msg = message.info(current.get(filetype),
-                            getNamespace(document.getText()), text);
-                        client.send(msg, function (results) {
-                            if (results.length === 1 &&
-                                results[0].status[0] === "done" &&
-                                results[0].status[1] === "no-info") {
-                                reject("No docstring available..");
-                            }
-
-                            for (var r = 0; r < results.length; r++) {
-                                let result = results[r];
-                                docstring += result.doc;
-                                arglist += result['arglists-str'];
-                                if (result.hasOwnProperty('ns') &&
-                                    result.hasOwnProperty('name')) {
-                                    nsname = result.ns + "/" + result.name;
+                        .once('connect', () => {
+                            let msg = message.infoMsg(current.get(filetype),
+                                getNamespace(document.getText()), text);
+                            client.send(msg, function (results) {
+                                if (results.length === 1 &&
+                                    results[0].status[0] === "done" &&
+                                    results[0].status[1] === "no-info") {
+                                    reject("No docstring available..");
                                 }
-                            }
-                            if (docstring.length === 0) {
-                                reject("Docstring error: " + text);
-                            } else {
-                                let result = scope.formatDocString(nsname, arglist, docstring);
-                                if (result.length === 0) {
+
+                                for (var r = 0; r < results.length; r++) {
+                                    let result = results[r];
+                                    docstring += result.doc;
+                                    arglist += result['arglists-str'];
+                                    if (result.hasOwnProperty('ns') &&
+                                        result.hasOwnProperty('name')) {
+                                        nsname = result.ns + "/" + result.name;
+                                    }
+                                }
+                                if (docstring.length === 0) {
                                     reject("Docstring error: " + text);
                                 } else {
-                                    resolve(new vscode.Hover(result));
+                                    let result = scope.formatDocString(nsname, arglist, docstring);
+                                    if (result.length === 0) {
+                                        reject("Docstring error: " + text);
+                                    } else {
+                                        resolve(new vscode.Hover(result));
+                                    }
                                 }
-                            }
-                            client.end();
+                                client.end();
+                            });
                         });
-                    });
             });
         } else {
             return new vscode.Hover("Not connected to nREPL..");
