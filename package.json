@@ -273,6 +273,7 @@
         ]
     },
     "scripts": {
+        "watch": "npx shadow-cljs watch :calva",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
@@ -289,6 +290,7 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
+        "shadow-cljs": "^2.3.13",
         "eslint": "^4.19.1",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.9.0",

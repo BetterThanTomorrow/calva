@@ -42,3 +42,9 @@ jspm_packages
 
 #Macos
 .DS_Store
+
+## CLJS
+.shadow-cljs/
+out-cljs/
+.nrepl-port
+src/js/calva/
