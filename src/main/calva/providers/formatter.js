@@ -1,11 +1,7 @@
-const vscode = require('vscode');
-const state = require('../state');
-const repl = require('../repl/client');
-const {
-    getDocument,
-    getFileType,
-    getSession
-} = require('../utilities');
+import vscode from 'vscode';
+import state from '../state';
+import repl from '../repl/client';
+import { getDocument, getFileType, getSession } from '../utilities';
 
 class DocumentFormattingEditProvider {
     constructor() {
@@ -53,4 +49,4 @@ class DocumentFormattingEditProvider {
     }
 }
 
-module.exports = DocumentFormattingEditProvider;
+export default DocumentFormattingEditProvider;

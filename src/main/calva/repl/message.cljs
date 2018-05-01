@@ -1,5 +1,5 @@
 (ns calva.repl.message
-  (:require ["../utilities" :as util]))
+  (:require ["/calva/utilities.js" :as util]))
 
 (def operation
   {:EVALUATE "eval"

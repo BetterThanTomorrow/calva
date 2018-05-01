@@ -1,11 +1,11 @@
-const util = require('./utilities');
-const statusbar = require('./statusbar');
+import util from './utilities';
+import statusbar from './statusbar';
 
 function update() {
     util.updateREPLSessionType();
     statusbar.update();
 }
 
-module.exports = {
+export default {
     update
-}
+};

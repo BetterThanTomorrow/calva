@@ -1,9 +1,9 @@
-const state = require('../state');
-const os = require('os');
-const fs = require('fs');
-const JSZip = require('jszip');
+import state from '../state';
+import os from 'os';
+import fs from 'fs';
+import JSZip from 'jszip';
 
-module.exports = class TextDocumentContentProvider {
+export default class TextDocumentContentProvider {
     constructor() {
         this.state = state;
     }

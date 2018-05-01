@@ -1,4 +1,4 @@
-const vscode = require('vscode');
+import vscode from 'vscode';
 
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
@@ -64,11 +64,11 @@ function decorateSelection(codeSelection, editor) {
     }, 350);
 }
 
-module.exports = {
+export default {
     evalResultsDecorationType,
     evaluated,
     evalSelectionDecorationType,
     clearEvaluationDecorations,
     decorateResults,
     decorateSelection
-}
+};
