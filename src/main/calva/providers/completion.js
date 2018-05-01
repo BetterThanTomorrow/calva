@@ -1,8 +1,8 @@
 import vscode from 'vscode';
 import state from '../state';
 import repl from '../repl/client';
-import message from '../repl/message';
-import { getNamespace, getWordAtPosition, getSession } from '../utilities';
+import message from 'goog:calva.repl.message';
+import * as util from '../utilities';
 
 export default class CompletionItemProvider {
     constructor() {
@@ -21,7 +21,7 @@ export default class CompletionItemProvider {
     }
 
     provideCompletionItems(document, position, _) {
-        let text = getWordAtPosition(document, position),
+        let text = util.getWordAtPosition(document, position),
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
@@ -30,8 +30,8 @@ export default class CompletionItemProvider {
                 let current = this.state.deref(),
                     client = repl.create()
                         .once('connect', () => {
-                            let msg = message.completeMsg(getSession(filetype),
-                                getNamespace(document.getText()), text),
+                            let msg = message.completeMsg(util.getSession(filetype),
+                                util.getNamespace(document.getText()), text),
                                 completions = [];
                             client.send(msg, function (results) {
                                 for (var r = 0; r < results.length; r++) {
@@ -70,8 +70,8 @@ export default class CompletionItemProvider {
             if (current.get('connected')) {
                 let client = repl.create().once('connect', () => {
                     let document = vscode.window.activeTextEditor.document,
-                        msg = message.infoMsg(getSession(filetype),
-                            getNamespace(document.getText()), item.label);
+                        msg = message.infoMsg(util.getSession(filetype),
+                            util.getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {
                             let result = results[r];

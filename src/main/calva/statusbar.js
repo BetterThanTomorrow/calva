@@ -1,6 +1,6 @@
 import vscode from 'vscode';
 import state from './state';
-import util from './utilities';
+import * as util from './utilities';
 import shadow_util from './shadow';
 
 

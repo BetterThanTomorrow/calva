@@ -4,7 +4,7 @@ import state from '../../state';
 import repl from '../client';
 import message from 'goog:calva.repl.message';
 import evaluate from './evaluate';
-import { getDocument, getNamespace, getFileType, getSession, logError, ERROR_TYPE } from '../../utilities';
+import * as util from '../../utilities';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -111,8 +111,8 @@ function runTests(messages, startStr, errorStr, log = true) {
                         if (!exceptions && !errors) {
                             resolve(result);
                         } else {
-                            logError({
-                                type: ERROR_TYPE.ERROR,
+                            util.logError({
+                                type: util.ERROR_TYPE.ERROR,
                                 reason: "Error " + errorStr + ":" + _.find(result, "err").err
                             });
                             reject(result);
@@ -139,8 +139,8 @@ function runTests(messages, startStr, errorStr, log = true) {
 }
 
 function runAllTests(document = {}) {
-    let doc = getDocument(document),
-        session = getSession(getFileType(doc)),
+    let doc = util.getDocument(document),
+        session = util.getSession(util.getFileType(doc)),
         msg = message.testAllMsg(session);
 
     runTests([msg], "Running all tests", "running all tests");
@@ -154,9 +154,9 @@ function runAllTestsCommand() {
 }
 
 function getNamespaceTestMessages(document = {}) {
-    let doc = getDocument(document),
-        session = getSession(getFileType(doc)),
-        ns = getNamespace(doc.getText()),
+    let doc = util.getDocument(document),
+        session = util.getSession(util.getFileType(doc)),
+        ns = util.getNamespace(doc.getText()),
         messages = [message.testMsg(session, ns)];
 
     if (!ns.endsWith('-test')) {
@@ -177,8 +177,8 @@ function runNamespaceTestsCommand() {
 }
 
 function rerunTests(document = {}) {
-    let doc = getDocument(document),
-        session = getSession(getFileType(doc)),
+    let doc = util.getDocument(document),
+        session = util.getSession(util.getFileType(doc)),
         msg = message.rerunTestsMsg(session);
 
     evaluate.evaluateFile({}, () => {

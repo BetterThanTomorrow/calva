@@ -1,7 +1,7 @@
 import vscode from 'vscode';
 import { spawn } from 'child_process';
 import state from '../../state';
-import { logError, markError, logWarning, markWarning, ERROR_TYPE, getDocument } from '../../utilities';
+import util from '../../utilities';
 const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/
 
 function parseJokerLine(jokerOutput) {
@@ -16,7 +16,7 @@ function parseJokerLine(jokerOutput) {
         line: parseInt(matches[1]),
         reason: matches[3],
         column: parseInt(matches[2]) - 1,
-        type: matches[3].includes("warning") ? ERROR_TYPE.WARNING : ERROR_TYPE.ERROR
+        type: matches[3].includes("warning") ? util.ERROR_TYPE.WARNING : util.ERROR_TYPE.ERROR
     }
 
     if (!message.line) {
@@ -28,7 +28,7 @@ function parseJokerLine(jokerOutput) {
 }
 
 function lintDocument(document = {}) {
-    let doc = getDocument(document);
+    let doc = util.getDocument(document);
 
     if (doc.languageId !== 'clojure') {
         return;
@@ -45,12 +45,12 @@ function lintDocument(document = {}) {
                 if (jokerLine.length != 0) {
                     let msg = parseJokerLine(jokerLine)
                     if (msg != null) {
-                        if (msg.type == ERROR_TYPE.ERROR) {
-                            markError(msg);
-                            logError(msg);
-                        } else if (msg.type == ERROR_TYPE.WARNING) {
-                            markWarning(msg);
-                            logWarning(msg);
+                        if (msg.type == util.ERROR_TYPE.ERROR) {
+                            util.markError(msg);
+                            util.logError(msg);
+                        } else if (msg.type == util.ERROR_TYPE.WARNING) {
+                            util.markWarning(msg);
+                            util.logWarning(msg);
                         }
                     }
                 }

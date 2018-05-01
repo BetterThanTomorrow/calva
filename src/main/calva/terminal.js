@@ -1,6 +1,6 @@
 import vscode from 'vscode';
 import state from './state';
-import util from './utilities';
+import * as util from './utilities';
 import evaluate from './repl/middleware/evaluate';
 import annotations from './providers/annotations';
 import select from './repl/middleware/select';

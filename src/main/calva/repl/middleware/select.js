@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import util from '../../utilities';
+import * as util from '../../utilities';
 
 function getFormSelection(doc, currentPosition) {
     let nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),

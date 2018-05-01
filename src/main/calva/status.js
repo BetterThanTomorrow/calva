@@ -1,4 +1,4 @@
-import util from './utilities';
+import * as util from './utilities';
 import statusbar from './statusbar';
 
 function update() {

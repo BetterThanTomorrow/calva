@@ -211,7 +211,7 @@ function getREPLSessionType() {
     return current.get('current-session-type');
 }
 
-export default {
+export {
     getProjectDir,
     getNamespace,
     getStartExpression,

@@ -1,8 +1,8 @@
 import vscode from 'vscode';
 import state from '../state';
 import repl from '../repl/client';
-import message from '../repl/message';
-import { getNamespace, getWordAtPosition, getSession } from '../utilities';
+import message from 'goog:calva.repl.message';
+import * as util from '../utilities';
 
 export default class DefinitionProvider {
     constructor() {
@@ -10,7 +10,7 @@ export default class DefinitionProvider {
     }
 
     provideDefinition(document, position, token) {
-        let text = getWordAtPosition(document, position),
+        let text = util.getWordAtPosition(document, position),
             location = null,
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
@@ -19,8 +19,8 @@ export default class DefinitionProvider {
             return new Promise((resolve, reject) => {
                 let current = scope.state.deref(),
                     client = repl.create().once('connect', () => {
-                        let msg = message.infoMsg(getSession(filetype),
-                            getNamespace(document.getText()), text);
+                        let msg = message.infoMsg(util.getSession(filetype),
+                            util.getNamespace(document.getText()), text);
                         client.send(msg, function (results) {
                             for (var r = 0; r < results.length; r++) {
                                 let result = results[r];

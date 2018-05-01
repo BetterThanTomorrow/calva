@@ -2,7 +2,7 @@ import fs from 'fs';
 import _ from 'lodash';
 import edn from 'jsedn';
 import state from './state';
-import util from './utilities';
+import * as util from './utilities';
 
 function shadowNReplPortFile() {
     return util.getProjectDir() + '/.shadow-cljs/nrepl.port';

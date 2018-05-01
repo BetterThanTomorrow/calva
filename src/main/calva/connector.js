@@ -4,7 +4,7 @@ import fs from 'fs';
 import state from './state';
 import repl from './repl/client';
 import message from 'goog:calva.repl.message';
-import util from './utilities';
+import * as util from './utilities';
 import shadow from './shadow';
 import status from './status';
 import terminal from './terminal';

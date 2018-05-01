@@ -1,8 +1,8 @@
 import vscode from 'vscode';
 import state from '../state';
 import repl from '../repl/client';
-import message from '../repl/message';
-import { getNamespace, getWordAtPosition } from '../utilities';
+import message from 'goog:calva.repl.message';
+import * as util from '../utilities';
 
 export default class HoverProvider {
     constructor() {
@@ -32,7 +32,7 @@ export default class HoverProvider {
     }
 
     provideHover(document, position, _) {
-        let text = getWordAtPosition(document, position),
+        let text = util.getWordAtPosition(document, position),
             docstring = "",
             arglist = "",
             nsname = "",
@@ -50,7 +50,7 @@ export default class HoverProvider {
                     client = repl.create()
                         .once('connect', () => {
                             let msg = message.infoMsg(current.get(filetype),
-                                getNamespace(document.getText()), text);
+                                util.getNamespace(document.getText()), text);
                             client.send(msg, function (results) {
                                 if (results.length === 1 &&
                                     results[0].status[0] === "done" &&

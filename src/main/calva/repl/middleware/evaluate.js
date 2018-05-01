@@ -2,10 +2,10 @@ import vscode from 'vscode';
 import _ from 'lodash';
 import state from '../../state';
 import repl from '../client';
-import message from '../message';
+import message from 'goog:calva.repl.message';
 import annotations from '../../providers/annotations';
 import select from './select';
-import { getDocument, getFileName, getFileType, getNamespace, getSession, logError, ERROR_TYPE } from '../../utilities';
+import * as util from '../../utilities';
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
     let current = state.deref(),
@@ -23,8 +23,8 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
                     resolve(result);
                 } else {
                     let err = _.find(result, "err").err;
-                    logError({
-                        type: ERROR_TYPE.ERROR,
+                    util.logError({
+                        type: util.ERROR_TYPE.ERROR,
                         reason: "Error, " + errorStr + ": " + err
                     });
                     reject(result);
@@ -43,10 +43,10 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
 function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = current.get('outputChannel'),
-        doc = getDocument(document),
+        doc = util.getDocument(document),
         pprint = options.pprint || false,
         replace = options.replace || false,
-        session = getSession(getFileType(doc));
+        session = util.getSession(util.getFileType(doc));
 
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
@@ -65,7 +65,7 @@ function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
-            let msg = message.evaluateMsg(session, getNamespace(doc.getText()), code, pprint),
+            let msg = message.evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
             evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
@@ -117,13 +117,13 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
 
 function evaluateFile(document = {}, callback = () => { }) {
     let current = state.deref(),
-        doc = getDocument(document),
-        fileName = getFileName(doc),
-        fileType = getFileType(doc),
+        doc = util.getDocument(document),
+        fileName = util.getFileName(doc),
+        fileType = util.getFileType(doc),
         chan = current.get('outputChannel');
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
-        let session = getSession(getFileType(doc)),
+        let session = util.getSession(util.getFileType(doc)),
             msg = message.loadFileMsg(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
