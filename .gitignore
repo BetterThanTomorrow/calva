@@ -48,3 +48,4 @@ jspm_packages
 out-cljs/
 .nrepl-port
 src/js/main.js
+dist/

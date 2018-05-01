@@ -1,4 +1,4 @@
-(ns repl.message
+(ns calva.repl.message
   (:require ["../utilities" :as util]))
 
 (def operation

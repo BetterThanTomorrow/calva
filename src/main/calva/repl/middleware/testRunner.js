@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const _ = require('lodash');
 const state = require('../../state');
 const repl = require('../client');
-const { message } = require('../../main');
+const { message } = require('../../calva');
 const evaluate = require('./evaluate');
 const {
     getDocument,
