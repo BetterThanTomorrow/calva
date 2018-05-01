@@ -1,5 +1,5 @@
 {:source-paths
- ["src/cljs"]
+ ["src/main/calva"]
 
  :dependencies
  [[org.clojure/core.async  "0.4.474"]
@@ -10,7 +10,6 @@
  {:calva
   {:target :node-library
    :output-dir "out-cljs"
-   :output-to "src/js/calva/main.js"
+   :output-to "dist/calva.js"
    :exports {:message repl.message/message}
-   :modules {:main {:entries [repl.message]}}
    :devtools {}}}}

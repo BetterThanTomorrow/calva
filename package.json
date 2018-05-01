@@ -48,7 +48,7 @@
     "activationEvents": [
         "onLanguage:clojure"
     ],
-    "main": "./src/js/extension",
+    "main": "./src/main/calva/extension",
     "contributes": {
         "configuration": {
             "type": "object",

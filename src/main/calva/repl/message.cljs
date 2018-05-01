@@ -1,5 +1,5 @@
 (ns repl.message
-  (:require ["utilities" :as util]))
+  (:require ["../utilities" :as util]))
 
 (def operation
   {:EVALUATE "eval"
