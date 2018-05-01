@@ -13,6 +13,4 @@
   {:target :node-library
    :output-to "dist/calva.js"
    :exports calva.extension/exports
-   :js-options
-   {:language-out :no-transpile}
    :devtools {}}}}
