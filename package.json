@@ -98,6 +98,11 @@
                     "type": "string",
                     "default": ".",
                     "description": "The root directory of your Clojure project, relative to the Workspace root"
+                },
+                "calva.showGreetings": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Shows Calva greetings on activate"
                 }
             }
         },

@@ -55,7 +55,8 @@ function onDidOpen(document) {
 
 function activate(context) {
     let {
-        autoConnect
+        autoConnect,
+        showGreetings
     } = state.config();
     //Set the language configuration for vscode when using this extension
     vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
@@ -64,7 +65,6 @@ function activate(context) {
 
     //Set calvas output channel to active
     let chan = state.deref().get('outputChannel');
-    chan.show(true);
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
@@ -123,7 +123,11 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
-    chan.show(true);
+
+    if (showGreetings) {
+        chan.show(true);
+    }
+
 }
 
 exports.activate = activate;

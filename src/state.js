@@ -45,7 +45,8 @@ function config() {
         autoConnect: configOptions.get("autoConnect"),
         autoAdjustIndent: configOptions.get("autoAdjustIndent"),
         connectREPLCommand: configOptions.get("connectREPLCommand"),
-        projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, "")
+        projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, ""),
+        showGreetings: configOptions.get("showGreetings")
     };
 };
 
