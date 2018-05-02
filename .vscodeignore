@@ -1,7 +1,16 @@
-.vscode/**
-.vscode-test/**
-test/**
-.gitignore
-jsconfig.json
-vsc-extension-quickstart.md
-.eslintrc.json
+# Ignore everything by default
+*
+*/**
+**/.DS_Store
+
+# Whitelist
+!dist/**
+!out/**/*.js
+!package.json
+!assets/**
+!README.md
+!CHANGELOG.md
+!LICENSE.txt
+
+# Crazy, seems we need all node_modules in the package!
+!node_modules/**

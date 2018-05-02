@@ -12,5 +12,6 @@
  {:calva
   {:target :node-library
    :output-to "dist/calva.js"
+   :output-dir "out"
    :exports calva.extension/exports
    :devtools {}}}}

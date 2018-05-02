@@ -273,7 +273,8 @@
         ]
     },
     "scripts": {
-        "watch": "npx shadow-cljs watch :calva",
+        "compile": "npx shadow-cljs watch :calva",
+        "vscode:prepublish": "npx shadow-cljs compile :calva",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
