@@ -1,16 +1,16 @@
-# Ignore everything by default
+# Put everything on the blacklist by default
 *
 */**
 **/.DS_Store
+*/**/.DS_Store
 
 # Whitelist
 !dist/**
-!out/**/*.js
 !package.json
 !assets/**
 !README.md
 !CHANGELOG.md
 !LICENSE.txt
 
-# Crazy, seems we need all node_modules in the package!
+# TODO: Figure out what node_modules we should white list
 !node_modules/**
