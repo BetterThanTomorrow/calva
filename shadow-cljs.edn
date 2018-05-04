@@ -13,5 +13,6 @@
   {:target :node-library
    :output-to "dist/calva.js"
    :output-dir "out"
+   :compiler-options {:source-map-use-fs-paths true}
    :exports calva.extension/exports
    :devtools {}}}}
