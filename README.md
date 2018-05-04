@@ -1,4 +1,4 @@
-# Calva: Clojure & Clojurescript support for VS Code
+# Calva: Clojure & ClojureScript support for VS Code
 
 [Integrated REPL, linting, inline eval, test runner, and more](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
 
@@ -85,7 +85,7 @@ Haha, but actually we are now two, so that's a team. Neither of us actually have
 
 Mostly Calva just works, but there are still some things to know beforehand. One good thing to know is that all commands and settings are of the category `Calva`, so bringing up the VSCode's list of commands or settings and searching for ”Calva” will take you a long way.
 
-It is also necessary to know that Calva does not start the Clojure/Clojurescript repls for you. You will need to start them some other way (usually in a terminal), then connect.
+It is also necessary to know that Calva does not start the Clojure/ClojureScript repls for you. You will need to start them some other way (usually in a terminal), then connect.
 
 ### Autolinting
 
@@ -116,7 +116,7 @@ Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
 
 If you are only using Clojure then you are all set.
 
-#### For Clojurescript
+#### For ClojureScript
 
 This depends some on wether the project is powered by **Figwheel** or **shadow-cljs** or something else.
 
@@ -159,7 +159,7 @@ Yay! 🍾 🎆 ✨
 
 #### ClojureScript REPL
 
-For Calva to be able to connect the Clojurescript repl, your ClojureScript app needs to be running and connected to the repl session. (Calva is at the moment only tested with browser apps, but might work with other project types as well anyway.)
+For Calva to be able to connect the ClojureScript repl, your ClojureScript app needs to be running and connected to the repl session. (Calva is at the moment only tested with browser apps, but might work with other project types as well anyway.)
 
 ##### shadow-cljs projects
 
