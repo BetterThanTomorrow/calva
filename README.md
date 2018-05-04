@@ -94,6 +94,12 @@ The extension comes with autolinting disabled. This is because you will need to 
 "calva.lintOnSave": true
 ```
 
+### Strange linting errors?
+
+The Joker way of linting has its limitations. If you think the linting reporting is off, it is probably something you should check with the [Joker project](https://github.com/candid82/joker).
+
+That said, this one might be worth a mention here:
+
 #### Unrecognized macros
 One thing to note with this linter is that it doesn't do a full scan of all files and does not recognize macros it doesn't know about. Leading to false complains about `Unable to resolve symbol x`. You might now and then tell it about macros you use. Create a `.joker` file somewhere in the path from the root of your project to where you are using the macro (the project root might be the best choice), and add:
 ```
