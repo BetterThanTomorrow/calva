@@ -303,8 +303,8 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
-        "shadow-cljs": "^2.3.17",
         "eslint": "^4.19.1",
+        "shadow-cljs": "^2.3.18",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.9.0",
         "eslint-plugin-node": "^6.0.1",
