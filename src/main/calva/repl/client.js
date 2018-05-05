@@ -3,6 +3,7 @@ import net from 'net';
 import { Buffer } from 'buffer';
 import bencoder from 'bencoder';
 import migration from 'goog:calva.migration';
+import nrepl from 'goog:calva.repl.nrepl';
 
 
 const CONTINUATION_ERROR_MESSAGE = "Unexpected continuation: \"";
@@ -77,20 +78,16 @@ function create(options) {
         _options = null;
     if (current.get('connected')) {
         _options = {
-            hostname: current.get('hostname'),
+            host: current.get('hostname'),
             port: current.get('port')
         }
     } else {
         _options = options;
     }
-    if (_options !== null) {
-        let con = net.createConnection(_options);
-        con.send = send.bind(con);
 
-        con.on('error', (e) => {
-            console.log("ERROR");
-            console.log(e);
-        });
+    if (_options !== null) {
+        let con = nrepl.connect(_options);
+        con.send = send.bind(con);
 
         return con;
     }

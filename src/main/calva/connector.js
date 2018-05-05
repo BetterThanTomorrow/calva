@@ -79,12 +79,9 @@ function connectToHost(hostname, port) {
         state.cursor.set('connecting', true);
         status.update();
 
-        chan.appendLine("Hooking up nREPL sessions...");
+        let onConnect = () => {
+            chan.appendLine("Hooking up nREPL sessions...");
 
-        let client = repl.create({
-            hostname,
-            port
-        }).once('connect', () => {
             client.send(message.cloneMsg(), cloneResults => {
                 client.end();
                 let cljSession = _.find(cloneResults, 'new-session')['new-session'];
@@ -111,6 +108,12 @@ function connectToHost(hostname, port) {
                     chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
                 }
             });
+        };
+
+        let client = repl.create({
+            "host": hostname,
+            "port": port,
+            "on-connect": onConnect
         });
     });
 }
