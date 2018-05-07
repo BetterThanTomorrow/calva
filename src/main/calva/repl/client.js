@@ -9,6 +9,11 @@ import nrepl from 'goog:calva.repl.nrepl';
 const CONTINUATION_ERROR_MESSAGE = "Unexpected continuation: \"";
 
 function decode(decodedResult) {
+    // {
+    //     decodedObjects: [],
+    //     rest: buffer
+    // }
+
     if (decodedResult.rest.length === 0)
         return decodedResult;
     try {
@@ -36,41 +41,53 @@ function decode(decodedResult) {
 
 function isDone(chunks) {
     let lastObj = [...chunks].pop();
+
     return lastObj && lastObj.status && lastObj.status.indexOf('done') !== -1;
 }
 
 function send(msg, callback) {
-    let buffer = Buffer.from(''),
-        encodedMsg = bencoder.encode(migration.jsify(msg));
-    let chunks = [];
-    this.on('data', (chunk) => {
-        try {
-            buffer = Buffer.concat([buffer, chunk]);
-            let {
-                decodedObjects,
-                rest
-            } = decode({
-                decodedObjects: [],
-                rest: buffer
-            });
-            buffer = rest;
-            let validDecodedObjects = decodedObjects.reduce((objs, obj) => {
-                if (!isDone(objs))
-                    objs.push(obj);
-                return objs;
-            }, []);
 
-            chunks.push(...validDecodedObjects)
+    nrepl.message(this, msg, callback);
 
-            if (isDone(chunks)) {
-                callback(chunks);
-            }
 
-        } catch (error) {
-            console.error(error);
-        }
-    });
-    this.write(encodedMsg, 'binary');
+    // console.log(`MSG ${msg}`);
+
+    // let buffer = Buffer.from(''),
+    //     encodedMsg = bencoder.encode(migration.jsify(msg));
+    // let chunks = [];
+    // this.on('data', (chunk) => {
+    //     try {
+    //         buffer = Buffer.concat([buffer, chunk]);
+    //         let {
+    //             decodedObjects,
+    //             rest
+    //         } = decode({
+    //             decodedObjects: [],
+    //             rest: buffer
+    //         });
+    //         buffer = rest;
+
+    //         let validDecodedObjects = decodedObjects.reduce((objs, obj) => {
+    //             if (!isDone(objs))
+    //                 objs.push(obj);
+    //             return objs;
+    //         }, []);
+
+    //         chunks.push(...validDecodedObjects)
+
+    //         if (isDone(chunks)) {
+
+
+    //             console.log('CALLBACK ARG', chunks);
+
+    //             callback(chunks);
+    //         }
+
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    // });
+    // this.write(encodedMsg, 'binary');
 }
 
 function create(options) {
