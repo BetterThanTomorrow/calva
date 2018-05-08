@@ -6,7 +6,8 @@ import status from '../status';
 
 const oneIndentForms = ['fn', 'def', 'defn', 'ns', 'let', 'for', 'loop',
     'when', 'when-let', 'if', 'if-let', 'if-not', 'when-not', 'cond', 'do',
-    'doseq', 'dotimes', 'deftest', 'testing', 'defn-'
+    'doseq', 'dotimes', 'deftest', 'testing', 'are', 'defn-', 'try', 'catch',
+    'defmacro'
 ]
 
 const quotes = ["'", "`"];
