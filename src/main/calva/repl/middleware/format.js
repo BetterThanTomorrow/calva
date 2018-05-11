@@ -1,4 +1,4 @@
-import state from '../../state';
+import * as state from '../../state';
 import repl from '../client';
 import message from 'goog:calva.repl.message';
 import * as util from '../../utilities';

@@ -1,4 +1,4 @@
-import state from '../state';
+import * as state from '../state';
 import nrepl from 'goog:calva.repl.nrepl';
 
 function send(msg, callback) {

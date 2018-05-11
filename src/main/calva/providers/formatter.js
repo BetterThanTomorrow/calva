@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import state from '../state';
+import * as state from '../state';
 import repl from '../repl/client';
 import * as util from '../utilities';
 

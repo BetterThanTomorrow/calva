@@ -1,4 +1,4 @@
-import state from '../state';
+import * as state from '../state';
 import os from 'os';
 import fs from 'fs';
 import JSZip from 'jszip';

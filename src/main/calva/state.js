@@ -49,7 +49,7 @@ function config() {
     };
 }
 
-export default {
+export {
     cursor,
     mode,
     deref,

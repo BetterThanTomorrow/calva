@@ -1,7 +1,7 @@
 import fs from 'fs';
 import _ from 'lodash';
 import edn from 'jsedn';
-import state from './state';
+import * as state from './state';
 import * as util from './utilities';
 
 function shadowNReplPortFile() {

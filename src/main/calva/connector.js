@@ -1,8 +1,8 @@
 import vscode from 'vscode';
 import _ from 'lodash';
 import fs from 'fs';
-import state from './state';
-import repl from './repl/client';
+import * as state from './state';
+import repl from 'goog:calva.repl.client';
 import message from 'goog:calva.repl.message';
 import * as util from './utilities';
 import shadow from './shadow';
@@ -79,6 +79,11 @@ function connectToHost(hostname, port) {
         state.cursor.set('connecting', true);
         status.update();
 
+        let client = repl.create({
+            "host": hostname,
+            "port": port,
+            "on-connect": onConnect
+        });
         let onConnect = () => {
             chan.appendLine("Hooking up nREPL sessions...");
 
@@ -109,12 +114,6 @@ function connectToHost(hostname, port) {
                 }
             });
         };
-
-        let client = repl.create({
-            "host": hostname,
-            "port": port,
-            "on-connect": onConnect
-        });
     });
 }
 

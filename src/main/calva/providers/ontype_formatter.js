@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import state from '../state';
+import * as state from '../state';
 import status from '../status';
 
 // Adapted from the Atom clojure-indent extension: https://github.com/Ciebiada/clojure-indent

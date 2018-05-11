@@ -1,4 +1,4 @@
-import state from './state';
+import * as state from './state';
 
 function activationGreetings(chan) {
     chan.appendLine("Calva activated. Happy Clojure(script) coding! ❤️");

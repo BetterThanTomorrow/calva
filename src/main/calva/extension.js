@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import state from './state';
+import * as state from './state';
 import status from './status';
 import connector from './connector';
 import greet from './greet';

@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import state from './state';
+import * as state from './state';
 import * as util from './utilities';
 import shadow_util from './shadow';
 
