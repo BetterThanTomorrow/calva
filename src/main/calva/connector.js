@@ -79,11 +79,7 @@ function connectToHost(hostname, port) {
         state.cursor.set('connecting', true);
         status.update();
 
-        let client = repl.create({
-            "host": hostname,
-            "port": port,
-            "on-connect": onConnect
-        });
+
         let onConnect = () => {
             chan.appendLine("Hooking up nREPL sessions...");
 
@@ -114,6 +110,12 @@ function connectToHost(hostname, port) {
                 }
             });
         };
+
+        let client = repl.create({
+            "host": hostname,
+            "port": port,
+            "on-connect": onConnect
+        });
     });
 }
 

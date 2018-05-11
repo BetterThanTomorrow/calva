@@ -16,4 +16,5 @@
                   options)]
     (when options
       (let [con (nrepl/connect options)]
-        (set! (.-send con) (.bind send con))))))
+        (set! (.-send con) (.bind send con))
+        con))))
