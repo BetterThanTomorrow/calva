@@ -1,7 +1,7 @@
 import vscode from 'vscode';
 import { spawn } from 'child_process';
-import state from '../../state';
-import util from '../../utilities';
+import * as state from '../../state';
+import * as util from '../../utilities';
 const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/
 
 function parseJokerLine(jokerOutput) {
