@@ -1,5 +1,5 @@
 import vscode from 'vscode';
-import * as util from '../../utilities';
+import { getDocument } from '../../utilities';
 
 function getFormSelection(doc, currentPosition) {
     let nextPosition = currentPosition.with(currentPosition.line, (currentPosition.character + 1)),
@@ -136,7 +136,7 @@ function getSelectionToPreviousBracket(doc, selection, endPosition, endBracket) 
 
 function selectCurrentForm(document = {}) {
     let editor = vscode.window.activeTextEditor,
-        doc = util.getDocument(document),
+        doc = getDocument(document),
         selection = editor.selection,
         codeSelection = null;
 
@@ -148,7 +148,7 @@ function selectCurrentForm(document = {}) {
     }
 }
 
-export default {
+export {
     getFormSelection,
     selectCurrentForm
 };

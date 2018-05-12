@@ -1,7 +1,7 @@
 import vscode from 'vscode';
-import state from './state';
-import * as util from './utilities';
-import shadow_util from './shadow';
+import { deref } from './state';
+import { getDocument, getFileType, getREPLSessionType, getSession } from './utilities';
+import { isShadowCljs } from './shadow';
 
 
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -9,10 +9,10 @@ const type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const shadow = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const indent = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
-function update() {
-    let current = state.deref(),
-        doc = util.getDocument({}),
-        fileType = util.getFileType(doc),
+function updateStatusBar() {
+    let current = deref(),
+        doc = getDocument({}),
+        fileType = getFileType(doc),
         autoAdjustIndent = current.get('autoAdjustIndent'),
         shadowBuild = current.get('shadowBuild');
 
@@ -40,21 +40,21 @@ function update() {
         connection.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connection.command = "calva.connect";
         type.color = "rgb(145,220,71)";
-        if (fileType == 'cljc' && util.getREPLSessionType() !== null) {
-            type.text = "cljc/" + util.getREPLSessionType()
-            if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
+        if (fileType == 'cljc' && getREPLSessionType() !== null) {
+            type.text = "cljc/" + getREPLSessionType()
+            if (getSession('clj') !== null && getSession('cljs') !== null) {
                 type.command = "calva.toggleCLJCSession";
-                type.tooltip = `Click to use ${(util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
+                type.tooltip = `Click to use ${(getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
             }
-        } else if (util.getREPLSessionType() === 'cljs') {
+        } else if (getREPLSessionType() === 'cljs') {
             type.text = "cljs";
             type.tooltip = "Connected to ClojureScript REPL";
-        } else if (util.getREPLSessionType() === 'clj') {
+        } else if (getREPLSessionType() === 'clj') {
             type.text = "clj"
             type.tooltip = "Connected to Clojure REPL";
         }
-        if (shadow_util.isShadowCljs()) {
-            if (shadowBuild !== null && util.getREPLSessionType() === 'cljs') {
+        if (isShadowCljs()) {
+            if (shadowBuild !== null && getREPLSessionType() === 'cljs') {
                 shadow.text = shadowBuild;
                 shadow.tooltip = "Click to connect to another Shadow CLJS build";
             } else if (shadowBuild === null) {
@@ -81,6 +81,4 @@ function update() {
     indent.show();
 }
 
-export default {
-    update
-};
+export default updateStatusBar;

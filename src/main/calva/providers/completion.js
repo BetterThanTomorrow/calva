@@ -1,12 +1,11 @@
 import vscode from 'vscode';
-import state from '../state';
-import repl from '../repl/client';
+import { deref } from '../state';
+import createReplClient from '../repl/client';
 import message from 'goog:calva.repl.message';
-import * as util from '../utilities';
+import { getNamespace, getSession, getWordAtPosition } from '../utilities';
 
 export default class CompletionItemProvider {
     constructor() {
-        this.state = state;
         this.mappings = {
             'nil': vscode.CompletionItemKind.Value,
             'macro': vscode.CompletionItemKind.Value,
@@ -21,17 +20,17 @@ export default class CompletionItemProvider {
     }
 
     provideCompletionItems(document, position, _) {
-        let text = util.getWordAtPosition(document, position),
+        let text = getWordAtPosition(document, position),
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
-        if (this.state.deref().get("connected")) {
+        if (deref().get("connected")) {
             return new Promise((resolve, reject) => {
-                let current = this.state.deref(),
-                    client = repl.create()
+                let current = deref(),
+                    client = createReplClient()
                         .once('connect', () => {
-                            let msg = message.completeMsg(util.getSession(filetype),
-                                util.getNamespace(document.getText()), text),
+                            let msg = message.completeMsg(getSession(filetype),
+                                getNamespace(document.getText()), text),
                                 completions = [];
                             client.send(msg, function (results) {
                                 for (var r = 0; r < results.length; r++) {
@@ -66,12 +65,12 @@ export default class CompletionItemProvider {
             filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1),
             filetype = editor.document.fileName.substr(filetypeIndex, editor.document.fileName.length);
         return new Promise((resolve, reject) => {
-            let current = this.state.deref();
+            const current = deref();
             if (current.get('connected')) {
-                let client = repl.create().once('connect', () => {
+                let client = createReplClient().once('connect', () => {
                     let document = vscode.window.activeTextEditor.document,
-                        msg = message.infoMsg(util.getSession(filetype),
-                            util.getNamespace(document.getText()), item.label);
+                        msg = message.infoMsg(getSession(filetype),
+                            getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {
                             let result = results[r];

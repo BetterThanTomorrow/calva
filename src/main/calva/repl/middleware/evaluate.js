@@ -1,21 +1,21 @@
 import vscode from 'vscode';
 import _ from 'lodash';
-import state from '../../state';
-import repl from '../client';
+import { deref } from '../../state';
+import createReplClient from '../client';
 import message from 'goog:calva.repl.message';
 import annotations from '../../providers/annotations';
-import select from './select';
-import * as util from '../../utilities';
+import { getFormSelection } from './select';
+import { ERROR_TYPE, getDocument, getFileName, getFileType, getNamespace, getSession, logError } from '../../utilities';
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel');
 
     chan.appendLine(startStr);
 
     let evalClient = null;
     new Promise((resolve, reject) => {
-        evalClient = repl.create().once('connect', () => {
+        evalClient = createReplClient().once('connect', () => {
             evalClient.send(msg, (result) => {
                 let exceptions = _.some(result, "ex"),
                     errors = _.some(result, "err");
@@ -23,8 +23,8 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
                     resolve(result);
                 } else {
                     let err = _.find(result, "err").err;
-                    util.logError({
-                        type: util.ERROR_TYPE.ERROR,
+                    logError({
+                        type: ERROR_TYPE.ERROR,
                         reason: "Error, " + errorStr + ": " + err
                     });
                     reject(result);
@@ -41,12 +41,12 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
 }
 
 function evaluateSelection(document = {}, options = {}) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel'),
-        doc = util.getDocument(document),
+        doc = getDocument(document),
         pprint = options.pprint || false,
         replace = options.replace || false,
-        session = util.getSession(util.getFileType(doc));
+        session = getSession(getFileType(doc));
 
     if (current.get('connected')) {
         let editor = vscode.window.activeTextEditor,
@@ -57,7 +57,7 @@ function evaluateSelection(document = {}, options = {}) {
         annotations.clearEvaluationDecorations(editor);
 
         if (selection.isEmpty) {
-            codeSelection = select.getFormSelection(doc, selection.active);
+            codeSelection = getFormSelection(doc, selection.active);
             code = doc.getText(codeSelection);
         } else {
             codeSelection = selection,
@@ -65,7 +65,7 @@ function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
-            let msg = message.evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
+            let msg = message.evaluateMsg(session, getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
             evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
@@ -116,14 +116,14 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
 }
 
 function evaluateFile(document = {}, callback = () => { }) {
-    let current = state.deref(),
-        doc = util.getDocument(document),
-        fileName = util.getFileName(doc),
-        fileType = util.getFileType(doc),
+    let current = deref(),
+        doc = getDocument(document),
+        fileName = getFileName(doc),
+        fileType = getFileType(doc),
         chan = current.get('outputChannel');
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
-        let session = util.getSession(util.getFileType(doc)),
+        let session = getSession(getFileType(doc)),
             msg = message.loadFileMsg(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
@@ -143,7 +143,7 @@ function evaluateFile(document = {}, callback = () => { }) {
     }
 }
 
-export default {
+export {
     evaluateFile,
     evaluateSelection,
     evaluateSelectionPrettyPrint,

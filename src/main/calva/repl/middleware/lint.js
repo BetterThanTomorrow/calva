@@ -1,7 +1,8 @@
 import vscode from 'vscode';
 import { spawn } from 'child_process';
-import * as state from '../../state';
-import * as util from '../../utilities';
+import { config, deref } from '../../state';
+import { ERROR_TYPE, getDocument, logError, logWarning, markError, markWarning } from '../../utilities';
+
 
 function parseJokerLine(jokerOutput) {
     const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/;
@@ -16,7 +17,7 @@ function parseJokerLine(jokerOutput) {
         line: parseInt(matches[1]),
         reason: matches[3],
         column: parseInt(matches[2]) - 1,
-        type: matches[3].includes("warning") ? util.ERROR_TYPE.WARNING : util.ERROR_TYPE.ERROR
+        type: matches[3].includes("warning") ? ERROR_TYPE.WARNING : ERROR_TYPE.ERROR
     }
 
     if (!message.line) {
@@ -38,13 +39,13 @@ function logMessage(message) {
 }
 
 function lintDocument(document = {}) {
-    let doc = util.getDocument(document);
+    const doc = getDocument(document);
 
     if (doc.languageId !== 'clojure') {
         return;
     }
     //Reset errors
-    state.deref().get("diagnosticCollection").delete(doc.uri);
+    deref().get("diagnosticCollection").delete(doc.uri);
 
     let joker = spawn("joker", ["--lint", doc.fileName]);
     joker.stdout.setEncoding("utf8");
@@ -78,6 +79,4 @@ function lintDocument(document = {}) {
     });
 }
 
-export default {
-    lintDocument
-};
+export default lintDocument;

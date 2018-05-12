@@ -1,15 +1,15 @@
-import state from '../../state';
-import repl from '../client';
+import { deref } from '../../state';
+import createReplClient from '../client';
 import message from 'goog:calva.repl.message';
-import * as util from '../../utilities';
+import { getDocument, getFileType, getSession } from '../../utilities';
 
 
 function formatCode(code, document = {}) {
-    let doc = util.getDocument(document),
+    let doc = getDocument(document),
         formatClient = null;
     return new Promise((resolve, reject) => {
-        formatClient = repl.create().once('connect', () => {
-            let msg = message.formatMsg(util.getSession(util.getFileType(doc)), code);
+        formatClient = createReplClient().once('connect', () => {
+            let msg = message.formatMsg(getSession(getFileType(doc)), code);
             formatClient.send(msg, function (results) {
                 let r = results[0];
                 if (r.status.indexOf("format-code-error") !== -1) {
@@ -30,7 +30,7 @@ function formatCode(code, document = {}) {
         formatClient.end();
         return formattedCode;
     }).catch((results, errorMessage) => {
-        let chan = state.deref().get('outputChannel');
+        let chan = deref().get('outputChannel');
         formatClient.end();
         chan.appendLine(errorMessage + ":");
         chan.appendLine(results);
@@ -38,6 +38,4 @@ function formatCode(code, document = {}) {
     });
 }
 
-export default {
-    formatCode
-};
+export default formatCode;

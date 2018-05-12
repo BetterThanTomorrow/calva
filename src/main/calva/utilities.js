@@ -1,13 +1,13 @@
 import vscode from 'vscode';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import _ from 'lodash';
-import state from './state';
+import { config, cursor, deref } from './state';
 import fs from 'fs';
 const syntaxQuoteSymbol = "`";
 
 
 function getProjectDir() {
-    let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
+    let path = vscode.workspace.rootPath + "/" + config().projectRootDirectory;
 
     if (fs.existsSync(path)) {
         return path;
@@ -78,7 +78,7 @@ function getDocumentNamespace(document = {}) {
 
 function getSession(fileType = undefined) {
     let doc = getDocument({}),
-        current = state.deref();
+        current = deref();
 
     if (fileType === undefined) {
         fileType = getFileType(doc);
@@ -97,7 +97,7 @@ const ERROR_TYPE = {
 };
 
 function logSuccess(results) {
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
     chan.appendLine("Evaluation completed successfully");
     _.each(results, (r) => {
         let value = r.hasOwnProperty("value") ? r.value : null;
@@ -112,7 +112,7 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
 
     chan.appendLine(error.reason);
     if (error.line !== undefined && error.line !== null &&
@@ -129,7 +129,7 @@ function markError(error) {
         error.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = deref().get('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -149,7 +149,7 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
     chan.appendLine(warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
@@ -168,7 +168,7 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = deref().get('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -187,27 +187,27 @@ function markWarning(warning) {
 
 
 function updateREPLSessionType() {
-    let current = state.deref(),
+    let current = deref(),
         doc = getDocument({}),
         fileType = getFileType(doc);
 
     if (current.get('connected')) {
         if (fileType == 'cljs' && getSession('cljs') !== null) {
-            state.cursor.set('current-session-type', 'cljs');
+            cursor.set('current-session-type', 'cljs');
         } else if (fileType == 'clj' && getSession('clj') !== null) {
-            state.cursor.set('current-session-type', 'clj');
+            cursor.set('current-session-type', 'clj');
         } else if (fileType == 'cljc' && getSession('cljc') !== null) {
-            state.cursor.set('current-session-type', getSession('cljc') == getSession('clj') ? 'clj' : 'cljs');
+            cursor.set('current-session-type', getSession('cljc') == getSession('clj') ? 'clj' : 'cljs');
         } else {
-            state.cursor.set('current-session-type', 'clj');
+            cursor.set('current-session-type', 'clj');
         }
     } else {
-        state.cursor.set('current-session-type', null);
+        cursor.set('current-session-type', null);
     }
 }
 
 function getREPLSessionType() {
-    let current = state.deref();
+    let current = deref();
     return current.get('current-session-type');
 }
 

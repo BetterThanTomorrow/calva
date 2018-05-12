@@ -1,15 +1,15 @@
 import vscode from 'vscode';
 import _ from 'lodash';
-import state from '../../state';
-import repl from '../client';
+import { deref } from '../../state';
+import createReplClient from '../client';
 import message from 'goog:calva.repl.message';
-import evaluate from './evaluate';
-import * as util from '../../utilities';
+import { evaluateFile } from './evaluate';
+import { ERROR_TYPE, getDocument, getFileType, getNamespace, getSession, logError } from '../../utilities';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function markTestResults(responsesArray, log = true) {
-    let chan = state.deref().get('outputChannel'),
+    let chan = deref().get('outputChannel'),
         diagnostics = {},
         total_summary = {};
     diagnosticCollection.clear();
@@ -88,7 +88,7 @@ function markTestResults(responsesArray, log = true) {
 }
 
 function runTests(messages, startStr, errorStr, log = true) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel');
 
     if (current.get('connected')) {
@@ -104,15 +104,15 @@ function runTests(messages, startStr, errorStr, log = true) {
         // Thus we only send new messages when a message has returned.
         (function loop(i) {
             new Promise((resolve, reject) => {
-                testClient = repl.create().once('connect', () => {
+                testClient = createReplClient().once('connect', () => {
                     testClient.send(messages[i], (result) => {
                         exceptions += _.some(result, "ex");
                         errors += _.some(result, "err");
                         if (!exceptions && !errors) {
                             resolve(result);
                         } else {
-                            util.logError({
-                                type: util.ERROR_TYPE.ERROR,
+                            logError({
+                                type: ERROR_TYPE.ERROR,
                                 reason: "Error " + errorStr + ":" + _.find(result, "err").err
                             });
                             reject(result);
@@ -139,24 +139,24 @@ function runTests(messages, startStr, errorStr, log = true) {
 }
 
 function runAllTests(document = {}) {
-    let doc = util.getDocument(document),
-        session = util.getSession(util.getFileType(doc)),
+    let doc = getDocument(document),
+        session = getSession(getFileType(doc)),
         msg = message.testAllMsg(session);
 
     runTests([msg], "Running all tests", "running all tests");
 }
 
 function runAllTestsCommand() {
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
 
     chan.show();
     runAllTests();
 }
 
 function getNamespaceTestMessages(document = {}) {
-    let doc = util.getDocument(document),
-        session = util.getSession(util.getFileType(doc)),
-        ns = util.getNamespace(doc.getText()),
+    let doc = getDocument(document),
+        session = getSession(getFileType(doc)),
+        ns = getNamespace(doc.getText()),
         messages = [message.testMsg(session, ns)];
 
     if (!ns.endsWith('-test')) {
@@ -166,34 +166,34 @@ function getNamespaceTestMessages(document = {}) {
 }
 
 function runNamespaceTests(document = {}) {
-    evaluate.evaluateFile({}, () => {
+    evaluateFile({}, () => {
         runTests(getNamespaceTestMessages(document), "Running tests", "running tests");
     });
 }
 
 function runNamespaceTestsCommand() {
-    state.deref().get('outputChannel').show();
+    deref().get('outputChannel').show();
     runNamespaceTests();
 }
 
 function rerunTests(document = {}) {
-    let doc = util.getDocument(document),
-        session = util.getSession(util.getFileType(doc)),
+    let doc = getDocument(document),
+        session = getSession(getFileType(doc)),
         msg = message.rerunTestsMsg(session);
 
-    evaluate.evaluateFile({}, () => {
+    evaluateFile({}, () => {
         runTests([msg], "Retesting", "retesting");
     });
 }
 
 function rerunTestsCommand() {
-    state.deref().get('outputChannel').show();
+    deref().get('outputChannel').show();
     rerunTests();
 }
 
 
 
-export default {
+export {
     runNamespaceTests,
     runNamespaceTestsCommand,
     runAllTests,

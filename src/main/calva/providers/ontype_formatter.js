@@ -1,6 +1,6 @@
 import vscode from 'vscode';
-import state from '../state';
-import status from '../status';
+import { cursor, deref } from '../state';
+import updateStatus from '../status';
 
 // Adapted from the Atom clojure-indent extension: https://github.com/Ciebiada/clojure-indent
 
@@ -65,17 +65,14 @@ function calculateIndent(lines) {
 
 
 class ClojureOnTypeFormattingEditProvider {
-    constructor() {
-        this.state = state;
-    }
 
     static toggleAutoAdjustIndentCommand() {
-        state.cursor.set("autoAdjustIndent", !state.deref().get("autoAdjustIndent"));
-        status.update();
+        cursor.set("autoAdjustIndent", !deref().get("autoAdjustIndent"));
+        updateStatus();
     }
 
     provideOnTypeFormattingEdits(document, position, ch, options) {
-        if (this.state.deref().get("autoAdjustIndent")) {
+        if (deref().get("autoAdjustIndent")) {
             let rangeUptoHere = new vscode.Range(new vscode.Position(0, 0), position),
                 lines = document.getText(rangeUptoHere).split('\n'),
                 indent = calculateIndent(lines),

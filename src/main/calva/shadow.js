@@ -1,15 +1,15 @@
 import fs from 'fs';
 import _ from 'lodash';
 import edn from 'jsedn';
-import state from './state';
-import * as util from './utilities';
+import { deref } from './state';
+import { getProjectDir } from './utilities';
 
 function shadowNReplPortFile() {
-    return util.getProjectDir() + '/.shadow-cljs/nrepl.port';
+    return getProjectDir() + '/.shadow-cljs/nrepl.port';
 }
 
 function shadowConfigFile() {
-    return util.getProjectDir() + '/shadow-cljs.edn';
+    return getProjectDir() + '/shadow-cljs.edn';
 }
 
 function isShadowCljs() {
@@ -23,10 +23,10 @@ function shadowBuilds() {
 }
 
 function shadowBuild() {
-    return state.deref().get('shadowBuild');
+    return deref().get('shadowBuild');
 }
 
-export default {
+export {
     isShadowCljs,
     shadowNReplPortFile,
     shadowBuilds,

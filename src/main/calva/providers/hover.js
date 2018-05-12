@@ -1,42 +1,39 @@
 import vscode from 'vscode';
-import state from '../state';
-import repl from '../repl/client';
+import { deref } from '../state';
+import createReplClient from '../repl/client';
 import message from 'goog:calva.repl.message';
-import * as util from '../utilities';
+import { getNamespace, getWordAtPosition } from '../utilities';
+
+function formatDocString(nsname, arglist, doc) {
+    let result = '';
+    if (nsname.length > 0 && nsname !== 'undefined') {
+        result += '**' + nsname + '**  ';
+        result += '\n';
+    }
+
+    // Format the different signatures for the fn
+    if (arglist !== 'undefined') {
+        result += arglist.substring(0, arglist.length)
+            .replace(/\]/g, ']_')
+            .replace(/\[/g, '* _[');
+        result += '\n\n';
+    }
+
+    // Format the actual docstring
+    if (doc !== 'undefined') {
+        result += doc.replace(/\s\s+/g, ' ');
+        result += '  ';
+    }
+    return result.length > 0 ? result : "";
+}
 
 export default class HoverProvider {
-    constructor() {
-        this.state = state;
-    }
-    formatDocString(nsname, arglist, doc) {
-        let result = '';
-        if (nsname.length > 0 && nsname !== 'undefined') {
-            result += '**' + nsname + '**  ';
-            result += '\n';
-        }
-
-        // Format the different signatures for the fn
-        if (arglist !== 'undefined') {
-            result += arglist.substring(0, arglist.length)
-                .replace(/\]/g, ']_')
-                .replace(/\[/g, '* _[');
-            result += '\n\n';
-        }
-
-        // Format the actual docstring
-        if (doc !== 'undefined') {
-            result += doc.replace(/\s\s+/g, ' ');
-            result += '  ';
-        }
-        return result.length > 0 ? result : "";
-    }
 
     provideHover(document, position, _) {
-        let text = util.getWordAtPosition(document, position),
+        let text = getWordAtPosition(document, position),
             docstring = "",
             arglist = "",
             nsname = "",
-            scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
 
@@ -44,13 +41,13 @@ export default class HoverProvider {
             return;
         }
 
-        if (this.state.deref().get('connected')) {
+        if (deref().get('connected')) {
             return new Promise((resolve, reject) => {
-                let current = this.state.deref(),
-                    client = repl.create()
+                let current = deref(),
+                    client = createReplClient()
                         .once('connect', () => {
                             let msg = message.infoMsg(current.get(filetype),
-                                util.getNamespace(document.getText()), text);
+                                getNamespace(document.getText()), text);
                             client.send(msg, function (results) {
                                 if (results.length === 1 &&
                                     results[0].status[0] === "done" &&
@@ -70,7 +67,7 @@ export default class HoverProvider {
                                 if (docstring.length === 0) {
                                     reject("Docstring error: " + text);
                                 } else {
-                                    let result = scope.formatDocString(nsname, arglist, docstring);
+                                    const result = formatDocString(nsname, arglist, docstring);
                                     if (result.length === 0) {
                                         reject("Docstring error: " + text);
                                     } else {

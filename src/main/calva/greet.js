@@ -1,4 +1,4 @@
-import state from './state';
+import { config } from './state';
 
 function activationGreetings(chan) {
     chan.appendLine("Calva activated. Happy Clojure(script) coding! ❤️");
@@ -11,12 +11,10 @@ function activationGreetings(chan) {
     chan.appendLine("NOTE: All Calva settings have changed prefix from 'clojure4vscode' to 'calva'. (I am sorry for the inconevience.)");
     chan.appendLine("");
 
-    if (!state.config().lint) {
+    if (!config().lint) {
         chan.appendLine("NOTE: Autolinting is disabled. You need to enable \"calva.lintOnSave\" in your editor settings to use it. But first install Joker: https://github.com/candid82/joker")
     }
     chan.appendLine("-".repeat(3));
 }
 
-export default {
-    activationGreetings
-};
+export default activationGreetings;
