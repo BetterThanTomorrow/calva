@@ -1,5 +1,6 @@
 (ns calva.greet
-  (:require ["/calva/state.js" :as state]))
+  (:require ["/calva/state.js" :as state]
+            [clojure.string :as string]))
 
 (defn activationGreetings [chan]
   (.appendLine chan "Calva activated. Happy Clojure(script) coding! ❤️")
@@ -11,4 +12,4 @@
   (when-not (.-lint (state/config))
     (.appendLine chan "")
     (.appendLine chan "NOTE: Autolinting is disabled. You need to enable \"calva.lintOnSave\" in your editor settings to use it. But first install Joker: https://github.com/candid82/joker"))
-  (.appendLine chan (clojure.string/join (repeat 3 "-"))))
+  (.appendLine chan (string/join (repeat 3 "-"))))
