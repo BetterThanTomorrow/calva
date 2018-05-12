@@ -1,9 +1,13 @@
 import vscode from 'vscode';
-import state from './state';
-import status from './status';
-import connector from './connector';
-import greet from './greet';
-import terminal from './terminal';
+import { config, deref, mode } from './state';
+import { autoConnect, connect, disconnect, reconnect, recreateCljsRepl, toggleCLJCSession } from './connector';
+import { evalCurrentFormInREPLTerminalCommand, loadNamespaceCommand, openREPLTerminalCommand, setREPLNamespaceCommand } from './terminal';
+import { evaluateFile, evaluateSelection, evaluateSelectionPrettyPrint, evaluateSelectionReplace } from './repl/middleware/evaluate';
+import { runAllTestsCommand, rerunTestsCommand, runNamespaceTests, runNamespaceTestsCommand } from './repl/middleware/testRunner';
+import { selectCurrentForm } from './repl/middleware/select';
+import activationGreetings from './greet';
+import lintDocument from './repl/middleware/lint';
+import updateStatus from './status';
 import ClojureLanguageConfiguration from './language';
 import CompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
@@ -11,17 +15,13 @@ import HoverProvider from './providers/hover';
 import DefinitionProvider from './providers/definition';
 import FormattingProvider from './providers/formatter';
 import ClojureOnTypeFormattingProvider from './providers/ontype_formatter';
-import EvaluateMiddleWare from './repl/middleware/evaluate';
-import LintMiddleWare from './repl/middleware/lint';
-import TestRunnerMiddleWare from './repl/middleware/testRunner';
-import select from './repl/middleware/select';
 
 function onDidSave(document) {
     let {
         evaluate,
         lint,
         test
-    } = state.config();
+    } = config();
 
     if (document.languageId !== 'clojure') {
         return;
@@ -29,13 +29,13 @@ function onDidSave(document) {
 
     if (test) {
         if (test) {
-            TestRunnerMiddleWare.runNamespaceTests(document);
+            runNamespaceTests(document);
         }
     } else if (evaluate) {
-        EvaluateMiddleWare.evaluateFile(document);
+        evaluateFile(document);
     }
     if (lint) {
-        LintMiddleWare.lintDocument(document);
+        lintDocument(document);
     }
 }
 
@@ -44,51 +44,49 @@ function onDidOpen(document) {
         return;
     }
 
-    if (state.config().lint) {
-        LintMiddleWare.lintDocument(document);
+    if (config().lint) {
+        lintDocument(document);
     }
 }
 
 
 function activate(context) {
-    let {
-        autoConnect
-    } = state.config();
+    let { autoConnectConfig } = config();
     //Set the language configuration for vscode when using this extension
-    vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
+    vscode.languages.setLanguageConfiguration(mode.language, new ClojureLanguageConfiguration());
 
-    status.update();
+    updateStatus();
 
     //Set calvas output channel to active
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
     chan.show(true);
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.recreateCljsRepl', connector.recreateCljsRepl));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateFile', EvaluateMiddleWare.evaluateFile));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.lintFile', LintMiddleWare.lintDocument));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openREPLTerminal', terminal.openREPLTerminalCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', terminal.loadNamespaceCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', terminal.setREPLNamespaceCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLTerminal', terminal.evalCurrentFormInREPLTerminalCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connect));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', reconnect));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', toggleCLJCSession));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.recreateCljsRepl', recreateCljsRepl));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', selectCurrentForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateFile', evaluateFile));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', evaluateSelection));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionPrettyPrint', evaluateSelectionPrettyPrint));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', evaluateSelectionReplace));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.lintFile', lintDocument));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', runNamespaceTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', runAllTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', rerunTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openREPLTerminal', openREPLTerminalCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', loadNamespaceCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLTerminal', evalCurrentFormInREPLTerminalCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleAutoAdjustIndent', ClojureOnTypeFormattingProvider.toggleAutoAdjustIndentCommand));
 
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(state.mode, new FormattingProvider()));
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(state.mode, new ClojureOnTypeFormattingProvider(), "\n"));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(mode, new CompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(mode, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(mode, new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDocumentFormattingEditProvider(mode, new FormattingProvider()));
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(mode, new ClojureOnTypeFormattingProvider(), "\n"));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
@@ -100,10 +98,10 @@ function activate(context) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        status.update(editor);
+        updateStatus(editor);
     }));
     context.subscriptions.push(new vscode.Disposable(() => {
-        connector.disconnect();
+        disconnect();
         chan.dispose();
     }));
 
@@ -111,12 +109,12 @@ function activate(context) {
     //     console.log(event);
     // }));
 
-    greet.activationGreetings(chan);
+    activationGreetings(chan);
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
-    if (autoConnect) {
+    if (autoConnectConfig) {
         chan.appendLine("Autoconnecting... (This can be disabled in Settings)");
-        connector.autoConnect();
+        autoConnect();
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }

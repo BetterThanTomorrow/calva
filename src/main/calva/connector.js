@@ -1,42 +1,42 @@
 import vscode from 'vscode';
 import _ from 'lodash';
 import fs from 'fs';
-import state from './state';
-import repl from './repl/client';
+import { cursor, deref, reset } from './state';
+import createReplClient from './repl/client';
 import message from 'goog:calva.repl.message';
-import * as util from './utilities';
-import shadow from './shadow';
-import status from './status';
-import terminal from './terminal';
+import { getProjectDir, getSession } from './utilities';
+import { isShadowCljs, shadowBuilds, shadowNReplPortFile } from './shadow';
+import updateStatus from './status';
+import { createREPLTerminal } from './terminal';
 //const evaluate = require('./repl/middleware/evaluate');
 
 function nreplPortFile() {
-    if (fs.existsSync(shadow.shadowNReplPortFile())) {
-        return shadow.shadowNReplPortFile();
+    if (fs.existsSync(shadowNReplPortFile())) {
+        return shadowNReplPortFile();
     }
     else {
-        return util.getProjectDir() + '/.nrepl-port'
+        return getProjectDir() + '/.nrepl-port'
     }
 }
 
 function disconnect(options = null, callback = () => { }) {
-    let chan = state.deref().get('outputChannel'),
+    let chan = deref().get('outputChannel'),
         connections = [];
 
 
     ['clj', 'cljs'].forEach(sessionType => {
-        if (util.getSession(sessionType)) {
-            connections.push([sessionType, util.getSession(sessionType)]);
+        if (getSession(sessionType)) {
+            connections.push([sessionType, getSession(sessionType)]);
         }
-        state.cursor.set(sessionType, null);
+        cursor.set(sessionType, null);
     });
-    state.cursor.set("connected", false);
-    state.cursor.set('cljc', null);
-    status.update();
+    cursor.set("connected", false);
+    cursor.set('cljc', null);
+    updateStatus();
 
     let n = connections.length;
     if (n > 0) {
-        let client = repl.create(options).once('connect', () => {
+        let client = createReplClient(options).once('connect', () => {
             client.send(message.listSessionsMsg(), results => {
                 client.end();
                 let sessions = _.find(results, 'sessions')['sessions'];
@@ -45,11 +45,11 @@ function disconnect(options = null, callback = () => { }) {
                         let sessionType = connection[0],
                             sessionId = connection[1]
                         if (sessions.indexOf(sessionId) != -1) {
-                            let client = repl.create(options).once('connect', () => {
+                            let client = createReplClient(options).once('connect', () => {
                                 client.send(message.closeMsg(sessionId), () => {
                                     client.end();
                                     n--;
-                                    state.cursor.set(sessionType, null);
+                                    cursor.set(sessionType, null);
                                     chan.appendLine("Disconnected session: " + sessionType);
                                     if (n == 0) {
                                         callback();
@@ -73,11 +73,11 @@ function disconnect(options = null, callback = () => { }) {
 }
 
 function connectToHost(hostname, port) {
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
 
     disconnect({ hostname, port }, () => {
-        state.cursor.set('connecting', true);
-        status.update();
+        cursor.set('connecting', true);
+        updateStatus();
 
         let onConnect = () => {
             chan.appendLine("Hooking up nREPL sessions...");
@@ -86,13 +86,13 @@ function connectToHost(hostname, port) {
                 client.end();
                 let cljSession = _.find(cloneResults, 'new-session')['new-session'];
                 if (cljSession) {
-                    state.cursor.set("clj", cljSession);
-                    state.cursor.set("cljc", cljSession);
-                    state.cursor.set("connected", true);
-                    state.cursor.set("connecting", false);
-                    status.update();
+                    cursor.set("clj", cljSession);
+                    cursor.set("cljc", cljSession);
+                    cursor.set("connected", true);
+                    cursor.set("connecting", false);
+                    updateStatus();
                     chan.appendLine("Connected session: clj");
-                    terminal.createREPLTerminal('clj', null, chan);
+                    createREPLTerminal('clj', null, chan);
 
                     makeCljsSessionClone(hostname, port, cljSession, null, (cljsSession, shadowBuild) => {
                         if (cljsSession) {
@@ -100,17 +100,17 @@ function connectToHost(hostname, port) {
                         }
                         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
                         //evaluate.evaluateFile();
-                        status.update();
+                        updateStatus();
                     });
                 } else {
-                    state.cursor.set("connected", false);
-                    state.cursor.set("connecting", false);
+                    cursor.set("connected", false);
+                    cursor.set("connecting", false);
                     chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
                 }
             });
         };
 
-        let client = repl.create({
+        let client = createReplClient({
             "host": hostname,
             "port": port,
             "on-connect": onConnect
@@ -119,17 +119,17 @@ function connectToHost(hostname, port) {
 }
 
 function setUpCljsRepl(cljsSession, chan, shadowBuild) {
-    state.cursor.set("cljs", cljsSession);
+    cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
-    terminal.createREPLTerminal('cljs', shadowBuild, chan);
+    createREPLTerminal('cljs', shadowBuild, chan);
 }
 
 function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
-    let chan = state.deref().get('outputChannel');
+    let chan = deref().get('outputChannel');
 
-    if (shadow.isShadowCljs() && !shadowBuild) {
+    if (isShadowCljs() && !shadowBuild) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
-        vscode.window.showQuickPick(shadow.shadowBuilds(), {
+        vscode.window.showQuickPick(shadowBuilds(), {
             placeHolder: "Select which shadow-cljs build to connect to",
             ignoreFocusOut: true
         }).then(build => {
@@ -138,27 +138,27 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
             }
         });
     } else {
-        let client = repl.create({ hostname, port }).once('connect', () => {
+        let client = createReplClient({ hostname, port }).once('connect', () => {
             client.send(message.cloneMsg(session), results => {
                 client.end();
                 let cljsSession = _.find(results, 'new-session')['new-session'];
                 if (cljsSession) {
-                    let client = repl.create({ hostname, port }).once('connect', () => {
+                    let client = createReplClient({ hostname, port }).once('connect', () => {
                         let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) : message.startCljsReplMsg(cljsSession);
                         client.send(msg, cljsResults => {
                             client.end();
                             let valueResult = _.find(cljsResults, 'value'),
                                 nsResult = _.find(cljsResults, 'ns');
                             if (!shadowBuild && nsResult) {
-                                state.cursor.set('shadowBuild', null);
+                                cursor.set('shadowBuild', null);
                                 callback(cljsSession);
                             } else if (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild)) {
-                                state.cursor.set('shadowBuild', shadowBuild);
+                                cursor.set('shadowBuild', shadowBuild);
                                 callback(cljsSession, shadowBuild);
                             } else {
                                 if (shadowBuild) {
                                     let failed = `Failed starting cljs repl for shadow-cljs build: ${shadowBuild}`;
-                                    state.cursor.set('shadowBuild', null);
+                                    cursor.set('shadowBuild', null);
                                     chan.appendLine(`${failed}. Is the build running and conected?`);
                                     console.error(failed, cljsResults);
                                 } else {
@@ -182,7 +182,7 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
 }
 
 function promptForNreplUrlAndConnect(port) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel');
 
     vscode.window.showInputBox({
@@ -196,23 +196,23 @@ function promptForNreplUrlAndConnect(port) {
             let [hostname, port] = url.split(':'),
                 parsedPort = parseFloat(port);
             if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
-                state.cursor.set("hostname", hostname);
-                state.cursor.set("port", parsedPort);
+                cursor.set("hostname", hostname);
+                cursor.set("port", parsedPort);
                 connectToHost(hostname, parsedPort);
             } else {
                 chan.appendLine("Bad url: " + url);
-                state.cursor.set('connecting', false);
-                status.update();
+                cursor.set('connecting', false);
+                updateStatus();
             }
         } else {
-            state.cursor.set('connecting', false);
-            status.update();
+            cursor.set('connecting', false);
+            updateStatus();
         }
     });
 }
 
 function connect(isAutoConnect = false) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel');
 
     new Promise((resolve, reject) => {
@@ -230,8 +230,8 @@ function connect(isAutoConnect = false) {
     }).then((port) => {
         if (port) {
             if (isAutoConnect) {
-                state.cursor.set("hostname", "localhost");
-                state.cursor.set("port", port);
+                cursor.set("hostname", "localhost");
+                cursor.set("port", port);
                 connectToHost("localhost", port);
             } else {
                 promptForNreplUrlAndConnect(port);
@@ -247,7 +247,7 @@ function connect(isAutoConnect = false) {
 }
 
 function reconnect() {
-    state.reset();
+    reset();
     connect(true);
 }
 
@@ -256,21 +256,21 @@ function autoConnect() {
 }
 
 function toggleCLJCSession() {
-    let current = state.deref();
+    let current = deref();
 
     if (current.get('connected')) {
-        if (util.getSession('cljc') == util.getSession('cljs')) {
-            state.cursor.set('cljc', util.getSession('clj'));
-        } else if (util.getSession('cljc') == util.getSession('clj')) {
-            state.cursor.set('cljc', util.getSession('cljs'));
+        if (getSession('cljc') == getSession('cljs')) {
+            cursor.set('cljc', getSession('clj'));
+        } else if (getSession('cljc') == getSession('clj')) {
+            cursor.set('cljc', getSession('cljs'));
         }
-        status.update();
+        updateStatus();
     }
 }
 
 function recreateCljsRepl() {
-    let current = state.deref(),
-        cljSession = util.getSession('clj'),
+    let current = deref(),
+        cljSession = getSession('clj'),
         chan = current.get('outputChannel'),
         hostname = current.get('hostname'),
         port = current.get('port');
@@ -279,11 +279,11 @@ function recreateCljsRepl() {
         if (session) {
             setUpCljsRepl(session, chan, shadowBuild);
         }
-        status.update();
+        updateStatus();
     })
 }
 
-export default {
+export {
     connect,
     disconnect,
     reconnect,

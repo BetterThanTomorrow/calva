@@ -1,15 +1,11 @@
-import state from '../state';
+import { deref } from '../state';
 import os from 'os';
 import fs from 'fs';
 import JSZip from 'jszip';
 
 export default class TextDocumentContentProvider {
-    constructor() {
-        this.state = state;
-    }
-
     provideTextDocumentContent(uri, token) {
-        let current = this.state.deref();
+        const current = deref();
         if (current.get('connected')) {
             return new Promise((resolve, reject) => {
                 let rawPath = uri.path,

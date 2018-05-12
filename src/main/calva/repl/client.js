@@ -1,12 +1,12 @@
-import state from '../state';
+import { deref } from '../state';
 import nrepl from 'goog:calva.repl.nrepl';
 
 function send(msg, callback) {
     nrepl.message(this, msg, callback);
 }
 
-function create(options) {
-    let current = state.deref(),
+function createReplClient(options) {
+    let current = deref(),
         _options = null;
     if (current.get('connected')) {
         _options = {
@@ -25,6 +25,4 @@ function create(options) {
     }
 }
 
-export default {
-    create
-};
+export default createReplClient;

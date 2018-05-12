@@ -1,10 +1,11 @@
 import vscode from 'vscode';
 import { spawn } from 'child_process';
-import * as state from '../../state';
-import * as util from '../../utilities';
-const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/
+import { config, deref } from '../../state';
+import { ERROR_TYPE, getDocument, logError, logWarning, markError, markWarning } from '../../utilities';
+
 
 function parseJokerLine(jokerOutput) {
+    const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/;
     const matches = OUTPUT_REGEXP.exec(jokerOutput);
 
     if (!matches) {
@@ -16,7 +17,7 @@ function parseJokerLine(jokerOutput) {
         line: parseInt(matches[1]),
         reason: matches[3],
         column: parseInt(matches[2]) - 1,
-        type: matches[3].includes("warning") ? util.ERROR_TYPE.WARNING : util.ERROR_TYPE.ERROR
+        type: matches[3].includes("warning") ? ERROR_TYPE.WARNING : ERROR_TYPE.ERROR
     }
 
     if (!message.line) {
@@ -27,46 +28,48 @@ function parseJokerLine(jokerOutput) {
     return message
 }
 
+function logMessage(message) {
+    if (message.type == ERROR_TYPE.ERROR) {
+        markError(message);
+        logError(message);
+    } else if (message.type == ERROR_TYPE.WARNING) {
+        markWarning(message);
+        logWarning(message);
+    }
+}
+
 function lintDocument(document = {}) {
-    let doc = util.getDocument(document);
+    const doc = getDocument(document);
 
     if (doc.languageId !== 'clojure') {
         return;
     }
     //Reset errors
-    state.deref().get("diagnosticCollection").delete(doc.uri);
+    deref().get("diagnosticCollection").delete(doc.uri);
 
     let joker = spawn("joker", ["--lint", doc.fileName]);
     joker.stdout.setEncoding("utf8");
 
     joker.stderr.on("data", (data) => {
-        if (data.length != 0) {
-            for (let jokerLine of data.toString().split(/\r?\n/)) {
-                if (jokerLine.length != 0) {
-                    let msg = parseJokerLine(jokerLine)
-                    if (msg != null) {
-                        if (msg.type == util.ERROR_TYPE.ERROR) {
-                            util.markError(msg);
-                            util.logError(msg);
-                        } else if (msg.type == util.ERROR_TYPE.WARNING) {
-                            util.markWarning(msg);
-                            util.logWarning(msg);
-                        }
-                    }
-                }
+        for (const jokerLine of data.toString().split(/\r?\n/)) {
+            const message = parseJokerLine(jokerLine)
+            
+            if (message != null) {
+                logMessage(message);
             }
         }
     });
 
     joker.on("error", (error) => {
-        let {
-            lint
-        } = state.config()
-        let nojoker = error.code == "ENOENT";
+        const { lint } = config()
+        const nojoker = error.code == "ENOENT";
+        
         if (nojoker) {
-            let errmsg = "linting error: unable to locate 'joker' on path",
-                autolintmsg = "You have autolinting enabled. If you want to disable auto-linting set calva.lintOnSave to false in settings";
+            const errmsg = "linting error: unable to locate 'joker' on path";
+            const autolintmsg = "You have autolinting enabled. If you want to disable auto-linting set calva.lintOnSave to false in settings";
+            
             vscode.window.showErrorMessage("calva " + errmsg);
+            
             if (lint) {
                 vscode.window.showWarningMessage("calva " + autolintmsg);
             }
@@ -76,6 +79,4 @@ function lintDocument(document = {}) {
     });
 }
 
-export default {
-    lintDocument
-};
+export default lintDocument;

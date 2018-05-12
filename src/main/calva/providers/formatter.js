@@ -1,25 +1,21 @@
 import vscode from 'vscode';
-import state from '../state';
-import repl from '../repl/client';
-import * as util from '../utilities';
+import { deref } from '../state';
+import createReplClient from '../repl/client';
+import { getDocument, getFileType, getSession } from '../utilities';
 
 class DocumentFormattingEditProvider {
-    constructor() {
-        this.state = state;
-    }
-
     provideDocumentFormattingEdits(document) {
-        let current = state.deref(),
+        let current = deref(),
             chan = current.get('outputChannel'),
-            doc = util.getDocument(document);
+            doc = getDocument(document);
 
         if (current.get('connected')) {
             return new Promise((resolve, reject) => {
-                let client = repl.create().once('connect', () => {
+                let client = createReplClient().once('connect', () => {
                     let msg = {
                         op: "format-code",
                         code: doc.getText(),
-                        session: util.getSession(util.getFileType(doc))
+                        session: getSession(getFileType(doc))
                     };
                     client.send(msg, (results) => {
                         let r = results[0];

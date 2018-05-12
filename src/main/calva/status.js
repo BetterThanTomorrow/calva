@@ -1,11 +1,9 @@
-import * as util from './utilities';
-import statusbar from './statusbar';
+import { updateREPLSessionType } from './utilities';
+import updateStatusBar from './statusbar';
 
-function update() {
-    util.updateREPLSessionType();
-    statusbar.update();
+function updateStatus() {
+    updateREPLSessionType();
+    updateStatusBar();
 }
 
-export default {
-    update
-};
+export default updateStatus;

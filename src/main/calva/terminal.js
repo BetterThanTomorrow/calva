@@ -1,10 +1,10 @@
 import vscode from 'vscode';
-import state from './state';
-import * as util from './utilities';
-import evaluate from './repl/middleware/evaluate';
+import { config, cursor, deref } from './state';
+import { getCljsReplStartCode, getDocument, getDocumentNamespace, getREPLSessionType } from './utilities';
+import { evaluateFile } from './repl/middleware/evaluate';
 import annotations from './providers/annotations';
-import select from './repl/middleware/select';
-import shadow from './shadow';
+import { getFormSelection } from './repl/middleware/select';
+import { isShadowCljs } from './shadow';
 
 const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
 const CONNECT_SHADOW_CLJS_CLJS_REPL = 'npx shadow-cljs cljs-repl';
@@ -14,7 +14,7 @@ function terminalSlug(sessionSlug) {
 }
 
 function createREPLTerminal(sessionType, shadowBuild, outputChan) {
-    let current = state.deref(),
+    let current = deref(),
         slug = terminalSlug(sessionType),
         terminalName = (sessionType === 'clj' ? 'Clojure' : 'CojureScript') + ' REPL',
         terminal = null;
@@ -25,24 +25,24 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
     terminal = vscode.window.createTerminal(terminalName);
 
     if (terminal) {
-        state.cursor.set(slug, terminal);
-        let connectCommand = shadow.isShadowCljs() ?
+        cursor.set(slug, terminal);
+        let connectCommand = isShadowCljs() ?
             (sessionType === 'cljs' ?
                 `${CONNECT_SHADOW_CLJS_CLJS_REPL} ${shadowBuild}` :
                 CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
-            state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
+            config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
         terminal.sendText(connectCommand);
         if (!shadowBuild && sessionType === 'cljs') {
-            terminal.sendText(util.getCljsReplStartCode());
+            terminal.sendText(getCljsReplStartCode());
         }
         outputChan.appendLine('Terminal created for: ' + terminalName);
     }
 }
 
 function openREPLTerminal(keepFocus = true) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel'),
-        sessionType = util.getREPLSessionType(),
+        sessionType = getREPLSessionType(),
         terminal = current.get(terminalSlug(sessionType));
 
     if (terminal) {
@@ -62,7 +62,7 @@ function loadNamespace() {
 }
 
 function loadNamespaceCommand() {
-    let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
+    let terminal = deref().get(terminalSlug(getREPLSessionType()));
     if (terminal) {
         terminal.show();
         loadNamespace();
@@ -70,9 +70,9 @@ function loadNamespaceCommand() {
 }
 
 function sendTextToREPLTerminal(text, addNewline = false) {
-    let current = state.deref(),
+    let current = deref(),
         chan = current.get('outputChannel'),
-        sessionType = util.getREPLSessionType(),
+        sessionType = getREPLSessionType(),
         terminal = current.get(terminalSlug(sessionType));
 
     if (terminal) {
@@ -84,17 +84,17 @@ function sendTextToREPLTerminal(text, addNewline = false) {
 }
 
 function setREPLNamespace(reload = false, keepFocus = true) {
-    let nameSpace = util.getDocumentNamespace();
+    let nameSpace = getDocumentNamespace();
 
     if (reload) {
-        evaluate.evaluateFile();
+        evaluateFile();
     }
     sendTextToREPLTerminal("(in-ns '" + nameSpace + ")", true);
     openREPLTerminal(keepFocus);
 }
 
 function setREPLNamespaceCommand() {
-    let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
+    let terminal = deref().get(terminalSlug(getREPLSessionType()));
     if (terminal) {
         terminal.show();
         setREPLNamespace(false, false);
@@ -103,14 +103,14 @@ function setREPLNamespaceCommand() {
 
 function evalCurrentFormInREPLTerminal(keepFocus = true) {
     let editor = vscode.window.activeTextEditor,
-        doc = util.getDocument({}),
+        doc = getDocument({}),
         selection = editor.selection,
         codeSelection = null,
         code = "";
 
     annotations.clearEvaluationDecorations(editor);
     if (selection.isEmpty) {
-        codeSelection = select.getFormSelection(doc, selection.active);
+        codeSelection = getFormSelection(doc, selection.active);
         annotations.decorateSelection(codeSelection, editor);
         code = doc.getText(codeSelection);
     } else {
@@ -127,7 +127,7 @@ function evalCurrentFormInREPLTerminalCommand() {
     evalCurrentFormInREPLTerminal(false);
 }
 
-export default {
+export {
     createREPLTerminal,
     openREPLTerminal,
     openREPLTerminalCommand,
