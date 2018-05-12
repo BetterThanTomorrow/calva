@@ -2,10 +2,10 @@ import vscode from 'vscode';
 import { spawn } from 'child_process';
 import * as state from '../../state';
 import * as util from '../../utilities';
-const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/
 
 function parseJokerLine(jokerOutput) {
-    const matches = OUTPUT_REGEXP.exec(jokerOutput);
+    const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/,
+        matches = OUTPUT_REGEXP.exec(jokerOutput);
 
     if (!matches) {
         console.warn("joker: could not parse output:", jokerOutput)
@@ -27,6 +27,15 @@ function parseJokerLine(jokerOutput) {
     return message
 }
 
+function markMessage(msg) {
+    if (msg.type == util.ERROR_TYPE.ERROR) {
+        util.markError(msg);
+    }
+    else if (msg.type == util.ERROR_TYPE.WARNING) {
+        util.markWarning(msg);
+    }
+}
+
 function lintDocument(document = {}) {
     let doc = util.getDocument(document);
 
@@ -45,13 +54,7 @@ function lintDocument(document = {}) {
                 if (jokerLine.length != 0) {
                     let msg = parseJokerLine(jokerLine)
                     if (msg != null) {
-                        if (msg.type == util.ERROR_TYPE.ERROR) {
-                            util.markError(msg);
-                            util.logError(msg);
-                        } else if (msg.type == util.ERROR_TYPE.WARNING) {
-                            util.markWarning(msg);
-                            util.logWarning(msg);
-                        }
+                        markMessage(msg);
                     }
                 }
             }
@@ -64,7 +67,7 @@ function lintDocument(document = {}) {
         } = state.config()
         let nojoker = error.code == "ENOENT";
         if (nojoker) {
-            let errmsg = "linting error: unable to locate 'joker' on path",
+            const errmsg = "linting error: unable to locate 'joker' on path",
                 autolintmsg = "You have autolinting enabled. If you want to disable auto-linting set calva.lintOnSave to false in settings";
             vscode.window.showErrorMessage("calva " + errmsg);
             if (lint) {
