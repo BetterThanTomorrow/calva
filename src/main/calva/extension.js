@@ -2,7 +2,7 @@ import vscode from 'vscode';
 import * as state from './state';
 import status from './status';
 import connector from './connector';
-import greet from './greet';
+import greet from 'goog:calva.greet';
 import terminal from './terminal';
 import ClojureLanguageConfiguration from './language';
 import CompletionItemProvider from './providers/completion';
