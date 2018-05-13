@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.21",
+    "version": "1.3.22",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -108,6 +108,16 @@
                     "type": "string",
                     "default": ".",
                     "description": "The root directory of your Clojure project, relative to the Workspace root"
+                },
+                "calva.jokerPath": {
+                    "type": "string",
+                    "default": "joker",
+                    "description": "Sets the path in which the Joker executable can be found"
+                },
+                "calva.useJokerOnWSL": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies if Joker will run through WSL"
                 }
             }
         },

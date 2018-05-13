@@ -1,5 +1,6 @@
 import vscode from 'vscode';
 import { spawn } from 'child_process';
+import path from 'path';
 import * as state from '../../state';
 import * as util from '../../utilities';
 
@@ -36,6 +37,18 @@ function markMessage(msg) {
     }
 }
 
+function buildJokerPath(jokerPath, join) {
+    return jokerPath === "joker" ? "joker" : join(jokerPath, "joker");
+}
+
+function jokerChildProcess(fileName) {
+    let { jokerPath, useJokerOnWSL } = state.config();
+    if (useJokerOnWSL) {
+        return spawn("wsl", [buildJokerPath(jokerPath, path.posix.join), "--lint", `\$(wslpath '${fileName}')`]);
+    }
+    return spawn(buildJokerPath(jokerPath, path.join), ["--lint", fileName]);
+}
+
 function lintDocument(document = {}) {
     let doc = util.getDocument(document);
 
@@ -45,7 +58,7 @@ function lintDocument(document = {}) {
     //Reset errors
     state.deref().get("diagnosticCollection").delete(doc.uri);
 
-    let joker = spawn("joker", ["--lint", doc.fileName]);
+    let joker = jokerChildProcess(doc.fileName);
     joker.stdout.setEncoding("utf8");
 
     joker.stderr.on("data", (data) => {
@@ -63,11 +76,12 @@ function lintDocument(document = {}) {
 
     joker.on("error", (error) => {
         let {
-            lint
+            lint,
+            jokerPath
         } = state.config()
         let nojoker = error.code == "ENOENT";
         if (nojoker) {
-            const errmsg = "linting error: unable to locate 'joker' on path",
+            const errmsg = `linting error: unable to locate '${jokerPath}'`,
                 autolintmsg = "You have autolinting enabled. If you want to disable auto-linting set calva.lintOnSave to false in settings";
             vscode.window.showErrorMessage("calva " + errmsg);
             if (lint) {
