@@ -71,147 +71,31 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 * Open as many REPLs as you like.
 * Custom user commands to execute over the REPL connection.
 * Commands to start the REPLs from VS Code, injecting dependencies automatically.
-* Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
-
-## Team
-
-Haha, but actually we are now two, so that's a team. Neither of us actually have a lot of spare time, but Calva is a dear project so we try.
-
-* [Peter Strömberg](https://github.com/PEZ)
-* [Pedro Girardi](https://github.com/pedrorgirardi)
-* Your name here
-
-## Usage notes
-
-Mostly Calva just works, but there are still some things to know beforehand. One good thing to know is that all commands and settings are of the category `Calva`, so bringing up the VSCode's list of commands or settings and searching for ”Calva” will take you a long way.
-
-It is also necessary to know that Calva does not start the Clojure/ClojureScript repls for you. You will need to start them some other way (usually in a terminal), then connect.
-
-### Autolinting
-
-The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
-```
-"calva.lintOnSave": true
-```
-
-### Strange linting errors?
-
-The Joker way of linting has its limitations. If you think the linting reporting is off, it is probably something you should check with the [Joker project](https://github.com/candid82/joker).
-
-That said, this one might be worth a mention here:
-
-#### Unrecognized macros
-One thing to note with this linter is that it doesn't do a full scan of all files and does not recognize macros it doesn't know about. Leading to false complains about `Unable to resolve symbol x`. You might now and then tell it about macros you use. Create a `.joker` file somewhere in the path from the root of your project to where you are using the macro (the project root might be the best choice), and add:
-```
-{:known-macros [some-ns/some-macro some-other-ns/some-other-macro]}
-```
-Read more about Joker's linter mode here: https://github.com/candid82/joker#linter-mode
-
-### Dependencies
-
-(See also about Autolinting above.)
-
-Calva uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
-
-Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
-
-```
-{:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
-        :dependencies [[org.clojure/tools.nrepl "0.2.12"]]}
-```
-
-If you are only using Clojure then you are all set.
-
-#### For ClojureScript
-
-This depends some on wether the project is powered by **Figwheel** or **shadow-cljs** or something else.
-
-##### Figwheel
-Most ClojureScript projects has this setup in the project configuration file. But you can have it configured in your profiles.clj as well. A complete repl profile (from Calva's point of view, will look like so:
-
-```clojure
-{:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
-        :dependencies [[org.clojure/tools.nrepl "0.2.12"]
-                       [com.cemerick/piggieback "0.2.2"]
-                       [figwheel-sidecar "0.5.14"]]
-        :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
-```
-
-##### shadow-cljs
-
-See the [Calva section](https://shadow-cljs.github.io/docs/UsersGuide.html#_calva_vs_code) in the shadow-cljs User Guide.
-
-TL;DR; You need `cider-nrepl` in your classpath. Add `[cider/cider-nrepl "0.16.0"]` to the `:dependencies` map in the`shadow-cljs.edn` project config. Shadow-cljs will autoinject the other requirements when it encounters cider-nrepl.
-
-### Connecting to the REPL
-
-Calva defaults to automatically connecting to a running nrepl session, it does not start the repl for you. Start it from the terminal/command prompt if it is not running. Leiningen users do it like so:
-
-```
-$ lein repl
-```
-
-Shadow-cljs folks do not need to start an interactive repl. It's enough to start the app like so:
-
-```
-$ shadow-cljs watch <build>
-```
-
-When the app is running, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
-
-Yay! 🍾 🎆 ✨
-
-**Note** If your workspace root is not the same as the project root of your Clojure project you must tell Calva which sub directory is the project root. Search for `calva.projectRootDirectory` in settings and modify the workspace settings. This path should be relative to the workspace root (which is why it defaults to `.`).
-
-#### ClojureScript REPL
-
-For Calva to be able to connect the ClojureScript repl, your ClojureScript app needs to be running and connected to the repl session. (Calva is at the moment only tested with browser apps, but might work with other project types as well anyway.)
-
-##### shadow-cljs projects
-
-When Calva detects a shadow-cljs project it will read the `shadow-cljs.edn` configuration file and give you a list of build ids to pick from. Pick the build you started the app from and ClojureScript power should get injected into your favorite editor.
-
-##### Figwheel projects
-If you want to use ClojureScript, you start its repl off of the repl you have just started, i.e. **not** using `lein figwheel` because then the extension will not know how to connect. Open the project in VS Code and the extension will connect to the ClojureScript repl for `cljs` files and to the Clojure repl for `clj` and `cljc` files.
-
-Yay! 🥂 🤘 🍻
-
-Read on for some pointers on this if you are not familiar.
-
-**To initiate a figwheel-repl you need the figwheel-sidecar dependency -> [figwheel-sidecar "0.5.8"] as well correct cljs classpaths**
-read more about this [here](https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl)
-
-If you have created a figwheel-project from a template (using e.g. lein new), you should be good to go as long as you start the repl in the projects folder.
-
-Having started the initial repl like above with ```lein repl```, initiate figwheel from there (beacuse reasons stated above). Then:
-
-```
- (use 'figwheel-sidecar.repl-api)
- (start-figwheel!)
- (cljs-repl)
-```
-
-Consider adding a `(start)` function in your projects `dev` namespace to pack these calls together.
+* List symbols in the current file.
+* Let us know what you want. PRs welcome, file an issue or tweet: [@pappapez](https://twitter.com/pappapez)
 
 
-## Other stuff
+## How to use
 
-### Paredit & Parinfer
-Calva works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=cospaia.paredit-revived). Make sure you use the maintained version. We call it **Paredit Revived**.
+Calva connects to a running `nrepl` session, so you need to start that outside Calva, then connect (`ctrl+alt+v c`).
 
-However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer) clashes with the auto adjustment of indents feature. Therefore Calva provides a command for toggling the auto adjustment off and on (`ctrl+alt+v tab`), just like Parinfer has commands for enabling and disabling its assistance.
+It has dependencies on `toots/nrepl` and `cider/nrepl`.
 
-Consider these settings for keeping auto adjust of indents on:
-```json
-    "parinfer.defaultMode": "disabled",
-    "calva.autoAdjustIndent": true,
-```
+Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki. It has more instructions and information.
 
-Switch them around if you prefer to default to Parinfer on. We'll be looking for a solution to this problem.
+## Other
 
 ### Built on Visual Clojure
 
 Calva started off as a clone of the promising (but abandoned) **visual:clojure** extension.
+
+## Team
+
+We are now two, so that's a team. Calva is a dear project to us so we try to give it of our precious spare time.
+
+* [Peter Strömberg](https://github.com/PEZ)
+* [Pedro Girardi](https://github.com/pedrorgirardi)
+* Your name here
 
 ## Happy coding
 
