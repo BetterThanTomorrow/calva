@@ -1,5 +1,6 @@
 import vscode from 'vscode';
 import { spawn } from 'child_process';
+import path from 'path';
 import * as state from '../../state';
 import * as util from '../../utilities';
 
@@ -36,12 +37,16 @@ function markMessage(msg) {
     }
 }
 
+function buildJokerPath(jokerPath, join) {
+    return jokerPath === "joker" ? "joker" : join(jokerPath, "joker");
+}
+
 function jokerChildProcess(fileName) {
     let { jokerPath, useJokerOnWSL } = state.config();
     if (useJokerOnWSL) {
-        return spawn("wsl", [jokerPath, "--lint", `\$(wslpath '${fileName}')`]);
+        return spawn("wsl", [buildJokerPath(jokerPath, path.posix.join), "--lint", `\$(wslpath '${fileName}')`]);
     }
-    return spawn(jokerPath, ["--lint", fileName]);
+    return spawn(buildJokerPath(jokerPath, path.join), ["--lint", fileName]);
 }
 
 function lintDocument(document = {}) {
