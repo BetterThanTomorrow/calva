@@ -97,6 +97,12 @@ We are now two, so that's a team. Calva is a dear project to us so we try to giv
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * Your name here
 
+### How to contribute
+
+Calva is being ported to ClojureScript and uses the `shadow-cljs` toolchain.
+
+See the [How to Coontribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+
 ## Happy coding
 
 We hope you will find tons of use for this extension! Please let us know what you think or want. PRs welcome, file an issue or chat us (@pez, @pedrorgirardi) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
