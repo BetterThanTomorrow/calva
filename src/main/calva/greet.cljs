@@ -3,7 +3,7 @@
             [clojure.string :as string]))
 
 (defn activationGreetings [chan]
-  (.appendLine chan "Calva activated. Happy Clojure(script) coding! ❤️")
+  (.appendLine chan "Happy Clojure(script) coding! ❤️")
   (.appendLine chan "Please file any feature requests or bug reports here: https://github.com/BetterThanTomorrow/calva/issues")
   (.appendLine chan "I will also respond to any @pez mentions in the #editors channel of the Clojurians Slack: https://clojurians.slack.com/messages/editors/")
   (.appendLine chan "")

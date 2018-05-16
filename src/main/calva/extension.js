@@ -51,6 +51,8 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    let chan = state.deref().get('outputChannel');
+    chan.appendLine("Calva activated.");
     let {
         autoConnect
     } = state.config();
@@ -59,11 +61,10 @@ function activate(context) {
 
     status.update();
 
-    //Set calvas output channel to active
-    let chan = state.deref().get('outputChannel');
-    chan.show(true);
-
     // COMMANDS
+    context.subscriptions.push(vscode.commands.registerCommand('calva.activate', () => {
+        chan.appendLine("Activate command issued.");
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
@@ -111,6 +112,8 @@ function activate(context) {
     //     console.log(event);
     // }));
 
+    vscode.commands.executeCommand('setContext', 'calva:activated', true);
+
     greet.activationGreetings(chan);
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
@@ -120,8 +123,9 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
-    chan.show(true);
 }
 
 function deactivate() { }
+
+
 export { activate, deactivate };
