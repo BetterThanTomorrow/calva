@@ -7,7 +7,7 @@
 
 Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If we can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, we will.
 
-Demo: evaluate files
+Demo: evaluate inline
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
