@@ -317,6 +317,9 @@
         "vscode:prepublish": "npm run clean && npx shadow-cljs release :calva",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
+    "extensionDependencies": [
+        "cospaia.calva-fmt"
+    ],
     "dependencies": {
         "bencoder": "0.0.5",
         "buffer": "^5.0.7",
