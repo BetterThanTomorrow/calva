@@ -4,12 +4,10 @@ import status from './status';
 import connector from './connector';
 import greet from 'goog:calva.greet';
 import terminal from './terminal';
-import ClojureLanguageConfiguration from './language';
 import CompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import DefinitionProvider from './providers/definition';
-import ClojureOnTypeFormattingProvider from './providers/ontype_formatter';
 import EvaluateMiddleWare from './repl/middleware/evaluate';
 import LintMiddleWare from './repl/middleware/lint';
 import TestRunnerMiddleWare from './repl/middleware/testRunner';
@@ -55,8 +53,6 @@ function activate(context) {
     let {
         autoConnect
     } = state.config();
-    //Set the language configuration for vscode when using this extension
-    vscode.languages.setLanguageConfiguration(state.mode.language, new ClojureLanguageConfiguration());
 
     status.update();
 
@@ -81,13 +77,11 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', terminal.loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', terminal.setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLTerminal', terminal.evalCurrentFormInREPLTerminalCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleAutoAdjustIndent', ClojureOnTypeFormattingProvider.toggleAutoAdjustIndentCommand));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(state.mode, new ClojureOnTypeFormattingProvider(), "\n"));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
