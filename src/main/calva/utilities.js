@@ -56,7 +56,11 @@ function getWordAtPosition(document, position) {
 }
 
 function getDocument(document) {
-    return document.hasOwnProperty('fileName') ? document : vscode.window.activeTextEditor.document;
+    if (document) {
+        return document.hasOwnProperty('fileName') ? document : vscode.window.activeTextEditor.document;
+    } else {
+        return vscode.window.activeTextEditor.document
+    }
 }
 
 function getFileType(document) {
