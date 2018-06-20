@@ -17,8 +17,7 @@ const initialData = {
     connected: false,
     connecting: false,
     outputChannel: vscode.window.createOutputChannel("Calva says"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
-    autoAdjustIndent: config().autoAdjustIndent
+    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
 };
 
 reset();
@@ -43,7 +42,6 @@ function config() {
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
         autoConnect: configOptions.get("autoConnect"),
-        autoAdjustIndent: configOptions.get("autoAdjustIndent"),
         connectREPLCommand: configOptions.get("connectREPLCommand"),
         projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),

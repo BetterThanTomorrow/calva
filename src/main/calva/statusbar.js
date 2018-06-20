@@ -7,13 +7,11 @@ import shadow_util from './shadow';
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const shadow = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const indent = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
 function update() {
     let current = state.deref(),
         doc = util.getDocument({}),
         fileType = util.getFileType(doc),
-        autoAdjustIndent = current.get('autoAdjustIndent'),
         shadowBuild = current.get('shadowBuild');
 
     let disconnectedColor = "rgb(192,192,192)";
@@ -29,10 +27,6 @@ function update() {
     shadow.text = null;
     shadow.command = "calva.recreateCljsRepl";
     shadow.tooltip = null;
-
-    indent.text = "AAI: " + (autoAdjustIndent ? "on" : "off");
-    indent.command = "calva.toggleAutoAdjustIndent";
-    indent.tooltip = (autoAdjustIndent ? "Disable" : "Enable") + " auto adjustment of indents for new lines"
 
     if (current.get('connected')) {
         connection.text = "nREPL $(zap)";
@@ -78,7 +72,6 @@ function update() {
     } else {
         shadow.hide();
     }
-    indent.show();
 }
 
 export default {

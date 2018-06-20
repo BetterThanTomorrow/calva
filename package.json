@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.26",
+    "version": "1.3.27",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -93,11 +93,6 @@
                     "default": true,
                     "description": "Run namespace tests when opening a new file and on file save"
                 },
-                "calva.autoAdjustIndent": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Auto adjusts indent for new lines (clashes with Parinfer, toggle with ctrl+alt+v tab)"
-                },
                 "calva.connectREPLCommand": {
                     "type": "string",
                     "default": "lein repl :connect",
@@ -123,14 +118,6 @@
                     "default": false,
                     "description": "Specifies if Joker will run through WSL"
                 }
-            }
-        },
-        "configurationDefaults": {
-            "[clojure]": {
-                "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-                "editor.formatOnType": true,
-                "editor.autoIndent": true,
-                "editor.formatOnPaste": true
             }
         },
         "commands": [
@@ -220,11 +207,6 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.toggleAutoAdjustIndent",
-                "title": "Toggle auto adjusting of indent for new lines",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.recreateCljsRepl",
                 "title": "Attach (or re-attach) a Clojurescript session",
                 "category": "Calva"
@@ -299,10 +281,6 @@
             {
                 "command": "calva.evalCurrentFormInREPLTerminal",
                 "key": "ctrl+alt+v alt+e"
-            },
-            {
-                "command": "calva.toggleAutoAdjustIndent",
-                "key": "ctrl+alt+v tab"
             }
         ],
         "menus": {
