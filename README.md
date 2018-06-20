@@ -79,7 +79,7 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 
 Calva connects to a running `nrepl` session, so you need to start that outside Calva, then connect (`ctrl+alt+v c`).
 
-It has dependencies on `toots/nrepl` and `cider/nrepl`.
+It has dependencies on `tools/nrepl` and `cider/nrepl`.
 
 Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki. It has more instructions and information.
 
