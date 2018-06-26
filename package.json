@@ -152,6 +152,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateSelectionParent",
+                "title": "Evaluate the parent form of the current cursor position",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateSelectionPrettyPrint",
                 "title": "Evaluate selection or current form, and pretty print",
                 "category": "Calva"
