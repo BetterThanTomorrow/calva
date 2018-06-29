@@ -101,7 +101,7 @@ function setREPLNamespaceCommand() {
     }
 }
 
-function evalCurrentFormInREPLTerminal(keepFocus = true) {
+function evalCurrentFormInREPLTerminal(keepFocus = true, topLevel = false) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -110,7 +110,7 @@ function evalCurrentFormInREPLTerminal(keepFocus = true) {
 
     annotations.clearEvaluationDecorations(editor);
     if (selection.isEmpty) {
-        codeSelection = select.getFormSelection(doc, selection.active);
+        codeSelection = select.getFormSelection(doc, selection.active, topLevel);
         annotations.decorateSelection(codeSelection, editor);
         code = doc.getText(codeSelection);
     } else {
@@ -127,6 +127,10 @@ function evalCurrentFormInREPLTerminalCommand() {
     evalCurrentFormInREPLTerminal(false);
 }
 
+function evalCurrentTopLevelFormInREPLTerminalCommand() {
+    evalCurrentFormInREPLTerminal(false, true);
+}
+
 export default {
     createREPLTerminal,
     openREPLTerminal,
@@ -136,5 +140,6 @@ export default {
     setREPLNamespace,
     setREPLNamespaceCommand,
     evalCurrentFormInREPLTerminal,
-    evalCurrentFormInREPLTerminalCommand
+    evalCurrentFormInREPLTerminalCommand,
+    evalCurrentTopLevelFormInREPLTerminalCommand
 };

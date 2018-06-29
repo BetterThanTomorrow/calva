@@ -2,11 +2,11 @@ import vscode from 'vscode';
 import * as util from '../../utilities';
 const paredit = require('paredit.js');
 
-function getFormSelection(doc, pos, parent) {
+function getFormSelection(doc, pos, topLevel) {
     let allText = doc.getText(),
         ast = paredit.parse(allText),
         idx = doc.offsetAt(pos),
-        range = parent ? paredit.navigator.rangeForDefun(ast, idx) : paredit.navigator.sexpRange(ast, idx);
+        range = topLevel ? paredit.navigator.rangeForDefun(ast, idx) : paredit.navigator.sexpRange(ast, idx);
 
     if (range) {
         return new vscode.Range(doc.positionAt(range[0]), doc.positionAt(range[1]));

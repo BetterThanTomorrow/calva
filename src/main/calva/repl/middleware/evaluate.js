@@ -46,7 +46,7 @@ function evaluateSelection(document = {}, options = {}) {
         doc = util.getDocument(document),
         pprint = options.pprint || false,
         replace = options.replace || false,
-        parent = options.parent || false,
+        topLevel = options.topLevel || false,
         session = util.getSession(util.getFileType(doc));
 
     if (current.get('connected')) {
@@ -58,7 +58,7 @@ function evaluateSelection(document = {}, options = {}) {
         annotations.clearEvaluationDecorations(editor);
 
         if (selection.isEmpty) {
-            codeSelection = select.getFormSelection(doc, selection.active, parent);
+            codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
         } else {
             codeSelection = selection,
@@ -116,8 +116,8 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 }
 
-function evaluateSelectionParent(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { parent: true }));
+function evaluateTopLevelForm(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
 }
 
 function evaluateFile(document = {}, callback = () => { }) {
@@ -151,7 +151,7 @@ function evaluateFile(document = {}, callback = () => { }) {
 export default {
     evaluateFile,
     evaluateSelection,
-    evaluateSelectionParent,
+    evaluateTopLevelForm,
     evaluateSelectionPrettyPrint,
     evaluateSelectionReplace
 };
