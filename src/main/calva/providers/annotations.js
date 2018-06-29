@@ -33,7 +33,7 @@ function evaluated(contentText, hasError) {
 
 const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType({
     overviewRulerColor: 'blue',
-    backgroundColor: new vscode.ThemeColor('editor.wordHighlightStrongBackground'),
+    backgroundColor: 'rgba(255, 255, 20, 0.1)',
     overviewRulerLane: vscode.OverviewRulerLane.Right,
 });
 

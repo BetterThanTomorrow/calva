@@ -152,6 +152,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "title": "Evaluate current top level form",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateSelectionPrettyPrint",
                 "title": "Evaluate selection or current form, and pretty print",
                 "category": "Calva"
@@ -207,6 +212,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evalCurrentTopLevelFormInREPLTerminal",
+                "title": "Evaluate current top level form in REPL terminal",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.recreateCljsRepl",
                 "title": "Attach (or re-attach) a Clojurescript session",
                 "category": "Calva"
@@ -241,6 +251,10 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+alt+v e"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "ctrl+alt+v space"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
@@ -281,6 +295,10 @@
             {
                 "command": "calva.evalCurrentFormInREPLTerminal",
                 "key": "ctrl+alt+v alt+e"
+            },
+            {
+                "command": "calva.evalCurrentTopLevelFormInREPLTerminal",
+                "key": "ctrl+alt+v alt+space"
             }
         ],
         "menus": {
