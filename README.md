@@ -41,9 +41,11 @@ Demo: switch between clj and cljs repl sessions for cljc files:
   - User setting for running namespace tests on save (defaults to **on**)
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Code evaluation
-  - Evaluate code and show the results as annotation in the editor: `ctrl+alt+v e`
+  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+v e`
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+v r`
   - Pretty printing evaluation resuls: `ctrl+alt+v p`
+  - Evaluate current top level form (based on where the cursor is) and show resluts inline: `ctrl+alt+v space`
+    - Send the current top level form to the REPL terminal: `ctrl+alt+v alt+space`
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
   - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
