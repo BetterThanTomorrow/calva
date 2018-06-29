@@ -152,6 +152,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "title": "Evaluate the current top level form at selection or cursor",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateSelectionPrettyPrint",
                 "title": "Evaluate selection or current form, and pretty print",
                 "category": "Calva"
@@ -241,6 +246,10 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+alt+v e"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "ctrl+alt+v shift+e"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
