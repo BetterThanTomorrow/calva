@@ -116,7 +116,7 @@ function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 }
 
-function evaluateSelectionParent(document = {}, options = {}) {
+function evaluateCurrentTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { parent: true }));
 }
 
@@ -151,7 +151,7 @@ function evaluateFile(document = {}, callback = () => { }) {
 export default {
     evaluateFile,
     evaluateSelection,
-    evaluateSelectionParent,
+    evaluateCurrentTopLevelForm,
     evaluateSelectionPrettyPrint,
     evaluateSelectionReplace
 };
