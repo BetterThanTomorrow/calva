@@ -1,4 +1,4 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
@@ -44,7 +44,7 @@ function clearEvaluationDecorations(editor) {
 
 function decorateResults(resultString, hasError, codeSelection, editor) {
     let decoration = evaluated(resultString, hasError)
-    decoration.range = new vscode.Selection(codeSelection.end, codeSelection.end);
+    decoration["range"] = new vscode.Selection(codeSelection.end, codeSelection.end);
     editor.setDecorations(evalResultsDecorationType, [decoration]);
     setTimeout(() => {
         let subscription = vscode.window.onDidChangeTextEditorSelection(() => {

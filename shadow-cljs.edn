@@ -1,5 +1,5 @@
 {:source-paths
- ["src/main"]
+ ["lib-src"]
 
  :nrepl {:port 8303}
 
@@ -11,8 +11,13 @@
  :builds
  {:calva
   {:target :node-library
-   :output-to "dist/calva.js"
-   :output-dir "out"
-   :compiler-options {:source-map-use-fs-paths true}
-   :exports calva.extension/exports
-   :devtools {}}}}
+   :output-to "lib/calva.js"
+   :exports   {:message calva.repl.message/exports
+               :nrepl calva.repl.nrepl/exports
+               :migration calva.migration/exports
+               :greetings calva.greet/exports}}
+  :test
+  {:target    :node-test
+   :output-to "test-out/tests.js"
+   :ns-regexp ".*"
+   :autorun   true}}}

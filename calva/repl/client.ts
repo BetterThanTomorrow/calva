@@ -1,11 +1,11 @@
 import * as state from '../state';
-import nrepl from 'goog:calva.repl.nrepl';
+const { nrepl } = require('../../lib/calva');
 
 function send(msg, callback) {
     nrepl.message(this, msg, callback);
 }
 
-function create(options) {
+function create(options?) {
     let current = state.deref(),
         _options = null;
     if (current.get('connected')) {

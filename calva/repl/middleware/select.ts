@@ -1,4 +1,4 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import * as util from '../../utilities';
 const paredit = require('paredit.js');
 
@@ -10,7 +10,7 @@ function adjustRangeIgnoringComment(doc, range) {
         let start = doc.offsetAt(range.start),
             preTextLength = 0,
             end = doc.offsetAt(range.end),
-            postTextLength= 0,
+            postTextLength = 0,
             preMatch = text.match(/^\(\s*comment\s+/m),
             postMatch = text.match(/\s*\)\s*$/m);
         if (preMatch) {
@@ -46,7 +46,7 @@ function selectCurrentForm(document = {}) {
         codeSelection = null;
 
     if (selection.isEmpty) {
-        codeSelection = getFormSelection(doc, selection.active);
+        codeSelection = getFormSelection(doc, selection.active, false);
         if (codeSelection) {
             editor.selection = codeSelection;
         }

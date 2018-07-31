@@ -1,8 +1,8 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
-import _ from 'lodash';
+import * as _ from 'lodash';
 import * as state from './state';
-import fs from 'fs';
+import * as fs from 'fs';
 const syntaxQuoteSymbol = "`";
 
 

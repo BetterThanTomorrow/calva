@@ -1,9 +1,12 @@
+import * as vscode from 'vscode';
 import * as state from '../state';
-import os from 'os';
-import fs from 'fs';
-import JSZip from 'jszip';
+import * as os from 'os';
+import * as fs from 'fs';
+import * as JSZip from 'jszip';
 
-export default class TextDocumentContentProvider {
+export default class TextDocumentContentProvider implements vscode.TextDocumentContentProvider {
+    state: any;
+
     constructor() {
         this.state = state;
     }
@@ -11,7 +14,7 @@ export default class TextDocumentContentProvider {
     provideTextDocumentContent(uri, token) {
         let current = this.state.deref();
         if (current.get('connected')) {
-            return new Promise((resolve, reject) => {
+            return new Promise<string>((resolve, reject) => {
                 let rawPath = uri.path,
                     pathToFileInJar = rawPath.slice(rawPath.search('!/') + 2),
                     pathToJar = rawPath.slice('file:'.length);

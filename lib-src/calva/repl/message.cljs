@@ -1,5 +1,9 @@
-(ns calva.repl.message
-  (:require ["/calva/utilities.js" :as util]))
+(ns calva.repl.message)
+
+
+(defn shadow-cljs-repl-start-code [build]
+  (str "(shadow.cljs.devtools.api/nrepl-select " build ")"))
+
 
 (def operation
   {:EVALUATE "eval"
@@ -19,14 +23,14 @@
    :RETEST "retest"
    :PPRINT "pprint"})
 
-(defn startCljsReplMsg [session]
+(defn eval-code-msg [session code]
   {:op (operation :EVALUATE)
-   :code (util/getCljsReplStartCode)
+   :code code
    :session session})
 
 (defn startShadowCljsReplMsg [session build]
   {:op (operation :EVALUATE)
-   :code (util/getShadowCljsReplStartCode build)
+   :code (shadow-cljs-repl-start-code build)
    :session session})
 
 (defn listSessionsMsg []
@@ -109,21 +113,24 @@
    :session session})
 
 (def message
-  {:evaluate evaluateMsg
-   :listSessions listSessionsMsg
-   :loadFile loadFileMsg
-   :complete completeMsg
-   :info infoMsg
-   :stacktrace stacktraceMsg
-   :clone cloneMsg
-   :close closeMsg
-   :refresh refreshMsg
-   :refreshAll refreshAllMsg
-   :refreshClear refreshClearMsg
-   :test testMsg
-   :testAll testAllMsg
-   :rerunTests rerunTestsMsg
-   :format formatMsg
+  {:evaluateMsg evaluateMsg
+   :listSessionsMsg listSessionsMsg
+   :loadFileMsg loadFileMsg
+   :completeMsg completeMsg
+   :infoMsg infoMsg
+   :stacktraceMsg stacktraceMsg
+   :cloneMsg cloneMsg
+   :closeMsg closeMsg
+   :refreshMsg refreshMsg
+   :refreshAllMsg refreshAllMsg
+   :refreshClearMsg refreshClearMsg
+   :testMsg testMsg
+   :testAllMsg testAllMsg
+   :rerunTestsMsg rerunTestsMsg
+   :formatMsg formatMsg
    :operation operation
-   :startCljsRepl startCljsReplMsg
-   :startShadowCljsRepl startShadowCljsReplMsg})
+   :evalCode eval-code-msg
+   :startShadowCljsReplMsg startShadowCljsReplMsg})
+
+(def exports
+  (clj->js message))

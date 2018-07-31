@@ -1,17 +1,19 @@
-import vscode from 'vscode';
-import _ from 'lodash';
+import * as vscode from 'vscode';
+import * as _ from 'lodash';
 import * as state from '../../state';
 import repl from '../client';
-import message from 'goog:calva.repl.message';
 import evaluate from './evaluate';
 import * as util from '../../utilities';
+
+const { message } = require('../../../lib/calva');
+
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function markTestResults(responsesArray, log = true) {
     let chan = state.deref().get('outputChannel'),
         diagnostics = {},
-        total_summary = {};
+        total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
     diagnosticCollection.clear();
     _.each(responsesArray, (responses) => {
         _.each(responses, response => {
@@ -106,8 +108,8 @@ function runTests(messages, startStr, errorStr, log = true) {
             new Promise((resolve, reject) => {
                 testClient = repl.create().once('connect', () => {
                     testClient.send(messages[i], (result) => {
-                        exceptions += _.some(result, "ex");
-                        errors += _.some(result, "err");
+                        exceptions += (_.some(result, "ex") ? 1 : 0);
+                        errors += (_.some(result, "err") ? 1 : 0);
                         if (!exceptions && !errors) {
                             resolve(result);
                         } else {

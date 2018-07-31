@@ -1,10 +1,11 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import * as state from '../state';
 import repl from '../repl/client';
-import message from 'goog:calva.repl.message';
 import * as util from '../utilities';
+const { message } = require('../../lib/calva');
 
-export default class DefinitionProvider {
+export default class DefinitionProvider implements vscode.DefinitionProvider {
+    state: any;
     constructor() {
         this.state = state;
     }
@@ -15,8 +16,8 @@ export default class DefinitionProvider {
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
-        if (this.state.deref().get('connected')) {
-            return new Promise((resolve, reject) => {
+        return new Promise<vscode.Location>((resolve, reject) => {
+            if (this.state.deref().get('connected')) {
                 let current = scope.state.deref(),
                     client = repl.create().once('connect', () => {
                         let msg = message.infoMsg(util.getSession(filetype),
@@ -37,9 +38,9 @@ export default class DefinitionProvider {
                             client.end();
                         });
                     });
-            });
-        } else {
-            return new vscode.Hover("Not connected to nREPL..");
-        }
+            } else {
+                reject("Not connected to a REPL…");
+            }
+        });
     }
 };

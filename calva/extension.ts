@@ -1,10 +1,9 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import * as state from './state';
 import status from './status';
 import connector from './connector';
-import greet from 'goog:calva.greet';
 import terminal from './terminal';
-import CompletionItemProvider from './providers/completion';
+import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import DefinitionProvider from './providers/definition';
@@ -12,6 +11,9 @@ import EvaluateMiddleWare from './repl/middleware/evaluate';
 import LintMiddleWare from './repl/middleware/lint';
 import TestRunnerMiddleWare from './repl/middleware/testRunner';
 import select from './repl/middleware/select';
+
+const { greetings } = require('../lib/calva');
+
 
 function onDidSave(document) {
     let {
@@ -51,7 +53,8 @@ function activate(context) {
     let chan = state.deref().get('outputChannel');
     chan.appendLine("Calva activated.");
     let {
-        autoConnect
+        autoConnect,
+        lint
     } = state.config();
 
     status.update();
@@ -81,7 +84,7 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLTerminal', terminal.evalCurrentTopLevelFormInREPLTerminalCommand));
 
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
 
@@ -95,7 +98,7 @@ function activate(context) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        status.update(editor);
+        status.update();
     }));
     context.subscriptions.push(new vscode.Disposable(() => {
         connector.disconnect();
@@ -108,7 +111,7 @@ function activate(context) {
 
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
-    greet.activationGreetings(chan);
+    greetings.activationGreetings(chan, lint);
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
     if (autoConnect) {

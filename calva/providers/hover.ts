@@ -1,10 +1,12 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import * as state from '../state';
 import repl from '../repl/client';
-import message from 'goog:calva.repl.message';
 import * as util from '../utilities';
 
-export default class HoverProvider {
+const { message } = require('../../lib/calva');
+
+export default class HoverProvider implements vscode.HoverProvider {
+    state: any;
     constructor() {
         this.state = state;
     }
@@ -45,7 +47,7 @@ export default class HoverProvider {
         }
 
         if (this.state.deref().get('connected')) {
-            return new Promise((resolve, reject) => {
+            return new Promise<vscode.Hover>((resolve, reject) => {
                 let current = this.state.deref(),
                     client = repl.create()
                         .once('connect', () => {

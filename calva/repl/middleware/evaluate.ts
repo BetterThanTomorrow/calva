@@ -1,11 +1,12 @@
-import vscode from 'vscode';
-import _ from 'lodash';
+import * as vscode from 'vscode';
+import * as _ from 'lodash';
 import * as state from '../../state';
 import repl from '../client';
-import message from 'goog:calva.repl.message';
 import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
+
+const { message } = require('../../../lib/calva');
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
     let current = state.deref(),
@@ -44,9 +45,9 @@ function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = current.get('outputChannel'),
         doc = util.getDocument(document),
-        pprint = options.pprint || false,
-        replace = options.replace || false,
-        topLevel = options.topLevel || false,
+        pprint = options["pprint"] || false,
+        replace = options["replace"] || false,
+        topLevel = options["topLevel"] || false,
         session = util.getSession(util.getFileType(doc));
 
     if (current.get('connected')) {

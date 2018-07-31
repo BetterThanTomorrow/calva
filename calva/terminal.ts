@@ -1,4 +1,4 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
 import evaluate from './repl/middleware/evaluate';

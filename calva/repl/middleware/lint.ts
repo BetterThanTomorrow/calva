@@ -1,6 +1,6 @@
-import vscode from 'vscode';
+import * as vscode from 'vscode';
 import { spawn } from 'child_process';
-import path from 'path';
+import * as path from 'path';
 import * as state from '../../state';
 import * as util from '../../utilities';
 
@@ -74,7 +74,7 @@ function lintDocument(document = {}) {
         }
     });
 
-    joker.on("error", (error) => {
+    joker.on("error", (error: { message, code }) => {
         let {
             lint,
             jokerPath

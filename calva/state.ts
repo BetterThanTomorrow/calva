@@ -1,6 +1,6 @@
-import vscode from 'vscode';
-import Immutable from 'immutable';
-import ImmutableCursor from 'immutable-cursor';
+import * as vscode from 'vscode';
+import * as Immutable from 'immutable';
+import * as ImmutableCursor from 'immutable-cursor';
 
 const mode = {
     language: 'clojure',
@@ -35,7 +35,8 @@ function reset() {
 }
 
 function config() {
-    let configOptions = vscode.workspace.getConfiguration('calva');
+    let configOptions = vscode.workspace.getConfiguration('calva'),
+        projectRootDirectoryConfig: string = configOptions.get("projectRootDirectory");
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
@@ -43,7 +44,7 @@ function config() {
         test: configOptions.get("testOnSave"),
         autoConnect: configOptions.get("autoConnect"),
         connectREPLCommand: configOptions.get("connectREPLCommand"),
-        projectRootDirectory: configOptions.get("projectRootDirectory").replace(/^\/|\/$/g, ""),
+        projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
         useJokerOnWSL: configOptions.get("useJokerOnWSL")
     };

@@ -1,14 +1,14 @@
-import vscode from 'vscode';
-import _ from 'lodash';
-import fs from 'fs';
+import * as vscode from 'vscode';
+import * as _ from 'lodash';
+import * as fs from 'fs';
 import * as state from './state';
 import repl from './repl/client';
-import message from 'goog:calva.repl.message';
 import * as util from './utilities';
 import shadow from './shadow';
 import status from './status';
 import terminal from './terminal';
 //const evaluate = require('./repl/middleware/evaluate');
+const { message } = require('../lib/calva');
 
 function nreplPortFile() {
     if (fs.existsSync(shadow.shadowNReplPortFile())) {
@@ -144,7 +144,8 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                 let cljsSession = _.find(results, 'new-session')['new-session'];
                 if (cljsSession) {
                     let client = repl.create({ hostname, port }).once('connect', () => {
-                        let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) : message.startCljsReplMsg(cljsSession);
+                        let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) :
+                            message.evalCode(cljsSession, util.getCljsReplStartCode());
                         client.send(msg, cljsResults => {
                             client.end();
                             let valueResult = _.find(cljsResults, 'value'),

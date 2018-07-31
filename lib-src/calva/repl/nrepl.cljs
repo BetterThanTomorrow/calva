@@ -86,3 +86,9 @@
                            (callback (clj->js @*state))))))
 
     (.write conn (bencoder/encode (clj->js msg)) "binary")))
+
+
+(def exports
+  (clj->js
+   {:connect connect
+    :message message}))

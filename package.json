@@ -49,7 +49,7 @@
         "onLanguage:clojure",
         "onCommand:calva.activate"
     ],
-    "main": "./dist/calva.js",
+    "main": "./out/calva/extension",
     "extensionDependencies": [
         "cospaia.calva-fmt"
     ],
@@ -311,12 +311,20 @@
         }
     },
     "scripts": {
-        "watch": "npx shadow-cljs watch :calva",
-        "clean": "rm -rf .shadow-cljs/ dist/ out/",
+        "mkdirs": "mkdir -p ./out ./test-out ./lib",
+        "linkdirs": "(cd out && ln -s ../lib/)",
+        "copydirs": "cp -r ./lib ./out/",
+        "clean": "rm -rf .shadow-cljs/ ./out ./test-out ./lib && npm run mkdirs",
+        "watch-cljs": "npm run clean && npm run linkdirs && npx shadow-cljs watch :test :calva",
+        "watch-ts": "tsc -watch -p ./",
+        "release": "npm run clean && npx shadow-cljs release :calva && npm run copydirs && tsc -p ./",
+        "compile": "npx shadow-cljs compile :calva && tsc -p ./",
         "vscode:prepublish": "npm run clean && npx shadow-cljs release :calva",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
+        "@types/mocha": "^2.2.42",
+        "@types/node": "^7.0.66",
         "bencoder": "0.0.5",
         "buffer": "^5.0.7",
         "find": "0.2.9",
@@ -326,10 +334,10 @@
         "jszip": "3.1.3",
         "lodash": "^4.17.10",
         "net": "1.0.2",
-        "npm": "^6.1.0",
+        "npm": "^6.2.0",
+        "paredit.js": "^0.3.3",
         "vscode": "^1.1.18",
-        "vscode-extension-telemetry": "0.0.15",
-        "paredit.js": "^0.3.3"
+        "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
         "eslint": "^4.19.1",
@@ -338,6 +346,7 @@
         "eslint-plugin-node": "^6.0.1",
         "eslint-plugin-promise": "^3.7.0",
         "eslint-plugin-standard": "^3.0.1",
-        "shadow-cljs": "2.3.18"
+        "shadow-cljs": "^2.4.8",
+        "typescript": "^2.9.2"
     }
 }

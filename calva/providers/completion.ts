@@ -1,32 +1,35 @@
-import vscode from 'vscode';
+import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem } from 'vscode';
 import * as state from '../state';
 import repl from '../repl/client';
-import message from 'goog:calva.repl.message';
 import * as util from '../utilities';
+import { Context } from 'vm';
+const { message } = require('../../lib/calva');
 
-export default class CompletionItemProvider {
+export default class CalvaCompletionItemProvider implements CompletionItemProvider {
+    state: any;
+    mappings: any;
     constructor() {
         this.state = state;
         this.mappings = {
-            'nil': vscode.CompletionItemKind.Value,
-            'macro': vscode.CompletionItemKind.Value,
-            'class': vscode.CompletionItemKind.Class,
-            'keyword': vscode.CompletionItemKind.Keyword,
-            'namespace': vscode.CompletionItemKind.Module,
-            'function': vscode.CompletionItemKind.Function,
-            'special-form': vscode.CompletionItemKind.Keyword,
-            'var': vscode.CompletionItemKind.Variable,
-            'method': vscode.CompletionItemKind.Method
+            'nil': CompletionItemKind.Value,
+            'macro': CompletionItemKind.Value,
+            'class': CompletionItemKind.Class,
+            'keyword': CompletionItemKind.Keyword,
+            'namespace': CompletionItemKind.Module,
+            'function': CompletionItemKind.Function,
+            'special-form': CompletionItemKind.Keyword,
+            'var': CompletionItemKind.Variable,
+            'method': CompletionItemKind.Method
         };
     }
 
-    provideCompletionItems(document, position, _) {
+    provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext) {
         let text = util.getWordAtPosition(document, position),
             scope = this,
             filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
             filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
         if (this.state.deref().get("connected")) {
-            return new Promise((resolve, reject) => {
+            return new Promise<CompletionList>((resolve, reject) => {
                 let current = this.state.deref(),
                     client = repl.create()
                         .once('connect', () => {
@@ -41,14 +44,14 @@ export default class CompletionItemProvider {
                                             let item = result.completions[c];
                                             completions.push({
                                                 label: item.candidate,
-                                                kind: scope.mappings[item.type] || vscode.CompletionItemKind.Text,
+                                                kind: scope.mappings[item.type] || CompletionItemKind.Text,
                                                 insertText: item[0] === '.' ? item.slice(1) : item
                                             });
                                         }
                                     }
                                 }
                                 if (completions.length > 0) {
-                                    resolve(new vscode.CompletionList(completions, false));
+                                    resolve(new CompletionList(completions, false));
                                 } else {
                                     reject("No completions found");
                                 }
@@ -57,19 +60,19 @@ export default class CompletionItemProvider {
                         });
             });
         } else {
-            return new vscode.Hover("Connect to repl for auto-complete..");
+            return [new CompletionItem("Connect to repl for auto-complete..")];
         }
     }
 
-    resolveCompletionItem(item, _) {
-        let editor = vscode.window.activeTextEditor,
+    resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
+        let editor = window.activeTextEditor,
             filetypeIndex = (editor.document.fileName.lastIndexOf('.') + 1),
             filetype = editor.document.fileName.substr(filetypeIndex, editor.document.fileName.length);
-        return new Promise((resolve, reject) => {
+        return new Promise<CompletionItem>((resolve, reject) => {
             let current = this.state.deref();
             if (current.get('connected')) {
                 let client = repl.create().once('connect', () => {
-                    let document = vscode.window.activeTextEditor.document,
+                    let document = window.activeTextEditor.document,
                         msg = message.infoMsg(util.getSession(filetype),
                             util.getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
