@@ -45,9 +45,13 @@ jspm_packages
 
 ## CLJS
 .shadow-cljs/
-out/
+lib/
+test-out/
 .nrepl-port
 dist/
 pom.xml
 .idea
 *.iml
+
+## TS
+out/
