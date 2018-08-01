@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.32",
+    "version": "1.3.33-TS-CLJS",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -317,9 +317,9 @@
         "clean": "rm -rf .shadow-cljs/ ./out ./test-out ./lib && npm run mkdirs",
         "watch-cljs": "npm run clean && npm run linkdirs && npx shadow-cljs watch :test :calva",
         "watch-ts": "tsc -watch -p ./",
-        "release": "npm run clean && npx shadow-cljs release :calva && npm run copydirs && tsc -p ./",
+        "release": "npm run clean && npx shadow-cljs compile :calva && npm run copydirs && tsc -p ./",
         "compile": "npx shadow-cljs compile :calva && tsc -p ./",
-        "vscode:prepublish": "npm run clean && npx shadow-cljs release :calva",
+        "vscode:prepublish": "npm run release",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
-import edn from 'jsedn';
+import * as edn from 'jsedn';
 import * as state from './state';
 import * as util from './utilities';
 
