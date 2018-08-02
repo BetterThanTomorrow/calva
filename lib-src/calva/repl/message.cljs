@@ -131,6 +131,3 @@
    :operation operation
    :evalCode eval-code-msg
    :startShadowCljsReplMsg startShadowCljsReplMsg})
-
-(def exports
-  (clj->js message))

@@ -3,7 +3,7 @@ import * as state from '../state';
 import repl from '../repl/client';
 import * as util from '../utilities';
 import { Context } from 'vm';
-const { message } = require('../../lib/calva');
+import * as calvaLib from '../../lib/calva';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -33,7 +33,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 let current = this.state.deref(),
                     client = repl.create()
                         .once('connect', () => {
-                            let msg = message.completeMsg(util.getSession(filetype),
+                            let msg = calvaLib.message_completeMsg(util.getSession(filetype),
                                 util.getNamespace(document.getText()), text),
                                 completions = [];
                             client.send(msg, function (results) {
@@ -73,7 +73,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
             if (current.get('connected')) {
                 let client = repl.create().once('connect', () => {
                     let document = window.activeTextEditor.document,
-                        msg = message.infoMsg(util.getSession(filetype),
+                        msg = calvaLib.message_infoMsg(util.getSession(filetype),
                             util.getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {

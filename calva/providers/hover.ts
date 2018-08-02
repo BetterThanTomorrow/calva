@@ -3,7 +3,8 @@ import * as state from '../state';
 import repl from '../repl/client';
 import * as util from '../utilities';
 
-const { message } = require('../../lib/calva');
+import * as calvaLib from '../../lib/calva';
+
 
 export default class HoverProvider implements vscode.HoverProvider {
     state: any;
@@ -51,7 +52,7 @@ export default class HoverProvider implements vscode.HoverProvider {
                 let current = this.state.deref(),
                     client = repl.create()
                         .once('connect', () => {
-                            let msg = message.infoMsg(current.get(filetype),
+                            let msg = calvaLib.message_infoMsg(current.get(filetype),
                                 util.getNamespace(document.getText()), text);
                             client.send(msg, function (results) {
                                 if (results.length === 1 &&

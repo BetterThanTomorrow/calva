@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import repl from '../repl/client';
 import * as util from '../utilities';
-const { message } = require('../../lib/calva');
+import * as calvaLib from '../../lib/calva';
+
 
 export default class DefinitionProvider implements vscode.DefinitionProvider {
     state: any;
@@ -20,7 +21,7 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
             if (this.state.deref().get('connected')) {
                 let current = scope.state.deref(),
                     client = repl.create().once('connect', () => {
-                        let msg = message.infoMsg(util.getSession(filetype),
+                        let msg = calvaLib.message_infoMsg(util.getSession(filetype),
                             util.getNamespace(document.getText()), text);
                         client.send(msg, function (results) {
                             for (var r = 0; r < results.length; r++) {

@@ -59,7 +59,7 @@
    buffers))
 
 
-(defn message [conn msg callback]
+(defn message [^js conn msg callback]
   (let [*state (atom [])]
     (.on conn "data" (fn [chunk]
                        (when-let [decoded-messages (let [empty-buffer (Buffer.from "")
@@ -86,9 +86,3 @@
                            (callback (clj->js @*state))))))
 
     (.write conn (bencoder/encode (clj->js msg)) "binary")))
-
-
-(def exports
-  (clj->js
-   {:connect connect
-    :message message}))

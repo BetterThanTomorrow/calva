@@ -1,8 +1,9 @@
 import * as state from '../state';
-const { nrepl } = require('../../lib/calva');
+import * as calvaLib from '../../lib/calva';
+
 
 function send(msg, callback) {
-    nrepl.message(this, msg, callback);
+    calvaLib.nrepl_message(this, msg, callback);
 }
 
 function create(options?) {
@@ -18,7 +19,7 @@ function create(options?) {
     }
 
     if (_options !== null) {
-        let con = nrepl.connect(_options);
+        let con = calvaLib.nrepl_connect(_options);
         con.send = send.bind(con);
 
         return con;

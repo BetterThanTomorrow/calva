@@ -12,7 +12,7 @@ import LintMiddleWare from './repl/middleware/lint';
 import TestRunnerMiddleWare from './repl/middleware/testRunner';
 import select from './repl/middleware/select';
 
-const { greetings } = require('../lib/calva');
+import * as calvaLib from '../lib/calva';
 
 
 function onDidSave(document) {
@@ -111,7 +111,7 @@ function activate(context) {
 
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
-    greetings.activationGreetings(chan, lint);
+    calvaLib.greetings_activationGreetings(chan, lint);
 
     //Try to connect using an existing .nrepl-port file, searching the root-directory
     if (autoConnect) {
