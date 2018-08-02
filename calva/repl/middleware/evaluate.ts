@@ -25,10 +25,6 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
                     resolve(result);
                 } else {
                     let err = _.find(result, "err").err;
-                    util.logError({
-                        type: util.ERROR_TYPE.ERROR,
-                        reason: "Error, " + errorStr + ": " + err
-                    });
                     reject(result);
                 }
             });
@@ -72,35 +68,50 @@ function evaluateSelection(document = {}, options = {}) {
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
             evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
-                let result = null;
+                let result = [],
+                    out = [],
+                    err = [];
                 _.each(results, (r) => {
                     if (r.hasOwnProperty("err")) {
-                        result = r.err;
-                        return false;
+                        err.push(r.err);
                     } else if (r.hasOwnProperty("value")) {
-                        result = r.value;
+                        result.push(r.value);
                     } else if (r.hasOwnProperty("pprint-out")) {
-                        result = r["pprint-out"].replace(/\n$/, "");;
+                        result.push(r["pprint-out"].replace(/\n$/, ""));
+                    } else if (r.hasOwnProperty("out")) {
+                        out.push(r.out);
                     }
                 });
-                if (result !== null) {
+                if (result.length + out.length + err.length > 0) {
                     if (replace && !hasError) {
                         const indent = ' '.repeat(c),
-                            edit = vscode.TextEdit.replace(codeSelection, result.replace(/\n/gm, "\n" + indent)),
+                            edit = vscode.TextEdit.replace(codeSelection, result.join("\n").replace(/\n/gm, "\n" + indent)),
                             wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
                         annotations.decorateSelection(codeSelection, editor);
-                        chan.append('=> ');
-                        if (pprint) {
-                            chan.appendLine('');
-                            chan.show(true);
-                        } else {
-                            annotations.decorateResults(' => ' + result.replace(/\n/gm, " ") + " ", hasError, codeSelection, editor);
+                        if (!pprint) {
+                            const annotation = hasError ? err.join("\n") : result.join("\n");
+                            annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", hasError, codeSelection, editor);
                         }
-                        chan.appendLine(result);
+                        if (out.length > 0) {
+                            chan.append("out: ")
+                            chan.append(out.join("\n"));
+                        }
+                        if (result.length > 0) {
+                            chan.append('=> ');
+                            if (pprint) {
+                                chan.appendLine('');
+                                chan.show(true);                                    
+                            }
+                            chan.appendLine(result.join("\n"));
+                        }
+                        if (err.length > 0) {
+                            chan.append("Error: ")
+                            chan.append(err.join("\n"));
+                        }
                     }
                 } else {
                     chan.appendLine("Evaluation failed for unknown reasons. Sometimes it helps evaluating the file first.");
