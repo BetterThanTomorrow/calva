@@ -69,7 +69,9 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 
 ## Future Stuff
 
-* Test reporting while tests are being run. HIGH PRIORITY.
+There are lots of stuff that needs attention and lots of possible features to add. The following is **not** a comprehensive list:
+
+* Test reporting while tests are being run.
 * Open as many REPLs as you like.
 * Custom user commands to execute over the REPL connection.
 * Commands to start the REPLs from VS Code, injecting dependencies automatically.
