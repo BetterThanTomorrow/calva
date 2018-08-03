@@ -10,35 +10,9 @@
 
  :builds
  {:calva
-  {:target :node-library
-   :output-to "lib/calva.js"
-   :compiler-options {:infer-externs :auto}
-   :exports   {:message_evaluateMsg calva.repl.message/evaluateMsg
-               :message_listSessionsMsg calva.repl.message/listSessionsMsg
-               :message_loadFileMsg calva.repl.message/loadFileMsg
-               :message_completeMsg calva.repl.message/completeMsg
-               :message_infoMsg calva.repl.message/infoMsg
-               :message_stacktraceMsg calva.repl.message/stacktraceMsg
-               :message_cloneMsg calva.repl.message/cloneMsg
-               :message_closeMsg calva.repl.message/closeMsg
-               :message_refreshMsg calva.repl.message/refreshMsg
-               :message_refreshAllMsg calva.repl.message/refreshAllMsg
-               :message_refreshClearMsg calva.repl.message/refreshClearMsg
-               :message_testMsg calva.repl.message/testMsg
-               :message_testAllMsg calva.repl.message/testAllMsg
-               :message_rerunTestsMsg calva.repl.message/rerunTestsMsg
-               :message_formatMsg calva.repl.message/formatMsg
-               :message_operation calva.repl.message/operation
-               :message_evalCode calva.repl.message/eval-code-msg
-               :message_startShadowCljsReplMsg calva.repl.message/startShadowCljsReplMsg
-
-               :nrepl_connect calva.repl.nrepl/connect
-               :nrepl_message calva.repl.nrepl/message
-
-               :migration_jsify   calva.migration/jsify
-               :migration_cljsify calva.migration/cljify
-
-               :greetings_activationGreetings calva.greet/activationGreetings}}
+  {:target :npm-module
+   :output-dir "lib"
+   :compiler-options {:infer-externs :auto}}
   :test
   {:target    :node-test
    :output-to "test-out/tests.js"

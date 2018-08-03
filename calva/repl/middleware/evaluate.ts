@@ -6,7 +6,7 @@ import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
 
-import * as calvaLib from '../../../lib/calva';
+import * as message from '../../../lib/calva.repl.message';
 
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
@@ -64,7 +64,7 @@ function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
-            let msg = calvaLib.message_evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
+            let msg = message.evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
             evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
@@ -142,7 +142,7 @@ function evaluateFile(document = {}, callback = () => { }) {
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         let session = util.getSession(util.getFileType(doc)),
-            msg = calvaLib.message_loadFileMsg(session, doc.getText(), fileName, doc.fileName);
+            msg = message.loadFileMsg(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
             let result = null;
