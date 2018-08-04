@@ -103,9 +103,7 @@ We are now two, so that's a team. Calva is a dear project to us so we try to giv
 
 ### How to contribute
 
-Calva is being ported to ClojureScript and uses the `shadow-cljs` toolchain.
-
-See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+Calva is being ported to a combination of TypeScript and ClojureScript. The ClojureScript part uses the `shadow-cljs` toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
 
 ## Happy coding
 
