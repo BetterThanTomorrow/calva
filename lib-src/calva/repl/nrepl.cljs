@@ -55,7 +55,7 @@
                (decode [recoverable-buffer (Buffer.from recoverable-content)]))
 
              ;; can't (don't know) handle other errors
-             (js/console.error "FAILED TO DECODE" (.-code exception-message)))))))
+             (js/console.error "FAILED TO DECODE" exception-message))))))
    buffers))
 
 
