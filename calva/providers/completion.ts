@@ -1,6 +1,6 @@
 import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem } from 'vscode';
 import * as state from '../state';
-import repl from '../repl/client';
+import * as repl from '../../lib/calva.repl.client'
 import * as util from '../utilities';
 import { Context } from 'vm';
 import * as message from '../../lib/calva.repl.message';
@@ -31,7 +31,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         if (this.state.deref().get("connected")) {
             return new Promise<CompletionList>((resolve, reject) => {
                 let current = this.state.deref(),
-                    client = repl.create()
+                    client = repl.create({}, this.state.deref())
                         .once('connect', () => {
                             let msg = message.completeMsg(util.getSession(filetype),
                                 util.getNamespace(document.getText()), text),
@@ -71,7 +71,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         return new Promise<CompletionItem>((resolve, reject) => {
             let current = this.state.deref();
             if (current.get('connected')) {
-                let client = repl.create().once('connect', () => {
+                let client = repl.create({}, current).once('connect', () => {
                     let document = window.activeTextEditor.document,
                         msg = message.infoMsg(util.getSession(filetype),
                             util.getNamespace(document.getText()), item.label);

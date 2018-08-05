@@ -2,13 +2,12 @@ import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as state from './state';
-import repl from './repl/client';
 import * as util from './utilities';
 import shadow from './shadow';
 import status from './status';
 import terminal from './terminal';
-//const evaluate = require('./repl/middleware/evaluate');
 import * as message from '../lib/calva.repl.message';
+import * as repl from '../lib/calva.repl.client'
 
 function nreplPortFile() {
     if (fs.existsSync(shadow.shadowNReplPortFile())) {
@@ -36,7 +35,7 @@ function disconnect(options = null, callback = () => { }) {
 
     let n = connections.length;
     if (n > 0) {
-        let client = repl.create(options).once('connect', () => {
+        let client = repl.create(options, state.deref()).once('connect', () => {
             client.send(message.listSessionsMsg(), results => {
                 client.end();
                 let sessions = _.find(results, 'sessions')['sessions'];
@@ -45,7 +44,7 @@ function disconnect(options = null, callback = () => { }) {
                         let sessionType = connection[0],
                             sessionId = connection[1]
                         if (sessions.indexOf(sessionId) != -1) {
-                            let client = repl.create(options).once('connect', () => {
+                            let client = repl.create(options, state.deref()).once('connect', () => {
                                 client.send(message.closeMsg(sessionId), () => {
                                     client.end();
                                     n--;
@@ -114,7 +113,7 @@ function connectToHost(hostname, port) {
             "host": hostname,
             "port": port,
             "on-connect": onConnect
-        });
+        }, state.deref());
     });
 }
 
@@ -138,12 +137,12 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
             }
         });
     } else {
-        let client = repl.create({ hostname, port }).once('connect', () => {
+        let client = repl.create({ hostname, port }, state.deref()).once('connect', () => {
             client.send(message.cloneMsg(session), results => {
                 client.end();
                 let cljsSession = _.find(results, 'new-session')['new-session'];
                 if (cljsSession) {
-                    let client = repl.create({ hostname, port }).once('connect', () => {
+                    let client = repl.create({ hostname, port }, state.deref()).once('connect', () => {
                         let msg = shadowBuild ? message.startShadowCljsReplMsg(cljsSession, shadowBuild) :
                             message.eval_code_msg(cljsSession, util.getCljsReplStartCode());
                         client.send(msg, cljsResults => {
