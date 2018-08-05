@@ -11,6 +11,7 @@
  :builds
  {:calva
   {:target :npm-module
+   :runtime :node
    :output-dir "lib"
    :compiler-options {:infer-externs :auto}}
   :test
