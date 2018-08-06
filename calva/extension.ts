@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 
-import * as VM from 'vm';
+//import * as VM from 'vm';
 const isDevRegex = /^--inspect(-brk)?=?/,
     isDev = process.execArgv ? process.execArgv.some(arg => isDevRegex.test(arg)) : false;
 if (isDev) {
     require("../lib/shadow.cljs.devtools.client.node");
+    console.log("In Calva development mode.")
     global["SHADOW_NODE_EVAL"] = function (js, smJson) {
         if (smJson) {
             js += "\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,";
@@ -14,6 +15,7 @@ if (isDev) {
         return eval(js);
     };
 }
+
 
 import * as state from './state';
 import status from './status';
