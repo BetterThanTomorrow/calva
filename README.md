@@ -2,6 +2,8 @@
 
 [Integrated REPL, linting, inline eval, test runner, and more](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
 
+About the name: Calva is short for Calvados, a liquid gifted to humanity from God. It is made from cider.
+
 
 ## Raison d´être
 
