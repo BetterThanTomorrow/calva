@@ -2,12 +2,18 @@
 
 [Integrated REPL, linting, inline eval, test runner, and more](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
 
-About the name: Calva is short for Calvados, a liquid gifted to humanity from God. It is made from cider.
+About the name: *Calva is short for Calvados, a liquid gifted to humanity from God. It is made from cider.*
 
 
 ## Raison d´être
 
 Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If we can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, we will.
+
+## How to use
+
+Calva connects to a running `nrepl` session, so you need to start that outside Calva, then connect (`ctrl+alt+v c`).
+
+It has dependencies on `tools/nrepl` and `cider/nrepl`. Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki to get instructions and information on how to unlock the power of the REPL inside your editor.
 
 Demo: evaluate inline
 
@@ -80,35 +86,18 @@ There are lots of stuff that needs attention and lots of possible features to ad
 * List symbols in the current file.
 * Let us know what you want. PRs welcome, file an issue or tweet: [@pappapez](https://twitter.com/pappapez)
 
-
-## How to use
-
-Calva connects to a running `nrepl` session, so you need to start that outside Calva, then connect (`ctrl+alt+v c`).
-
-It has dependencies on `tools/nrepl` and `cider/nrepl`.
-
-Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki. It has more instructions and information.
-
 ## Other
 
 ### Built on Visual Clojure
 
 Calva started off as a clone of the promising (but abandoned) **visual:clojure** extension.
 
-## Team
-
-We are now two, so that's a team. Calva is a dear project to us so we try to give it of our precious spare time.
-
-* [Peter Strömberg](https://github.com/PEZ)
-* [Pedro Girardi](https://github.com/pedrorgirardi)
-* Your name here
-
 ### How to contribute
 
-Calva is being ported to a combination of TypeScript and ClojureScript. The ClojureScript part uses the `shadow-cljs` toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+Calva is being ported to a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
 
 ## Happy coding
 
-We hope you will find tons of use for this extension! Please let us know what you think or want. PRs welcome, file an issue or chat us (@pez, @pedrorgirardi) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
+I hope you will find tons of use for this extension! Please let us know what you think or want. PRs welcome, file an issue or chat me (@pez) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
 
 ❤️
