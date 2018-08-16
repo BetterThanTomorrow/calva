@@ -128,6 +128,9 @@ function evaluateSelectionReplace(document = {}, options = {}) {
 function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 }
+function evaluateCurrentTopLevelFormPrettyPrint(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { pprint: true, topLevel: true }));
+}
 
 function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
@@ -166,5 +169,6 @@ export default {
     evaluateSelection,
     evaluateTopLevelForm,
     evaluateSelectionPrettyPrint,
+    evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace
 };
