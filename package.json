@@ -162,6 +162,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
+                "title": "Evaluate current top level form, and pretty print",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateSelectionReplace",
                 "title": "Evaluate selection or current form, and replace it with the result",
                 "category": "Calva"
@@ -259,6 +264,10 @@
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
                 "key": "ctrl+alt+v p"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
+                "key": "ctrl+alt+v ctrl+alt+p"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
