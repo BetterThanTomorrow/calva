@@ -39,14 +39,14 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
     }
 }
 
-function openREPLTerminal(keepFocus = true) {
+function openREPLTerminal() {
     let current = state.deref(),
         chan = current.get('outputChannel'),
         sessionType = util.getREPLSessionType(),
         terminal = current.get(terminalSlug(sessionType));
 
     if (terminal) {
-        terminal.show(keepFocus);
+        terminal.show(true);
     }
     else {
         chan.appendLine("No REPL terminal found. Try reconnecting the REPL sessions.");
@@ -54,17 +54,17 @@ function openREPLTerminal(keepFocus = true) {
 }
 
 function openREPLTerminalCommand() {
-    openREPLTerminal(false);
+    openREPLTerminal();
 }
 
 function loadNamespace() {
-    setREPLNamespace(true, false);
+    setREPLNamespace(true);
 }
 
 function loadNamespaceCommand() {
     let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
     if (terminal) {
-        terminal.show();
+        terminal.show(true);
         loadNamespace();
     }
 }
@@ -83,25 +83,25 @@ function sendTextToREPLTerminal(text, addNewline = false) {
     }
 }
 
-function setREPLNamespace(reload = false, keepFocus = true) {
+function setREPLNamespace(reload = false) {
     let nameSpace = util.getDocumentNamespace();
 
     if (reload) {
         evaluate.evaluateFile();
     }
     sendTextToREPLTerminal("(in-ns '" + nameSpace + ")", true);
-    openREPLTerminal(keepFocus);
+    openREPLTerminal();
 }
 
 function setREPLNamespaceCommand() {
     let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
     if (terminal) {
-        terminal.show();
-        setREPLNamespace(false, false);
+        terminal.show(true);
+        setREPLNamespace(false);
     }
 }
 
-function evalCurrentFormInREPLTerminal(keepFocus = true, topLevel = false) {
+function evalCurrentFormInREPLTerminal(topLevel = false) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -120,15 +120,15 @@ function evalCurrentFormInREPLTerminal(keepFocus = true, topLevel = false) {
     if (code !== "") {
         sendTextToREPLTerminal(code, true)
     }
-    openREPLTerminal(keepFocus);
+    openREPLTerminal();
 }
 
 function evalCurrentFormInREPLTerminalCommand() {
-    evalCurrentFormInREPLTerminal(false);
+    evalCurrentFormInREPLTerminal(true);
 }
 
 function evalCurrentTopLevelFormInREPLTerminalCommand() {
-    evalCurrentFormInREPLTerminal(false, true);
+    evalCurrentFormInREPLTerminal(true);
 }
 
 export default {
