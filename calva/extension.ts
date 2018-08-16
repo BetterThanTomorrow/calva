@@ -118,6 +118,9 @@ function activate(context) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
+        if (state.config().syncReplNamespaceToCurrentFile) {
+            terminal.setREPLNamespace()
+        }
     }));
     context.subscriptions.push(new vscode.Disposable(() => {
         connector.disconnect();
