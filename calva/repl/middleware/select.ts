@@ -28,7 +28,7 @@ function adjustRangeIgnoringComment(doc, range) {
 }
 
 
-function getFormSelection(doc, pos, topLevel) {
+function getFormSelection(doc, pos, topLevel) : vscode.Range {
     let allText = doc.getText(),
         ast = paredit.parse(allText),
         idx = doc.offsetAt(pos),
@@ -42,13 +42,12 @@ function getFormSelection(doc, pos, topLevel) {
 function selectCurrentForm(document = {}) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument(document),
-        selection = editor.selection,
-        codeSelection = null;
+        selection = editor.selection;
 
     if (selection.isEmpty) {
-        codeSelection = getFormSelection(doc, selection.active, false);
+        let codeSelection = getFormSelection(doc, selection.active, false);
         if (codeSelection) {
-            editor.selection = codeSelection;
+            editor.selection = new vscode.Selection(codeSelection.start, codeSelection.end);
         }
     }
 }
