@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.37",
+    "version": "1.3.39",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -95,8 +95,8 @@
                 },
                 "calva.syncReplNamespaceToCurrentFile": {
                     "type": "boolean",
-                    "default": true,
-                    "description": "Keeps the repls namespace in sync with the current file (if it has a valid clojure namespace form)"
+                    "default": false,
+                    "description": "Keeps the Terminal REPL's namespace in sync with the current file (if it has a valid clojure namespace form)"
                 },
                 "calva.connectREPLCommand": {
                     "type": "string",

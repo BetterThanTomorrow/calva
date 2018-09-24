@@ -61,10 +61,10 @@ function loadNamespace() {
     setREPLNamespace(true);
 }
 
-function loadNamespaceCommand() {
-    let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
+function loadNamespaceCommand(focus = true) {
+    let terminal: vscode.Terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
     if (terminal) {
-        terminal.show(true);
+        terminal.show(focus);
         loadNamespace();
     }
 }
@@ -90,7 +90,6 @@ function setREPLNamespace(reload = false) {
         evaluate.evaluateFile();
     }
     sendTextToREPLTerminal("(in-ns '" + nameSpace + ")", true);
-    openREPLTerminal();
 }
 
 function setREPLNamespaceCommand() {
@@ -98,6 +97,7 @@ function setREPLNamespaceCommand() {
     if (terminal) {
         terminal.show(true);
         setREPLNamespace(false);
+        openREPLTerminal();
     }
 }
 
