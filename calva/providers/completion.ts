@@ -53,14 +53,14 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                                 if (completions.length > 0) {
                                     resolve(new CompletionList(completions, false));
                                 } else {
-                                    reject("No completions found");
+                                    resolve(new CompletionList(completions, true));
                                 }
                                 client.end();
                             });
                         });
             });
         } else {
-            return [new CompletionItem("Connect to repl for auto-complete..")];
+            return [];
         }
     }
 
