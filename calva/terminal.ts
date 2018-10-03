@@ -16,7 +16,7 @@ function terminalSlug(sessionSlug) {
 function createREPLTerminal(sessionType, shadowBuild, outputChan) {
     let current = state.deref(),
         slug = terminalSlug(sessionType),
-        terminalName = (sessionType === 'clj' ? 'Clojure' : 'CojureScript') + ' REPL',
+        terminalName = (sessionType === 'clj' ? 'Clojure' : 'ClojureScript') + ' REPL',
         terminal = null;
 
     if (current.get(slug)) {
