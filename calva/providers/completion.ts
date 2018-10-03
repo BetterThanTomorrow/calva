@@ -51,7 +51,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                                     }
                                 }
                                 if (completions.length > 0) {
-                                    resolve(new CompletionList(completions, false));
+                                    resolve(new CompletionList(completions, true));
                                 } else {
                                     resolve(new CompletionList(completions, true));
                                 }
