@@ -74,6 +74,11 @@ Demo: lint errors are marked in the editor. (As are unit test failures)
 
 ![underline error](/assets/howto/error.png)
 
+## Calva Paredit and Calva Formatter included
+
+With Calva you also get structural editing, from [Calva Paredit](https://marketplace.visualstudio.com/items?itemName=cospaia.paredit-revived) and formatting, through [Calva Formatter](https://github.com/BetterThanTomorrow/calva-fmt).
+
+You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format current form** command to `tab`. Good to know, right? Please check that README before you change the keybinding.
 
 ## Future Stuff
 
