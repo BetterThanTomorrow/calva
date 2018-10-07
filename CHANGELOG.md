@@ -1,3 +1,7 @@
+# 0.1.7
+
+- show mismatched brackets on scrollbar (#7, #8)
+
 # 0.1.6
 
 - Avoid bracket styles bleeding into text typed next to them
