@@ -10,7 +10,7 @@
   "Unexpected continuation: \"")
 
 
-(defn ^:export connect
+(defn connect
   "Connects to a socket-based REPL at the given host (defaults to localhost) and port."
   [^js options]
   (let [{:keys [host port on-connect on-error on-end] :or {host "localhost"}} (js->clj options :keywordize-keys true)]
@@ -59,7 +59,7 @@
    buffers))
 
 
-(defn ^:export message [^js conn msg callback]
+(defn message [^js conn msg callback]
   (let [*state (atom [])]
     (.on conn "data" (fn [chunk]
                        (when-let [decoded-messages (let [empty-buffer (Buffer.from "")

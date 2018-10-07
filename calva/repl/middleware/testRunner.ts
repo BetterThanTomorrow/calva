@@ -5,7 +5,7 @@ import * as repl from '../../../lib/calva.repl.client'
 import evaluate from './evaluate';
 import * as util from '../../utilities';
 
-import * as message from '../../../lib/calva.repl.message';
+import * as calvaLib from '../../../lib/calva';
 
 
 
@@ -128,7 +128,7 @@ function runTests(messages, startStr, errorStr, log = true) {
                 if (i < messages.length - 1) {
                     loop(i + 1);
                 } else {
-                    if ((messages[0].op === message.operation.RETEST) && (results[0][0]["testing-ns"].length < 1)) {
+                    if ((messages[0].op === calvaLib.message_operation.RETEST) && (results[0][0]["testing-ns"].length < 1)) {
                         chan.appendLine("No tests to rerun. (They probably all passed last time 🤘)")
                     } else {
                         markTestResults(results);
@@ -144,7 +144,7 @@ function runTests(messages, startStr, errorStr, log = true) {
 function runAllTests(document = {}) {
     let doc = util.getDocument(document),
         session = util.getSession(util.getFileType(doc)),
-        msg = message.testAllMsg(session);
+        msg = calvaLib.message_testAllMsg(session);
 
     runTests([msg], "Running all tests", "running all tests");
 }
@@ -160,10 +160,10 @@ function getNamespaceTestMessages(document = {}) {
     let doc = util.getDocument(document),
         session = util.getSession(util.getFileType(doc)),
         ns = util.getNamespace(doc.getText()),
-        messages = [message.testMsg(session, ns)];
+        messages = [calvaLib.message_testMsg(session, ns)];
 
     if (!ns.endsWith('-test')) {
-        messages.push(message.testMsg(session, ns + '-test'));
+        messages.push(calvaLib.message_testMsg(session, ns + '-test'));
     }
     return messages;
 }
@@ -182,7 +182,7 @@ function runNamespaceTestsCommand() {
 function rerunTests(document = {}) {
     let doc = util.getDocument(document),
         session = util.getSession(util.getFileType(doc)),
-        msg = message.rerunTestsMsg(session);
+        msg = calvaLib.message_rerunTestsMsg(session);
 
     evaluate.evaluateFile({}, () => {
         runTests([msg], "Retesting", "retesting");

@@ -1,7 +1,7 @@
 (ns calva.repl.message)
 
 
-(defn ^:export shadow-cljs-repl-start-code [build]
+(defn shadow-cljs-repl-start-code [build]
   (str "(shadow.cljs.devtools.api/nrepl-select " build ")"))
 
 
@@ -23,20 +23,20 @@
    :RETEST "retest"
    :PPRINT "pprint"})
 
-(defn ^:export eval-code-msg [session code]
+(defn eval-code-msg [session code]
   {:op (operation :EVALUATE)
    :code code
    :session session})
 
-(defn ^:export startShadowCljsReplMsg [session build]
+(defn startShadowCljsReplMsg [session build]
   {:op (operation :EVALUATE)
    :code (shadow-cljs-repl-start-code build)
    :session session})
 
-(defn ^:export listSessionsMsg []
+(defn listSessionsMsg []
   {:op (operation :LIST_SESSIONS)})
 
-(defn ^:export evaluateMsg
+(defn evaluateMsg
   ([session ns code]
    (evaluateMsg session ns code false))
   ([session ns code pprint]
@@ -48,66 +48,86 @@
        (assoc msg :pprint 1)
        msg))))
 
-(defn ^:export formatMsg [session code]
+(defn formatMsg [session code]
   {:op (operation :PPRINT)
    :code code
    :session session})
 
-(defn ^:export loadFileMsg [session fileContent fileName filePath]
+(defn loadFileMsg [session fileContent fileName filePath]
   {:op (operation :LOAD_FILE)
    :file fileContent
    :file-name fileName
    :file-path filePath
    :session session})
 
-(defn ^:export completeMsg [session namespace symbol]
+(defn completeMsg [session namespace symbol]
   {:op (operation :COMPLETE)
    :symbol symbol
    :ns namespace
    :session session})
 
-(defn ^:export infoMsg [session namespace symbol]
+(defn infoMsg [session namespace symbol]
   {:op (operation :INFO)
    :symbol symbol
    :ns namespace
    :session session})
 
-(defn ^:export stacktraceMsg [session]
+(defn stacktraceMsg [session]
   {:op (operation :STACKTRACE)
    :session session})
 
-(defn ^:export cloneMsg [session]
+(defn cloneMsg [session]
   (let [msg {:op (operation :CLONE)}]
     (if session
       (assoc msg :session session)
       msg)))
 
-(defn ^:export closeMsg [session]
+(defn closeMsg [session]
   {:op (operation :CLOSE)
    :session session})
 
-(defn ^:export refreshMsg [session]
+(defn refreshMsg [session]
   {:op (operation :REFRESH)
    :session session})
 
-(defn ^:export refreshAllMsg [session]
+(defn refreshAllMsg [session]
   {:op (operation :REFRESH_ALL)
    :session session})
 
-(defn ^:export refreshClearMsg [session]
+(defn refreshClearMsg [session]
   {:op (operation :REFRESH_CLEAR)
    :session session})
 
-(defn ^:export testMsg [session ns]
+(defn testMsg [session ns]
   {:op (operation :TEST)
    :ns ns
    :session session})
 
-(defn ^:export testAllMsg [session]
+(defn testAllMsg [session]
   {:op (operation :TEST_ALL)
    :session session
    :load? 1})
 
-(defn ^:export rerunTestsMsg [session]
+(defn rerunTestsMsg [session]
   {:op (operation :RETEST)
    :session session})
+
+(def message
+  {:evaluateMsg evaluateMsg
+   :listSessionsMsg listSessionsMsg
+   :loadFileMsg loadFileMsg
+   :completeMsg completeMsg
+   :infoMsg infoMsg
+   :stacktraceMsg stacktraceMsg
+   :cloneMsg cloneMsg
+   :closeMsg closeMsg
+   :refreshMsg refreshMsg
+   :refreshAllMsg refreshAllMsg
+   :refreshClearMsg refreshClearMsg
+   :testMsg testMsg
+   :testAllMsg testAllMsg
+   :rerunTestsMsg rerunTestsMsg
+   :formatMsg formatMsg
+   :operation operation
+   :evalCode eval-code-msg
+   :startShadowCljsReplMsg startShadowCljsReplMsg})

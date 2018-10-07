@@ -1,9 +1,9 @@
 (ns calva.migration)
 
 
-(defn ^:export jsify [o]
+(defn jsify [o]
   (clj->js o))
 
 
-(defn ^:export cljify [o]
+(defn cljify [o]
   (js->clj o :keywordize-keys true))

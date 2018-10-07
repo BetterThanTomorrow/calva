@@ -32,6 +32,8 @@
                :message_evalCode calva.repl.message/eval-code-msg
                :message_startShadowCljsReplMsg calva.repl.message/startShadowCljsReplMsg
 
+               :repl_client_create calva.repl.client/create
+
                :nrepl_connect calva.repl.nrepl/connect
                :nrepl_message calva.repl.nrepl/message
 
