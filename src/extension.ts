@@ -84,7 +84,10 @@ export function activate(context: vscode.ExtensionContext) {
 				if (!!misplacedType)
 					activeEditor.setDecorations(misplacedType, []);
 				misplacedBracketStyle = configuration.get("misplacedBracketStyle");
-				misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, dark: {color: "#ccc", backgroundColor: "#933"}});
+				misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, 
+																		 dark: {color: "#ccc", backgroundColor: "#933"},
+																		 overviewRulerColor: new vscode.ThemeColor("editorOverviewRuler.errorForeground"),
+																	     overviewRulerLane: 4});
 				dirty = true;
 			}
 
