@@ -128,7 +128,8 @@ function runTests(messages, startStr, errorStr, log = true) {
                 if (i < messages.length - 1) {
                     loop(i + 1);
                 } else {
-                    if ((messages[0].op === calvaLib.message_operation.RETEST) && (results[0][0]["testing-ns"].length < 1)) {
+                    let msgs = calvaLib.migration_jsify(messages);
+                    if ((msgs[0].op === calvaLib.migration_jsify(calvaLib.message_operation).RETEST) && (results[0][0]["testing-ns"].length < 1)) {
                         chan.appendLine("No tests to rerun. (They probably all passed last time 🤘)")
                     } else {
                         markTestResults(results);
