@@ -7,6 +7,7 @@ import shadow from './shadow';
 import status from './status';
 import terminal from './terminal';
 //const evaluate = require('./repl/middleware/evaluate');
+import repl from './repl/client';
 import * as calvaLib from '../lib/calva';
 
 function nreplPortFile() {
@@ -35,7 +36,7 @@ function disconnect(options = null, callback = () => { }) {
 
     let n = connections.length;
     if (n > 0) {
-        let client = calvaLib.repl_client_create(options).once('connect', () => {
+        let client = repl.create(options).once('connect', () => {
             client.send(calvaLib.message_listSessionsMsg(), results => {
                 client.end();
                 let sessions = _.find(results, 'sessions')['sessions'];
@@ -44,7 +45,7 @@ function disconnect(options = null, callback = () => { }) {
                         let sessionType = connection[0],
                             sessionId = connection[1]
                         if (sessions.indexOf(sessionId) != -1) {
-                            let client = calvaLib.repl_client_create(options).once('connect', () => {
+                            let client = repl.create(options).once('connect', () => {
                                 client.send(calvaLib.message_closeMsg(sessionId), () => {
                                     client.end();
                                     n--;
@@ -109,11 +110,11 @@ function connectToHost(hostname, port) {
             });
         };
 
-        let client = calvaLib.repl_client_create({
+        let client = repl.create({
             "host": hostname,
             "port": port,
             "on-connect": onConnect
-        }, state.deref());
+        });
     });
 }
 
@@ -137,12 +138,12 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
             }
         });
     } else {
-        let client = calvaLib.repl_client_create({ hostname, port }).once('connect', () => {
+        let client = repl.create({ hostname, port }).once('connect', () => {
             client.send(calvaLib.message_cloneMsg(session), results => {
                 client.end();
                 let cljsSession = _.find(results, 'new-session')['new-session'];
                 if (cljsSession) {
-                    let client = calvaLib.repl_client_create({ hostname, port }).once('connect', () => {
+                    let client = repl.create({ hostname, port }).once('connect', () => {
                         let msg = shadowBuild ? calvaLib.message_startShadowCljsReplMsg(cljsSession, shadowBuild) :
                             calvaLib.message_evalCode(cljsSession, util.getCljsReplStartCode());
                         client.send(msg, cljsResults => {

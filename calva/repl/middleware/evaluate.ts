@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from '../../state';
-import * as repl from '../../../lib/calva.repl.client'
+import repl from '../client';
 import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
@@ -17,7 +17,7 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
 
     let evalClient = null;
     new Promise((resolve, reject) => {
-        evalClient = repl.create({}, current).once('connect', () => {
+        evalClient = repl.create({}).once('connect', () => {
             evalClient.send(msg, (result) => {
                 let exceptions = _.some(result, "ex"),
                     errors = _.some(result, "err");

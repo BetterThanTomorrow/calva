@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from '../../state';
-import * as repl from '../../../lib/calva.repl.client'
+import repl from '../client';
 import evaluate from './evaluate';
 import * as util from '../../utilities';
 
@@ -107,7 +107,7 @@ function runTests(messages, startStr, errorStr, log = true) {
         // Thus we only send new messages when a message has returned.
         (function loop(i) {
             new Promise((resolve, reject) => {
-                testClient = repl.create({}, current).once('connect', () => {
+                testClient = repl.create({}).once('connect', () => {
                     testClient.send(messages[i], (result) => {
                         exceptions += (_.some(result, "ex") ? 1 : 0);
                         errors += (_.some(result, "err") ? 1 : 0);
