@@ -151,9 +151,9 @@ function runAllTests(document = {}) {
 }
 
 function runAllTestsCommand() {
-    let chan = state.deref().get('outputChannel');
+    //let chan = state.deref().get('outputChannel');
 
-    chan.show();
+    //chan.show();
     runAllTests();
 }
 
@@ -176,7 +176,7 @@ function runNamespaceTests(document = {}) {
 }
 
 function runNamespaceTestsCommand() {
-    state.deref().get('outputChannel').show();
+    //state.deref().get('outputChannel').show(false);
     runNamespaceTests();
 }
 
@@ -191,7 +191,7 @@ function rerunTests(document = {}) {
 }
 
 function rerunTestsCommand() {
-    state.deref().get('outputChannel').show();
+    //state.deref().get('outputChannel').show();
     rerunTests();
 }
 
