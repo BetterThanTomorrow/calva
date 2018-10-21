@@ -194,7 +194,7 @@
             },
             {
                 "command": "calva.rerunTests",
-                "title": "Run previus tests again",
+                "title": "Run previous tests again",
                 "category": "Calva"
             },
             {
