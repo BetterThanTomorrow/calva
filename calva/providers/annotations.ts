@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
+import * as _ from 'lodash';
 
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
@@ -59,11 +60,13 @@ function clearEvaluationDecorations(editor) {
     setSelectionDecorations(editor, []);
 }
 
-function decorateResults(resultString, hasError, codeSelection, editor) {
+function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
         decorationRanges = state.deref().get(key) || [],
         decoration = evaluated(resultString, hasError);
+    decorationRanges = _.filter(decorationRanges, (o) => { return !o.codeRange.intersection(codeSelection) });
+    decoration["codeRange"] = codeSelection;
     decoration["range"] = new vscode.Selection(codeSelection.end, codeSelection.end);
     decorationRanges.push(decoration);
     setResultDecorations(editor, decorationRanges);
@@ -73,6 +76,7 @@ function decorateSelection(codeSelection, editor: vscode.TextEditor) {
     let uri = editor.document.uri,
         key = uri + ':selectionDecorationRanges',
         decorationRanges = state.deref().get(key) || [];
+    decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decorationRanges.push({ range: codeSelection });
     setSelectionDecorations(editor, decorationRanges);
 }
