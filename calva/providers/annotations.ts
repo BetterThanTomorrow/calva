@@ -62,27 +62,19 @@ function clearEvaluationDecorations(editor) {
 function decorateResults(resultString, hasError, codeSelection, editor) {
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
-        decorationRanges = state.deref().get(key),
+        decorationRanges = state.deref().get(key) || [],
         decoration = evaluated(resultString, hasError);
-    if (!decorationRanges) decorationRanges = [];
     decoration["range"] = new vscode.Selection(codeSelection.end, codeSelection.end);
     decorationRanges.push(decoration);
-    state.cursor.set(key, decorationRanges);
-    editor.setDecorations(evalResultsDecorationType, decorationRanges);
-
-    //setResultDecorations(editor, decorationRanges);
+    setResultDecorations(editor, decorationRanges);
 }
 
 function decorateSelection(codeSelection, editor: vscode.TextEditor) {
     let uri = editor.document.uri,
         key = uri + ':selectionDecorationRanges',
-        decorationRanges = state.deref().get(key);
-    if (!decorationRanges) decorationRanges = [];
+        decorationRanges = state.deref().get(key) || [];
     decorationRanges.push({ range: codeSelection });
-    state.cursor.set(key, decorationRanges);
-    editor.setDecorations(evalSelectionDecorationType, decorationRanges);
-
-    //setSelectionDecorations(editor, decorationRanges);
+    setSelectionDecorations(editor, decorationRanges);
 }
 
 export default {
