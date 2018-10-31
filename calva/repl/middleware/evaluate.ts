@@ -56,7 +56,7 @@ function evaluateSelection(document = {}, options = {}) {
         annotations.clearEvaluationDecorations(editor);
 
         if (selection.isEmpty) {
-            codeSelection = select.adjustRangeIgnoringComment(doc, select.getFormSelection(doc, selection.active, topLevel));
+            codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
         } else {
             codeSelection = selection,
@@ -104,7 +104,7 @@ function evaluateSelection(document = {}, options = {}) {
                             chan.append('=> ');
                             if (pprint) {
                                 chan.appendLine('');
-                                chan.show(true);                                    
+                                chan.show(true);
                             }
                             chan.appendLine(result.join("\n"));
                         }

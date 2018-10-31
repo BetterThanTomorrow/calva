@@ -3,7 +3,7 @@ import * as util from '../../utilities';
 const paredit = require('paredit.js');
 
 
-function adjustRangeIgnoringComment(doc, range) {
+function _adjustRangeIgnoringComment(doc, range) {
     let text = doc.getText(range);
 
     if (text.match(/^\(\s*comment\s+/m)) {
@@ -20,41 +20,51 @@ function adjustRangeIgnoringComment(doc, range) {
             postTextLength = postMatch[0].length;
         }
         start += preTextLength;
-        end -= postTextLength;
+        end -= postTextLength - 1;
         return new vscode.Range(doc.positionAt(start), doc.positionAt(end));
     } else {
         return range;
     }
 }
 
-
-function getFormSelection(doc, pos, topLevel) : vscode.Selection {
+function _getFormSelection(doc, pos, topLevel, ignoreComment = true): vscode.Selection {
     let allText = doc.getText(),
         ast = paredit.parse(allText),
         idx = doc.offsetAt(pos),
-        range = topLevel ? paredit.navigator.rangeForDefun(ast, idx) : paredit.navigator.sexpRange(ast, idx),
-        vsSelection = range ? new vscode.Selection(doc.positionAt(range[0]), doc.positionAt(range[1])) : new vscode.Selection(pos, pos);
-
-    return vsSelection;
+        peRange = topLevel ? paredit.navigator.rangeForDefun(ast, idx) : paredit.navigator.sexpRange(ast, idx);
+    if (peRange) {
+        let range = new vscode.Selection(doc.positionAt(peRange[0]), doc.positionAt(peRange[1]));
+        if (ignoreComment) {
+            range = _adjustRangeIgnoringComment(doc, range);
+            if (topLevel) {
+                const idxOffset = doc.offsetAt(range.start);
+                ast = paredit.parse(doc.getText(range));
+                idx = idx - idxOffset;
+                peRange = paredit.navigator.rangeForDefun(ast, idx);
+                range = new vscode.Selection(doc.positionAt(peRange[0] + idxOffset), doc.positionAt(peRange[1] + idxOffset));
+            }
+        }
+        return range;
+    }
+    else {
+        return new vscode.Selection(pos, pos);
+    }
 }
 
-
-function selectCurrentForm(document = {}) {
+function _selectCurrentForm(document = {}) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument(document),
         selection = editor.selection;
 
     if (selection.isEmpty) {
-        let codeSelection = getFormSelection(doc, selection.active, false);
+        let codeSelection = _getFormSelection(doc, selection.active, false, false);
         if (codeSelection) {
             editor.selection = codeSelection;
         }
     }
 }
 
-
 export default {
-    getFormSelection,
-    selectCurrentForm,
-    adjustRangeIgnoringComment
+    getFormSelection: _getFormSelection,
+    selectCurrentForm: _selectCurrentForm
 };

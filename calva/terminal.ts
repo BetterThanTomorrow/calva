@@ -110,7 +110,7 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
 
     annotations.clearEvaluationDecorations(editor);
     if (selection.isEmpty) {
-        codeSelection = select.adjustRangeIgnoringComment(doc, select.getFormSelection(doc, selection.active, topLevel));
+        codeSelection = select.getFormSelection(doc, selection.active, topLevel);
         annotations.decorateSelection(codeSelection, editor);
         code = doc.getText(codeSelection);
     } else {
