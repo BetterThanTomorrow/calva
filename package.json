@@ -148,6 +148,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.clearInlineResults",
+                "title": "Clear all inline display of evaluation results",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate selection or current form",
                 "category": "Calva"
@@ -248,6 +253,11 @@
             {
                 "command": "calva.selectCurrentForm",
                 "key": "ctrl+alt+v s"
+            },
+            {
+                "command": "calva.clearInlineResults",
+                "key": "ctrl+escape",
+                "when": "editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelection",

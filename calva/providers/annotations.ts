@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as state from '../state';
+import * as _ from 'lodash';
 
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
@@ -37,31 +39,46 @@ const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType
     overviewRulerLane: vscode.OverviewRulerLane.Right,
 });
 
+function setResultDecorations(editor, ranges) {
+    let key = editor.document.uri + ':resultDecorationRanges';
+    state.cursor.set(key, ranges);
+    editor.setDecorations(evalResultsDecorationType, ranges);
+}
+
+function setSelectionDecorations(editor, ranges) {
+    let key = editor.document.uri + ':selectionDecorationRanges';
+    state.cursor.set(key, ranges);
+    editor.setDecorations(evalSelectionDecorationType, ranges);
+}
+
 function clearEvaluationDecorations(editor) {
-    editor.setDecorations(evalResultsDecorationType, []);
-    editor.setDecorations(evalSelectionDecorationType, []);
+    if (editor === undefined) {
+        editor = vscode.window.activeTextEditor;
+    }
+
+    setResultDecorations(editor, []);
+    setSelectionDecorations(editor, []);
 }
 
-function decorateResults(resultString, hasError, codeSelection, editor) {
-    let decoration = evaluated(resultString, hasError)
+function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
+    let uri = editor.document.uri,
+        key = uri + ':resultDecorationRanges',
+        decorationRanges = state.deref().get(key) || [],
+        decoration = evaluated(resultString, hasError);
+    decorationRanges = _.filter(decorationRanges, (o) => { return !o.codeRange.intersection(codeSelection) });
+    decoration["codeRange"] = codeSelection;
     decoration["range"] = new vscode.Selection(codeSelection.end, codeSelection.end);
-    editor.setDecorations(evalResultsDecorationType, [decoration]);
-    setTimeout(() => {
-        let subscription = vscode.window.onDidChangeTextEditorSelection(() => {
-            subscription.dispose();
-            editor.setDecorations(evalResultsDecorationType, []);
-        });
-    }, 350);
+    decorationRanges.push(decoration);
+    setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(codeSelection, editor) {
-    editor.setDecorations(evalSelectionDecorationType, [{ range: codeSelection }]);
-    setTimeout(() => {
-        let subscription = vscode.window.onDidChangeTextEditorSelection(() => {
-            subscription.dispose();
-            editor.setDecorations(evalSelectionDecorationType, []);
-        });
-    }, 350);
+function decorateSelection(codeSelection, editor: vscode.TextEditor) {
+    let uri = editor.document.uri,
+        key = uri + ':selectionDecorationRanges',
+        decorationRanges = state.deref().get(key) || [];
+    decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
+    decorationRanges.push({ range: codeSelection });
+    setSelectionDecorations(editor, decorationRanges);
 }
 
 export default {

@@ -53,8 +53,6 @@ function evaluateSelection(document = {}, options = {}) {
             codeSelection = null,
             code = "";
 
-        annotations.clearEvaluationDecorations(editor);
-
         if (selection.isEmpty) {
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
