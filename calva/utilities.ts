@@ -61,13 +61,13 @@ function getDocument(document) {
     } else if (vscode.window.activeTextEditor) {
         return vscode.window.activeTextEditor.document;
     } else {
-        return vscode.window.visibleTextEditors[0];
+        return vscode.window.visibleTextEditors[0].document;
     }
 }
 
 function getFileType(document) {
     let doc = getDocument(document);
-    
+
     if (doc) {
         return doc.fileName.substr((doc.fileName.lastIndexOf('.') + 1), doc.fileName.length);
     }
