@@ -4,7 +4,7 @@ import * as ImmutableCursor from 'immutable-cursor';
 
 const mode = {
     language: 'clojure',
-    scheme: 'file'
+    //scheme: 'file'
 };
 var data;
 const initialData = {
