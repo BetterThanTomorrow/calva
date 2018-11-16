@@ -11,9 +11,12 @@ Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Cloj
 
 ## How to use
 
-Calva connects to a running `nrepl` session, so you need to start that outside Calva, then connect (`ctrl+alt+v c`).
+Calva connects to a running `nrepl` session, so you need to:
+1. Start the REPL (a VS Code terminal works fine for this)
+1. Open a clojure file. (This activates the Calva extension)
+2. Tell Calva to connect: `ctrl+alt+v c` (default key binding).
 
-It has dependencies on `tools/nrepl` and `cider/nrepl`. Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki to get instructions and information on how to unlock the power of the REPL inside your editor.
+Calva has dependencies on `tools/nrepl` and `cider/nrepl`. You need to use pretty recent versions of these. Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki to get instructions and information on how to unlock the power of the REPL inside your editor.
 
 Demo: evaluate inline
 
