@@ -53,7 +53,7 @@ Demo: switch between clj and cljs repl sessions for cljc files:
     - Dismiss the display of results by pressing `ctrl+escape`.
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+v r`
   - Pretty printing evaluation resuls: `ctrl+alt+v p`
-  - Evaluate current top level form (based on where the cursor is) and show resluts inline: `ctrl+alt+v space`
+  - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+v space`
     - Send the current top level form to the REPL terminal: `ctrl+alt+v alt+space`
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
