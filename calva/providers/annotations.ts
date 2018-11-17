@@ -51,7 +51,7 @@ function setSelectionDecorations(editor, ranges) {
     editor.setDecorations(evalSelectionDecorationType, ranges);
 }
 
-function clearEvaluationDecorations(editor) {
+function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     if (editor === undefined) {
         editor = vscode.window.activeTextEditor;
     }
@@ -81,11 +81,23 @@ function decorateSelection(codeSelection, editor: vscode.TextEditor) {
     setSelectionDecorations(editor, decorationRanges);
 }
 
+function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
+    const activeTextEditor: vscode.TextEditor = vscode.window.activeTextEditor;
+    if (activeTextEditor) {
+        const activeDocument = activeTextEditor.document,
+            changeDocument = event.document;
+        if (activeDocument.uri == changeDocument.uri) {
+            clearEvaluationDecorations(activeTextEditor);
+        }
+    }
+}
+
 export default {
     evalResultsDecorationType,
     evaluated,
     evalSelectionDecorationType,
     clearEvaluationDecorations,
     decorateResults,
-    decorateSelection
+    decorateSelection,
+    onDidChangeTextDocument
 };

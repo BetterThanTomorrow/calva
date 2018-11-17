@@ -104,6 +104,7 @@ function activate(context) {
             terminal.setREPLNamespace()
         }
     }));
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))
     context.subscriptions.push(new vscode.Disposable(() => {
         connector.disconnect();
         chan.dispose();
