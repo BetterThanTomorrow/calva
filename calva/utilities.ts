@@ -60,8 +60,10 @@ function getDocument(document) {
         return document;
     } else if (vscode.window.activeTextEditor) {
         return vscode.window.activeTextEditor.document;
-    } else {
+    } else if (vscode.window.visibleTextEditors.length > 0) {
         return vscode.window.visibleTextEditors[0].document;
+    } else {
+        return null;
     }
 }
 

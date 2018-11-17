@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.52",
+    "version": "1.3.53",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -46,7 +46,8 @@
         }
     ],
     "activationEvents": [
-        "onLanguage:clojure"
+        "onLanguage:clojure",
+        "onCommand:calva.connect"
     ],
     "main": "./out/calva/extension",
     "extensionDependencies": [
