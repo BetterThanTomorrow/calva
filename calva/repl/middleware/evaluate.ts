@@ -17,7 +17,7 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
 
     let evalClient = null;
     new Promise((resolve, reject) => {
-        evalClient = repl.create({}).once('connect', () => {
+        evalClient = calvaLib.nrepl_create(repl.getDefaultOptions()).once('connect', () => {
             evalClient.send(msg, (result) => {
                 let exceptions = _.some(result, "ex"),
                     errors = _.some(result, "err");
