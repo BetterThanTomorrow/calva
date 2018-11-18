@@ -2,30 +2,19 @@ import * as state from '../state';
 import * as calvaLib from '../../lib/calva';
 
 
-function send(msg, callback) {
-    calvaLib.nrepl_message(this, msg, callback);
-}
-
-function create(options?) {
-    let current = state.deref(),
-        _options = null;
+function getDefaultOptions() {
+    let current = state.deref();
     if (current.get('connected')) {
-        _options = {
+        return {
             host: current.get('hostname'),
             port: current.get('port')
-        }
+        };
     } else {
-        _options = options;
-    }
-
-    if (_options !== null) {
-        let con = calvaLib.nrepl_connect(_options);
-        con.send = send.bind(con);
-
-        return con;
+        return {};
     }
 }
 
+
 export default {
-    create
+    getDefaultOptions
 };

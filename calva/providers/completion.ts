@@ -31,7 +31,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         if (this.state.deref().get("connected")) {
             return new Promise<CompletionList>((resolve, reject) => {
                 let current = this.state.deref(),
-                    client = repl.create({})
+                    client = calvaLib.nrepl_create(repl.getDefaultOptions())
                         .once('connect', () => {
                             let msg = calvaLib.message_completeMsg(util.getSession(filetype),
                                 util.getNamespace(document.getText()), text),
@@ -71,7 +71,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         return new Promise<CompletionItem>((resolve, reject) => {
             let current = this.state.deref();
             if (current.get('connected')) {
-                let client = repl.create({}).once('connect', () => {
+                let client = calvaLib.nrepl_create(repl.getDefaultOptions()).once('connect', () => {
                     let document = window.activeTextEditor.document,
                         msg = calvaLib.message_infoMsg(util.getSession(filetype),
                             util.getNamespace(document.getText()), item.label);

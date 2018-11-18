@@ -12,26 +12,20 @@
 
 (defn connect
   "Connects to a socket-based REPL at the given host (defaults to localhost) and port."
-  [^js options]
-  (let [{:keys [host port on-connect on-error on-end] :or {host "localhost"}} (js->clj options :keywordize-keys true)]
-    (doto (net/createConnection #js {:host host :port port})
-      (.once "connect" (fn []
-                         #_(js/console.log (str "Connected to " host ":" port))
-
-                         (when on-connect
-                           (on-connect))))
-
-      (.once "end" (fn []
-                     #_(js/console.log (str "Disconnected from " host ":" port))
-
-                     (when on-end
-                       (on-end))))
-
-      (.once "error" (fn [error]
-                       #_(js/console.log (str "Failed to connect to " host ":" port) error)
-
-                       (when on-error
-                         (on-error error)))))))
+  [{:keys [host port on-connect on-error on-end] :or {host "localhost"}}]
+  (doto (net/createConnection #js {:host host :port port})
+    (.once "connect" (fn []
+                       #_(js/console.log (str "Connected to " host ":" port))
+                       (when on-connect
+                         (on-connect))))
+    (.once "end" (fn []
+                   #_(js/console.log (str "Disconnected from " host ":" port))
+                   (when on-end
+                     (on-end))))
+    (.once "error" (fn [error]
+                     (js/console.log (str "Failed to connect to " host ":" port) error)
+                     (when on-error
+                       (on-error error))))))
 
 
 (defn- decode [buffers]
@@ -63,26 +57,11 @@
   (let [*state (atom [])]
     (.on conn "data" (fn [chunk]
                        (when-let [decoded-messages (let [empty-buffer (Buffer.from "")
-
-                                                         ;; I don't understand this trick
-                                                         ;; but I'm doing just like the JavaScript version
-                                                         ;;
-                                                         ;; ** do you understand this, Peter? **
                                                          buffer       (Buffer.concat (clj->js [empty-buffer chunk]))]
-
                                                      (when (= 0 (.-length buffer))
                                                        (js/console.warn "EMPTY BUFFER"))
-
                                                      (not-empty (decode [buffer])))]
-
                          (swap! *state into decoded-messages)
-
-                         ;; we've got a 'done' status,
-                         ;; so we can call the callback
-                         ;; and pass all the previous decoded messages
-                         ;;
-                         ;; ** not sure about this... we really need to figure the session stuff out **
                          (when (some #(= "done" %) (mapcat :status decoded-messages))
                            (callback (clj->js @*state))))))
-
     (.write conn (bencoder/encode (clj->js msg)) "binary")))

@@ -107,7 +107,7 @@ function runTests(messages, startStr, errorStr, log = true) {
         // Thus we only send new messages when a message has returned.
         (function loop(i) {
             new Promise((resolve, reject) => {
-                testClient = repl.create({}).once('connect', () => {
+                testClient = calvaLib.nrepl_create(repl.getDefaultOptions()).once('connect', () => {
                     testClient.send(messages[i], (result) => {
                         exceptions += (_.some(result, "ex") ? 1 : 0);
                         errors += (_.some(result, "err") ? 1 : 0);
