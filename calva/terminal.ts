@@ -110,7 +110,7 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
 
     if (selection.isEmpty) {
         codeSelection = select.getFormSelection(doc, selection.active, topLevel);
-        annotations.decorateSelection(codeSelection, editor);
+        annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.TERMINAL);
         code = doc.getText(codeSelection);
     } else {
         codeSelection = selection;

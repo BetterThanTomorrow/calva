@@ -3,10 +3,25 @@ import * as state from '../state';
 import * as _ from 'lodash';
 
 enum AnnotationStatus {
-    PENDING,
+    PENDING = 0,
     SUCCESS,
-    ERROR
+    ERROR,
+    TERMINAL
 }
+
+const selectionBackgrounds = [
+    'rgba(197, 197, 197, 0.07)',
+    'rgba(63, 255, 63, 0.05)',
+    'rgba(255, 63, 63, 0.06)',
+    'rgba(63, 63, 255, 0.1)'
+]
+
+const selectionRulerColors = [
+    "gray",
+    "green",
+    "red",
+    "blue"
+]
 
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
@@ -39,28 +54,33 @@ function evaluated(contentText, hasError) {
     }
 }
 
-function selected(status) {
-    overviewRulerColor: 'blue',
-        backgroundColor: 'rgba(147, 218, 82, 0.05)',
-            overviewRulerLane: vscode.OverviewRulerLane.Right,
+
+function createEvalSelectionDecorationType(status: AnnotationStatus) {
+    return vscode.window.createTextEditorDecorationType({
+        backgroundColor: selectionBackgrounds[status],
+        overviewRulerColor: selectionRulerColors[status],
+        overviewRulerLane: vscode.OverviewRulerLane.Right,
+        rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+    })
 }
 
-const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType({
-    overviewRulerColor: 'blue',
-    backgroundColor: 'rgba(147, 218, 82, 0.05)',
-    overviewRulerLane: vscode.OverviewRulerLane.Right,
-});
+const evalSelectionDecorationTypes = [
+    createEvalSelectionDecorationType(AnnotationStatus.PENDING),
+    createEvalSelectionDecorationType(AnnotationStatus.SUCCESS),
+    createEvalSelectionDecorationType(AnnotationStatus.ERROR),
+    createEvalSelectionDecorationType(AnnotationStatus.TERMINAL)
+]
 
-function setResultDecorations(editor, ranges) {
+function setResultDecorations(editor: vscode.TextEditor, ranges) {
     let key = editor.document.uri + ':resultDecorationRanges';
     state.cursor.set(key, ranges);
     editor.setDecorations(evalResultsDecorationType, ranges);
 }
 
-function setSelectionDecorations(editor, ranges) {
-    let key = editor.document.uri + ':selectionDecorationRanges';
+function setSelectionDecorations(editor, ranges, status) {
+    let key = editor.document.uri + ':selectionDecorationRanges:' + status;
     state.cursor.set(key, ranges);
-    editor.setDecorations(evalSelectionDecorationType, ranges);
+    editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
 
 function clearEvaluationDecorations(editor?: vscode.TextEditor) {
@@ -69,7 +89,10 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     }
 
     setResultDecorations(editor, []);
-    setSelectionDecorations(editor, []);
+    setSelectionDecorations(editor, [], AnnotationStatus.PENDING);
+    setSelectionDecorations(editor, [], AnnotationStatus.SUCCESS);
+    setSelectionDecorations(editor, [], AnnotationStatus.ERROR);
+    setSelectionDecorations(editor, [], AnnotationStatus.TERMINAL);
 }
 
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
@@ -84,14 +107,15 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(codeSelection, editor: vscode.TextEditor, statu: AnnotationStatus) {
+function decorateSelection(codeSelection, editor: vscode.TextEditor, status: AnnotationStatus) {
     let uri = editor.document.uri,
-        key = uri + ':selectionDecorationRanges',
-        deocration = selected(status),
+        key = uri + ':selectionDecorationRanges:' + status,
+        decoration = {},
         decorationRanges = state.deref().get(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
-    decorationRanges.push({ range: codeSelection });
-    setSelectionDecorations(editor, decorationRanges);
+    decoration["range"] = codeSelection;
+    decorationRanges.push(decoration);
+    setSelectionDecorations(editor, decorationRanges, status);
 }
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
@@ -106,9 +130,7 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 }
 
 export default {
-    evalResultsDecorationType,
-    evaluated,
-    evalSelectionDecorationType,
+    AnnotationStatus,
     clearEvaluationDecorations,
     decorateResults,
     decorateSelection,
