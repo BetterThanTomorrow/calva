@@ -2,6 +2,12 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as _ from 'lodash';
 
+enum AnnotationStatus {
+    PENDING,
+    SUCCESS,
+    ERROR
+}
+
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     before: {
         textDecoration: 'none',
@@ -33,9 +39,15 @@ function evaluated(contentText, hasError) {
     }
 }
 
+function selected(status) {
+    overviewRulerColor: 'blue',
+        backgroundColor: 'rgba(147, 218, 82, 0.05)',
+            overviewRulerLane: vscode.OverviewRulerLane.Right,
+}
+
 const evalSelectionDecorationType = vscode.window.createTextEditorDecorationType({
     overviewRulerColor: 'blue',
-    backgroundColor: 'rgba(255, 255, 20, 0.1)',
+    backgroundColor: 'rgba(147, 218, 82, 0.05)',
     overviewRulerLane: vscode.OverviewRulerLane.Right,
 });
 
@@ -72,9 +84,10 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(codeSelection, editor: vscode.TextEditor) {
+function decorateSelection(codeSelection, editor: vscode.TextEditor, statu: AnnotationStatus) {
     let uri = editor.document.uri,
         key = uri + ':selectionDecorationRanges',
+        deocration = selected(status),
         decorationRanges = state.deref().get(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decorationRanges.push({ range: codeSelection });

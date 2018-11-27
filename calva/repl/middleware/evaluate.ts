@@ -62,6 +62,7 @@ function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
+            annotations.decorateSelection(codeSelection, editor, annotations.PENDING);
             let msg = calvaLib.message_evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
@@ -89,7 +90,7 @@ function evaluateSelection(document = {}, options = {}) {
                         vscode.workspace.applyEdit(wsEdit);
                         chan.appendLine("Replaced inline.")
                     } else {
-                        annotations.decorateSelection(codeSelection, editor);
+                        annotations.decorateSelection(codeSelection, editor, (hasError ? annotations.ERROR : annotations.SUCCESS));
                         if (!pprint) {
                             const annotation = hasError ? err.join("\n") : result.join("\n");
                             annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", hasError, codeSelection, editor);
