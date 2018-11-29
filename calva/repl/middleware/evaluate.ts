@@ -19,22 +19,12 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
     new Promise((resolve, reject) => {
         evalClient = calvaLib.nrepl_create(repl.getDefaultOptions()).once('connect', () => {
             evalClient.send(msg, (result) => {
-                let exceptions = _.some(result, "ex"),
-                    errors = _.some(result, "err");
-                if (!exceptions && !errors) {
-                    resolve(result);
-                } else {
-                    let err = _.find(result, "err").err;
-                    reject(result);
-                }
+                resolve(result);
             });
         });
     }).then((result) => {
         evalClient.end();
         callback(result);
-    }).catch((result) => {
-        evalClient.end();
-        callback(result, true);
     });
 }
 
@@ -66,7 +56,11 @@ function evaluateSelection(document = {}, options = {}) {
             let msg = calvaLib.message_evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
-            evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results, hasError = false) => {
+            evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
+                const hasExceptions = _.some(results, "ex"),
+                    hasStdErr = _.some(results, "err"),
+                    hasError = hasExceptions | hasStdErr;
+
                 let result = [],
                     out = [],
                     err = [];
@@ -78,7 +72,13 @@ function evaluateSelection(document = {}, options = {}) {
                     } else if (r.hasOwnProperty("pprint-out")) {
                         result.push(r["pprint-out"].replace(/\n$/, ""));
                     } else if (r.hasOwnProperty("out")) {
-                        out.push(r.out);
+                        if (hasExceptions && !hasStdErr) {
+                            // venantius/ultra outputs errors on stdout, it seems.
+                            err.push(r.out)
+                        }
+                        else {
+                            out.push(r.out);
+                        }
                     }
                 });
                 if (result.length + out.length + err.length > 0) {
