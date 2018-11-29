@@ -2,12 +2,11 @@
 
 [Integrated REPL, linting, inline eval, test runner, and more](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
 
-About the name: *Calva is short for Calvados, a liquid gifted to humanity from God. It is made from cider.*
-
+About the name: *Calva is short for Calvados, a liquid gifted to humanity from God. It is made from Cider.*
 
 ## Raison d´être
 
-Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If we can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, we will.
+Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers into the Clojarian world. If I can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, I will.
 
 ## How to use
 
@@ -93,7 +92,7 @@ There are lots of stuff that needs attention and lots of possible features to ad
 * Custom user commands to execute over the REPL connection.
 * Commands to start the REPLs from VS Code, injecting dependencies automatically.
 * List symbols in the current file.
-* Let us know what you want. PRs welcome, file an issue or tweet: [@pappapez](https://twitter.com/pappapez)
+* Let me know what you want. See below for ways to reach me about Calva.
 
 ## Other
 
@@ -107,7 +106,7 @@ Calva is being ported to a combination of TypeScript and ClojureScript. The Cloj
 
 ## Happy coding ❤️
 
-I hope you will find tons of use for this extension! Please let us know what you think or want. PRs welcome, file an issue or chat me up on Zulip:
+I hope you will find good use for this extension. Please let us know what you think or want! PRs welcome, file an issue or chat me up on Zulip:
 
 [![project chat](https://img.shields.io/badge/clojurians--zulip-calva-brightgreen.svg?logo=zulip)](https://clojurians.zulipchat.com/#narrow/stream/calva).
 
