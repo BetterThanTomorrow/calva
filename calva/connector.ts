@@ -133,7 +133,7 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
     if (shadow.isShadowCljs() && !shadowBuild) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
         vscode.window.showQuickPick(shadow.shadowBuilds(), {
-            placeHolder: "Select which shadow-cljs build to connect to",
+            placeHolder: "Select which shadow-cljs CLJS REPL to connect to",
             ignoreFocusOut: true
         }).then(build => {
             if (build) {
@@ -156,7 +156,7 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
                             if (!shadowBuild && nsResult) {
                                 state.cursor.set('shadowBuild', null);
                                 callback(cljsSession);
-                            } else if (shadowBuild && valueResult && valueResult.value.match(":selected " + shadowBuild)) {
+                            } else if (shadowBuild && valueResult && valueResult.value.match(/:selected/)) {
                                 state.cursor.set('shadowBuild', shadowBuild);
                                 callback(cljsSession, shadowBuild);
                             } else {

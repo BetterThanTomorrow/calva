@@ -18,8 +18,11 @@ function isShadowCljs() {
 
 function shadowBuilds() {
     let parsed = edn.parse(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
-        keys = parsed.at(edn.kw(':builds')).keys;
-    return _.map(keys, 'name');
+        keys = parsed.at(edn.kw(':builds')).keys,
+        builds = _.map(keys, 'name');
+    builds.push("node-repl");
+    builds.push("browser-repl")
+    return builds;
 }
 
 function shadowBuild() {

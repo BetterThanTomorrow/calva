@@ -1,8 +1,10 @@
 (ns calva.repl.message)
 
 
-(defn shadow-cljs-repl-start-code [build]
-  (str "(shadow.cljs.devtools.api/nrepl-select " build ")"))
+(defn shadow-cljs-repl-start-code [build-or-repl]
+  (if (re-find #"^:" build-or-repl)
+    (str "(shadow.cljs.devtools.api/nrepl-select " build-or-repl ")")
+    (str "(shadow.cljs.devtools.api/" build-or-repl ")")))
 
 
 (def operation
@@ -28,9 +30,9 @@
    :code code
    :session session})
 
-(defn startShadowCljsReplMsg [session build]
+(defn startShadowCljsReplMsg [session build-or-repl]
   {:op (operation :EVALUATE)
-   :code (shadow-cljs-repl-start-code build)
+   :code (shadow-cljs-repl-start-code build-or-repl)
    :session session})
 
 (defn listSessionsMsg []

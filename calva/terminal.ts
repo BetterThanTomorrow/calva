@@ -7,13 +7,14 @@ import select from './repl/middleware/select';
 import shadow from './shadow';
 
 const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
-const CONNECT_SHADOW_CLJS_CLJS_REPL = 'npx shadow-cljs cljs-repl';
+const CONNECT_SHADOW_CLJS_CLJS_BUILD_REPL = 'npx shadow-cljs cljs-repl';
+const CONNECT_SHADOW_CLJS_CLJS_NODE_REPL = 'npx shadow-cljs node-repl';
 
 function terminalSlug(sessionSlug) {
     return sessionSlug + '-terminal';
 }
 
-function createREPLTerminal(sessionType, shadowBuild, outputChan) {
+function createREPLTerminal(sessionType, shadowBuild: string, outputChan) {
     let current = state.deref(),
         slug = terminalSlug(sessionType),
         terminalName = (sessionType === 'clj' ? 'Clojure' : 'ClojureScript') + ' REPL',
@@ -28,7 +29,9 @@ function createREPLTerminal(sessionType, shadowBuild, outputChan) {
         state.cursor.set(slug, terminal);
         let connectCommand = shadow.isShadowCljs() ?
             (sessionType === 'cljs' ?
-                `${CONNECT_SHADOW_CLJS_CLJS_REPL} ${shadowBuild}` :
+                (shadowBuild.startsWith(":") ?
+                    `${CONNECT_SHADOW_CLJS_CLJS_BUILD_REPL} ${shadowBuild}` :
+                    CONNECT_SHADOW_CLJS_CLJS_NODE_REPL) :
                 CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
             state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
         terminal.sendText(connectCommand);

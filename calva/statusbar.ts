@@ -50,10 +50,10 @@ function update() {
         if (shadow_util.isShadowCljs()) {
             if (shadowBuild !== null && util.getREPLSessionType() === 'cljs') {
                 shadow.text = shadowBuild;
-                shadow.tooltip = "Click to connect to another Shadow CLJS build";
+                shadow.tooltip = "Click to switch CLJS REPL";
             } else if (shadowBuild === null) {
-                shadow.text = "no build connected"
-                shadow.tooltip = "Click to connect to a Shadow CLJS build";
+                shadow.text = "no cljs REPL connected"
+                shadow.tooltip = "Click to connect to a shadow-cljs CLJS REPL";
             }
         }
     } else if (current.get('connecting')) {
