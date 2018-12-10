@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
+import * as clipboardy from 'clipboardy';
 import * as state from '../../state';
 import repl from '../client';
 import annotations from '../../providers/annotations';
@@ -163,11 +164,32 @@ function evaluateFile(document = {}, callback = () => { }) {
     }
 }
 
+function copyLastResultCommand() {
+    let doc = util.getDocument({}),
+        session = util.getSession(util.getFileType(doc)),
+        chan = state.deref().get('outputChannel'),
+        msg = calvaLib.message_evalCode(session, "*1");
+    evaluateMsg(msg, "Copying last results to clipboard", "Error fetching last results", (results) => {
+        let result = null;
+        _.each(results, (r) => {
+            if (r.hasOwnProperty("value")) {
+                result = r.value;
+            }
+        });
+        if (result !== null) {
+            clipboardy.writeSync(result);
+        } else {
+            chan.appendLine("Nothing to copy");
+        }
+    });
+}
+
 export default {
     evaluateFile,
     evaluateSelection,
     evaluateTopLevelForm,
     evaluateSelectionPrettyPrint,
     evaluateCurrentTopLevelFormPrettyPrint,
-    evaluateSelectionReplace
+    evaluateSelectionReplace,
+    copyLastResultCommand
 };
