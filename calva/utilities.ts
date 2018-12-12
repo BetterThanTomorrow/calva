@@ -25,7 +25,7 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getNamespace(text) {
-    let match = text.match(/^[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
+    let match = text.match(/^[\s\t]*(?:;.*\s)*[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
     return match ? match[1] : 'user';
 }
 
