@@ -5,7 +5,7 @@ import { isArray } from 'util';
 
 export function activate(context: vscode.ExtensionContext) {
 	const pairs = { ")": "(", "]": "[", "}": "{"};	
-	function opening(char) { return char==="(" || char==="[" || char==="{"; }
+	function opening(char) { return char==="(" || char==="[" || char==="{" || char==="#(" || char==="#_(" || char==="#{"; }
 	function closing(char) { return char===")" || char==="]" || char==="}"; }
 	function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
 	function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; } 
@@ -114,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
 	function updateRainbowBrackets() {
 		if (!is_clojure(activeEditor)) return;
 
-		const regexp     = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n)/g,
+		const regexp     = /(\[|\]|\(|\)|\{|\}|\"|\\.|\;|\n|#\(|#_\(|#\{)/g,
 					doc        = activeEditor.document,
 		      text       = doc.getText(),
 		      rainbow    = rainbowTypes.map(()=>[]),
@@ -145,11 +145,12 @@ export function activate(context: vscode.ExtensionContext) {
 			} else if (char === "\n") {
 				continue;
 			} else if (opening(char)) {
-				const pos = activeEditor.document.positionAt(match.index),
-							decoration = { range: new Range(pos, pos.translate(0,1)) };
+				const len = char.length,
+							pos = activeEditor.document.positionAt(match.index),
+							decoration = { range: new Range(pos, pos.translate(0,len)) };
 				rainbow[colorIndex(stack_depth)].push(decoration);
 				++stack_depth;
-				stack.push({ char: char, pos: pos, pair_idx: undefined});
+				stack.push({ char: char[len - 1], pos: pos + len - 1, pair_idx: undefined});
 				continue;
 			} else if (closing(char)) {
 				const pos = activeEditor.document.positionAt(match.index),
