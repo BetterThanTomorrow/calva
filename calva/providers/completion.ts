@@ -2,8 +2,8 @@ import { TextDocument, Position, CancellationToken, CompletionContext, Hover, Co
 import * as state from '../state';
 import repl from '../repl/client';
 import * as util from '../utilities';
-import { Context } from 'vm';
-import * as calvaLib from '../../lib/calva';
+const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
+const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -31,9 +31,9 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         if (this.state.deref().get("connected")) {
             return new Promise<CompletionList>((resolve, reject) => {
                 let current = this.state.deref(),
-                    client = calvaLib.nrepl_create(repl.getDefaultOptions())
+                    client = nreplClient.create(repl.getDefaultOptions())
                         .once('connect', () => {
-                            let msg = calvaLib.message_completeMsg(util.getSession(filetype),
+                            let msg = nreplMessage.completeMsg(util.getSession(filetype),
                                 util.getNamespace(document.getText()), text),
                                 completions = [];
                             client.send(msg, function (results) {
@@ -71,9 +71,9 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         return new Promise<CompletionItem>((resolve, reject) => {
             let current = this.state.deref();
             if (current.get('connected')) {
-                let client = calvaLib.nrepl_create(repl.getDefaultOptions()).once('connect', () => {
+                let client = nreplClient.create(repl.getDefaultOptions()).once('connect', () => {
                     let document = window.activeTextEditor.document,
-                        msg = calvaLib.message_infoMsg(util.getSession(filetype),
+                        msg = nreplMessage.infoMsg(util.getSession(filetype),
                             util.getNamespace(document.getText()), item.label);
                     client.send(msg, function (results) {
                         for (var r = 0; r < results.length; r++) {

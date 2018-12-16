@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import repl from '../repl/client';
 import * as util from '../utilities';
-
-import * as calvaLib from '../../lib/calva';
+const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
+const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 
 export default class HoverProvider implements vscode.HoverProvider {
@@ -50,9 +50,9 @@ export default class HoverProvider implements vscode.HoverProvider {
         if (this.state.deref().get('connected')) {
             return new Promise<vscode.Hover>((resolve, reject) => {
                 let current = this.state.deref(),
-                    client = calvaLib.nrepl_create(repl.getDefaultOptions())
+                    client = nreplClient.create(repl.getDefaultOptions())
                         .once('connect', () => {
-                            let msg = calvaLib.message_infoMsg(current.get(filetype),
+                            let msg = nreplMessage.infoMsg(current.get(filetype),
                                 util.getNamespace(document.getText()), text);
                             client.send(msg, function (results) {
                                 if (results.length === 1 &&

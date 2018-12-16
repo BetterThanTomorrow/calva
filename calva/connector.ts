@@ -7,7 +7,8 @@ import shadow from './shadow';
 import status from './status';
 import terminal from './terminal';
 import repl from './repl/client';
-import * as calvaLib from '../lib/calva';
+const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
+const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 function nreplPortFile() {
     if (fs.existsSync(shadow.shadowNReplPortFile())) {
@@ -39,8 +40,8 @@ function disconnect(options = null, callback = () => { }) {
 
     let n = connections.length;
     if (n > 0) {
-        let client = calvaLib.nrepl_create(options).once('connect', () => {
-            client.send(calvaLib.message_listSessionsMsg(), results => {
+        let client = nreplClient.create(options).once('connect', () => {
+            client.send(nreplMessage.listSessionsMsg(), results => {
                 client.end();
                 let sessions = _.find(results, 'sessions')['sessions'];
                 if (sessions) {
@@ -48,8 +49,8 @@ function disconnect(options = null, callback = () => { }) {
                         let sessionType = connection[0],
                             sessionId = connection[1]
                         if (sessions.indexOf(sessionId) != -1) {
-                            let client = calvaLib.nrepl_create(options).once('connect', () => {
-                                client.send(calvaLib.message_closeMsg(sessionId), () => {
+                            let client = nreplClient.create(options).once('connect', () => {
+                                client.send(nreplMessage.closeMsg(sessionId), () => {
                                     client.end();
                                     n--;
                                     state.cursor.set(sessionType, null);
@@ -85,7 +86,7 @@ function connectToHost(hostname, port) {
         let onConnect = () => {
             chan.appendLine("Hooking up nREPL sessions...");
 
-            client.send(calvaLib.message_cloneMsg(), cloneResults => {
+            client.send(nreplMessage.cloneMsg(), cloneResults => {
                 client.end();
                 let cljSession = _.find(cloneResults, 'new-session')['new-session'];
                 if (cljSession) {
@@ -113,7 +114,7 @@ function connectToHost(hostname, port) {
             });
         };
 
-        let client = calvaLib.nrepl_create({
+        let client = nreplClient.create({
             "host": hostname,
             "port": port,
             "on-connect": onConnect
@@ -141,14 +142,14 @@ function makeCljsSessionClone(hostname, port, session, shadowBuild, callback) {
             }
         });
     } else {
-        let client = calvaLib.nrepl_create({ hostname, port }).once('connect', () => {
-            client.send(calvaLib.message_cloneMsg(session), results => {
+        let client = nreplClient.create({ hostname, port }).once('connect', () => {
+            client.send(nreplMessage.cloneMsg(session), results => {
                 client.end();
                 let cljsSession = _.find(results, 'new-session')['new-session'];
                 if (cljsSession) {
-                    let client = calvaLib.nrepl_create({ hostname, port }).once('connect', () => {
-                        let msg = shadowBuild ? calvaLib.message_startShadowCljsReplMsg(cljsSession, shadowBuild) :
-                            calvaLib.message_evalCode(cljsSession, util.getCljsReplStartCode());
+                    let client = nreplClient.create({ hostname, port }).once('connect', () => {
+                        let msg = shadowBuild ? nreplMessage.startShadowCljsReplMsg(cljsSession, shadowBuild) :
+                            nreplMessage.eval_code_msg(cljsSession, util.getCljsReplStartCode());
                         client.send(msg, cljsResults => {
                             client.end();
                             let valueResult = _.find(cljsResults, 'value'),

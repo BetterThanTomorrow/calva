@@ -7,8 +7,8 @@ import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
 
-import * as calvaLib from '../../../lib/calva';
-
+const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
+const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
     let current = state.deref(),
@@ -18,7 +18,7 @@ function evaluateMsg(msg, startStr, errorStr, callback) {
 
     let evalClient = null;
     new Promise((resolve, reject) => {
-        evalClient = calvaLib.nrepl_create(repl.getDefaultOptions()).once('connect', () => {
+        evalClient = nreplClient.create(repl.getDefaultOptions()).once('connect', () => {
             evalClient.send(msg, (result) => {
                 resolve(result);
             });
@@ -54,7 +54,7 @@ function evaluateSelection(document = {}, options = {}) {
 
         if (code.length > 0) {
             annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.PENDING);
-            let msg = calvaLib.message_evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
+            let msg = nreplMessage.evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
                 c = codeSelection.start.character,
                 re = new RegExp("^\\s{" + c + "}", "gm");
             evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
@@ -145,7 +145,7 @@ function evaluateFile(document = {}, callback = () => { }) {
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         let session = util.getSession(util.getFileType(doc)),
-            msg = calvaLib.message_loadFileMsg(session, doc.getText(), fileName, doc.fileName);
+            msg = nreplMessage.loadFileMsg(session, doc.getText(), fileName, doc.fileName);
 
         evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
             let result = null;
@@ -168,7 +168,7 @@ function copyLastResultCommand() {
     let doc = util.getDocument({}),
         session = util.getSession(util.getFileType(doc)),
         chan = state.deref().get('outputChannel'),
-        msg = calvaLib.message_evalCode(session, "*1");
+        msg = nreplMessage.eval_code_msg(session, "*1");
     evaluateMsg(msg, "Copying last results to clipboard", "Error fetching last results", (results) => {
         let result = null;
         _.each(results, (r) => {
