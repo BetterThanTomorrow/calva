@@ -50,7 +50,7 @@
         "onCommand:calva.connect"
     ],
     "main": "./out/calva/extension",
-    "extensionDependencies": [
+    "extensionPack": [
         "cospaia.calva-fmt",
         "cospaia.paredit-revived"
     ],
@@ -343,8 +343,6 @@
     "dependencies": {
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.66",
-        "bencoder": "0.0.5",
-        "buffer": "^5.0.7",
         "find": "0.2.9",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
