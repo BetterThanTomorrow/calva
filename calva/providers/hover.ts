@@ -50,39 +50,36 @@ export default class HoverProvider implements vscode.HoverProvider {
         if (this.state.deref().get('connected')) {
             return new Promise<vscode.Hover>((resolve, reject) => {
                 let current = this.state.deref(),
-                    client = nreplClient.create(repl.getDefaultOptions())
-                        .once('connect', () => {
-                            let msg = nreplMessage.infoMsg(current.get(filetype),
-                                util.getNamespace(document.getText()), text);
-                            client.send(msg, function (results) {
-                                if (results.length === 1 &&
-                                    results[0].status[0] === "done" &&
-                                    results[0].status[1] === "no-info") {
-                                    reject("No docstring available..");
-                                }
+                    client = current.get('nrepl-client'),
+                    msg = nreplMessage.infoMsg(current.get(filetype),
+                        util.getNamespace(document.getText()), text);
+                client.send(msg, function (results) {
+                    if (results.length === 1 &&
+                        results[0].status[0] === "done" &&
+                        results[0].status[1] === "no-info") {
+                        reject("No docstring available..");
+                    }
 
-                                for (var r = 0; r < results.length; r++) {
-                                    let result = results[r];
-                                    docstring += result.doc;
-                                    arglist += result['arglists-str'];
-                                    if (result.hasOwnProperty('ns') &&
-                                        result.hasOwnProperty('name')) {
-                                        nsname = result.ns + "/" + result.name;
-                                    }
-                                }
-                                if (docstring.length === 0) {
-                                    reject("Docstring error: " + text);
-                                } else {
-                                    let result = scope.formatDocString(nsname, arglist, docstring);
-                                    if (result.length === 0) {
-                                        reject("Docstring error: " + text);
-                                    } else {
-                                        resolve(new vscode.Hover(result));
-                                    }
-                                }
-                                client.end();
-                            });
-                        });
+                    for (var r = 0; r < results.length; r++) {
+                        let result = results[r];
+                        docstring += result.doc;
+                        arglist += result['arglists-str'];
+                        if (result.hasOwnProperty('ns') &&
+                            result.hasOwnProperty('name')) {
+                            nsname = result.ns + "/" + result.name;
+                        }
+                    }
+                    if (docstring.length === 0) {
+                        reject("Docstring error: " + text);
+                    } else {
+                        let result = scope.formatDocString(nsname, arglist, docstring);
+                        if (result.length === 0) {
+                            reject("Docstring error: " + text);
+                        } else {
+                            resolve(new vscode.Hover(result));
+                        }
+                    }
+                });
             });
         } else {
             return new vscode.Hover("Not connected to nREPL..");
