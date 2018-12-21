@@ -99,7 +99,7 @@ function runTests(messages, startStr, errorStr, log = true) {
         if (log) {
             chan.appendLine(startStr);
         }
-        let testClient = null,
+        let client = current.get('nrepl-client'),
             results = [],
             errors = 0,
             exceptions = 0;
@@ -108,23 +108,20 @@ function runTests(messages, startStr, errorStr, log = true) {
         // Thus we only send new messages when a message has returned.
         (function loop(i) {
             new Promise((resolve, reject) => {
-                testClient = nreplClient.create(repl.getDefaultOptions()).once('connect', () => {
-                    testClient.send(messages[i], (result) => {
-                        exceptions += (_.some(result, "ex") ? 1 : 0);
-                        errors += (_.some(result, "err") ? 1 : 0);
-                        if (!exceptions && !errors) {
-                            resolve(result);
-                        } else {
-                            util.logError({
-                                type: util.ERROR_TYPE.ERROR,
-                                reason: "Error " + errorStr + ":" + _.find(result, "err").err
-                            });
-                            reject(result);
-                        }
-                    });
+                client.send(messages[i], (result) => {
+                    exceptions += (_.some(result, "ex") ? 1 : 0);
+                    errors += (_.some(result, "err") ? 1 : 0);
+                    if (!exceptions && !errors) {
+                        resolve(result);
+                    } else {
+                        util.logError({
+                            type: util.ERROR_TYPE.ERROR,
+                            reason: "Error " + errorStr + ":" + _.find(result, "err").err
+                        });
+                        reject(result);
+                    }
                 });
             }).then((result) => {
-                testClient.end();
                 results.push(result);
                 if (i < messages.length - 1) {
                     loop(i + 1);
@@ -136,8 +133,8 @@ function runTests(messages, startStr, errorStr, log = true) {
                         markTestResults(results);
                     }
                 }
-            }).catch(() => {
-                testClient.end();
+            }).catch((e) => {
+                console.log(e);
             });
         })(0);
     }

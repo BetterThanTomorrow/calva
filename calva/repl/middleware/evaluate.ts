@@ -12,19 +12,16 @@ const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 function evaluateMsg(msg, startStr, errorStr, callback) {
     let current = state.deref(),
+        client = current.get('nrepl-client'),
         chan = current.get('outputChannel');
 
     chan.appendLine(startStr);
 
-    let evalClient = null;
     new Promise((resolve, reject) => {
-        evalClient = nreplClient.create(repl.getDefaultOptions()).once('connect', () => {
-            evalClient.send(msg, (result) => {
-                resolve(result);
-            });
+        client.send(msg, (result) => {
+            resolve(result);
         });
     }).then((result) => {
-        evalClient.end();
         callback(result);
     });
 }
