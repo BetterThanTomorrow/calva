@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript interactive programming made easy",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.60-SNAPSHOT",
+    "version": "1.3.60",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -335,8 +335,8 @@
     },
     "scripts": {
         "watch-ts": "tsc -watch -p ./",
-        "release": "tsc -p ./",
-        "compile": "tsc -p ./",
+        "release": "npm i && tsc -p ./",
+        "compile": "npm i && tsc -p ./",
         "vscode:prepublish": "npm run release",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },

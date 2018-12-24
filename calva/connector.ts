@@ -114,10 +114,20 @@ function connectToHost(hostname, port) {
             });
         };
 
+        let onDisconnect = (_client, err) => {
+            chan.appendLine("Disconnected from nREPL server." + (err ? " Error: " + err : ""));
+            state.cursor.set("clj", null);
+            state.cursor.set("cljc", null);
+            state.cursor.set("connected", false);
+            state.cursor.set("connecting", false);
+            status.update();
+        }
+
         state.cursor.set("nrepl-client", nreplClient.create({
             "host": hostname,
             "port": port,
-            "on-connect": onConnect
+            "on-connect": onConnect,
+            "on-close": onDisconnect
         }));
     });
 }
