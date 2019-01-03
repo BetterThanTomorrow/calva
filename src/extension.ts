@@ -150,7 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
 							decoration = { range: new Range(pos, pos.translate(0,len)) };
 				rainbow[colorIndex(stack_depth)].push(decoration);
 				++stack_depth;
-				stack.push({ char: char[len - 1], pos: pos + len - 1, pair_idx: undefined});
+				stack.push({ char: char[len - 1], pos: pos.translate(0, len - 1), pair_idx: undefined});
 				continue;
 			} else if (closing(char)) {
 				const pos = activeEditor.document.positionAt(match.index),
