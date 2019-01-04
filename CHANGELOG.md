@@ -1,6 +1,10 @@
+# 0.1.8
+
+- Highlight and match compound brackets: `#()`, `#{}`, `#?()`, `#?@()` (#10, thx @maratynsky)
+
 # 0.1.7
 
-- show mismatched brackets on scrollbar (#7, #8)
+- Show mismatched brackets on scrollbar (#7, #8)
 
 # 0.1.6
 

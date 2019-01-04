@@ -2,7 +2,7 @@
 	"name": "clojure-warrior",
 	"displayName": "Clojure Warrior",
 	"description": "Extension for Clojure development",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"publisher": "tonsky",
 	"license": "MIT",
 	"maintainers": [
