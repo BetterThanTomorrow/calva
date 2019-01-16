@@ -182,6 +182,7 @@ function copyLastResultCommand() {
 }
 
 export default {
+    evaluateMsg,
     evaluateFile,
     evaluateSelection,
     evaluateTopLevelForm,

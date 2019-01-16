@@ -15,7 +15,7 @@
     },
     "license": "MIT",
     "engines": {
-        "vscode": "^1.20.0"
+        "vscode": "^1.30.0"
     },
     "categories": [
         "Programming Languages",
@@ -47,7 +47,8 @@
     ],
     "activationEvents": [
         "onLanguage:clojure",
-        "onCommand:calva.connect"
+        "onCommand:calva.connect",
+        "onCommand:calva.openReplWindow"
     ],
     "main": "./out/calva/extension",
     "extensionPack": [
@@ -127,6 +128,11 @@
             }
         },
         "commands": [
+            {
+                "command": "calva.openReplWindow",
+                "title": "Open a REPL window",
+                "category": "Calva"
+            },
             {
                 "command": "calva.connect",
                 "title": "Connect",
@@ -334,7 +340,7 @@
         }
     },
     "scripts": {
-        "watch-ts": "tsc -watch -p ./",
+        "watch-ts": "concurrently \"tsc -watch -p ./\" \"npx webpack -w\"",
         "release": "npm i && tsc -p ./",
         "compile": "npm i && tsc -p ./",
         "vscode:prepublish": "npm run release",
@@ -352,18 +358,20 @@
         "net": "1.0.2",
         "npm": "^6.4.0",
         "paredit.js": "^0.3.4",
-        "vscode": "^1.1.18",
         "vscode-extension-telemetry": "0.0.15",
         "clipboardy": "^1.2.3",
         "@cospaia/calva-lib": "0.0.20"
     },
     "devDependencies": {
+        "concurrently": "^4.1.0",
         "eslint": "^4.19.1",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.12.0",
         "eslint-plugin-node": "^6.0.1",
         "eslint-plugin-promise": "^3.7.0",
         "eslint-plugin-standard": "^3.0.1",
-        "typescript": "^2.9.2"
+        "ts-loader": "^5.3.3",
+        "typescript": "^2.9.2",
+        "vscode": "^1.1.26"
     }
 }

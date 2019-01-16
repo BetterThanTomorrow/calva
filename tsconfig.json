@@ -4,13 +4,15 @@
         "target": "es6",
         "outDir": "out",
         "lib": [
-            "es7"
+            "es7",
+            "dom"
         ],
         "sourceMap": true,
         "rootDir": "."
     },
     "exclude": [
         "node_modules",
+        "webview-src",
         ".vscode-test"
     ]
 }

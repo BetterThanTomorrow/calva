@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from "path";
 
 import * as state from './state';
 import status from './status';
@@ -13,8 +14,11 @@ import LintMiddleWare from './repl/middleware/lint';
 import TestRunnerMiddleWare from './repl/middleware/testRunner';
 import annotations from './providers/annotations';
 import select from './repl/middleware/select';
+import * as util from './utilities';
+import evaluate from "./repl/middleware/evaluate"
+const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
-import evaluate from './repl/middleware/evaluate';
+import { readFileSync } from 'fs';
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
 function onDidSave(document) {
@@ -62,6 +66,48 @@ function activate(context) {
     status.update();
 
     // COMMANDS
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openReplWindow', () => {
+		const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Active, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'html'))] })
+		let html = readFileSync(path.join(context.extensionPath, "html/index.html")).toString()
+		html = html.replace("{{baseUri}}", getUrl())
+		html = html.replace("{{script}}", getUrl("main.js"))
+		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
+        panel.webview.html = html;
+        
+
+        evaluate.evaluateMsg(nreplMessage.eval_code_msg(util.getSession(), 'nil'), "", "", (res) => {
+            let ns;
+            for(let response of res) {
+                if(response.hasOwnProperty("value"))
+                    ns = response.ns;
+            }        
+
+            panel.webview.onDidReceiveMessage((msg) => {
+                if(msg.type == "init") {
+                    panel.webview.postMessage({ type: "init", value: "", ns: ns });
+                }
+
+                if(msg.type == "read-line") {
+                    evaluate.evaluateMsg(nreplMessage.eval_code_msg(util.getSession(), msg.line), "", "", (res) => {
+                        for(let response of res) {
+                            if(response.hasOwnProperty("status"))
+                                panel.webview.postMessage({type: "done"});
+                            if(response.hasOwnProperty("ex"))
+                                panel.webview.postMessage({ type: "repl-error", ex: ""+response.ex });
+                            if(response.hasOwnProperty("err"))
+                                panel.webview.postMessage({ type: "stderr", value: ""+response.err });
+                            if(response.hasOwnProperty("value"))
+                                panel.webview.postMessage({ type: "repl-response", value: ""+response.value, ns: response.ns });
+                            if(response.hasOwnProperty("out")) {
+                                panel.webview.postMessage({ type: "stdout", value: ""+response.out});
+                            }
+                        }
+                    });
+                }
+            })      
+        })
+	}));
+
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
@@ -126,6 +172,14 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
+
+    // REPL
+	function getUrl(name?: string) {
+		if(name)
+			return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
+		else
+			return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
+	}
 }
 
 function deactivate() { }

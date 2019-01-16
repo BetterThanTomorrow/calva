@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+    <head>
+        <style>
+            @import 'https://unpkg.com/firacode@1.205.0/distr/fira_code.css';
+            body {
+                background-color: #222;
+                color: #fff;
+            }
+            .output {
+                color: #ff0;
+            }
+            .error {
+                color: #f00;
+            }
+            .repl {
+                font-family: "Fira Code", "Courier New", monospace;
+                font-weight: normal;
+                font-size: 12px;
+                letter-spacing: 0;
+                cursor: text;
+                position: relative;
+            }
+
+            .match {
+                border: solid 1px #777;
+                margin: -1px -1px -1px -1px;
+            }
+
+            .fail-match {
+                background-color: #f00;
+            }
+
+            .caret {
+                position: absolute;
+                height: 14px;
+                top: 0px;
+                background-color: #fff;
+                animation: 500ms ease-in-out caret-blink infinite;
+            }
+
+            .sel-marker {
+                background-color: #264f78;                
+                position: absolute;
+                z-index: -1;
+                top: 0;
+                height: 100%;
+            }
+
+            .line {
+                position: relative;
+                margin: 0;
+                padding: 0;
+                white-space: pre;
+            }
+            
+            .id {
+                color: #d4d4d4;
+            }
+            
+            .kw {
+                color: #9cdcfe;
+            }
+
+            .comment {
+                color: #6a9955;
+            }
+
+            .lit {
+                color: #b5cea8;
+            }
+
+            .str, .str-start, .str-inside, .str-end {
+                color: #ce9178;
+            }
+
+            .decl {
+                color: #c586c0;
+            }
+
+            .macro {
+                color: #569cd6;
+            }
+
+            @keyframes caret-blink {
+                0% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+                100% {
+                    opacity: 1;
+                }
+            }
+
+            @media only screen and (max-width: 600px) {
+                .info-box {
+                    display: none;
+                }
+            }
+
+            .prompt-wrap {
+                display: flex;
+                white-space: pre;
+                position: relative;
+            }
+
+            .prompt {
+                color: #888;
+            }
+
+            .warn {
+                color: #f40;
+                font-weight: bold;
+            }
+
+            #motd {
+                font-style: italic;
+                font-weight: bold;
+                white-space: pre-line;
+            }
+        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    </head>
+    <body>
+        <div>
+            <img src={{logo}}>
+            <h3>Calva REPL - version 0.0.1</h3>
+            <div>Copyright (c) 2019 Matt Seddon, Peter Strömberg / Better Than Tomorrow</div>
+            <div class="warn">This is alpha software. Things <u>will</u> break. You have been warned.</div>
+            <p id="motd"></p>
+        </div>
+        <div class="repl">
+        </div>
+        <script src="{{script}}"></script>
+    </body>
+</html>
