@@ -14,13 +14,15 @@ export class NReplClient {
     private socket: net.Socket
     private encoder = new BEncoderStream();
     private decoder = new BDecoderStream();
-    private session: NReplSession;
+    session: NReplSession;
 
     /** Result of running describe at boot, unused */
     describe: any;
 
     /** Tracks all sessions */
     sessions: {[id: string]: NReplSession} = {};
+    
+    ns: string = "user";
 
     private constructor(socket: net.Socket) {
         this.socket = socket;
@@ -60,6 +62,7 @@ export class NReplClient {
         return new Promise<NReplClient>((resolve, reject) => {
 
             let client = new NReplClient(net.createConnection(opts, () => {
+                let nsId = client.nextId
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
 
@@ -67,6 +70,11 @@ export class NReplClient {
                     console.log("-> ", data);
                     if(!client.describe && data["id"] == describeId) {
                         client.describe = data;
+                    } else if(data["id"] == nsId) {
+                        if(data["ns"])
+                            client.ns = data["ns"]
+                        if(data["status"] && data["status"].indexOf("done") != -1)
+                            client.encoder.write({ "op": "clone", "id": cloneId });
                     } else if(data["id"] == cloneId) {
                         client.session = new NReplSession(data["new-session"], client)
                         client.encoder.write({ "op": "describe", id: describeId, verbose: true, session: data["new-session"] });
@@ -77,7 +85,7 @@ export class NReplClient {
                             session._response(data);
                     }
                 })
-                client.encoder.write({ "op": "clone", "id": cloneId });
+                client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
                 
             }))
         })
@@ -100,7 +108,9 @@ export class NReplSession {
         return new Promise<NReplSession>((resolve, reject) => {
             let id = this.client.nextId;
             this.messageHandlers[id] = (msg) => {
-                resolve(new NReplSession(msg["new-session"], this.client));
+                let sess = new NReplSession(msg["new-session"], this.client);
+                sess.eval("(in-ns '"+this.client.ns+")").value;
+                resolve(sess);
                 return true;
             }
             this.client.write({ op: "clone", session: this.sessionId, id })
