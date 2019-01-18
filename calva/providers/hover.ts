@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
-import repl from '../repl/client';
+import { client as nClient } from "../connector";
 import * as util from '../utilities';
-const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
-const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
-
 
 export default class HoverProvider implements vscode.HoverProvider {
     state: any;
@@ -34,55 +31,14 @@ export default class HoverProvider implements vscode.HoverProvider {
         return result.length > 0 ? result : "";
     }
 
-    provideHover(document, position, _) {
-        let text = util.getWordAtPosition(document, position),
-            docstring = "",
-            arglist = "",
-            nsname = "",
-            scope = this,
-            filetypeIndex = (document.fileName.lastIndexOf('.') + 1),
-            filetype = document.fileName.substr(filetypeIndex, document.fileName.length);
-
-        if (text.length <= 0) {
-            return;
-        }
-
+    async provideHover(document, position, _) {
+        let text = util.getWordAtPosition(document, position);
         if (this.state.deref().get('connected')) {
-            return new Promise<vscode.Hover>((resolve, reject) => {
-                let current = this.state.deref(),
-                    client = current.get('nrepl-client'),
-                    msg = nreplMessage.infoMsg(current.get(filetype),
-                        util.getNamespace(document.getText()), text);
-                client.send(msg, function (results) {
-                    if (results.length === 1 &&
-                        results[0].status[0] === "done" &&
-                        results[0].status[1] === "no-info") {
-                        reject("No docstring available..");
-                    }
-
-                    for (var r = 0; r < results.length; r++) {
-                        let result = results[r];
-                        docstring += result.doc;
-                        arglist += result['arglists-str'];
-                        if (result.hasOwnProperty('ns') &&
-                            result.hasOwnProperty('name')) {
-                            nsname = result.ns + "/" + result.name;
-                        }
-                    }
-                    if (docstring.length === 0) {
-                        reject("Docstring error: " + text);
-                    } else {
-                        let result = scope.formatDocString(nsname, arglist, docstring);
-                        if (result.length === 0) {
-                            reject("Docstring error: " + text);
-                        } else {
-                            resolve(new vscode.Hover(result));
-                        }
-                    }
-                });
-            });
-        } else {
+            let res = await nClient.session.info(util.getNamespace(document.getText()), text);
+            if(res.doc)
+                return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], res.doc))
+            return new vscode.Hover("No documentation available");
+        } else
             return new vscode.Hover("Not connected to nREPL..");
-        }
     }
 };

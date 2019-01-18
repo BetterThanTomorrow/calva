@@ -17,7 +17,6 @@ import select from './repl/middleware/select';
 import * as util from './utilities';
 import evaluate from "./repl/middleware/evaluate"
 import { client } from "./connector"
-const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 import { readFileSync } from 'fs';
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
