@@ -45,9 +45,6 @@ window.onmessage = (msg) => {
             ns = msg.data.ns;
         }
         con.printElement(div);
-    }
-
-    if(msg.data.type == "done") {
         con.requestPrompt(ns+"=> ")
     }
 

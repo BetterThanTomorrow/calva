@@ -16,6 +16,7 @@ import annotations from './providers/annotations';
 import select from './repl/middleware/select';
 import * as util from './utilities';
 import evaluate from "./repl/middleware/evaluate"
+import { client } from "./connector"
 const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
 import { readFileSync } from 'fs';
@@ -66,7 +67,7 @@ function activate(context) {
     status.update();
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openReplWindow', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openReplWindow', async function () {
 		const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Active, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'html'))] })
 		let html = readFileSync(path.join(context.extensionPath, "html/index.html")).toString()
 		html = html.replace("{{baseUri}}", getUrl())
@@ -74,38 +75,28 @@ function activate(context) {
 		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
         
+        let session = await client.createSession();
 
-        evaluate.evaluateMsg(nreplMessage.eval_code_msg(util.getSession(), 'nil'), "", "", (res) => {
-            let ns;
-            for(let response of res) {
-                if(response.hasOwnProperty("value"))
-                    ns = response.ns;
-            }        
+        let res = session.eval("*ns*");
+        await res.value;
+        let ns = res.ns;
 
-            panel.webview.onDidReceiveMessage((msg) => {
-                if(msg.type == "init") {
-                    panel.webview.postMessage({ type: "init", value: "", ns: ns });
+        panel.webview.onDidReceiveMessage(async function (msg) {
+            if(msg.type == "init") {
+                panel.webview.postMessage({ type: "init", value: "", ns: ns });
+            }
+
+            if(msg.type == "read-line") {
+                let res = session.eval(msg.line, {
+                            stderr: m => panel.webview.postMessage({type: "stderr", value: m}),
+                            stdout: m => panel.webview.postMessage({type: "stdout", value: m})})
+                try {
+                    panel.webview.postMessage({type: "repl-response", value: await res.value, ns: res.ns});
+                } catch(e) {
+                    panel.webview.postMessage({type: "repl-error", ex: e});
                 }
-
-                if(msg.type == "read-line") {
-                    evaluate.evaluateMsg(nreplMessage.eval_code_msg(util.getSession(), msg.line), "", "", (res) => {
-                        for(let response of res) {
-                            if(response.hasOwnProperty("status"))
-                                panel.webview.postMessage({type: "done"});
-                            if(response.hasOwnProperty("ex"))
-                                panel.webview.postMessage({ type: "repl-error", ex: ""+response.ex });
-                            if(response.hasOwnProperty("err"))
-                                panel.webview.postMessage({ type: "stderr", value: ""+response.err });
-                            if(response.hasOwnProperty("value"))
-                                panel.webview.postMessage({ type: "repl-response", value: ""+response.value, ns: response.ns });
-                            if(response.hasOwnProperty("out")) {
-                                panel.webview.postMessage({ type: "stdout", value: ""+response.out});
-                            }
-                        }
-                    });
-                }
-            })      
-        })
+            }
+        })      
 	}));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));

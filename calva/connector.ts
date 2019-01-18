@@ -7,6 +7,9 @@ import shadow from './shadow';
 import status from './status';
 import terminal from './terminal';
 import repl from './repl/client';
+
+import { NReplClient } from "./nrepl";
+
 const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
 const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 
@@ -73,6 +76,7 @@ function disconnect(options = null, callback = () => { }) {
 
 function connectToHost(hostname, port) {
     let chan = state.deref().get('outputChannel');
+    NReplClient.create({ host: hostname, port: +port}).then(x => client = x)
 
     disconnect({ hostname, port }, () => {
         let client = state.deref().get('nrepl-client');
@@ -220,6 +224,8 @@ function promptForNreplUrlAndConnect(port) {
         }
     });
 }
+
+export let client: NReplClient;
 
 function connect(isAutoConnect = false) {
     let current = state.deref(),
