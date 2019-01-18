@@ -154,7 +154,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "stacktrace", "pprint-fn": "clojure.pprint/pprint", "print-length": 50, "print-level": 50, id, session: this.sessionId})
+            this.client.write({ op: "stacktrace", id, session: this.sessionId})
         })
     }
 
@@ -162,20 +162,26 @@ export class NReplSession {
         let id = this.client.nextId;
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
+            let ex;
+            let value;
             this.messageHandlers[id] = (msg) => {
-                if(msg.value)
-                    resolve(msg.value);
                 if(msg.out)
                     evaluation.out(msg.out)
                 if(msg.err)
                     evaluation.out(msg.err)
                 if(msg.ns)
                     evaluation.ns = msg.ns;
-                if(msg.ex) {
-                    this.stacktrace().then(ex => reject(ex));
-                }
-                if(msg.status && msg.status.indexOf("done") != -1)
+                if(msg.ex)
+                    ex = msg.ex;
+                if(msg.value)
+                    value = msg.value                    
+                if(msg.status && msg.status.indexOf("done") != -1) {
+                    if(ex)
+                        reject(ex);
+                    if(value)
+                        resolve(value);
                     return true;
+                }
             }    
             this.client.write({ op: "eval", session: this.sessionId, code, id, ...opts })
         }))
