@@ -5,7 +5,6 @@ import repl from '../client';
 import evaluate from './evaluate';
 import * as util from '../../utilities';
 
-const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
 const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
 const jsUtils = require('@cospaia/calva-lib/lib/calva.js_utils');
 

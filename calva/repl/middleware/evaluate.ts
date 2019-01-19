@@ -8,6 +8,7 @@ import * as util from '../../utilities';
 
 import { client as nClient } from "../../connector"
 
+/// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = current.get('outputChannel'),

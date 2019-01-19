@@ -1,4 +1,5 @@
 import * as stream from "stream";
+import { Buffer } from "buffer";
 
 const bencode = (value) => {
     if(value === null || value === undefined)
@@ -8,7 +9,7 @@ const bencode = (value) => {
     if(typeof value == "number")
         return "i"+value+"e";
     if(typeof value == "string")
-        return value.length+":"+value;
+        return Buffer.byteLength(value, 'utf8')+":"+value;
     if(value instanceof Array)
         return "l"+value.map(bencode).join('')+"e";
     let out = "d";
@@ -42,7 +43,7 @@ interface StringStartState {
 
 interface StringBodyState {
     id: "string-body"
-    accum: string;
+    accum: number[];
     length: number;
 }
 
@@ -92,28 +93,36 @@ class BIncrementalDecoder {
         }
     }
 
-    write(ch: string) {
+    write(byte: number) {
+        let ch = String.fromCharCode(byte)
         if(this.state.id == "ready") {
-            if(ch == "i")
-                this.state = { id: "int", accum: "" }
-            else if(ch == "d")
-                this.stack.push({ id: "dict", accum: {}, key: null });
-            else if(ch == "l")
-                this.stack.push({ id: "list", accum: []});
-            else if(ch >= '0' && ch <= '9')
-                this.state = { id: "string-start", accum: ch }
-            else if(ch == "e") {
-                if(!this.stack.length)
-                    throw "unexpected end";
-                this.state = this.stack.pop();
-                if(this.state.id == "dict") {
-                    if(this.state.key !== null)
-                        throw "Missing value in dict";
-                    return this.complete(this.state.accum);
-                } else if(this.state.id == "list")
-                    return this.complete(this.state.accum);
-            } else
-                throw "Malformed input in bencode"
+            switch(ch) {
+                case 'i':
+                    this.state = { id: "int", accum: "" }
+                    break;
+                case "d":
+                    this.stack.push({ id: "dict", accum: {}, key: null });
+                    break;
+                case "l":
+                    this.stack.push({ id: "list", accum: []});
+                    break;
+                case "e":
+                    if(!this.stack.length)
+                        throw "unexpected end";
+                    this.state = this.stack.pop();
+                    if(this.state.id == "dict") {
+                        if(this.state.key !== null)
+                            throw "Missing value in dict";
+                        return this.complete(this.state.accum);
+                    } else if(this.state.id == "list")
+                        return this.complete(this.state.accum);
+                    break;
+                default:
+                    if(ch >= '0' && ch <= '9')
+                        this.state = { id: "string-start", accum: ch }
+                    else
+                        throw "Malformed input in bencode"
+                }
         } else if(this.state.id == "int") {
             if(ch == "e")
                 return this.complete(parseInt(this.state.accum));
@@ -125,13 +134,13 @@ class BIncrementalDecoder {
                     throw new Error("Invalid string length: "+this.state.accum)
                 if(+this.state.accum == 0)
                     return this.complete("");
-                this.state = { id: "string-body", accum: "", length: +this.state.accum };
+                this.state = { id: "string-body", accum: [], length: +this.state.accum };
             } else
                 this.state.accum += ch;
         } else if(this.state.id == "string-body") {
-            this.state.accum += ch;
+            this.state.accum.push(byte);
             if(this.state.accum.length >= this.state.length)
-                return this.complete(this.state.accum);
+                return this.complete(Buffer.from(this.state.accum).toString("utf8"));
         } else if(this.state.id == "list") {
             return this.complete(this.state.accum);
         } else if(this.state.id == "dict") {
@@ -148,9 +157,10 @@ export class BDecoderStream extends stream.Transform {
     }
 
     _transform(data, encoding, cb) {
-        let input = data.toString();
-        for(let i=0; i<input.length; i++) {
-            let res = this.decoder.write(input[i]);
+        // data is now a Uint8 array, so we need to incrementally decode strings as uint8's not chars, carefully building things up properly.
+
+        for(let i=0; i<data.length; i++) {
+            let res = this.decoder.write(data[i]);
             if(res)
                 this.push(res);
         }

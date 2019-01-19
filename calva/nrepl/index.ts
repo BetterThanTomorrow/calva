@@ -26,6 +26,12 @@ export class NReplClient {
 
     private constructor(socket: net.Socket) {
         this.socket = socket;
+        this.socket.on("error", e => {
+            console.error(e)
+        })
+        this.socket.on("close", e => {
+            console.log("Socket closed")
+        })
         this.encoder.pipe(this.socket);
         this.socket.pipe(this.decoder);
     }
@@ -61,7 +67,8 @@ export class NReplClient {
     static create(opts: { host: string, port: number }) {
         return new Promise<NReplClient>((resolve, reject) => {
 
-            let client = new NReplClient(net.createConnection(opts, () => {
+            let socket = net.createConnection(opts, () => {
+                
                 let nsId = client.nextId
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
@@ -87,7 +94,8 @@ export class NReplClient {
                 })
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
                 
-            }))
+            })
+            let client = new NReplClient(socket);
         })
     }
 }
