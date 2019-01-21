@@ -257,6 +257,39 @@ export class NReplSession {
         })
     }
 
+    test(ns: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "test", ns, id, session: this.sessionId});
+        })
+    }
+
+    testAll() {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "test-all", id, session: this.sessionId});
+        })
+    }
+
+    retest() {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "retest", id, session: this.sessionId});
+        })
+    }
+
     private _refresh(cmd, opts: { dirs?: string[], before?: string[], after?: string[]} = {}) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;

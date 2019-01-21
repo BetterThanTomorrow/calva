@@ -1,6 +1,12 @@
+/**
+ * A bencode encoder and incremental decoder using nodejs streams.
+ * 
+ * Author: Matt Seddon
+ */
 import * as stream from "stream";
 import { Buffer } from "buffer";
 
+/** Bencode the given JSON object */
 const bencode = (value) => {
     if(value === null || value === undefined)
         value = 0;
@@ -18,6 +24,7 @@ const bencode = (value) => {
     return out+"e";
 }
 
+/** A transformation stream that takes a series of JSON objects and bencodes them. */
 export class BEncoderStream extends stream.Transform {
     data = [];
     constructor() {
@@ -30,36 +37,58 @@ export class BEncoderStream extends stream.Transform {
     }
 }
 
+/**
+ * The states the incremental decoder can be in.
+ */
 type State  = StringStartState | StringBodyState | IntState | ListState | DictState | ReadyState;
 
+/**
+ * Start state- ready to begin accepting a bencoded value
+ */
 interface ReadyState {
     id: "ready"
 }
 
+/**
+ * String start state- reading the string length up until the ':'
+ */
 interface StringStartState {
     id: "string-start"
     accum: string;
 }
 
+/**
+ * Accumulating the binary byte string, after the ':'
+ */
 interface StringBodyState {
     id: "string-body"
     accum: number[];
     length: number;
 }
 
+/**
+ * Reading the digits until 'e'
+ */
 interface IntState {
     id: "int";
     accum: string;
 }
 
+/**
+ * Reading a list until 'e'.
+ */
 interface ListState {
     id: "list"
     accum: any[];
 }
 
+/**
+ * Reading a dictionary until 'e'.
+ */
 interface DictState {
     id: "dict"
-    key: string;
+    /** When null, we are reading a key, when a string, we must read the value */
+    key: string | null;
     accum: {[id: string]: any};
 }
 
@@ -157,8 +186,6 @@ export class BDecoderStream extends stream.Transform {
     }
 
     _transform(data, encoding, cb) {
-        // data is now a Uint8 array, so we need to incrementally decode strings as uint8's not chars, carefully building things up properly.
-
         for(let i=0; i<data.length; i++) {
             let res = this.decoder.write(data[i]);
             if(res)

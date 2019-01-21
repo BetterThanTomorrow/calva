@@ -105,12 +105,13 @@ async function evaluateFile(document = {}, callback = () => { }) {
         chan = current.get('outputChannel');
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
-        let value = await nClient.session.loadFile(doc.getText(), { fileName });
+        let value = await nClient.session.loadFile(doc.getText(), { fileName: fileName, filePath: doc.fileName }).value;
         if (value !== null)
             chan.appendLine("=> " + value);
         else
             chan.appendLine("No results from file evaluation.");
     }
+    callback();
 }
 
 async function copyLastResultCommand() {
