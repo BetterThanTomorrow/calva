@@ -38,7 +38,9 @@ async function evaluateSelection(document = {}, options = {}) {
             let res = await client.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
 
             try {
-                let value = await client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint }).value
+                let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
+                let value = await context.value
+                value = context.pprintOut || value;
 
                 if(replace) {
                     const indent = ' '.repeat(c),
@@ -56,8 +58,9 @@ async function evaluateSelection(document = {}, options = {}) {
                     if (pprint) {
                         chan.appendLine('');
                         chan.show(true);
-                    }
-                    chan.appendLine(value);
+                        chan.appendLine(value);
+                    } else chan.appendLine(value);
+                    
                     if (err.length > 0) {
                         chan.append("Error: ")
                         chan.append(err.join("\n"));

@@ -182,12 +182,16 @@ export class NReplSession {
                 if(msg.ex)
                     ex = msg.ex;
                 if(msg.value)
-                    value = msg.value                    
+                    value = msg.value
+                if(msg["pprint-out"])
+                    evaluation.pprintOut = msg["pprint-out"];
                 if(msg.status && msg.status.indexOf("done") != -1) {
                     if(ex)
                         reject(ex);
                     if(value)
                         resolve(value);
+                    if(evaluation.pprintOut)
+                        resolve(evaluation.pprintOut)
                     return true;
                 }
             }
@@ -350,6 +354,7 @@ class NReplEvaluation {
 
     ns: string;
 
+    pprintOut: string;
     /** FIXME: these should be hooks */
     out(message: string) {
         if(this.stdout)
