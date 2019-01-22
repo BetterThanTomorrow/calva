@@ -34,11 +34,11 @@ async function evaluateSelection(document = {}, options = {}) {
             let c = codeSelection.start.character
             
             let err: string[] = [], out: string[] = [];
-            // FIXME: need to use the correct namespace...
+
             let res = await client.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
 
             try {
-                let value = await client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m) }).value
+                let value = await client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint }).value
 
                 if(replace) {
                     const indent = ' '.repeat(c),

@@ -1,4 +1,4 @@
 * DONE Migrate testRunner to use nrepl, and clean up
-* TODO Migrate connect, and add cljs support
-* TODO send cljs stuff to the right repl
+* DONE Migrate connect, and add cljs support
+* DONE send cljs stuff to the right repl
 * TODO add pretty printing back to evaluate

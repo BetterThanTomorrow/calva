@@ -166,7 +166,7 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void} = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean} = {}) {
         let id = this.client.nextId;
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
@@ -190,7 +190,7 @@ export class NReplSession {
                         resolve(value);
                     return true;
                 }
-            }    
+            }
             this.client.write({ op: "eval", session: this.sessionId, code, id, ...opts })
         }))
 
