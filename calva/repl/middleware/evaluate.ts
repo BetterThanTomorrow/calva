@@ -6,8 +6,6 @@ import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
 
-import { nClient as nClient } from "../../connector"
-
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
@@ -17,6 +15,7 @@ async function evaluateSelection(document = {}, options = {}) {
         replace = options["replace"] || false,
         topLevel = options["topLevel"] || false;
     if (current.get('connected')) {
+        let client = util.getSession(util.getFileType(doc));
         let editor = vscode.window.activeTextEditor,
             selection = editor.selection,
             codeSelection = null,
@@ -36,10 +35,10 @@ async function evaluateSelection(document = {}, options = {}) {
             
             let err: string[] = [], out: string[] = [];
             // FIXME: need to use the correct namespace...
-            let res = await nClient.session.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
+            let res = await client.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
 
             try {
-                let value = await nClient.session.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m) }).value
+                let value = await client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m) }).value
 
                 if(replace) {
                     const indent = ' '.repeat(c),
@@ -102,10 +101,11 @@ async function evaluateFile(document = {}, callback = () => { }) {
         doc = util.getDocument(document),
         fileName = util.getFileName(doc),
         fileType = util.getFileType(doc),
+        client = util.getSession(util.getFileType(doc)),
         chan = current.get('outputChannel');
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
-        let value = await nClient.session.loadFile(doc.getText(), { fileName: fileName, filePath: doc.fileName }).value;
+        let value = await client.loadFile(doc.getText(), { fileName: fileName, filePath: doc.fileName }).value;
         if (value !== null)
             chan.appendLine("=> " + value);
         else
@@ -116,7 +116,9 @@ async function evaluateFile(document = {}, callback = () => { }) {
 
 async function copyLastResultCommand() {
     let chan = state.deref().get('outputChannel');
-    let value = await nClient.session.eval("*1").value;
+    let client = util.getSession(util.getFileType(util.getDocument({})));
+
+    let value = await client.eval("*1").value;
     if(value !== null)
         clipboardy.writeSync(value);
     else

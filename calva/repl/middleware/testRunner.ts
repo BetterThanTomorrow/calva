@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from '../../state';
-import { nClient as nClient } from "../../connector"
 import evaluate from './evaluate';
 import * as util from '../../utilities';
 
@@ -76,7 +75,8 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    reportTests([await nClient.session.testAll()], "Running all tests");
+    let client = util.getSession(util.getFileType(document))
+    reportTests([await client.testAll()], "Running all tests");
 }
 
 function runAllTestsCommand() {
@@ -87,12 +87,13 @@ function runAllTestsCommand() {
 }
 
 function getNamespaceTestMessages(document = {}) {
+    let client = util.getSession(util.getFileType(document))
     let doc = util.getDocument(document),
         ns = util.getNamespace(doc.getText()),
-        messages = [nClient.session.test(ns + '-test')];
+        messages = [client.test(ns + '-test')];
 
     if (!ns.endsWith('-test'))
-        messages.push(nClient.session.test(ns + '-test'));
+        messages.push(client.test(ns + '-test'));
 
     return messages;
 }
@@ -110,8 +111,9 @@ function runNamespaceTestsCommand() {
 }
 
 function rerunTests(document = {}) {
+    let client = util.getSession(util.getFileType(document))
     evaluate.evaluateFile({}, async () => {
-        reportTests([await nClient.session.retest()], "Retesting");
+        reportTests([await client.retest()], "Retesting");
     });
 }
 

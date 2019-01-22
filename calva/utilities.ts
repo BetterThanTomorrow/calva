@@ -3,6 +3,7 @@ const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import * as _ from 'lodash';
 import * as state from './state';
 import * as fs from 'fs';
+import { NReplSession } from './nrepl';
 const syntaxQuoteSymbol = "`";
 
 
@@ -89,7 +90,7 @@ function getDocumentNamespace(document = {}) {
     return getNamespace(doc.getText());
 }
 
-function getSession(fileType = undefined) {
+function getSession(fileType = undefined): NReplSession {
     let doc = getDocument({}),
         current = state.deref();
 
