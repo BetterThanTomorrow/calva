@@ -1,0 +1,32 @@
+[
+    {
+        "key": "ctrl+right",
+        "command": "paredit.slurpSexpForward",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+left",
+        "command": "paredit.barfSexpForward",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+cmd+right",
+        "command": "paredit.forwardSexp",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+cmd+left",
+        "command": "paredit.backwardSexp",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+left",
+        "command": "paredit.slurpSexpBackward",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+right",
+        "command": "paredit.barfSexpBackward",
+        "when": "editorTextFocus"
+    }
+]

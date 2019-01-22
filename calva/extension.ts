@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from "path";
-
+import * as paredit from "./paredit/extension";
 import * as state from './state';
 import status from './status';
 import connector from './connector';
@@ -14,11 +13,8 @@ import LintMiddleWare from './repl/middleware/lint';
 import TestRunnerMiddleWare from './repl/middleware/testRunner';
 import annotations from './providers/annotations';
 import select from './repl/middleware/select';
-import * as util from './utilities';
 import evaluate from "./repl/middleware/evaluate"
-import { nClient } from "./connector"
-
-import { readFileSync } from 'fs';
+import * as replWindow from "./repl-window";
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
 function onDidSave(document) {
@@ -56,6 +52,9 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    replWindow.activate(context);
+    paredit.activate(context)
+    
     let chan = state.deref().get('outputChannel');
     chan.appendLine("Calva activated.");
     let {
@@ -66,37 +65,6 @@ function activate(context) {
     status.update();
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openReplWindow', async function () {
-		const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Active, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'html'))] })
-		let html = readFileSync(path.join(context.extensionPath, "html/index.html")).toString()
-		html = html.replace("{{baseUri}}", getUrl())
-		html = html.replace("{{script}}", getUrl("main.js"))
-		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
-        panel.webview.html = html;
-        
-        let session = await nClient.createSession();
-
-        let res = session.eval("*ns*");
-        await res.value;
-        let ns = res.ns;
-
-        panel.webview.onDidReceiveMessage(async function (msg) {
-            if(msg.type == "init") {
-                panel.webview.postMessage({ type: "init", value: "", ns: ns });
-            }
-
-            if(msg.type == "read-line") {
-                let res = session.eval(msg.line, {
-                            stderr: m => panel.webview.postMessage({type: "stderr", value: m}),
-                            stdout: m => panel.webview.postMessage({type: "stdout", value: m})})
-                try {
-                    panel.webview.postMessage({type: "repl-response", value: await res.value, ns: res.ns});
-                } catch(e) {
-                    panel.webview.postMessage({type: "repl-error", ex: e});
-                }
-            }
-        })      
-	}));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
@@ -162,17 +130,11 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
-
-    // REPL
-	function getUrl(name?: string) {
-		if(name)
-			return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
-		else
-			return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
-	}
 }
 
-function deactivate() { }
+function deactivate() {
+    paredit.deactivate()
+}
 
 
 export { activate, deactivate };

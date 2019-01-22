@@ -35,6 +35,11 @@ window.onmessage = (msg) => {
         con.requestPrompt(ns + "=> ")
     }
 
+    if(msg.data.type == "ui-command") {
+        if(con.commands[msg.data.value])
+            con.commands[msg.data.value]();
+    }
+
     if(msg.data.type == "repl-response") {
         let div = document.createElement("div")
         for(let tk of scanner.processLine(msg.data.value)) {
