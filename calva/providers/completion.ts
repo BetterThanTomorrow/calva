@@ -1,7 +1,7 @@
 import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem } from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
-import { client as nClient } from "../connector"
+import { nClient as nClient } from "../connector"
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;

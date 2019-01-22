@@ -16,7 +16,7 @@ import annotations from './providers/annotations';
 import select from './repl/middleware/select';
 import * as util from './utilities';
 import evaluate from "./repl/middleware/evaluate"
-import { client } from "./connector"
+import { nClient } from "./connector"
 
 import { readFileSync } from 'fs';
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
@@ -74,7 +74,7 @@ function activate(context) {
 		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
         
-        let session = await client.createSession();
+        let session = await nClient.createSession();
 
         let res = session.eval("*ns*");
         await res.value;

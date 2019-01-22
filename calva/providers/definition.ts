@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
-import { client as nClient } from "../connector"
+import { nClient as nClient } from "../connector"
 export default class DefinitionProvider implements vscode.DefinitionProvider {
     state: any;
     constructor() {

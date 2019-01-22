@@ -6,7 +6,7 @@ import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
 
-import { client as nClient } from "../../connector"
+import { nClient as nClient } from "../../connector"
 
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {

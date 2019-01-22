@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
-import { client as nClient } from "../connector";
+import { nClient as nClient } from "../connector";
 import * as util from '../utilities';
 
 export default class HoverProvider implements vscode.HoverProvider {
