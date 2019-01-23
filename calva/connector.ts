@@ -95,10 +95,10 @@ async function makeCljsSessionClone(session, shadowBuild) {
         });
         if (build)
             return makeCljsSessionClone(session, build);
-    } else if(shadowBuild) {
+    } else {
         cljsSession = await cljSession.clone();
         if(cljsSession) {
-            let initCode = shadowCljsReplStart(shadowBuild);
+            let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
             let result = cljsSession.eval(initCode);
             try {
                 let valueResult = await result.value
