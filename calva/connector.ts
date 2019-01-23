@@ -100,14 +100,9 @@ async function makeCljsSessionClone(session, shadowBuild) {
         if(cljsSession) {
             let isFigwheel = !shadowBuild;
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
-            let out = "";
-            let result = cljsSession.eval(initCode, { stdout: x => out+=x });
+            let result = cljsSession.eval(initCode, { stdout: x => chan.appendLine(x), stderr: x => chan.appendLine(x) });
             try {
                 let valueResult = await result.value
-                setTimeout(() => {
-                    if(out != "")
-                        vscode.window.showInformationMessage(out);
-                }, 100)
                 
                 state.cursor.set('cljs', cljsSession)
                 state.cursor.set('cljc', cljsSession)

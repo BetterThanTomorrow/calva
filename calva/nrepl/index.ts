@@ -28,12 +28,19 @@ export class NReplClient {
         this.socket = socket;
         this.socket.on("error", e => {
             console.error(e)
+            this.closeHandlers.forEach(x => x(this));
         })
         this.socket.on("close", e => {
             console.log("Socket closed")
+            this.closeHandlers.forEach(x => x(this));
         })
         this.encoder.pipe(this.socket);
         this.socket.pipe(this.decoder);
+    }
+
+    private closeHandlers: ((c: NReplClient) => void)[] = []
+    onClose(fn: (c: NReplClient) => void) {
+        this.closeHandlers.push(fn);
     }
 
     /**
@@ -355,13 +362,12 @@ class NReplEvaluation {
     ns: string;
 
     pprintOut: string;
-    /** FIXME: these should be hooks */
+
     out(message: string) {
         if(this.stdout)
             this.stdout(message);
     }
 
-    /** FIXME: these should be hooks */
     err(message: string) {
         if(this.stderr)
             this.stderr(message);
