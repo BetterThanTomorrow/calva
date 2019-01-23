@@ -98,11 +98,12 @@ async function makeCljsSessionClone(session, shadowBuild) {
     } else {
         cljsSession = await cljSession.clone();
         if(cljsSession) {
+            let isFigwheel = !shadowBuild;
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
-            let result = cljsSession.eval(initCode);
+            let result = cljsSession.eval(initCode, { stdout: x => chan.appendLine(x), stderr: x => chan.appendLine(x) });
             try {
                 let valueResult = await result.value
-
+                
                 state.cursor.set('cljs', cljsSession)
                 state.cursor.set('cljc', cljsSession)
                 if(!shadowBuild && result.ns){

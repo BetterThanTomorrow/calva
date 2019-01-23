@@ -133,7 +133,7 @@
                     },
                     "calva.startCLJSREPLCommand": {
                         "type": "string",
-                        "default": "(require '[figwheel-sidecar.repl-api :as figwheel]) (figwheel/cljs-repl)",
+                        "default": "(do (require '[figwheel-sidecar.repl-api :as figwheel]) (if (not (figwheel/figwheel-running?)) (figwheel/start-figwheel!)) (figwheel/cljs-repl))",
                         "description": "Clojure command to start the ClojureScript REPL off of the Clojure REPL. (This setting is not used for shadow-cljs sessions)"
                     },
                     "calva.projectRootDirectory": {
