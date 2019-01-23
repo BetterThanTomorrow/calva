@@ -168,18 +168,18 @@ function setKeyMapConf() {
 setKeyMapConf();
 
 /*
-    ['paredit.splitSexp', edit(paredit.editor.splitSexp)],
     ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
     ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
     ['paredit.spliceSexpKillBackward', edit(paredit.editor.spliceSexpKill, { 'backward': true })],
     ['paredit.deleteForward', edit(paredit.editor.delete, { 'backward': false, '_skipIndent': true })],
     ['paredit.deleteBackward', edit(paredit.editor.delete, { 'backward': true, '_skipIndent': true })],
-    ['paredit.wrapAroundParens', edit(wrapAround, { opening: '(', closing: ')' })],
-    ['paredit.wrapAroundSquare', edit(wrapAround, { opening: '[', closing: ']' })],
-    ['paredit.wrapAroundCurly', edit(wrapAround, { opening: '{', closing: '}' })],
     ['paredit.indentRange', indent],
     ['paredit.transpose', edit(paredit.editor.transpose)]];
+*/
+
+/*
+    'rangeForDefun': paredit.navigator.rangeForDefun,
 */
 const toConsoleCommand = {
     'paredit.slurpSexpForward': "forward-slurp-sexp",
@@ -190,6 +190,15 @@ const toConsoleCommand = {
     'paredit.splitSexp': "split-sexp",
     'paredit.spliceSexpKillForward': "splice-sexp-killing-forward",
     'paredit.spliceSexpKillBackward': "splice-sexp-killing-backward",
+    'paredit.wrapAroundParens': "wrap-round",
+    'paredit.wrapAroundSquare': "wrap-square",
+    'paredit.wrapAroundCurly': "wrap-curly",
+    'paredit.forwardSexp': "forward-sexp",
+    'paredit.backwarddSexp': "backward-sexp",
+    'paredit.forwardDownSexp': "down-list",
+    'paredit.backwardUpSexp': "backward-up-list",
+    'paredit.deleteBackward': "backspace",
+    'paredit.deleteForward': "delete",
 }
 
 /*
@@ -199,11 +208,7 @@ const toConsoleCommand = {
 "force-delete": () => void;
 "grow-selection": () => void;
 "shrink-selection": () => void;
-"backward-sexp": () => void;
-"forward-sexp": () => void;
-"down-list": () => void;
 "up-list": () => void;
-"backward-up-list": () => void;
 "select-all": () => void;
 "undo": () => void;
 "redo": () => void;
@@ -228,10 +233,6 @@ const toConsoleCommand = {
 "cursor-end-all": () => void;
 "cursor-select-end-all": () => void;
 "delete": () => void;
-"wrap-round": () => void;
-"wrap-square": () => void;
-"wrap-curly": () => void;
-"split-sexp": () => void;
 "history-up": () => void;
 "history-down": () => void;
 */

@@ -2,13 +2,14 @@
 * DONE Migrate connect, and add cljs support
 * DONE send cljs stuff to the right repl
 * DONE add pretty printing back to evaluate
-* TODO Move paredit here
-* TODO Bind paredit keys to Repl console
+* DONE Move paredit here
+* DONE Bind paredit keys to Repl console
 * TODO Jack-in
-    * TODO lein
+    * DONE clj
+    * DONE boot
     * TODO shadow-cljs
-    * TODO clj
-    * TODO boot
+    * TODO lein - (need to inject dependencies)
+    
 * TODO Open new cljs repl
 * TODO Ship first stab at repl?
 * TODO Superclass repl-interactor, so it becomes DocMirror.

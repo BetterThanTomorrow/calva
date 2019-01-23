@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as paredit from "./paredit/extension";
 import * as state from './state';
+import * as jackIn from './nrepl/jack-in';
 import status from './status';
 import connector from './connector';
 import terminal from './terminal';
@@ -65,6 +66,7 @@ function activate(context) {
     status.update();
 
     // COMMANDS
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
@@ -134,6 +136,7 @@ function activate(context) {
 
 function deactivate() {
     paredit.deactivate()
+    jackIn.killAllProcesses();
 }
 
 

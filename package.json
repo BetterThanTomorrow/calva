@@ -173,6 +173,11 @@
         ],
         "commands": [
             {
+                "command": "calva.jackIn",
+                "title": "Jack In",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.openReplWindow",
                 "title": "Open a REPL window",
                 "category": "Calva"
@@ -954,22 +959,11 @@
                 "mac": "shift+backspace",
                 "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
             },
-            {
-                "command": "paredit.deleteForward",
-                "key": "delete",
-                "mac": "shift+backspace",
-                "when": "calva:inRepl"
-            },
 
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
                 "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
-            },
-            {
-                "command": "paredit.deleteBackward",
-                "key": "backspace",
-                "when": "calva:inRepl"
             },
 
             {
