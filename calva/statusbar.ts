@@ -56,6 +56,9 @@ function update() {
                 shadow.tooltip = "Click to connect to a shadow-cljs CLJS REPL";
             }
         }
+    } else if (current.get('launching')) {
+        connection.color = "rgb(253, 208, 35)";
+        connection.text = "Launching REPL using "+current.get('launching');
     } else if (current.get('connecting')) {
         connection.text = "nREPL - trying to connect";
     } else {

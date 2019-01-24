@@ -1,7 +1,11 @@
 import * as vscode from "vscode";
 import * as utilities from "../utilities";
 import * as fs from "fs";
+import * as state from "../state"
 import { spawn, ChildProcess, exec } from "child_process";
+import connector from "../connector";
+import { openReplWindow } from "../repl-window";
+import statusbar from "../statusbar";
 const isWin = /^win/.test(process.platform);
 type ProjectType = "shadow-cljs" | "lein" | "boot" | "clj"
 
@@ -17,7 +21,7 @@ function findInPath(name: string) {
 
 /** The paths to all cli tools */
 const execPath = {
-    'lein': isWin ? findInPath("lein.ps1") : findInPath("lein"),
+    'lein': isWin ? findInPath("lein.bat") : findInPath("lein"),
     'clj': isWin ? findInPath("clj.ps1") : findInPath("clj"),
     'boot': isWin ? findInPath("boot.exe") : findInPath("boot"),
     'shadow-cljs': isWin ? findInPath("shadow-cljs.cmd") : findInPath("shadow-cljs")
@@ -42,17 +46,42 @@ const injectDependencies = {
     "cider/cider-nrepl": "0.20.0",
 }
 
-function makeCljDependencies() {
+const leinPluginDependencies = {
+    "cider/cider-nrepl": "0.20.0",
+}
+
+const leinDependencies = {
+    "nrepl": "0.5.3",
+}
+
+function injectCljDependencies() {
     let out: string[] = [];
     for(let dep in injectDependencies)
         out.push(dep+" {:mvn/version \\\""+injectDependencies[dep]+"\\\"}")
     return "{:deps {"+out.join(' ')+"}}";
 }
 
-function makeBootDependencies() {
+function injectBootDependencies() {
     let out: string[] = [];
     for(let dep in injectDependencies) {
         out.push("-d", dep+":"+injectDependencies[dep]);
+    }
+    return out;
+}
+
+function injectLeinDependencies() {
+    let out: string[] = [];
+    let keys = Object.keys(leinDependencies);
+    
+    for(let i=0; i<keys.length; i++) {
+        let dep = keys[i];
+        out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${leinDependencies[dep]}\\"]"`, '--');
+    }
+
+    keys = Object.keys(leinPluginDependencies);
+    for(let i=0; i<keys.length; i++) {
+        let dep = keys[i];
+        out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
     }
     return out;
 }
@@ -61,13 +90,13 @@ const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\
 
 const projectTypeConfig: {[id: string]: any} = {
     "lein": {
-        args: ["repl"] // you're on your own here, have to install your own nrepl. boo.
+        args: [...injectLeinDependencies(), "repl"] // you're on your own here, have to install your own nrepl. boo.
     },
     "boot": {
-        args: [...makeBootDependencies(), "-i", initEval, "repl"]
+        args: [...injectBootDependencies(), "-i", initEval, "repl"]
     },
     "clj": {
-        args: ["-Sdeps", `"${makeCljDependencies()}"`, "-e", initEval]
+        args: ["-Sdeps", `"${injectCljDependencies()}"`, "-e", initEval]
     },
     "shadow-cljs": {
         args: ""
@@ -92,21 +121,38 @@ export function detectProjectType() {
 
 let processes = new Set<ChildProcess>();
 
-export function calvaJackIn() {
+export async function calvaJackIn() {        
     let type = detectProjectType();
     let executable = execPath[type];
+
+
     if(!executable)
         throw new Error(type+" is not on your PATH");
     let args = projectTypeConfig[type].args;
 
     if(executable.endsWith(".ps1")) {
         args = args.map(escapeString) as Array<string>;
-
         args.unshift(executable);
         executable = "powershell.exe";
     }
-    let child = spawn(executable, args, { detached: false, cwd: utilities.getProjectDir() })
+    if(executable.endsWith(".bat")) {
+        // mmm. dos.
+        args = args.map(x => x.replace(/"/, '^"'));
+    }
+    let watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
+        if(filename == ".nrepl-port") {
+            state.cursor.set("launching", null)
+            watcher.close();
+            await connector.connect(true);
+            openReplWindow("clj");
+        }
+    })
+
+    state.cursor.set("launching", type)
+    statusbar.update();
+    let child = spawn(executable, args, { detached: false, cwd: utilities.getProjectDir(), shell: true })
     processes.add(child);
+    console.log("Launching clojure with: "+executable+" "+args.join(' '));
     child.stderr.on("data", data => {
         console.log(data.toString())
     })
@@ -117,19 +163,20 @@ export function calvaJackIn() {
         // Look for this under lein:
         //   Warning: cider-nrepl requires Leiningen 2.8.3 or greater.
         //   Warning: cider-nrepl will not be included in your project.
-        console.error("data")
+        console.error(data.toString());
     })
     child.on("disconnect", data => {
-        console.error("data")
+        console.error(data.toString())
     })
     child.on("close", data => {
-        console.error("data")
+        console.error(data.toString())
     })
     child.on("message", data => {
-        console.error("data")
+        console.error(data.toString())
     })
     child.once("exit", (code, signal) => {
         processes.delete(child);
+        watcher.close();
     })
 }
 

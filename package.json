@@ -48,7 +48,8 @@
     "activationEvents": [
         "onLanguage:clojure",
         "onCommand:calva.connect",
-        "onCommand:calva.openReplWindow",
+        "onCommand:calva.openCljReplWindow",
+        "onCommand:calva.openCljsReplWindow",
         "onCommand:paredit.forwardSexp",
         "onCommand:paredit.backwardSexp",
         "onCommand:paredit.forwardDownSexp",
@@ -178,8 +179,13 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.openReplWindow",
-                "title": "Open a REPL window",
+                "command": "calva.openCljReplWindow",
+                "title": "Open a Clojure REPL",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.openCljsReplWindow",
+                "title": "Open a ClojureScript REPL",
                 "category": "Calva"
             },
             {

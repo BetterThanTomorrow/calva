@@ -47,7 +47,7 @@ async function connectToHost(hostname, port) {
         status.update();
 
         //cljsSession = nClient.session;
-        terminal.createREPLTerminal('clj', null, chan);
+        //terminal.createREPLTerminal('clj', null, chan);
 
         let [cljsSession, shadowBuild] = await makeCljsSessionClone(cljSession, null);
         if (cljsSession)
@@ -60,8 +60,10 @@ async function connectToHost(hostname, port) {
         state.cursor.set("connected", false);
         state.cursor.set("connecting", false);
         chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
+        return false;
     }
 
+    return true;
 
     /*
     disconnect({ hostname, port }, () => {
@@ -80,7 +82,7 @@ async function connectToHost(hostname, port) {
 function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
-    terminal.createREPLTerminal('cljs', shadowBuild, chan);
+    //terminal.createREPLTerminal('cljs', shadowBuild, chan);
     status.update();
 }
 
@@ -166,45 +168,36 @@ async function promptForNreplUrlAndConnect(port) {
         state.cursor.set('connecting', false);
         status.update();
     }
+    return true;
 }
 
 export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-function connect(isAutoConnect = false) {
+async function connect(isAutoConnect = false) {
     let current = state.deref(),
         chan = current.get('outputChannel');
 
-    new Promise((resolve, reject) => {
-        if (fs.existsSync(nreplPortFile())) {
-            fs.readFile(nreplPortFile(), 'utf8', (err, data) => {
-                if (!err) {
-                    resolve(parseFloat(data));
-                } else {
-                    reject(err);
-                }
-            });
-        } else {
-            resolve(null);
-        }
-    }).then((port) => {
+
+    if (fs.existsSync(nreplPortFile())) {
+        let port = fs.readFileSync(nreplPortFile(), 'utf8');
         if (port) {
             if (isAutoConnect) {
                 state.cursor.set("hostname", "localhost");
                 state.cursor.set("port", port);
-                connectToHost("localhost", port);
+                await connectToHost("localhost", port);
             } else {
-                promptForNreplUrlAndConnect(port);
+                await promptForNreplUrlAndConnect(port);
             }
         } else {
             chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
-            promptForNreplUrlAndConnect(port);
+            await promptForNreplUrlAndConnect(port);
         }
-    }).catch((err) => {
-        chan.appendLine("Error reading nrepl port file: " + err);
-        promptForNreplUrlAndConnect(null);
-    });
+    } else {
+        await promptForNreplUrlAndConnect(null);
+    }
+    return true;
 }
 
 function reconnect() {
