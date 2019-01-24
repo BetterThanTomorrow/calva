@@ -47,6 +47,7 @@
     ],
     "activationEvents": [
         "onLanguage:clojure",
+        "onCommand:calva.jackIn",
         "onCommand:calva.connect",
         "onCommand:calva.openCljReplWindow",
         "onCommand:calva.openCljsReplWindow",

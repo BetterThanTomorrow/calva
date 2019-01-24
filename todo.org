@@ -9,9 +9,19 @@
     * DONE boot
     * TODO shadow-cljs
     * DONE lein
-    
+
+    * TODO Launch Options
+    * TODO Save as workspace configuration.
+
+    * TODO Cljs repls
+        * TODO figwheel
+        * TODO figwheel-main
+        * TODO weasel
+        * TODO shadow-cljs
+
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
+
 * TODO Superclass repl-interactor, so it becomes DocMirror.
 * TODO Move calva-fmt here.
 * TODO Select toplevel forms etc, should use DocMirror.
