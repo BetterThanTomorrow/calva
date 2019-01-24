@@ -44,12 +44,13 @@ async function connectToHost(hostname, port) {
             status.update();
         })
         cljSession = nClient.session;
-
+        
         chan.appendLine("Hooking up nREPL sessions...");
 
         state.cursor.set("connected", true);
         state.cursor.set("connecting", false);
         state.cursor.set('clj', cljSession)
+        state.cursor.set('cljc', cljSession)
         status.update();
 
         //cljsSession = nClient.session;
@@ -111,7 +112,6 @@ async function makeCljsSessionClone(session, shadowBuild) {
                 let valueResult = await result.value
                 
                 state.cursor.set('cljs', cljsSession)
-                state.cursor.set('cljc', cljsSession)
                 if(!shadowBuild && result.ns){
                     state.cursor.set('shadowBuild', null)
                     return [cljsSession, null];
