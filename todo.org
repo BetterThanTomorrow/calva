@@ -8,9 +8,9 @@
     * DONE clj
     * DONE boot
     * TODO shadow-cljs
-    * TODO lein - (need to inject dependencies)
+    * DONE lein
     
-* TODO Open new cljs repl
+* DONE Open new cljs repl
 * TODO Ship first stab at repl?
 * TODO Superclass repl-interactor, so it becomes DocMirror.
 * TODO Move calva-fmt here.

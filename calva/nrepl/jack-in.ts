@@ -135,10 +135,6 @@ export async function calvaJackIn() {
         args.unshift(executable);
         executable = "powershell.exe";
     }
-    if(executable.endsWith(".bat")) {
-        // mmm. dos.
-        args = args.map(x => x.replace(/"/, '^"'));
-    }
     let watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
         if(filename == ".nrepl-port") {
             state.cursor.set("launching", null)
