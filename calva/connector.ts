@@ -37,6 +37,12 @@ async function connectToHost(hostname, port) {
 
     try {
         nClient = await NReplClient.create({ host: hostname, port: +port})
+        nClient.onClose(() => {
+            state.cursor.set("connected", false);
+            state.cursor.set("connecting", false);
+            chan.appendLine("nREPL Connection was closed");
+            status.update();
+        })
         cljSession = nClient.session;
 
         chan.appendLine("Hooking up nREPL sessions...");
@@ -102,7 +108,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
         if(cljsSession) {
             let isFigwheel = !shadowBuild;
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
-            let result = cljsSession.eval(initCode, { stdout: x => chan.appendLine(x), stderr: x => chan.appendLine(x) });
+            let result = cljsSession.eval(initCode);
             try {
                 let valueResult = await result.value
                 
