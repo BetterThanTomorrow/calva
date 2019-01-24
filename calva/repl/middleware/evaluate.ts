@@ -25,8 +25,8 @@ async function evaluateSelection(document = {}, options = {}) {
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
         } else {
-            codeSelection = selection,
-                code = doc.getText(selection);
+            codeSelection = selection;
+            code = doc.getText(selection);
         }
 
         if (code.length > 0) {
