@@ -7,7 +7,7 @@
 * TODO Jack-in
     * DONE clj
     * DONE boot
-    * TODO shadow-cljs
+    * TODO shadow-cljs - select watch project(s)
     * DONE lein
 
     * TODO Launch Options
@@ -16,8 +16,8 @@
     * TODO Cljs repls
         * TODO figwheel
         * TODO figwheel-main
-        * TODO weasel
         * TODO shadow-cljs
+        * TODO weasel
 
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?

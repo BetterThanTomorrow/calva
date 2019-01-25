@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import shadow_util from './shadow';
+import * as shadow_util from './shadow';
 
 
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);

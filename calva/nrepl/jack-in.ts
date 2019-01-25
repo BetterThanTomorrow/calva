@@ -6,6 +6,8 @@ import { spawn, ChildProcess, exec } from "child_process";
 import connector from "../connector";
 import { openReplWindow } from "../repl-window";
 import statusbar from "../statusbar";
+import * as shadow from "../shadow"
+
 const isWin = /^win/.test(process.platform);
 type ProjectType = "shadow-cljs" | "lein" | "boot" | "clj"
 
@@ -24,7 +26,7 @@ const execPath = {
     'lein': isWin ? findInPath("lein.bat") : findInPath("lein"),
     'clj': isWin ? findInPath("clojure.ps1") : findInPath("clojure"),
     'boot': isWin ? findInPath("boot.exe") : findInPath("boot"),
-    'shadow-cljs': "npx"
+    'shadow-cljs': isWin ? findInPath("npx.cmd") : findInPath("npx")
 }
 
 /** If this looks like a string and we are under windows, escape it in a powershell compatible way. */
@@ -124,7 +126,7 @@ const projectTypeConfig: {[id: string]: any} = {
         args: ["-Sdeps", `"${injectCljDependencies()}"`,  "-m", "nrepl.cmdline", "--middleware", '["cider.nrepl/cider-middleware"]']
     },
     "shadow-cljs": {
-        args: ["shadow-cljs", ...injectShadowCljsDependencies(), "watch", ":test"]
+        args: ["shadow-cljs", ...injectShadowCljsDependencies(), "watch"]
     }
 }
 
@@ -169,8 +171,15 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     }
 
-    let watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
-        if(filename == ".nrepl-port") {
+    if(type == "shadow-cljs") {
+        let builds = await vscode.window.showQuickPick(shadow.shadowBuilds(), { canPickMany: true, placeHolder: "Select builds to jack-in"})
+        if(!builds || !builds.length)
+            return;
+        args = [...args, ...builds];
+    }
+
+    let watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
+        if(filename == ".nrepl-port" || filename == "nrepl.port") {
             state.cursor.set("launching", null)
             watcher.close();
             await connector.connect(true);
@@ -180,7 +189,9 @@ export async function calvaJackIn() {
 
     state.cursor.set("launching", type)
     statusbar.update();
-    let child = spawn(executable, args, { detached: false, shell: isWin && type == "lein", cwd: utilities.getProjectDir() })
+
+
+    let child = spawn(`"${executable}"`, args, { detached: false, shell: isWin && (type == "lein" || type == "shadow-cljs"), cwd: utilities.getProjectDir() })
     processes.add(child);
     jackInChannel.clear();
     jackInChannel.show(true);

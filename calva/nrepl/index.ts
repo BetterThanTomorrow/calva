@@ -199,6 +199,7 @@ export class NReplSession {
                         resolve(value);
                     if(evaluation.pprintOut)
                         resolve(evaluation.pprintOut)
+                    resolve("");
                     return true;
                 }
             }

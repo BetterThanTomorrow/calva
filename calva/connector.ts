@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as state from './state';
 import * as util from './utilities';
-import shadow from './shadow';
+import * as shadow from "./shadow"
 import status from './status';
 import terminal from './terminal';
 
@@ -244,6 +244,7 @@ export default {
     disconnect,
     reconnect,
     autoConnect,
+    nreplPortFile,
     toggleCLJCSession,
     recreateCljsRepl
 };
