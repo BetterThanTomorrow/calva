@@ -15,11 +15,17 @@
     * DONE kill/restart jack-in process command
 
     * TODO Cljs repls
-        * TODO figwheel
-        * TODO figwheel-main
-        * TODO shadow-cljs
-        * TODO weasel
+        * DONE figwheel
+        * DONE figwheel-main
+        * DONE shadow-cljs
+        * TODO inject piggieback
 
+    * TODO prompt for lein profiles
+    * TODO prompt for clj aliases
+    
+* TODO fix repl window to show stack traces
+* TODO make it clear that a repl window session has been disconnected.
+* TODO replace terminal stuff with new repl stuff.
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
 

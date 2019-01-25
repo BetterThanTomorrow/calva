@@ -20,14 +20,6 @@ function findInPath(name: string) {
     }
 }
 
-/** The paths to all cli tools */
-const execPath = {
-    'lein': isWin ? findInPath("lein.bat") : findInPath("lein"),
-    'clj': isWin ? findInPath("clojure.ps1") : findInPath("clojure"),
-    'boot': isWin ? findInPath("boot.exe") : findInPath("boot"),
-    'shadow-cljs': isWin ? findInPath("npx.cmd") : findInPath("npx")
-}
-
 /** If this looks like a string and we are under windows, escape it in a powershell compatible way. */
 function escapeString(str: string) {
     if(str.startsWith('"') && str.endsWith('"') && isWin)
@@ -35,16 +27,13 @@ function escapeString(str: string) {
     return str;
 }
 
-/** Searched top to bottom, if the key exists as a file, return the project type. */
-
-const projectTypes = [["shadow-cljs", "shadow-cljs.edn"],
-                      ["lein", "project.clj"],
-                      ["boot", "build.boot"],
-                      ["clj", "deps.edn"]];
-
 export function detectProjectType() {
     let rootDir = utilities.getProjectDir();
-    return projectTypes.filter(x => fs.existsSync(rootDir+"/"+x[1])).map(x => x[0]);
+    let out = [];
+    for(let x in projectTypeConfig)
+        if(fs.existsSync(rootDir+"/"+projectTypeConfig[x].useWhenExists))
+            out.push(x);
+    return out;
 }
 
 const injectDependencies = {
@@ -61,74 +50,82 @@ const leinDependencies = {
 
 const middleware = ["cider.nrepl/cider-middleware"];
 
-/**
- * Builds the clojure-cli arguments to inject dependencies.
- */
-function injectCljDependencies() {
-    let out: string[] = [];
-    for(let dep in injectDependencies)
-        out.push(dep+" {:mvn/version \\\""+injectDependencies[dep]+"\\\"}")
-    return "{:deps {"+out.join(' ')+"}}";
-}
-
-/**
- * Builds the boot arguments to inject dependencies.
- */
-function injectBootDependencies() {
-    let out: string[] = [];
-    for(let dep in injectDependencies) {
-        out.push("-d", dep+":"+injectDependencies[dep]);
-    }
-    return out;
-}
-/**
- * Builds the shadow-cljs arguments to inject dependencies.
- */
-function injectShadowCljsDependencies() {
-    let out: string[] = [];
-    for(let dep in injectDependencies) {
-        out.push("-d", dep+":"+injectDependencies[dep]);
-    }
-    return out;
-}
-
-/**
- * Builds the lein arguments to inject dependencies.
- */
-function injectLeinDependencies() {
-    let out: string[] = [];
-    let keys = Object.keys(leinDependencies);
-    
-    for(let i=0; i<keys.length; i++) {
-        let dep = keys[i];
-        out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${leinDependencies[dep]}\\"]"`, '--');
-    }
-
-    keys = Object.keys(leinPluginDependencies);
-    for(let i=0; i<keys.length; i++) {
-        let dep = keys[i];
-        out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
-    }
-    return out;
-}
-
 const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\"])"';
 
-const projectTypeConfig: {[id: string]: any} = {
+
+const projectTypeConfig: {[id: string]: {name: string, cmd: string, winCmd: string, commandLine: () => any, useWhenExists: string, useShell?: boolean}} = {
     "lein": {
-        args: [...injectLeinDependencies(), "repl", ":headless"] 
+        name: "Leiningen",
+        cmd: "lein",
+        winCmd: "lein.bat",
+        useShell: true,
+        useWhenExists: "project.clj",
+        commandLine: () => {
+            let out: string[] = [];
+            let keys = Object.keys(leinDependencies);
+            
+            for(let i=0; i<keys.length; i++) {
+                let dep = keys[i];
+                out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${leinDependencies[dep]}\\"]"`, '--');
+            }
+        
+            keys = Object.keys(leinPluginDependencies);
+            for(let i=0; i<keys.length; i++) {
+                let dep = keys[i];
+                out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
+            }
+            return out;
+        }
     },
     "boot": {
-        args: [...injectBootDependencies(), "-i", initEval, "repl"]
+        name: "Boot",
+        cmd: "boot",
+        winCmd: "boot.exe",
+        useShell: true,
+        useWhenExists: "build.boot",      
+        commandLine: () => {
+            let out: string[] = [];
+            for(let dep in injectDependencies)
+                out.push("-d", dep+":"+injectDependencies[dep]);
+            return [...out, "-i", initEval, "repl"];
+        }
     },
     "clj": {
-        args: ["-Sdeps", `"${injectCljDependencies()}"`,  "-m", "nrepl.cmdline", "--middleware", '["cider.nrepl/cider-middleware"]']
+        name: "Clojure CLI",
+        cmd: "clojure",
+        winCmd: "clojure.ps1",        
+        useWhenExists: "deps.edn",
+        commandLine: () => {
+            let out: string[] = [];
+            for(let dep in injectDependencies)
+                out.push(dep+" {:mvn/version \\\""+injectDependencies[dep]+"\\\"}")
+            return ["-Sdeps", `"${"{:deps {"+out.join(' ')+"}}"}"`,  "-m", "nrepl.cmdline", "--middleware", '["cider.nrepl/cider-middleware"]']
+        }
     },
     "shadow-cljs": {
-        args: ["shadow-cljs", ...injectShadowCljsDependencies(), "watch"]
+        name: "ShadowCLJS",
+        cmd: "npx",
+        winCmd: "npx.cmd",       
+        useShell: true,
+        useWhenExists: "shadow-cljs.edn",
+        commandLine: async () => {
+            let args: string[] = [];
+            for(let dep in injectDependencies)
+                args.push("-d", dep+":"+injectDependencies[dep]);
+
+            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in"})
+            if(!builds || !builds.length)
+                return;
+            return ["shadow-cljs", ...args, "watch", ...builds];
+        }
     }
 }
 
+function getProjectTypeForName(name: string) {
+    for(let id in projectTypeConfig)
+        if(projectTypeConfig[id].name == name)
+            return projectTypeConfig[id];
+}
 //
 
 // cljs-repls
@@ -142,64 +139,35 @@ let processes = new Set<ChildProcess>();
 
 let jackInChannel = vscode.window.createOutputChannel("Calva Jack-In");
 
-const CALVA_CONFIG_FILE = "/calva-connector.json";
-
-function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions & { canPickMany: true}): Promise<string[]>;
-function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string>;
-
-async function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string | string[]> {
-    let items = itemsToPick.map(x => ({ label: x }));
-
-    let qp = vscode.window.createQuickPick();
-    qp.canSelectMany = options.canPickMany;
-    qp.placeholder = options.placeHolder;
-    qp.items = items;
-    qp.activeItems = items.filter(x => active.indexOf(x.label) != -1);
-    qp.selectedItems = items.filter(x => selected.indexOf(x.label) != -1);
-    return new Promise<string[] | string>((resolve, reject) => {
-        qp.show();
-        qp.onDidAccept(() => {
-            if(qp.canSelectMany)
-                resolve(qp.selectedItems.map(x => x.label))
-            else if(qp.selectedItems.length)
-                resolve(qp.selectedItems[0].label)
-            else
-                resolve(undefined);
-                qp.hide();
-            })
-        qp.onDidHide(() => {
-            resolve([]);
-            qp.hide();
-        })
-    })
-}
-
 export async function calvaJackIn() {
     if(processes.size) {
         let result = await vscode.window.showWarningMessage("Already jacked-in, kill existing process?", {title: "OK"}, {title: "Cancel", isCloseAffordance: true});
-        if(result && result.title == "Yes") {
+        if(result && result.title == "OK") {
             killAllProcesses();
         } else
             return;
     }
-    let options: { buildType?: string, shadowBuilds?: string[] } = state.extensionContext.workspaceState.get("jack-in-opts") || {};
+    let buildName: string;
     let types = detectProjectType();
     if(types.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, build.boot, deps.edn or shadow-cljs.edn");
         return;
     }
-    if(types.length > 1) {
-        options.buildType = await quickPick(types, options.buildType ? [options.buildType] : [], [], {placeHolder: "Please select a project type", })
-        if(!options.buildType)
-            return;
-    } else
-        options.buildType = types[0];
-    let executable = execPath[options.buildType];
+
+    buildName = await utilities.quickPickSingle({ values: types.map(x => projectTypeConfig[x].name), placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
+    if(!buildName)
+        return;
+
+    let build = getProjectTypeForName(buildName);
+    if(!build)
+        return;
+
+    let executable = findInPath(isWin ? build.winCmd : build.cmd);
 
     if(!executable)
-        vscode.window.showErrorMessage(executable+" is not on your PATH, please add it.")
-        
-    let args = projectTypeConfig[options.buildType].args;
+        vscode.window.showErrorMessage(build.cmd+" is not on your PATH, please add it.")
+
+    let args = await build.commandLine();
 
     if(executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
@@ -207,16 +175,6 @@ export async function calvaJackIn() {
         args.unshift(executable);
         executable = "powershell.exe";
     }
-
-    if(options.buildType == "shadow-cljs") {
-        let builds;
-        options.shadowBuilds = builds = await quickPick(shadow.shadowBuilds(), [], options.shadowBuilds ? options.shadowBuilds : [], { canPickMany: true, placeHolder: "Select builds to jack-in"})
-        if(!builds || !builds.length)
-            return;
-        args = [...args, ...builds];
-    }
-
-    state.extensionContext.workspaceState.update("jack-in-opts", options)
 
     let watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
         if(filename == ".nrepl-port" || filename == "nrepl.port") {
@@ -227,10 +185,10 @@ export async function calvaJackIn() {
         }
     })
 
-    state.cursor.set("launching", options.buildType)
+    state.cursor.set("launching", buildName)
     statusbar.update();
 
-    let child = spawn(`"${executable}"`, args, { detached: false, shell: isWin && (options.buildType == "lein" || options.buildType == "shadow-cljs"), cwd: utilities.getProjectDir() })
+    let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args, { detached: false, shell: isWin && build.useShell, cwd: utilities.getProjectDir() })
     processes.add(child);
     jackInChannel.clear();
     jackInChannel.show(true);

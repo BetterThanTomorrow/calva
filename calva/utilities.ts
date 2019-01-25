@@ -7,6 +7,64 @@ import { NReplSession } from './nrepl';
 const syntaxQuoteSymbol = "`";
 
 
+async function quickPickSingle(opts: { values: string[], saveAs?: string, placeHolder: string, autoSelect?: boolean }) {
+    if(opts.values.length == 0)
+        return;
+    let selected: string;
+    if(opts.saveAs)
+        selected = state.extensionContext.workspaceState.get(opts.saveAs);
+
+    let result;
+    if(opts.autoSelect && opts.values.length == 1)
+        result = opts.values[0];
+    else
+        result = await quickPick(opts.values, selected ? [selected] : [], [], {placeHolder: opts.placeHolder, ignoreFocusOut: true})
+    state.extensionContext.workspaceState.update(opts.saveAs, result);
+    return result;
+}
+
+async function quickPickMulti(opts: { values: string[], saveAs?: string, placeHolder: string }) {
+    let selected: string[];
+    if(opts.saveAs)
+        selected = state.extensionContext.workspaceState.get(opts.saveAs) || [];
+    let result = await quickPick(opts.values, [], selected, {placeHolder: opts.placeHolder, canPickMany: true, ignoreFocusOut: true})
+    state.extensionContext.workspaceState.update(opts.saveAs, result);
+    return result;
+}
+
+function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions & { canPickMany: true}): Promise<string[]>;
+function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string>;
+
+async function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string | string[]> {
+    let items = itemsToPick.map(x => ({ label: x }));
+
+    let qp = vscode.window.createQuickPick();
+    qp.canSelectMany = options.canPickMany;
+    qp.placeholder = options.placeHolder;
+    qp.ignoreFocusOut = options.ignoreFocusOut;
+    qp.matchOnDescription = options.matchOnDescription
+    qp.matchOnDetail = options.matchOnDetail
+    qp.items = items;
+    qp.activeItems = items.filter(x => active.indexOf(x.label) != -1);
+    qp.selectedItems = items.filter(x => selected.indexOf(x.label) != -1);
+    return new Promise<string[] | string>((resolve, reject) => {
+        qp.show();
+        qp.onDidAccept(() => {
+            if(qp.canSelectMany)
+                resolve(qp.selectedItems.map(x => x.label))
+            else if(qp.selectedItems.length)
+                resolve(qp.selectedItems[0].label)
+            else
+                resolve(undefined);
+                qp.hide();
+            })
+        qp.onDidHide(() => {
+            resolve([]);
+            qp.hide();
+        })
+    })
+}
+
 function getProjectDir() {
     let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
 
@@ -245,5 +303,8 @@ export {
     updateREPLSessionType,
     getREPLSessionType,
     getCljsReplStartCode,
-    getShadowCljsReplStartCode
+    getShadowCljsReplStartCode,
+    quickPick,
+    quickPickSingle,
+    quickPickMulti
 };

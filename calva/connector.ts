@@ -93,23 +93,80 @@ function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     status.update();
 }
 
+interface ReplType {
+    name: string,
+    ns: string;
+    connect: () => Promise<string>;
+}
+
+let cljsReplTypes: ReplType[] = [
+    {
+        name: "Figwheel Main",
+        ns: "figwheel.main",
+        connect: async () => {
+            let res = fs.readdirSync(util.getProjectDir());
+            let projects = res.filter(x => x.match(/.cljs.edn/));
+            let result = await util.quickPickSingle({ values: projects, placeHolder: "Please select a figwheel-main project", saveAs: "figwheel-main-project"})
+            if(result)
+              return `(do (require 'figwheel.main) (figwheel.main/start :${result.match(/^(.*)\.cljs\.edn$/)[1]}))`
+            else throw "Aborted";
+        }
+    },
+    {
+        name: "Figwheel",
+        ns: "figwheel-sidecar.repl-api",
+        connect: async () => {
+            return "(do (require 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))"
+        }
+    }
+]
+
+async function probeNamespaces(namespaces: string[]) {
+    let result: string = await cljSession.eval(`(remove nil? (map #(try (do (require %) %) (catch Exception e)) '[${namespaces.join(' ')}]))`).value;
+    return result.substring(1, result.length-1).split(' ')
+}
+
+async function findCljsRepls(): Promise<ReplType[]> {
+    let probe = [];
+    for(let repl of cljsReplTypes)
+        probe.push(repl.ns);
+    let valid = await probeNamespaces(probe);
+    let output: ReplType[] = [];
+    for(let repl of cljsReplTypes) {
+        if(valid.indexOf(repl.ns) != -1)
+            output.push(repl);
+    }
+    return output;
+}
+let connectionChannel = vscode.window.createOutputChannel("Calva CLJS Connection");
+
 async function makeCljsSessionClone(session, shadowBuild) {
     let chan = state.deref().get('outputChannel');
-
     if (shadow.isShadowCljs() && !shadowBuild) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
-        let build = await vscode.window.showQuickPick(shadow.shadowBuilds(), {
-            placeHolder: "Select which shadow-cljs CLJS REPL to connect to",
-            ignoreFocusOut: true
-        });
-        if (build)
+        let build = await util.quickPickSingle({ values: shadow.shadowBuilds(), placeHolder: "Select which shadow-cljs CLJS REPL to connect to", saveAs: "shadow-cljs-project"})
+        if (build) {
+            state.extensionContext.workspaceState.update("cljs-build", build)
             return makeCljsSessionClone(session, build);
+        }
     } else {
         cljsSession = await cljSession.clone();
         if(cljsSession) {
-            let isFigwheel = !shadowBuild;
+            connectionChannel.clear();
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
-            let result = cljsSession.eval(initCode);
+            if(!shadowBuild) {
+                let repls = await findCljsRepls();
+                let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs repl to use", saveAs: "cljs-repl-type" });
+                if(!replType)
+                    return;
+                let repl = repls.find(x => x.name == replType);
+                connectionChannel.show();
+                connectionChannel.appendLine("Connecting to "+repl.name);
+                initCode = await repl.connect();
+            } else {
+                connectionChannel.appendLine("Connecting to ShadowCLJS")
+            }
+            let result = cljsSession.eval(initCode, { stdout: x => connectionChannel.append(x), stderr: x => connectionChannel.append(x) });
             try {
                 let valueResult = await result.value
                 
