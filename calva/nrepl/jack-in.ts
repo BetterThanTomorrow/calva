@@ -9,7 +9,6 @@ import statusbar from "../statusbar";
 import * as shadow from "../shadow"
 
 const isWin = /^win/.test(process.platform);
-type ProjectType = "shadow-cljs" | "lein" | "boot" | "clj"
 
 /** Finds a file in PATH */
 function findInPath(name: string) {
@@ -143,26 +142,64 @@ let processes = new Set<ChildProcess>();
 
 let jackInChannel = vscode.window.createOutputChannel("Calva Jack-In");
 
+const CALVA_CONFIG_FILE = "/calva-connector.json";
+
+function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions & { canPickMany: true}): Promise<string[]>;
+function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string>;
+
+async function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string | string[]> {
+    let items = itemsToPick.map(x => ({ label: x }));
+
+    let qp = vscode.window.createQuickPick();
+    qp.canSelectMany = options.canPickMany;
+    qp.placeholder = options.placeHolder;
+    qp.items = items;
+    qp.activeItems = items.filter(x => active.indexOf(x.label) != -1);
+    qp.selectedItems = items.filter(x => selected.indexOf(x.label) != -1);
+    return new Promise<string[] | string>((resolve, reject) => {
+        qp.show();
+        qp.onDidAccept(() => {
+            if(qp.canSelectMany)
+                resolve(qp.selectedItems.map(x => x.label))
+            else if(qp.selectedItems.length)
+                resolve(qp.selectedItems[0].label)
+            else
+                resolve(undefined);
+                qp.hide();
+            })
+        qp.onDidHide(() => {
+            resolve([]);
+            qp.hide();
+        })
+    })
+}
+
 export async function calvaJackIn() {
+    if(processes.size) {
+        let result = await vscode.window.showWarningMessage("Already jacked-in, kill existing process?", {title: "OK"}, {title: "Cancel", isCloseAffordance: true});
+        if(result && result.title == "Yes") {
+            killAllProcesses();
+        } else
+            return;
+    }
+    let options: { buildType?: string, shadowBuilds?: string[] } = state.extensionContext.workspaceState.get("jack-in-opts") || {};
     let types = detectProjectType();
     if(types.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, build.boot, deps.edn or shadow-cljs.edn");
         return;
     }
-    let type: string;
     if(types.length > 1) {
-        type = await vscode.window.showQuickPick(types, {placeHolder: "Please select a project type"})
-        if(!type)
+        options.buildType = await quickPick(types, options.buildType ? [options.buildType] : [], [], {placeHolder: "Please select a project type", })
+        if(!options.buildType)
             return;
     } else
-        type = types[0];
-    
-    let executable = execPath[type];
+        options.buildType = types[0];
+    let executable = execPath[options.buildType];
 
     if(!executable)
         vscode.window.showErrorMessage(executable+" is not on your PATH, please add it.")
         
-    let args = projectTypeConfig[type].args;
+    let args = projectTypeConfig[options.buildType].args;
 
     if(executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
@@ -171,12 +208,15 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     }
 
-    if(type == "shadow-cljs") {
-        let builds = await vscode.window.showQuickPick(shadow.shadowBuilds(), { canPickMany: true, placeHolder: "Select builds to jack-in"})
+    if(options.buildType == "shadow-cljs") {
+        let builds;
+        options.shadowBuilds = builds = await quickPick(shadow.shadowBuilds(), [], options.shadowBuilds ? options.shadowBuilds : [], { canPickMany: true, placeHolder: "Select builds to jack-in"})
         if(!builds || !builds.length)
             return;
         args = [...args, ...builds];
     }
+
+    state.extensionContext.workspaceState.update("jack-in-opts", options)
 
     let watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
         if(filename == ".nrepl-port" || filename == "nrepl.port") {
@@ -187,11 +227,10 @@ export async function calvaJackIn() {
         }
     })
 
-    state.cursor.set("launching", type)
+    state.cursor.set("launching", options.buildType)
     statusbar.update();
 
-
-    let child = spawn(`"${executable}"`, args, { detached: false, shell: isWin && (type == "lein" || type == "shadow-cljs"), cwd: utilities.getProjectDir() })
+    let child = spawn(`"${executable}"`, args, { detached: false, shell: isWin && (options.buildType == "lein" || options.buildType == "shadow-cljs"), cwd: utilities.getProjectDir() })
     processes.add(child);
     jackInChannel.clear();
     jackInChannel.show(true);

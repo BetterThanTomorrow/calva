@@ -2,6 +2,11 @@ import * as vscode from 'vscode';
 import * as Immutable from 'immutable';
 import * as ImmutableCursor from 'immutable-cursor';
 
+let extensionContext: vscode.ExtensionContext;
+export function setExtensionContext(context: vscode.ExtensionContext) {
+    extensionContext = context;
+}
+
 const mode = {
     language: 'clojure',
     //scheme: 'file'
@@ -56,5 +61,6 @@ export {
     mode,
     deref,
     reset,
-    config
+    config,
+    extensionContext
 };

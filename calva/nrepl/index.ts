@@ -195,11 +195,12 @@ export class NReplSession {
                 if(msg.status && msg.status.indexOf("done") != -1) {
                     if(ex)
                         reject(ex);
-                    if(value)
+                    else if(value)
                         resolve(value);
-                    if(evaluation.pprintOut)
+                    else if(evaluation.pprintOut)
                         resolve(evaluation.pprintOut)
-                    resolve("");
+                    else
+                        resolve("");
                     return true;
                 }
             }

@@ -7,11 +7,12 @@
 * TODO Jack-in
     * DONE clj
     * DONE boot
-    * TODO shadow-cljs - select watch project(s)
+    * DONE shadow-cljs - select watch project(s)
     * DONE lein
 
-    * TODO Launch Options
-    * TODO Save as workspace configuration.
+    * DONE Save as workspace configuration.
+
+    * DONE kill/restart jack-in process command
 
     * TODO Cljs repls
         * TODO figwheel

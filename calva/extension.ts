@@ -53,6 +53,7 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    state.setExtensionContext(context);
     replWindow.activate(context);
     paredit.activate(context)
     

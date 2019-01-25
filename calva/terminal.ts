@@ -4,7 +4,7 @@ import * as util from './utilities';
 import evaluate from './repl/middleware/evaluate';
 import annotations from './providers/annotations';
 import select from './repl/middleware/select';
-import shadow from './shadow';
+import * as shadow from './shadow';
 
 const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
 const CONNECT_SHADOW_CLJS_CLJS_BUILD_REPL = 'npx shadow-cljs cljs-repl';

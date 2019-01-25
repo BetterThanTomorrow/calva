@@ -69,7 +69,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
                         stderr: m => panel.webview.postMessage({type: "stderr", value: m}),
                         stdout: m => panel.webview.postMessage({type: "stdout", value: m})})
             try {
-                panel.webview.postMessage({type: "repl-response", value: await res.value, ns: res.ns});
+                panel.webview.postMessage({type: "repl-response", value: await res.value, ns: res.ns || ns});
             } catch(e) {
                 panel.webview.postMessage({type: "repl-error", ex: e});
             }
