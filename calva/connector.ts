@@ -30,18 +30,20 @@ function disconnect(options = null, callback = () => { }) {
 
 async function connectToHost(hostname, port) {
     let chan = state.deref().get('outputChannel');
-    if(nClient)
+    if(nClient) {
+        nClient["silent"] = true;
         nClient.close();
+    }
     state.cursor.set('connecting', true);
     status.update();
-    chan.appendLine("Hooking up nREPL sessions...");
-
     try {
+        chan.appendLine("Hooking up nREPL sessions...");
         nClient = await NReplClient.create({ host: hostname, port: +port})
-        nClient.onClose(() => {
+        nClient.onClose(c => {
             state.cursor.set("connected", false);
             state.cursor.set("connecting", false);
-            chan.appendLine("nREPL Connection was closed");
+            if(!c["silent"])
+                chan.appendLine("nREPL Connection was closed");
             status.update();
         })
         cljSession = nClient.session;

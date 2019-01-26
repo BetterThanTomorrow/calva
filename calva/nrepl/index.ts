@@ -59,9 +59,6 @@ export class NReplClient {
     }
 
     close() {
-        for(let x in this.sessions) {
-            this.sessions[x].close();
-        }
         this.socket.destroy();
     }
 
@@ -80,7 +77,7 @@ export class NReplClient {
                 let describeId = client.nextId;
 
                 client.decoder.on("data", data => {
-                    console.log("-> ", data);
+                    //console.log("-> ", data);
                     if(!client.describe && data["id"] == describeId) {
                         client.describe = data;
                     } else if(data["id"] == nsId) {
