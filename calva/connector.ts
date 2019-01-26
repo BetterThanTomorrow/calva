@@ -44,7 +44,7 @@ async function connectToHost(hostname, port) {
             status.update();
         })
         cljSession = nClient.session;
-        
+        chan.appendLine("Connected session: clj");
         chan.appendLine("Hooking up nREPL sessions...");
 
         state.cursor.set("connected", true);
