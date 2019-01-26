@@ -50,29 +50,35 @@ async function evaluateSelection(document = {}, options = {}) {
                     vscode.workspace.applyEdit(wsEdit);
                     chan.appendLine("Replaced inline.")
 
-                    if (out.length > 0) {
-                        chan.append("out: ")
-                        chan.append(out.join("\n"));
-                    }
-                    chan.append('=> ');
-                    if (pprint) {
-                        chan.appendLine('');
-                        chan.show(true);
-                        chan.appendLine(value);
-                    } else chan.appendLine(value);
-                    
-                    if (err.length > 0) {
-                        chan.append("Error: ")
-                        chan.append(err.join("\n"));
-                    }
                 } else {
                     annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     if (!pprint)
                         annotations.decorateResults(' => ' + value.replace(/\n/gm, " ") + " ", false, codeSelection, editor);                        
                 }
+
+                if (out.length > 0) {
+                    chan.append("out: ")
+                    chan.append(out.join("\n"));
+                }
+                chan.append('=> ');
+                if (pprint) {
+                    chan.appendLine('');
+                    chan.show(true);
+                    chan.appendLine(value);
+                } else chan.appendLine(value);
+                
+                if (err.length > 0) {
+                    chan.append("Error: ")
+                    chan.append(err.join("\n"));
+                }
             } catch(e) {
-                if(!err.length) // venantius/ultra outputs errors on stdout, it seems.
+                if(!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
+                    if (err.length > 0) {
+                        chan.append("Error: ")
+                        chan.append(err.join("\n"));
+                    }
+                }
 
                 annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
                 if (!pprint) {
@@ -81,7 +87,8 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
             }
         }
-     }
+     } else
+        vscode.window.showErrorMessage("Not connected to a REPL")
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
