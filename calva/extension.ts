@@ -66,6 +66,7 @@ function activate(context) {
     status.update();
 
     // COMMANDS
+    /*
     context.subscriptions.push(vscode.commands.registerCommand('calva.openReplWindow', async function () {
 		const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Active, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'html'))] })
 		let html = readFileSync(path.join(context.extensionPath, "html/index.html")).toString()
@@ -97,7 +98,7 @@ function activate(context) {
             }
         })      
 	}));
-
+    */
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
