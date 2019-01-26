@@ -1025,6 +1025,7 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
+        "@calva/repl-interactor": "0.0.1",
         "concurrently": "^4.1.0",
         "eslint": "^4.19.1",
         "eslint-config-standard": "^11.0.0",

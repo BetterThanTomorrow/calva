@@ -34,6 +34,7 @@ async function connectToHost(hostname, port) {
         nClient.close();
     state.cursor.set('connecting', true);
     status.update();
+    chan.appendLine("Hooking up nREPL sessions...");
 
     try {
         nClient = await NReplClient.create({ host: hostname, port: +port})
@@ -44,9 +45,8 @@ async function connectToHost(hostname, port) {
             status.update();
         })
         cljSession = nClient.session;
+        chan.appendLine("Connected session: clj");
         
-        chan.appendLine("Hooking up nREPL sessions...");
-
         state.cursor.set("connected", true);
         state.cursor.set("connecting", false);
         state.cursor.set('clj', cljSession)

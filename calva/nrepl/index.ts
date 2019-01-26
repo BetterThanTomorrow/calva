@@ -62,8 +62,7 @@ export class NReplClient {
         for(let x in this.sessions) {
             this.sessions[x].close();
         }
-        // cheesy. should wait.
-        setTimeout(() => { this.socket.destroy() }, 250);
+        this.socket.destroy();
     }
 
     /**
