@@ -129,11 +129,6 @@
         },
         "commands": [
             {
-                "command": "calva.openReplWindow",
-                "title": "Open a REPL window",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.connect",
                 "title": "Connect",
                 "category": "Calva"
