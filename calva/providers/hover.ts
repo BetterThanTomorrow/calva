@@ -35,10 +35,12 @@ export default class HoverProvider implements vscode.HoverProvider {
         let text = util.getWordAtPosition(document, position);
         if (this.state.deref().get('connected')) {
             let client = util.getSession(util.getFileType(document));
-            let res = await client.info(util.getNamespace(document.getText()), text);
+            let ns = util.getNamespace(document.getText());
+            let res = await client.info(ns, text);
             if(res.doc)
                 return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], res.doc))
-            return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], "No documentation available"));
+            if(res.ns)
+                return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], "No documentation available"));
         } else
             return new vscode.Hover("Not connected to nREPL..");
     }

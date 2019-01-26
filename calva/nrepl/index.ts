@@ -59,9 +59,6 @@ export class NReplClient {
     }
 
     close() {
-        for(let x in this.sessions) {
-            this.sessions[x].close();
-        }
         this.socket.destroy();
     }
 
