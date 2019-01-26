@@ -16,7 +16,7 @@ export default class HoverProvider implements vscode.HoverProvider {
         }
 
         // Format the different signatures for the fn
-        if (arglist !== 'undefined') {
+        if (arglist & arglist.substring) {
             result += arglist.substring(0, arglist.length)
                 .replace(/\]/g, ']_')
                 .replace(/\[/g, '* _[');
@@ -24,7 +24,7 @@ export default class HoverProvider implements vscode.HoverProvider {
         }
 
         // Format the actual docstring
-        if (doc !== 'undefined') {
+        if (doc) {
             result += doc.replace(/\s\s+/g, ' ');
             result += '  ';
         }

@@ -80,7 +80,7 @@ export class NReplClient {
                 let describeId = client.nextId;
 
                 client.decoder.on("data", data => {
-                    console.log("-> ", data);
+                    //console.log("-> ", data);
                     if(!client.describe && data["id"] == describeId) {
                         client.describe = data;
                     } else if(data["id"] == nsId) {
