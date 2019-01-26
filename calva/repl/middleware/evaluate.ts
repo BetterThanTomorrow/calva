@@ -2,40 +2,20 @@ import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as clipboardy from 'clipboardy';
 import * as state from '../../state';
-import repl from '../client';
 import annotations from '../../providers/annotations';
 import select from './select';
 import * as util from '../../utilities';
 
-const nreplClient = require('@cospaia/calva-lib/lib/calva.repl.client');
-const nreplMessage = require('@cospaia/calva-lib/lib/calva.repl.message');
-
-function evaluateMsg(msg, startStr, errorStr, callback) {
-    let current = state.deref(),
-        client = current.get('nrepl-client'),
-        chan = current.get('outputChannel');
-
-    chan.appendLine(startStr);
-
-    new Promise((resolve, reject) => {
-        client.send(msg, (result) => {
-            resolve(result);
-        });
-    }).then((result) => {
-        callback(result);
-    });
-}
-
-function evaluateSelection(document = {}, options = {}) {
+/// FIXME: We need to add pprint options back in.
+async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = current.get('outputChannel'),
         doc = util.getDocument(document),
         pprint = options["pprint"] || false,
         replace = options["replace"] || false,
-        topLevel = options["topLevel"] || false,
-        session = util.getSession(util.getFileType(doc));
-
+        topLevel = options["topLevel"] || false;
     if (current.get('connected')) {
+        let client = util.getSession(util.getFileType(doc));
         let editor = vscode.window.activeTextEditor,
             selection = editor.selection,
             codeSelection = null,
@@ -45,77 +25,70 @@ function evaluateSelection(document = {}, options = {}) {
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
         } else {
-            codeSelection = selection,
-                code = doc.getText(selection);
+            codeSelection = selection;
+            code = doc.getText(selection);
         }
 
         if (code.length > 0) {
             annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.PENDING);
-            let msg = nreplMessage.evaluateMsg(session, util.getNamespace(doc.getText()), code, pprint),
-                c = codeSelection.start.character,
-                re = new RegExp("^\\s{" + c + "}", "gm");
-            evaluateMsg(msg, "Evaluating:\n" + code.replace(re, ""), "unable to evaluate sexp", (results) => {
-                const hasExceptions = _.some(results, "ex"),
-                    hasStdErr = _.some(results, "err"),
-                    hasError = hasExceptions | hasStdErr;
+            let c = codeSelection.start.character
+            
+            let err: string[] = [], out: string[] = [];
 
-                let result = [],
-                    out = [],
-                    err = [];
-                _.each(results, (r) => {
-                    if (r.hasOwnProperty("err")) {
-                        err.push(r.err);
-                    } else if (r.hasOwnProperty("value")) {
-                        result.push(r.value);
-                    } else if (r.hasOwnProperty("pprint-out")) {
-                        result.push(r["pprint-out"].replace(/\n$/, ""));
-                    } else if (r.hasOwnProperty("out")) {
-                        if (hasExceptions && !hasStdErr) {
-                            // venantius/ultra outputs errors on stdout, it seems.
-                            err.push(r.out)
-                        }
-                        else {
-                            out.push(r.out);
-                        }
-                    }
-                });
-                if (result.length + out.length + err.length > 0) {
-                    if (replace && !hasError) {
-                        const indent = ' '.repeat(c),
-                            edit = vscode.TextEdit.replace(codeSelection, result.join("\n").replace(/\n/gm, "\n" + indent)),
-                            wsEdit = new vscode.WorkspaceEdit();
-                        wsEdit.set(editor.document.uri, [edit]);
-                        vscode.workspace.applyEdit(wsEdit);
-                        chan.appendLine("Replaced inline.")
-                    } else {
-                        annotations.decorateSelection(codeSelection, editor, (hasError ? annotations.AnnotationStatus.ERROR : annotations.AnnotationStatus.SUCCESS));
-                        if (!pprint) {
-                            const annotation = hasError ? err.join("\n") : result.join("\n");
-                            annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", hasError, codeSelection, editor);
-                        }
-                        if (out.length > 0) {
-                            chan.append("out: ")
-                            chan.append(out.join("\n"));
-                        }
-                        if (result.length > 0) {
-                            chan.append('=> ');
-                            if (pprint) {
-                                chan.appendLine('');
-                                chan.show(true);
-                            }
-                            chan.appendLine(result.join("\n"));
-                        }
-                        if (err.length > 0) {
-                            chan.append("Error: ")
-                            chan.append(err.join("\n"));
-                        }
-                    }
+            let res = await client.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
+
+            try {
+                let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
+                let value = await context.value
+                value = context.pprintOut || value;
+
+                if(replace) {
+                    const indent = ' '.repeat(c),
+                    edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
+                    wsEdit = new vscode.WorkspaceEdit();
+                    wsEdit.set(editor.document.uri, [edit]);
+                    vscode.workspace.applyEdit(wsEdit);
+                    chan.appendLine("Replaced inline.")
+
                 } else {
-                    chan.appendLine("Evaluation failed for unknown reasons. Sometimes it helps evaluating the file first.");
+                    annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
+                    if (!pprint)
+                        annotations.decorateResults(' => ' + value.replace(/\n/gm, " ") + " ", false, codeSelection, editor);                        
                 }
-            });
+
+                if (out.length > 0) {
+                    chan.append("out: ")
+                    chan.append(out.join("\n"));
+                }
+                chan.append('=> ');
+                if (pprint) {
+                    chan.appendLine('');
+                    chan.show(true);
+                    chan.appendLine(value);
+                } else chan.appendLine(value);
+                
+                if (err.length > 0) {
+                    chan.append("Error: ")
+                    chan.append(err.join("\n"));
+                }
+            } catch(e) {
+                if(!err.length) { // venantius/ultra outputs errors on stdout, it seems.
+                    err = out;
+                    if (err.length > 0) {
+                        chan.append("Error: ")
+                        chan.append(err.join("\n"));
+                    }
+                }
+
+                annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
+                if (!pprint) {
+                    const annotation = err.join();
+                    annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
+                }
+            }
         }
-    }
+     } else
+        vscode.window.showErrorMessage("Not connected to a REPL")
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
@@ -133,52 +106,33 @@ function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
 }
 
-function evaluateFile(document = {}, callback = () => { }) {
+async function evaluateFile(document = {}, callback = () => { }) {
     let current = state.deref(),
         doc = util.getDocument(document),
         fileName = util.getFileName(doc),
         fileType = util.getFileType(doc),
+        client = util.getSession(util.getFileType(doc)),
         chan = current.get('outputChannel');
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
-        let session = util.getSession(util.getFileType(doc)),
-            msg = nreplMessage.loadFileMsg(session, doc.getText(), fileName, doc.fileName);
-
-        evaluateMsg(msg, "Evaluating file: " + fileName, "unable to evaluate file", (results) => {
-            let result = null;
-            _.each(results, (r) => {
-                if (r.hasOwnProperty("value")) {
-                    result = r.value;
-                }
-            });
-            if (result !== null) {
-                chan.appendLine("=> " + result);
-            } else {
-                chan.appendLine("No results from file evaluation.");
-            }
-            callback();
-        });
+        let value = await client.loadFile(doc.getText(), { fileName: fileName, filePath: doc.fileName }).value;
+        if (value !== null)
+            chan.appendLine("=> " + value);
+        else
+            chan.appendLine("No results from file evaluation.");
     }
+    callback();
 }
 
-function copyLastResultCommand() {
-    let doc = util.getDocument({}),
-        session = util.getSession(util.getFileType(doc)),
-        chan = state.deref().get('outputChannel'),
-        msg = nreplMessage.eval_code_msg(session, "*1");
-    evaluateMsg(msg, "Copying last results to clipboard", "Error fetching last results", (results) => {
-        let result = null;
-        _.each(results, (r) => {
-            if (r.hasOwnProperty("value")) {
-                result = r.value;
-            }
-        });
-        if (result !== null) {
-            clipboardy.writeSync(result);
-        } else {
-            chan.appendLine("Nothing to copy");
-        }
-    });
+async function copyLastResultCommand() {
+    let chan = state.deref().get('outputChannel');
+    let client = util.getSession(util.getFileType(util.getDocument({})));
+
+    let value = await client.eval("*1").value;
+    if(value !== null)
+        clipboardy.writeSync(value);
+    else
+        chan.appendLine("Nothing to copy");
 }
 
 export default {
