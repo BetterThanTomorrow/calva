@@ -105,10 +105,8 @@ async function makeCljsSessionClone(session, shadowBuild) {
         if (build)
             return makeCljsSessionClone(session, build);
     } else {
-        console.log(cljSession);
         cljsSession = await cljSession.clone();
         if (cljsSession) {
-            console.log(cljsSession);
             let isFigwheel = !shadowBuild;
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
             let err = [];
