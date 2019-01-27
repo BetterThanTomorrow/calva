@@ -105,18 +105,26 @@ async function makeCljsSessionClone(session, shadowBuild) {
         if (build)
             return makeCljsSessionClone(session, build);
     } else {
+        console.log(cljSession);
         cljsSession = await cljSession.clone();
-        if(cljsSession) {
+        if (cljsSession) {
+            console.log(cljsSession);
             let isFigwheel = !shadowBuild;
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
-            let result = cljsSession.eval(initCode);
+            let err = [];
+            let out = [];
+            let result = cljsSession.eval(initCode, { stderr: x => err.push(x), stdout: x => out.push(x)});
             try {
-                let valueResult = await result.value
-                
-                state.cursor.set('cljs', cljsSession)
-                if(!shadowBuild && result.ns){
+                let valueResult = await result.value                
+                if (!shadowBuild && result.ns) {
                     state.cursor.set('shadowBuild', null)
-                    return [cljsSession, null];
+                    if (result.ns === cljSession.client.ns && out.find(x => { return x.search("not initialized") })) {
+                        tellUserFigwheelNotStarted(chan);
+                    }
+                    else { 
+                        state.cursor.set('cljs', cljsSession)
+                        return [cljsSession, null];
+                    }
                 } else if(shadowBuild  && valueResult.match(/:selected/)) {
                     state.cursor.set('shadowBuild', shadowBuild);
                     return [cljsSession, shadowBuild];
@@ -128,15 +136,21 @@ async function makeCljsSessionClone(session, shadowBuild) {
                     chan.appendLine(`${failed}. Is the build running and conected?`);
                     console.error(failed);
                 } else {
-                    let failed = `Failed to start ClojureScript REPL with command: ${initCode}`;
-                    console.error(failed);
-                    chan.appendLine(`${failed}. Is the app running in the browser and conected?`);
+                    tellUserFigwheelNotStarted(chan);
                 }
             }
         }
     }
     return [null, null];
 }
+
+function tellUserFigwheelNotStarted(chan) {
+    chan.appendLine("Figwheel not started:");
+    chan.appendLine("  If you want a cljs repl, start Figwheel from the cljs REPL using: ");
+    chan.appendLine("    (require '[figwheel-sidecar.repl-api :as fw])(fw/start-figwheel!)(fw/cljs-repl)");
+    chan.appendLine("  and connect to the app with the browser. Then reconnect Calva.");
+}
+
 
 function shadowCljsReplStart(buildOrRepl: string) {
     if(!buildOrRepl)
