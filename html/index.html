@@ -121,6 +121,64 @@
                 font-weight: bold;
                 white-space: pre-line;
             }
+
+
+
+            .stacktrace .file {
+                text-align: right;
+                padding-right: 8px;
+            }
+
+            .stacktrace .line {
+                padding-right: 8px;
+            }
+
+            .stacktrace .stack {
+                padding-right: 8px;
+                color: #f88;
+            }
+
+            .stacktrace .stack .name {
+                color: #fff;
+            }
+
+            .toggle {
+                color: #aaa;
+            }
+
+            .toggle:hover {
+                text-decoration: underline;
+            }
+
+            .stacktrace.dup .toggle.dup {
+                color: #666;
+            }
+            .stacktrace.java .toggle.java {
+                color: #666;
+            }
+            .stacktrace.tooling .toggle.tooling {
+                color: #666;
+            }
+            .stacktrace.clj .toggle.clj {
+                color: #666;
+            }
+
+            .stacktrace.dup tr.dup {
+                display: none;
+            }
+
+            .stacktrace.java tr.java {
+                display: none;
+            }
+            .stacktrace.clj tr.clj {
+                display: none;
+            }
+            .stacktrace.tooling tr.tooling {
+                display: none;
+            }
+            .show-ctrl > span {
+                padding: 0 16px;
+            }
         </style>
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     </head>

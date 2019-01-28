@@ -5,7 +5,6 @@ import * as state from './state';
 import * as util from './utilities';
 import * as shadow from "./shadow"
 import status from './status';
-import terminal from './terminal';
 
 import { NReplClient, NReplSession } from "./nrepl";
 
@@ -109,10 +108,20 @@ let cljsReplTypes: ReplType[] = [
         connect: async () => {
             let res = fs.readdirSync(util.getProjectDir());
             let projects = res.filter(x => x.match(/.cljs.edn/));
+            if(projects.length == 0) {
+                vscode.window.showErrorMessage("There are no figwheel project files (.cljs.en) in the project directory.")
+                connectionChannel.appendLine("There are no figwheel project files (.cljs.en) in the project directory.");
+                connectionChannel.appendLine("Connection to Figwheel Main aborted.");
+                throw "Aborted";
+            }
+                
             let result = await util.quickPickSingle({ values: projects, placeHolder: "Please select a figwheel-main project", saveAs: "figwheel-main-project"})
             if(result)
               return `(do (require 'figwheel.main) (figwheel.main/start :${result.match(/^(.*)\.cljs\.edn$/)[1]}))`
-            else throw "Aborted";
+            else {
+                connectionChannel.appendLine("Connection to Figwheel Main aborted.");
+                throw "Aborted";
+            }
         }
     },
     {

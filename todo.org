@@ -25,7 +25,7 @@
     * DONE prompt for clj aliases
     * DONE prompt for lein profiles
     
-* TODO fix repl window to show stack traces
+* TODO fix repl window to show stack traces <<<
 * TODO add interrupt support to repl window
 * TODO make it clear that a repl window session has been disconnected.
 * TODO replace eval to terminal stuff with new repl stuff.

@@ -176,14 +176,6 @@ function getProjectTypeForName(name: string) {
         if(projectTypes[id].name == name)
             return projectTypes[id];
 }
-//
-
-// cljs-repls
-
-// figwheel-sidecar
-// fighweel-main
-// weasel
-
 
 let processes = new Set<ChildProcess>();
 

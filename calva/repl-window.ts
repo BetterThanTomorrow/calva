@@ -72,6 +72,8 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
                 panel.webview.postMessage({type: "repl-response", value: await res.value, ns: res.ns || ns});
             } catch(e) {
                 panel.webview.postMessage({type: "repl-error", ex: e});
+                let stacktrace = await session.stacktrace();
+                panel.webview.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
             }
         }
     })      
