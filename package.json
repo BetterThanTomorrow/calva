@@ -262,8 +262,8 @@
             },
             {
                 "command": "calva.clearInlineResults",
-                "key": "ctrl+escape",
-                "when": "editorTextFocus"
+                "key": "escape",
+                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
                 "command": "calva.evaluateSelection",
