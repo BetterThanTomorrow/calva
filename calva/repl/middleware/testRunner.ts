@@ -8,31 +8,31 @@ let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function reportTests(results, errorStr, log = true) {
     let chan = state.deref().get('outputChannel'),
-               diagnostics = {},
-               total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
+        diagnostics = {},
+        total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
     diagnosticCollection.clear();
-    if(results.err || results.ex) {
+    if (results.err || results.ex) {
         util.logError({
             type: util.ERROR_TYPE.ERROR,
             reason: "Error " + errorStr + ":" + results.err
         });
     } else {
-        for(let result of results) {
-            for(const ns in result.results) {
+        for (let result of results) {
+            for (const ns in result.results) {
                 let resultSet = result.results[ns];
-                for(const test in resultSet)  {
-                    for(const a of resultSet[test]) {
-                        if(a.type == "error" && log)
-                                chan.appendLine(`ERROR in: ${ns}: ${a.file}, line ${a.line}: ${test}: ${(a.context || "")}:\n  error: ${a.error} + "\n  expected: ${a.expected}`);
-                        if(a.type == "fail") {
+                for (const test in resultSet) {
+                    for (const a of resultSet[test]) {
+                        if (a.type == "error" && log)
+                            chan.appendLine(`ERROR in: ${ns}: ${a.file}, line ${a.line}: ${test}: ${(a.context || "")}:\n  error: ${a.error} + "\n  expected: ${a.expected}`);
+                        if (a.type == "fail") {
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
-                            if(!diagnostics[a.file])
+                            if (!diagnostics[a.file])
                                 diagnostics[a.file] = [];
                             diagnostics[a.file].push(err);
-                            if(log)
+                            if (log)
                                 chan.appendLine(`FAIL in: ${a.file}: ${a.line}: ${test}: ${(a.context || "")}:\n  expected: ${a.expected}\n  actual: ${a.actual}`);
-                        }                
+                        }
                     }
                 }
             }
@@ -53,7 +53,7 @@ function reportTests(results, errorStr, log = true) {
                         " errors: " + total_summary.error + ", failures: " + total_summary.fail) : "No tests found. 😱") +
                     ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
             }
-    
+
             if (total_summary.test > 0) {
                 if (hasProblems) {
                     _.each(diagnostics, (errors, fileName) => {
@@ -90,7 +90,7 @@ function getNamespaceTestMessages(document = {}) {
     let client = util.getSession(util.getFileType(document))
     let doc = util.getDocument(document),
         ns = util.getNamespace(doc.getText()),
-        messages = [client.test(ns + '-test')];
+        messages = [client.test(ns)];
 
     if (!ns.endsWith('-test'))
         messages.push(client.test(ns + '-test'));

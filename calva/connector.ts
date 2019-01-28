@@ -154,6 +154,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
         }
     } else {
         cljsSession = await cljSession.clone();
+        let repl: ReplType;
         if(cljsSession) {
             connectionChannel.clear();
             connectionChannel.show();
@@ -163,20 +164,29 @@ async function makeCljsSessionClone(session, shadowBuild) {
                 let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs repl to use", saveAs: "cljs-repl-type" });
                 if(!replType)
                     return;
-                let repl = repls.find(x => x.name == replType);
+                repl = repls.find(x => x.name == replType);
                 connectionChannel.appendLine("Connecting to "+repl.name);
                 initCode = await repl.connect();
             } else {
                 connectionChannel.appendLine("Connecting to ShadowCLJS")
             }
             try {
-                let result = cljsSession.eval(initCode, { stdout: x => connectionChannel.append(util.stripAnsi(x)), stderr: x => connectionChannel.append(util.stripAnsi(x)) });
+                let err = [];
+                let out = [];
+                let result = cljsSession.eval(initCode, { stdout: x => { out.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x)) }, stderr: x => { err.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x))} });
                 let valueResult = await result.value
                 
                 state.cursor.set('cljs', cljsSession)
                 if(!shadowBuild && result.ns){
                     state.cursor.set('shadowBuild', null)
-                    return [cljsSession, null];
+                    if (repl.name == "Figwheel" && result.ns === cljSession.client.ns && out.find(x => { return x.search("not initialized") })) {
+                        // FIXME: this should be an error handler in ReplType
+                        tellUserFigwheelNotStarted(chan);
+                    }
+                    else { 
+                        state.cursor.set('cljs', cljsSession)
+                        return [cljsSession, null];
+                    }
                 } else if(shadowBuild  && valueResult.match(/:selected/)) {
                     state.cursor.set('shadowBuild', shadowBuild);
                     return [cljsSession, shadowBuild];
@@ -188,15 +198,21 @@ async function makeCljsSessionClone(session, shadowBuild) {
                     chan.appendLine(`${failed}. Is the build running and conected?`);
                     console.error(failed);
                 } else {
-                    let failed = `Failed to start ClojureScript REPL with command: ${initCode}`;
-                    console.error(failed);
-                    chan.appendLine(`${failed}. Is the app running in the browser and conected?`);
+                    tellUserFigwheelNotStarted(chan);
                 }
             }
         }
     }
     return [null, null];
 }
+
+function tellUserFigwheelNotStarted(chan) {
+    chan.appendLine("Figwheel not started:");
+    chan.appendLine("  If you want a cljs repl, start Figwheel from the cljs REPL using: ");
+    chan.appendLine("    (require '[figwheel-sidecar.repl-api :as fw])(fw/start-figwheel!)(fw/cljs-repl)");
+    chan.appendLine("  and connect to the app with the browser. Then reconnect Calva.");
+}
+
 
 function shadowCljsReplStart(buildOrRepl: string) {
     if(!buildOrRepl)
