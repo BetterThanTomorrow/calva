@@ -30,14 +30,15 @@ function escapeString(str: string) {
 export function detectProjectType() {
     let rootDir = utilities.getProjectDir();
     let out = [];
-    for(let x in projectTypeConfig)
-        if(fs.existsSync(rootDir+"/"+projectTypeConfig[x].useWhenExists))
+    for(let x in projectTypes)
+        if(fs.existsSync(rootDir+"/"+projectTypes[x].useWhenExists))
             out.push(x);
     return out;
 }
 
 const injectDependencies = {
     "cider/cider-nrepl": "0.20.0",
+    "cider/piggieback": "0.3.10"
 }
 
 const leinPluginDependencies = {
@@ -46,14 +47,15 @@ const leinPluginDependencies = {
 
 const leinDependencies = {
     "nrepl": "0.5.3",
+    "cider/piggieback": "0.3.10"
 }
 
-const middleware = ["cider.nrepl/cider-middleware"];
+const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-repl"];
 
-const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\"])"';
+const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
 
 
-const projectTypeConfig: {[id: string]: {name: string, cmd: string, winCmd: string, commandLine: () => any, useWhenExists: string, useShell?: boolean}} = {
+const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, commandLine: () => any, useWhenExists: string, useShell?: boolean}} = {
     "lein": {
         name: "Leiningen",
         cmd: "lein",
@@ -74,6 +76,13 @@ const projectTypeConfig: {[id: string]: {name: string, cmd: string, winCmd: stri
                 let dep = keys[i];
                 out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
             }
+
+            for(let mw of middleware) {
+                out.push("update-in", '"[:repl-options :nrepl-middleware]"', "conj", `"[\\"${mw.replace('"', '\\"')}\\"]"`, '--');
+            }
+
+            //out.push("update-in", ":middleware", "conj", `cider-nrepl.plugin/middleware`, '--')
+            out.push("repl", ":headless");
             return out;
         }
     },
@@ -99,7 +108,7 @@ const projectTypeConfig: {[id: string]: {name: string, cmd: string, winCmd: stri
             let out: string[] = [];
             for(let dep in injectDependencies)
                 out.push(dep+" {:mvn/version \\\""+injectDependencies[dep]+"\\\"}")
-            return ["-Sdeps", `"${"{:deps {"+out.join(' ')+"}}"}"`,  "-m", "nrepl.cmdline", "--middleware", '["cider.nrepl/cider-middleware"]']
+            return ["-Sdeps", `"${"{:deps {"+out.join(' ')+"}}"}"`,  "-m", "nrepl.cmdline", "--middleware", `"[${middleware.join(' ')}]"`]
         }
     },
     "shadow-cljs": {
@@ -121,10 +130,11 @@ const projectTypeConfig: {[id: string]: {name: string, cmd: string, winCmd: stri
     }
 }
 
+/** Given the name of a project in project types, find that project. */
 function getProjectTypeForName(name: string) {
-    for(let id in projectTypeConfig)
-        if(projectTypeConfig[id].name == name)
-            return projectTypeConfig[id];
+    for(let id in projectTypes)
+        if(projectTypes[id].name == name)
+            return projectTypes[id];
 }
 //
 
@@ -140,6 +150,7 @@ let processes = new Set<ChildProcess>();
 let jackInChannel = vscode.window.createOutputChannel("Calva Jack-In");
 
 export async function calvaJackIn() {
+    // Are there running jack-in processes? If so we must kill them to proceed.
     if(processes.size) {
         let result = await vscode.window.showWarningMessage("Already jacked-in, kill existing process?", {title: "OK"}, {title: "Cancel", isCloseAffordance: true});
         if(result && result.title == "OK") {
@@ -147,26 +158,33 @@ export async function calvaJackIn() {
         } else
             return;
     }
-    let buildName: string;
+    // figure out what possible kinds of project we're in
     let types = detectProjectType();
     if(types.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, build.boot, deps.edn or shadow-cljs.edn");
         return;
     }
 
-    buildName = await utilities.quickPickSingle({ values: types.map(x => projectTypeConfig[x].name), placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
+    // Show a prompt to pick one if there are multiple
+    let buildName = await utilities.quickPickSingle({ values: types.map(x => projectTypes[x].name), placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
     if(!buildName)
         return;
 
+    // Resolve the selection to an entry in projectTypes
     let build = getProjectTypeForName(buildName);
     if(!build)
         return;
 
+    // Now look in our $PATH variable to check the appropriate command exists.
     let executable = findInPath(isWin ? build.winCmd : build.cmd);
 
-    if(!executable)
+    if(!executable)  {
+        // It doesn't, do not proceed
         vscode.window.showErrorMessage(build.cmd+" is not on your PATH, please add it.")
+        return;
+    }
 
+    // Ask the project type to build up the command line. This may prompt for further information.
     let args = await build.commandLine();
 
     if(executable.endsWith(".ps1")) {
@@ -176,6 +194,7 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     }
 
+    // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
     let watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
         if(filename == ".nrepl-port" || filename == "nrepl.port") {
             state.cursor.set("launching", null)
@@ -188,31 +207,34 @@ export async function calvaJackIn() {
     state.cursor.set("launching", buildName)
     statusbar.update();
 
+    // spawn the command line.
     let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args, { detached: false, shell: isWin && build.useShell, cwd: utilities.getProjectDir() })
-    processes.add(child);
+    processes.add(child); // keep track of processes.
+
     jackInChannel.clear();
     jackInChannel.show(true);
     jackInChannel.appendLine("Launching clojure with: "+executable+" "+args.join(' '));
+
     child.stderr.on("data", data => {
-        jackInChannel.appendLine(data.toString())
+        jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
     })
     child.stdout.on("data", data => {
-        jackInChannel.appendLine(data.toString())
+        jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
     })
     child.on("error", data => {
         // Look for this under lein:
         //   Warning: cider-nrepl requires Leiningen 2.8.3 or greater.
         //   Warning: cider-nrepl will not be included in your project.
-        jackInChannel.appendLine(data.toString())
+        jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
     })
     child.on("disconnect", data => {
-        console.error(data.toString())
+        console.error(utilities.stripAnsi(data.toString()))
     })
     child.on("close", data => {
-        console.error(data.toString())
+        console.error(utilities.stripAnsi(data.toString()))
     })
     child.on("message", data => {
-        console.error(data.toString())
+        console.error(utilities.stripAnsi(data.toString()))
     })
     child.once("exit", (code, signal) => {
         processes.delete(child);
@@ -226,6 +248,7 @@ export function killAllProcesses() {
         if(!isWin) {
             x.kill("SIGTERM");
         } else {
+            // windows sux. brutally destroy the process.
             exec('taskkill /PID ' + x.pid + ' /T /F');
         }        
     });

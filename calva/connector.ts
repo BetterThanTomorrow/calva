@@ -38,11 +38,12 @@ async function connectToHost(hostname, port) {
     status.update();
     try {
         chan.appendLine("Hooking up nREPL sessions...");
+        // Create an nREPL client. waiting for the connection to be established.
         nClient = await NReplClient.create({ host: hostname, port: +port})
         nClient.onClose(c => {
             state.cursor.set("connected", false);
             state.cursor.set("connecting", false);
-            if(!c["silent"])
+            if(!c["silent"]) // we didn't deliberately close this session, mention this fact.
                 chan.appendLine("nREPL Connection was closed");
             status.update();
         })
@@ -155,6 +156,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
         cljsSession = await cljSession.clone();
         if(cljsSession) {
             connectionChannel.clear();
+            connectionChannel.show();
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
             if(!shadowBuild) {
                 let repls = await findCljsRepls();
@@ -162,14 +164,13 @@ async function makeCljsSessionClone(session, shadowBuild) {
                 if(!replType)
                     return;
                 let repl = repls.find(x => x.name == replType);
-                connectionChannel.show();
                 connectionChannel.appendLine("Connecting to "+repl.name);
                 initCode = await repl.connect();
             } else {
                 connectionChannel.appendLine("Connecting to ShadowCLJS")
             }
-            let result = cljsSession.eval(initCode, { stdout: x => connectionChannel.append(x), stderr: x => connectionChannel.append(x) });
             try {
+                let result = cljsSession.eval(initCode, { stdout: x => connectionChannel.append(util.stripAnsi(x)), stderr: x => connectionChannel.append(util.stripAnsi(x)) });
                 let valueResult = await result.value
                 
                 state.cursor.set('cljs', cljsSession)
