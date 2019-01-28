@@ -4,7 +4,7 @@
 * DONE add pretty printing back to evaluate
 * DONE Move paredit here
 * DONE Bind paredit keys to Repl console
-* TODO Jack-in
+* DONE Jack-in
     * DONE clj
     * DONE boot
     * DONE shadow-cljs - select watch project(s)
@@ -14,18 +14,16 @@
 
     * DONE kill/restart jack-in process command
 
-    * TODO Cljs repls
+    * DONE Cljs repls
         * DONE figwheel
         * DONE figwheel-main
         * DONE shadow-cljs
-        * TODO inject piggieback
+        * DONE inject piggieback
           * DONE { :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}} in lein
           * DONE clj
-          * TODO boot
-          * TODO shadow-cljs
 
-    * TODO prompt for lein profiles
-    * TODO prompt for clj aliases
+    * DONE prompt for clj aliases
+    * DONE prompt for lein profiles
     
 * TODO fix repl window to show stack traces
 * TODO add interrupt support to repl window

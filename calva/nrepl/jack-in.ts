@@ -7,6 +7,7 @@ import connector from "../connector";
 import { openReplWindow } from "../repl-window";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
+import * as edn from 'jsedn';
 
 const isWin = /^win/.test(process.platform);
 
@@ -62,10 +63,30 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
         winCmd: "lein.bat",
         useShell: true,
         useWhenExists: "project.clj",
-        commandLine: () => {
+        commandLine: async() => {
             let out: string[] = [];
             let keys = Object.keys(leinDependencies);
             
+            let data = fs.readFileSync(utilities.getProjectDir()+"/project.clj", 'utf8').toString();
+            let parsed;
+            try {
+                parsed = edn.parse(data);
+            } catch(e) {
+                vscode.window.showErrorMessage("Could not parse project.clj");
+                throw e;
+            }
+            let profiles: string[] = [];
+            if(parsed instanceof edn.List) {
+                for(let i = 3; i<parsed.val.length; i += 2) {
+                    let e = parsed.val[i];
+                    if(e instanceof edn.Keyword && e.name == ":profiles") {
+                        profiles = [...profiles, ...parsed.val[i+1].keys.map(x => x.name)]
+                    }
+                }
+                if(profiles.length)
+                    profiles = await utilities.quickPickMulti({ values: profiles, saveAs: "lein-cli-profiles", placeHolder: "Pick any profiles to launch with"});
+            }
+
             for(let i=0; i<keys.length; i++) {
                 let dep = keys[i];
                 out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${leinDependencies[dep]}\\"]"`, '--');
@@ -81,11 +102,15 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
                 out.push("update-in", '"[:repl-options :nrepl-middleware]"', "conj", `"[\\"${mw.replace('"', '\\"')}\\"]"`, '--');
             }
 
+            if(profiles.length) {
+                out.push("with-profile", profiles.map(x => x.substr(1)).join(','));
+            }
             //out.push("update-in", ":middleware", "conj", `cider-nrepl.plugin/middleware`, '--')
             out.push("repl", ":headless");
             return out;
         }
     },
+    /* // Works but analysing the possible launch environment is unsatifactory for now, use the cli :)
     "boot": {
         name: "Boot",
         cmd: "boot",
@@ -99,16 +124,31 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
             return [...out, "-i", initEval, "repl"];
         }
     },
+    */
     "clj": {
         name: "Clojure CLI",
         cmd: "clojure",
         winCmd: "clojure.ps1",        
         useWhenExists: "deps.edn",
-        commandLine: () => {
+        commandLine: async () => {
             let out: string[] = [];
+            let data = fs.readFileSync(utilities.getProjectDir()+"/deps.edn", 'utf8').toString();
+            let parsed;
+            try {
+                parsed = edn.parse(data);
+            } catch(e) {
+                vscode.window.showErrorMessage("Could not parse deps.edn");
+                throw e;
+            }
+            let aliases = [];
+            if(parsed.exists(edn.kw(":aliases"))) {
+                aliases = await utilities.quickPickMulti({ values: parsed.at(edn.kw(':aliases')).keys.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with"});
+            }
+            
+
             for(let dep in injectDependencies)
                 out.push(dep+" {:mvn/version \\\""+injectDependencies[dep]+"\\\"}")
-            return ["-Sdeps", `"${"{:deps {"+out.join(' ')+"}}"}"`,  "-m", "nrepl.cmdline", "--middleware", `"[${middleware.join(' ')}]"`]
+            return ["-Sdeps", `"${"{:deps {"+out.join(' ')+"}}"}"`,  "-m", "nrepl.cmdline", "--middleware", `"[${middleware.join(' ')}]"`, ...aliases.map(x => "-A"+x)]
         }
     },
     "shadow-cljs": {
