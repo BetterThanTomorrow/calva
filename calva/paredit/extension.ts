@@ -141,12 +141,12 @@ const pareditCommands: [string, Function][] = [
 function wrapPareditCommand(command: string, fn) {
     return () => {
 
-        let textEditor = window.activeTextEditor;
-        if(!textEditor) {
-            let repl = activeReplWindow();
-            if(repl)
-                repl.executeCommand(toConsoleCommand[command])
+        let repl = activeReplWindow();
+
+        if(repl) {
+            repl.executeCommand(toConsoleCommand[command])
         } else {
+            let textEditor = window.activeTextEditor;
             let doc = textEditor.document;
             if (!enabled || !languages.has(doc.languageId)) return;
 

@@ -143,6 +143,20 @@ window.onmessage = (msg) => {
         con.requestPrompt(ns+"=> ")
     }
 
+    if(msg.data.type == "do-eval") {
+        if(con.readline) {
+            let originalText = con.readline.model.getText(0, con.readline.model.maxOffset)
+            let [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
+            con.setText(msg.data.value);
+            con.submitLine(false);
+
+            con.requestPrompt(ns+"=> ");
+            con.setText(originalText);
+            [con.readline.selectionStart, con.readline.selectionEnd] = [selectionStart, selectionEnd];
+            con.readline.repaint();
+        }
+    }
+
     if(msg.data.type == "repl-error") {
         let div = document.createElement("div")
         div.className = "error"
