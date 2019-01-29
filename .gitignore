@@ -1,3 +1,5 @@
+package-lock.json
+
 # visual code
 *.vsix
 .vscode/settings.json
@@ -55,3 +57,5 @@ pom.xml
 
 ## TS
 out/
+
+html/main.js

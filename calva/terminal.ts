@@ -126,7 +126,7 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
 }
 
 function evalCurrentFormInREPLTerminalCommand() {
-    evalCurrentFormInREPLTerminal(true);
+    evalCurrentFormInREPLTerminal(false);
 }
 
 function evalCurrentTopLevelFormInREPLTerminalCommand() {

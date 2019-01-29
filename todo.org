@@ -1,17 +1,19 @@
-* Clojure 4 VS Code
-
-Eternal list of things to do.
-
-* Bugs
-* DONE REPL connection broken for cljc files
-
-* Neat things on the wishlist
-* TODO Report test results as they come in
-* TODO Rerun of last failing tests
-* TODO Select current form
-* DONE Integrated REPL prompts
-* DONE When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljc` repl.
-Currently running all tests in a large project is a slow feedback thing to do.
-* DONE Use cider for pretty print
-* DONE Pretty pring evaluate-replace
-* DONE Test namespace on save
+* DONE Migrate testRunner to use nrepl, and clean up
+* DONE Migrate connect, and add cljs support
+* DONE send cljs stuff to the right repl
+* DONE add pretty printing back to evaluate
+* TODO Move paredit here
+* TODO Bind paredit keys to Repl console
+* TODO Jack-in
+    * TODO lein
+    * TODO shadow-cljs
+    * TODO clj
+    * TODO boot
+* TODO Open new cljs repl
+* TODO Ship first stab at repl?
+* TODO Superclass repl-interactor, so it becomes DocMirror.
+* TODO Move calva-fmt here.
+* TODO Select toplevel forms etc, should use DocMirror.
+* TODO Use our Paredit logic for calva proper.
+* TODO Repl completions
+* TODO Argument-based completions for vscode

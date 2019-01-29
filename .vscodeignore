@@ -7,10 +7,9 @@
 # Whitelist
 !out/**
 !package.json
+!node_modules/**
 !assets/**
 !README.md
 !CHANGELOG.md
 !LICENSE.txt
 
-# TODO: Figure out what node_modules we should white list
-!node_modules/**
