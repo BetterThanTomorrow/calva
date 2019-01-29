@@ -240,7 +240,7 @@ export async function calvaJackIn() {
     statusbar.update();
 
     // spawn the command line.
-    let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args, { detached: false, shell: isWin && build.useShell, cwd: utilities.getProjectDir() })
+    let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args, { detached: false, shell: !isWin || (isWin && build.useShell), cwd: utilities.getProjectDir() })
     processes.add(child); // keep track of processes.
 
     jackInChannel.clear();
