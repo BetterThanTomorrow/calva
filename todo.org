@@ -26,9 +26,10 @@
     * DONE prompt for lein profiles
     
 * DONE fix repl window to show stack traces
-* TODO add interrupt support to repl window
-* TODO make it clear that a repl window session has been disconnected.
+* DONE add interrupt support to repl window
+* DONE make it clear that a repl window session has been disconnected.
 * TODO replace eval to terminal stuff with new repl stuff.
+* TODO re-connect repl window session when reconnected.
 * TODO Repl completions
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?

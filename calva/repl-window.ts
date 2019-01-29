@@ -3,6 +3,7 @@ import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as fs from "fs";
 import { readFileSync } from "fs";
+import { NReplEvaluation } from "./nrepl";
 
 // REPL
 
@@ -53,28 +54,35 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
     panel.webview.html = html;
     
     let session = mode == "clj" ? cljSession : cljsSession;
-
+    session = await session.clone();
     let res = session.eval("*ns*");
     await res.value;
     let ns = res.ns;
-
+    let evaluation: NReplEvaluation;
     new REPLWindow(panel);
     panel.webview.onDidReceiveMessage(async function (msg) {
         if(msg.type == "init") {
             panel.webview.postMessage({ type: "init", value: "", ns: ns });
         }
 
+        if(msg.type == "interrupt") {
+            if(evaluation) {
+                evaluation.interrupt();
+            }
+        }
+        
         if(msg.type == "read-line") {
-            let res = session.eval(msg.line, {
-                        stderr: m => panel.webview.postMessage({type: "stderr", value: m}),
-                        stdout: m => panel.webview.postMessage({type: "stdout", value: m})})
+            evaluation = session.eval(msg.line, {
+                            stderr: m => panel.webview.postMessage({type: "stderr", value: m}),
+                            stdout: m => panel.webview.postMessage({type: "stdout", value: m})})
             try {
-                panel.webview.postMessage({type: "repl-response", value: await res.value, ns: res.ns || ns});
+                panel.webview.postMessage({type: "repl-response", value: await evaluation.value, ns: evaluation.ns || ns});
             } catch(e) {
                 panel.webview.postMessage({type: "repl-error", ex: e});
                 let stacktrace = await session.stacktrace();
                 panel.webview.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
             }
+            evaluation = null;
         }
 
         if(msg.type == "goto-file") {
@@ -84,6 +92,17 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
             })
         }
     })      
+
+    const onClose = () => 
+        panel.webview.postMessage({ type: "disconnected" });
+
+    session.client.onClose(onClose);
+
+    panel.onDidDispose(() => {
+        if(evaluation)
+            evaluation.interrupt();
+        session.client.removeOnClose(onClose);
+    })
 }
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;

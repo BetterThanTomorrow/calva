@@ -43,6 +43,11 @@ export class NReplClient {
         this.closeHandlers.push(fn);
     }
 
+    removeOnClose(fn: (c: NReplClient) => void) {
+        if(this.closeHandlers.indexOf(fn) != -1)
+            this.closeHandlers.splice(this.closeHandlers.indexOf(fn), 1);
+    }
+
     /**
      * Returns a new session.
      */
@@ -353,7 +358,7 @@ export class NReplSession {
 /**
  * A running nREPL eval call.
  */
-class NReplEvaluation {
+export class NReplEvaluation {
     constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x:string) => void,public value: Promise<any>) {
     }
 

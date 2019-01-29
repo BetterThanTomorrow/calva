@@ -113,6 +113,12 @@ function createStackTrace(exception: any) {
     return div;
 }
 
+window.addEventListener("keydown", e => {
+    if(e.keyCode == 68 && e.ctrlKey) {
+        message.postMessage({ type: "interrupt" });
+    }
+})
+
 window.onmessage = (msg) => {   
     if(msg.data.type == "init") {
         ns = msg.data.ns;
@@ -143,6 +149,13 @@ window.onmessage = (msg) => {
         div.textContent = msg.data.ex;
         con.printElement(div);
         con.requestPrompt(ns+"=> ")
+    }
+
+    if(msg.data.type == "disconnected") {
+        let div = document.createElement("div");
+        div.className = "error";
+        div.textContent = "REPL disconnected."
+        con.printElement(div);
     }
 
     if(msg.data.type == "repl-ex") {
