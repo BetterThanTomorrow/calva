@@ -299,8 +299,6 @@
                 "title": "Attach (or re-attach) a Clojurescript session",
                 "category": "Calva"
             },
-
-
             {
                 "category": "Paredit",
                 "command": "paredit.toggle",
@@ -582,8 +580,6 @@
                 "command": "calva.evalCurrentTopLevelFormInREPLTerminal",
                 "key": "ctrl+alt+v alt+space"
             },
-
-
             {
                 "command": "paredit.forwardSexp",
                 "key": "ctrl+right",
@@ -594,7 +590,6 @@
                 "key": "ctrl+right",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.backwardSexp",
                 "key": "ctrl+left",
@@ -605,7 +600,6 @@
                 "key": "ctrl+left",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.forwardDownSexp",
                 "key": "ctrl+down",
@@ -616,7 +610,6 @@
                 "key": "ctrl+down",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.backwardUpSexp",
                 "key": "ctrl+up",
@@ -627,7 +620,6 @@
                 "key": "ctrl+up",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.closeList",
                 "key": "ctrl+alt+right",
@@ -638,7 +630,6 @@
                 "key": "ctrl+alt+right",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.rangeForDefun",
                 "key": "ctrl+alt+w space",
@@ -649,7 +640,6 @@
                 "key": "ctrl+alt+w space",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.sexpRangeExpansion",
                 "key": "ctrl+w",
@@ -660,7 +650,6 @@
                 "key": "ctrl+w",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.sexpRangeContraction",
                 "key": "ctrl+shift+w",
@@ -671,7 +660,6 @@
                 "key": "ctrl+shift+w",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.yankForwardSexp",
                 "key": "ctrl+alt+c ctrl+right",
@@ -682,7 +670,6 @@
                 "key": "ctrl+alt+c ctrl+right",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.yankBackwardSexp",
                 "key": "ctrl+alt+c ctrl+left",
@@ -693,7 +680,6 @@
                 "key": "ctrl+alt+c ctrl+left",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.yankForwardDownSexp",
                 "key": "ctrl+alt+c ctrl+down",
@@ -704,7 +690,6 @@
                 "key": "ctrl+alt+c ctrl+down",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.yankBackwardUpSexp",
                 "key": "ctrl+alt+c ctrl+up",
@@ -715,7 +700,6 @@
                 "key": "ctrl+alt+c ctrl+up",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.yankCloseList",
                 "key": "ctrl+alt+c ctrl+alt+right",
@@ -726,7 +710,6 @@
                 "key": "ctrl+alt+c ctrl+alt+right",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.yankRangeForDefun",
                 "key": "ctrl+alt+c space",
@@ -737,7 +720,6 @@
                 "key": "ctrl+alt+c space",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.cutForwardSexp",
                 "key": "ctrl+alt+x ccutright",
@@ -748,7 +730,6 @@
                 "key": "ctrl+alt+x ccutright",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.cutBackwardSexp",
                 "key": "ctrl+alt+x ccutleft",
@@ -759,7 +740,6 @@
                 "key": "ctrl+alt+x ccutleft",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.cutForwardDownSexp",
                 "key": "ctrl+alt+x ccutdown",
@@ -770,7 +750,6 @@
                 "key": "ctrl+alt+x ccutdown",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.cutBackwardUpSexp",
                 "key": "ctrl+alt+x ccutup",
@@ -781,7 +760,6 @@
                 "key": "ctrl+alt+x ccutup",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.cutCloseList",
                 "key": "ctrl+alt+x ctrl+alt+right",
@@ -792,7 +770,6 @@
                 "key": "ctrl+alt+x ctrl+alt+right",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.cutRangeForDefun",
                 "key": "ctrl+alt+x space",
@@ -803,7 +780,6 @@
                 "key": "ctrl+alt+x space",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.slurpSexpForward",
                 "key": "ctrl+alt+.",
@@ -814,7 +790,6 @@
                 "key": "ctrl+alt+.",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.slurpSexpBackward",
                 "key": "ctrl+alt+shift+.",
@@ -825,7 +800,6 @@
                 "key": "ctrl+alt+shift+.",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.barfSexpForward",
                 "key": "ctrl+alt+,",
@@ -836,7 +810,6 @@
                 "key": "ctrl+alt+,",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.barfSexpBackward",
                 "key": "ctrl+alt+shift+,",
@@ -847,7 +820,6 @@
                 "key": "ctrl+alt+shift+,",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.spliceSexp",
                 "key": "ctrl+alt+s",
@@ -858,7 +830,6 @@
                 "key": "ctrl+alt+s",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.splitSexp",
                 "key": "ctrl+alt+shift+s",
@@ -869,7 +840,6 @@
                 "key": "ctrl+alt+shift+s",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.killSexpForward",
                 "key": "ctrl+delete",
@@ -882,7 +852,6 @@
                 "mac": "ctrl+shift+backspace",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.killSexpBackward",
                 "key": "ctrl+backspace",
@@ -893,7 +862,6 @@
                 "key": "ctrl+backspace",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.spliceSexpKillForward",
                 "key": "ctrl+alt+down",
@@ -904,7 +872,6 @@
                 "key": "ctrl+alt+down",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.spliceSexpKillBackward",
                 "key": "ctrl+alt+up",
@@ -915,7 +882,6 @@
                 "key": "ctrl+alt+up",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.wrapAroundParens",
                 "key": "ctrl+alt+shift+9",
@@ -926,7 +892,6 @@
                 "key": "ctrl+alt+shift+9",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.wrapAroundSquare",
                 "key": "ctrl+alt+[",
@@ -937,7 +902,6 @@
                 "key": "ctrl+alt+[",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.wrapAroundCurly",
                 "key": "ctrl+alt+shift+[",
@@ -948,7 +912,6 @@
                 "key": "ctrl+alt+shift+[",
                 "when": "calva:inRepl"
             },
-            
             {
                 "command": "paredit.indentRange",
                 "key": "ctrl+alt+i",
@@ -959,20 +922,17 @@
                 "key": "ctrl+alt+i",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
                 "mac": "shift+backspace",
                 "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
             },
-
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
                 "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
             },
-
             {
                 "command": "deleteRight",
                 "key": "ctrl+alt+delete",
@@ -985,7 +945,6 @@
                 "mac": "alt+shift+backspace",
                 "when": "calva:inRepl"
             },
-
             {
                 "command": "deleteLeft",
                 "key": "ctrl+alt+backspace",
