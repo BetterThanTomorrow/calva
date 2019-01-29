@@ -103,9 +103,16 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
         replWindows[mode].panel.reveal();
         return replWindows[mode];
     }
-    const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
+    
     let session = mode == "clj" ? cljSession : cljsSession;
+    if(!session) {
+        vscode.window.showErrorMessage("Not connected to nREPL");
+        return;
+    }
+
     session = await session.clone();
+
+    const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
     return replWindows[mode] = new REPLWindow(panel, session, mode);
 }
 

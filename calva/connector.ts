@@ -33,6 +33,7 @@ async function connectToHost(hostname, port) {
         nClient["silent"] = true;
         nClient.close();
     }
+    cljsSession = cljSession = null;
     state.cursor.set('connecting', true);
     status.update();
     try {
@@ -162,9 +163,9 @@ async function makeCljsSessionClone(session, shadowBuild) {
             return makeCljsSessionClone(session, build);
         }
     } else {
-        cljsSession = await cljSession.clone();
+        let newCljsSession = await cljSession.clone();
         let repl: ReplType;
-        if(cljsSession) {
+        if(newCljsSession) {
             connectionChannel.clear();
             connectionChannel.show();
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
@@ -182,10 +183,10 @@ async function makeCljsSessionClone(session, shadowBuild) {
             try {
                 let err = [];
                 let out = [];
-                let result = cljsSession.eval(initCode, { stdout: x => { out.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x)) }, stderr: x => { err.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x))} });
+                let result = newCljsSession.eval(initCode, { stdout: x => { out.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x)) }, stderr: x => { err.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x))} });
                 let valueResult = await result.value
                 
-                state.cursor.set('cljs', cljsSession)
+                state.cursor.set('cljs', cljsSession = newCljsSession)
                 if(!shadowBuild && result.ns){
                     state.cursor.set('shadowBuild', null)
                     if (repl.name == "Figwheel" && result.ns === cljSession.client.ns && out.find(x => { return x.search("not initialized") })) {
@@ -193,12 +194,12 @@ async function makeCljsSessionClone(session, shadowBuild) {
                         tellUserFigwheelNotStarted(chan);
                     }
                     else { 
-                        state.cursor.set('cljs', cljsSession)
-                        return [cljsSession, null];
+                        state.cursor.set('cljs', newCljsSession)
+                        return [newCljsSession, null];
                     }
                 } else if(shadowBuild  && valueResult.match(/:selected/)) {
                     state.cursor.set('shadowBuild', shadowBuild);
-                    return [cljsSession, shadowBuild];
+                    return [newCljsSession, shadowBuild];
                 }
             } catch(e) {
                 if(shadowBuild) {
