@@ -17,37 +17,30 @@ export function activeReplWindow() {
 
 class REPLWindow {
     evaluation: NReplEvaluation;
-
+    initialized: Promise<void>;
     constructor(public panel: vscode.WebviewPanel, public session: NReplSession, public type: "clj" | "cljs") {    
         vscode.commands.executeCommand("setContext", "calva:inRepl", true)
-
-        this.panel.webview.onDidReceiveMessage(async (msg) => {
-            if(msg.type == "init")
-                this.panel.webview.postMessage({ type: "init", value: "", ns: this.ns });
-    
-            if(msg.type == "interrupt" && this.evaluation)
-                this.evaluation.interrupt();
-            
-            if(msg.type == "read-line") {
-                this.evaluation = this.session.eval(msg.line, {
-                                stderr: m => this.panel.webview.postMessage({type: "stderr", value: m}),
-                                stdout: m => this.panel.webview.postMessage({type: "stdout", value: m})})
-                try {
-                    this.panel.webview.postMessage({type: "repl-response", value: await this.evaluation.value, ns: this.evaluation.ns || this.ns});
-                } catch(e) {
-                    this.panel.webview.postMessage({type: "repl-error", ex: e});
-                    let stacktrace = await this.session.stacktrace();
-                    this.panel.webview.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
+        this.initialized = new Promise((resolve, reject) => {
+            this.panel.webview.onDidReceiveMessage(async (msg) => {
+                if(msg.type == "init") {
+                    this.panel.webview.postMessage({ type: "init", value: "", ns: this.ns });
+                    resolve();
                 }
-                this.evaluation = null;
-            }
-    
-            if(msg.type == "goto-file") {
-                vscode.workspace.openTextDocument(vscode.Uri.parse(msg.file)).then(d =>  {
-                    let pos = new vscode.Position(msg.line-1, 0);
-                    vscode.window.showTextDocument(d, { viewColumn: vscode.ViewColumn.One, selection: new vscode.Range(pos, pos)})
-                })
-            }
+        
+                if(msg.type == "interrupt" && this.evaluation)
+                    this.evaluation.interrupt();
+                
+                if(msg.type == "read-line") {
+                    this.replEval(msg.line)
+                }
+        
+                if(msg.type == "goto-file") {
+                    vscode.workspace.openTextDocument(vscode.Uri.parse(msg.file)).then(d =>  {
+                        let pos = new vscode.Position(msg.line-1, 0);
+                        vscode.window.showTextDocument(d, { viewColumn: vscode.ViewColumn.One, selection: new vscode.Range(pos, pos)})
+                    })
+                }
+            })    
         })
 
         this.panel.onDidDispose(e => {
@@ -82,6 +75,24 @@ class REPLWindow {
 
     }
 
+    evaluate(ns: string, text: string) {
+        this.panel.webview.postMessage({ type: "do-eval", value: text, ns})
+    }
+
+    async replEval(line: string, ns?: string) {
+        this.evaluation = this.session.eval(line, {
+            stderr: m => this.panel.webview.postMessage({type: "stderr", value: m}),
+            stdout: m => this.panel.webview.postMessage({type: "stdout", value: m})})
+        try {
+            this.panel.webview.postMessage({type: "repl-response", value: await this.evaluation.value, ns: ns || this.evaluation.ns || this.ns});
+        } catch(e) {
+            this.panel.webview.postMessage({type: "repl-error", ex: e});
+            let stacktrace = await this.session.stacktrace();
+            this.panel.webview.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
+        }
+        this.evaluation = null;
+    }
+
     executeCommand(command: string) {
         this.panel.webview.postMessage({type: "ui-command", value: command});
     }
@@ -100,10 +111,10 @@ function getUrl(name?: string) {
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
     if(replWindows[mode]) {
-        replWindows[mode].panel.reveal();
+        replWindows[mode].panel.reveal(vscode.ViewColumn.Two, true);
         return replWindows[mode];
     }
-    
+
     let session = mode == "clj" ? cljSession : cljsSession;
     if(!session) {
         vscode.window.showErrorMessage("Not connected to nREPL");
@@ -111,9 +122,11 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
     }
 
     session = await session.clone();
-
-    const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
-    return replWindows[mode] = new REPLWindow(panel, session, mode);
+    let title = mode == "clj" ? "CLJ REPL" : "CLJS Repl";
+    const panel = vscode.window.createWebviewPanel("replInteractor", title, vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
+    let repl = replWindows[mode] = new REPLWindow(panel, session, mode);
+    await repl.initialized;
+    return repl;
 }
 
 export function activate(context: vscode.ExtensionContext) {

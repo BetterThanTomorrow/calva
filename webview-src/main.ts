@@ -119,6 +119,33 @@ window.addEventListener("keydown", e => {
     }
 })
 
+function renderReplResponse(ns: string, text: string) {
+    let div = document.createElement("div")
+    for(let tk of scanner.processLine(text)) {
+        let el = document.createElement("span");
+        el.className = tk.type;
+        el.textContent = tk.raw;
+        div.appendChild(el);
+        ns = ns;
+    }
+    con.printElement(div);
+}
+
+let originalText: string;
+let selectionStart: number;
+let selectionEnd: number;
+
+function restorePrompt() {
+    con.requestPrompt(ns+"=> ");
+    con.setText(originalText);
+    if(originalText) {
+        [con.readline.selectionStart, con.readline.selectionEnd] = [selectionStart, selectionEnd];
+        con.readline.repaint();
+        selectionStart = selectionEnd = 0;
+        originalText = null;
+    }
+}
+
 window.onmessage = (msg) => {   
     if(msg.data.type == "init") {
         ns = msg.data.ns;
@@ -131,29 +158,17 @@ window.onmessage = (msg) => {
     }
 
     if(msg.data.type == "repl-response") {
-        let div = document.createElement("div")
-        for(let tk of scanner.processLine(msg.data.value)) {
-            let el = document.createElement("span");
-            el.className = tk.type;
-            el.textContent = tk.raw;
-            div.appendChild(el);
-            ns = msg.data.ns;
-        }
-        con.printElement(div);
-        con.requestPrompt(ns+"=> ")
+        renderReplResponse(msg.data.ns, msg.data.value);
+        restorePrompt();
     }
 
     if(msg.data.type == "do-eval") {
         if(con.readline) {
-            let originalText = con.readline.model.getText(0, con.readline.model.maxOffset)
-            let [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
+            con.readline.promptElem.textContent = msg.data.ns+"=> ";
+            originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
+            [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
             con.setText(msg.data.value);
             con.submitLine(false);
-
-            con.requestPrompt(ns+"=> ");
-            con.setText(originalText);
-            [con.readline.selectionStart, con.readline.selectionEnd] = [selectionStart, selectionEnd];
-            con.readline.repaint();
         }
     }
 
@@ -162,7 +177,7 @@ window.onmessage = (msg) => {
         div.className = "error"
         div.textContent = msg.data.ex;
         con.printElement(div);
-        con.requestPrompt(ns+"=> ")
+        restorePrompt();
     }
 
     if(msg.data.type == "disconnected") {
@@ -176,6 +191,7 @@ window.onmessage = (msg) => {
         let exception = JSON.parse(msg.data.ex);
         let stackView = createStackTrace(exception);
         con.printElement(stackView);
+        restorePrompt();
     }
     
     if(msg.data.type == "stdout") {

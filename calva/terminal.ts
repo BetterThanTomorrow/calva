@@ -5,6 +5,7 @@ import evaluate from './repl/middleware/evaluate';
 import annotations from './providers/annotations';
 import select from './repl/middleware/select';
 import * as shadow from './shadow';
+import { openReplWindow } from './repl-window';
 
 const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
 const CONNECT_SHADOW_CLJS_CLJS_BUILD_REPL = 'npx shadow-cljs cljs-repl';
@@ -72,17 +73,20 @@ function loadNamespaceCommand(focus = true) {
     }
 }
 
-function sendTextToREPLTerminal(text, addNewline = false) {
-    let current = state.deref(),
-        chan = current.get('outputChannel'),
-        sessionType = util.getREPLSessionType(),
-        terminal = current.get(terminalSlug(sessionType));
-
-    if (terminal) {
-        terminal.sendText(text, addNewline);
-    }
-    else {
-        chan.appendLine("No REPL terminal found. Try reconnecting the REPL sessions.");
+async function sendTextToREPLTerminal(text, ns?: string) {
+    let wnd = await openReplWindow(util.getREPLSessionType());
+    if(wnd) {
+        let oldNs = wnd.ns;
+        if(ns && ns != oldNs)
+            await wnd.session.eval("(in-ns '"+ns+")").value;
+        try {
+            wnd.evaluate(ns || oldNs, text);
+            await wnd.replEval(text, oldNs);
+        } finally {
+            if(ns && ns != oldNs) {
+                await wnd.session.eval("(in-ns '"+oldNs+")").value;
+            }
+        }
     }
 }
 
@@ -92,17 +96,9 @@ function setREPLNamespace(reload = false) {
     if (reload) {
         evaluate.evaluateFile();
     }
-    sendTextToREPLTerminal("(in-ns '" + nameSpace + ")", true);
+    sendTextToREPLTerminal("(in-ns '" + nameSpace + ")");
 }
 
-function setREPLNamespaceCommand() {
-    let terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
-    if (terminal) {
-        terminal.show(true);
-        setREPLNamespace(false);
-        openREPLTerminal();
-    }
-}
 
 function evalCurrentFormInREPLTerminal(topLevel = false) {
     let editor = vscode.window.activeTextEditor,
@@ -110,7 +106,7 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
         selection = editor.selection,
         codeSelection = null,
         code = "";
-
+        
     if (selection.isEmpty) {
         codeSelection = select.getFormSelection(doc, selection.active, topLevel);
         annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.TERMINAL);
@@ -120,7 +116,7 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLTerminal(code, true)
+        sendTextToREPLTerminal(code, util.getNamespace(doc.getText()))
     }
     openREPLTerminal();
 }
@@ -140,7 +136,6 @@ export default {
     loadNamespace,
     loadNamespaceCommand,
     setREPLNamespace,
-    setREPLNamespaceCommand,
     evalCurrentFormInREPLTerminal,
     evalCurrentFormInREPLTerminalCommand,
     evalCurrentTopLevelFormInREPLTerminalCommand
