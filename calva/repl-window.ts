@@ -45,7 +45,7 @@ function getUrl(name?: string) {
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
-    const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Beside, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })
+    const panel = vscode.window.createWebviewPanel("replInteractor", "REPL Interactor", vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })
     let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
     html = html.replace("{{baseUri}}", getUrl())
     html = html.replace("{{script}}", getUrl("/main.js"))
@@ -75,6 +75,13 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
                 let stacktrace = await session.stacktrace();
                 panel.webview.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
             }
+        }
+
+        if(msg.type == "goto-file") {
+            vscode.workspace.openTextDocument(vscode.Uri.parse(msg.file)).then(d =>  {
+                let pos = new vscode.Position(msg.line-1, 0);
+                vscode.window.showTextDocument(d, { viewColumn: vscode.ViewColumn.One, selection: new vscode.Range(pos, pos)})
+            })
         }
     })      
 }

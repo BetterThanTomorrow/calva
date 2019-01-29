@@ -150,6 +150,9 @@
                 text-decoration: underline;
             }
 
+            .stacktrace {
+                cursor: default;
+            }
             .stacktrace.dup .toggle.dup {
                 color: #666;
             }
@@ -178,6 +181,14 @@
             }
             .show-ctrl > span {
                 padding: 0 16px;
+            }
+            .navigable:hover {
+                text-decoration: underline;
+                cursor: pointer;
+
+            }
+            .no-source {
+                opacity: 0.6;
             }
         </style>
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">

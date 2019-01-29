@@ -100,6 +100,13 @@ function createStackTrace(exception: any) {
             line.appendChild(td);
         }
         
+        if(x["file-url"] && x["file-url"].length) {
+            line.classList.add("navigable");
+            line.addEventListener("click", () => {
+                message.postMessage({ type: "goto-file", file: x["file-url"], line: x.line });
+            })
+        } else
+            line.classList.add("no-source")
 
         table.appendChild(line);
     }

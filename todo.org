@@ -25,16 +25,16 @@
     * DONE prompt for clj aliases
     * DONE prompt for lein profiles
     
-* TODO fix repl window to show stack traces <<<
+* DONE fix repl window to show stack traces
 * TODO add interrupt support to repl window
 * TODO make it clear that a repl window session has been disconnected.
 * TODO replace eval to terminal stuff with new repl stuff.
+* TODO Repl completions
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
 
-* TODO Superclass repl-interactor, so it becomes DocMirror.
 * TODO Move calva-fmt here.
+* TODO Superclass repl-interactor, so it becomes DocMirror.
 * TODO Select toplevel forms etc, should use DocMirror.
-* TODO Use our Paredit logic for calva proper.
-* TODO Repl completions
 * TODO Argument-based completions for vscode
+* TODO Use our Paredit logic for calva proper.

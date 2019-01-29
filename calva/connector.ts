@@ -172,7 +172,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
                 let repls = await findCljsRepls();
                 let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs repl to use", saveAs: "cljs-repl-type" });
                 if(!replType)
-                    return;
+                    return [null, null];
                 repl = repls.find(x => x.name == replType);
                 connectionChannel.appendLine("Connecting to "+repl.name);
                 initCode = await repl.connect();
