@@ -39,6 +39,51 @@
                 background-color: #f00;
             }
 
+            .completion {
+                position: absolute;
+                max-height: 256px;
+                width: 400px;
+                overflow: hidden;
+                font-family: Fira Code;
+                font-size: 10px;
+                background-color: #333;
+                border: solid 1px #888;
+                box-shadow: 5px 5px 5px rgba(0,0,0,0.16);
+                padding: 4px;
+            }
+
+            .completion .icon {
+                width: 20px;
+                text-align: center;
+                display: inline-block;
+                text-shadow: 0px  1px rgba(0,0,0,0),
+                             0px -1px rgba(0,0,0,0),
+                            -1px  0px rgba(0,0,0,0),
+                             1px  0px rgba(0,0,0,0);
+            }
+            
+            .completion .icon.ic-macro::before {
+                content: "m";
+                color: #f80;
+            }
+            
+            .completion .icon.ic-function::before {
+                content: "fn";
+                color: #f0f;
+            }
+            .completion .icon.ic-namespace::before {
+                content: "ns";
+                color: #080;
+            }
+            .completion .icon.ic-special-form::before {
+                content: "s";
+                color: #08A;
+            }
+
+            .completion .completed {
+                color: #38f;
+            }
+
             .caret {
                 position: absolute;
                 height: 14px;

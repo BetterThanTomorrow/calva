@@ -32,6 +32,11 @@ class REPLWindow {
                     this.postMessage({ type: "init", ns: this.ns });
                     resolve();
                 }
+
+                if(msg.type == "complete") {
+                    let result = await this.session.complete(this.ns, msg.symbol);
+                    this.postMessage({ type: "complete", data: result })
+                }
         
                 if(msg.type == "interrupt" && this.evaluation)
                     this.evaluation.interrupt();

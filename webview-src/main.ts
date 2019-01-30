@@ -8,8 +8,19 @@ let con = new ReplConsole(document.querySelector(".repl"), line => {
     message.postMessage({ type: "read-line", line: line})
 });
 
+let completionDiv = document.createElement("div");
+completionDiv.className = "completion";
+
+con.onRepaint = () => {
+    if(con.readline) {
+        completionDiv.style.visibility = "hidden"
+        message.postMessage({ type: "complete", symbol: con.readline.getTokenCursor().getPrevToken().raw})
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     con.input.focus();
+    document.body.appendChild(completionDiv);
 })
 
 
@@ -207,6 +218,36 @@ window.onmessage = (msg) => {
     
     if(msg.data.type == "stdout") {
         con.print(msg.data.value);
+    }
+
+    if(msg.data.type == "complete") {
+        while(completionDiv.firstChild)
+            completionDiv.removeChild(completionDiv.firstChild);
+
+        let currentText = con.readline.getTokenCursor().getPrevToken().raw;
+
+        for(let completion of msg.data.data.completions) {
+            let comp = document.createElement("div");
+
+            let icon = document.createElement("span");
+            icon.className = "icon ic-"+completion.type;
+
+            comp.appendChild(icon);
+
+            comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
+            comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
+
+
+
+            completionDiv.appendChild(comp);
+        }
+
+        if(msg.data.data.completions.length) {
+            let box = con.readline.getCaretOnScreen();
+            completionDiv.style.left = box.x + "px";
+            completionDiv.style.top = box.y-completionDiv.offsetHeight + "px";
+            completionDiv.style.visibility = "visible"
+        }
     }
 
     if(msg.data.type == "stderr") {

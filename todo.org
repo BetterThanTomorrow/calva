@@ -35,8 +35,9 @@
 * DONE repl focus needs to be made sane.
     * DONE hollow cursor when not focused.
     * DONE don't snatch focus away from selection
-* TODO update status.update() to show repl type when focused.
+* DONE update status.update() to show repl type when focused.
 * TODO Repl completions
+* TODO Preserve Repl history.
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
 
