@@ -17,13 +17,18 @@ export function activeReplWindow() {
 
 class REPLWindow {
     evaluation: NReplEvaluation;
+
     initialized: Promise<void>;
+
+    useBuffer = false;
+    buffer = [];
+
     constructor(public panel: vscode.WebviewPanel, public session: NReplSession, public type: "clj" | "cljs") {    
         vscode.commands.executeCommand("setContext", "calva:inRepl", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if(msg.type == "init") {
-                    this.panel.webview.postMessage({ type: "init", value: "", ns: this.ns });
+                    this.postMessage({ type: "init", value: "", ns: this.ns });
                     resolve();
                 }
         
@@ -48,11 +53,16 @@ class REPLWindow {
                 this.evaluation.interrupt();
             delete replWindows[this.type]
             this.session.close();
-            session.client.removeOnClose(this.onClose);
+            session.removeOnCloseHandler(this.onClose);
         })
 
         panel.onDidChangeViewState(e => {
+            this.useBuffer = !e.webviewPanel.visible;
             vscode.commands.executeCommand("setContext", "calva:inRepl", e.webviewPanel.active)
+            if(e.webviewPanel.visible) {
+                this.buffer.forEach(x => this.panel.webview.postMessage(x))
+                this.buffer = [];
+            }
         })
 
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
@@ -61,34 +71,48 @@ class REPLWindow {
         html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
 
-        this.init(session);
+        this.connect(session);
     }
 
-    onClose = () => this.panel.webview.postMessage({ type: "disconnected" });
+    postMessage(msg: any) {
+        if(this.useBuffer)
+            this.buffer.push(msg);
+        else
+            this.panel.webview.postMessage(msg)
+    }
+
+    onClose = () => 
+        this.postMessage({ type: "disconnected" });
+    
     ns: string = "user";
-    async init(session: NReplSession) {
+
+    /**
+     * Connects this repl window to the given session.
+     * 
+     * @param session the session to connect to this repl window
+     */
+    async connect(session: NReplSession) {
         this.session = session;
         let res = this.session.eval("*ns*");
         await res.value;
         this.ns = res.ns;
-        session.client.onClose(this.onClose);
-
+        session.addOnCloseHandler(this.onClose);
     }
 
     evaluate(ns: string, text: string) {
-        this.panel.webview.postMessage({ type: "do-eval", value: text, ns})
+        this.postMessage({ type: "do-eval", value: text, ns})
     }
 
     async replEval(line: string, ns?: string) {
         this.evaluation = this.session.eval(line, {
-            stderr: m => this.panel.webview.postMessage({type: "stderr", value: m}),
-            stdout: m => this.panel.webview.postMessage({type: "stdout", value: m})})
+            stderr: m => this.postMessage({type: "stderr", value: m}),
+            stdout: m => this.postMessage({type: "stdout", value: m})})
         try {
-            this.panel.webview.postMessage({type: "repl-response", value: await this.evaluation.value, ns: ns || this.evaluation.ns || this.ns});
+            this.postMessage({type: "repl-response", value: await this.evaluation.value, ns: ns || this.evaluation.ns || this.ns});
         } catch(e) {
-            this.panel.webview.postMessage({type: "repl-error", ex: e});
+            this.postMessage({type: "repl-error", ex: e});
             let stacktrace = await this.session.stacktrace();
-            this.panel.webview.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
+            this.postMessage({type: "repl-ex", ex: JSON.stringify(stacktrace)});
         }
         this.evaluation = null;
     }
@@ -107,6 +131,13 @@ function getUrl(name?: string) {
         return vscode.Uri.file(path.join(ctx.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
     else
         return vscode.Uri.file(path.join(ctx.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
+}
+
+export async function reconnectRepl(mode: "clj" | "cljs", session: NReplSession) {
+    if(replWindows[mode]) {
+        await replWindows[mode].connect(session)
+        replWindows[mode].postMessage({ type: "reconnected", ns: replWindows[mode].ns });
+    }
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj") {

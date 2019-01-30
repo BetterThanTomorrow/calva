@@ -7,6 +7,7 @@ import * as shadow from "./shadow"
 import status from './status';
 
 import { NReplClient, NReplSession } from "./nrepl";
+import { reconnectRepl } from './repl-window';
 
 function nreplPortFile() {
     if (fs.existsSync(shadow.shadowNReplPortFile()))
@@ -40,7 +41,7 @@ async function connectToHost(hostname, port) {
         chan.appendLine("Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
         nClient = await NReplClient.create({ host: hostname, port: +port})
-        nClient.onClose(c => {
+        nClient.addOnCloseHandler(c => {
             state.cursor.set("connected", false);
             state.cursor.set("connecting", false);
             if(!c["silent"]) // we didn't deliberately close this session, mention this fact.
@@ -49,6 +50,7 @@ async function connectToHost(hostname, port) {
         })
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
+        reconnectRepl("clj", cljSession);
         
         state.cursor.set("connected", true);
         state.cursor.set("connecting", false);
@@ -60,7 +62,7 @@ async function connectToHost(hostname, port) {
         //terminal.createREPLTerminal('clj', null, chan);
 
         let [cljsSession, shadowBuild] = await makeCljsSessionClone(cljSession, null);
-        if (cljsSession)
+        if (cljsSession) 
             setUpCljsRepl(cljsSession, chan, shadowBuild);
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
         //evaluate.evaluateFile();
@@ -92,6 +94,7 @@ async function connectToHost(hostname, port) {
 function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
+    reconnectRepl("cljs", cljsSession);
     //terminal.createREPLTerminal('cljs', shadowBuild, chan);
     status.update();
 }

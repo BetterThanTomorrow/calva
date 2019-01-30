@@ -185,6 +185,17 @@ window.onmessage = (msg) => {
         div.className = "error";
         div.textContent = "REPL disconnected."
         con.printElement(div);
+        ns = msg.data.ns;
+        con.readline.freeze()
+    }
+
+    if(msg.data.type == "reconnected") {
+        let div = document.createElement("div");
+        ns = msg.data.ns;
+        div.className = "winnage";
+        div.textContent = "REPL reconnected."
+        con.printElement(div);
+        restorePrompt();
     }
 
     if(msg.data.type == "repl-ex") {

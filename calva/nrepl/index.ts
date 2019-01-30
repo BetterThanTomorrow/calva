@@ -28,24 +28,28 @@ export class NReplClient {
         this.socket = socket;
         this.socket.on("error", e => {
             console.error(e)
-            this.closeHandlers.forEach(x => x(this));
         })
         this.socket.on("close", e => {
             console.log("Socket closed")
-            this.closeHandlers.forEach(x => x(this));
+            this._closeHandlers.forEach(x => x(this));
+            for(let x in this.sessions) {
+                this.sessions[x]._onCloseHandlers.forEach(s => s(this.sessions[x]))
+            }
         })
         this.encoder.pipe(this.socket);
         this.socket.pipe(this.decoder);
     }
 
-    private closeHandlers: ((c: NReplClient) => void)[] = []
-    onClose(fn: (c: NReplClient) => void) {
-        this.closeHandlers.push(fn);
+    private _closeHandlers: ((c: NReplClient) => void)[] = []
+    addOnCloseHandler(fn: (c: NReplClient) => void) {
+        if(this._closeHandlers.indexOf(fn) == -1)
+            this._closeHandlers.push(fn);
     }
 
-    removeOnClose(fn: (c: NReplClient) => void) {
-        if(this.closeHandlers.indexOf(fn) != -1)
-            this.closeHandlers.splice(this.closeHandlers.indexOf(fn), 1);
+    removeOnCloseHandler(fn: (c: NReplClient) => void) {
+        let idx = this._closeHandlers.indexOf(fn);
+        if(idx != -1)
+            this._closeHandlers.splice(idx, 1);
     }
 
     /**
@@ -109,6 +113,19 @@ export class NReplClient {
 }
 
 export class NReplSession {
+    public _onCloseHandlers: ((c: NReplSession) => void)[] = [];
+
+    addOnCloseHandler(fn: (c: NReplSession) => void) {
+        if(this._onCloseHandlers.indexOf(fn) == -1)
+            this._onCloseHandlers.push(fn);
+    }
+
+    removeOnCloseHandler(fn: (c: NReplSession) => void) {
+        let idx = this._onCloseHandlers.indexOf(fn);
+        if(idx != -1)
+            this._onCloseHandlers.splice(idx, 1);
+    }
+
     constructor(public sessionId: string, public client: NReplClient) {
         client.sessions[sessionId] = this;
     }
@@ -118,6 +135,7 @@ export class NReplSession {
     close() {
         this.client.write({ op: "close", session: this.sessionId })
         delete this.client.sessions[this.sessionId]
+        this._onCloseHandlers.forEach(x => x(this));
     }
 
     async clone() {
