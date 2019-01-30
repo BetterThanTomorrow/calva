@@ -143,7 +143,6 @@ export class NReplSession {
             let id = this.client.nextId;
             this.messageHandlers[id] = (msg) => {
                 let sess = new NReplSession(msg["new-session"], this.client);
-                sess.eval("(in-ns '"+this.client.ns+")").value;
                 resolve(sess);
                 return true;
             }

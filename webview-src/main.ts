@@ -137,8 +137,8 @@ let selectionEnd: number;
 
 function restorePrompt() {
     con.requestPrompt(ns+"=> ");
-    con.setText(originalText);
     if(originalText) {
+        con.setText(originalText);
         [con.readline.selectionStart, con.readline.selectionEnd] = [selectionStart, selectionEnd];
         con.readline.repaint();
         selectionStart = selectionEnd = 0;
