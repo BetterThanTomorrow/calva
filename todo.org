@@ -29,11 +29,13 @@
 * DONE add interrupt support to repl window
 * DONE make it clear that a repl window session has been disconnected.
 * DONE replace eval to terminal stuff with new repl stuff.
-* TODO re-connect repl window session when reconnected.
+* DONE re-connect repl window session when reconnected.
     * DONE support session disconnection messages - route them to the right window.
     * DONE webviews do not receive postMessages when not in the foreground. buffer them and blast them when it focuses.
-    * TODO was the session disconnected abruptly? can re-join the old session if it is still running on the host.
-* TODO repl focus needs to be made sane.
+* DONE repl focus needs to be made sane.
+    * DONE hollow cursor when not focused.
+    * DONE don't snatch focus away from selection
+
 * TODO Repl completions
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
