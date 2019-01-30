@@ -119,14 +119,14 @@ window.addEventListener("keydown", e => {
     }
 })
 
-function renderReplResponse(ns: string, text: string) {
+function renderReplResponse(newNs: string, text: string) {
     let div = document.createElement("div")
     for(let tk of scanner.processLine(text)) {
         let el = document.createElement("span");
         el.className = tk.type;
         el.textContent = tk.raw;
         div.appendChild(el);
-        ns = ns;
+        ns = newNs;
     }
     con.printElement(div);
 }
