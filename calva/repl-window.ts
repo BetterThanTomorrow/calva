@@ -28,7 +28,7 @@ class REPLWindow {
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if(msg.type == "init") {
-                    this.postMessage({ type: "init", value: "", ns: this.ns });
+                    this.postMessage({ type: "init", ns: this.ns });
                     resolve();
                 }
         
@@ -108,7 +108,7 @@ class REPLWindow {
             stderr: m => this.postMessage({type: "stderr", value: m}),
             stdout: m => this.postMessage({type: "stdout", value: m})})
         try {
-            this.postMessage({type: "repl-response", value: await this.evaluation.value, ns: ns || this.evaluation.ns || this.ns});
+            this.postMessage({type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns});
         } catch(e) {
             this.postMessage({type: "repl-error", ex: e});
             let stacktrace = await this.session.stacktrace();
