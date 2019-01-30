@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import * as state from './state';
 import * as fs from 'fs';
 import { NReplSession } from './nrepl';
+import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
 
 export function stripAnsi(str: string) {
@@ -267,15 +268,21 @@ function updateREPLSessionType() {
         fileType = getFileType(doc);
 
     if (current.get('connected')) {
-        if (fileType == 'cljs' && getSession('cljs') !== null) {
-            state.cursor.set('current-session-type', 'cljs');
-        } else if (fileType == 'clj' && getSession('clj') !== null) {
-            state.cursor.set('current-session-type', 'clj');
-        } else if (fileType == 'cljc' && getSession('cljc') !== null) {
-            state.cursor.set('current-session-type', getSession('cljc') == getSession('clj') ? 'clj' : 'cljs');
-        } else {
-            state.cursor.set('current-session-type', 'clj');
-        }
+        let sessionType: string;
+
+        let repl = activeReplWindow();
+        if(repl)
+            sessionType = repl.type;
+        else if (fileType == 'cljs' && getSession('cljs') !== null)
+            sessionType = 'cljs'
+        else if (fileType == 'clj' && getSession('clj') !== null)
+            sessionType = 'clj'
+        else if (fileType == 'cljc' && getSession('cljc') !== null)
+            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
+        else
+            sessionType = 'clj'
+            
+        state.cursor.set('current-session-type', sessionType);
     } else {
         state.cursor.set('current-session-type', null);
     }

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as fs from "fs";
+import status from "./status"
 import { readFileSync } from "fs";
 import { NReplEvaluation, NReplSession } from "./nrepl";
 
@@ -59,10 +60,12 @@ class REPLWindow {
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
             vscode.commands.executeCommand("setContext", "calva:inRepl", e.webviewPanel.active)
+            
             if(e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
                 this.buffer = [];
             }
+            status.update();
         })
 
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
