@@ -14,7 +14,12 @@ completionDiv.className = "completion";
 con.onRepaint = () => {
     if(con.readline) {
         completionDiv.style.visibility = "hidden"
-        message.postMessage({ type: "complete", symbol: con.readline.getTokenCursor().getPrevToken().raw})
+        let context = con.readline.model.getText(0, con.readline.model.maxOffset);
+        let pos = con.readline.getTokenCursor().previous();
+
+        context = context.substring(0, pos.offsetStart)+"__prefix__"+context.substring(pos.offsetEnd);
+
+        message.postMessage({ type: "complete", symbol: pos.getToken().raw, context})
     }
 }
 

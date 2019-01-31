@@ -34,7 +34,7 @@ class REPLWindow {
                 }
 
                 if(msg.type == "complete") {
-                    let result = await this.session.complete(this.ns, msg.symbol);
+                    let result = await this.session.complete(this.ns, msg.symbol, msg.context);
                     this.postMessage({ type: "complete", data: result })
                 }
         

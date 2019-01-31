@@ -266,14 +266,14 @@ export class NReplSession {
         return evaluation;
     }
 
-    complete(ns: string, symbol: string) {
+    complete(ns: string, symbol: string, context?: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId})
+            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId, context})
         })
     }
 
