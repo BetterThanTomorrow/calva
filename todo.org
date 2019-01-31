@@ -36,11 +36,14 @@
     * DONE hollow cursor when not focused.
     * DONE don't snatch focus away from selection
 * DONE update status.update() to show repl type when focused.
-* TODO Repl completions
+* DONE Repl completions
     * DONE context!
     * DONE up/down navigate completion
     * DONE tab complete
     * DONE documentation
+    * DONE PageUp/PageDown in completion pane
+    * DONE Only show completions on type or Ctrl+Space (repl-interactor support)
+* DONE Use tonsky font in project, don't use cdn...
 * TODO Preserve Repl history.
 * TODO clj/cljs status notification bugged with webviews because vscode is buggy.
 * DONE Open new cljs repl

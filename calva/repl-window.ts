@@ -81,6 +81,7 @@ class REPLWindow {
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
         html = html.replace("{{baseUri}}", getUrl())
         html = html.replace("{{script}}", getUrl("/main.js"))
+        html = html.replace("{{font}}", getUrl("/fira_code.css"))
         html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
 

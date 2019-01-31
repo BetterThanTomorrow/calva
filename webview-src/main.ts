@@ -1,5 +1,6 @@
 import { ReplConsole } from "@calva/repl-interactor";
 import * as lexer from "@calva/repl-interactor/js/clojure-lexer"
+import { isRegExp } from "util";
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
 
@@ -14,20 +15,26 @@ completionDiv.className = "completion";
 let docDiv = document.createElement("div");
 docDiv.className = "documentation";
 
-con.onRepaint = () => {
-    if(con.readline) {
-        let context = con.readline.model.getText(0, con.readline.model.maxOffset);
-        let pos = con.readline.getTokenCursor().previous();
-        if(pos.withinWhitespace()) {
-            if(pos.backwardList()) {
-                message.postMessage({ type: "info", ns: ns, symbol: pos.getToken().raw});
+con.addCompletionListener(e => {
+    if(e.type == "show") {
+        if(con.readline) {
+            let context = con.readline.model.getText(0, con.readline.model.maxOffset);
+            let pos = con.readline.getTokenCursor().previous();
+            if(pos.withinWhitespace()) {
+                if(pos.backwardList()) {
+                    message.postMessage({ type: "info", ns: ns, symbol: pos.getToken().raw});
+                }
+            } else {
+                context = context.substring(0, pos.offsetStart)+"__prefix__"+context.substring(pos.offsetEnd);
+                message.postMessage({ type: "complete", symbol: pos.getToken().raw, context})
             }
-        } else {
-            context = context.substring(0, pos.offsetStart)+"__prefix__"+context.substring(pos.offsetEnd);
-            message.postMessage({ type: "complete", symbol: pos.getToken().raw, context})
         }
+    } else if(e.type == "clear") {
+        docDiv.style.visibility = "hidden";
+        completionDiv.style.visibility = "hidden";
+        completions = [];
     }
-}
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     con.input.focus();
@@ -136,6 +143,14 @@ function createStackTrace(exception: any) {
     return div;
 }
 
+function setCompletionIndex(idx: number) {
+    completionDiv.children.item(selectedCompletion).classList.remove("active");
+    selectedCompletion = idx;
+    completionDiv.children.item(selectedCompletion).classList.add("active");
+    completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
+    message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});            
+}
+
 window.addEventListener("keydown", e => {
     if(e.keyCode == 68 && e.ctrlKey) {
         message.postMessage({ type: "interrupt" });
@@ -143,24 +158,44 @@ window.addEventListener("keydown", e => {
     //// Handle completion popup
     if(completions.length) {
         if(e.keyCode == 38) { // upArrow
-            completionDiv.children.item(selectedCompletion).classList.remove("active");
-            selectedCompletion--;
-            if(selectedCompletion < 0)
-                selectedCompletion = completions.length-1;
-            completionDiv.children.item(selectedCompletion).classList.add("active");
-            completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
+            let n = selectedCompletion-1;
+            if(n < 0)
+                n = completions.length-1;
+            setCompletionIndex(n);
             e.stopImmediatePropagation()
             e.preventDefault();
-            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});            
         }
         if(e.keyCode == 40) { // upArrow
-            completionDiv.children.item(selectedCompletion).classList.remove("active");
-            selectedCompletion = (selectedCompletion+1) % completions.length;
-            completionDiv.children.item(selectedCompletion).classList.add("active");
-            completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
+            setCompletionIndex((selectedCompletion+1) % completions.length);
             e.stopImmediatePropagation()
             e.preventDefault();
-            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});
+        }
+        if(e.keyCode == 34) { // page up
+            setCompletionIndex(Math.min((selectedCompletion+21), completions.length-1));
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }
+        if(e.keyCode == 33) { // page down
+            setCompletionIndex(Math.max((selectedCompletion-21), 0));
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }
+        if(e.keyCode == 36) { // home
+            setCompletionIndex(0);
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }
+        if(e.keyCode == 35) { // end
+            setCompletionIndex(completions.length-1);
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }
+        if(e.keyCode == 27 && completions.length) {
+            docDiv.style.visibility = "hidden";
+            completionDiv.style.visibility = "hidden";
+            completions = [];            
+            e.stopImmediatePropagation()
+            e.preventDefault();            
         }
         if(e.keyCode == 9) { // tab
             let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
@@ -172,6 +207,12 @@ window.addEventListener("keydown", e => {
             con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
             con.readline.repaint();
         }
+    } else {
+        if(e.keyCode == 0x20 && e.ctrlKey) {
+            con.readline.maybeShowCompletion();
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }        
     }
 }, { capture: true, passive: false })
 
