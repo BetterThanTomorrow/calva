@@ -11,18 +11,28 @@ let con = new ReplConsole(document.querySelector(".repl"), line => {
 let completionDiv = document.createElement("div");
 completionDiv.className = "completion";
 
+let docDiv = document.createElement("div");
+docDiv.className = "documentation";
+
 con.onRepaint = () => {
     if(con.readline) {
         let context = con.readline.model.getText(0, con.readline.model.maxOffset);
         let pos = con.readline.getTokenCursor().previous();
-        context = context.substring(0, pos.offsetStart)+"__prefix__"+context.substring(pos.offsetEnd);
-        message.postMessage({ type: "complete", symbol: pos.getToken().raw, context})
+        if(pos.withinWhitespace()) {
+            if(pos.backwardList()) {
+                message.postMessage({ type: "info", ns: ns, symbol: pos.getToken().raw});
+            }
+        } else {
+            context = context.substring(0, pos.offsetStart)+"__prefix__"+context.substring(pos.offsetEnd);
+            message.postMessage({ type: "complete", symbol: pos.getToken().raw, context})
+        }
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     con.input.focus();
     document.body.appendChild(completionDiv);
+    document.body.appendChild(docDiv);
 })
 
 
@@ -141,6 +151,7 @@ window.addEventListener("keydown", e => {
             completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
             e.stopImmediatePropagation()
             e.preventDefault();
+            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});            
         }
         if(e.keyCode == 40) { // upArrow
             completionDiv.children.item(selectedCompletion).classList.remove("active");
@@ -149,15 +160,16 @@ window.addEventListener("keydown", e => {
             completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
             e.stopImmediatePropagation()
             e.preventDefault();
+            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});
         }
         if(e.keyCode == 9) { // tab
             let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
             let start = tk.offsetStart
             let end = tk.offsetEnd;
             con.readline.withUndo(() => {
-                con.readline.model.changeRange(start, end, completions[selectedCompletion]+" ");
+                con.readline.model.changeRange(start, end, completions[selectedCompletion]);
             });
-            con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length+1;
+            con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
             con.readline.repaint();
         }
     }
@@ -227,10 +239,55 @@ function updateCompletion(msg: any) {
         completionDiv.style.top = box.y-completionDiv.offsetHeight + "px";
         completionDiv.style.visibility = "visible"
         completionDiv.firstElementChild.classList.add("active");
+        message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});
     } else {
         completionDiv.style.visibility = "hidden"
+        docDiv.style.visibility = "hidden"
     }
-    
+}
+/**
+ * Update the documentation popup
+ * @param msg the message
+ */
+function updateDoc(msg: any) {
+    while(docDiv.firstChild)
+        docDiv.removeChild(docDiv.firstChild);
+    if(msg.data.name) {
+        let nameDiv = document.createElement("div");
+        nameDiv.className = "name";
+        nameDiv.textContent = msg.data.name + " " + (msg.data.macro ? " (macro)" : msg.data.function ? "(function)" : msg.data["special-form"] ? "(special form)" : "");
+        docDiv.appendChild(nameDiv);
+
+        if(msg.data["arglists-str"]) {
+            for(let argList of msg.data["arglists-str"].split('\n')) {
+                let argLine = document.createElement("div");
+                argLine.className = "arglist";
+                argLine.textContent = argList;
+                docDiv.appendChild(argLine);
+            }
+        } else if(msg.data["forms-str"]) {
+            for(let argList of msg.data["forms-str"].split('\n')) {
+                let argLine = document.createElement("div");
+                argLine.className = "arglist";
+                argLine.textContent = argList;
+                docDiv.appendChild(argLine);
+            }
+        }
+
+        let docLine = document.createElement("div");
+        docLine.className = "docstring";
+        docLine.textContent = msg.data.doc;
+
+        docDiv.appendChild(docLine);
+        let extra = completionDiv.style.visibility == "visible" ? completionDiv.offsetWidth : 0;
+        let box = con.readline.getCaretOnScreen();
+        docDiv.style.left = box.x + extra + "px";
+        docDiv.style.top = box.y-docDiv.offsetHeight + "px";
+        docDiv.style.visibility = "visible"
+        docDiv.firstElementChild.classList.add("active");
+    } else {
+        docDiv.style.visibility = "hidden"
+    }
 }
 
 window.onmessage = (msg) => {   
@@ -290,6 +347,10 @@ window.onmessage = (msg) => {
         let stackView = createStackTrace(exception);
         con.printElement(stackView);
         restorePrompt();
+    }
+
+    if(msg.data.type == "info") {
+        updateDoc(msg.data);
     }
     
     if(msg.data.type == "stdout") {

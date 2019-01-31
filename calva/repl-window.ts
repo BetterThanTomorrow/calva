@@ -51,7 +51,12 @@ class REPLWindow {
                         vscode.window.showTextDocument(d, { viewColumn: vscode.ViewColumn.One, selection: new vscode.Range(pos, pos)})
                     })
                 }
-            })    
+
+                if(msg.type == "info") {
+                    let result = await this.session.info(msg.ns, msg.symbol);
+                    this.postMessage({ type: "info", data: result });
+                }
+            })
         })
 
         this.panel.onDidDispose(e => {

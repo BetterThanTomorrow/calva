@@ -39,10 +39,39 @@
                 background-color: #f00;
             }
 
+            .documentation {
+                position: absolute;
+                max-width: 400px;
+                overflow-y: scroll;
+                font-family: sans-serif;
+                font-size: 10px;
+                background-color: #333;
+                border: solid 1px #888;
+                box-shadow: 5px 5px 5px rgba(0,0,0,0.16);
+                padding: 4px;
+                visibility: hidden;
+                white-space: pre-wrap;
+                max-height: 300px;
+            }
+
+            .documentation .name, .documentation .arglist {
+                font-family: Fira Code;
+                white-space: pre-wrap;
+                padding-bottom: 8px;
+            }
+
+            .documentation .name {
+                color: #ff0;
+            }
+
+            .documentation .arglist {
+                color: #888;
+            }
+
             .completion {
                 position: absolute;
                 max-height: 256px;
-                width: 400px;
+                width: 200px;
                 overflow: hidden;
                 font-family: Fira Code;
                 font-size: 10px;

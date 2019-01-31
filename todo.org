@@ -40,7 +40,7 @@
     * DONE context!
     * DONE up/down navigate completion
     * DONE tab complete
-    * TODO function documentation + argpos
+    * DONE documentation
 * TODO Preserve Repl history.
 * TODO clj/cljs status notification bugged with webviews because vscode is buggy.
 * DONE Open new cljs repl
