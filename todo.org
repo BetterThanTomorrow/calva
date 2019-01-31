@@ -38,8 +38,8 @@
 * DONE update status.update() to show repl type when focused.
 * TODO Repl completions
     * DONE context!
-    * TODO up/down navigate completion
-    * TODO tab complete
+    * DONE up/down navigate completion
+    * DONE tab complete
     * TODO function documentation + argpos
 * TODO Preserve Repl history.
 * TODO clj/cljs status notification bugged with webviews because vscode is buggy.

@@ -13,12 +13,9 @@ completionDiv.className = "completion";
 
 con.onRepaint = () => {
     if(con.readline) {
-        completionDiv.style.visibility = "hidden"
         let context = con.readline.model.getText(0, con.readline.model.maxOffset);
         let pos = con.readline.getTokenCursor().previous();
-
         context = context.substring(0, pos.offsetStart)+"__prefix__"+context.substring(pos.offsetEnd);
-
         message.postMessage({ type: "complete", symbol: pos.getToken().raw, context})
     }
 }
@@ -133,7 +130,38 @@ window.addEventListener("keydown", e => {
     if(e.keyCode == 68 && e.ctrlKey) {
         message.postMessage({ type: "interrupt" });
     }
-})
+    //// Handle completion popup
+    if(completions.length) {
+        if(e.keyCode == 38) { // upArrow
+            completionDiv.children.item(selectedCompletion).classList.remove("active");
+            selectedCompletion--;
+            if(selectedCompletion < 0)
+                selectedCompletion = completions.length-1;
+            completionDiv.children.item(selectedCompletion).classList.add("active");
+            completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }
+        if(e.keyCode == 40) { // upArrow
+            completionDiv.children.item(selectedCompletion).classList.remove("active");
+            selectedCompletion = (selectedCompletion+1) % completions.length;
+            completionDiv.children.item(selectedCompletion).classList.add("active");
+            completionDiv.children.item(selectedCompletion).scrollIntoView({ block: "nearest" });
+            e.stopImmediatePropagation()
+            e.preventDefault();
+        }
+        if(e.keyCode == 9) { // tab
+            let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
+            let start = tk.offsetStart
+            let end = tk.offsetEnd;
+            con.readline.withUndo(() => {
+                con.readline.model.changeRange(start, end, completions[selectedCompletion]+" ");
+            });
+            con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length+1;
+            con.readline.repaint();
+        }
+    }
+}, { capture: true, passive: false })
 
 function renderReplResponse(newNs: string, text: string) {
     let div = document.createElement("div")
@@ -160,6 +188,49 @@ function restorePrompt() {
         selectionStart = selectionEnd = 0;
         originalText = null;
     }
+}
+
+let completions: string[] = [];
+let selectedCompletion: number;
+
+function updateCompletion(msg: any) {
+    while(completionDiv.firstChild)
+        completionDiv.removeChild(completionDiv.firstChild);
+
+    let currentText = con.readline.getTokenCursor().getPrevToken().raw;
+    completions = [];
+    selectedCompletion = 0;
+
+    msg.data.data.completions.sort((x, y) => {
+        if(x.candidate < y.candidate)
+            return -1;
+        if(x.candidate > y.candidate)
+            return 1;
+        return 0;
+    })
+
+    for(let completion of msg.data.data.completions) {
+        let comp = document.createElement("div");
+        completions.push(completion.candidate);
+        let icon = document.createElement("span");
+        icon.className = "icon ic-"+completion.type; // nice to actually have icons but this is better than nothing.
+        comp.appendChild(icon);
+        comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
+        comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
+
+        completionDiv.appendChild(comp);
+    }
+
+    if(msg.data.data.completions.length) {
+        let box = con.readline.getCaretOnScreen();
+        completionDiv.style.left = box.x + "px";
+        completionDiv.style.top = box.y-completionDiv.offsetHeight + "px";
+        completionDiv.style.visibility = "visible"
+        completionDiv.firstElementChild.classList.add("active");
+    } else {
+        completionDiv.style.visibility = "hidden"
+    }
+    
 }
 
 window.onmessage = (msg) => {   
@@ -226,33 +297,7 @@ window.onmessage = (msg) => {
     }
 
     if(msg.data.type == "complete") {
-        while(completionDiv.firstChild)
-            completionDiv.removeChild(completionDiv.firstChild);
-
-        let currentText = con.readline.getTokenCursor().getPrevToken().raw;
-
-        for(let completion of msg.data.data.completions) {
-            let comp = document.createElement("div");
-
-            let icon = document.createElement("span");
-            icon.className = "icon ic-"+completion.type;
-
-            comp.appendChild(icon);
-
-            comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
-            comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
-
-
-
-            completionDiv.appendChild(comp);
-        }
-
-        if(msg.data.data.completions.length) {
-            let box = con.readline.getCaretOnScreen();
-            completionDiv.style.left = box.x + "px";
-            completionDiv.style.top = box.y-completionDiv.offsetHeight + "px";
-            completionDiv.style.visibility = "visible"
-        }
+        updateCompletion(msg);
     }
 
     if(msg.data.type == "stderr") {
