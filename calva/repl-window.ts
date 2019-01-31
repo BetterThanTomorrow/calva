@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as fs from "fs";
+import * as state from "./state";
 import status from "./status"
 import { readFileSync } from "fs";
 import { NReplEvaluation, NReplSession } from "./nrepl";
@@ -29,8 +30,14 @@ class REPLWindow {
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if(msg.type == "init") {
-                    this.postMessage({ type: "init", ns: this.ns });
+                    this.postMessage({ type: "init", ns: this.ns, history: state.extensionContext.workspaceState.get(this.type+"-history") || [] });
                     resolve();
+                }
+
+                if(msg.type == "history") {
+                    let history = (state.extensionContext.workspaceState.get(this.type+"-history") || []) as Array<string>;
+                    history.push(msg.line);
+                    state.extensionContext.workspaceState.update(this.type+"-history", history);
                 }
 
                 if(msg.type == "complete") {

@@ -1,6 +1,6 @@
 import { ReplConsole } from "@calva/repl-interactor";
 import * as lexer from "@calva/repl-interactor/js/clojure-lexer"
-import { isRegExp } from "util";
+
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
 
@@ -14,6 +14,9 @@ completionDiv.className = "completion";
 
 let docDiv = document.createElement("div");
 docDiv.className = "documentation";
+con.addHistoryListener(line => {
+    message.postMessage({type: "history", line})
+})
 
 con.addCompletionListener(e => {
     if(e.type == "show") {
@@ -334,6 +337,7 @@ function updateDoc(msg: any) {
 window.onmessage = (msg) => {   
     if(msg.data.type == "init") {
         ns = msg.data.ns;
+        con.setHistory(msg.data.history);
         con.requestPrompt(ns + "=> ")
     }
 
