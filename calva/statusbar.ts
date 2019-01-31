@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
 import * as shadow_util from './shadow';
+import { activeReplWindow } from './repl-window';
 
 
 const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -34,7 +35,7 @@ function update() {
         connection.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connection.command = "calva.connect";
         type.color = "rgb(145,220,71)";
-        if (fileType == 'cljc' && util.getREPLSessionType() !== null) {
+        if (fileType == 'cljc' && util.getREPLSessionType() !== null && !activeReplWindow()) {
             type.text = "cljc/" + util.getREPLSessionType()
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
                 type.command = "calva.toggleCLJCSession";

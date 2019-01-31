@@ -45,7 +45,7 @@
     * DONE Only show completions on type or Ctrl+Space (repl-interactor support)
 * DONE Use tonsky font in project, don't use cdn...
 * DONE Preserve Repl history.
-* TODO clj/cljs status notification bugged with webviews because vscode is buggy.
+* DONE clj/cljs status notification bugged with webviews because vscode is buggy.
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
 
