@@ -172,7 +172,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
         let repl: ReplType;
         if(newCljsSession) {
             let chan = state.deref().get('outputChannel');
-            chan.clear();
+            //chan.clear();
             chan.show(true);
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
             if(!shadowBuild) {
