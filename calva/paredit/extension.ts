@@ -3,6 +3,7 @@ import { StatusBar } from './status_bar';
 import * as utils from './utils';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
+import * as state from "../state";
 
 let paredit = require('paredit.js');
 
@@ -256,7 +257,13 @@ export function activate(context: ExtensionContext) {
             .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
         ...pareditCommands
             .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))));
+    updatePareditEnabled()
 }
 
 export function deactivate() {
+}
+
+export function updatePareditEnabled() {
+    let enabled = activeReplWindow() || (window.activeTextEditor && window.activeTextEditor.document.languageId == "clojure");
+    commands.executeCommand("setContext", "calva:pareditValid", enabled);
 }

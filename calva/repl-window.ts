@@ -26,7 +26,7 @@ class REPLWindow {
     buffer = [];
 
     constructor(public panel: vscode.WebviewPanel, public session: NReplSession, public type: "clj" | "cljs") {    
-        vscode.commands.executeCommand("setContext", "calva:inRepl", true)
+        vscode.commands.executeCommand("setContext", "calva:pareditValid", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if(msg.type == "init") {
@@ -76,7 +76,7 @@ class REPLWindow {
 
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
-            vscode.commands.executeCommand("setContext", "calva:inRepl", e.webviewPanel.active)
+            vscode.commands.executeCommand("setContext", "calva:pareditValid", e.webviewPanel.active)
             
             if(e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
