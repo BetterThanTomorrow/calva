@@ -154,6 +154,21 @@ function setCompletionIndex(idx: number) {
     message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion]});            
 }
 
+let dontFocus = false;
+
+window.addEventListener("mousedown", e => {
+    dontFocus = false;
+})
+window.addEventListener("mouseup", e => {
+    if(!dontFocus)
+        con.input.focus();
+})
+
+document.addEventListener("selectionchange", e => {
+    if(document.getSelection().rangeCount != 0)
+        dontFocus = true;
+    
+})
 window.addEventListener("keydown", e => {
     if(e.keyCode == 68 && e.ctrlKey) {
         message.postMessage({ type: "interrupt" });

@@ -110,12 +110,13 @@ let cljsReplTypes: ReplType[] = [
         name: "Figwheel Main",
         ns: "figwheel.main",
         connect: async () => {
+            let chan = state.deref().get('outputChannel');
             let res = fs.readdirSync(util.getProjectDir());
             let projects = res.filter(x => x.match(/.cljs.edn/));
             if(projects.length == 0) {
                 vscode.window.showErrorMessage("There are no figwheel project files (.cljs.en) in the project directory.")
-                connectionChannel.appendLine("There are no figwheel project files (.cljs.en) in the project directory.");
-                connectionChannel.appendLine("Connection to Figwheel Main aborted.");
+                chan.appendLine("There are no figwheel project files (.cljs.en) in the project directory.");
+                chan.appendLine("Connection to Figwheel Main aborted.");
                 throw "Aborted";
             }
                 
@@ -123,7 +124,8 @@ let cljsReplTypes: ReplType[] = [
             if(result)
               return `(do (require 'figwheel.main) (figwheel.main/start :${result.match(/^(.*)\.cljs\.edn$/)[1]}))`
             else {
-                connectionChannel.appendLine("Connection to Figwheel Main aborted.");
+                let chan = state.deref().get('outputChannel');
+                chan.appendLine("Connection to Figwheel Main aborted.");
                 throw "Aborted";
             }
         }
@@ -154,7 +156,7 @@ async function findCljsRepls(): Promise<ReplType[]> {
     }
     return output;
 }
-let connectionChannel = vscode.window.createOutputChannel("Calva CLJS Connection");
+
 
 async function makeCljsSessionClone(session, shadowBuild) {
     let chan = state.deref().get('outputChannel');
@@ -169,8 +171,9 @@ async function makeCljsSessionClone(session, shadowBuild) {
         let newCljsSession = await cljSession.clone();
         let repl: ReplType;
         if(newCljsSession) {
-            connectionChannel.clear();
-            connectionChannel.show(true);
+            let chan = state.deref().get('outputChannel');
+            chan.clear();
+            chan.show(true);
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
             if(!shadowBuild) {
                 let repls = await findCljsRepls();
@@ -178,15 +181,15 @@ async function makeCljsSessionClone(session, shadowBuild) {
                 if(!replType)
                     return [null, null];
                 repl = repls.find(x => x.name == replType);
-                connectionChannel.appendLine("Connecting to "+repl.name);
+                chan.appendLine("Connecting to "+repl.name);
                 initCode = await repl.connect();
             } else {
-                connectionChannel.appendLine("Connecting to ShadowCLJS")
+                chan.appendLine("Connecting to ShadowCLJS")
             }
             try {
                 let err = [];
                 let out = [];
-                let result = newCljsSession.eval(initCode, { stdout: x => { out.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x)) }, stderr: x => { err.push(util.stripAnsi(x)); connectionChannel.append(util.stripAnsi(x))} });
+                let result = newCljsSession.eval(initCode, { stdout: x => { out.push(util.stripAnsi(x)); chan.append(util.stripAnsi(x)) }, stderr: x => { err.push(util.stripAnsi(x)); chan.append(util.stripAnsi(x))} });
                 let valueResult = await result.value
                 
                 state.cursor.set('cljs', cljsSession = newCljsSession)

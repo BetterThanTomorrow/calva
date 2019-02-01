@@ -84,12 +84,13 @@ class REPLWindow {
             }
             status.update();
         })
+        panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "html", "/calva-icon.png"));
 
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
         html = html.replace("{{baseUri}}", getUrl())
         html = html.replace("{{script}}", getUrl("/main.js"))
         html = html.replace("{{font}}", getUrl("/fira_code.css"))
-        html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
+        html = html.replace("{{logo}}", getUrl("/calva.png"))
         panel.webview.html = html;
 
         this.connect(session);

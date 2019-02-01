@@ -126,7 +126,7 @@
                     "calva.syncReplNamespaceToCurrentFile": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Keeps the Terminal REPL's namespace in sync with the current file (if it has a valid clojure namespace form)"
+                        "description": "Keeps the REPL window's namespace in sync with the current file (if it has a valid clojure namespace form)"
                     },
                     "calva.connectREPLCommand": {
                         "type": "string",
@@ -270,28 +270,23 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.openREPLTerminal",
-                "title": "Open REPL terminal",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.loadNamespace",
-                "title": "Load current namespace in REPL terminal",
+                "title": "Load current namespace in REPL window",
                 "category": "Calva"
             },
             {
                 "command": "calva.setREPLNamespace",
-                "title": "Switch namespace in current terminal REPL to namespace of this file",
+                "title": "Switch namespace in current window REPL to namespace of this file",
                 "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentFormInREPLTerminal",
-                "title": "Evaluate current form (or selection) in REPL terminal",
+                "title": "Evaluate current form (or selection) in REPL window",
                 "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLTerminal",
-                "title": "Evaluate current top level form in REPL terminal",
+                "title": "Evaluate current top level form in REPL window",
                 "category": "Calva"
             },
             {
@@ -559,10 +554,6 @@
             {
                 "command": "calva.rerunTests",
                 "key": "ctrl+alt+v ctrl+t"
-            },
-            {
-                "command": "calva.openREPLTerminal",
-                "key": "ctrl+alt+v z"
             },
             {
                 "command": "calva.loadNamespace",
