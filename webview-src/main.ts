@@ -217,6 +217,8 @@ window.addEventListener("keydown", e => {
             e.preventDefault();
         }        
     }
+    if(e.ctrlKey || e.altKey || e.metaKey)
+        e.preventDefault();
 }, { capture: true, passive: false })
 
 function renderReplResponse(newNs: string, text: string) {
