@@ -141,23 +141,26 @@ const pareditCommands: [string, Function][] = [
 
 function wrapPareditCommand(command: string, fn) {
     return () => {
+        try {
+            let repl = activeReplWindow();
 
-        let repl = activeReplWindow();
+            if(repl) {
+                repl.executeCommand(toConsoleCommand[command])
+            } else {
+                let textEditor = window.activeTextEditor;
+                let doc = textEditor.document;
+                if (!enabled || !languages.has(doc.languageId)) return;
 
-        if(repl) {
-            repl.executeCommand(toConsoleCommand[command])
-        } else {
-            let textEditor = window.activeTextEditor;
-            let doc = textEditor.document;
-            if (!enabled || !languages.has(doc.languageId)) return;
-
-            let src = textEditor.document.getText();
-            fn({
-                textEditor: textEditor,
-                src: src,
-                ast: paredit.parse(src),
-                selection: utils.getSelection(textEditor)
-            });
+                let src = textEditor.document.getText();
+                fn({
+                    textEditor: textEditor,
+                    src: src,
+                    ast: paredit.parse(src),
+                    selection: utils.getSelection(textEditor)
+                });
+            }
+        } catch(e) {
+            
         }
     }
 }

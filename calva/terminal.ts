@@ -66,11 +66,11 @@ function loadNamespace() {
 }
 
 function loadNamespaceCommand(focus = true) {
-    let terminal: vscode.Terminal = state.deref().get(terminalSlug(util.getREPLSessionType()));
-    if (terminal) {
-        terminal.show(focus);
-        loadNamespace();
-    }
+    loadNamespace();
+}
+
+function setREPLNamespaceCommand() {
+    setREPLNamespace(false);
 }
 
 async function sendTextToREPLTerminal(text, ns?: string) {
@@ -78,7 +78,7 @@ async function sendTextToREPLTerminal(text, ns?: string) {
     if(wnd) {
         let oldNs = wnd.ns;
         if(ns && ns != oldNs)
-            await wnd.session.eval("(in-ns '"+ns+")").value;
+        await wnd.session.eval("(in-ns '"+ns+")").value;
         try {
             wnd.evaluate(ns || oldNs, text);
             await wnd.replEval(text, oldNs);
@@ -90,13 +90,17 @@ async function sendTextToREPLTerminal(text, ns?: string) {
     }
 }
 
-function setREPLNamespace(reload = false) {
+async function setREPLNamespace(reload = false) {
     let nameSpace = util.getDocumentNamespace();
 
     if (reload) {
         evaluate.evaluateFile();
     }
-    sendTextToREPLTerminal("(in-ns '" + nameSpace + ")");
+    let wnd = await openReplWindow(util.getREPLSessionType());
+    if(wnd) {
+        await wnd.session.eval("(in-ns '"+nameSpace+")").value;
+        wnd.setNamespace(nameSpace);
+    }
 }
 
 
@@ -135,6 +139,7 @@ export default {
     openREPLTerminalCommand,
     loadNamespace,
     loadNamespaceCommand,
+    setREPLNamespaceCommand,
     setREPLNamespace,
     evalCurrentFormInREPLTerminal,
     evalCurrentFormInREPLTerminalCommand,

@@ -296,7 +296,11 @@ function updateCompletion(msg: any) {
 
     if(msg.data.data.completions.length) {
         let box = con.readline.getCaretOnScreen();
-        completionDiv.style.left = box.x + "px";
+        if(box.x + completionDiv.offsetWidth > window.innerWidth) {
+            completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
+        } else {
+            completionDiv.style.left = box.x + "px";
+        }
         completionDiv.style.top = box.y-completionDiv.offsetHeight + "px";
         completionDiv.style.visibility = "visible"
         completionDiv.firstElementChild.classList.add("active");
@@ -342,9 +346,16 @@ function updateDoc(msg: any) {
         docDiv.appendChild(docLine);
         let extra = completionDiv.style.visibility == "visible" ? completionDiv.offsetWidth : 0;
         let box = con.readline.getCaretOnScreen();
-        docDiv.style.left = box.x + extra + "px";
-        docDiv.style.top = box.y-docDiv.offsetHeight + "px";
         docDiv.style.visibility = "visible"
+        docDiv.style.top = box.y-docDiv.offsetHeight + "px";
+        if(box.x + completionDiv.offsetWidth + extra > window.innerWidth) {
+            completionDiv.style.left = window.innerWidth - (completionDiv.offsetWidth + docDiv.offsetWidth) + "px";
+            docDiv.style.left = window.innerWidth - docDiv.offsetWidth + "px";
+        } else {
+            completionDiv.style.left = box.x + "px";
+            docDiv.style.left = box.x + extra + "px";
+        }
+
         docDiv.firstElementChild.classList.add("active");
     } else {
         docDiv.style.visibility = "hidden"
@@ -376,6 +387,10 @@ window.onmessage = (msg) => {
             con.setText(msg.data.value);
             con.submitLine(false);
         }
+    }
+
+    if(msg.data.type == "set-ns!") {
+        con.readline.promptElem.textContent = msg.data.ns+"=> ";
     }
 
     if(msg.data.type == "repl-error") {

@@ -125,6 +125,11 @@ class REPLWindow {
         this.postMessage({ type: "do-eval", value: text, ns})
     }
 
+    async setNamespace(ns: string) {
+        this.postMessage({ type: "set-ns!", ns});
+        this.ns = ns;
+    }
+
     async replEval(line: string, ns?: string) {
         this.evaluation = this.session.eval(line, {
             stderr: m => this.postMessage({type: "stderr", value: m}),
