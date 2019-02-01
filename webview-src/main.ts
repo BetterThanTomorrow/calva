@@ -232,7 +232,7 @@ window.addEventListener("keydown", e => {
             e.preventDefault();
         }        
     }
-    if(e.ctrlKey || e.altKey || e.metaKey)
+    if(e.ctrlKey || e.metaKey)
         e.preventDefault();
 }, { capture: true, passive: false })
 
