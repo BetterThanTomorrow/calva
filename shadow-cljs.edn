@@ -1,7 +1,8 @@
 {:dependencies [[pez/cljfmt "0.0.3-SNAPSHOT"]
                 [cider/cider-nrepl "0.20.0-SNAPSHOT"]]
 
- :source-paths ["calva/calva-fmt/cljs-lib/src" "cljs-lib/test"]
+ :source-paths ["calva/calva-fmt/cljs-lib/src"
+                "calva/calva-fmt/cljs-lib/test"]
 
  :builds       {:calva-fmt-lib
                 {:target    :node-library
