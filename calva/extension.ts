@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as paredit from "./paredit/extension";
+import * as fmt from "./calva-fmt/ts/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import status from './status';
@@ -16,7 +17,8 @@ import annotations from './providers/annotations';
 import select from './repl/middleware/select';
 import evaluate from "./repl/middleware/evaluate"
 import * as replWindow from "./repl-window";
-const greetings = require('@cospaia/calva-lib/lib/calva.greet');
+import { format } from 'url';
+import * as greetings from "./greet";
 
 function onDidSave(document) {
     let {
@@ -54,8 +56,9 @@ function onDidOpen(document) {
 
 function activate(context) {
     state.setExtensionContext(context);
+    fmt.activate(context);
     replWindow.activate(context);
-    paredit.activate(context)
+    paredit.activate(context);
     
     let chan = state.deref().get('outputChannel');
     chan.appendLine("Calva activated.");

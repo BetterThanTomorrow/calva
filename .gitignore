@@ -54,8 +54,9 @@ dist/
 pom.xml
 .idea
 *.iml
+test-out/
+cljs-out/
 
 ## TS
 out/
-
 html/main.js
