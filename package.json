@@ -175,11 +175,6 @@
         ],
         "commands": [
             {
-                "command": "calva.jackIn",
-                "title": "Jack In",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.openCljReplWindow",
                 "title": "Open a Clojure REPL",
                 "category": "Calva"
@@ -793,7 +788,7 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
-        "@calva/repl-interactor": "0.0.11",
+        "@calva/repl-interactor": "0.0.12",
         "concurrently": "^4.1.0",
         "eslint": "^4.19.1",
         "eslint-config-standard": "^11.0.0",
