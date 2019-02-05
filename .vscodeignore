@@ -5,6 +5,7 @@
 */**/.DS_Store
 
 # Whitelist
+!html/**
 !out/**
 !package.json
 !node_modules/**
