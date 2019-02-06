@@ -5,6 +5,7 @@
 */**/.DS_Store
 
 # Whitelist
+!html/**
 !out/**
 !cljs-out/**
 !package.json

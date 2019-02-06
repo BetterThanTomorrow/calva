@@ -217,6 +217,8 @@ window.addEventListener("keydown", e => {
         }
         if(e.keyCode == 9) { // tab
             let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
+            if(tk.withinWhitespace())
+                tk.previous();
             let start = tk.offsetStart
             let end = tk.offsetEnd;
             con.readline.withUndo(() => {
@@ -232,8 +234,16 @@ window.addEventListener("keydown", e => {
             e.preventDefault();
         }        
     }
-    if(e.ctrlKey || e.metaKey)
-        e.preventDefault();
+    if(e.ctrlKey || e.metaKey) {
+        switch(e.keyCode) {
+            case 67: // C /- don't prevent default here or we'll loose the "cut" "copy" and "paste" events!
+            case 86: // V |
+            case 88: // X v
+                break;
+            default:
+                e.preventDefault();
+        }
+    } 
 }, { capture: true, passive: false })
 
 function renderReplResponse(newNs: string, text: string) {
