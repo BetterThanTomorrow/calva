@@ -82,10 +82,6 @@
         "onCommand:paredit.transpose"
     ],
     "main": "./out/extension",
-    "extensionPack": [
-        "cospaia.calva-fmt",
-        "cospaia.paredit-revived"
-    ],
     "contributes": {
         "grammars": [
             {

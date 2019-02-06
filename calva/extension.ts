@@ -55,10 +55,23 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    let fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
+        pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
+    
     state.setExtensionContext(context);
-    fmt.activate(context);
+    
+    if (!fmtExtension) {
+        fmt.activate(context);
+    } else {
+        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall it before continuing using Calva.", ...["Got it. Will do!"]); 
+    }
+    if (!pareEditExtension) {
+        paredit.activate(context);
+    } else {
+        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall it.", ...["Got it. Doing it!"]);
+    }
+
     replWindow.activate(context);
-    paredit.activate(context);
     
     let chan = state.deref().get('outputChannel');
     chan.appendLine("Calva activated.");
