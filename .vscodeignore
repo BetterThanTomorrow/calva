@@ -5,6 +5,7 @@
 */**/.DS_Store
 
 # Whitelist
+!clojure.tmLanguage.json
 !html/**
 !out/**
 !cljs-out/**

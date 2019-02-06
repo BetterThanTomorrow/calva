@@ -2,7 +2,6 @@
   (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             ["paredit.js" :as paredit]
-            ["parinfer" :as parinfer]
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.util :as util]
             [calva.fmt.editor :as editor]

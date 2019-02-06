@@ -150,6 +150,11 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
+    
+    return {
+        hasParedit: true,
+        hasFormatter: true
+    }
 }
 
 function deactivate() {

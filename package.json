@@ -87,7 +87,7 @@
             {
                 "language": "clojure",
                 "scopeName": "source.clojure",
-                "path": "./calva/calva-fmt/clojure.tmLanguage.json"
+                "path": "./clojure.tmLanguage.json"
             }
         ],
         "debuggers": [
@@ -881,15 +881,17 @@
     "scripts": {
         "watch-cljs": "npx shadow-cljs watch :test :calva-fmt-lib",
         "watch-ts": "concurrently \"tsc -watch -p ./\" \"npx webpack -w\"",
-        "release": "npm i && tsc -p ./",
+        "compile-cljs": "npx shadow-cljs release :calva-fmt-lib",
+        "update-grammar": "(cd ./calva/calva-fmt/; node ./update-grammar.js ./atom-language-clojure/grammars/clojure.cson ../../clojure.tmLanguage.json)",
+        "release": "npm i && npm run update-grammar && npm run compile-cljs && tsc -p ./",
         "compile": "npm i && tsc -p ./",
         "vscode:prepublish": "npm run release",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "update-grammar": "(cd ./calva/calva-fmt/; node ./update-grammar.js ./atom-language-clojure/grammars/clojure.cson ./clojure.tmLanguage.json)"
+        "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.66",
+        "parinfer": "^3.12.0",
         "clipboardy": "^1.2.3",
         "find": "0.2.9",
         "immutable": "3.8.1",
@@ -904,8 +906,7 @@
     },
     "devDependencies": {
         "@calva/repl-interactor": "0.0.12",
-        "shadow-cljs": "^2.7.24",
-        "parinfer": "^3.12.0",
+        "shadow-cljs": "^2.7.27",
         "paredit.js": "^0.3.4",
         "concurrently": "^4.1.0",
         "eslint": "^4.19.1",
@@ -918,6 +919,7 @@
         "typescript": "^2.9.2",
         "vscode": "^1.1.26",
         "webpack": "^4.29.0",
-        "webpack-cli": "^3.2.1"
+        "webpack-cli": "^3.2.1",
+        "cson-parser": "^4.0.1"
     }
 }
