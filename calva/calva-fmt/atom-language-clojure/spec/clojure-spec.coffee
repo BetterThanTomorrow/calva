@@ -33,6 +33,13 @@ describe "Clojure grammar", ->
     expect(tokens[1]).toEqual value: 'foo bar', scopes: ["source.clojure", "string.quoted.double.clojure"]
     expect(tokens[2]).toEqual value: '"', scopes: ["source.clojure", "string.quoted.double.clojure", "punctuation.definition.string.end.clojure"]
 
+  it "tokenizes ignored strings", ->
+    {tokens} = grammar.tokenizeLine '#_"foo bar"'
+    expect(tokens[0]).toEqual value: '#_', scopes: ["source.clojure", "meta.ignore.clojure", "punctuation.definition.comment.begin.clojure"]
+    expect(tokens[1]).toEqual value: '"', scopes: ["source.clojure", "meta.ignore.clojure", "string.quoted.double.clojure", "punctuation.definition.string.begin.clojure"]
+    expect(tokens[2]).toEqual value: 'foo bar', scopes: ["source.clojure", "meta.ignore.clojure", "string.quoted.double.clojure"]
+    expect(tokens[3]).toEqual value: '"', scopes: ["source.clojure", "meta.ignore.clojure", "string.quoted.double.clojure", "punctuation.definition.string.end.clojure"]
+
   it "tokenizes character escape sequences", ->
     {tokens} = grammar.tokenizeLine '"\\n"'
     expect(tokens[0]).toEqual value: '"', scopes: ["source.clojure", "string.quoted.double.clojure", "punctuation.definition.string.begin.clojure"]
@@ -44,6 +51,13 @@ describe "Clojure grammar", ->
     expect(tokens[0]).toEqual value: '#"', scopes: ["source.clojure", "string.regexp.clojure", "punctuation.definition.regexp.begin.clojure"]
     expect(tokens[1]).toEqual value: 'foo', scopes: ["source.clojure", "string.regexp.clojure"]
     expect(tokens[2]).toEqual value: '"', scopes: ["source.clojure", "string.regexp.clojure", "punctuation.definition.regexp.end.clojure"]
+
+  it "tokenizes ignored regexes", ->
+    {tokens} = grammar.tokenizeLine '#_#"foo *bar"'
+    expect(tokens[0]).toEqual value: '#_', scopes: ["source.clojure", "meta.ignore.clojure", "punctuation.definition.comment.begin.clojure"]
+    expect(tokens[1]).toEqual value: '#"', scopes: ["source.clojure", "meta.ignore.clojure", "string.regexp.clojure", "punctuation.definition.regexp.begin.clojure"]
+    expect(tokens[2]).toEqual value: 'foo *bar', scopes: ["source.clojure", "meta.ignore.clojure", "string.regexp.clojure"]
+    expect(tokens[3]).toEqual value: '"', scopes: ["source.clojure", "meta.ignore.clojure", "string.regexp.clojure", "punctuation.definition.regexp.end.clojure"]
 
   it "tokenizes backslash escape character in regexes", ->
     {tokens} = grammar.tokenizeLine '#"\\\\" "/"'
@@ -62,11 +76,11 @@ describe "Clojure grammar", ->
 
   it "tokenizes numerics", ->
     numbers =
-      "constant.numeric.ratio.clojure": ["1/2", "123/456"]
+      "constant.numeric.ratio.clojure": ["1/2", "-1/2", "123/456"]
       "constant.numeric.arbitrary-radix.clojure": ["2R1011", "16rDEADBEEF", "56råäöÅÄÖπ"]
       "constant.numeric.hexadecimal.clojure": ["0xDEADBEEF", "0XDEADBEEF"]
       "constant.numeric.octal.clojure": ["0123"]
-      "constant.numeric.bigdecimal.clojure": ["123.456M"]
+      "constant.numeric.bigdecimal.clojure": ["123.456M", "-123.456M"]
       "constant.numeric.double.clojure": ["123.45", "123.45e6", "123.45E6"]
       "constant.numeric.bigint.clojure": ["123N"]
       "constant.numeric.long.clojure": ["123", "12321"]
@@ -75,6 +89,8 @@ describe "Clojure grammar", ->
       for num in nums
         {tokens} = grammar.tokenizeLine num
         expect(tokens[0]).toEqual value: num, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine "#_#{num}"
+        expect(tokens[1]).toEqual value: num, scopes: ["source.clojure", "meta.ignore.clojure", scope]
 
   it "tokenizes booleans", ->
     booleans =
@@ -84,10 +100,14 @@ describe "Clojure grammar", ->
       for bool in bools
         {tokens} = grammar.tokenizeLine bool
         expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine "#_#{bool}"
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", "meta.ignore.clojure", scope]
 
   it "tokenizes nil", ->
     {tokens} = grammar.tokenizeLine "nil"
     expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "#_nil"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "meta.ignore.clojure", "constant.language.nil.clojure"]
 
   it "tokenizes keywords", ->
     tests =
@@ -95,6 +115,7 @@ describe "Clojure grammar", ->
       "meta.map.clojure": ["{:foo}"]
       "meta.vector.clojure": ["[:foo]"]
       "meta.quoted-expression.clojure": ["'(:foo)", "`(:foo)"]
+      "meta.ignore.clojure": ["#_:foo"]
 
     for metaScope, lines of tests
       for line in lines
@@ -170,6 +191,8 @@ describe "Clojure grammar", ->
     for expr in expressions
       {tokens} = grammar.tokenizeLine expr
       expect(tokens[1]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
+      {tokens} = grammar.tokenizeLine "#_#{expr}"
+      expect(tokens[2]).toEqual value: "foo", scopes: ["source.clojure", "meta.ignore.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
 
     #non-ASCII letters
     {tokens} = grammar.tokenizeLine "(Öπ 2 20)"
@@ -220,6 +243,19 @@ describe "Clojure grammar", ->
 
     for token in mid
       expect(token.scopes.slice(0, 2)).toEqual ["source.clojure", "meta.#{metaScope}.clojure"]
+
+    # Ignored expression
+    {tokens} = grammar.tokenizeLine "#_#{startsWith}foo, bar#{endsWith}"
+
+    [ignoreStart, start, mid..., end] = tokens
+
+    expect(ignoreStart).toEqual value: "#_", scopes: ["source.clojure", "meta.ignore.clojure", "punctuation.definition.comment.begin.clojure"]
+    expect(start).toEqual value: startsWith, scopes: ["source.clojure", "meta.ignore.clojure", "meta.#{metaScope}.clojure", "punctuation.section.#{puncScope}.begin.clojure"]
+    expect(end).toEqual value: endsWith, scopes: ["source.clojure", "meta.ignore.clojure", "meta.#{metaScope}.clojure", "punctuation.section.#{puncScope}.end.trailing.clojure"]
+
+    for token in mid
+      expect(token.scopes.slice(0, 3)).toEqual ["source.clojure", "meta.ignore.clojure", "meta.#{metaScope}.clojure"]
+
 
     # Expression broken over multiple lines.
     tokens = grammar.tokenizeLines("#{startsWith}foo\n bar#{endsWith}")

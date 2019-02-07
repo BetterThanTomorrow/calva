@@ -84,6 +84,24 @@
   {
     'include': '#symbol'
   }
+  {
+    'include': '#ignore-string'
+  }
+  {
+    'include': '#ignore-regexp'
+  }
+  {
+    'include': '#ignore-list'
+  }
+  {
+    'include': '#ignore-map'
+  }
+  {
+    'include': '#ignore-vector'
+  }
+  {
+    'include': '#ignore-non-listy'
+  }
 ]
 'repository':
   'comment':
@@ -140,8 +158,110 @@
         'include': '#keyword'
       }
     ]
+  'ignore-string':
+    'begin': '#_\\s*(?=")'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.begin.clojure'
+    'end': '(?=")'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.end.clojure'
+    'name': 'meta.ignore.clojure'
+    'patterns': [
+      {
+        'include': '#string'
+      }
+    ]
+  'ignore-regexp':
+    'begin': '#_\\s*(?=#")'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.begin.clojure'
+    'end': '(?=")'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.end.clojure'
+    'name': 'meta.ignore.clojure'
+    'patterns': [
+      {
+        'include': '#regexp'
+      }
+    ]
+  'ignore-non-listy':
+    'begin': '#_\\s*(?=[\'`@^#]*.+)'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.begin.clojure'
+    'end': '(?=[\\s\',"\\(\\)\\[\\]\\{\\}])'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.end.clojure'
+    'name': 'meta.ignore.clojure'
+    'patterns': [
+      {
+        'include': '#var'
+      }
+      {
+        'include': '#constants'
+      }
+      {
+        'include': '#dynamic-variables'
+      }
+      {
+        'include': '#namespace-symbol'
+      }
+      {
+        'include': '#symbol'
+      }
+    ]
+  'ignore-list':
+    'begin': '#_\\s*[#\\?\'`@~]*\\s*(?=\\()'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.begin.clojure'
+    'end': '(?<=\\))'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.end.clojure'
+    'name': 'meta.ignore.clojure'
+    'patterns': [
+      {
+        'include': '$self'
+      }
+    ]
+  'ignore-map':
+    'begin': '#_[\\s#^]*(?=\\{)'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.begin.clojure'
+    'end': '(?<=\\})'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.end.clojure'
+    'name': 'meta.ignore.clojure'
+    'patterns': [
+      {
+        'include': '$self'
+      }
+    ]
+  'ignore-vector':
+    'begin': '#_\\s*(?=\\[)'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.begin.clojure'
+    'end': '(?<=\\])'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.end.clojure'
+    'name': 'meta.ignore.clojure'
+    'patterns': [
+      {
+        'include': '$self'
+      }
+    ]
   'keyword':
-    'match': '(?<=(\\s|\\(|\\[|\\{)):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
+    'match': '(?<=(_|\\s|\\(|\\[|\\{)):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
     'name': 'constant.keyword.clojure'
   'keyfn':
     'patterns': [
@@ -209,7 +329,7 @@
       }
     ]
   'quoted-sexp':
-    'begin': '([\'``]\\()'
+    'begin': '([\'`]\\()'
     'beginCaptures':
       '1':
         'name': 'punctuation.section.expression.begin.clojure'
