@@ -284,7 +284,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "test-all", id, session: this.sessionId});
+            this.client.write({ op: "test-all", id, session: this.sessionId, "load?": true });
         })
     }
 
