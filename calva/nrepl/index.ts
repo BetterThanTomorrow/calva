@@ -273,7 +273,16 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "test", ns, id, session: this.sessionId});
+            this.client.write({
+                op: "test-var-query", ns, id, session: this.sessionId, "var-query": {
+                    "ns-query": {
+                        exactly: [ns],
+                        // These do not seem have any effect
+                        // "project?": true,
+                        // "load-project-ns?": true
+                    }
+                }
+            });
         })
     }
 
@@ -296,6 +305,28 @@ export class NReplSession {
                 return true;
             }
             this.client.write({ op: "retest", id, session: this.sessionId});
+        })
+    }
+
+    loadAll() {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "ns-load-all", id, session: this.sessionId});
+        })
+    }
+
+    listNamespaces(regexps: string[]) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "ns-list", id, session: this.sessionId, "filter-regexps": regexps});
         })
     }
 
