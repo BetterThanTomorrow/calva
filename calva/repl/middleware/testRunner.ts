@@ -75,7 +75,8 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    let client = util.getSession(util.getFileType(document))
+    let client = util.getSession(util.getFileType(document));
+    state.deref().get('outputChannel').appendLine("Running all project tests…");
     reportTests([await client.testAll()], "Running all tests");
 }
 
@@ -100,6 +101,7 @@ function getNamespaceTestMessages(document = {}) {
 
 function runNamespaceTests(document = {}) {
     evaluate.evaluateFile({}, async () => {
+        state.deref().get('outputChannel').appendLine("Running namespace tests…");
         let results = await Promise.all(getNamespaceTestMessages(document));
         reportTests(results, "Running tests")
     });
@@ -113,6 +115,7 @@ function runNamespaceTestsCommand() {
 function rerunTests(document = {}) {
     let client = util.getSession(util.getFileType(document))
     evaluate.evaluateFile({}, async () => {
+        state.deref().get('outputChannel').appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
     });
 }
