@@ -100,8 +100,10 @@ function getNamespaceTestMessages(document = {}) {
 }
 
 function runNamespaceTests(document = {}) {
+    let client = util.getSession(util.getFileType(document));
     evaluate.evaluateFile({}, async () => {
         state.deref().get('outputChannel').appendLine("Running namespace tests…");
+        await client.loadAll(); // Totally brutal, but can't find another way that works
         let results = await Promise.all(getNamespaceTestMessages(document));
         reportTests(results, "Running tests")
     });
