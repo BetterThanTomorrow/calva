@@ -81,20 +81,18 @@ async function runAllTests(document = {}) {
 }
 
 function runAllTestsCommand() {
-    state.deref().get('outputChannel').show();
+    state.deref().get('outputChannel').show(true);
     runAllTests();
 }
 
 async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
     if (!ns.endsWith('-test')) {
         let testNS = ns + '-test',
-            nreplResults = await client.nsPath(testNS),
-            testFilePath = nreplResults.path,
-            loadForms = `(in-ns 'user)(load-file "${testFilePath}")(in-ns '${ns})`;
-        console.log("nreplTestFilePathResults: ", nreplResults);
-        console.log("testFilePath: ", testFilePath);
-        if (testFilePath)
+            testFilePath = await client.nsPath(testNS).path;
+        if (`${testFilePath}` != "") {
+            let loadForms = `(load-file "${testFilePath}")`;
             await client.eval(loadForms);
+        }
         nss.push(testNS);
         return nss;
     }
@@ -114,13 +112,12 @@ async function runNamespaceTests(document = {}) {
         if (nss.length > 1)
             resultPromises.push(client.test(nss[1]));
         let results = await Promise.all(resultPromises);
-        console.log("test results: ", results);
         reportTests(results, "Running tests")
     });
 }
 
 function runNamespaceTestsCommand() {
-    state.deref().get('outputChannel').show(false);
+    state.deref().get('outputChannel').show(true);
     runNamespaceTests();
 }
 
@@ -133,7 +130,7 @@ function rerunTests(document = {}) {
 }
 
 function rerunTestsCommand() {
-    state.deref().get('outputChannel').show();
+    state.deref().get('outputChannel').show(true);
     rerunTests();
 }
 
