@@ -81,36 +81,43 @@ async function runAllTests(document = {}) {
 }
 
 function runAllTestsCommand() {
-    //let chan = state.deref().get('outputChannel');
-
-    //chan.show();
+    state.deref().get('outputChannel').show(true);
     runAllTests();
 }
 
-function getNamespaceTestMessages(document = {}) {
-    let client = util.getSession(util.getFileType(document))
-    let doc = util.getDocument(document),
-        ns = util.getNamespace(doc.getText()),
-        messages = [client.test(ns)];
-
-    if (!ns.endsWith('-test'))
-        messages.push(client.test(ns + '-test'));
-
-    return messages;
+async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
+    if (!ns.endsWith('-test')) {
+        let testNS = ns + '-test',
+            testFilePath = await client.nsPath(testNS).path;
+        if (`${testFilePath}` != "") {
+            let loadForms = `(load-file "${testFilePath}")`;
+            await client.eval(loadForms);
+        }
+        nss.push(testNS);
+        return nss;
+    }
+    return nss;
 }
 
-function runNamespaceTests(document = {}) {
-    let client = util.getSession(util.getFileType(document));
+async function runNamespaceTests(document = {}) {
+    let client = util.getSession(util.getFileType(document)),
+        doc = util.getDocument(document),
+        ns = util.getNamespace(doc.getText()),
+        nss = [ns];
+    
     evaluate.evaluateFile({}, async () => {
         state.deref().get('outputChannel').appendLine("Running namespace tests…");
-        await client.loadAll(); // Totally brutal, but can't find another way that works
-        let results = await Promise.all(getNamespaceTestMessages(document));
+        nss = await considerTestNS(ns, client, nss);
+        let resultPromises = [client.test(nss[0])];
+        if (nss.length > 1)
+            resultPromises.push(client.test(nss[1]));
+        let results = await Promise.all(resultPromises);
         reportTests(results, "Running tests")
     });
 }
 
 function runNamespaceTestsCommand() {
-    //state.deref().get('outputChannel').show(false);
+    state.deref().get('outputChannel').show(true);
     runNamespaceTests();
 }
 
@@ -123,7 +130,7 @@ function rerunTests(document = {}) {
 }
 
 function rerunTestsCommand() {
-    //state.deref().get('outputChannel').show();
+    state.deref().get('outputChannel').show(true);
     rerunTests();
 }
 
