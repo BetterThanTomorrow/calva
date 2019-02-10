@@ -276,10 +276,7 @@ export class NReplSession {
             this.client.write({
                 op: "test-var-query", ns, id, session: this.sessionId, "var-query": {
                     "ns-query": {
-                        exactly: [ns],
-                        // These do not seem have any effect
-                        // "project?": true,
-                        // "load-project-ns?": true
+                        exactly: [ns]
                     }
                 }
             });
@@ -327,6 +324,17 @@ export class NReplSession {
                 return true;
             }
             this.client.write({ op: "ns-list", id, session: this.sessionId, "filter-regexps": regexps});
+        })
+    }
+
+    nsPath(ns: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "ns-path", id, ns, session: this.sessionId });
         })
     }
 
