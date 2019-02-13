@@ -75,50 +75,62 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    let client = util.getSession(util.getFileType(document))
+    let client = util.getSession(util.getFileType(document));
+    state.deref().get('outputChannel').appendLine("Running all project tests…");
     reportTests([await client.testAll()], "Running all tests");
 }
 
 function runAllTestsCommand() {
-    //let chan = state.deref().get('outputChannel');
-
-    //chan.show();
+    state.deref().get('outputChannel').show(true);
     runAllTests();
 }
 
-function getNamespaceTestMessages(document = {}) {
-    let client = util.getSession(util.getFileType(document))
-    let doc = util.getDocument(document),
-        ns = util.getNamespace(doc.getText()),
-        messages = [client.test(ns)];
-
-    if (!ns.endsWith('-test'))
-        messages.push(client.test(ns + '-test'));
-
-    return messages;
+async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
+    if (!ns.endsWith('-test')) {
+        let testNS = ns + '-test',
+            testFilePath = await client.nsPath(testNS).path;
+        if (`${testFilePath}` != "") {
+            let loadForms = `(load-file "${testFilePath}")`;
+            await client.eval(loadForms);
+        }
+        nss.push(testNS);
+        return nss;
+    }
+    return nss;
 }
 
-function runNamespaceTests(document = {}) {
+async function runNamespaceTests(document = {}) {
+    let client = util.getSession(util.getFileType(document)),
+        doc = util.getDocument(document),
+        ns = util.getNamespace(doc.getText()),
+        nss = [ns];
+    
     evaluate.evaluateFile({}, async () => {
-        let results = await Promise.all(getNamespaceTestMessages(document));
+        state.deref().get('outputChannel').appendLine("Running namespace tests…");
+        nss = await considerTestNS(ns, client, nss);
+        let resultPromises = [client.test(nss[0])];
+        if (nss.length > 1)
+            resultPromises.push(client.test(nss[1]));
+        let results = await Promise.all(resultPromises);
         reportTests(results, "Running tests")
     });
 }
 
 function runNamespaceTestsCommand() {
-    //state.deref().get('outputChannel').show(false);
+    state.deref().get('outputChannel').show(true);
     runNamespaceTests();
 }
 
 function rerunTests(document = {}) {
     let client = util.getSession(util.getFileType(document))
     evaluate.evaluateFile({}, async () => {
+        state.deref().get('outputChannel').appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
     });
 }
 
 function rerunTestsCommand() {
-    //state.deref().get('outputChannel').show();
+    state.deref().get('outputChannel').show(true);
     rerunTests();
 }
 
