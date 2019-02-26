@@ -17,7 +17,7 @@ Calva connects to a running `nrepl` session, so you need to:
 
 Calva has dependencies on `tools/nrepl` and `cider/nrepl`. You need to use pretty recent versions of these. Please make sure to read the [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started) page on the wiki to get instructions and information on how to unlock the power of the REPL inside your editor.
 
-Demo: evaluate inline
+Demo: evaluate inline..
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
