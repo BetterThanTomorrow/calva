@@ -239,6 +239,11 @@
         ],
         "commands": [
             {
+                "command": "calva.jackIn",
+                "title": "Jack In",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.openCljReplWindow",
                 "title": "Open a Clojure REPL",
                 "category": "Calva"
