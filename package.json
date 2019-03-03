@@ -118,12 +118,12 @@
                 "calva.jokerPath": {
                     "type": "string",
                     "default": "joker",
-                    "description": "Sets the path in which the Joker executable can be found"
+                    "description": "Sets the path in which the Joker executable can be found. If useWSL has been set to true, this should be a valid WSL path."
                 },
-                "calva.useJokerOnWSL": {
+                "calva.useWSL": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Specifies if Joker will run through WSL"
+                    "description": "Specifies if the nREPL and Joker are running within WSL."
                 }
             }
         },
@@ -355,7 +355,8 @@
         "net": "1.0.2",
         "npm": "^6.4.0",
         "paredit.js": "^0.3.4",
-        "vscode-extension-telemetry": "0.0.15"
+        "vscode-extension-telemetry": "0.0.15",
+        "wsl-path": "^1.1.0"
     },
     "devDependencies": {
         "@calva/repl-interactor": "0.0.1",

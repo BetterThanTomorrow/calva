@@ -46,7 +46,7 @@ function config() {
         connectREPLCommand: configOptions.get("connectREPLCommand"),
         projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
-        useJokerOnWSL: configOptions.get("useJokerOnWSL"),
+        useWSL: configOptions.get("useWSL"),
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile")
     };
 }
