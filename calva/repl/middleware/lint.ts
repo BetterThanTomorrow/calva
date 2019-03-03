@@ -42,8 +42,8 @@ function buildJokerPath(jokerPath, join) {
 }
 
 function jokerChildProcess(fileName) {
-    let { jokerPath, useJokerOnWSL } = state.config();
-    if (useJokerOnWSL) {
+    let { jokerPath, useWSL } = state.config();
+    if (useWSL) {
         return spawn("wsl", [buildJokerPath(jokerPath, path.posix.join), "--lint", `\$(wslpath '${fileName}')`]);
     }
     return spawn(buildJokerPath(jokerPath, path.join), ["--lint", fileName]);
