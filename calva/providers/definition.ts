@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
-export default class DefinitionProvider implements vscode.DefinitionProvider {
+import { wslToWindows } from 'wsl-path';
+
+export class DefinitionProvider implements vscode.DefinitionProvider {
     state: any;
     constructor() {
         this.state = state;
@@ -19,3 +21,13 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
         }
     }
 };
+
+export class WslDefinitionProvider extends DefinitionProvider {
+  async provideDefinition(document, position, token) {
+    const location = await super.provideDefinition(document, position, token);
+    if (!location) return;
+    
+    const windowsFilePath = await wslToWindows(location.uri.path);
+    return new vscode.Location(vscode.Uri.file(windowsFilePath), location.range);
+  }
+} 

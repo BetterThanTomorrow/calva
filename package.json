@@ -355,7 +355,8 @@
         "net": "1.0.2",
         "npm": "^6.4.0",
         "paredit.js": "^0.3.4",
-        "vscode-extension-telemetry": "0.0.15"
+        "vscode-extension-telemetry": "0.0.15",
+        "wsl-path": "^1.1.0"
     },
     "devDependencies": {
         "@calva/repl-interactor": "0.0.1",
