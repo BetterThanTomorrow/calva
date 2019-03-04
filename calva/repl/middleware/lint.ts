@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import * as state from '../../state';
 import * as util from '../../utilities';
+import { windowsToWslSync } from 'wsl-path';
 
 function parseJokerLine(jokerOutput) {
     const OUTPUT_REGEXP = /.+:([0-9]+)+:([0-9]+): (.+)/,
@@ -42,9 +43,10 @@ function buildJokerPath(jokerPath, join) {
 }
 
 function jokerChildProcess(fileName) {
-    let { jokerPath, useJokerOnWSL } = state.config();
-    if (useJokerOnWSL) {
-        return spawn("wsl", [buildJokerPath(jokerPath, path.posix.join), "--lint", `\$(wslpath '${fileName}')`]);
+    let { jokerPath, useWSL } = state.config();
+    if (useWSL) {
+        const wslFilePath = windowsToWslSync(fileName);
+        return spawn("wsl", [buildJokerPath(jokerPath, path.posix.join), "--lint", wslFilePath]);
     }
     return spawn(buildJokerPath(jokerPath, path.join), ["--lint", fileName]);
 }

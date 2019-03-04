@@ -4,7 +4,6 @@
             ["paredit.js" :as paredit]
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.util :as util]
-            [calva.fmt.editor :as editor]
             [clojure.string]))
 
 

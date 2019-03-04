@@ -9,7 +9,7 @@ import terminal from './terminal';
 import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
-import DefinitionProvider from './providers/definition';
+import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './repl/middleware/evaluate';
 import LintMiddleWare from './repl/middleware/lint';
 import TestRunnerMiddleWare from './repl/middleware/testRunner';
@@ -77,7 +77,8 @@ function activate(context) {
     chan.appendLine("Calva activated.");
     let {
         autoConnect,
-        lint
+        lint,
+        useWSL
     } = state.config();
 
     status.update();
@@ -111,7 +112,7 @@ function activate(context) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
