@@ -67,7 +67,7 @@
   (cond)
   (cljfmt/reformat-string "(cond foo\n)\n\n(cond foo\nbar)"
                           {:remove-surrounding-whitespace? false})
-  
+
   (cljfmt/reformat-string "(-> foo\nbar\n)\n(foo bar\nbaz\n)"
                           {:remove-surrounding-whitespace? false
                            :remove-trailing-whitespace? false
@@ -153,3 +153,57 @@
    "{:foo false
     :bar false
 :baz #\"^[a-z]\"}"))
+
+(comment
+  (def t "(when something
+  body)
+
+(defn f [x]
+  body)
+
+(defn f
+  [x]
+  body)
+
+(defn many-args [a b c
+                 d e f]
+  body)
+
+(defn multi-arity
+  ([x]
+   body)
+  ([x y]
+   body))
+
+(let [x 1
+      y 2]
+  body)
+
+[1 2 3
+ 4 5 6]
+
+{:key-1 v1
+ :key-2 v2}
+
+#{a b c
+  d e f}
+
+(or (condition-a)
+  (condition-b))
+
+(filter even?
+  (range 1 10))
+
+(clojure.core/filter even?
+  (range 1 10))
+
+(filter
+ even?
+  (range 1 10))")
+
+  (def f
+    (cljfmt/reformat-string t {:indents {#"^\w" [[:inner 0]]}}))
+
+  (= t f)
+  (pr-str f)
+  (println f))

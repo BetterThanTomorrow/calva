@@ -1,4 +1,4 @@
-{:dependencies [[pez/cljfmt "0.0.3-SNAPSHOT"]
+{:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]
                 [cider/cider-nrepl "0.21.1"]]
 
  :source-paths ["calva/calva-fmt/cljs-lib/src"
