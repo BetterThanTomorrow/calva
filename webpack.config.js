@@ -20,6 +20,17 @@ module.exports = {
         },
         exclude: /node_modules/
       },
+      {
+        test: /\.scss$/,
+        use: ['style-loader', 'css-loader', 'sass-loader']
+      },
+      {
+        test: /\.(eot|woff|woff2|ttf|svg|png|jpg)$/,
+        loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]',
+        options: {
+          outputPath: "out/assets"
+        }
+      }
     ]
   },
   watchOptions: {
