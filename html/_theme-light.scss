@@ -1,15 +1,4 @@
-body.light {
-    background-color: #fff;
-    color: #000;
-
-    .output {
-        color: rgb(122, 122, 50);
-    }
-    
-    .error {
-        color: #c00;
-    }
-
+body.vscode-light {
     .winnage {
         color: #0c0;
     }
@@ -23,27 +12,11 @@ body.light {
     }
 
     .documentation {
-        background-color: #e8e8e8;
-        border: solid 1px #999;
         box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.16);
-    }
-
-    .documentation .name {
-        color: #38f;
-    }
-
-    .documentation .arglist {
-        color: rgb(99, 99, 99);
     }
 
     .completion {
-        background-color: #e8e8e8;
-        border-color: #999;
         box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.16);
-    }
-
-    .completion > .active {
-        background-color: #ADD6FF80;
     }
 
     .completion .icon {
@@ -65,10 +38,6 @@ body.light {
         color: #08a;
     }
 
-    .completion .completed {
-        color: #38f;
-    }
-
     .caret {
         border: solid 1px #aaa;
     }
@@ -76,10 +45,6 @@ body.light {
     .is-focused .caret {
         border: solid 1px rgba(0, 0, 0, 0);
         background-color: #3b3b3b;
-    }
-
-    .sel-marker {
-        background-color: #264f78;
     }
 
     .id {
@@ -111,18 +76,6 @@ body.light {
 
     .macro {
         color: #0026ff;
-    }
-
-    .prompt {
-        color: #4b4b4b;
-    }
-
-    .warn {
-        color: #e20;
-    }
-
-    .stacktrace .stack {
-        color: #e20;
     }
 
     .stacktrace .stack .name {

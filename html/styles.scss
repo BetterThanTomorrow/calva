@@ -4,10 +4,12 @@
 
 .output {
     white-space: pre;
+    color: var(--vscode-editorWarning-foreground);
 }
 
 .error {
     white-space: pre-wrap;
+    color: var(--vscode-editorError-foreground);
 }
 
 .winnage {
@@ -17,7 +19,7 @@
 .repl {
     font-family: "Fira Code", "Courier New", monospace;
     font-weight: normal;
-    font-size: 14px;
+    font-size: 15px;
     letter-spacing: 0;
     cursor: text;
     position: relative;
@@ -29,10 +31,12 @@
 
 .documentation {
     position: absolute;
+    background-color: var(--vscode-editorWidget-background);
+    border: solid 1px var(--vscode-editorWidget-border);
     max-width: 400px;
     overflow-y: scroll;
     font-family: sans-serif;
-    font-size: 12px;
+    font-size: 14px;
     padding: 4px;
     visibility: hidden;
     white-space: pre-wrap;
@@ -46,15 +50,33 @@
     padding-bottom: 8px;
 }
 
+.documentation .name {
+    color: var(--vscode-list-highlightForeground);
+}
+
+.documentation .arglist {
+    color: var(--vscode-editorCodeLens-foreground);
+}
+
 .completion {
     position: absolute;
+    background-color: var(--vscode-editorWidget-background);
+    border: solid 1px var(--vscode-editorWidget-border);
     max-height: 256px;
     width: 200px;
     overflow-y: scroll;
     font-family: Fira Code;
-    font-size: 12px;
+    font-size: 14px;
     padding: 4px;
     visibility: hidden;
+}
+
+.completion > .active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.completion .completed {
+    color: var(--vscode-list-highlightForeground);
 }
 
 .completion .icon {
@@ -78,7 +100,6 @@
     content: "s";
 }
 
-
 .caret {
     position: absolute;
     height: 14px;
@@ -99,6 +120,7 @@
     z-index: -1;
     top: 0;
     height: 100%;
+    background-color: var(--vscode-editor-selectionBackground);
 }
 
 .line {
@@ -125,6 +147,10 @@
     }
 }
 
+.prompt {
+    color: var(--vscode-editorLineNumber-activeForeground);
+}
+
 .prompt-wrap {
     display: flex;
     white-space: pre;
@@ -133,13 +159,21 @@
 }
 
 .warn {
+    color: var(--vscode-editorWarning-foreground);
     font-weight: bold;
+    code {
+        color: var(--vscode-editor-foreground);
+    }
 }
 
 #motd {
     font-style: italic;
     font-weight: bold;
     white-space: pre-line;
+}
+
+.stacktrace .stack {
+    color: var(--vscode-editorError-foreground);
 }
 
 .stacktrace .file {
