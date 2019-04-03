@@ -49,8 +49,8 @@
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
 
-* TODO Move calva-fmt here.
-* TODO Superclass repl-interactor, so it becomes DocMirror.
+* DONE Move calva-fmt here.
+* TODO Superclass repl-interactor, so it becomes DocMirror. <<<
 * TODO Select toplevel forms etc, should use DocMirror.
 * TODO Argument-based completions for vscode
 * TODO Use our Paredit logic for calva proper.
