@@ -1,7 +1,7 @@
 @import url("fira_code.css");
 body {
-    background-color: #222;
-    color: #fff;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
 }
 .output {
     color: #ff0;
@@ -20,7 +20,7 @@ body {
 .repl {
     font-family: "Fira Code", "Courier New", monospace;
     font-weight: normal;
-    font-size: 12px;
+    font-size: 14px;
     letter-spacing: 0;
     cursor: text;
     position: relative;
@@ -40,8 +40,8 @@ body {
     max-width: 400px;
     overflow-y: scroll;
     font-family: sans-serif;
-    font-size: 10px;
-    background-color: #333;
+    font-size: 12px;
+    background-color: #3b3b3d;
     border: solid 1px #888;
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.16);
     padding: 4px;
@@ -69,10 +69,10 @@ body {
     position: absolute;
     max-height: 256px;
     width: 200px;
-    overflow: hidden;
+    overflow-y: scroll;
     font-family: Fira Code;
-    font-size: 10px;
-    background-color: #333;
+    font-size: 12px;
+    background-color: #3b3b3d;
     border: solid 1px #888;
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.16);
     padding: 4px;
@@ -80,7 +80,7 @@ body {
 }
 
 .completion > .active {
-    background-color: #33a;
+    background-color: #908fff26;
 }
 
 .completion .icon {
@@ -198,10 +198,11 @@ body {
     display: flex;
     white-space: pre;
     position: relative;
+    // align-items: baseline;
 }
 
 .prompt {
-    color: #888;
+    color: #aaa;
 }
 
 .warn {
