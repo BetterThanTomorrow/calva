@@ -345,6 +345,8 @@
         "@cospaia/calva-lib": "0.0.20",
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.66",
+        "@types/universal-analytics": "^0.4.2",
+        "@types/uuid": "^3.4.4",
         "clipboardy": "^1.2.3",
         "find": "0.2.9",
         "immutable": "3.8.1",
@@ -355,6 +357,7 @@
         "net": "1.0.2",
         "npm": "^6.4.0",
         "paredit.js": "^0.3.4",
+        "universal-analytics": "^0.4.20",
         "vscode-extension-telemetry": "0.0.15",
         "wsl-path": "^1.1.0"
     },
