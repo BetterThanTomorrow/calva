@@ -1,5 +1,4 @@
 import * as net from "net";
-import * as fs from "fs";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 
 /** An nRREPL client */
@@ -73,8 +72,6 @@ export class NReplClient {
 
     /**
      * Create a new NRepl client
-     * 
-     * TODO - should just be a toplevel nrepl.createClient()
      */
     static create(opts: { host: string, port: number }) {
         return new Promise<NReplClient>((resolve, reject) => {

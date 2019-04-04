@@ -52,6 +52,7 @@
 * DONE Move calva-fmt here.
 * DONE Use model from repl-interactor in vscode
 * TODO Select toplevel forms etc, should use model <<<<
-* TODO Argument-based completions for vscode
 * TODO Use our Paredit logic for calva proper.
+* TODO Complete Jack-in
+* TODO Argument-based completions for vscode
 * TODO Remove diagnostics in docmirror that ensure the model doesn't desync from the document.
