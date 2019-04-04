@@ -19,6 +19,10 @@ import evaluate from "./repl/middleware/evaluate"
 import { nClient } from "./connector"
 
 import { readFileSync } from 'fs';
+
+import Telemetry from './telemetry';
+import Telemetry from './telemetry';
+
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
 function onDidSave(document) {
@@ -56,6 +60,8 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    Telemetry.init();
+
     let chan = state.deref().get('outputChannel');
     chan.appendLine("Calva activated.");
     let {
@@ -171,10 +177,14 @@ function activate(context) {
 			return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
 		else
 			return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
-	}
+    }
+    
+    Telemetry.log('activated');
 }
 
-function deactivate() { }
+function deactivate() { 
+    Telemetry.dispose();
+}
 
 
 export { activate, deactivate };
