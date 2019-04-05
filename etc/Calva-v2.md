@@ -7,7 +7,7 @@ For a too long while [Calva](https://github.com/BetterThanTomorrow/calva) users 
 ## New REPL Window Improves Support for Interactive Programming
 
 Experienced Clojurians, as well as new users of the language, are now much better served in their interactive development. Some of the features of the new REPL Window are:
-* A real code editor:
+* A sweet code editor:
   * Smooth Clojure code formatting
   * Structural editing with Paredit support
   * Syntax highlighting
@@ -16,7 +16,7 @@ Experienced Clojurians, as well as new users of the language, are now much bette
 * Deep integration with Calva:
   * Commands for using the REPL Window to evaluate code in the edited files.
     * Automatic and temporary switching of the REPL window namespace when evaluating forms in editor files.
-  * Keeping the predictable switching between Clojure and ClojureScript REPLs that Calva file editors have.
+  * Keeping the predictable switching between Clojure and ClojureScript REPLs that the Calva file editors have.
 * Much improved results reporting:
   * Syntax highlighted
   * Pretty printed
@@ -25,7 +25,7 @@ Experienced Clojurians, as well as new users of the language, are now much bette
 
 This is quite huge. Yes, certainly in terms of increased value to the Clojure developer using VS Code, but also in terms of what it actually took to bring this UI into VS Code, which lacks all the native UI building blocks to support this, except for WebViews.
 
-This meant that the REPL window and its code editor had to be written completely from scratch. Think something like the essentials of Code Mirror. I can only take very partial credits for this. The actual coding is almost solely the work of Matt Seddon, where I have been acting the product owner and first line tester.
+This meant that the REPL window and its code editor had to be written completely from scratch. Think something like the essentials of Code Mirror. I can only take very partial credit for this. The actual coding is almost solely the work of Matt Seddon, where I have been acting the product owner and first line tester.
 
 The Paredit powering the new REPL window is also written from scratch, by the way. This means we will be able to improve a lot on the Current Paredit implementation in Calva, which relies on an abandoned project. And the new Paredit is powered by careful Clojure code lexing, opening up for more predictable and precise code analysis and editing than before.
 
@@ -33,9 +33,9 @@ In summary, the new REPL window delivers more value today, and its underpinnings
 
 ## Jack-in
 
-We have brought the Getting Started story from _reading pages of instructions and trial-and-horror with your profiles and/or project files_, to a simple command: *Calva Jack-in*. Inspiration is taken from Cider.
+We have brought the Getting Started story from *reading pages of instructions and trial-and-horror with your profiles and/or project files*, to a simple command: *Calva Jack-in*. Inspiration is taken from Cider.
 
-Calva Jack-in injects the dependencies Calva needs. It supports Leiningen, shadow-cljs and clj/deps. (There is some Boot support too, but it is quite untested.) Calva will try to figure out if ClojureScript support is needed and, via prompting, bring in any necessary Figwheel or Figwheel Main dependencies as well.
+Calva Jack-in injects the dependencies Calva needs. It supports [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org) and [clj/deps](https://clojure.org/guides/deps_and_cli). (There is some Boot support too, but it is quite untested.) Calva will try to figure out if ClojureScript support is needed and, via prompting, bring in any necessary Figwheel or Figwheel Main dependencies as well.
 
 Like with Cider, you will get a chance to edit the command line before it is issued, which will be our version one of supporting more complex project setups.
 
@@ -62,4 +62,4 @@ Now starts a period where most Calva development will be directed at supporting 
 
 However, do not expect lightning speed. Calva is maintained mostly by me alone, with Matt being there for the wizardry things that are sometimes needed. I have a demanding day job and can only devote so much time to Calva.
 
-It is a blessing that some other people have done lots of the hard work to make the building blocks of Calva, I don't want to forget anyone by starting to mention projects, but I must mention [The Orchard](https://github.com/clojure-emacs/orchard), which is where Calva finds most of the Cider it is distilled from. Thanks, @bbatsov, you rock!
+It is a blessing that some other people have done lots of the hard work to make the building blocks of Calva, I don't want to forget anyone by starting to mention projects, but I must mention [The Orchard](https://github.com/clojure-emacs/orchard), which is where Calva finds most of the Cider it is distilled from. Thanks, @bbatsov, you rock! I'd like to also express my gratitude to @thheller who not only provides shadow-cljs, which is an important part of the Calva development toolchain, but also for his patience with my stupid questions.
