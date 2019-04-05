@@ -123,7 +123,7 @@
                     },
                     "calva.evalOnSave": {
                         "type": "boolean",
-                        "default": true,
+                        "default": false,
                         "description": "Run load-file when opening a new file and on file save"
                     },
                     "calva.lintOnSave": {
@@ -138,7 +138,7 @@
                     },
                     "calva.testOnSave": {
                         "type": "boolean",
-                        "default": true,
+                        "default": false,
                         "description": "Run namespace tests when opening a new file and on file save"
                     },
                     "calva.syncReplNamespaceToCurrentFile": {

@@ -7,7 +7,7 @@ import * as util from '../../utilities';
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function reportTests(results, errorStr, log = true) {
-    let chan = state.deref().get('outputChannel'),
+    let chan = state.outputChannel(),
         diagnostics = {},
         total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
     diagnosticCollection.clear();
@@ -76,12 +76,12 @@ function reportTests(results, errorStr, log = true) {
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
     let client = util.getSession(util.getFileType(document));
-    state.deref().get('outputChannel').appendLine("Running all project tests…");
+    state.outputChannel().appendLine("Running all project tests…");
     reportTests([await client.testAll()], "Running all tests");
 }
 
 function runAllTestsCommand() {
-    state.deref().get('outputChannel').show(true);
+    state.outputChannel().show(true);
     runAllTests();
 }
 
@@ -106,7 +106,7 @@ async function runNamespaceTests(document = {}) {
         nss = [ns];
     
     evaluate.evaluateFile({}, async () => {
-        state.deref().get('outputChannel').appendLine("Running namespace tests…");
+        state.outputChannel().appendLine("Running namespace tests…");
         nss = await considerTestNS(ns, client, nss);
         let resultPromises = [client.test(nss[0])];
         if (nss.length > 1)
@@ -117,20 +117,20 @@ async function runNamespaceTests(document = {}) {
 }
 
 function runNamespaceTestsCommand() {
-    state.deref().get('outputChannel').show(true);
+    state.outputChannel().show(true);
     runNamespaceTests();
 }
 
 function rerunTests(document = {}) {
     let client = util.getSession(util.getFileType(document))
     evaluate.evaluateFile({}, async () => {
-        state.deref().get('outputChannel').appendLine("Running previously failed tests…");
+        state.outputChannel().appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
     });
 }
 
 function rerunTestsCommand() {
-    state.deref().get('outputChannel').show(true);
+    state.outputChannel().show(true);
     rerunTests();
 }
 

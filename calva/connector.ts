@@ -29,7 +29,7 @@ function disconnect(options = null, callback = () => { }) {
 }
 
 async function connectToHost(hostname, port) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     if(nClient) {
         nClient["silent"] = true;
         nClient.close();
@@ -110,7 +110,7 @@ let cljsReplTypes: ReplType[] = [
         name: "Figwheel Main",
         ns: "figwheel.main",
         connect: async () => {
-            let chan = state.deref().get('outputChannel');
+            let chan = state.outputChannel();
             let res = fs.readdirSync(util.getProjectDir());
             let projects = res.filter(x => x.match(/.cljs.edn/));
             if(projects.length == 0) {
@@ -124,7 +124,7 @@ let cljsReplTypes: ReplType[] = [
             if(result)
               return `(do (require 'figwheel.main) (figwheel.main/start :${result.match(/^(.*)\.cljs\.edn$/)[1]}))`
             else {
-                let chan = state.deref().get('outputChannel');
+                let chan = state.outputChannel();
                 chan.appendLine("Connection to Figwheel Main aborted.");
                 throw "Aborted";
             }
@@ -159,7 +159,8 @@ async function findCljsRepls(): Promise<ReplType[]> {
 
 
 async function makeCljsSessionClone(session, shadowBuild) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
+
     if (shadow.isShadowCljs() && !shadowBuild) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
         let build = await util.quickPickSingle({ values: shadow.shadowBuilds(), placeHolder: "Select which shadow-cljs CLJS REPL to connect to", saveAs: "shadow-cljs-project"})
@@ -171,7 +172,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
         let newCljsSession = await cljSession.clone();
         let repl: ReplType;
         if(newCljsSession) {
-            let chan = state.deref().get('outputChannel');
+            let chan = state.outputChannel();
             //chan.clear();
             chan.show(true);
             let initCode = shadowBuild ? shadowCljsReplStart(shadowBuild) : util.getCljsReplStartCode();
@@ -241,7 +242,7 @@ function shadowCljsReplStart(buildOrRepl: string) {
 
 async function promptForNreplUrlAndConnect(port) {
     let current = state.deref(),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
     let url = await vscode.window.showInputBox({
         placeHolder: "Enter existing nREPL hostname:port here...",
@@ -275,7 +276,7 @@ export let cljsSession: NReplSession;
 
 async function connect(isAutoConnect = false) {
     let current = state.deref(),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
 
     if (fs.existsSync(nreplPortFile())) {
@@ -323,7 +324,7 @@ function toggleCLJCSession() {
 async function recreateCljsRepl() {
     let current = state.deref(),
         cljSession = util.getSession('clj'),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
     let [session, shadowBuild] = await makeCljsSessionClone(cljSession, null);
     if (session)

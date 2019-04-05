@@ -73,7 +73,7 @@ function activate(context) {
 
     replWindow.activate(context);
     
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
         autoConnect,
