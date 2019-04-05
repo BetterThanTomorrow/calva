@@ -9,7 +9,7 @@ import * as util from '../../utilities';
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
-        chan = current.get('outputChannel'),
+        chan = state.outputChannel(),
         doc = util.getDocument(document),
         pprint = options["pprint"] || false,
         replace = options["replace"] || false,
@@ -112,7 +112,7 @@ async function evaluateFile(document = {}, callback = () => { }) {
         fileName = util.getFileName(doc),
         fileType = util.getFileType(doc),
         client = util.getSession(util.getFileType(doc)),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         chan.appendLine("Evaluating file: " + fileName);
@@ -133,7 +133,7 @@ async function evaluateFile(document = {}, callback = () => { }) {
 }
 
 async function copyLastResultCommand() {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     let client = util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;

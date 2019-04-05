@@ -30,6 +30,17 @@ function deref() {
     return data;
 }
 
+// Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
+// TODO: Revisit the whole state management business.
+function outputChannel() {
+    const channel = deref().get('outputChannel');
+    if (channel.toJS !== undefined) {
+        return channel.toJS();
+    } else {
+        return channel;
+    }
+}
+
 function reset() {
     data = Immutable.fromJS(initialData);
 }
@@ -56,5 +67,6 @@ export {
     mode,
     deref,
     reset,
-    config
+    config,
+    outputChannel
 };

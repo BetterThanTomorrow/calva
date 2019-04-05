@@ -29,7 +29,7 @@ function disconnect(options = null, callback = () => { }) {
 }
 
 async function connectToHost(hostname, port) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     if(nClient) {
         nClient["silent"] = true;
         nClient.close();
@@ -94,7 +94,7 @@ function setUpCljsRepl(cljsSession, chan, shadowBuild) {
 }
 
 async function makeCljsSessionClone(session, shadowBuild) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
 
     if (shadow.isShadowCljs() && !shadowBuild) {
         chan.appendLine("This looks like a shadow-cljs coding session.");
@@ -161,7 +161,7 @@ function shadowCljsReplStart(buildOrRepl: string) {
 
 async function promptForNreplUrlAndConnect(port) {
     let current = state.deref(),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
     let url = await vscode.window.showInputBox({
         placeHolder: "Enter existing nREPL hostname:port here...",
@@ -194,7 +194,7 @@ export let cljsSession: NReplSession;
 
 function connect(isAutoConnect = false) {
     let current = state.deref(),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
     new Promise((resolve, reject) => {
         if (fs.existsSync(nreplPortFile())) {
@@ -252,7 +252,7 @@ function toggleCLJCSession() {
 async function recreateCljsRepl() {
     let current = state.deref(),
         cljSession = util.getSession('clj'),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel();
 
     let [session, shadowBuild] = await makeCljsSessionClone(cljSession, null);
     if (session)
