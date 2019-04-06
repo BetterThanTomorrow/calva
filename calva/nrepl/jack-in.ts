@@ -47,12 +47,13 @@ const shadowDependencies = {
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.21.2-SNAPSHOT",
+    "cider/cider-nrepl": "0.21.2-SNAPSHOT"
 }
 
 const leinDependencies = {
-    "nrepl": "0.5.3",
-    "cider/piggieback": "0.4.0"
+    "nrepl": "0.6.0",
+    "cider/piggieback": "0.4.0",
+    "figwheel-sidecar": "0.5.18"
 }
 
 const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-repl"];
@@ -83,7 +84,7 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
             if(parsed instanceof Array) {
                 for(let i = 3; i<parsed.length; i += 2) {
                     let e = parsed[i];
-                    if(e instanceof String && e == ":profiles") {
+                    if(e instanceof String && e == "profiles") {
                         profiles = [...profiles, ...parsed[i+1].keys.map(x => x.name)]
                     }
                 }
@@ -145,8 +146,8 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
                 throw e;
             }
             let aliases = [];
-            if(parsed.exists(":aliases")) {
-                aliases = await utilities.quickPickMulti({ values: parsed.at(':aliases').keys.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with"});
+            if(parsed.aliases != undefined) {
+                aliases = await utilities.quickPickMulti({ values: parsed.aliases.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with"});
             }
             
 
