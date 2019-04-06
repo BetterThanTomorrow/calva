@@ -1,8 +1,8 @@
 {:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]
                 [cider/cider-nrepl "0.21.1"]]
 
- :source-paths ["calva/calva-fmt/cljs-lib/src"
-                "calva/calva-fmt/cljs-lib/test"]
+ :source-paths ["calva/cljs-lib/src"
+                "calva/cljs-lib/test"]
 
  :builds       {:calva-fmt-lib
                 {:target    :node-library
@@ -14,10 +14,10 @@
                              :inferParens calva.fmt.inferer/infer-parens
                              :jsify calva.js-utils/jsify
                              :cljify calva.js-utils/cljify}
-                 :output-to "cljs-out/calva-fmt/cljs-lib.js"}
+                 :output-to "cljs-out/cljs-lib.js"}
                 :test
                 {:target    :node-test
-                 :output-to "cljs-out/test/calva-fmt/cljs-lib-tests.js"
+                 :output-to "cljs-out/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
                  :autorun   true}}}
 
