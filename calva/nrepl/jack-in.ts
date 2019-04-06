@@ -38,17 +38,21 @@ export function detectProjectType() {
 }
 
 const injectDependencies = {
-    "cider/cider-nrepl": "0.20.0",
-    "cider/piggieback": "0.3.10"
+    "cider/cider-nrepl": "0.21.2-SNAPSHOT",
+    "cider/piggieback": "0.4.0"
+}
+
+const shadowDependencies = {
+    "cider/cider-nrepl": "0.21.2-SNAPSHOT"
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.20.0",
+    "cider/cider-nrepl": "0.21.2-SNAPSHOT",
 }
 
 const leinDependencies = {
     "nrepl": "0.5.3",
-    "cider/piggieback": "0.3.10"
+    "cider/piggieback": "0.4.0"
 }
 
 const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-repl"];
@@ -159,10 +163,10 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
         useWhenExists: "shadow-cljs.edn",
         commandLine: async () => {
             let args: string[] = [];
-            for(let dep in injectDependencies)
-                args.push("-d", dep+":"+injectDependencies[dep]);
+            for (let dep in shadowDependencies)
+                args.push("-d", dep+":"+shadowDependencies[dep]);
 
-            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds(), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in"})
+            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in"})
             if(!builds || !builds.length)
                 return;
             return ["shadow-cljs", ...args, "watch", ...builds];
