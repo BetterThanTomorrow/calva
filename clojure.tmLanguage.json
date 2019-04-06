@@ -1,6 +1,6 @@
 {
 	"information_for_contributors": [
-		"This file is generated from ./atom-language-clojure/grammars/clojure.cson"
+		"This file is generated from ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson"
 	],
 	"name": "Clojure",
 	"scopeName": "source.clojure",

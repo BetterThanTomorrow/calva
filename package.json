@@ -887,7 +887,7 @@
         "watch-cljs": "npx shadow-cljs watch :test :calva-fmt-lib",
         "watch-ts": "concurrently \"tsc -watch -p ./\" \"npx webpack -w\"",
         "compile-cljs": "npx shadow-cljs release :calva-fmt-lib",
-        "update-grammar": "cd ./calva/calva-fmt/; node ./update-grammar.js ./atom-language-clojure/grammars/clojure.cson ../../clojure.tmLanguage.json; cd ../../",
+        "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run update-grammar && npm run compile-cljs && tsc -p ./",
         "compile": "npm i && tsc -p ./",
         "vscode:prepublish": "npm run release",
