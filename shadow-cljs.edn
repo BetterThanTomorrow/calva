@@ -13,7 +13,8 @@
                              :inferIndents calva.fmt.inferer/infer-indents
                              :inferParens calva.fmt.inferer/infer-parens
                              :jsify calva.js-utils/jsify
-                             :cljify calva.js-utils/cljify}
+                             :cljify calva.js-utils/cljify
+                             :parseEdn calva.js-utils/parse-edn}
                  :output-to "cljs-out/cljs-lib.js"}
                 :test
                 {:target    :node-test

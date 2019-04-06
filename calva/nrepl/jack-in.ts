@@ -7,7 +7,7 @@ import connector from "../connector";
 import { openReplWindow } from "../repl-window";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
-import * as edn from 'jsedn';
+const { parseEdn } = require('../../cljs-out/cljs-lib');
 
 const isWin = /^win/.test(process.platform);
 
@@ -70,17 +70,17 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
             let data = fs.readFileSync(utilities.getProjectDir()+"/project.clj", 'utf8').toString();
             let parsed;
             try {
-                parsed = edn.parse(data);
+                parsed = parseEdn(data);
             } catch(e) {
                 vscode.window.showErrorMessage("Could not parse project.clj");
                 throw e;
             }
             let profiles: string[] = [];
-            if(parsed instanceof edn.List) {
-                for(let i = 3; i<parsed.val.length; i += 2) {
-                    let e = parsed.val[i];
-                    if(e instanceof edn.Keyword && e.name == ":profiles") {
-                        profiles = [...profiles, ...parsed.val[i+1].keys.map(x => x.name)]
+            if(parsed instanceof Array) {
+                for(let i = 3; i<parsed.length; i += 2) {
+                    let e = parsed[i];
+                    if(e instanceof String && e == ":profiles") {
+                        profiles = [...profiles, ...parsed[i+1].keys.map(x => x.name)]
                     }
                 }
                 if(profiles.length)
@@ -135,14 +135,14 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
             let data = fs.readFileSync(utilities.getProjectDir()+"/deps.edn", 'utf8').toString();
             let parsed;
             try {
-                parsed = edn.parse(data);
+                parsed = parseEdn(data);
             } catch(e) {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
             let aliases = [];
-            if(parsed.exists(edn.kw(":aliases"))) {
-                aliases = await utilities.quickPickMulti({ values: parsed.at(edn.kw(':aliases')).keys.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with"});
+            if(parsed.exists(":aliases")) {
+                aliases = await utilities.quickPickMulti({ values: parsed.at(':aliases').keys.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with"});
             }
             
 
@@ -162,7 +162,7 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
             for(let dep in injectDependencies)
                 args.push("-d", dep+":"+injectDependencies[dep]);
 
-            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in"})
+            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds(), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in"})
             if(!builds || !builds.length)
                 return;
             return ["shadow-cljs", ...args, "watch", ...builds];
