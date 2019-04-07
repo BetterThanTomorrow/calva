@@ -1,5 +1,5 @@
 {:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]
-                [cider/cider-nrepl "0.21.1"]]
+                [cider/cider-nrepl "0.21.2-SNAPSHOT"]]
 
  :source-paths ["calva/cljs-lib/src"
                 "calva/cljs-lib/test"]
@@ -14,7 +14,8 @@
                              :inferParens calva.fmt.inferer/infer-parens
                              :jsify calva.js-utils/jsify
                              :cljify calva.js-utils/cljify
-                             :parseEdn calva.js-utils/parse-edn}
+                             :parseEdn calva.js-utils/parse-edn
+                             :parseForms calva.js-utils/parse-forms}
                  :output-to "cljs-out/cljs-lib.js"}
                 :test
                 {:target    :node-test
