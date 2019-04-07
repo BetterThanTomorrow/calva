@@ -10,7 +10,7 @@
 (defn ^:export cljify [o]
   (js->clj o :keywordize-keys true))
 
-(defn parse-edn
+(defn- parse-edn
   "Parses out the first form from `s`.
    `s` needs to be a string representation of valid EDN.
    Returns the parsed form."
@@ -19,10 +19,12 @@
            (is (= (parse-edn "{:foo [1 2]}") {:foo [1 2]}))
            (is (= (parse-edn ":a {:foo ['bar] :bar 'foo}") :a)))}
   [s]
-  #_(println (pr-str s))
   (cljs.reader/read-string {:default #(str "#" %1 %2)} s))
 
-(defn parse-forms
+(defn parse-edn-js [s]
+  (jsify (parse-edn s)))
+
+(defn- parse-forms
   "Parses out all top level forms from `s`.
    Returns a vector with the parsed forms."
   {:test (fn []
@@ -37,6 +39,9 @@
         (if (= parsed-form 'CALVA-EOF)
           parsed-forms
           (recur (conj parsed-forms parsed-form)))))))
+
+(defn parse-forms-js [s]
+  (jsify (parse-forms s)))
 
 (comment
   (= [:a {:foo [(quote bar)], :bar (quote foo)}]

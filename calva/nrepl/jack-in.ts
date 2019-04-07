@@ -7,23 +7,23 @@ import connector from "../connector";
 import { openReplWindow } from "../repl-window";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
-const { parseEdn } = require('../../cljs-out/cljs-lib');
+const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
 
 const isWin = /^win/.test(process.platform);
 
 /** Finds a file in PATH */
 function findInPath(name: string) {
     const paths = process.env.PATH.split(isWin ? ";" : ":");
-    for(let path of paths) {
-        let fullPath = path+(isWin ? "\\" : "/")+name;
-        if(fs.existsSync(fullPath))
+    for (let path of paths) {
+        let fullPath = path + (isWin ? "\\" : "/") + name;
+        if (fs.existsSync(fullPath))
             return fullPath;
     }
 }
 
 /** If this looks like a string and we are under windows, escape it in a powershell compatible way. */
 function escapeString(str: string) {
-    if(str.startsWith('"') && str.endsWith('"') && isWin)
+    if (str.startsWith('"') && str.endsWith('"') && isWin)
         return str.replace(/\\"/g, "\\`\"");
     return str;
 }
@@ -31,8 +31,8 @@ function escapeString(str: string) {
 export function detectProjectType() {
     let rootDir = utilities.getProjectDir();
     let out = [];
-    for(let x in projectTypes)
-        if(fs.existsSync(rootDir+"/"+projectTypes[x].useWhenExists))
+    for (let x in projectTypes)
+        if (fs.existsSync(rootDir + "/" + projectTypes[x].useWhenExists))
             out.push(x);
     return out;
 }
@@ -61,53 +61,59 @@ const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-
 const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
 
 
-const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, commandLine: () => any, useWhenExists: string, useShell?: boolean}} = {
+const projectTypes: { [id: string]: { name: string, cmd: string, winCmd: string, commandLine: () => any, useWhenExists: string, useShell?: boolean } } = {
     "lein": {
         name: "Leiningen",
         cmd: "lein",
         winCmd: "lein.bat",
         useShell: true,
         useWhenExists: "project.clj",
-        commandLine: async() => {
+        commandLine: async () => {
             let out: string[] = [];
             let keys = Object.keys(leinDependencies);
-            
-            let data = fs.readFileSync(utilities.getProjectDir()+"/project.clj", 'utf8').toString();
+
+            let data = fs.readFileSync(utilities.getProjectDir() + "/project.clj", 'utf8').toString();
             let parsed;
             try {
-                parsed = parseEdn(data);
-            } catch(e) {
+                parsed = parseForms(data);
+            } catch (e) {
                 vscode.window.showErrorMessage("Could not parse project.clj");
                 throw e;
             }
             let profiles: string[] = [];
-            if(parsed instanceof Array) {
-                for(let i = 3; i<parsed.length; i += 2) {
-                    let e = parsed[i];
-                    if(e instanceof String && e == "profiles") {
-                        profiles = [...profiles, ...parsed[i+1].keys.map(x => x.name)]
+            const defproject = parsed.find(x => x[0] == "defproject");
+            if (defproject != undefined) {
+                let profilesIndex = defproject.indexOf("profiles");
+                if (profilesIndex > -1) {
+                    try {
+                        const profilesMap = defproject[profilesIndex + 1];
+                        profiles = [...profiles, ...Object.keys(profilesMap).map((v, k) => { return ":" + v })];
+                        if (profiles.length) {
+                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: "lein-cli-profiles", placeHolder: "Pick any profiles to launch with" });
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
+                        console.log(error)
                     }
                 }
-                if(profiles.length)
-                    profiles = await utilities.quickPickMulti({ values: profiles, saveAs: "lein-cli-profiles", placeHolder: "Pick any profiles to launch with"});
             }
 
-            for(let i=0; i<keys.length; i++) {
+            for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
                 out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${leinDependencies[dep]}\\"]"`, '--');
             }
-        
+
             keys = Object.keys(leinPluginDependencies);
-            for(let i=0; i<keys.length; i++) {
+            for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
                 out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
             }
 
-            for(let mw of middleware) {
+            for (let mw of middleware) {
                 out.push("update-in", '"[:repl-options :nrepl-middleware]"', "conj", `"[\\"${mw.replace('"', '\\"')}\\"]"`, '--');
             }
 
-            if(profiles.length) {
+            if (profiles.length) {
                 out.push("with-profile", profiles.map(x => x.substr(1)).join(','));
             }
             //out.push("update-in", ":middleware", "conj", `cider-nrepl.plugin/middleware`, '--')
@@ -133,42 +139,42 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
     "clj": {
         name: "Clojure CLI",
         cmd: "clojure",
-        winCmd: "clojure.ps1",        
+        winCmd: "clojure.ps1",
         useWhenExists: "deps.edn",
         commandLine: async () => {
             let out: string[] = [];
-            let data = fs.readFileSync(utilities.getProjectDir()+"/deps.edn", 'utf8').toString();
+            let data = fs.readFileSync(utilities.getProjectDir() + "/deps.edn", 'utf8').toString();
             let parsed;
             try {
                 parsed = parseEdn(data);
-            } catch(e) {
+            } catch (e) {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
             let aliases = [];
-            if(parsed.aliases != undefined) {
-                aliases = await utilities.quickPickMulti({ values: parsed.aliases.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with"});
+            if (parsed.aliases != undefined) {
+                aliases = await utilities.quickPickMulti({ values: parsed.aliases.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with" });
             }
-            
 
-            for(let dep in injectDependencies)
-                out.push(dep+" {:mvn/version \\\""+injectDependencies[dep]+"\\\"}")
-            return ["-Sdeps", `"${"{:deps {"+out.join(' ')+"}}"}"`,  "-m", "nrepl.cmdline", "--middleware", `"[${middleware.join(' ')}]"`, ...aliases.map(x => "-A"+x)]
+
+            for (let dep in injectDependencies)
+                out.push(dep + " {:mvn/version \\\"" + injectDependencies[dep] + "\\\"}")
+            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, "-m", "nrepl.cmdline", "--middleware", `"[${middleware.join(' ')}]"`, ...aliases.map(x => "-A" + x)]
         }
     },
     "shadow-cljs": {
         name: "ShadowCLJS",
         cmd: "npx",
-        winCmd: "npx.cmd",       
+        winCmd: "npx.cmd",
         useShell: true,
         useWhenExists: "shadow-cljs.edn",
         commandLine: async () => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
-                args.push("-d", dep+":"+shadowDependencies[dep]);
+                args.push("-d", dep + ":" + shadowDependencies[dep]);
 
-            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in"})
-            if(!builds || !builds.length)
+            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to jack-in", saveAs: "shadowcljs-jack-in" })
+            if (!builds || !builds.length)
                 return;
             return ["shadow-cljs", ...args, "watch", ...builds];
         }
@@ -177,8 +183,8 @@ const projectTypes: {[id: string]: {name: string, cmd: string, winCmd: string, c
 
 /** Given the name of a project in project types, find that project. */
 function getProjectTypeForName(name: string) {
-    for(let id in projectTypes)
-        if(projectTypes[id].name == name)
+    for (let id in projectTypes)
+        if (projectTypes[id].name == name)
             return projectTypes[id];
 }
 
@@ -188,43 +194,43 @@ let jackInChannel = vscode.window.createOutputChannel("Calva Jack-In");
 
 export async function calvaJackIn() {
     // Are there running jack-in processes? If so we must kill them to proceed.
-    if(processes.size) {
-        let result = await vscode.window.showWarningMessage("Already jacked-in, kill existing process?", {title: "OK"}, {title: "Cancel", isCloseAffordance: true});
-        if(result && result.title == "OK") {
+    if (processes.size) {
+        let result = await vscode.window.showWarningMessage("Already jacked-in, kill existing process?", { title: "OK" }, { title: "Cancel", isCloseAffordance: true });
+        if (result && result.title == "OK") {
             killAllProcesses();
         } else
             return;
     }
     // figure out what possible kinds of project we're in
     let types = detectProjectType();
-    if(types.length == 0) {
+    if (types.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, build.boot, deps.edn or shadow-cljs.edn");
         return;
     }
 
     // Show a prompt to pick one if there are multiple
     let buildName = await utilities.quickPickSingle({ values: types.map(x => projectTypes[x].name), placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
-    if(!buildName)
+    if (!buildName)
         return;
 
     // Resolve the selection to an entry in projectTypes
     let build = getProjectTypeForName(buildName);
-    if(!build)
+    if (!build)
         return;
 
     // Now look in our $PATH variable to check the appropriate command exists.
     let executable = findInPath(isWin ? build.winCmd : build.cmd);
 
-    if(!executable)  {
+    if (!executable) {
         // It doesn't, do not proceed
-        vscode.window.showErrorMessage(build.cmd+" is not on your PATH, please add it.")
+        vscode.window.showErrorMessage(build.cmd + " is not on your PATH, please add it.")
         return;
     }
 
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await build.commandLine();
 
-    if(executable.endsWith(".ps1")) {
+    if (executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
         args = args.map(escapeString) as Array<string>;
         args.unshift(executable);
@@ -233,7 +239,7 @@ export async function calvaJackIn() {
 
     // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
     let watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
-        if(filename == ".nrepl-port" || filename == "nrepl.port") {
+        if (filename == ".nrepl-port" || filename == "nrepl.port") {
             state.cursor.set("launching", null)
             watcher.close();
             await connector.connect(true);
@@ -250,7 +256,7 @@ export async function calvaJackIn() {
 
     jackInChannel.clear();
     jackInChannel.show(true);
-    jackInChannel.appendLine("Launching clojure with: "+executable+" "+args.join(' '));
+    jackInChannel.appendLine("Launching clojure with: " + executable + " " + args.join(' '));
 
     child.stderr.on("data", data => {
         jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
@@ -282,11 +288,11 @@ export async function calvaJackIn() {
 process.on("exit", killAllProcesses)
 export function killAllProcesses() {
     processes.forEach(x => {
-        if(!isWin) {
+        if (!isWin) {
             x.kill("SIGTERM");
         } else {
             // windows sux. brutally destroy the process.
             exec('taskkill /PID ' + x.pid + ' /T /F');
-        }        
+        }
     });
 }
