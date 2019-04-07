@@ -7,6 +7,11 @@ import status from "./status"
 import { readFileSync } from "fs";
 import { NReplEvaluation, NReplSession } from "./nrepl";
 
+import annotations from './providers/annotations';
+import * as util from './utilities';
+import evaluate from './repl/middleware/evaluate';
+import select from './repl/middleware/select';
+
 // REPL
 
 export function activeReplWindow() {
@@ -187,10 +192,81 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
     return repl;
 }
 
+function loadNamespaceCommand(focus = true) {
+    setREPLNamespace(focus);
+}
+
+function setREPLNamespaceCommand() {
+    setREPLNamespace(false);
+}
+
+async function sendTextToREPLWindow(text, ns?: string) {
+    let wnd = await openReplWindow(util.getREPLSessionType());
+    if (wnd) {
+        let oldNs = wnd.ns;
+        if (ns && ns != oldNs)
+            await wnd.session.eval("(in-ns '" + ns + ")").value;
+        try {
+            wnd.evaluate(ns || oldNs, text);
+            await wnd.replEval(text, oldNs);
+        } finally {
+            if (ns && ns != oldNs) {
+                await wnd.session.eval("(in-ns '" + oldNs + ")").value;
+            }
+        }
+    }
+}
+
+export async function setREPLNamespace(reload = false) {
+    let nameSpace = util.getDocumentNamespace();
+
+    if (reload) {
+        evaluate.evaluateFile();
+    }
+    let wnd = await openReplWindow(util.getREPLSessionType());
+    if (wnd) {
+        await wnd.session.eval("(in-ns '" + nameSpace + ")").value;
+        wnd.setNamespace(nameSpace);
+    }
+}
+
+
+function evalCurrentFormInREPLWindow(topLevel = false) {
+    let editor = vscode.window.activeTextEditor,
+        doc = util.getDocument({}),
+        selection = editor.selection,
+        codeSelection = null,
+        code = "";
+
+    if (selection.isEmpty) {
+        codeSelection = select.getFormSelection(doc, selection.active, topLevel);
+        annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.REPL_WINDOW);
+        code = doc.getText(codeSelection);
+    } else {
+        codeSelection = selection;
+        code = doc.getText(selection);
+    }
+    if (code !== "") {
+        sendTextToREPLWindow(code, util.getNamespace(doc.getText()))
+    }
+    openReplWindow();
+}
+
+function evalCurrentFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(false);
+}
+
+function evalCurrentTopLevelFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(true);
+}
+
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
-
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj")));
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', () => openReplWindow("cljs")));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', loadNamespaceCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
 }
+

@@ -5,7 +5,6 @@ import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import status from './status';
 import connector from './connector';
-import terminal from './terminal';
 import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
@@ -102,10 +101,6 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
 
-    context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', terminal.loadNamespaceCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', terminal.setREPLNamespaceCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', terminal.evalCurrentFormInREPLWindowCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', terminal.evalCurrentTopLevelFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
 
@@ -127,7 +122,7 @@ function activate(context) {
         paredit.updatePareditEnabled();
         status.update();
         if (state.config().syncReplNamespaceToCurrentFile) {
-            terminal.setREPLNamespace()
+            replWindow.setREPLNamespace()
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))
