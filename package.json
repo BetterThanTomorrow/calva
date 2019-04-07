@@ -344,13 +344,13 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.evalCurrentFormInREPLTerminal",
-                "title": "Evaluate current form (or selection) in REPL window",
+                "command": "calva.evalCurrentFormInREPLWindow",
+                "title": "Send current form (or selection) to REPL window and evaluate it",
                 "category": "Calva"
             },
             {
-                "command": "calva.evalCurrentTopLevelFormInREPLTerminal",
-                "title": "Evaluate current top level form in REPL window",
+                "command": "calva.evalCurrentTopLevelFormInREPLWindow",
+                "title": "Send current top level form to REPL window and evaluate it",
                 "category": "Calva"
             },
             {
@@ -653,11 +653,11 @@
                 "key": "ctrl+alt+v n"
             },
             {
-                "command": "calva.evalCurrentFormInREPLTerminal",
+                "command": "calva.evalCurrentFormInREPLWindow",
                 "key": "ctrl+alt+v alt+e"
             },
             {
-                "command": "calva.evalCurrentTopLevelFormInREPLTerminal",
+                "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "key": "ctrl+alt+v alt+space"
             },
             {

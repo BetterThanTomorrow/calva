@@ -11,55 +11,6 @@ const CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL = 'npx shadow-cljs clj-repl';
 const CONNECT_SHADOW_CLJS_CLJS_BUILD_REPL = 'npx shadow-cljs cljs-repl';
 const CONNECT_SHADOW_CLJS_CLJS_NODE_REPL = 'npx shadow-cljs node-repl';
 
-function terminalSlug(sessionSlug) {
-    return sessionSlug + '-terminal';
-}
-
-function createREPLTerminal(sessionType, shadowBuild: string, outputChan) {
-    let current = state.deref(),
-        slug = terminalSlug(sessionType),
-        terminalName = (sessionType === 'clj' ? 'Clojure' : 'ClojureScript') + ' REPL',
-        terminal = null;
-
-    if (current.get(slug)) {
-        current.get(slug).dispose();
-    }
-    terminal = vscode.window.createTerminal(terminalName);
-
-    if (terminal) {
-        state.cursor.set(slug, terminal);
-        let connectCommand = shadow.isShadowCljs() ?
-            (sessionType === 'cljs' ?
-                (shadowBuild.startsWith(":") ?
-                    `${CONNECT_SHADOW_CLJS_CLJS_BUILD_REPL} ${shadowBuild}` :
-                    CONNECT_SHADOW_CLJS_CLJS_NODE_REPL) :
-                CONNECT_SHADOW_CLJS_CLJ_SERVER_REPL) :
-            state.config().connectREPLCommand + " " + current.get('hostname') + ':' + current.get('port');
-        terminal.sendText(connectCommand);
-        if (!shadowBuild && sessionType === 'cljs') {
-            terminal.sendText(util.getCljsReplStartCode());
-        }
-        outputChan.appendLine('Terminal created for: ' + terminalName);
-    }
-}
-
-function openREPLTerminal() {
-    let current = state.deref(),
-        chan = state.outputChannel(),
-        sessionType = util.getREPLSessionType(),
-        terminal = current.get(terminalSlug(sessionType));
-
-    if (terminal) {
-        terminal.show(true);
-    }
-    else {
-        chan.appendLine("No REPL terminal found. Try reconnecting the REPL sessions.");
-    }
-}
-
-function openREPLTerminalCommand() {
-    openREPLTerminal();
-}
 
 function loadNamespace() {
     setREPLNamespace(true);
@@ -73,7 +24,7 @@ function setREPLNamespaceCommand() {
     setREPLNamespace(false);
 }
 
-async function sendTextToREPLTerminal(text, ns?: string) {
+async function sendTextToREPLWindow(text, ns?: string) {
     let wnd = await openReplWindow(util.getREPLSessionType());
     if(wnd) {
         let oldNs = wnd.ns;
@@ -104,7 +55,7 @@ async function setREPLNamespace(reload = false) {
 }
 
 
-function evalCurrentFormInREPLTerminal(topLevel = false) {
+function evalCurrentFormInREPLWindow(topLevel = false) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -113,35 +64,32 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
         
     if (selection.isEmpty) {
         codeSelection = select.getFormSelection(doc, selection.active, topLevel);
-        annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.TERMINAL);
+        annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.REPL_WINDOW);
         code = doc.getText(codeSelection);
     } else {
         codeSelection = selection;
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLTerminal(code, util.getNamespace(doc.getText()))
+        sendTextToREPLWindow(code, util.getNamespace(doc.getText()))
     }
-    openREPLTerminal();
+    openReplWindow();
 }
 
-function evalCurrentFormInREPLTerminalCommand() {
-    evalCurrentFormInREPLTerminal(false);
+function evalCurrentFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(false);
 }
 
-function evalCurrentTopLevelFormInREPLTerminalCommand() {
-    evalCurrentFormInREPLTerminal(true);
+function evalCurrentTopLevelFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(true);
 }
 
 export default {
-    createREPLTerminal,
-    openREPLTerminal,
-    openREPLTerminalCommand,
     loadNamespace,
     loadNamespaceCommand,
     setREPLNamespaceCommand,
     setREPLNamespace,
-    evalCurrentFormInREPLTerminal,
-    evalCurrentFormInREPLTerminalCommand,
-    evalCurrentTopLevelFormInREPLTerminalCommand
+    evalCurrentFormInREPLWindow,
+    evalCurrentFormInREPLWindowCommand,
+    evalCurrentTopLevelFormInREPLWindowCommand
 };
