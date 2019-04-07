@@ -48,6 +48,7 @@ jspm_packages
 ## CLJS
 .shadow-cljs/
 lib/
+cljs-out/
 test-out/
 .nrepl-port
 dist/
