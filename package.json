@@ -146,11 +146,6 @@
                         "default": false,
                         "description": "Keeps the REPL window's namespace in sync with the current file (if it has a valid clojure namespace form)"
                     },
-                    "calva.connectREPLCommand": {
-                        "type": "string",
-                        "default": "lein repl :connect",
-                        "description": "Shell command used by the 'Terminal REPL' to connect to the nREPL (host:port will be appended)"
-                    },
                     "calva.startCLJSREPLCommand": {
                         "type": "string",
                         "default": "(do (require '[figwheel-sidecar.repl-api :as figwheel]) (figwheel/cljs-repl))",

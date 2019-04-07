@@ -59,7 +59,6 @@ function config() {
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
         autoConnect: configOptions.get("autoConnect"),
-        connectREPLCommand: configOptions.get("connectREPLCommand"),
         projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
         useWSL: configOptions.get("useWSL"),
