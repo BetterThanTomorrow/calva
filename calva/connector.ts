@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities';
 import shadow from './shadow';
@@ -12,7 +13,18 @@ import { NReplClient, NReplSession } from "./nrepl";
 function nreplPortFile() {
     if (fs.existsSync(shadow.shadowNReplPortFile()))
         return shadow.shadowNReplPortFile();
-    else
+    else if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName) {
+        let d = path.dirname(vscode.window.activeTextEditor.document.fileName);
+        let prev = null;
+        while (d != prev) {
+            const p = path.resolve(d, ".nrepl-port");
+            if (fs.existsSync(p)) {
+                return p;
+            }
+            prev = d;
+            d = path.resolve(d, "..");
+        }
+    } else
         return util.getProjectDir() + '/.nrepl-port'
 }
 
@@ -48,7 +60,7 @@ async function connectToHost(hostname, port) {
         })
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
-        
+
         state.cursor.set("connected", true);
         state.cursor.set("connecting", false);
         state.cursor.set('clj', cljSession)
@@ -113,13 +125,13 @@ async function makeCljsSessionClone(session, shadowBuild) {
             let out = [];
             let result = cljsSession.eval(initCode, { stderr: x => err.push(x), stdout: x => out.push(x)});
             try {
-                let valueResult = await result.value                
+                let valueResult = await result.value
                 if (!shadowBuild && result.ns) {
                     state.cursor.set('shadowBuild', null)
                     if (result.ns === cljSession.client.ns && out.find(x => { return x.search("not initialized") })) {
                         tellUserFigwheelNotStarted(chan);
                     }
-                    else { 
+                    else {
                         state.cursor.set('cljs', cljsSession)
                         return [cljsSession, null];
                     }
