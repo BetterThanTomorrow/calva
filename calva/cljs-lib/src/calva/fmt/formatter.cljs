@@ -37,7 +37,7 @@
           (count)))))
 
 
-(defn ^:export enclosing-range
+(defn enclosing-range
   "Expands the range from `idx` up to any enclosing list/vector/map/string"
   [{:keys [all-text idx] :as m}]
   (assoc m :range
@@ -134,7 +134,7 @@
     (assoc m :new-index pos)))
 
 
-(defn ^:export format-text-at-range
+(defn format-text-at-range
   "Formats text from all-text at the range"
   [{:keys [all-text range idx config on-type] :as m}]
   (let [indent-before (indent-before-range m)
@@ -176,7 +176,7 @@
     m))
 
 
-(defn ^:export format-text-at-idx
+(defn format-text-at-idx
   "Formats the enclosing range of text surrounding idx"
   [{:keys [all-text idx] :as m}]
   (-> m
@@ -188,7 +188,7 @@
       (remove-indent-token-if-empty-current-line)))
 
 
-(defn ^:export format-text-at-idx-on-type
+(defn format-text-at-idx-on-type
   "Relax formating some when used as an on-type handler"
   [m]
   (-> m

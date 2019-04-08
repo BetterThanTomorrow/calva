@@ -17,7 +17,7 @@
   (clojure.string/replace s #"([.*+?^${}()|\[\]\\])" "\\$1"))
 
 
-(defn ^:export current-line
+(defn current-line
   "Finds the text of the current line in `text` from cursor position `index`"
   [text index]
   (let [head (subs text 0 index)
@@ -39,7 +39,7 @@
   (clojure.string/split s #"\r?\n" -1))
 
 
-(defn ^:export enclosing? [text]
+(defn enclosing? [text]
   (let [ast (cljify (paredit/parse text))
         children (:children ast)]
     (and (= 1 (count children))
