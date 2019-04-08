@@ -62,7 +62,8 @@ function config() {
         projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
         useWSL: configOptions.get("useWSL"),
-        syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile")
+        syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
+        jackInEnv: configOptions.get("jackInEnv")
     };
 }
 

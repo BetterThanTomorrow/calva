@@ -165,6 +165,11 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Specifies if the nREPL and Joker are running within WSL."
+                    },
+                    "calva.jackInEnv": {
+                        "type": "object",
+                        "default": {},
+                        "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
                     }
                 }
             },

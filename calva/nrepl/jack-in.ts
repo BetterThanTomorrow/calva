@@ -250,12 +250,21 @@ export async function calvaJackIn() {
     state.cursor.set("launching", buildName)
     statusbar.update();
 
-    // spawn the command line.
-    let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args, { detached: false, shell: !isWin || (isWin && build.useShell), cwd: utilities.getProjectDir() })
-    processes.add(child); // keep track of processes.
-
     jackInChannel.clear();
     jackInChannel.show(true);
+    const env = { ...process.env, ...state.config().jackInEnv };
+    // jackInChannel.appendLine("Using ENV: " + JSON.stringify(env));
+
+    // spawn the command line.
+    let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args,
+        {
+            detached: false,
+            shell: !isWin || (isWin && build.useShell),
+            cwd: utilities.getProjectDir(),
+            env: env
+        });
+    processes.add(child); // keep track of processes.
+
     jackInChannel.appendLine("Launching clojure with: " + executable + " " + args.join(' '));
 
     child.stderr.on("data", data => {
