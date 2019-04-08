@@ -39,7 +39,8 @@ export function detectProjectType() {
 
 const injectDependencies = {
     "cider/cider-nrepl": "0.21.2-SNAPSHOT",
-    "cider/piggieback": "0.4.0"
+    "cider/piggieback": "0.4.0",
+    "figwheel-sidecar": "0.5.18"
 }
 
 const shadowDependencies = {
@@ -153,7 +154,7 @@ const projectTypes: { [id: string]: { name: string, cmd: string, winCmd: string,
             }
             let aliases = [];
             if (parsed.aliases != undefined) {
-                aliases = await utilities.quickPickMulti({ values: parsed.aliases.map(x => x.name), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with" });
+                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with" });
             }
 
 
