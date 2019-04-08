@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as clipboardy from 'clipboardy';
 import * as state from '../../state';
 import annotations from '../../providers/annotations';
 import select from './select';
@@ -138,7 +137,7 @@ async function copyLastResultCommand() {
 
     let value = await client.eval("*1").value;
     if(value !== null)
-        clipboardy.writeSync(value);
+        vscode.env.clipboard.writeText(value);
     else
         chan.appendLine("Nothing to copy");
 }

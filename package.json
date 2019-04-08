@@ -897,7 +897,6 @@
         "@calva/repl-interactor": "0.0.15",
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.66",
-        "clipboardy": "^1.2.3",
         "find": "0.2.9",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
