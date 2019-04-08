@@ -63,3 +63,5 @@ Now starts a period where most Calva development will be directed at supporting 
 However, do not expect lightning speed. Calva is maintained mostly by me alone, with Matt being there for the wizardry things that are sometimes needed. I have a demanding day job and can only devote so much time to Calva.
 
 It is a blessing that some other people have done lots of the hard work to make the building blocks of Calva, I don't want to forget anyone by starting to mention projects, but I must mention [The Orchard](https://github.com/clojure-emacs/orchard), which is where Calva finds most of the Cider it is distilled from. Thanks, @bbatsov, you rock! I'd like to also express my gratitude to @thheller who not only provides shadow-cljs, which is an important part of the Calva development toolchain, but also for his patience with my stupid questions.
+
+❤️ Happy Clojure and ClojureScript Coding! ❤️
