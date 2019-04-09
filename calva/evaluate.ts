@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from '../../state';
-import annotations from '../../providers/annotations';
+import * as state from './state';
+import annotations from './providers/annotations';
 import select from './select';
-import * as util from '../../utilities';
+import * as util from './utilities';
 
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {

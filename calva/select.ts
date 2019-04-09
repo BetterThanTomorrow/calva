@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as util from '../../utilities';
+import * as util from './utilities';
 const paredit = require('paredit.js');
 
 

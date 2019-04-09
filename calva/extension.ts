@@ -9,12 +9,12 @@ import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
-import EvaluateMiddleWare from './repl/middleware/evaluate';
-import LintMiddleWare from './repl/middleware/lint';
-import TestRunnerMiddleWare from './repl/middleware/testRunner';
+import EvaluateMiddleWare from './evaluate';
+import LintMiddleWare from './lint';
+import TestRunnerMiddleWare from './testRunner';
 import annotations from './providers/annotations';
-import select from './repl/middleware/select';
-import evaluate from "./repl/middleware/evaluate"
+import select from './select';
+import evaluate from "./evaluate"
 import * as replWindow from "./repl-window";
 import { format } from 'url';
 import * as greetings from "./greet";

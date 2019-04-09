@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 import * as path from 'path';
-import * as state from '../../state';
-import * as util from '../../utilities';
+import * as state from './state';
+import * as util from './utilities';
 import { windowsToWslSync } from 'wsl-path';
 
 function parseJokerLine(jokerOutput) {

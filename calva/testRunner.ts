@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from '../../state';
+import * as state from './state';
 import evaluate from './evaluate';
-import * as util from '../../utilities';
+import * as util from './utilities';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 

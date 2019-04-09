@@ -9,8 +9,8 @@ import { NReplEvaluation, NReplSession } from "./nrepl";
 
 import annotations from './providers/annotations';
 import * as util from './utilities';
-import evaluate from './repl/middleware/evaluate';
-import select from './repl/middleware/select';
+import evaluate from './evaluate';
+import select from './select';
 
 // REPL
 
