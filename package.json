@@ -359,6 +359,16 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.refresh",
+                "title": "Refresh changed namespaces (since last run of this command)",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.refreshAll",
+                "title": "Refresh all namespaces in the project",
+                "category": "Calva"
+            },
+            {
                 "category": "Paredit",
                 "command": "paredit.toggle",
                 "title": "Toggle"

@@ -377,7 +377,7 @@ export class NReplSession {
                 if(msg.status && msg.status.indexOf("done") != -1) {
                     let res = { reloaded, status } as any;
                     if(error) res.error = error;
-                    if(errorNs) res.errorNs = error;
+                    if(errorNs) res.errorNs = errorNs;
                     if(err) res.err = err;
                     resolve(res)
                     return true;

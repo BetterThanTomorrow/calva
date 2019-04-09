@@ -15,6 +15,7 @@ import TestRunnerMiddleWare from './testRunner';
 import annotations from './providers/annotations';
 import select from './select';
 import evaluate from "./evaluate"
+import refresh from "./refresh";
 import * as replWindow from "./repl-window";
 import { format } from 'url';
 import * as greetings from "./greet";
@@ -103,6 +104,9 @@ function activate(context) {
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
+
+    context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
