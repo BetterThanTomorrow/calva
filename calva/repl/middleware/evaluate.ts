@@ -114,7 +114,8 @@ async function evaluateFile(document = {}, callback = () => { }) {
         fileType = util.getFileType(doc),
         client = util.getSession(util.getFileType(doc)),
         chan = state.outputChannel(),
-        shortFileName = path.basename(fileName);
+        shortFileName = path.basename(fileName),
+        dirName = path.dirname(fileName);
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         chan.appendLine("Evaluating file: " + fileName);
@@ -123,8 +124,8 @@ async function evaluateFile(document = {}, callback = () => { }) {
         let value = await client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
-            stdout: m => chan.appendLine(m.replace(shortFileName, fileName)),
-            stderr: m => chan.appendLine(m.replace(shortFileName, fileName))
+            stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
+            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)
         }).value;
 
         if (value !== null)
