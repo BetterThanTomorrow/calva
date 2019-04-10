@@ -4,7 +4,7 @@
  :source-paths ["calva/cljs-lib/src"
                 "calva/cljs-lib/test"]
 
- :builds       {:calva-fmt-lib
+ :builds       {:calva-lib
                 {:target    :node-library
                  :exports   {:formatText calva.fmt.formatter/format-text
                              :formatTextAtRange calva.fmt.formatter/format-text-at-range

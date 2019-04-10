@@ -894,10 +894,10 @@
         }
     },
     "scripts": {
-        "watch-cljs": "npx shadow-cljs watch :test :calva-fmt-lib",
+        "watch-cljs": "npx shadow-cljs watch :test :calva-lib",
         "watch-ts": "concurrently \"tsc -watch -p ./\" \"npx webpack -w\"",
-        "release-cljs": "npx shadow-cljs release :calva-fmt-lib",
-        "compile-cljs": "npx shadow-cljs compile :calva-fmt-lib",
+        "release-cljs": "npx shadow-cljs release :calva-lib",
+        "compile-cljs": "npx shadow-cljs compile :calva-lib",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run update-grammar && npm run release-cljs && tsc -p ./",
         "compile": "npm run compile-cljs && npm i && tsc -p ./",
