@@ -134,7 +134,7 @@
                     "calva.autoConnect": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Try to connect to nREPL on start using the .nrepl-port file"
+                        "description": "Try to connect to nREPL on start (if there is an .nrepl-port present)"
                     },
                     "calva.testOnSave": {
                         "type": "boolean",
@@ -240,7 +240,12 @@
         "commands": [
             {
                 "command": "calva.jackIn",
-                "title": "Jack In",
+                "title": "Start a project REPL and connect (aka Jack-In)",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.connect",
+                "title": "Connect to a running REPL server",
                 "category": "Calva"
             },
             {
@@ -251,16 +256,6 @@
             {
                 "command": "calva.openCljsReplWindow",
                 "title": "Open a ClojureScript REPL",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.connect",
-                "title": "Connect",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.reconnect",
-                "title": "Reconnect",
                 "category": "Calva"
             },
             {
@@ -280,27 +275,27 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "title": "Evaluate selection or current form",
+                "title": "Evaluate current form (or selection)",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "title": "Evaluate current top level form",
+                "title": "Evaluate current top level (aka defun) form",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
-                "title": "Evaluate selection or current form, and pretty print",
+                "title": "Evaluate current form (or selection), and pretty print",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "title": "Evaluate current top level form, and pretty print",
+                "title": "Evaluate current top level (aka defun) form, and pretty print",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "title": "Evaluate selection or current form, and replace it with the result",
+                "title": "Evaluate current form (or selection), and replace it with the result",
                 "category": "Calva"
             },
             {
@@ -310,7 +305,7 @@
             },
             {
                 "command": "calva.evaluateFile",
-                "title": "Evaluate current file",
+                "title": "Evaluate (load) current file",
                 "category": "Calva"
             },
             {
@@ -350,7 +345,7 @@
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "title": "Send current top level form to REPL window and evaluate it",
+                "title": "Send current top level (aka defun) form to REPL window and evaluate it",
                 "category": "Calva"
             },
             {
@@ -401,7 +396,7 @@
             {
                 "category": "Paredit",
                 "command": "paredit.rangeForDefun",
-                "title": "Select Current Top Level Form"
+                "title": "Select Current Top Level (aka defun) Form"
             },
             {
                 "category": "Paredit",
@@ -441,7 +436,7 @@
             {
                 "category": "Paredit",
                 "command": "paredit.yankRangeForDefun",
-                "title": "Copy Current Top Level Form"
+                "title": "Copy Current Top Level (aka defun) Form"
             },
             {
                 "category": "Paredit",
@@ -471,7 +466,7 @@
             {
                 "category": "Paredit",
                 "command": "paredit.cutRangeForDefun",
-                "title": "Cut Select Current Top Level Form"
+                "title": "Cut Select Current Top Level (aka defun) Form"
             },
             {
                 "category": "Paredit",
@@ -586,12 +581,12 @@
         ],
         "keybindings": [
             {
-                "command": "calva.connect",
-                "key": "ctrl+alt+v c"
+                "command": "calva.jackIn",
+                "key": "ctrl+alt+v ctrl+alt+v"
             },
             {
-                "command": "calva.reconnect",
-                "key": "ctrl+alt+v shift+c"
+                "command": "calva.connect",
+                "key": "ctrl+alt+v c"
             },
             {
                 "command": "calva.toggleCLJCSession",
@@ -608,7 +603,7 @@
             {
                 "command": "calva.clearInlineResults",
                 "key": "escape",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections"
             },
             {
                 "command": "calva.evaluateSelection",
