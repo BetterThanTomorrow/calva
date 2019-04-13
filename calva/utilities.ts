@@ -6,6 +6,8 @@ import * as fs from 'fs';
 import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
+const { parseForms } = require('../cljs-out/cljs-lib');
+
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -88,8 +90,22 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getNamespace(text) {
-    let match = text.match(/^[\s\t]*(?:;.*\s)*[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
-    return match ? match[1] : 'user';
+    let ns = "user";
+    try {
+        const forms = parseForms(text);
+        if (forms !== undefined) {
+            const nsFormArray = forms.filter(x => x[0] == "ns");
+            if (nsFormArray != undefined && nsFormArray.length > 0) {
+                const nsForm = nsFormArray[0].filter(x => typeof (x) == "string");
+                if (nsForm != undefined) {
+                    ns = nsForm[1];
+                }
+            }
+        }
+    } catch (e) {
+        console.log("Error parsing ns form of this file. " + e);
+    }
+    return ns;
 }
 
 function getStartExpression(text) {
