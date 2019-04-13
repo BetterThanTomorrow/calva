@@ -19,6 +19,7 @@ import evaluate from "./repl/middleware/evaluate"
 import { nClient } from "./connector"
 
 import { readFileSync } from 'fs';
+import { DocumentSymbolProvider } from './providers/symbol';
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
 function onDidSave(document) {
@@ -75,7 +76,7 @@ function activate(context) {
 		html = html.replace("{{script}}", getUrl("main.js"))
 		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
-        
+
         let session = await nClient.createSession();
 
         let res = session.eval("*ns*");
@@ -97,7 +98,7 @@ function activate(context) {
                     panel.webview.postMessage({type: "repl-error", ex: e});
                 }
             }
-        })      
+        })
 	}));
     */
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
@@ -127,6 +128,7 @@ function activate(context) {
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(state.mode, new DocumentSymbolProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
