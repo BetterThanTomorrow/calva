@@ -249,7 +249,6 @@ function evalCurrentFormInREPLWindow(topLevel = false) {
     if (code !== "") {
         sendTextToREPLWindow(code, util.getNamespace(doc.getText()))
     }
-    openReplWindow();
 }
 
 function evalCurrentFormInREPLWindowCommand() {
