@@ -285,6 +285,17 @@ export class NReplSession {
         })
     }
 
+    nsVars(ns: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "ns-vars", ns, id, session: this.sessionId})
+        })
+    }
+
     test(ns: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;

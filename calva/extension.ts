@@ -18,6 +18,7 @@ import evaluate from "./evaluate"
 import refresh from "./refresh";
 import * as replWindow from "./repl-window";
 import { format } from 'url';
+import { DocumentSymbolProvider } from './providers/symbol';
 import * as greetings from "./greet";
 
 function onDidSave(document) {
@@ -112,6 +113,7 @@ function activate(context) {
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(state.mode, new DocumentSymbolProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
