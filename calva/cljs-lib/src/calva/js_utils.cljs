@@ -35,9 +35,9 @@
   [s]
   (let [pbr (rt/string-push-back-reader s)]
     (loop [parsed-forms []]
-      (let [parsed-form (tr/read {:eof 'CALVA-EOF} pbr)]
-        (if (or (= parsed-form 'CALVA-EOF)
-                (not= 'NO-ERROR (:calva-parse-error parsed-form 'NO-ERROR)))
+      (let [parsed-form (tr/read {:eof 'CALVA-EOF
+                                  :read-cond :preserve} pbr)]
+        (if (= parsed-form 'CALVA-EOF)
           parsed-forms
           (recur (conj parsed-forms parsed-form)))))))
 
