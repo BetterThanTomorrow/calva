@@ -221,7 +221,7 @@ export async function setREPLNamespace(reload = false) {
     let nameSpace = util.getDocumentNamespace();
 
     if (reload) {
-        evaluate.evaluateFile();
+        evaluate.loadFile();
     }
     let wnd = await openReplWindow(util.getREPLSessionType());
     if (wnd) {

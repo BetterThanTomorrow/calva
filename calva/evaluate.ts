@@ -106,7 +106,7 @@ function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
 }
 
-async function evaluateFile(document = {}, callback = () => { }) {
+async function loadFile(document = {}, callback = () => { }) {
     let current = state.deref(),
         doc = util.getDocument(document),
         fileName = util.getFileName(doc),
@@ -147,7 +147,7 @@ async function copyLastResultCommand() {
 }
 
 export default {
-    evaluateFile,
+    loadFile,
     evaluateSelection,
     evaluateTopLevelForm,
     evaluateSelectionPrettyPrint,

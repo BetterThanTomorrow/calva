@@ -304,8 +304,8 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.evaluateFile",
-                "title": "Evaluate (load) current file",
+                "command": "calva.loadFile",
+                "title": "Load current file and its dependencies",
                 "category": "Calva"
             },
             {
@@ -630,7 +630,7 @@
                 "key": "ctrl+alt+v ctrl+c"
             },
             {
-                "command": "calva.evaluateFile",
+                "command": "calva.loadFile",
                 "key": "ctrl+alt+v enter"
             },
             {

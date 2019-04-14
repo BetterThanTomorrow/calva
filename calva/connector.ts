@@ -77,7 +77,7 @@ async function connectToHost(hostname, port) {
         if (cljsSession) 
             setUpCljsRepl(cljsSession, chan, shadowBuild);
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
-        //evaluate.evaluateFile();
+        //evaluate.loadFile();
         status.update();
 
     } catch(e) {

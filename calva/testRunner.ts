@@ -105,7 +105,7 @@ async function runNamespaceTests(document = {}) {
         ns = util.getNamespace(doc.getText()),
         nss = [ns];
     
-    evaluate.evaluateFile({}, async () => {
+    evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running namespace tests…");
         nss = await considerTestNS(ns, client, nss);
         let resultPromises = [client.test(nss[0])];
@@ -123,7 +123,7 @@ function runNamespaceTestsCommand() {
 
 function rerunTests(document = {}) {
     let client = util.getSession(util.getFileType(document))
-    evaluate.evaluateFile({}, async () => {
+    evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
     });
