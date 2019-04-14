@@ -1,6 +1,7 @@
 import * as model from "@calva/repl-interactor/js/model"
 export { getIndent } from "@calva/repl-interactor/js/indent"
 import * as vscode from "vscode"
+import * as utilities from '../../../utilities';
 
 let documents = new Map<vscode.TextDocument, model.LineInputModel>();
 
@@ -43,26 +44,45 @@ export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Pos
     return model.getOffsetForLine(position.line)+position.character;
 }
 
+function addDocument(doc): boolean {
+    if (doc.languageId == "clojure") {
+        if (!documents.has(doc)) {
+            let mdl = new model.LineInputModel();
+            mdl.insertString(0, doc.getText())
+            documents.set(doc, mdl);
+            return false;
+        } else {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function activate() {
     // the last thing we want is to register twice and receive double events...
     if(registered)
         return;
     registered = true;
+    
+    addDocument(utilities.getDocument({}));
 
     vscode.workspace.onDidCloseTextDocument(e => {
         if(e.languageId == "clojure") {
             documents.delete(e);
         }
     })
+    
+    vscode.window.onDidChangeActiveTextEditor(e => {
+        addDocument(e.document);
+    });
+    
+    vscode.workspace.onDidOpenTextDocument(doc => {
+        addDocument(doc);
+    });
 
     vscode.workspace.onDidChangeTextDocument(e => {
-        if(e.document.languageId == "clojure") {
-            if(!documents.has(e.document)) {
-                let mdl = new model.LineInputModel();
-                mdl.insertString(0, e.document.getText())
-                documents.set(e.document, mdl);
-            } else
-                processChanges(e.document, e.contentChanges) 
+        if (addDocument(e.document)) {
+            processChanges(e.document, e.contentChanges)
         }
-    })
+    });
 }
