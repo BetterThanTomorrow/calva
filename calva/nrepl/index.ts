@@ -20,7 +20,7 @@ export class NReplClient {
 
     /** Tracks all sessions */
     sessions: {[id: string]: NReplSession} = {};
-    
+
     ns: string = "user";
 
     private constructor(socket: net.Socket) {
@@ -77,11 +77,11 @@ export class NReplClient {
         return new Promise<NReplClient>((resolve, reject) => {
 
             let socket = net.createConnection(opts, () => {
-                
+
                 let nsId = client.nextId
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
-                
+
                 client.decoder.on("data", data => {
                     //console.log("-> ", data);
                     if(!client.describe && data["id"] == describeId) {
@@ -102,7 +102,7 @@ export class NReplClient {
                     }
                 })
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
-                
+
             })
             let client = new NReplClient(socket);
         })
@@ -224,7 +224,7 @@ export class NReplSession {
 
         return evaluation;
     }
-    
+
     interrupt(interruptId: string) {
         let id = this.client.nextId;
         return new Promise<void>((resolve, reject) => {
@@ -282,6 +282,26 @@ export class NReplSession {
                 return true;
             }
             this.client.write({ op: "info", ns, symbol, id, session: this.sessionId})
+        })
+    }
+
+    apropos(varQuery: any, ns?: string, fullDoc?: boolean) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({
+                op: "apropos",
+                // To workaround apropos middleware bug https://github.com/clojure-emacs/cider-nrepl/commit/cf9f3a0c98e239a6fb9ca2740ad665d129ecc17b#r33170134
+                "case-sensitive?": true,
+                "var-query": varQuery,
+                ...(ns != null ? { ns } : {}),
+                ...(fullDoc != null ? { "full-doc?": fullDoc } : {}),
+                id,
+                session: this.sessionId
+            })
         })
     }
 

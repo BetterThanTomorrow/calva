@@ -62,7 +62,7 @@ export function activate() {
                 mdl.insertString(0, e.document.getText())
                 documents.set(e.document, mdl);
             } else
-                processChanges(e.document, e.contentChanges) 
+                processChanges(e.document, e.contentChanges)
         }
     })
 }
