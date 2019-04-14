@@ -247,7 +247,7 @@ function evalCurrentFormInREPLWindow(topLevel = false) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(code, util.getNamespace(doc.getText()))
+        sendTextToREPLWindow(code, util.getNamespace(doc))
     }
 }
 

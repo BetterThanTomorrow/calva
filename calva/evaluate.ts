@@ -35,7 +35,7 @@ async function evaluateSelection(document = {}, options = {}) {
 
             let err: string[] = [], out: string[] = [];
 
-            let res = await client.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
+            let res = await client.eval("(in-ns '"+util.getNamespace(doc)+")").value;
 
             try {
                 let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })

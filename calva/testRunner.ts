@@ -102,7 +102,7 @@ async function considerTestNS(ns: string, client: any, nss: string[]): Promise<s
 async function runNamespaceTests(document = {}) {
     let client = util.getSession(util.getFileType(document)),
         doc = util.getDocument(document),
-        ns = util.getNamespace(doc.getText()),
+        ns = util.getNamespace(doc),
         nss = [ns];
     
     evaluate.loadFile({}, async () => {
