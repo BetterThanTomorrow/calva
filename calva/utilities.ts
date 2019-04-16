@@ -111,7 +111,7 @@ const ERROR_TYPE = {
 };
 
 function logSuccess(results) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     chan.appendLine("Evaluation completed successfully");
     _.each(results, (r) => {
         let value = r.hasOwnProperty("value") ? r.value : null;
@@ -126,7 +126,7 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
 
     chan.appendLine(error.reason);
     if (error.line !== undefined && error.line !== null &&
@@ -163,7 +163,7 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     chan.appendLine(warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {

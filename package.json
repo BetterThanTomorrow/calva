@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, linting, inline eval and more for VSCode. Powered by Cider & nRepl.",
     "icon": "assets/calva.png",
-    "version": "1.3.65-SNAPSHOT",
+    "version": "1.3.65",
     "publisher": "cospaia",
     "author": {
         "name": "Bettar Than Tomorrow",
@@ -77,7 +77,7 @@
                 },
                 "calva.evalOnSave": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Run load-file when opening a new file and on file save"
                 },
                 "calva.lintOnSave": {
@@ -92,7 +92,7 @@
                 },
                 "calva.testOnSave": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Run namespace tests when opening a new file and on file save"
                 },
                 "calva.syncReplNamespaceToCurrentFile": {

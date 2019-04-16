@@ -61,8 +61,7 @@ function onDidOpen(document) {
 
 function activate(context) {
     Telemetry.init();
-
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
         autoConnect,

@@ -44,7 +44,7 @@ function createREPLTerminal(sessionType, shadowBuild: string, outputChan) {
 
 function openREPLTerminal() {
     let current = state.deref(),
-        chan = current.get('outputChannel'),
+        chan = state.outputChannel(),
         sessionType = util.getREPLSessionType(),
         terminal = current.get(terminalSlug(sessionType));
 
@@ -74,7 +74,7 @@ function loadNamespaceCommand(focus = true) {
 
 function sendTextToREPLTerminal(text, addNewline = false) {
     let current = state.deref(),
-        chan = current.get('outputChannel'),
+        chan = state.outputChannel(),
         sessionType = util.getREPLSessionType(),
         terminal = current.get(terminalSlug(sessionType));
 

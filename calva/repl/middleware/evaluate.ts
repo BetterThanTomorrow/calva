@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
+import * as path from 'path';
 import * as clipboardy from 'clipboardy';
 import * as state from '../../state';
 import annotations from '../../providers/annotations';
@@ -9,7 +10,7 @@ import * as util from '../../utilities';
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
-        chan = current.get('outputChannel'),
+        chan = state.outputChannel(),
         doc = util.getDocument(document),
         pprint = options["pprint"] || false,
         replace = options["replace"] || false,
@@ -32,7 +33,7 @@ async function evaluateSelection(document = {}, options = {}) {
         if (code.length > 0) {
             annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
-            
+
             let err: string[] = [], out: string[] = [];
 
             let res = await client.eval("(in-ns '"+util.getNamespace(doc.getText())+")").value;
@@ -53,7 +54,7 @@ async function evaluateSelection(document = {}, options = {}) {
                 } else {
                     annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     if (!pprint)
-                        annotations.decorateResults(' => ' + value.replace(/\n/gm, " ") + " ", false, codeSelection, editor);                        
+                        annotations.decorateResults(' => ' + value.replace(/\n/gm, " ") + " ", false, codeSelection, editor);
                 }
 
                 if (out.length > 0) {
@@ -66,7 +67,7 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.show(true);
                     chan.appendLine(value);
                 } else chan.appendLine(value);
-                
+
                 if (err.length > 0) {
                     chan.append("Error: ")
                     chan.append(err.join("\n"));
@@ -112,16 +113,19 @@ async function evaluateFile(document = {}, callback = () => { }) {
         fileName = util.getFileName(doc),
         fileType = util.getFileType(doc),
         client = util.getSession(util.getFileType(doc)),
-        chan = current.get('outputChannel');
+        chan = state.outputChannel(),
+        shortFileName = path.basename(fileName),
+        dirName = path.dirname(fileName);
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         chan.appendLine("Evaluating file: " + fileName);
+        chan.show(true);
 
         let value = await client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
-            stdout: m => chan.appendLine(m),
-            stderr: m => chan.appendLine(m)
+            stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
+            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)
         }).value;
 
         if (value !== null)
@@ -133,7 +137,7 @@ async function evaluateFile(document = {}, callback = () => { }) {
 }
 
 async function copyLastResultCommand() {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     let client = util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;
