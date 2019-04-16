@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as Immutable from 'immutable';
 import * as ImmutableCursor from 'immutable-cursor';
+import Analytics from './analytics';
 
 const mode = {
     language: 'clojure',
@@ -17,7 +18,8 @@ const initialData = {
     connected: false,
     connecting: false,
     outputChannel: vscode.window.createOutputChannel("Calva says"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
+    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
+    analytics: null
 };
 
 reset();
@@ -40,6 +42,16 @@ function outputChannel() {
         return channel;
     }
 }
+
+function analytics(): Analytics {
+    const analytics = deref().get('analytics');
+    if (analytics.toJS !== undefined) {
+        return analytics.toJS();
+    } else {
+        return analytics;
+    }
+}
+
 
 function reset() {
     data = Immutable.fromJS(initialData);
@@ -68,5 +80,6 @@ export {
     deref,
     reset,
     config,
-    outputChannel
+    outputChannel,
+    analytics
 };

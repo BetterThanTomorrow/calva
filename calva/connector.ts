@@ -41,6 +41,8 @@ function disconnect(options = null, callback = () => { }) {
 }
 
 async function connectToHost(hostname, port) {
+    state.analytics().logEvent("REPL", "Connecting");
+
     let chan = state.outputChannel();
     if(nClient) {
         nClient["silent"] = true;
@@ -76,6 +78,7 @@ async function connectToHost(hostname, port) {
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
         //evaluate.evaluateFile();
         status.update();
+        state.analytics().logEvent("REPL", "ConnectedCLJ");
 
     } catch(e) {
         state.cursor.set("connected", false);
@@ -106,6 +109,8 @@ function setUpCljsRepl(cljsSession, chan, shadowBuild) {
 }
 
 async function makeCljsSessionClone(session, shadowBuild) {
+    state.analytics().logEvent("REPL", "ConnectingCLJS", shadow.isShadowCljs() ? "shadow-cljs" : "figwheel");
+
     let chan = state.outputChannel();
 
     if (shadow.isShadowCljs() && !shadowBuild) {
@@ -133,10 +138,12 @@ async function makeCljsSessionClone(session, shadowBuild) {
                     }
                     else {
                         state.cursor.set('cljs', cljsSession)
+                        state.analytics().logEvent("REPL", "ConnectedCLJS", "figwheel");
                         return [cljsSession, null];
                     }
                 } else if(shadowBuild  && valueResult.match(/:selected/)) {
                     state.cursor.set('shadowBuild', shadowBuild);
+                    state.analytics().logEvent("REPL", "ConnectedCLJS", "shadow-cljs");
                     return [cljsSession, shadowBuild];
                 }
             } catch(e) {
@@ -205,6 +212,7 @@ export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
 function connect(isAutoConnect = false) {
+    state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
     let current = state.deref(),
         chan = state.outputChannel();
 

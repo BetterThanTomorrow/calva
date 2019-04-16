@@ -18,10 +18,9 @@ import * as util from './utilities';
 import evaluate from "./repl/middleware/evaluate"
 import { nClient } from "./connector"
 
-import { readFileSync } from 'fs';
+import { readFileSync, stat } from 'fs';
 
-import Telemetry from './telemetry';
-//import Telemetry from './telemetry';
+import Analytics from './analytics';
 
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
@@ -39,12 +38,15 @@ function onDidSave(document) {
     if (test) {
         if (test) {
             TestRunnerMiddleWare.runNamespaceTests(document);
+            state.analytics().logEvent("Calva", "OnSaveTest");
         }
     } else if (evaluate) {
         EvaluateMiddleWare.evaluateFile(document);
+        state.analytics().logEvent("Calva", "OnSaveLoad");
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
+        state.analytics().logEvent("Calva", "OnSaveLint");
     }
 }
 
@@ -60,7 +62,10 @@ function onDidOpen(document) {
 
 
 function activate(context) {
-    Telemetry.init();
+    state.cursor.set('analytics', new Analytics(context));
+    state.analytics().logPath("/start");
+    state.analytics().logEvent("LifeCycle", "Started");
+    
     let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
@@ -177,12 +182,12 @@ function activate(context) {
         else
             return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
     }
-
-    Telemetry.log('activated');
+    state.analytics().logPath("/activated");
+    state.analytics().logEvent("LifeCycle", "Activated");
 }
 
 function deactivate() {
-    Telemetry.dispose();
+    state.analytics().logEvent("LifeCycle", "Dectivated");
 }
 
 
