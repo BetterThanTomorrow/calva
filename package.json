@@ -903,6 +903,8 @@
         "@calva/repl-interactor": "0.0.15",
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.0.66",
+        "@types/universal-analytics": "^0.4.2",
+        "@types/uuid": "^3.4.4",
         "find": "0.2.9",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
@@ -912,6 +914,7 @@
         "npm": "^6.9.0",
         "paredit.js": "^0.3.4",
         "parinfer": "^3.12.0",
+        "universal-analytics": "^0.4.20",
         "vscode-extension-telemetry": "0.0.15",
         "wsl-path": "^1.1.0"
     },

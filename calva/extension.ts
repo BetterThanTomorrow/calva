@@ -19,6 +19,7 @@ import refresh from "./refresh";
 import * as replWindow from "./repl-window";
 import { format } from 'url';
 import * as greetings from "./greet";
+import Analytics from './analytics';
 
 function onDidSave(document) {
     let {
@@ -34,12 +35,15 @@ function onDidSave(document) {
     if (test) {
         if (test) {
             TestRunnerMiddleWare.runNamespaceTests(document);
+            state.analytics().logEvent("Calva", "OnSaveTest");
         }
     } else if (evaluate) {
         EvaluateMiddleWare.loadFile(document);
+        state.analytics().logEvent("Calva", "OnSaveLoad");
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
+        state.analytics().logEvent("Calva", "OnSaveLint");
     }
 }
 
@@ -55,6 +59,10 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    state.cursor.set('analytics', new Analytics(context));
+    state.analytics().logPath("/start");
+    state.analytics().logEvent("LifeCycle", "Started");
+
     let fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
     
@@ -150,7 +158,9 @@ function activate(context) {
     } else {
         chan.appendLine("Autoconnect disabled in Settings.")
     }
-    
+    state.analytics().logPath("/activated");
+    state.analytics().logEvent("LifeCycle", "Activated");
+
     return {
         hasParedit: true,
         hasFormatter: true
@@ -158,6 +168,7 @@ function activate(context) {
 }
 
 function deactivate() {
+    state.analytics().logEvent("LifeCycle", "Dectivated");
     paredit.deactivate()
     jackIn.killAllProcesses();
 }

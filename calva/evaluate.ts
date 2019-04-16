@@ -22,9 +22,11 @@ async function evaluateSelection(document = {}, options = {}) {
             code = "";
 
         if (selection.isEmpty) {
+            state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm");
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
         } else {
+            state.analytics().logEvent("Evaluation", "Selection");
             codeSelection = selection;
             code = doc.getText(selection);
         }
@@ -117,6 +119,7 @@ async function loadFile(document = {}, callback = () => { }) {
         dirName = path.dirname(fileName);
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+        state.analytics().logEvent("Evaluation", "LoadFile");   
         chan.appendLine("Evaluating file: " + fileName);
         chan.show(true);
 
