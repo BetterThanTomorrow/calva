@@ -112,10 +112,12 @@ function evalCurrentFormInREPLTerminal(topLevel = false) {
         code = "";
 
     if (selection.isEmpty) {
+        state.analytics().logEvent("REPLEvaluation", topLevel ? "TopLevel" : "CurrentForm");
         codeSelection = select.getFormSelection(doc, selection.active, topLevel);
         annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.TERMINAL);
         code = doc.getText(codeSelection);
     } else {
+        state.analytics().logEvent("REPLEvaluation", "Selection");
         codeSelection = selection;
         code = doc.getText(selection);
     }

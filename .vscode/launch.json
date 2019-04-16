@@ -14,6 +14,7 @@
             ],
             "stopOnEntry": false,
             "sourceMaps": true,
+            "env": {"CALVA_DEV_GA": "FUBAR-69796730-4"},
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ]

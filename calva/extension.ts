@@ -18,7 +18,10 @@ import * as util from './utilities';
 import evaluate from "./repl/middleware/evaluate"
 import { nClient } from "./connector"
 
-import { readFileSync } from 'fs';
+import { readFileSync, stat } from 'fs';
+
+import Analytics from './analytics';
+
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
 function onDidSave(document) {
@@ -35,12 +38,15 @@ function onDidSave(document) {
     if (test) {
         if (test) {
             TestRunnerMiddleWare.runNamespaceTests(document);
+            state.analytics().logEvent("Calva", "OnSaveTest");
         }
     } else if (evaluate) {
         EvaluateMiddleWare.evaluateFile(document);
+        state.analytics().logEvent("Calva", "OnSaveLoad");
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
+        state.analytics().logEvent("Calva", "OnSaveLint");
     }
 }
 
@@ -56,6 +62,10 @@ function onDidOpen(document) {
 
 
 function activate(context) {
+    state.cursor.set('analytics', new Analytics(context));
+    state.analytics().logPath("/start");
+    state.analytics().logEvent("LifeCycle", "Started");
+    
     let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
@@ -75,7 +85,7 @@ function activate(context) {
 		html = html.replace("{{script}}", getUrl("main.js"))
 		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
-        
+
         let session = await nClient.createSession();
 
         let res = session.eval("*ns*");
@@ -97,7 +107,7 @@ function activate(context) {
                     panel.webview.postMessage({type: "repl-error", ex: e});
                 }
             }
-        })      
+        })
 	}));
     */
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
@@ -166,15 +176,19 @@ function activate(context) {
     }
 
     // REPL
-	function getUrl(name?: string) {
-		if(name)
-			return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
-		else
-			return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
-	}
+    function getUrl(name?: string) {
+        if (name)
+            return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
+        else
+            return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
+    }
+    state.analytics().logPath("/activated");
+    state.analytics().logEvent("LifeCycle", "Activated");
 }
 
-function deactivate() { }
+function deactivate() {
+    state.analytics().logEvent("LifeCycle", "Dectivated");
+}
 
 
 export { activate, deactivate };
