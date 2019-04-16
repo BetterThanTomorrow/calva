@@ -21,7 +21,7 @@ import { nClient } from "./connector"
 import { readFileSync } from 'fs';
 
 import Telemetry from './telemetry';
-import Telemetry from './telemetry';
+//import Telemetry from './telemetry';
 
 const greetings = require('@cospaia/calva-lib/lib/calva.greet');
 
@@ -81,7 +81,7 @@ function activate(context) {
 		html = html.replace("{{script}}", getUrl("main.js"))
 		html = html.replace("{{logo}}", getUrl("/clojure-logo.svg"))
         panel.webview.html = html;
-        
+
         let session = await nClient.createSession();
 
         let res = session.eval("*ns*");
@@ -103,7 +103,7 @@ function activate(context) {
                     panel.webview.postMessage({type: "repl-error", ex: e});
                 }
             }
-        })      
+        })
 	}));
     */
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
@@ -172,17 +172,17 @@ function activate(context) {
     }
 
     // REPL
-	function getUrl(name?: string) {
-		if(name)
-			return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
-		else
-			return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
+    function getUrl(name?: string) {
+        if (name)
+            return vscode.Uri.file(path.join(context.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
+        else
+            return vscode.Uri.file(path.join(context.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
     }
-    
+
     Telemetry.log('activated');
 }
 
-function deactivate() { 
+function deactivate() {
     Telemetry.dispose();
 }
 
