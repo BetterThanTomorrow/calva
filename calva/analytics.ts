@@ -3,6 +3,10 @@ import * as UA from 'universal-analytics';
 import * as uuid from "uuid/v4";
 import * as os from 'os';
 
+// var debug = require('debug');
+// debug.log = console.info.bind(console);
+
+
 function userAllowsTelemetry(): boolean {
     const config = vscode.workspace.getConfiguration('telemetry');
     return config.get<boolean>('enableTelemetry', false);
@@ -22,9 +26,8 @@ export default class Analytics {
 
         this.visitor = UA(this.GA_ID, this.userID());
         this.visitor.set("cd1", this.extensionVersion);
-        this.visitor.set('requestOptions', {
-            'User-Agent': `Calva/${this.extensionVersion} (${os.platform()}; ${os.release()}; ${os.type}) VSCode/${vscode.version}`
-        });
+        this.visitor.set("cn", `calva-${this.extensionVersion}`);
+        this.visitor.set("ua", `Calva/${this.extensionVersion} (${os.platform()}; ${os.release()}; ${os.type}) VSCode/${vscode.version}`);
     }
 
     private userID(): string {
