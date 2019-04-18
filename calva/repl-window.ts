@@ -15,10 +15,14 @@ import select from './select';
 // REPL
 
 export function activeReplWindow() {
-    for(let w in replWindows) {
-        if(replWindows[w].panel.active)
-            return replWindows[w];
+    let currentDoc: vscode.TextDocument = util.getDocument({});
+    if (!currentDoc.fileName.match(/\.clj[cs]$/)) {
+        for (let w in replWindows) {
+            if (replWindows[w].panel.active)
+                return replWindows[w];
+        }
     }
+    return undefined;
 }
 
 
@@ -177,7 +181,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
         replWindows[mode].panel.reveal(vscode.ViewColumn.Two, true);
         return replWindows[mode];
     }
-
+    
     let session = mode == "clj" ? cljSession : cljsSession;
     if(!session) {
         vscode.window.showErrorMessage("Not connected to nREPL");
@@ -185,7 +189,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
     }
 
     session = await session.clone();
-    let title = mode == "clj" ? "CLJ REPL" : "CLJS Repl";
+    let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
     const panel = vscode.window.createWebviewPanel("replInteractor", title, vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
     let repl = replWindows[mode] = new REPLWindow(panel, session, mode);
     await repl.initialized;
