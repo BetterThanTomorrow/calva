@@ -85,7 +85,6 @@ class REPLWindow {
 
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
-            vscode.commands.executeCommand("setContext", "calva:pareditValid", e.webviewPanel.active)
             
             if(e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
