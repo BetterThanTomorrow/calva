@@ -156,7 +156,7 @@ function activate(context) {
         chan.appendLine("Autoconnecting... (This can be disabled in Settings)");
         connector.autoConnect();
     } else {
-        chan.appendLine("Autoconnect disabled in Settings.")
+        chan.appendLine("Start the REPL with: ctrl+alt+v ctrl+alt+v");
     }
     state.analytics().logPath("/activated");
     state.analytics().logEvent("LifeCycle", "Activated");
