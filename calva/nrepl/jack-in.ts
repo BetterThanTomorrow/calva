@@ -38,22 +38,22 @@ export function detectProjectType() {
 }
 
 const injectDependencies = {
-    "cider/cider-nrepl": "0.21.2-SNAPSHOT",
-    "cider/piggieback": "0.4.0",
+    "cider/cider-nrepl": "0.20.0",
+    "cider/piggieback": "0.3.10",
     "figwheel-sidecar": "0.5.18"
 }
 
 const shadowDependencies = {
-    "cider/cider-nrepl": "0.21.2-SNAPSHOT"
+    "cider/cider-nrepl": "0.20.0"
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.21.2-SNAPSHOT"
+    "cider/cider-nrepl": "0.20.0"
 }
 
 const leinDependencies = {
-    "nrepl": "0.6.0",
-    "cider/piggieback": "0.4.0",
+    "nrepl": "0.5.3",
+    "cider/piggieback": "0.3.10",
     "figwheel-sidecar": "0.5.18"
 }
 
