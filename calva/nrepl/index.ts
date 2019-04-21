@@ -198,16 +198,16 @@ export class NReplSession {
                 if(msg.out)
                     evaluation.out(msg.out)
                 if(msg.err)
-                    evaluation.out(msg.err)
+                    evaluation.err(msg.err)
                 if(msg.ns)
                     evaluation.ns = msg.ns;
                 if(msg.ex)
                     ex = msg.ex;
-                if(msg.value)
+                if(msg.value != undefined)
                     value = msg.value
                 if(msg["pprint-out"])
                     evaluation.pprintOut = msg["pprint-out"];
-                if(msg.status && msg.status.indexOf("done") != -1) {
+                if(msg.status) {
                     if(ex)
                         reject(ex);
                     else if(value)
