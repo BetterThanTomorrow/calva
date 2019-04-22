@@ -170,7 +170,6 @@ function activate(context) {
 function deactivate() {
     state.analytics().logEvent("LifeCycle", "Dectivated");
     paredit.deactivate()
-    jackIn.killAllProcesses();
 }
 
 
