@@ -189,6 +189,26 @@ function getProjectTypeForName(name: string) {
             return projectTypes[id];
 }
 
+let watcher: fs.FSWatcher;
+const TASK_NAME = "Calva Jack-in";
+
+vscode.tasks.onDidStartTaskProcess(e => {
+    if (e.execution.task.name == TASK_NAME) {
+        if (watcher != undefined) {
+            watcher.close();
+        }
+        // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
+        watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
+            if (filename == ".nrepl-port" || filename == "nrepl.port") {
+                state.cursor.set("launching", null)
+                watcher.close();
+                await connector.connect(true);
+                openReplWindow("clj");
+            }
+        })
+    }
+});
+
 export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
 
@@ -230,16 +250,6 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     }
 
-    // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
-    let watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
-        if (filename == ".nrepl-port" || filename == "nrepl.port") {
-            state.cursor.set("launching", null)
-            watcher.close();
-            await connector.connect(true);
-            openReplWindow("clj");
-        }
-    })
-
     state.cursor.set("launching", buildName)
     statusbar.update();
 
@@ -256,10 +266,11 @@ export async function calvaJackIn() {
     };
 
     const folder = vscode.workspace.workspaceFolders[0];
-    const task = new vscode.Task(taskDefinition, folder, "Calva Jack-in", "Calva", execution);
+    const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
 
     vscode.tasks.executeTask(task).then(
-        (v) => { },
+        (v) => {
+        },
         (reason) => {
             watcher.close()
             outputChannel.appendLine("Error in Jack-in: " + reason);
