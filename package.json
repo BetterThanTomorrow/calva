@@ -582,7 +582,7 @@
         "keybindings": [
             {
                 "command": "calva.jackIn",
-                "key": "ctrl+alt+v ctrl+alt+v"
+                "key": "ctrl+alt+v ctrl+alt+j"
             },
             {
                 "command": "calva.connect",

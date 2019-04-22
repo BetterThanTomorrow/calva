@@ -190,6 +190,10 @@ function getProjectTypeForName(name: string) {
 }
 
 export async function calvaJackIn() {
+    const outputChannel = state.outputChannel();
+
+    outputChannel.appendLine("Jacking in.");
+
     // figure out what possible kinds of project we're in
     let types = detectProjectType();
     if (types.length == 0) {
@@ -240,7 +244,7 @@ export async function calvaJackIn() {
     statusbar.update();
 
     const env = { ...process.env, ...state.config().jackInEnv };
-    
+
     const execution = new vscode.ShellExecution(executable, args, {
         cwd: utilities.getProjectDir(),
         env: env
@@ -253,14 +257,11 @@ export async function calvaJackIn() {
 
     const folder = vscode.workspace.workspaceFolders[0];
     const task = new vscode.Task(taskDefinition, folder, "Calva Jack-in", "Calva", execution);
-    
-    vscode.tasks.executeTask(task);
 
-    // TODO: How to handle this with the Task?
-    // child.on("error", data => {
-    //     // Look for this under lein:
-    //     //   Warning: cider-nrepl requires Leiningen 2.8.3 or greater.
-    //     //   Warning: cider-nrepl will not be included in your project.
-    //     jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
-    // })
+    vscode.tasks.executeTask(task).then(
+        (v) => { },
+        (reason) => {
+            watcher.close()
+            outputChannel.appendLine("Error in Jack-in: " + reason);
+        });
 }

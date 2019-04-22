@@ -156,7 +156,7 @@ function activate(context) {
         chan.appendLine("Autoconnecting... (This can be disabled in Settings)");
         connector.autoConnect();
     } else {
-        chan.appendLine("Start the REPL with: ctrl+alt+v ctrl+alt+v");
+        chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*. Default keybinding: ctrl+alt+v ctrl+alt+j");
     }
     state.analytics().logPath("/activated");
     state.analytics().logEvent("LifeCycle", "Activated");
