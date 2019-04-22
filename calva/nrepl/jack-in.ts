@@ -189,19 +189,7 @@ function getProjectTypeForName(name: string) {
             return projectTypes[id];
 }
 
-let processes = new Set<ChildProcess>();
-
-let jackInChannel = vscode.window.createOutputChannel("Calva Jack-In");
-
 export async function calvaJackIn() {
-    // Are there running jack-in processes? If so we must kill them to proceed.
-    if (processes.size) {
-        let result = await vscode.window.showWarningMessage("Already jacked-in, kill existing process?", { title: "OK" }, { title: "Cancel", isCloseAffordance: true });
-        if (result && result.title == "OK") {
-            killAllProcesses();
-        } else
-            return;
-    }
     // figure out what possible kinds of project we're in
     let types = detectProjectType();
     if (types.length == 0) {
@@ -251,58 +239,28 @@ export async function calvaJackIn() {
     state.cursor.set("launching", buildName)
     statusbar.update();
 
-    jackInChannel.clear();
-    jackInChannel.show(true);
     const env = { ...process.env, ...state.config().jackInEnv };
-    // jackInChannel.appendLine("Using ENV: " + JSON.stringify(env));
-
-    // spawn the command line.
-    let child = spawn(executable != "powershell.exe" ? `"${executable}"` : executable, args,
-        {
-            detached: false,
-            shell: !isWin || (isWin && build.useShell),
-            cwd: utilities.getProjectDir(),
-            env: env
-        });
-    processes.add(child); // keep track of processes.
-
-    jackInChannel.appendLine("Launching clojure with: " + executable + " " + args.join(' '));
-
-    child.stderr.on("data", data => {
-        jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
-    })
-    child.stdout.on("data", data => {
-        jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
-    })
-    child.on("error", data => {
-        // Look for this under lein:
-        //   Warning: cider-nrepl requires Leiningen 2.8.3 or greater.
-        //   Warning: cider-nrepl will not be included in your project.
-        jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
-    })
-    child.on("disconnect", data => {
-        console.error(utilities.stripAnsi(data.toString()))
-    })
-    child.on("close", data => {
-        console.error(utilities.stripAnsi(data.toString()))
-    })
-    child.on("message", data => {
-        console.error(utilities.stripAnsi(data.toString()))
-    })
-    child.once("exit", (code, signal) => {
-        processes.delete(child);
-        watcher.close();
-    })
-}
-
-process.on("exit", killAllProcesses)
-export function killAllProcesses() {
-    processes.forEach(x => {
-        if (!isWin) {
-            x.kill("SIGTERM");
-        } else {
-            // windows sux. brutally destroy the process.
-            exec('taskkill /PID ' + x.pid + ' /T /F');
-        }
+    
+    const execution = new vscode.ShellExecution(executable, args, {
+        cwd: utilities.getProjectDir(),
+        env: env
     });
+
+    const taskDefinition: vscode.TaskDefinition = {
+        type: "shell",
+        label: "Calva: Jack-in"
+    };
+
+    const folder = vscode.workspace.workspaceFolders[0];
+    const task = new vscode.Task(taskDefinition, folder, "Calva Jack-in", "Calva", execution);
+    
+    vscode.tasks.executeTask(task);
+
+    // TODO: How to handle this with the Task?
+    // child.on("error", data => {
+    //     // Look for this under lein:
+    //     //   Warning: cider-nrepl requires Leiningen 2.8.3 or greater.
+    //     //   Warning: cider-nrepl will not be included in your project.
+    //     jackInChannel.appendLine(utilities.stripAnsi(data.toString()))
+    // })
 }
