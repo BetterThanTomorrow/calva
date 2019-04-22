@@ -904,7 +904,7 @@
         "@types/node": "^7.0.66",
         "@types/universal-analytics": "^0.4.2",
         "@types/uuid": "^3.4.4",
-        "@calva/repl-interactor": "^0.0.15",
+        "@calva/repl-interactor": "^0.0.16",
         "find": "0.2.9",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
