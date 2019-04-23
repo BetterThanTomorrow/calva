@@ -65,10 +65,6 @@ export default class Analytics {
         this.getVisitor().pageview(path).send();
     }
 
-    logView(view: string) {
-        this.getVisitor().screenview(view, "Calva", this.extensionVersion, this.extension.id).send();
-    }
-
     logEvent(category: string, action: string, label?: string, value?: string) {
         this.getVisitor().event({ ec: category, ea: action, el: label, ev: value }).send();
     }
