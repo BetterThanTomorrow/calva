@@ -44,28 +44,23 @@ export default class Analytics {
         }
     }
 
-    private getVisitor(): UA.Visitor | { pageview, event, screenview } {
-        const noop = {
-            send: function () {
-                //console.log("Not logging!");
-            }
-        }
+    logPath(path: string): Analytics {
         if (userAllowsTelemetry()) {
-            return this.visitor;
-        } else {
-            return {
-                pageview: function (...args) { return noop },
-                event: function (...args) { return noop },
-                screenview: function (...args) { return noop }
-            }
+            this.visitor.pageview(path);
         }
+        return this;
     }
 
-    logPath(path: string) {
-        this.getVisitor().pageview(path).send();
+    logEvent(category: string, action: string, label?: string, value?: string): Analytics {
+        if (userAllowsTelemetry()) {
+            this.visitor.event({ ec: category, ea: action, el: label, ev: value });
+        }
+        return this;
     }
 
-    logEvent(category: string, action: string, label?: string, value?: string) {
-        this.getVisitor().event({ ec: category, ea: action, el: label, ev: value }).send();
+    send() {
+        if (userAllowsTelemetry()) {
+            this.visitor.send();
+        }
     }
 }

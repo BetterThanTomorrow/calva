@@ -35,15 +35,15 @@ function onDidSave(document) {
     if (test) {
         if (test) {
             TestRunnerMiddleWare.runNamespaceTests(document);
-            state.analytics().logEvent("Calva", "OnSaveTest");
+            state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
         EvaluateMiddleWare.loadFile(document);
-        state.analytics().logEvent("Calva", "OnSaveLoad");
+        state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
     if (lint) {
         LintMiddleWare.lintDocument(document);
-        state.analytics().logEvent("Calva", "OnSaveLint");
+        state.analytics().logEvent("Calva", "OnSaveLint").send();
     }
 }
 
@@ -60,18 +60,17 @@ function onDidOpen(document) {
 
 function activate(context) {
     state.cursor.set('analytics', new Analytics(context));
-    state.analytics().logPath("/start");
-    state.analytics().logEvent("LifeCycle", "Started");
+    state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
     let fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
-    
+
     state.setExtensionContext(context);
-    
+
     if (!fmtExtension) {
         fmt.activate(context);
     } else {
-        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall it before continuing using Calva.", ...["Got it. Will do!"]); 
+        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall it before continuing using Calva.", ...["Got it. Will do!"]);
     }
     if (!pareEditExtension) {
         paredit.activate(context);
@@ -80,7 +79,7 @@ function activate(context) {
     }
 
     replWindow.activate(context);
-    
+
     let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
@@ -158,8 +157,7 @@ function activate(context) {
     } else {
         chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*. Default keybinding: ctrl+alt+v ctrl+alt+j");
     }
-    state.analytics().logPath("/activated");
-    state.analytics().logEvent("LifeCycle", "Activated");
+    state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 
     return {
         hasParedit: true,
@@ -168,7 +166,7 @@ function activate(context) {
 }
 
 function deactivate() {
-    state.analytics().logEvent("LifeCycle", "Dectivated");
+    state.analytics().logEvent("LifeCycle", "Dectivated").send();
     paredit.deactivate()
 }
 

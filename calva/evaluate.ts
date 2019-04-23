@@ -22,11 +22,11 @@ async function evaluateSelection(document = {}, options = {}) {
             code = "";
 
         if (selection.isEmpty) {
-            state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm");
+            state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
         } else {
-            state.analytics().logEvent("Evaluation", "Selection");
+            state.analytics().logEvent("Evaluation", "Selection").send();
             codeSelection = selection;
             code = doc.getText(selection);
         }
@@ -37,17 +37,17 @@ async function evaluateSelection(document = {}, options = {}) {
 
             let err: string[] = [], out: string[] = [];
 
-            let res = await client.eval("(in-ns '"+util.getNamespace(doc)+")").value;
+            let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
 
             try {
                 let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
                 let value = await context.value
                 value = context.pprintOut || value;
 
-                if(replace) {
+                if (replace) {
                     const indent = ' '.repeat(c),
-                    edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
-                    wsEdit = new vscode.WorkspaceEdit();
+                        edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
+                        wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
                     vscode.workspace.applyEdit(wsEdit);
                     chan.appendLine("Replaced inline.")
@@ -73,8 +73,8 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.append("Error: ")
                     chan.append(err.join("\n"));
                 }
-            } catch(e) {
-                if(!err.length) { // venantius/ultra outputs errors on stdout, it seems.
+            } catch (e) {
+                if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
                     if (err.length > 0) {
                         chan.append("Error: ")
@@ -89,7 +89,7 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
             }
         }
-     } else
+    } else
         vscode.window.showErrorMessage("Not connected to a REPL")
 }
 
@@ -119,7 +119,7 @@ async function loadFile(document = {}, callback = () => { }) {
         dirName = path.dirname(fileName);
 
     if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
-        state.analytics().logEvent("Evaluation", "LoadFile");   
+        state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
         chan.show(true);
 
@@ -143,7 +143,7 @@ async function copyLastResultCommand() {
     let client = util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;
-    if(value !== null)
+    if (value !== null)
         vscode.env.clipboard.writeText(value);
     else
         chan.appendLine("Nothing to copy");
