@@ -87,6 +87,7 @@ async function connectToHost(hostname, port) {
         state.cursor.set("connected", false);
         state.cursor.set("connecting", false);
         chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
+        state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
 
@@ -215,6 +216,7 @@ async function makeCljsSessionClone(session, shadowBuild) {
                     state.cursor.set('shadowBuild', null)
                     if (repl.name == "Figwheel" && result.ns === cljSession.client.ns && out.find(x => { return x.search("not initialized") })) {
                         // FIXME: this should be an error handler in ReplType
+                        state.analytics().logEvent("REPL", "FailedConnectingCLJS", "figwheel").send();
                         tellUserFigwheelNotStarted(chan);
                     }
                     else {
@@ -233,8 +235,10 @@ async function makeCljsSessionClone(session, shadowBuild) {
                     state.cursor.set('shadowBuild', null);
                     chan.appendLine(`${failed}. Is the build running and conected?`);
                     console.error(failed);
+                    state.analytics().logEvent("REPL", "FailedConnectingCLJS", "shadow-cljs").send();
                 } else {
                     tellUserFigwheelNotStarted(chan);
+                    state.analytics().logEvent("REPL", "FailedConnectingCLJS", "figwheel").send();
                 }
             }
         }
