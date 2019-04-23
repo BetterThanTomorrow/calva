@@ -26,6 +26,9 @@ export default class Analytics {
 
         this.visitor = UA(this.GA_ID, this.userID());
         this.visitor.set("cd1", this.extensionVersion);
+        this.visitor.set("cd2", vscode.version);
+        this.visitor.set("cd3", this.extensionVersion);
+        this.visitor.set("cd4", `${os.platform()}/${os.release()}`);
         this.visitor.set("cn", `calva-${this.extensionVersion}`);
         this.visitor.set("ua", `Calva/${this.extensionVersion} (${os.platform()}; ${os.release()}; ${os.type}) VSCode/${vscode.version}`);
     }
