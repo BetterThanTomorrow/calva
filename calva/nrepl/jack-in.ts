@@ -212,30 +212,37 @@ vscode.tasks.onDidStartTaskProcess(e => {
 export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
 
+    state.analytics().logEvent("REPL", "JackInInitiated").send();
     outputChannel.appendLine("Jacking in.");
 
     // figure out what possible kinds of project we're in
     let types = detectProjectType();
     if (types.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, build.boot, deps.edn or shadow-cljs.edn");
+        state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
         return;
     }
 
     // Show a prompt to pick one if there are multiple
     let buildName = await utilities.quickPickSingle({ values: types.map(x => projectTypes[x].name), placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
-    if (!buildName)
+    if (!buildName) {
+        state.analytics().logEvent("REPL", "JackInInterrupted", "NoBuildNamePicked").send();
         return;
+    }
 
     // Resolve the selection to an entry in projectTypes
     let build = getProjectTypeForName(buildName);
-    if (!build)
+    if (!build) {
+        state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
         return;
+    }
 
     // Now look in our $PATH variable to check the appropriate command exists.
     let executable = findInPath(isWin ? build.winCmd : build.cmd);
 
     if (!executable) {
         // It doesn't, do not proceed
+        state.analytics().logEvent("REPL", "JackInInterrupted", "CommandNotInPath").send();
         vscode.window.showErrorMessage(build.cmd + " is not on your PATH, please add it.")
         return;
     }
@@ -267,6 +274,8 @@ export async function calvaJackIn() {
 
     const folder = vscode.workspace.workspaceFolders[0];
     const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
+
+    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(types)).send();
 
     vscode.tasks.executeTask(task).then(
         (v) => {
