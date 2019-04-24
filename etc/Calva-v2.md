@@ -1,6 +1,6 @@
 # Calva V2 - With a Real REPL Window and Jack-in
 
-For a too long while [Calva](https://github.com/BetterThanTomorrow/calva) users haven’t had a decent REPL window in which to experiment with their system. Also, users have had to struggle with getting the dependencies right before Calva even works. This nonsense has now come to an end. Upgrade Calva and say hello to the brand new REPL Window and goodbye to soul-crushing, getting started-issues, thanks to the [Cider](https://github.com/clojure-emacs/cider) inspired **Jack-in** command.
+For a too long while [Calva](https://github.com/BetterThanTomorrow/calva) users have not had a decent REPL window in which to experiment with their system. Also, and worse, users have had to struggle with getting the dependencies right before Calva even works. This nonsense has now come to an end. Upgrade Calva and say hello to the brand new REPL Window and goodbye to soul-crushing, getting started-issues, thanks to the [Cider](https://github.com/clojure-emacs/cider) inspired **Jack-in** command.
 
 ![Calva REPL Window Screenshot](repl-window-screenshot.png)
 
@@ -9,11 +9,11 @@ For a too long while [Calva](https://github.com/BetterThanTomorrow/calva) users 
 Experienced Clojurians, as well as new users of the language, are now much better served in their interactive development. Some of the features of the new REPL Window are:
 * A sweet code editor:
   * Smooth Clojure code formatting
-  * Structural editing with Paredit support
+  * Structural editing powered by Paredit
   * Syntax highlighting
   * Code completion
   * Command history
-* Deep integration with Calva:
+* Deep integration with the rest of Calva:
   * Commands for using the REPL Window to evaluate code in the edited files.
     * Automatic and temporary switching of the REPL window namespace when evaluating forms in editor files.
   * Keeping the predictable switching between Clojure and ClojureScript REPLs that the Calva file editors have.
@@ -48,7 +48,7 @@ It really is super easy:
 1. Install VS Code.
 2. Install Calva (via the *Extensions* pane). 
 3. Open a Clojure(Script) file in the root of your project.
-4. Issue the **Calva Jack-in** command, `ctrl+alt+v ctrl+alt+v`
+4. Issue the command **Start a project REPL and connect (aka Jack-in)**, `ctrl+alt+v ctrl+alt+j`
 
 Calva includes code formatting, Paredit, and some little Parinfer support, so you are quite set. However, I recommend also installing [Clojure Warrior](https://github.com/tonsky/clojure-warrior) which brings in rainbow parens, highlighting of unmatched parens, and also sane highlighting of *matching* parens, which means you can disable VS Code's confusing paren highlighting for Clojure files.
 
