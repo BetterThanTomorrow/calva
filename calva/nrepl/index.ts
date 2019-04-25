@@ -19,8 +19,8 @@ export class NReplClient {
     describe: any;
 
     /** Tracks all sessions */
-    sessions: {[id: string]: NReplSession} = {};
-    
+    sessions: { [id: string]: NReplSession } = {};
+
     ns: string = "user";
 
     private constructor(socket: net.Socket) {
@@ -31,7 +31,7 @@ export class NReplClient {
         this.socket.on("close", e => {
             console.log("Socket closed")
             this._closeHandlers.forEach(x => x(this));
-            for(let x in this.sessions) {
+            for (let x in this.sessions) {
                 this.sessions[x]._onCloseHandlers.forEach(s => s(this.sessions[x]))
             }
         })
@@ -41,13 +41,13 @@ export class NReplClient {
 
     private _closeHandlers: ((c: NReplClient) => void)[] = []
     addOnCloseHandler(fn: (c: NReplClient) => void) {
-        if(this._closeHandlers.indexOf(fn) == -1)
+        if (this._closeHandlers.indexOf(fn) == -1)
             this._closeHandlers.push(fn);
     }
 
     removeOnCloseHandler(fn: (c: NReplClient) => void) {
         let idx = this._closeHandlers.indexOf(fn);
-        if(idx != -1)
+        if (idx != -1)
             this._closeHandlers.splice(idx, 1);
     }
 
@@ -77,32 +77,32 @@ export class NReplClient {
         return new Promise<NReplClient>((resolve, reject) => {
 
             let socket = net.createConnection(opts, () => {
-                
+
                 let nsId = client.nextId
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
-                
+
                 client.decoder.on("data", data => {
                     //console.log("-> ", data);
-                    if(!client.describe && data["id"] == describeId) {
+                    if (!client.describe && data["id"] == describeId) {
                         client.describe = data;
-                    } else if(data["id"] == nsId) {
-                        if(data["ns"])
+                    } else if (data["id"] == nsId) {
+                        if (data["ns"])
                             client.ns = data["ns"]
-                        if(data["status"] && data["status"].indexOf("done") != -1)
+                        if (data["status"] && data["status"].indexOf("done") != -1)
                             client.encoder.write({ "op": "clone", "id": cloneId });
-                    } else if(data["id"] == cloneId) {
+                    } else if (data["id"] == cloneId) {
                         client.session = new NReplSession(data["new-session"], client)
                         client.encoder.write({ "op": "describe", id: describeId, verbose: true, session: data["new-session"] });
                         resolve(client)
-                    } else if(data["session"]) {
+                    } else if (data["session"]) {
                         let session = client.sessions[data["session"]];
-                        if(session)
+                        if (session)
                             session._response(data);
                     }
                 })
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
-                
+
             })
             let client = new NReplClient(socket);
         })
@@ -113,13 +113,13 @@ export class NReplSession {
     public _onCloseHandlers: ((c: NReplSession) => void)[] = [];
 
     addOnCloseHandler(fn: (c: NReplSession) => void) {
-        if(this._onCloseHandlers.indexOf(fn) == -1)
+        if (this._onCloseHandlers.indexOf(fn) == -1)
             this._onCloseHandlers.push(fn);
     }
 
     removeOnCloseHandler(fn: (c: NReplSession) => void) {
         let idx = this._onCloseHandlers.indexOf(fn);
-        if(idx != -1)
+        if (idx != -1)
             this._onCloseHandlers.splice(idx, 1);
     }
 
@@ -127,7 +127,7 @@ export class NReplSession {
         client.sessions[sessionId] = this;
     }
 
-    messageHandlers: {[id: string]: (msg: any) => boolean} = {};
+    messageHandlers: { [id: string]: (msg: any) => boolean } = {};
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })
@@ -148,9 +148,9 @@ export class NReplSession {
     }
 
     _response(data: any) {
-        if(this.messageHandlers[data.id]) {
+        if (this.messageHandlers[data.id]) {
             let res = this.messageHandlers[data.id](data);
-            if(res)
+            if (res)
                 delete this.messageHandlers[data.id];
         }
     }
@@ -184,35 +184,35 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "stacktrace", id, session: this.sessionId})
+            this.client.write({ op: "stacktrace", id, session: this.sessionId })
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean} = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean } = {}) {
         let id = this.client.nextId;
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             let ex;
             let value;
             this.messageHandlers[id] = (msg) => {
-                if(msg.out)
+                if (msg.out)
                     evaluation.out(msg.out)
-                if(msg.err)
+                if (msg.err)
                     evaluation.err(msg.err)
-                if(msg.ns)
+                if (msg.ns)
                     evaluation.ns = msg.ns;
-                if(msg.ex)
+                if (msg.ex)
                     ex = msg.ex;
-                if(msg.value != undefined)
+                if (msg.value != undefined)
                     value = msg.value
-                if(msg["pprint-out"])
+                if (msg["pprint-out"])
                     evaluation.pprintOut = msg["pprint-out"];
-                if(msg.status) {
-                    if(ex)
+                if (msg.status && msg.status == "done") {
+                    if (ex)
                         reject(ex);
-                    else if(value)
+                    else if (value)
                         resolve(value);
-                    else if(evaluation.pprintOut)
+                    else if (evaluation.pprintOut)
                         resolve(evaluation.pprintOut)
                     else
                         resolve("");
@@ -224,7 +224,7 @@ export class NReplSession {
 
         return evaluation;
     }
-    
+
     interrupt(interruptId: string) {
         let id = this.client.nextId;
         return new Promise<void>((resolve, reject) => {
@@ -245,16 +245,16 @@ export class NReplSession {
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if(msg.value)
+                if (msg.value)
                     resolve(msg.value);
-                if(msg.out)
+                if (msg.out)
                     evaluation.out(msg.out)
-                if(msg.err)
+                if (msg.err)
                     evaluation.out(msg.err)
-                if(msg.ex) {
+                if (msg.ex) {
                     this.stacktrace().then(ex => reject(ex));
                 }
-                if(msg.status && msg.status.indexOf("done") != -1)
+                if (msg.status && msg.status.indexOf("done") != -1)
                     return true;
             }
             this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": opts.fileName, "file-path": opts.filePath })
@@ -270,7 +270,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId, context})
+            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId, context })
         })
     }
 
@@ -281,7 +281,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "info", ns, symbol, id, session: this.sessionId})
+            this.client.write({ op: "info", ns, symbol, id, session: this.sessionId })
         })
     }
 
@@ -320,7 +320,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "retest", id, session: this.sessionId});
+            this.client.write({ op: "retest", id, session: this.sessionId });
         })
     }
 
@@ -331,7 +331,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "ns-load-all", id, session: this.sessionId});
+            this.client.write({ op: "ns-load-all", id, session: this.sessionId });
         })
     }
 
@@ -342,7 +342,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "ns-list", id, session: this.sessionId, "filter-regexps": regexps});
+            this.client.write({ op: "ns-list", id, session: this.sessionId, "filter-regexps": regexps });
         })
     }
 
@@ -357,41 +357,41 @@ export class NReplSession {
         })
     }
 
-    private _refresh(cmd, opts: { dirs?: string[], before?: string[], after?: string[]} = {}) {
+    private _refresh(cmd, opts: { dirs?: string[], before?: string[], after?: string[] } = {}) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
             let reloaded = [];
             let error, errorNs, status, err = "";
             this.messageHandlers[id] = (msg) => {
-                if(msg.reloading)
+                if (msg.reloading)
                     reloaded = msg.reloading;
-                if(msg.status && msg.status.indexOf("ok") != -1)
+                if (msg.status && msg.status.indexOf("ok") != -1)
                     status = "ok";
-                if(msg.status && msg.status.indexOf("error") != -1) {
+                if (msg.status && msg.status.indexOf("error") != -1) {
                     status = "error";
                     error = msg.error;
                     errorNs = msg["error-ns"];
                 }
-                if(msg.err)
+                if (msg.err)
                     err += msg.err
-                if(msg.status && msg.status.indexOf("done") != -1) {
+                if (msg.status && msg.status.indexOf("done") != -1) {
                     let res = { reloaded, status } as any;
-                    if(error) res.error = error;
-                    if(errorNs) res.errorNs = errorNs;
-                    if(err) res.err = err;
+                    if (error) res.error = error;
+                    if (errorNs) res.errorNs = errorNs;
+                    if (err) res.err = err;
                     resolve(res)
                     return true;
                 }
             }
-            this.client.write({ op: cmd, id, session: this.sessionId, ...opts})
+            this.client.write({ op: cmd, id, session: this.sessionId, ...opts })
         })
     }
 
-    refresh(opts: { dirs?: string[], before?: string[], after?: string[]} = {}) {
+    refresh(opts: { dirs?: string[], before?: string[], after?: string[] } = {}) {
         return this._refresh("refresh", opts);
     }
 
-    refreshAll(opts: { dirs?: string[], before?: string[], after?: string[]} = {}) {
+    refreshAll(opts: { dirs?: string[], before?: string[], after?: string[] } = {}) {
         return this._refresh("refresh-all", opts);
     }
 
@@ -402,7 +402,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "format-code", code, options})
+            this.client.write({ op: "format-code", code, options })
         })
 
     }
@@ -412,7 +412,7 @@ export class NReplSession {
  * A running nREPL eval call.
  */
 export class NReplEvaluation {
-    constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x:string) => void,public value: Promise<any>) {
+    constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x: string) => void, public value: Promise<any>) {
     }
 
     ns: string;
@@ -420,12 +420,12 @@ export class NReplEvaluation {
     pprintOut: string;
 
     out(message: string) {
-        if(this.stdout)
+        if (this.stdout)
             this.stdout(message);
     }
 
     err(message: string) {
-        if(this.stderr)
+        if (this.stderr)
             this.stderr(message);
     }
 
