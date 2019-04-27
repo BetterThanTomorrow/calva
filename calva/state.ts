@@ -18,7 +18,7 @@ const initialData = {
     port: null,
     clj: null,
     cljs: null,
-    shadowBuild: null,
+    cljsBuild: null,
     terminal: null,
     connected: false,
     connecting: false,

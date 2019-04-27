@@ -32,5 +32,5 @@ export function shadowBuilds() {
 }
 
 export function shadowBuild() {
-    return state.deref().get('shadowBuild');
+    return state.deref().get('cljsBuild');
 }

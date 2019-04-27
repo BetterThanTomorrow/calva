@@ -13,7 +13,7 @@ function update() {
     let current = state.deref(),
         doc = util.getDocument({}),
         fileType = util.getFileType(doc),
-        shadowBuild = current.get('shadowBuild');
+        cljsBuild = current.get('cljsBuild');
 
     let disconnectedColor = "rgb(192,192,192)";
 
@@ -49,10 +49,10 @@ function update() {
             type.tooltip = "Connected to Clojure REPL";
         }
         if (shadow_util.isShadowCljs()) {
-            if (shadowBuild !== null && util.getREPLSessionType() === 'cljs') {
-                shadow.text = shadowBuild;
+            if (cljsBuild !== null && util.getREPLSessionType() === 'cljs') {
+                shadow.text = cljsBuild;
                 shadow.tooltip = "Click to switch CLJS REPL";
-            } else if (shadowBuild === null) {
+            } else if (cljsBuild === null) {
                 shadow.text = "no cljs REPL connected"
                 shadow.tooltip = "Click to connect to a shadow-cljs CLJS REPL";
             }
