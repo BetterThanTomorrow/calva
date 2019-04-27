@@ -128,17 +128,20 @@ let cljsReplTypes: ReplType[] = [
         connect: async () => {
             let chan = state.outputChannel();
             let res = fs.readdirSync(util.getProjectDir());
-            let projects = res.filter(x => x.match(/.cljs.edn/));
+            let projects = res.filter(x => x.match(/\.cljs\.edn/));
             if (projects.length == 0) {
-                vscode.window.showErrorMessage("There are no figwheel project files (.cljs.en) in the project directory.")
-                chan.appendLine("There are no figwheel project files (.cljs.en) in the project directory.");
+                vscode.window.showErrorMessage("There are no figwheel project files (.cljs.edn) in the project directory.")
+                chan.appendLine("There are no figwheel project files (.cljs.edn) in the project directory.");
                 chan.appendLine("Connection to Figwheel Main aborted.");
                 throw "Aborted";
             }
 
-            let result = await util.quickPickSingle({ values: projects, placeHolder: "Please select a figwheel-main project", saveAs: "figwheel-main-project" })
-            if (result)
-                return `(do (require 'figwheel.main) (figwheel.main/start :${result.match(/^(.*)\.cljs\.edn$/)[1]}))`
+            let builds = await util.quickPickMulti({
+                values: projects.map(x => { return x.replace(/\.cljs\.edn$/, "")}),
+                placeHolder: "Please select which builds to start", saveAs: "figwheel-main-project"
+            })
+            if (builds)
+                return `(do (require 'figwheel.main) (figwheel.main/start ${builds.map(x => { return `"${x}"` }).join(" ")}))`
             else {
                 let chan = state.outputChannel();
                 chan.appendLine("Connection to Figwheel Main aborted.");
