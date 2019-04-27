@@ -60,7 +60,7 @@ async function evaluateSelection(document = {}, options = {}) {
 
                 if (out.length > 0) {
                     chan.append("out: ")
-                    chan.append(out.join("\n"));
+                    chan.append(out.map(x => x.replace("\n$", "")).join("\n"));
                 }
                 chan.append('=> ');
                 if (pprint) {
