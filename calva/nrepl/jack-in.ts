@@ -38,23 +38,23 @@ export function detectProjectType() {
 }
 
 const injectDependencies = {
-    "cider/cider-nrepl": "0.20.0",
-    "cider/piggieback": "0.3.10",
-    "figwheel-sidecar": "0.5.18"
+    "cider/cider-nrepl": "0.21.1",
+    "cider/piggieback": "0.4.0",
+    "figwheel-sidecar": "0.5.19"
 }
 
 const shadowDependencies = {
-    "cider/cider-nrepl": "0.20.0"
+    "cider/cider-nrepl": "0.21.1"
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.20.0"
+    "cider/cider-nrepl": "0.21.1"
 }
 
 const leinDependencies = {
-    "nrepl": "0.5.3",
-    "cider/piggieback": "0.3.10",
-    "figwheel-sidecar": "0.5.18"
+    "nrepl": "0.6.0",
+    "cider/piggieback": "0.4.0",
+    "figwheel-sidecar": "0.5.19"
 }
 
 const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-repl"];
