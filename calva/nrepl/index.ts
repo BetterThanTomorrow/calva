@@ -201,8 +201,12 @@ export class NReplSession {
                     evaluation.err(msg.err)
                 if (msg.ns)
                     evaluation.ns = msg.ns;
-                if (msg.ex)
+                if (msg.ex) {
                     ex = msg.ex;
+                    setTimeout(() => {
+                        reject(ex);
+                    }, 1000);
+                }
                 if (msg.value != undefined)
                     value = msg.value
                 if (msg["pprint-out"])
@@ -219,7 +223,9 @@ export class NReplSession {
                     return true;
                 }
             }
-            this.client.write({ op: "eval", session: this.sessionId, code, id, ...opts })
+            const opMsg = { op: "eval", session: this.sessionId, code, id, ...opts };
+            //console.log(opMsg);
+            this.client.write(opMsg);
         }))
 
         return evaluation;
