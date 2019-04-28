@@ -128,7 +128,7 @@ function shadowCljsReplStart(buildOrRepl: string) {
 function getFigwheelMainProjects() {
     let chan = state.outputChannel();
     let res = fs.readdirSync(util.getProjectDir());
-    let projects = res.filter(x => x.match(/\.cljs\.edn/));
+    let projects = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
     if (projects.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel project files (.cljs.edn) in the project directory.");
         chan.appendLine("There are no figwheel project files (.cljs.edn) in the project directory.");
@@ -147,18 +147,20 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string, name:
         stdout: x => {
             out.push(util.stripAnsi(x));
             chan.append(util.stripAnsi(x));
-        }, stderr: x => { err.push(util.stripAnsi(x)); chan.append(util.stripAnsi(x)); }
-    });
-    try {
-        let valueResult = await result.value;
-        if (checkSuccess(valueResult, out, err)) {
-            state.analytics().logEvent("REPL", "ConnectedCLJS", name).send();
-            state.cursor.set('cljs', cljsSession = newCljsSession)
-            return true
-        } else {
-            return false;
+        }, stderr: x => {
+            err.push(util.stripAnsi(x));
+            chan.append(util.stripAnsi(x));
         }
-    } catch (e) {
+    });
+    let valueResult = await result.value
+        .catch(reason => {
+            console.error("Error evaluating connect form: ", reason);
+        });
+    if (checkSuccess(valueResult, out, err)) {
+        state.analytics().logEvent("REPL", "ConnectedCLJS", name).send();
+        state.cursor.set('cljs', cljsSession = newCljsSession)
+        return true
+    } else {
         return false;
     }
 }
@@ -167,6 +169,7 @@ interface ReplType {
     name: string,
     ns: string;
     start?: connectFn;
+    started?: (valueResult: string, out: any[], err: any[]) => boolean;
     connect?: connectFn;
     connected: (valueResult: string, out: any[], err: any[]) => boolean;
 }
@@ -176,17 +179,15 @@ let cljsReplTypes: ReplType[] = [
         name: "Figwheel Main",
         ns: "figwheel.main",
         start: async (session, name, checkFn) => {
-            let chan = state.outputChannel();
             let projects = getFigwheelMainProjects();
-
-            let builds = await util.quickPickMulti({
-                values: projects.map(x => { return x.replace(/\.cljs\.edn$/, "") }),
+            let builds = projects.length <= 1 ? projects : await util.quickPickMulti({
+                values: projects,
                 placeHolder: "Please select which builds to start",
                 saveAs: "figwheel-main-projects"
             })
             if (builds) {
                 state.cursor.set('cljsBuild', builds[0]);
-                const initCode = `(do (require 'figwheel.main) (figwheel.main/start ${builds.map(x => { return `"${x}"` }).join(" ")}))`;
+                const initCode = `(do (require 'figwheel.main.api) (figwheel.main.api/start ${builds.map(x => { return `"${x}"` }).join(" ")}))`;
                 return evalConnectCode(session, initCode, name, checkFn);
             }
             else {
@@ -195,16 +196,19 @@ let cljsReplTypes: ReplType[] = [
                 throw "Aborted";
             }
         },
+        started: (result, out, err) => {
+            return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined ||
+                err != undefined && err.find((x: string) => { return x.search("already running") >= 0 });
+        },
         connect: async (session, name, checkFn) => {
-            let projects = getFigwheelMainProjects();
             let build = await util.quickPickSingle({
-                values: projects.map(x => { return x.replace(/\.cljs\.edn$/, "") }),
+                values: getFigwheelMainProjects(),
                 placeHolder: "Select which build to connect to",
                 saveAs: "figwheel-main-build"
             });
             if (build) {
                 state.cursor.set('cljsBuild', build);
-                const initCode = shadowCljsReplStart(build);
+                const initCode = `(do (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "${build}"))`;
                 return evalConnectCode(session, initCode, name, checkFn);
             } else {
                 let chan = state.outputChannel();
@@ -274,24 +278,37 @@ async function findCljsRepls(): Promise<ReplType[]> {
 
 async function makeCljsSessionClone(session) {
     let chan = state.outputChannel();
-    let newCljsSession = await cljSession.clone();
+    let newCljsSession = await session.clone();
     let repl: ReplType;
     if (newCljsSession) {
         let chan = state.outputChannel();
         chan.show(true);
         let repls = await findCljsRepls();
-        let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs repl to use", saveAs: "cljs-repl-type" });
+        let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs project type to use", saveAs: "cljs-repl-type" });
         if (!replType)
             return [null, null];
-        let build = state.deref().get('cljsBuild');
         state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
         repl = repls.find(x => x.name == replType);
-        chan.appendLine("Connecting to " + repl.name);
+        if (repl.start != undefined) {
+            chan.appendLine("Starting repl for: " + repl.name);
+            if (await repl.start(newCljsSession, repl.name, repl.started)) {
+                state.analytics().logEvent("REPL", "StartedCLJS", repl.name).send();
+                chan.appendLine("Started cljs builds");
+                newCljsSession = session.clone();
+            } else {
+                state.analytics().logEvent("REPL", "FailedStartingCLJS", repl.name).send();
+                chan.appendLine("Failed starting cljs repl");
+                state.cursor.set('cljsBuild', null);
+                return [null, null];
+            }
+        }
+        chan.appendLine("Connecting to: " + repl.name);
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
             state.cursor.set('cljs', cljsSession = newCljsSession)
             return [cljsSession, null];
         } else {
+            let build = state.deref().get('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
             let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}` : "");
             chan.appendLine(`${failed}. Is the build running and conected?`);
@@ -361,15 +378,6 @@ async function connect(isAutoConnect = false) {
     return true;
 }
 
-function reconnect() {
-    state.reset();
-    connect(true);
-}
-
-function autoConnect() {
-    connect(true);
-}
-
 function toggleCLJCSession() {
     let current = state.deref();
 
@@ -397,8 +405,6 @@ async function recreateCljsRepl() {
 export default {
     connect,
     disconnect,
-    reconnect,
-    autoConnect,
     nreplPortFile,
     toggleCLJCSession,
     recreateCljsRepl
