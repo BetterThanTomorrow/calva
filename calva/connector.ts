@@ -119,6 +119,7 @@ interface ReplType {
     name: string,
     ns: string;
     connect: () => Promise<string>;
+    connected: (valueResult: string, out: any[], err: any[]) => boolean;
 }
 
 let cljsReplTypes: ReplType[] = [
@@ -149,13 +150,20 @@ let cljsReplTypes: ReplType[] = [
                 chan.appendLine("Connection to Figwheel Main aborted.");
                 throw "Aborted";
             }
+        },
+        connected: (result, out, err) => {
+            return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined
         }
     },
     {
         name: "Figwheel",
         ns: "figwheel-sidecar.repl-api",
         connect: async () => {
+            state.cursor.set('cljsBuild', null);
             return "(do (require 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))"
+        },
+        connected: (result, out, err) => {
+            return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined
         }
     },
     {
@@ -175,6 +183,9 @@ let cljsReplTypes: ReplType[] = [
                 chan.appendLine("Connection aborted.");
                 throw "Aborted";
             }
+        },
+        connected: (result, out, err) => {
+            return result.search(/:selected/) >= 0;
         }
     }
 ]
@@ -199,69 +210,51 @@ async function findCljsRepls(): Promise<ReplType[]> {
 
 
 async function makeCljsSessionClone(session) {
-    state.analytics().logEvent("REPL", "ConnectingCLJS", shadow.isShadowCljs() ? "shadow-cljs" : "figwheel").send();
-
     let chan = state.outputChannel();
-
     let newCljsSession = await cljSession.clone();
     let repl: ReplType;
     if (newCljsSession) {
         let chan = state.outputChannel();
-        //chan.clear();§
         chan.show(true);
         let repls = await findCljsRepls();
         let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs repl to use", saveAs: "cljs-repl-type" });
         if (!replType)
             return [null, null];
+        let build = state.deref().get('cljsBuild');
+        state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
         repl = repls.find(x => x.name == replType);
         chan.appendLine("Connecting to " + repl.name);
         let initCode = await repl.connect();
         try {
-            let err = [];
-            let out = [];
-            let result = newCljsSession.eval(initCode, { stdout: x => { out.push(util.stripAnsi(x)); chan.append(util.stripAnsi(x)) }, stderr: x => { err.push(util.stripAnsi(x)); chan.append(util.stripAnsi(x)) } });
-            let valueResult = await result.value
-
-            state.cursor.set('cljs', cljsSession = newCljsSession)
-            if (repl.name != 'shadow-cljs' && result.ns) {
-                state.cursor.set('cljsBuild', null)
-                if (repl.name == "Figwheel" && result.ns === cljSession.client.ns && out.find(x => { return x.search("not initialized") })) {
-                    // FIXME: this should be an error handler in ReplType
-                    state.analytics().logEvent("REPL", "FailedConnectingCLJS", "figwheel").send();
-                    tellUserFigwheelNotStarted(chan);
-                }
-                else {
-                    state.cursor.set('cljs', cljsSession)
-                    state.analytics().logEvent("REPL", "ConnectedCLJS", "figwheel").send();
-                    return [cljsSession, null];
-                }
-            } else if (repl.name == 'shadow-cljs' && valueResult.match(/:selected/)) {
-                state.analytics().logEvent("REPL", "ConnectedCLJS", "shadow-cljs").send();
-                return [cljsSession, state.deref().get('cljsBuild')];
+            let err = [],
+                out = [],
+                result = newCljsSession.eval(initCode, {
+                    stdout: x => {
+                        out.push(util.stripAnsi(x));
+                        chan.append(util.stripAnsi(x))
+                    }, stderr: x => { err.push(util.stripAnsi(x)); chan.append(util.stripAnsi(x)) }
+                });
+            let valueResult = await result.value;
+            if (repl.connected(valueResult, out, err)) {
+                state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
+                state.cursor.set('cljs', cljsSession = newCljsSession)
+                return [cljsSession, null];
+            } else {
+                cljsConnectFailed(repl, build, chan);
             }
         } catch (e) {
-            if (repl.name == 'shadow-cljs') {
-                let failed = `Failed starting cljs repl for shadow-cljs build: ${state.deref().get('cljsBuild')}`;
-                state.cursor.set('cljsBuild', null);
-                chan.appendLine(`${failed}. Is the build running and conected?`);
-                console.error(failed);
-                state.analytics().logEvent("REPL", "FailedConnectingCLJS", "shadow-cljs").send();
-            } else {
-                tellUserFigwheelNotStarted(chan);
-                state.analytics().logEvent("REPL", "FailedConnectingCLJS", "figwheel").send();
-            }
+            cljsConnectFailed(repl, build, chan);
         }
     }
     return [null, null];
 }
 
-function tellUserFigwheelNotStarted(chan) {
-    chan.appendLine("Figwheel not started:");
-    chan.appendLine("  If you want a cljs repl, start Figwheel from the cljs REPL using: ");
-    chan.appendLine("    (require '[figwheel-sidecar.repl-api :as fw])(fw/start-figwheel!)(fw/cljs-repl)");
-    chan.appendLine("  and connect to the app with the browser. Then reconnect Calva.");
+function cljsConnectFailed(repl: ReplType, build: any, chan: vscode.OutputChannel) {
+    state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
+    let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}` : "");
+    chan.appendLine(`${failed}. Is the build running and conected?`);
+    state.cursor.set('cljsBuild', null);
 }
-
 
 function shadowCljsReplStart(buildOrRepl: string) {
     if (!buildOrRepl)

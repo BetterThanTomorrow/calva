@@ -75,12 +75,19 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
 }
 
 function getProjectDir() {
-    let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
-
-    if (fs.existsSync(path)) {
-        return path;
+    let workspaceRoot = vscode.workspace.getWorkspaceFolder(getDocument({}).uri)
+    if (workspaceRoot != undefined) {
+        let configProjectRoot = state.config().projectRootDirectory;
+        let path = workspaceRoot.uri.path + (configProjectRoot != "" ? "/" + configProjectRoot : "");
+        if (fs.existsSync(path)) {
+            return path;
+        } else {
+            return workspaceRoot.uri.path;
+        }
+    } else if (vscode.workspace.workspaceFolders != undefined) {
+        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.path : ".";
     } else {
-        return vscode.workspace.rootPath;
+        return "";
     }
 }
 
@@ -167,7 +174,7 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-function getDocument(document) {
+function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
     } else if (vscode.window.activeTextEditor) {

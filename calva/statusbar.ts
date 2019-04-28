@@ -5,9 +5,9 @@ import * as shadow_util from './shadow';
 import { activeReplWindow } from './repl-window';
 
 
-const connection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const type = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const shadow = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
 function update() {
     let current = state.deref(),
@@ -17,64 +17,64 @@ function update() {
 
     let disconnectedColor = "rgb(192,192,192)";
 
-    type.command = null;
-    type.text = "Disconnected";
-    type.tooltip = "No active REPL session";
-    type.color = disconnectedColor;
+    typeStatus.command = null;
+    typeStatus.text = "Disconnected";
+    typeStatus.tooltip = "No active REPL session";
+    typeStatus.color = disconnectedColor;
 
-    connection.command = null;
-    connection.tooltip = "REPL connection status";
+    connectionStatus.command = null;
+    connectionStatus.tooltip = "REPL connection status";
 
-    shadow.text = null;
-    shadow.command = "calva.recreateCljsRepl";
-    shadow.tooltip = null;
+    cljsBuildStatus.text = null;
+    cljsBuildStatus.command = "calva.recreateCljsRepl";
+    cljsBuildStatus.tooltip = null;
 
     if (current.get('connected')) {
-        connection.text = "nREPL $(zap)";
-        connection.color = "rgb(253, 208, 35)";
-        connection.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
-        connection.command = "calva.connect";
-        type.color = "rgb(145,220,71)";
+        connectionStatus.text = "nREPL $(zap)";
+        connectionStatus.color = "rgb(253, 208, 35)";
+        connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
+        connectionStatus.command = "calva.connect";
+        typeStatus.color = "rgb(145,220,71)";
         if (fileType == 'cljc' && util.getREPLSessionType() !== null && !activeReplWindow()) {
-            type.text = "cljc/" + util.getREPLSessionType()
+            typeStatus.text = "cljc/" + util.getREPLSessionType()
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
-                type.command = "calva.toggleCLJCSession";
-                type.tooltip = `Click to use ${(util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
+                typeStatus.command = "calva.toggleCLJCSession";
+                typeStatus.tooltip = `Click to use ${(util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
             }
         } else if (util.getREPLSessionType() === 'cljs') {
-            type.text = "cljs";
-            type.tooltip = "Connected to ClojureScript REPL";
+            typeStatus.text = "cljs";
+            typeStatus.tooltip = "Connected to ClojureScript REPL";
         } else if (util.getREPLSessionType() === 'clj') {
-            type.text = "clj"
-            type.tooltip = "Connected to Clojure REPL";
+            typeStatus.text = "clj"
+            typeStatus.tooltip = "Connected to Clojure REPL";
         }
         if (shadow_util.isShadowCljs()) {
             if (cljsBuild !== null && util.getREPLSessionType() === 'cljs') {
-                shadow.text = cljsBuild;
-                shadow.tooltip = "Click to switch CLJS REPL";
+                cljsBuildStatus.text = cljsBuild;
+                cljsBuildStatus.tooltip = "Click to switch CLJS REPL";
             } else if (cljsBuild === null) {
-                shadow.text = "no cljs REPL connected"
-                shadow.tooltip = "Click to connect to a shadow-cljs CLJS REPL";
+                cljsBuildStatus.text = "no cljs REPL connected"
+                cljsBuildStatus.tooltip = "Click to connect to a shadow-cljs CLJS REPL";
             }
         }
     } else if (current.get('launching')) {
-        connection.color = "rgb(253, 208, 35)";
-        connection.text = "Launching REPL using "+current.get('launching');
+        connectionStatus.color = "rgb(253, 208, 35)";
+        connectionStatus.text = "Launching REPL using "+current.get('launching');
     } else if (current.get('connecting')) {
-        connection.text = "nREPL - trying to connect";
+        connectionStatus.text = "nREPL - trying to connect";
     } else {
-        connection.text = "nREPL $(zap)";
-        connection.tooltip = "Click to connect";
-        connection.color = disconnectedColor;
-        connection.command = "calva.connect";
+        connectionStatus.text = "nREPL $(zap)";
+        connectionStatus.tooltip = "Click to connect";
+        connectionStatus.color = disconnectedColor;
+        connectionStatus.command = "calva.connect";
     }
 
-    connection.show();
-    type.show();
-    if (shadow.text) {
-        shadow.show();
+    connectionStatus.show();
+    typeStatus.show();
+    if (cljsBuildStatus.text) {
+        cljsBuildStatus.show();
     } else {
-        shadow.hide();
+        cljsBuildStatus.hide();
     }
 }
 
