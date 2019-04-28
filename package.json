@@ -577,23 +577,23 @@
         "keybindings": [
             {
                 "command": "calva.jackIn",
-                "key": "ctrl+alt+v ctrl+alt+j"
+                "key": "ctrl+alt+c ctrl+alt+j"
             },
             {
                 "command": "calva.connect",
-                "key": "ctrl+alt+v c"
+                "key": "ctrl+alt+c ctrl+alt+c"
             },
             {
                 "command": "calva.toggleCLJCSession",
-                "key": "ctrl+alt+v alt+c"
+                "key": "ctrl+alt+c ctrl+alt+t"
             },
             {
                 "command": "calva.recreateCljsRepl",
-                "key": "ctrl+alt+v ctrl+r"
+                "key": "ctrl+alt+c ctrl+alt+r"
             },
             {
                 "command": "calva.selectCurrentForm",
-                "key": "ctrl+alt+v s"
+                "key": "ctrl+alt+c s"
             },
             {
                 "command": "calva.clearInlineResults",
@@ -602,63 +602,63 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "key": "ctrl+alt+v e"
+                "key": "ctrl+alt+c e"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "ctrl+alt+v space"
+                "key": "ctrl+alt+c space"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
-                "key": "ctrl+alt+v p"
+                "key": "ctrl+alt+c p"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "key": "ctrl+alt+v ctrl+alt+p"
+                "key": "ctrl+alt+c ctrl+p"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "key": "ctrl+alt+v r"
+                "key": "ctrl+alt+c r"
             },
             {
                 "command": "calva.copyLastResults",
-                "key": "ctrl+alt+v ctrl+c"
+                "key": "ctrl+alt+c ctrl+c"
             },
             {
                 "command": "calva.loadFile",
-                "key": "ctrl+alt+v enter"
+                "key": "ctrl+alt+c enter"
             },
             {
                 "command": "calva.lintFile",
-                "key": "ctrl+alt+v l"
+                "key": "ctrl+alt+c l"
             },
             {
                 "command": "calva.runNamespaceTests",
-                "key": "ctrl+alt+v t"
+                "key": "ctrl+alt+c t"
             },
             {
                 "command": "calva.runAllTests",
-                "key": "ctrl+alt+v shift+t"
+                "key": "ctrl+alt+c shift+t"
             },
             {
                 "command": "calva.rerunTests",
-                "key": "ctrl+alt+v ctrl+t"
+                "key": "ctrl+alt+c ctrl+t"
             },
             {
                 "command": "calva.loadNamespace",
-                "key": "ctrl+alt+v alt+n"
+                "key": "ctrl+alt+c ctrl+alt+n"
             },
             {
                 "command": "calva.setREPLNamespace",
-                "key": "ctrl+alt+v n"
+                "key": "ctrl+alt+c alt+n"
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
-                "key": "ctrl+alt+v alt+e"
+                "key": "ctrl+alt+c alt+e"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "key": "ctrl+alt+v alt+space"
+                "key": "ctrl+alt+c alt+space"
             },
             {
                 "command": "paredit.forwardSexp",
@@ -702,62 +702,62 @@
             },
             {
                 "command": "paredit.yankForwardSexp",
-                "key": "ctrl+alt+c ctrl+right",
+                "key": "ctrl+shift+c ctrl+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.yankBackwardSexp",
-                "key": "ctrl+alt+c ctrl+left",
+                "key": "ctrl+shift+c ctrl+left",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.yankForwardDownSexp",
-                "key": "ctrl+alt+c ctrl+down",
+                "key": "ctrl+shift+c ctrl+down",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.yankBackwardUpSexp",
-                "key": "ctrl+alt+c ctrl+up",
+                "key": "ctrl+shift+c ctrl+up",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.yankCloseList",
-                "key": "ctrl+alt+c ctrl+alt+right",
+                "key": "ctrl+shift+c ctrl+alt+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.yankRangeForDefun",
-                "key": "ctrl+alt+c space",
+                "key": "ctrl+shift+c space",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutForwardSexp",
-                "key": "ctrl+alt+x ccutright",
+                "key": "ctrl+shift+x ccutright",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutBackwardSexp",
-                "key": "ctrl+alt+x ccutleft",
+                "key": "ctrl+shift+x ccutleft",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutForwardDownSexp",
-                "key": "ctrl+alt+x ccutdown",
+                "key": "ctrl+shift+x ccutdown",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutBackwardUpSexp",
-                "key": "ctrl+alt+x ccutup",
+                "key": "ctrl+shift+x ccutup",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutCloseList",
-                "key": "ctrl+alt+x ctrl+alt+right",
+                "key": "ctrl+shift+x ctrl+alt+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutRangeForDefun",
-                "key": "ctrl+alt+x space",
+                "key": "ctrl+shift+x space",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
