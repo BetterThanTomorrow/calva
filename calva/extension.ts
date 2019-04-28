@@ -83,7 +83,6 @@ function activate(context) {
     let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
-        autoConnect,
         lint,
         useWSL
     } = state.config();
@@ -94,7 +93,6 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.reconnect', connector.reconnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.recreateCljsRepl', connector.recreateCljsRepl));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
@@ -150,13 +148,8 @@ function activate(context) {
 
     greetings.activationGreetings(chan, lint);
 
-    //Try to connect using an existing .nrepl-port file, searching the root-directory
-    if (autoConnect) {
-        chan.appendLine("Autoconnecting... (This can be disabled in Settings)");
-        connector.autoConnect();
-    } else {
-        chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*. Default keybinding: ctrl+alt+v ctrl+alt+j");
-    }
+    
+    chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*. Default keybinding: ctrl+alt+v ctrl+alt+j");
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 
     return {

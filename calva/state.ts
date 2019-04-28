@@ -70,7 +70,6 @@ function config() {
         evaluate: configOptions.get("evalOnSave"),
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
-        autoConnect: configOptions.get("autoConnect"),
         projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
         useWSL: configOptions.get("useWSL"),

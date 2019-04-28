@@ -131,11 +131,6 @@
                         "default": false,
                         "description": "Run joker-linting when opening a new file and on file save"
                     },
-                    "calva.autoConnect": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Try to connect to nREPL on start (if there is an .nrepl-port present)"
-                    },
                     "calva.testOnSave": {
                         "type": "boolean",
                         "default": false,
