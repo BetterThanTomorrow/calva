@@ -20,24 +20,28 @@ async function quickPickSingle(opts: { values: string[], saveAs?: string, placeH
     if (opts.values.length == 0)
         return;
     let selected: string;
-    if (opts.saveAs)
-        selected = state.extensionContext.workspaceState.get(opts.saveAs);
+    let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
+    if (saveAs) {
+        selected = state.extensionContext.workspaceState.get(saveAs);
+    }
 
     let result;
     if (opts.autoSelect && opts.values.length == 1)
         result = opts.values[0];
     else
         result = await quickPick(opts.values, selected ? [selected] : [], [], { placeHolder: opts.placeHolder, ignoreFocusOut: true })
-    state.extensionContext.workspaceState.update(opts.saveAs, result);
+    state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
 async function quickPickMulti(opts: { values: string[], saveAs?: string, placeHolder: string }) {
     let selected: string[];
-    if (opts.saveAs)
-        selected = state.extensionContext.workspaceState.get(opts.saveAs) || [];
+    let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
+    if (saveAs) {
+        selected = state.extensionContext.workspaceState.get(saveAs) || [];
+    }
     let result = await quickPick(opts.values, [], selected, { placeHolder: opts.placeHolder, canPickMany: true, ignoreFocusOut: true })
-    state.extensionContext.workspaceState.update(opts.saveAs, result);
+    state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
