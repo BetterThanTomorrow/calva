@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import * as utilities from "../utilities";
 import * as fs from "fs";
 import * as state from "../state"
-import { spawn, ChildProcess, exec } from "child_process";
 import connector from "../connector";
 import { openReplWindow } from "../repl-window";
 import statusbar from "../statusbar";
@@ -94,7 +93,7 @@ const projectTypes: { [id: string]: { name: string, cmd: string, winCmd: string,
                         }
                     } catch (error) {
                         vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
-                        console.log(error)
+                        console.log(error);
                     }
                 }
             }

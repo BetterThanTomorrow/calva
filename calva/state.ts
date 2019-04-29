@@ -23,6 +23,7 @@ const initialData = {
     connected: false,
     connecting: false,
     outputChannel: vscode.window.createOutputChannel("Calva says"),
+    connectionLogChannel: vscode.window.createOutputChannel("Calva Connection Log"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
     analytics: null
 };
@@ -39,13 +40,21 @@ function deref() {
 
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
-function outputChannel(): vscode.OutputChannel {
-    const channel = deref().get('outputChannel');
+function _outputChannel(name: string): vscode.OutputChannel {
+    const channel = deref().get(name);
     if (channel.toJS !== undefined) {
         return channel.toJS();
     } else {
         return channel;
     }
+}
+
+function outputChannel(): vscode.OutputChannel {
+    return _outputChannel('outputChannel');
+}
+
+function connectionLogChannel(): vscode.OutputChannel {
+    return _outputChannel('connectionLogChannel');
 }
 
 function analytics(): Analytics {
@@ -86,5 +95,6 @@ export {
     config,
     extensionContext,
     outputChannel,
+    connectionLogChannel,
     analytics
 };

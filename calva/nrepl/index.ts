@@ -1,5 +1,7 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
+import * as state from './../state';
+
 
 /** An nRREPL client */
 export class NReplClient {
@@ -26,10 +28,12 @@ export class NReplClient {
     private constructor(socket: net.Socket) {
         this.socket = socket;
         this.socket.on("error", e => {
-            console.error(e)
+            console.error(e);
+            state.connectionLogChannel().appendLine(e.message);
         })
         this.socket.on("close", e => {
             console.log("Socket closed")
+            state.connectionLogChannel().appendLine("Socket closed");
             this._closeHandlers.forEach(x => x(this));
             for (let x in this.sessions) {
                 this.sessions[x]._onCloseHandlers.forEach(s => s(this.sessions[x]))
