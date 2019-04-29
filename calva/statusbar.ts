@@ -48,18 +48,18 @@ function update() {
             typeStatus.text = "clj"
             typeStatus.tooltip = "Connected to Clojure REPL";
         }
-        if (shadow_util.isShadowCljs()) {
+        if (util.getREPLSessionType() === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
             if (cljsBuild !== null && util.getREPLSessionType() === 'cljs') {
                 cljsBuildStatus.text = cljsBuild;
-                cljsBuildStatus.tooltip = "Click to switch CLJS REPL";
+                cljsBuildStatus.tooltip = "Click to switch CLJS build REPL";
             } else if (cljsBuild === null) {
-                cljsBuildStatus.text = "no cljs REPL connected"
-                cljsBuildStatus.tooltip = "Click to connect to a shadow-cljs CLJS REPL";
+                cljsBuildStatus.text = "no build connected"
+                cljsBuildStatus.tooltip = "Click to connect to a CLJS build REPL";
             }
         }
     } else if (current.get('launching')) {
         connectionStatus.color = "rgb(253, 208, 35)";
-        connectionStatus.text = "Launching REPL using "+current.get('launching');
+        connectionStatus.text = "Launching REPL using " + current.get('launching');
     } else if (current.get('connecting')) {
         connectionStatus.text = "nREPL - trying to connect";
     } else {
