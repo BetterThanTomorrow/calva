@@ -105,7 +105,7 @@ function getShadowCljsReplStartCode(build) {
 
 function getNamespace(doc: vscode.TextDocument) {
     let ns = "user";
-    if (doc && doc.fileName.match(/\.clj[cs]*$/)) {
+    if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
         try {
             const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0);
             cursor.forwardWhitespace(true);
