@@ -102,12 +102,13 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelFormPrettyPrint', EvaluateMiddleWare.evaluateCurrentTopLevelFormPrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', EvaluateMiddleWare.evaluateSelectionAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.lintFile', LintMiddleWare.lintDocument));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
 
-    context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
@@ -148,7 +149,7 @@ function activate(context) {
 
     greetings.activationGreetings(chan, lint);
 
-    
+
     chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*. Default keybinding: ctrl+alt+v ctrl+alt+j");
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 

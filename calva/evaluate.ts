@@ -13,12 +13,13 @@ async function evaluateSelection(document = {}, options = {}) {
         doc = util.getDocument(document),
         pprint = options["pprint"] || false,
         replace = options["replace"] || false,
-        topLevel = options["topLevel"] || false;
+        topLevel = options["topLevel"] || false,
+        asComment = options["comment"] || false;
     if (current.get('connected')) {
         let client = util.getSession(util.getFileType(doc));
         let editor = vscode.window.activeTextEditor,
             selection = editor.selection,
-            codeSelection = null,
+            codeSelection: vscode.Selection = null,
             code = "";
 
         if (selection.isEmpty) {
@@ -40,18 +41,26 @@ async function evaluateSelection(document = {}, options = {}) {
             let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
 
             try {
+
                 let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
                 let value = await context.value
                 value = context.pprintOut || value;
 
                 if (replace) {
-                    const indent = ' '.repeat(c),
+                    const indent = `${' '.repeat(c)};`,
                         edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
                     vscode.workspace.applyEdit(wsEdit);
                     chan.appendLine("Replaced inline.")
-
+                } else if (asComment) {
+                    const indent = `${' '.repeat(c)};`,
+                        output = value.replace(/\"/gm, "").split("\\n").join(`\n${indent}`),
+                        edit = vscode.TextEdit.insert(codeSelection.end, `\n;; ==> ${output} <== ;;`),
+                        wsEdit = new vscode.WorkspaceEdit();
+                    wsEdit.set(editor.document.uri, [edit]);
+                    vscode.workspace.applyEdit(wsEdit);
+                    chan.appendLine("Evaluated as comment.")
                 } else {
                     annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     if (!pprint)
@@ -95,6 +104,10 @@ async function evaluateSelection(document = {}, options = {}) {
 
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: true }));
+}
+
+function evaluateSelectionAsComment(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: true }));
 }
 
 function evaluateSelectionPrettyPrint(document = {}, options = {}) {
@@ -156,5 +169,6 @@ export default {
     evaluateSelectionPrettyPrint,
     evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
+    evaluateSelectionAsComment,
     copyLastResultCommand
 };
