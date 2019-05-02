@@ -54,12 +54,14 @@ async function evaluateSelection(document = {}, options = {}) {
                     vscode.workspace.applyEdit(wsEdit);
                     chan.appendLine("Replaced inline.")
                 } else if (asComment) {
-                    const indent = `${' '.repeat(c)};`,
-                        output = value.replace(/\"/gm, "").split("\\n").join(`\n${indent}`),
-                        edit = vscode.TextEdit.insert(codeSelection.end, `\n;; ==> ${output} <== ;;`),
+                    const indent = `${' '.repeat(c)}`,
+                        output = value.replace(/\"/gm, "").split("\\n").join(`\n${indent};;    `),
+                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}`),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit);
+                    vscode.workspace.applyEdit(wsEdit).then((_v) => { 
+                        editor.selection = selection;
+                    });
                     chan.appendLine("Evaluated as comment.")
                 } else {
                     annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
