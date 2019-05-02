@@ -95,6 +95,44 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     setSelectionDecorations(editor, [], AnnotationStatus.REPL_WINDOW);
 }
 
+function allMatches(re: RegExp, text: string) {
+    const matches: { start: number, end: number }[] = []
+    let match
+    while (match = re.exec(text)) {
+        matches.push({
+          start: match.index,
+          end: match.index + match[0].length
+        })
+    }
+    return matches
+}
+
+function clearEvaluationCommentDecorations(editor?: vscode.TextEditor) {
+    if (editor === undefined) {
+        editor = vscode.window.activeTextEditor
+    }
+
+    const originalText = editor.document.getText()
+    const comment = /\n;; ==>.*<== ;;/gm
+
+    const matches = allMatches(comment, originalText)
+
+    if (matches.length > 0) {
+        const edits = matches.map(
+          ({ start, end }) =>
+            new vscode.TextEdit(new vscode.Range(editor.document.positionAt(start), editor.document.positionAt(end)), ""),
+        )
+        const wsEdit = new vscode.WorkspaceEdit()
+        wsEdit.set(editor.document.uri, edits)
+        vscode.workspace.applyEdit(wsEdit)
+    }
+}
+
+function clearDecorations(editor?: vscode.TextEditor) {
+    clearEvaluationDecorations(editor)
+    clearEvaluationCommentDecorations(editor)
+}
+
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
@@ -131,7 +169,9 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 
 export default {
     AnnotationStatus,
+    clearEvaluationCommentDecorations,
     clearEvaluationDecorations,
+    clearDecorations,
     decorateResults,
     decorateSelection,
     onDidChangeTextDocument
