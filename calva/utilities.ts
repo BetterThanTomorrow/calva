@@ -83,9 +83,10 @@ function getProjectDir() {
     if (workspaceRoot != undefined) {
         let configProjectRoot = state.config().projectRootDirectory;
         let path = workspaceRoot.uri.path + (configProjectRoot != "" ? "/" + configProjectRoot : "");
-        if (fs.existsSync(path)) {
+        try {
+            fs.accessSync(path, fs.constants.R_OK);
             return path;
-        } else {
+        } catch (err) {
             return workspaceRoot.uri.path;
         }
     } else if (vscode.workspace.workspaceFolders != undefined) {

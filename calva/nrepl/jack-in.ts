@@ -30,9 +30,12 @@ function escapeString(str: string) {
 export function detectProjectType() {
     let rootDir = utilities.getProjectDir();
     let out = [];
-    for (let x in projectTypes)
-        if (fs.existsSync(rootDir + "/" + projectTypes[x].useWhenExists))
+    for (let x in projectTypes) {
+        try {
+            fs.accessSync(rootDir + "/" + projectTypes[x].useWhenExists);
             out.push(x);
+        } catch (_e) { }
+    }
     return out;
 }
 
