@@ -256,8 +256,10 @@ async function findCljsRepls(): Promise<ReplType[]> {
 
 async function makeCljsSessionClone(session) {
     let chan = state.outputChannel();
-    let newCljsSession = await session.clone();
     let repl: ReplType;
+    
+    chan.appendLine("Creating cljs repl session...");
+    let newCljsSession = await session.clone();
     if (newCljsSession) {
         let chan = state.outputChannel();
         chan.show(true);
