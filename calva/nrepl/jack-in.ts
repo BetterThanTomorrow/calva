@@ -26,16 +26,20 @@ function escapeString(str: string) {
     return str;
 }
 
-export function detectProjectType() {
-    let rootDir = utilities.getProjectDir();
-    let out = [];
-    for (let x in projectTypes) {
+export function detectProjectType(): string[][] {
+    let rootDir = utilities.getProjectDir(),
+        cljProjTypes = [],
+        cljsProjTypes = [];
+    for (let clj in projectTypes) {
         try {
-            fs.accessSync(rootDir + "/" + projectTypes[x].useWhenExists);
-            out.push(x);
+            fs.accessSync(rootDir + "/" + projectTypes[clj].useWhenExists);
+            cljProjTypes.push(clj);
+            for (let cljs in projectTypes[clj].cljsTypes) {
+                cljsProjTypes.push(cljs);
+            }
         } catch (_e) { }
     }
-    return out;
+    return [cljProjTypes, cljsProjTypes];
 }
 
 const injectDependencies = {
@@ -62,10 +66,20 @@ const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-
 
 const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
 
-
-const projectTypes: { [id: string]: { name: string, cmd: string, winCmd: string, commandLine: () => any, useWhenExists: string, useShell?: boolean } } = {
+const projectTypes: {
+    [id: string]: {
+        name: string,
+        cljsTypes: string[],
+        cmd: string,
+        winCmd: string,
+        commandLine: () => any,
+        useWhenExists: string,
+        useShell?: boolean
+    }
+} = {
     "lein": {
         name: "Leiningen",
+        cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "lein",
         winCmd: "lein.bat",
         useShell: true,
@@ -140,6 +154,7 @@ const projectTypes: { [id: string]: { name: string, cmd: string, winCmd: string,
     */
     "clj": {
         name: "Clojure CLI",
+        cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "clojure",
         winCmd: "clojure.ps1",
         useWhenExists: "deps.edn",
@@ -165,7 +180,8 @@ const projectTypes: { [id: string]: { name: string, cmd: string, winCmd: string,
         }
     },
     "shadow-cljs": {
-        name: "ShadowCLJS",
+        name: "shadow-cljs",
+        cljsTypes: [],
         cmd: "npx",
         winCmd: "npx.cmd",
         useShell: true,
@@ -201,10 +217,12 @@ vscode.tasks.onDidStartTaskProcess(e => {
         // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
         watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
             if (filename == ".nrepl-port") {
+                const chan = state.outputChannel();
+                setTimeout(() => { chan.show() }, 1000);
                 state.cursor.set("launching", null);
                 watcher.close();
                 await connector.connect(true);
-                state.outputChannel().appendLine("Jack in complete, happy coding! ❤️");
+                chan.appendLine("Jack-in done.");
             }
         })
     }
@@ -217,39 +235,50 @@ export async function calvaJackIn() {
     outputChannel.appendLine("Jacking in...");
 
     // figure out what possible kinds of project we're in
-    let types = detectProjectType();
-    if (types.length == 0) {
-        vscode.window.showErrorMessage("Cannot find project, no project.clj, build.boot, deps.edn or shadow-cljs.edn");
+    let [cljTypes, cljsTypes] = detectProjectType();
+    if (cljTypes.length == 0) {
+        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn. (Boot projects are not supported by Jack-in yet. You'll need to start those manually, then connect Calva.");
         state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
         return;
     }
 
     // Show a prompt to pick one if there are multiple
-    let buildName = await utilities.quickPickSingle({ values: types.map(x => projectTypes[x].name), placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
-    if (!buildName) {
+    let menu: string[] = [];
+    for (const clj of cljTypes) {
+        menu.push(projectTypes[clj].name);
+        for (const cljs of projectTypes[clj].cljsTypes) {
+            menu.push(`${projectTypes[clj].name} + ${cljs}`);
+        }
+    }
+    let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
+    if (!projectTypeSelection) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoBuildNamePicked").send();
         return;
     }
+    
 
     // Resolve the selection to an entry in projectTypes
-    let build = getProjectTypeForName(buildName);
-    if (!build) {
+    let projectType = getProjectTypeForName(projectTypeSelection.replace(/ \+ .*$/, ""));
+    let matched = projectTypeSelection.match(/ \+ (.*)$/);
+    const selectedCljsType = projectType.name == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
+    state.extensionContext.workspaceState.update('selectedCljsTypeName', matched != null ? matched[1] : "");
+    if (!projectType) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
         return;
     }
 
     // Now look in our $PATH variable to check the appropriate command exists.
-    let executable = findInPath(isWin ? build.winCmd : build.cmd);
+    let executable = findInPath(isWin ? projectType.winCmd : projectType.cmd);
 
     if (!executable) {
         // It doesn't, do not proceed
         state.analytics().logEvent("REPL", "JackInInterrupted", "CommandNotInPath").send();
-        vscode.window.showErrorMessage(build.cmd + " is not on your PATH, please add it.")
+        vscode.window.showErrorMessage(projectType.cmd + " is not on your PATH, please add it.")
         return;
     }
 
     // Ask the project type to build up the command line. This may prompt for further information.
-    let args = await build.commandLine();
+    let args = await projectType.commandLine();
 
     if (executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
@@ -258,7 +287,7 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     }
 
-    state.cursor.set("launching", buildName)
+    state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
 
     const env = { ...process.env, ...state.config().jackInEnv };
@@ -276,7 +305,7 @@ export async function calvaJackIn() {
     const folder = vscode.workspace.workspaceFolders[0];
     const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
 
-    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(types)).send();
+    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 
     vscode.tasks.executeTask(task).then(
         (v) => {

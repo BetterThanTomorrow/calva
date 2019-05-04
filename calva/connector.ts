@@ -12,7 +12,7 @@ import { reconnectRepl, openReplWindow } from './repl-window';
 
 
 
-async function connectToHost(hostname, port) {
+async function connectToHost(hostname, port, cljsTypeName) {
     state.analytics().logEvent("REPL", "Connecting").send();
 
     let chan = state.outputChannel();
@@ -48,7 +48,7 @@ async function connectToHost(hostname, port) {
         //cljsSession = nClient.session;
         //terminal.createREPLTerminal('clj', null, chan);
 
-        let [cljsSession, shadowBuild] = await makeCljsSessionClone(cljSession);
+        let [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName) : [null, null];
         if (cljsSession)
             setUpCljsRepl(cljsSession, chan, shadowBuild);
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
@@ -254,22 +254,17 @@ async function findCljsRepls(): Promise<ReplType[]> {
 }
 
 
-async function makeCljsSessionClone(session) {
+async function makeCljsSessionClone(session, replType) {
     let chan = state.outputChannel();
     let repl: ReplType;
     
     chan.appendLine("Creating cljs repl session...");
     let newCljsSession = await session.clone();
     if (newCljsSession) {
-        let chan = state.outputChannel();
         chan.show(true);
-        let repls = await findCljsRepls();
-        let replType = await util.quickPickSingle({ values: repls.map(x => x.name), placeHolder: "Select a cljs project type to use", saveAs: "cljs-repl-type" });
-        if (!replType)
-            return [null, null];
         state.extensionContext.workspaceState.update('cljsReplType', replType);
         state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
-        repl = repls.find(x => x.name == replType);
+        repl = cljsReplTypes.find(x => x.name == replType);
         if (repl.start != undefined) {
             chan.appendLine("Starting repl for: " + repl.name + "...");
             if (await repl.start(newCljsSession, repl.name, repl.started)) {
@@ -292,14 +287,14 @@ async function makeCljsSessionClone(session) {
             let build = state.deref().get('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
             let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}` : "");
-            chan.appendLine(`${failed}. Is the build running and conected?`);
+            chan.appendLine(`${failed}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`);
             state.cursor.set('cljsBuild', null);
         }
     }
     return [null, null];
 }
 
-async function promptForNreplUrlAndConnect(port) {
+async function promptForNreplUrlAndConnect(port, cljsTypeName) {
     let current = state.deref(),
         chan = state.outputChannel();
 
@@ -316,7 +311,7 @@ async function promptForNreplUrlAndConnect(port) {
         if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
             state.cursor.set("hostname", hostname);
             state.cursor.set("port", parsedPort);
-            connectToHost(hostname, parsedPort);
+            connectToHost(hostname, parsedPort, cljsTypeName);
         } else {
             chan.appendLine("Bad url: " + url);
             state.cursor.set('connecting', false);
@@ -352,6 +347,7 @@ function nreplPortFile() {
 
 export default {
     connect: async function (isAutoConnect = false) {
+        const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual").send();
         let current = state.deref(),
             chan = state.outputChannel();
@@ -362,16 +358,16 @@ export default {
                 if (isAutoConnect) {
                     state.cursor.set("hostname", "localhost");
                     state.cursor.set("port", port);
-                    await connectToHost("localhost", port);
+                    await connectToHost("localhost", port, cljsTypeName);
                 } else {
-                    await promptForNreplUrlAndConnect(port);
+                    await promptForNreplUrlAndConnect(port, cljsTypeName);
                 }
             } else {
                 chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
-                await promptForNreplUrlAndConnect(port);
+                await promptForNreplUrlAndConnect(port, cljsTypeName);
             }
         } else {
-            await promptForNreplUrlAndConnect(null);
+            await promptForNreplUrlAndConnect(null, cljsTypeName);
         }
         return true;
     },
@@ -403,8 +399,9 @@ export default {
         let current = state.deref(),
             cljSession = util.getSession('clj'),
             chan = state.outputChannel();
+        const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
 
-        let [session, shadowBuild] = await makeCljsSessionClone(cljSession);
+        let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName);
         if (session)
             setUpCljsRepl(session, chan, shadowBuild);
         status.update();
