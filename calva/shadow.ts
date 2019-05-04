@@ -4,23 +4,8 @@ import * as state from './state';
 import * as util from './utilities';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 
-export function shadowNReplPortFile() {
-    return util.getProjectDir() + '/.shadow-cljs/nrepl.port';
-}
-export function nreplPortDir() {
-
-    if (fs.existsSync(shadowNReplPortFile()))
-        return util.getProjectDir() + "/.shadow-cljs/"
-    else
-        return util.getProjectDir()
-}
-
 export function shadowConfigFile() {
     return util.getProjectDir() + '/shadow-cljs.edn';
-}
-
-export function isShadowCljs() {
-    return fs.existsSync(shadowNReplPortFile());
 }
 
 export function shadowBuilds() {

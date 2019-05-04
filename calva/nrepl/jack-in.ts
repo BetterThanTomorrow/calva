@@ -197,12 +197,12 @@ const TASK_NAME = "Calva Jack-in";
 vscode.tasks.onDidStartTaskProcess(e => {
     if (e.execution.task.name == TASK_NAME) {
         if (watcher != undefined) {
-            watcher.close();
+            watcher.removeAllListeners();
         }
         // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
-        watcher = fs.watch(shadow.nreplPortDir(), async (eventType, filename) => {
-            if (filename == ".nrepl-port" || filename == "nrepl.port") {
-                state.cursor.set("launching", null)
+        watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
+            if (filename == ".nrepl-port") {
+                state.cursor.set("launching", null);
                 watcher.close();
                 await connector.connect(true);
                 openReplWindow("clj");
@@ -215,7 +215,7 @@ export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
 
     state.analytics().logEvent("REPL", "JackInInitiated").send();
-    outputChannel.appendLine("Jacking in.");
+    outputChannel.appendLine("Jacking in...");
 
     // figure out what possible kinds of project we're in
     let types = detectProjectType();

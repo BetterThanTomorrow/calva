@@ -11,9 +11,7 @@ import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectRepl } from './repl-window';
 
 function nreplPortFile() {
-    if (fs.existsSync(shadow.shadowNReplPortFile()))
-        return shadow.shadowNReplPortFile();
-    else if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName) {
+    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName) {
         let d = path.dirname(vscode.window.activeTextEditor.document.fileName);
         let prev = null;
         while (d != prev) {
@@ -24,8 +22,9 @@ function nreplPortFile() {
             prev = d;
             d = path.resolve(d, "..");
         }
-    } else
+    } else {
         return util.getProjectDir() + '/.nrepl-port'
+    }
 }
 
 function disconnect(options = null, callback = () => { }) {
@@ -361,7 +360,6 @@ async function connect(isAutoConnect = false) {
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual").send();
     let current = state.deref(),
         chan = state.outputChannel();
-
 
     if (fs.existsSync(nreplPortFile())) {
         let port = fs.readFileSync(nreplPortFile(), 'utf8');
