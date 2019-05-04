@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities';
 import * as shadow from "./shadow"
+import * as open from 'open';
 import status from './status';
 
 import { NReplClient, NReplSession } from "./nrepl";
@@ -113,12 +114,19 @@ function getFigwheelMainProjects() {
 }
 
 type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
+type processOutputFn = (output: string) => void;
 type connectFn = (session: NReplSession, name: string, checkSuccess: checkConnectedFn) => Promise<boolean>;
 
-async function evalConnectCode(newCljsSession: NReplSession, code: string, name: string, checkSuccess: checkConnectedFn): Promise<boolean> {
+async function evalConnectCode(newCljsSession: NReplSession, code: string,
+    name: string, checkSuccess: checkConnectedFn, outputProcessors?: [processOutputFn]): Promise<boolean> {
     let chan = state.connectionLogChannel();
     let err = [], out = [], result = await newCljsSession.eval(code, {
         stdout: x => {
+            if (outputProcessors != undefined) {
+                for (const p of outputProcessors) {
+                    p(x);
+                }
+            }
             out.push(util.stripAnsi(x));
             chan.append(util.stripAnsi(x));
         }, stderr: x => {
@@ -203,7 +211,13 @@ let cljsReplTypes: ReplType[] = [
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
             const initCode = "(do (require 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))";
-            return evalConnectCode(session, initCode, name, checkFn);
+            return evalConnectCode(session, initCode, name, checkFn,
+                [(output) => {
+                    let matched = output.match(/Figwheel: Starting server at (.*)/);
+                    if (matched && matched.length > 1) {
+                        open(matched[1]);
+                    }
+                }]);
         },
         connected: (_result, out, _err) => {
             return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined
@@ -257,7 +271,7 @@ async function findCljsRepls(): Promise<ReplType[]> {
 async function makeCljsSessionClone(session, replType) {
     let chan = state.outputChannel();
     let repl: ReplType;
-    
+
     chan.appendLine("Creating cljs repl session...");
     let newCljsSession = await session.clone();
     if (newCljsSession) {

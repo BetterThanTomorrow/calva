@@ -26,20 +26,16 @@ function escapeString(str: string) {
     return str;
 }
 
-export function detectProjectType(): string[][] {
+export function detectProjectType(): string[] {
     let rootDir = utilities.getProjectDir(),
-        cljProjTypes = [],
-        cljsProjTypes = [];
+        cljProjTypes = []
     for (let clj in projectTypes) {
         try {
             fs.accessSync(rootDir + "/" + projectTypes[clj].useWhenExists);
             cljProjTypes.push(clj);
-            for (let cljs in projectTypes[clj].cljsTypes) {
-                cljsProjTypes.push(cljs);
-            }
         } catch (_e) { }
     }
-    return [cljProjTypes, cljsProjTypes];
+    return cljProjTypes;
 }
 
 const injectDependencies = {
@@ -235,7 +231,7 @@ export async function calvaJackIn() {
     outputChannel.appendLine("Jacking in...");
 
     // figure out what possible kinds of project we're in
-    let [cljTypes, cljsTypes] = detectProjectType();
+    let cljTypes = detectProjectType();
     if (cljTypes.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn. (Boot projects are not supported by Jack-in yet. You'll need to start those manually, then connect Calva.");
         state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
@@ -261,7 +257,7 @@ export async function calvaJackIn() {
     let projectType = getProjectTypeForName(projectTypeSelection.replace(/ \+ .*$/, ""));
     let matched = projectTypeSelection.match(/ \+ (.*)$/);
     const selectedCljsType = projectType.name == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
-    state.extensionContext.workspaceState.update('selectedCljsTypeName', matched != null ? matched[1] : "");
+    state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
     if (!projectType) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
         return;
