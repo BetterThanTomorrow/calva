@@ -113,6 +113,12 @@ function activate(context) {
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
+    
+    // Temporary command to teach new default keyboard shortcut chording key
+    context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
+        vscode.window.showInformationMessage(`The ”Calva key” has changed. It is now: ctrl+alt+c`); 
+    }));
+    
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));

@@ -581,6 +581,11 @@
         ],
         "keybindings": [
             {
+                "command": "calva.tellAboutNewChordingKey",
+                "key": "ctrl+alt+v",
+                "when": "editorLangId == clojure"
+            },
+            {
                 "command": "calva.jackIn",
                 "key": "ctrl+alt+c ctrl+alt+j"
             },
