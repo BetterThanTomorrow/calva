@@ -8,36 +8,9 @@ import * as shadow from "./shadow"
 import status from './status';
 
 import { NReplClient, NReplSession } from "./nrepl";
-import { reconnectRepl } from './repl-window';
+import { reconnectRepl, openReplWindow } from './repl-window';
 
-function nreplPortFile() {
-    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName) {
-        let d = path.dirname(vscode.window.activeTextEditor.document.fileName);
-        let prev = null;
-        while (d != prev) {
-            const p = path.resolve(d, ".nrepl-port");
-            if (fs.existsSync(p)) {
-                return p;
-            }
-            prev = d;
-            d = path.resolve(d, "..");
-        }
-    } else {
-        return util.getProjectDir() + '/.nrepl-port'
-    }
-}
 
-function disconnect(options = null, callback = () => { }) {
-    ['clj', 'cljs'].forEach(sessionType => {
-        state.cursor.set(sessionType, null);
-    });
-    state.cursor.set("connected", false);
-    state.cursor.set('cljc', null);
-    status.update();
-
-    nClient.close();
-    callback();
-}
 
 async function connectToHost(hostname, port) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -63,6 +36,7 @@ async function connectToHost(hostname, port) {
         })
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
+        await openReplWindow("clj", true);
         reconnectRepl("clj", cljSession);
 
         state.cursor.set("connected", true);
@@ -109,6 +83,7 @@ async function connectToHost(hostname, port) {
 function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
+    openReplWindow("cljs", true);
     reconnectRepl("cljs", cljsSession);
     //terminal.createREPLTerminal('cljs', shadowBuild, chan);
     status.update();
@@ -294,7 +269,7 @@ async function makeCljsSessionClone(session) {
         state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
         repl = repls.find(x => x.name == replType);
         if (repl.start != undefined) {
-            chan.appendLine("Starting repl for: " + repl.name);
+            chan.appendLine("Starting repl for: " + repl.name + "...");
             if (await repl.start(newCljsSession, repl.name, repl.started)) {
                 state.analytics().logEvent("REPL", "StartedCLJS", repl.name).send();
                 chan.appendLine("Started cljs builds");
@@ -306,10 +281,10 @@ async function makeCljsSessionClone(session) {
                 return [null, null];
             }
         }
-        chan.appendLine("Connecting to: " + repl.name);
+        chan.appendLine("Connecting to: " + repl.name + "...");
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
-            state.cursor.set('cljs', cljsSession = newCljsSession)
+            state.cursor.set('cljs', cljsSession = newCljsSession);
             return [cljsSession, null];
         } else {
             let build = state.deref().get('cljsBuild')
@@ -356,59 +331,80 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-async function connect(isAutoConnect = false) {
-    state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual").send();
-    let current = state.deref(),
-        chan = state.outputChannel();
-
-    if (fs.existsSync(nreplPortFile())) {
-        let port = fs.readFileSync(nreplPortFile(), 'utf8');
-        if (port) {
-            if (isAutoConnect) {
-                state.cursor.set("hostname", "localhost");
-                state.cursor.set("port", port);
-                await connectToHost("localhost", port);
-            } else {
-                await promptForNreplUrlAndConnect(port);
+function nreplPortFile() {
+    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName) {
+        let d = path.dirname(vscode.window.activeTextEditor.document.fileName);
+        let prev = null;
+        while (d != prev) {
+            const p = path.resolve(d, ".nrepl-port");
+            if (fs.existsSync(p)) {
+                return p;
             }
-        } else {
-            chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
-            await promptForNreplUrlAndConnect(port);
+            prev = d;
+            d = path.resolve(d, "..");
         }
     } else {
-        await promptForNreplUrlAndConnect(null);
+        return util.getProjectDir() + '/.nrepl-port'
     }
-    return true;
-}
-
-function toggleCLJCSession() {
-    let current = state.deref();
-
-    if (current.get('connected')) {
-        if (util.getSession('cljc') == util.getSession('cljs')) {
-            state.cursor.set('cljc', util.getSession('clj'));
-        } else if (util.getSession('cljc') == util.getSession('clj')) {
-            state.cursor.set('cljc', util.getSession('cljs'));
-        }
-        status.update();
-    }
-}
-
-async function recreateCljsRepl() {
-    let current = state.deref(),
-        cljSession = util.getSession('clj'),
-        chan = state.outputChannel();
-
-    let [session, shadowBuild] = await makeCljsSessionClone(cljSession);
-    if (session)
-        setUpCljsRepl(session, chan, shadowBuild);
-    status.update();
 }
 
 export default {
-    connect,
-    disconnect,
-    nreplPortFile,
-    toggleCLJCSession,
-    recreateCljsRepl
+    connect: async function (isAutoConnect = false) {
+        state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual").send();
+        let current = state.deref(),
+            chan = state.outputChannel();
+
+        if (fs.existsSync(nreplPortFile())) {
+            let port = fs.readFileSync(nreplPortFile(), 'utf8');
+            if (port) {
+                if (isAutoConnect) {
+                    state.cursor.set("hostname", "localhost");
+                    state.cursor.set("port", port);
+                    await connectToHost("localhost", port);
+                } else {
+                    await promptForNreplUrlAndConnect(port);
+                }
+            } else {
+                chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
+                await promptForNreplUrlAndConnect(port);
+            }
+        } else {
+            await promptForNreplUrlAndConnect(null);
+        }
+        return true;
+    },
+    disconnect: function (options = null, callback = () => { }) {
+        ['clj', 'cljs'].forEach(sessionType => {
+            state.cursor.set(sessionType, null);
+        });
+        state.cursor.set("connected", false);
+        state.cursor.set('cljc', null);
+        status.update();
+
+        nClient.close();
+        callback();
+    },
+    nreplPortFile: nreplPortFile,
+    toggleCLJCSession: function () {
+        let current = state.deref();
+
+        if (current.get('connected')) {
+            if (util.getSession('cljc') == util.getSession('cljs')) {
+                state.cursor.set('cljc', util.getSession('clj'));
+            } else if (util.getSession('cljc') == util.getSession('clj')) {
+                state.cursor.set('cljc', util.getSession('cljs'));
+            }
+            status.update();
+        }
+    },
+    recreateCljsRepl: async function () {
+        let current = state.deref(),
+            cljSession = util.getSession('clj'),
+            chan = state.outputChannel();
+
+        let [session, shadowBuild] = await makeCljsSessionClone(cljSession);
+        if (session)
+            setUpCljsRepl(session, chan, shadowBuild);
+        status.update();
+    }
 };

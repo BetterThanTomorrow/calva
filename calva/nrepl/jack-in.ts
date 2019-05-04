@@ -3,7 +3,6 @@ import * as utilities from "../utilities";
 import * as fs from "fs";
 import * as state from "../state"
 import connector from "../connector";
-import { openReplWindow } from "../repl-window";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
 const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
@@ -205,7 +204,7 @@ vscode.tasks.onDidStartTaskProcess(e => {
                 state.cursor.set("launching", null);
                 watcher.close();
                 await connector.connect(true);
-                openReplWindow("clj");
+                state.outputChannel().appendLine("Jack in complete, happy coding! ❤️");
             }
         })
     }

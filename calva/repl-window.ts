@@ -175,9 +175,9 @@ export async function reconnectRepl(mode: "clj" | "cljs", session: NReplSession)
     }
 }
 
-export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
+export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = false) {
     if(replWindows[mode]) {
-        replWindows[mode].panel.reveal(vscode.ViewColumn.Two, true);
+        replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
         return replWindows[mode];
     }
     
@@ -189,7 +189,15 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
 
     session = await session.clone();
     let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
-    const panel = vscode.window.createWebviewPanel("replInteractor", title, vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
+    const panel = vscode.window.createWebviewPanel("replInteractor",
+        title, {
+            viewColumn: vscode.ViewColumn.Two,
+            preserveFocus: preserveFocus
+        },
+        {
+            retainContextWhenHidden: true,
+            enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
+        })    
     let repl = replWindows[mode] = new REPLWindow(panel, session, mode);
     await repl.initialized;
     return repl;
