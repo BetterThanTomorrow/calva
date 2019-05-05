@@ -6,6 +6,9 @@ import Analytics from './analytics';
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
     extensionContext = context;
+    if (context.workspaceState.get('selectedCljTypeName') == undefined) {
+        context.workspaceState.update('selectedCljTypeName', "unknown");
+    }
 }
 
 const mode = {

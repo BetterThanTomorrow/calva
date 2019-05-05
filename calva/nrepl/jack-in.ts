@@ -217,7 +217,7 @@ vscode.tasks.onDidStartTaskProcess(e => {
                 setTimeout(() => { chan.show() }, 1000);
                 state.cursor.set("launching", null);
                 watcher.close();
-                await connector.connect(true);
+                await connector.connect(true, true);
                 chan.appendLine("Jack-in done.");
             }
         })

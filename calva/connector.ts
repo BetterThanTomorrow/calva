@@ -360,11 +360,26 @@ function nreplPortFile() {
 }
 
 export default {
-    connect: async function (isAutoConnect = false) {
-        const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
-        state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual").send();
-        let current = state.deref(),
-            chan = state.outputChannel();
+    connect: async function (isAutoConnect = false, isJackIn = false) {
+        let chan = state.outputChannel();
+        let cljsTypeName: string;
+
+        state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
+
+        if (isJackIn) {
+            cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+        } else {
+            cljsTypeName = await util.quickPickSingle({
+                values: cljsReplTypes.map(x => x.name),
+                placeHolder: "Please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
+            });
+            if (!cljsTypeName) {
+                state.analytics().logEvent("REPL", "ConnectInterrupted", "NoCljsProjectPicked").send();
+                return;
+            }
+        }
+        
+        state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
         if (fs.existsSync(nreplPortFile())) {
             let port = fs.readFileSync(nreplPortFile(), 'utf8');
