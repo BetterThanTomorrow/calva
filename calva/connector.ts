@@ -13,7 +13,7 @@ import { reconnectRepl, openReplWindow } from './repl-window';
 
 
 
-async function connectToHost(hostname, port, cljsTypeName) {
+async function connectToHost(hostname, port, cljsTypeName: string) {
     state.analytics().logEvent("REPL", "Connecting").send();
 
     let chan = state.outputChannel();
@@ -361,7 +361,7 @@ function nreplPortFile() {
 
 export default {
     connect: async function (isAutoConnect = false) {
-        const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+        const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual").send();
         let current = state.deref(),
             chan = state.outputChannel();

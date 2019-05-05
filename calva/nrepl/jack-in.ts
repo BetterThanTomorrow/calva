@@ -254,7 +254,9 @@ export async function calvaJackIn() {
     
 
     // Resolve the selection to an entry in projectTypes
-    let projectType = getProjectTypeForName(projectTypeSelection.replace(/ \+ .*$/, ""));
+    const projectTypeName: string = projectTypeSelection.replace(/ \+ .*$/, "");
+    let projectType = getProjectTypeForName(projectTypeName);
+    state.extensionContext.workspaceState.update('selectedCljTypeName', projectTypeName);
     let matched = projectTypeSelection.match(/ \+ (.*)$/);
     const selectedCljsType = projectType.name == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
     state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);

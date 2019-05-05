@@ -1,21 +1,39 @@
 <!doctype html>
 <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-    </head>
-    <body>
-        <div>
-            <img src="{{logo}}" width=256 height=256>
-            <h3>Calva REPL - version 0.0.1</h3>
-            <div>Matt Seddon, Peter Strömberg / Better Than Tomorrow</div>
-            <div class="warn">
-                <p>Welcome to the Preview Calva REPL!</p>
-                <p>This is pre-release software. Please help us test this and report any issues you find to <code>#calva-dev</code> or <a href="https://github.com/BetterThanTomorrow/calva/issues">github</a>!</p>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+</head>
+
+<body>
+    <div>
+        <div id="hero" class="{{hero-classes}}">
+            <div class="calva">
+                <img class="logo" src="{{logo}}">
             </div>
-            <p id="motd"></p>
+            <div class="clj">
+                <img class="clj-logo" src="{{clj-logo}}">
+                <img class="clj-type-logo" src="{{clj-type-logo}}">
+            </div>
+            <div class="cljs">
+                <img class="cljs-logo" src="{{cljs-logo}}">
+                <img class="cljs-type-logo" src="{{cljs-type-logo}}">
+            </div>
         </div>
-        <div class="repl">
+        <h3>Calva REPL - version 0.0.1</h3>
+        <div>By Matt Seddon, Peter Strömberg / Better Than Tomorrow</div>
+        <div>Powered by <a href="https://github.com/clojure-emacs/orchard">The Orchard</a> (via
+            <code>cider-nrepl</code>)</div>
+        <div class="warn">
+            <p>Welcome to the Preview Calva 2!</p>
+            <p>This is pre-release software. Please help us test this and report any issues you find to
+                <code>#calva-dev</code> or <a href="https://github.com/BetterThanTomorrow/calva/issues">github</a>!</p>
         </div>
-        <script src="{{script}}"></script>
-    </body>
+        <p id="motd"></p>
+    </div>
+    <div class="repl">
+    </div>
+    <script src="{{script}}"></script>
+</body>
+
 </html>

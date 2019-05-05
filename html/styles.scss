@@ -2,6 +2,14 @@
 @import "theme-dark";
 @import "theme-light";
 
+#hero {
+    .calva {
+        img {
+            width: 200px;
+        }
+    }
+}
+
 .output {
     white-space: pre;
     color: var(--vscode-editorWarning-foreground);

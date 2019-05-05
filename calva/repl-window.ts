@@ -34,7 +34,11 @@ class REPLWindow {
     useBuffer = false;
     buffer = [];
 
-    constructor(public panel: vscode.WebviewPanel, public session: NReplSession, public type: "clj" | "cljs") {    
+    constructor(public panel: vscode.WebviewPanel,
+        public session: NReplSession,
+        public type: "clj" | "cljs",
+        public cljType: string,
+        public cljsType: string) {    
         vscode.commands.executeCommand("setContext", "calva:pareditValid", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
@@ -94,11 +98,18 @@ class REPLWindow {
         })
         panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "html", "/calva-icon.png"));
 
-        let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
-        html = html.replace("{{baseUri}}", getUrl())
-        html = html.replace("{{script}}", getUrl("/main.js"))
-        html = html.replace("{{font}}", getUrl("/fira_code.css"))
-        html = html.replace("{{logo}}", getUrl("/calva.png"))
+        const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
+        const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase}`;
+        let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
+        html = html.replace("{{baseUri}}", getUrl());
+        html = html.replace("{{script}}", getUrl("/main.js"));
+        html = html.replace("{{font}}", getUrl("/fira_code.css"));
+        html = html.replace("{{logo}}", getUrl("/calva.png"));
+        html = html.replace("{{hero-classes}}", `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
+        html = html.replace("{{clj-type-logo}}", getUrl(`/${cljTypeSlug}.png`));
+        html = html.replace("{{clj-logo}}", getUrl("/clj.png"));
+        html = html.replace("{{cljs-logo}}", getUrl("/cljs.png"));
+        html = html.replace("{{cljs-type-logo}}", getUrl((`/${cljsTypeSlug}.png`)));
         panel.webview.html = html;
 
         this.connect(session);
@@ -197,8 +208,10 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         {
             retainContextWhenHidden: true,
             enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
-        })    
-    let repl = replWindows[mode] = new REPLWindow(panel, session, mode);
+        });
+    const cljType: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
+    const cljsType: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+    let repl = replWindows[mode] = new REPLWindow(panel, session, mode, cljType, cljsType);
     await repl.initialized;
     return repl;
 }
