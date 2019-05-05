@@ -3,9 +3,57 @@
 @import "theme-light";
 
 #hero {
-    .calva {
+    display: flex;
+    flex-direction: row;
+    img.logo {
+        width: 200px;
+        height: 200px;
+        margin-right: 20px;
+    }
+    &.clj-type-clojure-cli {
+        .clj {
+            display: none;
+        }
+    }
+    &.cljs-type-figwheel,
+    &.cljs-type-figwheel-main {
+        .cljs {
+            display: none;
+        }
+    }
+    &.clj {
+        .cljs {
+            flex-shrink: 1;
+            display: none;
+        }
+        .clj {
+            margin-top: 100px;
+        }
+    }
+    &.cljs {
+        .clj {
+            display: none;
+        }
+        .cljs {
+            margin-top: 100px;
+        }
+    }
+    .powered {
+        flex-direction: column;
+        justify-content: flex-end;
         img {
-            width: 200px;
+            width: 100px;
+            height: 100px;
+        }
+        .clj {
+            .cljs {
+                display: none;
+            }
+        }
+        .cljs {
+            .clj {
+                display: none;
+            }
         }
     }
 }

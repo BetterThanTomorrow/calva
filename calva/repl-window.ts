@@ -99,16 +99,14 @@ class REPLWindow {
         panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "html", "/calva-icon.png"));
 
         const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
-        const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase}`;
+        const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
         html = html.replace("{{baseUri}}", getUrl());
         html = html.replace("{{script}}", getUrl("/main.js"));
         html = html.replace("{{font}}", getUrl("/fira_code.css"));
-        html = html.replace("{{logo}}", getUrl("/calva.png"));
+        html = html.replace("{{logo}}", getUrl(`/calva-${type}.svg`));
         html = html.replace("{{hero-classes}}", `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
         html = html.replace("{{clj-type-logo}}", getUrl(`/${cljTypeSlug}.png`));
-        html = html.replace("{{clj-logo}}", getUrl("/clj.png"));
-        html = html.replace("{{cljs-logo}}", getUrl("/cljs.png"));
         html = html.replace("{{cljs-type-logo}}", getUrl((`/${cljsTypeSlug}.png`)));
         panel.webview.html = html;
 
