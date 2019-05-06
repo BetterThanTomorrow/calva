@@ -38,27 +38,25 @@ export function detectProjectType(): string[] {
     return cljProjTypes;
 }
 
-const injectDependencies = {
-    "cider/cider-nrepl": "0.21.1",
+const cliDependencies = {
+    "nrepl": "0.6.0",
+    "cider/cider-nrepl": "0.21.1"
+}
+const figwheelDependencies = {
     "cider/piggieback": "0.4.0",
     "figwheel-sidecar": "0.5.18"
 }
-
 const shadowDependencies = {
     "cider/cider-nrepl": "0.21.1"
 }
-
 const leinPluginDependencies = {
     "cider/cider-nrepl": "0.21.1"
 }
-
 const leinDependencies = {
-    "nrepl": "0.6.0",
-    "cider/piggieback": "0.4.0",
-    "figwheel-sidecar": "0.5.18"
+    "nrepl": "0.6.0"
 }
-
-const middleware = ["cider.nrepl/cider-middleware", "cider.piggieback/wrap-cljs-repl"];
+const middleware = ["cider.nrepl/cider-middleware"];
+const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
 const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
 
@@ -68,7 +66,7 @@ const projectTypes: {
         cljsTypes: string[],
         cmd: string,
         winCmd: string,
-        commandLine: () => any,
+        commandLine: (includeCljs: boolean) => any,
         useWhenExists: string,
         useShell?: boolean
     }
@@ -80,9 +78,10 @@ const projectTypes: {
         winCmd: "lein.bat",
         useShell: true,
         useWhenExists: "project.clj",
-        commandLine: async () => {
+        commandLine: async (includeCljs) => {
             let out: string[] = [];
-            let keys = Object.keys(leinDependencies);
+            let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
+            let keys = Object.keys(dependencies);
 
             let data = fs.readFileSync(utilities.getProjectDir() + "/project.clj", 'utf8').toString();
             let parsed;
@@ -112,7 +111,7 @@ const projectTypes: {
 
             for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
-                out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${leinDependencies[dep]}\\"]"`, '--');
+                out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${dependencies[dep]}\\"]"`, '--');
             }
 
             keys = Object.keys(leinPluginDependencies);
@@ -121,7 +120,8 @@ const projectTypes: {
                 out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
             }
 
-            for (let mw of middleware) {
+            const useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
+            for (let mw of useMiddleware) {
                 out.push("update-in", '"[:repl-options :nrepl-middleware]"', "conj", `"[\\"${mw.replace('"', '\\"')}\\"]"`, '--');
             }
 
@@ -142,8 +142,8 @@ const projectTypes: {
         useWhenExists: "build.boot",      
         commandLine: () => {
             let out: string[] = [];
-            for(let dep in injectDependencies)
-                out.push("-d", dep+":"+injectDependencies[dep]);
+            for(let dep in cliDependencies)
+                out.push("-d", dep+":"+cliDependencies[dep]);
             return [...out, "-i", initEval, "repl"];
         }
     },
@@ -154,7 +154,7 @@ const projectTypes: {
         cmd: "clojure",
         winCmd: "clojure.ps1",
         useWhenExists: "deps.edn",
-        commandLine: async () => {
+        commandLine: async (includeCljs) => {
             let out: string[] = [];
             let data = fs.readFileSync(utilities.getProjectDir() + "/deps.edn", 'utf8').toString();
             let parsed;
@@ -169,10 +169,12 @@ const projectTypes: {
                 aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with" });
             }
 
+            const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
+                useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
 
-            for (let dep in injectDependencies)
-                out.push(dep + " {:mvn/version \\\"" + injectDependencies[dep] + "\\\"}")
-            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, "-m", "nrepl.cmdline", "--middleware", `"[${middleware.join(' ')}]"`, ...aliases.map(x => "-A" + x)]
+            for (let dep in dependencies)
+                out.push(dep + " {:mvn/version \\\"" + dependencies[dep] + "\\\"}")
+            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`, ...aliases.map(x => "-A" + x)]
         }
     },
     "shadow-cljs": {
@@ -182,7 +184,7 @@ const projectTypes: {
         winCmd: "npx.cmd",
         useShell: true,
         useWhenExists: "shadow-cljs.edn",
-        commandLine: async () => {
+        commandLine: async (_includeCljs) => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
                 args.push("-d", dep + ":" + shadowDependencies[dep]);
@@ -248,10 +250,10 @@ export async function calvaJackIn() {
     }
     let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
     if (!projectTypeSelection) {
-        state.analytics().logEvent("REPL", "JackInInterrupted", "NoBuildNamePicked").send();
+        state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypePicked").send();
         return;
     }
-    
+
 
     // Resolve the selection to an entry in projectTypes
     const projectTypeName: string = projectTypeSelection.replace(/ \+ .*$/, "");
@@ -276,7 +278,7 @@ export async function calvaJackIn() {
     }
 
     // Ask the project type to build up the command line. This may prompt for further information.
-    let args = await projectType.commandLine();
+    let args = await projectType.commandLine(selectedCljsType != "");
 
     if (executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
