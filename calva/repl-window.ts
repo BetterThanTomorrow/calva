@@ -7,13 +7,22 @@ import status from "./status"
 import { readFileSync } from "fs";
 import { NReplEvaluation, NReplSession } from "./nrepl";
 
+import annotations from './providers/annotations';
+import * as util from './utilities';
+import evaluate from './evaluate';
+import select from './select';
+
 // REPL
 
 export function activeReplWindow() {
-    for(let w in replWindows) {
-        if(replWindows[w].panel.active)
-            return replWindows[w];
+    let currentDoc: vscode.TextDocument = util.getDocument({});
+    if (!currentDoc.fileName.match(/\.clj[cs]$/)) {
+        for (let w in replWindows) {
+            if (replWindows[w].panel.active)
+                return replWindows[w];
+        }
     }
+    return undefined;
 }
 
 
@@ -25,7 +34,11 @@ class REPLWindow {
     useBuffer = false;
     buffer = [];
 
-    constructor(public panel: vscode.WebviewPanel, public session: NReplSession, public type: "clj" | "cljs") {    
+    constructor(public panel: vscode.WebviewPanel,
+        public session: NReplSession,
+        public type: "clj" | "cljs",
+        public cljType: string,
+        public cljsType: string) {    
         vscode.commands.executeCommand("setContext", "calva:pareditValid", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
@@ -76,7 +89,6 @@ class REPLWindow {
 
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
-            vscode.commands.executeCommand("setContext", "calva:pareditValid", e.webviewPanel.active)
             
             if(e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
@@ -86,11 +98,16 @@ class REPLWindow {
         })
         panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "html", "/calva-icon.png"));
 
-        let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString()
-        html = html.replace("{{baseUri}}", getUrl())
-        html = html.replace("{{script}}", getUrl("/main.js"))
-        html = html.replace("{{font}}", getUrl("/fira_code.css"))
-        html = html.replace("{{logo}}", getUrl("/calva.png"))
+        const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
+        const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
+        let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
+        html = html.replace("{{baseUri}}", getUrl());
+        html = html.replace("{{script}}", getUrl("/main.js"));
+        html = html.replace("{{font}}", getUrl("/fira_code.css"));
+        html = html.replace("{{logo}}", getUrl(`/calva-${type}.svg`));
+        html = html.replace("{{hero-classes}}", `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
+        html = html.replace("{{clj-type-logo}}", getUrl(`/${cljTypeSlug}.png`));
+        html = html.replace("{{cljs-type-logo}}", getUrl((`/${cljsTypeSlug}.png`)));
         panel.webview.html = html;
 
         this.connect(session);
@@ -167,12 +184,12 @@ export async function reconnectRepl(mode: "clj" | "cljs", session: NReplSession)
     }
 }
 
-export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
+export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = false) {
     if(replWindows[mode]) {
-        replWindows[mode].panel.reveal(vscode.ViewColumn.Two, true);
+        replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
         return replWindows[mode];
     }
-
+    
     let session = mode == "clj" ? cljSession : cljsSession;
     if(!session) {
         vscode.window.showErrorMessage("Not connected to nREPL");
@@ -180,17 +197,97 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj") {
     }
 
     session = await session.clone();
-    let title = mode == "clj" ? "CLJ REPL" : "CLJS Repl";
-    const panel = vscode.window.createWebviewPanel("replInteractor", title, vscode.ViewColumn.Two, { retainContextWhenHidden: true, enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))] })    
-    let repl = replWindows[mode] = new REPLWindow(panel, session, mode);
+    let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
+    const panel = vscode.window.createWebviewPanel("replInteractor",
+        title, {
+            viewColumn: vscode.ViewColumn.Two,
+            preserveFocus: preserveFocus
+        },
+        {
+            retainContextWhenHidden: true,
+            enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
+        });
+    const cljType: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
+    const cljsType: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+    let repl = replWindows[mode] = new REPLWindow(panel, session, mode, cljType, cljsType);
     await repl.initialized;
     return repl;
 }
 
+function loadNamespaceCommand(focus = true) {
+    setREPLNamespace(focus);
+}
+
+function setREPLNamespaceCommand() {
+    setREPLNamespace(false);
+}
+
+async function sendTextToREPLWindow(text, ns?: string) {
+    let wnd = await openReplWindow(util.getREPLSessionType());
+    if (wnd) {
+        let oldNs = wnd.ns;
+        if (ns && ns != oldNs)
+            await wnd.session.eval("(in-ns '" + ns + ")").value;
+        try {
+            wnd.evaluate(ns || oldNs, text);
+            await wnd.replEval(text, oldNs);
+        } finally {
+            if (ns && ns != oldNs) {
+                await wnd.session.eval("(in-ns '" + oldNs + ")").value;
+            }
+        }
+    }
+}
+
+export async function setREPLNamespace(reload = false) {
+    let nameSpace = util.getDocumentNamespace();
+
+    if (reload) {
+        evaluate.loadFile();
+    }
+    let wnd = await openReplWindow(util.getREPLSessionType());
+    if (wnd) {
+        await wnd.session.eval("(in-ns '" + nameSpace + ")").value;
+        wnd.setNamespace(nameSpace);
+    }
+}
+
+
+function evalCurrentFormInREPLWindow(topLevel = false) {
+    let editor = vscode.window.activeTextEditor,
+        doc = util.getDocument({}),
+        selection = editor.selection,
+        codeSelection = null,
+        code = "";
+
+    if (selection.isEmpty) {
+        codeSelection = select.getFormSelection(doc, selection.active, topLevel);
+        annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.REPL_WINDOW);
+        code = doc.getText(codeSelection);
+    } else {
+        codeSelection = selection;
+        code = doc.getText(selection);
+    }
+    if (code !== "") {
+        sendTextToREPLWindow(code, util.getNamespace(doc))
+    }
+}
+
+function evalCurrentFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(false);
+}
+
+function evalCurrentTopLevelFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(true);
+}
+
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
-
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj")));
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', () => openReplWindow("cljs")));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', loadNamespaceCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
 }
+

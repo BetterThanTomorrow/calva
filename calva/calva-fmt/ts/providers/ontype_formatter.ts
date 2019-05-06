@@ -1,13 +1,14 @@
 import * as vscode from 'vscode';
 import * as formatter from '../format';
-import { getDocument, getIndent } from "../docmirror";
+import { getIndent, getDocument, getDocumentOffset } from "../docmirror";
+
 export class FormatOnTypeEditProvider {
     async provideOnTypeFormattingEdits(document: vscode.TextDocument, position: vscode.Position, _ch, _options) {
         if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
             if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
                 let editor = vscode.window.activeTextEditor;
                 let pos = new vscode.Position(position.line, 0);
-                let indent = getIndent(document, pos)
+                let indent = getIndent(getDocument(document), getDocumentOffset(document, position))
 
                 let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
                 if (delta > 0) {

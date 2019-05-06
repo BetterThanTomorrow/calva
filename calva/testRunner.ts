@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from '../../state';
+import * as state from './state';
 import evaluate from './evaluate';
-import * as util from '../../utilities';
+import * as util from './utilities';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function reportTests(results, errorStr, log = true) {
-    let chan = state.deref().get('outputChannel'),
+    let chan = state.outputChannel(),
         diagnostics = {},
         total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
     diagnosticCollection.clear();
@@ -75,50 +75,62 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    let client = util.getSession(util.getFileType(document))
+    let client = util.getSession(util.getFileType(document));
+    state.outputChannel().appendLine("Running all project tests…");
     reportTests([await client.testAll()], "Running all tests");
 }
 
 function runAllTestsCommand() {
-    //let chan = state.deref().get('outputChannel');
-
-    //chan.show();
+    state.outputChannel().show(true);
     runAllTests();
 }
 
-function getNamespaceTestMessages(document = {}) {
-    let client = util.getSession(util.getFileType(document))
-    let doc = util.getDocument(document),
-        ns = util.getNamespace(doc.getText()),
-        messages = [client.test(ns)];
-
-    if (!ns.endsWith('-test'))
-        messages.push(client.test(ns + '-test'));
-
-    return messages;
+async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
+    if (!ns.endsWith('-test')) {
+        let testNS = ns + '-test',
+            testFilePath = await client.nsPath(testNS).path;
+        if (`${testFilePath}` != "") {
+            let loadForms = `(load-file "${testFilePath}")`;
+            await client.eval(loadForms);
+        }
+        nss.push(testNS);
+        return nss;
+    }
+    return nss;
 }
 
-function runNamespaceTests(document = {}) {
-    evaluate.evaluateFile({}, async () => {
-        let results = await Promise.all(getNamespaceTestMessages(document));
+async function runNamespaceTests(document = {}) {
+    let client = util.getSession(util.getFileType(document)),
+        doc = util.getDocument(document),
+        ns = util.getNamespace(doc),
+        nss = [ns];
+    
+    evaluate.loadFile({}, async () => {
+        state.outputChannel().appendLine("Running namespace tests…");
+        nss = await considerTestNS(ns, client, nss);
+        let resultPromises = [client.test(nss[0])];
+        if (nss.length > 1)
+            resultPromises.push(client.test(nss[1]));
+        let results = await Promise.all(resultPromises);
         reportTests(results, "Running tests")
     });
 }
 
 function runNamespaceTestsCommand() {
-    //state.deref().get('outputChannel').show(false);
+    state.outputChannel().show(true);
     runNamespaceTests();
 }
 
 function rerunTests(document = {}) {
     let client = util.getSession(util.getFileType(document))
-    evaluate.evaluateFile({}, async () => {
+    evaluate.loadFile({}, async () => {
+        state.outputChannel().appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
     });
 }
 
 function rerunTestsCommand() {
-    //state.deref().get('outputChannel').show();
+    state.outputChannel().show(true);
     rerunTests();
 }
 

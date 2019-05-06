@@ -1,0 +1,275 @@
+@import url("fira_code.css");
+@import "theme-dark";
+@import "theme-light";
+
+#hero {
+    display: flex;
+    flex-direction: row;
+    img.logo {
+        width: 200px;
+        height: 200px;
+        margin-right: 20px;
+    }
+    &.clj-type-clojure-cli {
+        .clj {
+            display: none;
+        }
+    }
+    &.cljs-type-figwheel,
+    &.cljs-type-figwheel-main {
+        .cljs {
+            display: none;
+        }
+    }
+    &.clj {
+        .cljs {
+            flex-shrink: 1;
+            display: none;
+        }
+        .clj {
+            margin-top: 100px;
+        }
+    }
+    &.cljs {
+        .clj {
+            display: none;
+        }
+        .cljs {
+            margin-top: 100px;
+        }
+    }
+    .powered {
+        flex-direction: column;
+        justify-content: flex-end;
+        img {
+            width: 100px;
+            height: 100px;
+        }
+        .clj {
+            .cljs {
+                display: none;
+            }
+        }
+        .cljs {
+            .clj {
+                display: none;
+            }
+        }
+    }
+}
+
+.output {
+    white-space: pre;
+    color: var(--vscode-editorWarning-foreground);
+}
+
+.error {
+    white-space: pre-wrap;
+    color: var(--vscode-editorError-foreground);
+}
+
+.winnage {
+    white-space: pre-wrap;
+}
+
+.repl {
+    font-family: "Fira Code", "Courier New", monospace;
+    font-weight: normal;
+    font-size: 15px;
+    letter-spacing: 0;
+    cursor: text;
+    position: relative;
+}
+
+.match {
+    margin: -1px -1px -1px -1px;
+}
+
+.documentation {
+    position: absolute;
+    background-color: var(--vscode-editorWidget-background);
+    border: solid 1px var(--vscode-editorWidget-border);
+    max-width: 400px;
+    overflow-y: scroll;
+    font-family: sans-serif;
+    font-size: 14px;
+    padding: 4px;
+    visibility: hidden;
+    white-space: pre-wrap;
+    max-height: 300px;
+}
+
+.documentation .name,
+.documentation .arglist {
+    font-family: Fira Code;
+    white-space: pre-wrap;
+    padding-bottom: 8px;
+}
+
+.documentation .name {
+    color: var(--vscode-list-highlightForeground);
+}
+
+.documentation .arglist {
+    color: var(--vscode-editorCodeLens-foreground);
+}
+
+.completion {
+    position: absolute;
+    background-color: var(--vscode-editorWidget-background);
+    border: solid 1px var(--vscode-editorWidget-border);
+    max-height: 256px;
+    width: 200px;
+    overflow-y: scroll;
+    font-family: Fira Code;
+    font-size: 14px;
+    padding: 4px;
+    visibility: hidden;
+}
+
+.completion > .active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.completion .completed {
+    color: var(--vscode-list-highlightForeground);
+}
+
+.completion .icon {
+    width: 20px;
+    margin-right: 8px;
+    text-align: center;
+    display: inline-block;
+}
+
+.completion .icon.ic-macro::before {
+    content: "m";
+}
+
+.completion .icon.ic-function::before {
+    content: "fn";
+}
+.completion .icon.ic-namespace::before {
+    content: "ns";
+}
+.completion .icon.ic-special-form::before {
+    content: "s";
+}
+
+.caret {
+    position: absolute;
+    height: 14px;
+    top: 0px;
+    pointer-events: none;
+}
+
+.is-focused .caret {
+    position: absolute;
+    height: 14px;
+    top: 0px;
+    animation: 500ms ease-in-out caret-blink infinite;
+    pointer-events: none;
+}
+
+.sel-marker {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    height: 100%;
+    background-color: var(--vscode-editor-selectionBackground);
+}
+
+.line {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+@keyframes caret-blink {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .info-box {
+        display: none;
+    }
+}
+
+.prompt {
+    color: var(--vscode-editorLineNumber-activeForeground);
+}
+
+.prompt-wrap {
+    display: flex;
+    white-space: pre;
+    position: relative;
+    // align-items: baseline; something missing in markup for new lines for this to work
+}
+
+.warn {
+    color: var(--vscode-editorWarning-foreground);
+    font-weight: bold;
+    code {
+        color: var(--vscode-editor-foreground);
+    }
+}
+
+#motd {
+    font-style: italic;
+    font-weight: bold;
+    white-space: pre-line;
+}
+
+.stacktrace .stack {
+    color: var(--vscode-editorError-foreground);
+}
+
+.stacktrace .file {
+    text-align: right;
+    padding-right: 8px;
+}
+
+.stacktrace .line {
+    padding-right: 8px;
+}
+
+.stacktrace .stack {
+    padding-right: 8px;
+}
+
+.toggle:hover {
+    text-decoration: underline;
+}
+
+.stacktrace {
+    cursor: default;
+}
+
+.stacktrace.dup tr.dup {
+    display: none;
+}
+
+.stacktrace.java tr.java {
+    display: none;
+}
+.stacktrace.clj tr.clj {
+    display: none;
+}
+.stacktrace.tooling tr.tooling {
+    display: none;
+}
+.show-ctrl > span {
+    padding: 0 16px;
+}
+.navigable:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}

@@ -6,37 +6,46 @@ import * as fs from 'fs';
 import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
+const { parseForms } = require('../cljs-out/cljs-lib');
+import * as docMirror from './calva-fmt/ts/docmirror';
+import { TokenCursor, LispTokenCursor } from '@calva/repl-interactor/js/token-cursor';
+import { Token } from '@calva/repl-interactor/js/clojure-lexer';
+
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
 }
 
 async function quickPickSingle(opts: { values: string[], saveAs?: string, placeHolder: string, autoSelect?: boolean }) {
-    if(opts.values.length == 0)
+    if (opts.values.length == 0)
         return;
     let selected: string;
-    if(opts.saveAs)
-        selected = state.extensionContext.workspaceState.get(opts.saveAs);
+    let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
+    if (saveAs) {
+        selected = state.extensionContext.workspaceState.get(saveAs);
+    }
 
     let result;
-    if(opts.autoSelect && opts.values.length == 1)
+    if (opts.autoSelect && opts.values.length == 1)
         result = opts.values[0];
     else
-        result = await quickPick(opts.values, selected ? [selected] : [], [], {placeHolder: opts.placeHolder, ignoreFocusOut: true})
-    state.extensionContext.workspaceState.update(opts.saveAs, result);
+        result = await quickPick(opts.values, selected ? [selected] : [], [], { placeHolder: opts.placeHolder, ignoreFocusOut: true })
+    state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
 async function quickPickMulti(opts: { values: string[], saveAs?: string, placeHolder: string }) {
     let selected: string[];
-    if(opts.saveAs)
-        selected = state.extensionContext.workspaceState.get(opts.saveAs) || [];
-    let result = await quickPick(opts.values, [], selected, {placeHolder: opts.placeHolder, canPickMany: true, ignoreFocusOut: true})
-    state.extensionContext.workspaceState.update(opts.saveAs, result);
+    let saveAs: string = opts.saveAs ? `qps-${opts.saveAs}` : null;
+    if (saveAs) {
+        selected = state.extensionContext.workspaceState.get(saveAs) || [];
+    }
+    let result = await quickPick(opts.values, [], selected, { placeHolder: opts.placeHolder, canPickMany: true, ignoreFocusOut: true })
+    state.extensionContext.workspaceState.update(saveAs, result);
     return result;
 }
 
-function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions & { canPickMany: true}): Promise<string[]>;
+function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions & { canPickMany: true }): Promise<string[]>;
 function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string>;
 
 async function quickPick(itemsToPick: string[], active: string[], selected: string[], options: vscode.QuickPickOptions): Promise<string | string[]> {
@@ -54,14 +63,14 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
     return new Promise<string[] | string>((resolve, reject) => {
         qp.show();
         qp.onDidAccept(() => {
-            if(qp.canSelectMany)
+            if (qp.canSelectMany)
                 resolve(qp.selectedItems.map(x => x.label))
-            else if(qp.selectedItems.length)
+            else if (qp.selectedItems.length)
                 resolve(qp.selectedItems[0].label)
             else
                 resolve(undefined);
-                qp.hide();
-            })
+            qp.hide();
+        })
         qp.onDidHide(() => {
             resolve([]);
             qp.hide();
@@ -70,12 +79,20 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
 }
 
 function getProjectDir() {
-    let path = vscode.workspace.rootPath + "/" + state.config().projectRootDirectory;
-
-    if (fs.existsSync(path)) {
-        return path;
+    let workspaceRoot = vscode.workspace.getWorkspaceFolder(getDocument({}).uri)
+    if (workspaceRoot != undefined) {
+        let configProjectRoot = state.config().projectRootDirectory;
+        let path = workspaceRoot.uri.path + (configProjectRoot != "" ? "/" + configProjectRoot : "");
+        try {
+            fs.accessSync(path, fs.constants.R_OK);
+            return path;
+        } catch (err) {
+            return workspaceRoot.uri.path;
+        }
+    } else if (vscode.workspace.workspaceFolders != undefined) {
+        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.path : ".";
     } else {
-        return vscode.workspace.rootPath;
+        return "";
     }
 }
 
@@ -87,9 +104,53 @@ function getShadowCljsReplStartCode(build) {
     return '(shadow.cljs.devtools.api/nrepl-select ' + build + ')';
 }
 
-function getNamespace(text) {
-    let match = text.match(/^[\s\t]*(?:;.*\s)*[\s\t]*\((?:[\s\t\n]*(?:in-){0,1}ns)[\s\t\n]+'?([\w.\-\/]+)[\s\S]*\)[\s\S]*/);
-    return match ? match[1] : 'user';
+function getNamespace(doc: vscode.TextDocument) {
+    let ns = "user";
+    if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
+        try {
+            const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0);
+            cursor.forwardWhitespace(true);
+            let token: Token = null,
+                foundNsToken: boolean = false,
+                foundNsId: boolean = false;
+            do {
+                cursor.downList();
+                token = cursor.getToken();
+                foundNsToken = token.type == "id" && token.raw == "ns";
+            } while (!foundNsToken && !cursor.atEnd());
+            if (foundNsToken) {
+                do {
+                    cursor.next();
+                    token = cursor.getToken();
+                    foundNsId = token.type == "id";
+                } while (!foundNsId && !cursor.atEnd());
+                if (foundNsId) {
+                    ns = token.raw;
+                } else {
+                    console.log("Error getting the ns name from the ns form.");
+                }
+            } else {
+                console.log("No ns form found.");
+            }
+        } catch (e) {
+            console.log("Error getting ns form of this file using docMirror, trying with cljs.reader: " + e);
+            try {
+                const forms = parseForms(doc.getText());
+                if (forms !== undefined) {
+                    const nsFormArray = forms.filter(x => x[0] == "ns");
+                    if (nsFormArray != undefined && nsFormArray.length > 0) {
+                        const nsForm = nsFormArray[0].filter(x => typeof (x) == "string");
+                        if (nsForm != undefined) {
+                            ns = nsForm[1];
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log("Error parsing ns form of this file. " + e);
+            }
+        }
+    }
+    return ns;
 }
 
 function getStartExpression(text) {
@@ -118,7 +179,7 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-function getDocument(document) {
+function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
     } else if (vscode.window.activeTextEditor) {
@@ -149,7 +210,7 @@ function getFileName(document) {
 function getDocumentNamespace(document = {}) {
     let doc = getDocument(document);
 
-    return getNamespace(doc.getText());
+    return getNamespace(doc);
 }
 
 function getSession(fileType = undefined): NReplSession {
@@ -173,7 +234,7 @@ const ERROR_TYPE = {
 };
 
 function logSuccess(results) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     chan.appendLine("Evaluation completed successfully");
     _.each(results, (r) => {
         let value = r.hasOwnProperty("value") ? r.value : null;
@@ -188,7 +249,7 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
 
     chan.appendLine(error.reason);
     if (error.line !== undefined && error.line !== null &&
@@ -225,7 +286,7 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    let chan = state.deref().get('outputChannel');
+    let chan = state.outputChannel();
     chan.appendLine(warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
@@ -271,7 +332,7 @@ function updateREPLSessionType() {
         let sessionType: string;
 
         let repl = activeReplWindow();
-        if(repl)
+        if (repl)
             sessionType = repl.type;
         else if (fileType == 'cljs' && getSession('cljs') !== null)
             sessionType = 'cljs'
@@ -281,7 +342,7 @@ function updateREPLSessionType() {
             sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
         else
             sessionType = 'clj'
-            
+
         state.cursor.set('current-session-type', sessionType);
     } else {
         state.cursor.set('current-session-type', null);

@@ -1,10 +1,14 @@
 import * as vscode from 'vscode';
 import * as Immutable from 'immutable';
 import * as ImmutableCursor from 'immutable-cursor';
+import Analytics from './analytics';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
     extensionContext = context;
+    if (context.workspaceState.get('selectedCljTypeName') == undefined) {
+        context.workspaceState.update('selectedCljTypeName', "unknown");
+    }
 }
 
 const mode = {
@@ -17,12 +21,14 @@ const initialData = {
     port: null,
     clj: null,
     cljs: null,
-    shadowBuild: null,
+    cljsBuild: null,
     terminal: null,
     connected: false,
     connecting: false,
     outputChannel: vscode.window.createOutputChannel("Calva says"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors')
+    connectionLogChannel: vscode.window.createOutputChannel("Calva Connection Log"),
+    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
+    analytics: null
 };
 
 reset();
@@ -34,6 +40,35 @@ const cursor = ImmutableCursor.from(data, [], (nextState) => {
 function deref() {
     return data;
 }
+
+// Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
+// TODO: Revisit the whole state management business.
+function _outputChannel(name: string): vscode.OutputChannel {
+    const channel = deref().get(name);
+    if (channel.toJS !== undefined) {
+        return channel.toJS();
+    } else {
+        return channel;
+    }
+}
+
+function outputChannel(): vscode.OutputChannel {
+    return _outputChannel('outputChannel');
+}
+
+function connectionLogChannel(): vscode.OutputChannel {
+    return _outputChannel('connectionLogChannel');
+}
+
+function analytics(): Analytics {
+    const analytics = deref().get('analytics');
+    if (analytics.toJS !== undefined) {
+        return analytics.toJS();
+    } else {
+        return analytics;
+    }
+}
+
 
 function reset() {
     data = Immutable.fromJS(initialData);
@@ -47,12 +82,11 @@ function config() {
         evaluate: configOptions.get("evalOnSave"),
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
-        autoConnect: configOptions.get("autoConnect"),
-        connectREPLCommand: configOptions.get("connectREPLCommand"),
         projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
-        useJokerOnWSL: configOptions.get("useJokerOnWSL"),
-        syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile")
+        useWSL: configOptions.get("useWSL"),
+        syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
+        jackInEnv: configOptions.get("jackInEnv")
     };
 }
 
@@ -62,5 +96,8 @@ export {
     deref,
     reset,
     config,
-    extensionContext
+    extensionContext,
+    outputChannel,
+    connectionLogChannel,
+    analytics
 };

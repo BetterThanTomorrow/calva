@@ -1,6 +1,5 @@
 'use strict';
-import { TextEditor, TextEditorEdit, Selection, Range } from 'vscode';
-import * as clipboardy from 'clipboardy';
+import { TextEditor, TextEditorEdit, Selection, Range, env } from 'vscode';
 
 interface Insert {
     kind: "insert",
@@ -68,7 +67,7 @@ export function copy(editor: TextEditor, pos: [number, number]) {
           range = new Range(pos1, pos2),
           text = editor.document.getText(range);
 
-    clipboardy.writeSync(text);
+     env.clipboard.writeText(text);
 }
 
 

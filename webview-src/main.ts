@@ -1,5 +1,6 @@
 import { ReplConsole } from "@calva/repl-interactor";
 import * as lexer from "@calva/repl-interactor/js/clojure-lexer"
+import "../html/styles.scss"
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();

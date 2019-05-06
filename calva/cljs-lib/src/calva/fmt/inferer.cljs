@@ -3,7 +3,7 @@
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.editor :as editor]))
 
-(defn ^:export infer-parens
+(defn infer-parens
   "Calculate the edits needed for infering parens in `text`,
    and where the cursor should be placed to 'stay' in the right place."
   [^js m]
@@ -35,7 +35,7 @@
                  :line 0
                  :character 2}))
 
-(defn ^:export infer-indents
+(defn infer-indents
   "Calculate the edits needed for infering indents in `text`,
    and where the cursor should be placed to 'stay' in the right place."
   [^js m]

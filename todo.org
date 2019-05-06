@@ -49,8 +49,10 @@
 * DONE Open new cljs repl
 * TODO Ship first stab at repl?
 
-* TODO Move calva-fmt here.
-* TODO Superclass repl-interactor, so it becomes DocMirror.
-* TODO Select toplevel forms etc, should use DocMirror.
-* TODO Argument-based completions for vscode
+* DONE Move calva-fmt here.
+* DONE Use model from repl-interactor in vscode
+* TODO Select toplevel forms etc, should use model <<<<
 * TODO Use our Paredit logic for calva proper.
+* TODO Complete Jack-in
+* TODO Argument-based completions for vscode
+* TODO Remove diagnostics in docmirror that ensure the model doesn't desync from the document.

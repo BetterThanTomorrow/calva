@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const { inferParens, inferIndents } = require('../../../cljs-out/calva-fmt/cljs-lib');
+const { inferParens, inferIndents } = require('../../../cljs-out/cljs-lib');
 
 
 interface CFEdit {

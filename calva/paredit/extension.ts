@@ -144,7 +144,7 @@ function wrapPareditCommand(command: string, fn) {
         try {
             let repl = activeReplWindow();
 
-            if(repl) {
+            if (repl) {
                 repl.executeCommand(toConsoleCommand[command])
             } else {
                 let textEditor = window.activeTextEditor;
@@ -159,8 +159,8 @@ function wrapPareditCommand(command: string, fn) {
                     selection: utils.getSelection(textEditor)
                 });
             }
-        } catch(e) {
-            
+        } catch (e) {
+
         }
     }
 }
@@ -186,6 +186,8 @@ setKeyMapConf();
     'rangeForDefun': paredit.navigator.rangeForDefun,
 */
 const toConsoleCommand = {
+    'paredit.sexpRangeExpansion': "grow-selection",
+    'paredit.sexpRangeContraction': "shrink-selection",
     'paredit.slurpSexpForward': "forward-slurp-sexp",
     'paredit.slurpSexpBackward': "backward-slurp-sexp",
     'paredit.barfSexpForward': "forward-barf-sexp",
