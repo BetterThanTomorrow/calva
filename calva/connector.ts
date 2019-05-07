@@ -215,7 +215,9 @@ let cljsReplTypes: ReplType[] = [
                 [(output) => {
                     let matched = output.match(/Figwheel: Starting server at (.*)/);
                     if (matched && matched.length > 1) {
-                        open(matched[1]);
+                        open(matched[1]).catch(reason => {
+                            console.log("Error opening Figwheel app in browser: ", reason);
+                        });
                     }
                 }]);
         },
