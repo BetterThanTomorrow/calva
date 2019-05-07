@@ -38,7 +38,7 @@ class REPLWindow {
         public session: NReplSession,
         public type: "clj" | "cljs",
         public cljType: string,
-        public cljsType: string) {    
+        public cljsType: string) {
         vscode.commands.executeCommand("setContext", "calva:pareditValid", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
@@ -57,14 +57,14 @@ class REPLWindow {
                     let result = await this.session.complete(this.ns, msg.symbol, msg.context);
                     this.postMessage({ type: "complete", data: result })
                 }
-        
+
                 if(msg.type == "interrupt" && this.evaluation)
                     this.evaluation.interrupt();
-                
+
                 if(msg.type == "read-line") {
                     this.replEval(msg.line)
                 }
-        
+
                 if(msg.type == "goto-file") {
                     vscode.workspace.openTextDocument(vscode.Uri.parse(msg.file)).then(d =>  {
                         let pos = new vscode.Position(msg.line-1, 0);
@@ -89,7 +89,7 @@ class REPLWindow {
 
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
-            
+
             if(e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
                 this.buffer = [];
@@ -120,14 +120,14 @@ class REPLWindow {
             this.panel.webview.postMessage(msg)
     }
 
-    onClose = () => 
+    onClose = () =>
         this.postMessage({ type: "disconnected" });
-    
+
     ns: string = "user";
 
     /**
      * Connects this repl window to the given session.
-     * 
+     *
      * @param session the session to connect to this repl window
      */
     async connect(session: NReplSession) {
@@ -189,7 +189,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
         return replWindows[mode];
     }
-    
+
     let session = mode == "clj" ? cljSession : cljsSession;
     if(!session) {
         vscode.window.showErrorMessage("Not connected to nREPL");
