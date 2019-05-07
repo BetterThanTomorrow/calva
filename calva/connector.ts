@@ -9,7 +9,7 @@ import * as open from 'open';
 import status from './status';
 
 import { NReplClient, NReplSession } from "./nrepl";
-import { reconnectRepl, openReplWindow } from './repl-window';
+import { reconnectReplWindow, openReplWindow } from './repl-window';
 
 
 
@@ -38,7 +38,9 @@ async function connectToHost(hostname, port, cljsTypeName: string) {
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
         await openReplWindow("clj", true);
-        reconnectRepl("clj", cljSession);
+        reconnectReplWindow("clj", cljSession).catch(reason => { 
+            console.error("Failed reconnecting REPL window: ", reason);
+        });
 
         state.cursor.set("connected", true);
         state.cursor.set("connecting", false);
@@ -85,7 +87,7 @@ async function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
     await openReplWindow("cljs", true);
-    await reconnectRepl("cljs", cljsSession);
+    await reconnectReplWindow("cljs", cljsSession);
     //terminal.createREPLTerminal('cljs', shadowBuild, chan);
     status.update();
 }
@@ -216,7 +218,7 @@ let cljsReplTypes: ReplType[] = [
                     let matched = output.match(/Figwheel: Starting server at (.*)/);
                     if (matched && matched.length > 1) {
                         open(matched[1]).catch(reason => {
-                            console.log("Error opening Figwheel app in browser: ", reason);
+                            console.error("Error opening Figwheel app in browser: ", reason);
                         });
                     }
                 }]);

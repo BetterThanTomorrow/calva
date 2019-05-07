@@ -177,7 +177,7 @@ function getUrl(name?: string) {
         return vscode.Uri.file(path.join(ctx.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
 }
 
-export async function reconnectRepl(mode: "clj" | "cljs", session: NReplSession) {
+export async function reconnectReplWindow(mode: "clj" | "cljs", session: NReplSession) {
     if(replWindows[mode]) {
         await replWindows[mode].connect(session)
         replWindows[mode].postMessage({ type: "reconnected", ns: replWindows[mode].ns });
