@@ -12,7 +12,7 @@
                  :cursorX character
                  :prevCursorLine previous-line
                  :prevCursorX previous-character}
-        result (cljify (parinfer/smartMode text (jsify options)))]
+        result (cljify (parinfer/indentMode text (jsify options)))]
     (jsify
      (if (:success result)
        {:success true
