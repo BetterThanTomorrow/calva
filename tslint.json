@@ -1,0 +1,9 @@
+{
+  "defaultSeverity": "error",
+  "extends": [],
+  "jsRules": {},
+  "rules": {
+    "no-floating-promises": true
+  },
+  "rulesDirectory": []
+}
