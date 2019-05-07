@@ -51,7 +51,7 @@ async function connectToHost(hostname, port, cljsTypeName: string) {
 
         let [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName) : [null, null];
         if (cljsSession)
-            setUpCljsRepl(cljsSession, chan, shadowBuild);
+            await setUpCljsRepl(cljsSession, chan, shadowBuild);
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
         //evaluate.loadFile();
         status.update();
@@ -81,11 +81,11 @@ async function connectToHost(hostname, port, cljsTypeName: string) {
     */
 }
 
-function setUpCljsRepl(cljsSession, chan, shadowBuild) {
+async function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
-    openReplWindow("cljs", true);
-    reconnectRepl("cljs", cljsSession);
+    await openReplWindow("cljs", true);
+    await reconnectRepl("cljs", cljsSession);
     //terminal.createREPLTerminal('cljs', shadowBuild, chan);
     status.update();
 }
@@ -378,7 +378,7 @@ export default {
                 return;
             }
         }
-        
+
         state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
         if (fs.existsSync(nreplPortFile())) {
@@ -432,7 +432,7 @@ export default {
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName);
         if (session)
-            setUpCljsRepl(session, chan, shadowBuild);
+            await setUpCljsRepl(session, chan, shadowBuild);
         status.update();
     }
 };
