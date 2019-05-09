@@ -173,7 +173,7 @@ let cljsReplTypes: ReplType[] = [
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                 state.cursor.set('cljsBuild', builds[0]);
                 const initCode = `(do (require 'figwheel.main.api) (figwheel.main.api/start ${builds.map(x => { return `"${x}"` }).join(" ")}))`;
-                return evalConnectCode(session, initCode, name, checkFn);
+                return await evalConnectCode(session, initCode, name, checkFn);
             }
             else {
                 let chan = state.outputChannel();
@@ -195,7 +195,7 @@ let cljsReplTypes: ReplType[] = [
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                 state.cursor.set('cljsBuild', build);
                 const initCode = `(do (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "${build}"))`;
-                return evalConnectCode(session, initCode, name, checkFn);
+                return await evalConnectCode(session, initCode, name, checkFn);
             } else {
                 let chan = state.outputChannel();
                 chan.appendLine("Connection aborted.");
@@ -213,7 +213,7 @@ let cljsReplTypes: ReplType[] = [
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
             const initCode = "(do (require 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))";
-            return evalConnectCode(session, initCode, name, checkFn,
+            return await evalConnectCode(session, initCode, name, checkFn,
                 [(output) => {
                     let matched = output.match(/Figwheel: Starting server at (.*)/);
                     if (matched && matched.length > 1) {
@@ -240,7 +240,7 @@ let cljsReplTypes: ReplType[] = [
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                 state.cursor.set('cljsBuild', build);
                 const initCode = shadowCljsReplStart(build);
-                return evalConnectCode(session, initCode, name, checkFn);
+                return await evalConnectCode(session, initCode, name, checkFn);
             } else {
                 let chan = state.outputChannel();
                 chan.appendLine("Connection aborted.");
@@ -253,23 +253,23 @@ let cljsReplTypes: ReplType[] = [
     }
 ]
 
-async function probeNamespaces(namespaces: string[]) {
-    let result: string = await cljSession.eval(`(remove nil? (map #(try (do (require %) %) (catch Exception e)) '[${namespaces.join(' ')}]))`).value;
-    return result.substring(1, result.length - 1).split(' ')
-}
+// async function probeNamespaces(namespaces: string[]) {
+//     let result: string = await cljSession.eval(`(remove nil? (map #(try (do (require %) %) (catch Exception e)) '[${namespaces.join(' ')}]))`).value;
+//     return result.substring(1, result.length - 1).split(' ')
+// }
 
-async function findCljsRepls(): Promise<ReplType[]> {
-    let probe = [];
-    for (let repl of cljsReplTypes)
-        probe.push(repl.ns);
-    let valid = await probeNamespaces(probe);
-    let output: ReplType[] = [];
-    for (let repl of cljsReplTypes) {
-        if (valid.indexOf(repl.ns) != -1)
-            output.push(repl);
-    }
-    return output;
-}
+// async function findCljsRepls(): Promise<ReplType[]> {
+//     let probe = [];
+//     for (let repl of cljsReplTypes)
+//         probe.push(repl.ns);
+//     let valid = await probeNamespaces(probe);
+//     let output: ReplType[] = [];
+//     for (let repl of cljsReplTypes) {
+//         if (valid.indexOf(repl.ns) != -1)
+//             output.push(repl);
+//     }
+//     return output;
+// }
 
 
 async function makeCljsSessionClone(session, replType) {

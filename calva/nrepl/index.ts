@@ -58,8 +58,8 @@ export class NReplClient {
     /**
      * Returns a new session.
      */
-    createSession() {
-        return this.session.clone();
+    async createSession() {
+        return await this.session.clone();
     }
 
     /**
@@ -107,9 +107,9 @@ export class NReplClient {
                 })
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
-            })
+            });
             let client = new NReplClient(socket);
-        })
+        });
     }
 }
 
