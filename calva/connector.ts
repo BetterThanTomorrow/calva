@@ -329,7 +329,7 @@ async function promptForNreplUrlAndConnect(port, cljsTypeName) {
         if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
             state.cursor.set("hostname", hostname);
             state.cursor.set("port", parsedPort);
-            connectToHost(hostname, parsedPort, cljsTypeName);
+            await connectToHost(hostname, parsedPort, cljsTypeName);
         } else {
             chan.appendLine("Bad url: " + url);
             state.cursor.set('connecting', false);

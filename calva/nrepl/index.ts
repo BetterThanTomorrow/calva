@@ -262,7 +262,9 @@ export class NReplSession {
                 if (msg.err)
                     evaluation.out(msg.err)
                 if (msg.ex) {
-                    this.stacktrace().then(ex => reject(ex));
+                    this.stacktrace().then(ex => reject(ex)).catch(reason => {
+                        console.error("Problems processing the stack trace: ", reason);
+                    });
                 }
                 if (msg.status && msg.status.indexOf("done") != -1)
                     return true;
