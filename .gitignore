@@ -60,3 +60,4 @@ pom.xml
 ## TS
 out/
 html/main.js
+tsconfig.tsbuildinfo
