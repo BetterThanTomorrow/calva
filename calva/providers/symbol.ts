@@ -25,12 +25,13 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
       });
       const vars = aproposResponse["apropos-matches"];
       const items = await Promise.all(vars.map((v: any) => client.info(ns, v.name.split("/")[1])));
-      return items.map((info: any, index) => new vscode.SymbolInformation(
-        info.name,
-        typeToKind[vars[index].type] || vscode.SymbolKind.Variable,
-        info.ns,
-        info.file && info.file.length > 0 && new vscode.Location(vscode.Uri.parse(info.file),
-          new vscode.Position(info.line - 1, info.column)))
+      return items.filter(({ file }) => file && file.length > 0)
+        .map(({ name, ns, file, line, column }, index) => new vscode.SymbolInformation(
+          name,
+          typeToKind[vars[index].type] || vscode.SymbolKind.Variable,
+          ns,
+          new vscode.Location(vscode.Uri.parse(file),
+            new vscode.Position(line - 1, column)))
       );
     }
   }
