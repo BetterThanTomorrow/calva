@@ -43,7 +43,7 @@ const cliDependencies = {
     "cider/cider-nrepl": "0.21.1"
 }
 const figwheelDependencies = {
-    "cider/piggieback": "0.4.0",
+    "cider/piggieback": "0.4.1",
     "figwheel-sidecar": "0.5.18"
 }
 const shadowDependencies = {
