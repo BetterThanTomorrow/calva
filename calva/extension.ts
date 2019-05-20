@@ -113,12 +113,12 @@ function activate(context) {
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
-    
+
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
-        vscode.window.showInformationMessage(`The ”Calva key” has changed. It is now: ctrl+alt+c`); 
+        vscode.window.showInformationMessage(`The ”Calva key” has changed. It is now: ctrl+alt+c`);
     }));
-    
+
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
@@ -156,7 +156,8 @@ function activate(context) {
     greetings.activationGreetings(chan, lint);
 
 
-    chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*. Default keybinding: ctrl+alt+v ctrl+alt+j");
+    chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.")
+    chan.appendLine("Default keybinding for Jack-in: ctrl+alt+c ctrl+alt+j");
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 
     return {
