@@ -82,15 +82,15 @@ function getProjectDir() {
     let workspaceRoot = vscode.workspace.getWorkspaceFolder(getDocument({}).uri)
     if (workspaceRoot != undefined) {
         let configProjectRoot = state.config().projectRootDirectory;
-        let path = workspaceRoot.uri.path + (configProjectRoot != "" ? "/" + configProjectRoot : "");
+        let path = workspaceRoot.uri.fsPath + (configProjectRoot != "" ? "/" + configProjectRoot : "");
         try {
             fs.accessSync(path, fs.constants.R_OK);
             return path;
         } catch (err) {
-            return workspaceRoot.uri.path;
+            return workspaceRoot.uri.fsPath;
         }
     } else if (vscode.workspace.workspaceFolders != undefined) {
-        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.path : ".";
+        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : ".";
     } else {
         return "";
     }
