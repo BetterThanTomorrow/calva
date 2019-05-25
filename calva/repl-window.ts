@@ -59,10 +59,10 @@ class REPLWindow {
                 }
 
                 if(msg.type == "interrupt" && this.evaluation)
-                    await this.evaluation.interrupt();
+                    this.evaluation.interrupt();
 
                 if(msg.type == "read-line") {
-                    await this.replEval(msg.line);
+                    this.replEval(msg.line);
                 }
 
                 if(msg.type == "goto-file") {
@@ -79,9 +79,9 @@ class REPLWindow {
             })
         })
 
-        this.panel.onDidDispose(async (e) => {
+        this.panel.onDidDispose((e) => {
             if(this.evaluation)
-                await this.evaluation.interrupt();
+                this.evaluation.interrupt();
             delete replWindows[this.type]
             this.session.close();
             session.removeOnCloseHandler(this.onClose);
@@ -216,12 +216,12 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
     return repl;
 }
 
-async function loadNamespaceCommand(focus = true) {
-    await setREPLNamespace(focus);
+function loadNamespaceCommand(focus = true) {
+    setREPLNamespace(focus);
 }
 
-async function setREPLNamespaceCommand() {
-    await setREPLNamespace(false);
+function setREPLNamespaceCommand() {
+    setREPLNamespace(false);
 }
 
 async function sendTextToREPLWindow(text, ns?: string) {
@@ -250,12 +250,12 @@ export async function setREPLNamespace(reload = false) {
     let wnd = await openReplWindow(util.getREPLSessionType());
     if (wnd) {
         await wnd.session.eval("(in-ns '" + nameSpace + ")").value;
-        await wnd.setNamespace(nameSpace);
+        wnd.setNamespace(nameSpace);
     }
 }
 
 
-async function evalCurrentFormInREPLWindow(topLevel = false) {
+function evalCurrentFormInREPLWindow(topLevel = false) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -271,16 +271,16 @@ async function evalCurrentFormInREPLWindow(topLevel = false) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        await sendTextToREPLWindow(code, util.getNamespace(doc))
+        sendTextToREPLWindow(code, util.getNamespace(doc))
     }
 }
 
-async function evalCurrentFormInREPLWindowCommand() {
-    await evalCurrentFormInREPLWindow(false);
+function evalCurrentFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(false);
 }
 
-async function evalCurrentTopLevelFormInREPLWindowCommand() {
-    await evalCurrentFormInREPLWindow(true);
+function evalCurrentTopLevelFormInREPLWindowCommand() {
+    evalCurrentFormInREPLWindow(true);
 }
 
 export function activate(context: vscode.ExtensionContext) {

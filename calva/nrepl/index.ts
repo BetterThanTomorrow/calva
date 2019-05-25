@@ -58,8 +58,8 @@ export class NReplClient {
     /**
      * Returns a new session.
      */
-    async createSession() {
-        return await this.session.clone();
+    createSession() {
+        return this.session.clone();
     }
 
     /**
