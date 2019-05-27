@@ -373,9 +373,11 @@ export default {
         if (isJackIn) {
             cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         } else {
+            let types = cljsReplTypes.map(x => x.name);
+            types.splice(0, 0, "None")
             cljsTypeName = await util.quickPickSingle({
-                values: cljsReplTypes.map(x => x.name),
-                placeHolder: "Please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
+                values: types,
+                placeHolder: "Please select a cljs project type, if any", saveAs: "connect-cljs-type", autoSelect: true
             });
             if (!cljsTypeName) {
                 state.analytics().logEvent("REPL", "ConnectInterrupted", "NoCljsProjectPicked").send();
@@ -384,6 +386,10 @@ export default {
         }
 
         state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
+        
+        if (cljsTypeName == "None") {
+            cljsTypeName = "";
+        }
 
         if (fs.existsSync(nreplPortFile())) {
             let port = fs.readFileSync(nreplPortFile(), 'utf8');
