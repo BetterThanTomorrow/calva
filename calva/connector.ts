@@ -347,8 +347,9 @@ export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
 function nreplPortFile() {
-    if (vscode.window.activeTextEditor && vscode.window.activeTextEditor.document.fileName) {
-        let d = path.dirname(vscode.window.activeTextEditor.document.fileName);
+    let editor = vscode.window.visibleTextEditors.find(x => x.document.languageId == "clojure" );
+    if (editor) {
+        let d = path.dirname(editor.document.fileName);
         let prev = null;
         while (d != prev) {
             const p = path.resolve(d, ".nrepl-port");
