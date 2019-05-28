@@ -38,7 +38,7 @@ async function connectToHost(hostname, port, cljsTypeName: string) {
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
         await openReplWindow("clj", true);
-        await reconnectReplWindow("clj", cljSession).catch(reason => { 
+        await reconnectReplWindow("clj", cljSession).catch(reason => {
             console.error("Failed reconnecting REPL window: ", reason);
         });
 
@@ -194,7 +194,7 @@ let cljsReplTypes: ReplType[] = [
             if (build) {
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                 state.cursor.set('cljsBuild', build);
-                const initCode = `(do (require 'figwheel.main.api) (figwheel.main.api/cljs-repl "${build}"))`;
+                const initCode = `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl "${build}"))`;
                 return evalConnectCode(session, initCode, name, checkFn);
             } else {
                 let chan = state.outputChannel();
@@ -212,7 +212,7 @@ let cljsReplTypes: ReplType[] = [
         connect: async (session, name, checkFn) => {
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
-            const initCode = "(do (require 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))";
+            const initCode = "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))";
             return evalConnectCode(session, initCode, name, checkFn,
                 [(output) => {
                     let matched = output.match(/Figwheel: Starting server at (.*)/);
@@ -386,7 +386,7 @@ export default {
         }
 
         state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
-        
+
         if (cljsTypeName == "None") {
             cljsTypeName = "";
         }
