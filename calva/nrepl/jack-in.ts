@@ -268,12 +268,13 @@ export async function calvaJackIn() {
     }
 
     // Now look in our $PATH variable to check the appropriate command exists.
-    let executable = findInPath(isWin ? projectType.winCmd : projectType.cmd);
+    const cmd = isWin ? projectType.winCmd : projectType.cmd;
+    let executable = findInPath(cmd);
 
     if (!executable) {
         // It doesn't, do not proceed
         state.analytics().logEvent("REPL", "JackInInterrupted", "CommandNotInPath").send();
-        vscode.window.showErrorMessage(projectType.cmd + " is not on your PATH, please add it.")
+        vscode.window.showErrorMessage(cmd + " is not on your PATH, please add it.")
         return;
     }
 
