@@ -110,7 +110,7 @@ class REPLWindow {
         html = html.replace("{{cljs-type-logo}}", getUrl((`/${cljsTypeSlug}.png`)));
         panel.webview.html = html;
 
-        this.connect(session).catch(reason => {
+        this.connect().catch(reason => {
             console.error("Problems when connecting: ", reason);
         });
     }
@@ -132,12 +132,11 @@ class REPLWindow {
      *
      * @param session the session to connect to this repl window
      */
-    async connect(session: NReplSession) {
-        this.session = session;
+    async connect() {
         let res = this.session.eval("nil");
         await res.value;
         this.ns = res.ns;
-        session.addOnCloseHandler(this.onClose);
+        this.session.addOnCloseHandler(this.onClose);
     }
 
     evaluate(ns: string, text: string) {
@@ -180,9 +179,9 @@ function getUrl(name?: string) {
         return vscode.Uri.file(path.join(ctx.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
 }
 
-export async function reconnectReplWindow(mode: "clj" | "cljs", session: NReplSession) {
+export async function reconnectReplWindow(mode: "clj" | "cljs") {
     if (replWindows[mode]) {
-        await replWindows[mode].connect(session)
+        await replWindows[mode].connect()
         replWindows[mode].postMessage({ type: "reconnected", ns: replWindows[mode].ns });
     }
 }

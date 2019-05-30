@@ -38,7 +38,7 @@ async function connectToHost(hostname, port, cljsTypeName: string) {
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
         await openReplWindow("clj", true);
-        await reconnectReplWindow("clj", cljSession).catch(reason => {
+        await reconnectReplWindow("clj").catch(reason => {
             console.error("Failed reconnecting REPL window: ", reason);
         });
 
@@ -87,7 +87,7 @@ async function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs");
     await openReplWindow("cljs", true);
-    await reconnectReplWindow("cljs", cljsSession);
+    await reconnectReplWindow("cljs");
     //terminal.createREPLTerminal('cljs', shadowBuild, chan);
     status.update();
 }
