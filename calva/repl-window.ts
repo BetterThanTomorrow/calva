@@ -15,12 +15,9 @@ import select from './select';
 // REPL
 
 export function activeReplWindow() {
-    let currentDoc: vscode.TextDocument = util.getDocument({});
-    if (!currentDoc.fileName.match(/\.clj[cs]$/)) {
-        for (let w in replWindows) {
-            if (replWindows[w].panel.active)
-                return replWindows[w];
-        }
+    for (let w in replWindows) {
+        if (replWindows[w].panel.active)
+            return replWindows[w];
     }
     return undefined;
 }
@@ -187,12 +184,17 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = false) {
+    let session = mode == "clj" ? cljSession : cljsSession,
+        nreplClient = session.client;
+
     if (replWindows[mode]) {
+        if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
+            replWindows[mode].session = await session.clone();
+        }
         replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
         return replWindows[mode];
     }
 
-    let session = mode == "clj" ? cljSession : cljsSession;
     if (!session) {
         vscode.window.showErrorMessage("Not connected to nREPL");
         return;
