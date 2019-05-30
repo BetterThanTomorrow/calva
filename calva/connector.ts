@@ -217,9 +217,17 @@ let cljsReplTypes: ReplType[] = [
                 [(output) => {
                     let matched = output.match(/Figwheel: Starting server at (.*)/);
                     if (matched && matched.length > 1) {
-                        open(matched[1]).catch(reason => {
-                            console.error("Error opening Figwheel app in browser: ", reason);
-                        });
+                        let chan = state.outputChannel();
+                        chan.appendLine(matched[0]);
+                        if (state.config().openBrowserWhenFigwheelStarted) {
+                            chan.appendLine("Opening Figwheel app in the browser (this automatic behaviour can be disabled using Settings) ...");
+                            open(matched[1]).catch(reason => {
+                                console.error("Error opening Figwheel app in browser: ", reason);
+                            });
+                        } else {
+                            chan.appendLine("Not automaticaly opening Figwheel app in the browser (this can be disabled using Settings).");
+                        }
+                        chan.appendLine("The CLJS REPL session will be connected when the Figwheel app has been started in the browser.");
                     }
                 }]);
         },
