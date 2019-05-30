@@ -18,16 +18,38 @@
                 </div>
             </div>
         </div>
-        <h3>Calva REPL - version 0.0.1</h3>
-        <div>By Matt Seddon, Peter Strömberg / Better Than Tomorrow</div>
-        <div>Powered by <a href="https://github.com/clojure-emacs/orchard">The Orchard</a> (via
-            <code>cider-nrepl</code>)</div>
+        <h3>Calva REPL</h3>
+        <div>Powered by <a href="https://github.com/clojure-emacs/orchard">The Orchard</a>.</div>
         <div class="warn">
-            <p>Welcome to the Preview Calva 2!</p>
+            <p>Welcome to the Preview of Calva 2!</p>
             <p>This is pre-release software. Please help us test this and report any issues you find to
                 <code>#calva-dev</code> or <a href="https://github.com/BetterThanTomorrow/calva/issues">github</a>!</p>
         </div>
         <p id="motd"></p>
+        <p>Paredit is active when you edit code in this window. Check and adapt the default Paredit keyboard shurtucts in VS Code's shortcuts pane.
+            Some other useful shortcuts (defaults) are:
+            <ul>
+                <li><code>alt+up/down</code>: for history navigation</li>
+                <li><code>alt+enter</code>: to submit the current line</li>
+            </ul>
+            In a code editor these shortcuts (defaults) are extra handy:
+            <ul>
+                <li><code>alt+ctrl+c alt+e</code>: to evaluate the current form in this window</li>
+                <li><code>alt+ctrl+c alt+space</code>: to evaluate the current top-level form in this window
+                (also works within <code>(comment)</code> forms</li>
+                <li><code>alt+ctrl+c alt+n</code>: to make his window's current namespace the same as the editor's</li>
+            </ul>
+            Note that when evaluating forms from an editor, this window will always use the editor's namespace to evaluate it.
+            Also please note that often you don't need to send forms here to examine their results. There is also editor
+            inline evaluation:
+            <ul>
+                <li><code>alt+ctrl+c e</code>: inline evaluate the current form</li>
+                <li><code>alt+ctrl+c space</code>: inline evaluate the current form</li>
+            </ul>
+            (The general pattern is that the inline evaluation shortcuts skip the `alt` modifier.)
+        </p>
+        <p>It is a good habit to start any Calva session by evaluating some files. Many things do not work before that is done.
+            Use <code>ctrl+alt+c enter</code> to evaluate the active file.</p>
     </div>
     <div class="repl">
     </div>
