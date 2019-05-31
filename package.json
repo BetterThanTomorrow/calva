@@ -82,6 +82,9 @@
         "onCommand:paredit.transpose"
     ],
     "main": "./out/extension",
+    "extensionPack": [
+        "tonsky.clojure-warrior"
+    ],
     "contributes": {
         "grammars": [
             {
@@ -108,7 +111,8 @@
                 "editor.formatOnType": true,
                 "editor.autoIndent": true,
                 "editor.formatOnPaste": true,
-                "files.trimTrailingWhitespace": false
+                "files.trimTrailingWhitespace": false,
+                "editor.matchBrackets": false
             }
         },
         "configuration": [
