@@ -82,7 +82,7 @@
 }
 
 .match {
-    margin: -1px -1px -1px -1px;
+    margin: 0; //When there where -1px margins, the brackets jumped.
 }
 
 .documentation {
