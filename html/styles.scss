@@ -162,14 +162,16 @@
     height: 14px;
     top: 0px;
     pointer-events: none;
+    width: 0 !important;
 }
 
 .is-focused .caret {
     position: absolute;
     height: 14px;
     top: 0px;
-    animation: 500ms ease-in-out caret-blink infinite;
+    animation: 1200ms step-end caret-blink infinite;
     pointer-events: none;
+    width: 0 !important;
 }
 
 .sel-marker {
