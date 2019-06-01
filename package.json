@@ -263,6 +263,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.clearREPLWindowHistory",
+                "title": "Clear history of active REPL window (mainly in case it has been borked)",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle REPL connection used for CLJC files",
                 "category": "Calva"

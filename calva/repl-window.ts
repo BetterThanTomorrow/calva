@@ -163,6 +163,10 @@ class REPLWindow {
     executeCommand(command: string) {
         this.panel.webview.postMessage({ type: "ui-command", value: command });
     }
+    
+    clearHistory() {
+        state.extensionContext.workspaceState.update(this.type + "-history", []);
+    }
 }
 
 let ctx: vscode.ExtensionContext
@@ -295,3 +299,17 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
 }
 
+export function clearHistory() {
+    vscode.window.showWarningMessage("Are you sure you want to clear the REPL window history?", ...["No", "Yes"])
+        .then(answer => {
+            if (answer == "Yes") {
+                let wnd = activeReplWindow();
+                if (wnd) {
+                    wnd.clearHistory();
+                    state.outputChannel().appendLine("REPL window history cleared.\nNow close the window and open it again.");
+                } else {
+                    state.outputChannel().appendLine("No active REPL window found.");
+                }
+            }
+        });
+}

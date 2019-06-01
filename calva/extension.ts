@@ -113,6 +113,8 @@ function activate(context) {
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
+    
+    context.subscriptions.push(vscode.commands.registerCommand('calva.clearREPLWindowHistory', replWindow.clearHistory));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
