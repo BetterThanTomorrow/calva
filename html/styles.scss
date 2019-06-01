@@ -2,41 +2,54 @@
 @import "theme-dark";
 @import "theme-light";
 
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
 #hero {
     display: flex;
-    flex-direction: column;
-    img.logo {
-        height: 100px;
-        margin-right: 20px;
-    }
-    &.clj-type-clojure-cli {
-        img.clj-type-logo {
-            display: none;
+    flex-direction: row;
+    padding-top: 16px;
+    justify-content: space-between;
+    .logo {
+        img.logo {
+            margin-right: 10px;
+            min-height: 64px;
         }
     }
-    &.cljs-type-figwheel,
-    &.cljs-type-figwheel-main {
-        img.cljs-type-logo {
-            display: none;
+    .powered {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-self: flex-end;
+        align-items: center;
+        img {
+            flex-shrink: 2;
+            max-height: 64px;
+            min-height: 40px;
+            margin-right: 8px;
+            margin-left: 8px;
+        }
+        .type {
+            display: flex;
+            flex-direction: row;
+            align-content: flex-start;
+            .type-card {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
         }
     }
     &.clj {
-        .cljs {
-            flex-shrink: 1;
+        .powered .type.cljs {
             display: none;
         }
     }
     &.cljs {
-        .clj {
+        .powered .type.clj {
             display: none;
-        }
-    }
-    .powered {
-        flex-direction: row;
-        justify-content: flex-start;
-        img {
-            width: 100px;
-            height: 100px;
         }
     }
 }

@@ -8,18 +8,24 @@
 <body>
     <div>
         <div id="hero" class="{{hero-classes}}">
-            <div class="powered">
-                <div class="clj">
-                    <img class="clj-logo" src="{{clj-logo}}">
-                    <img class="clj-type-logo" src="{{clj-type-logo}}">
-                </div>
-                <div class="cljs">
-                    <img class="cljs-logo" src="{{cljs-logo}}">
-                    <img class="cljs-type-logo" src="{{cljs-type-logo}}">
-                </div>
-            </div>
             <div class="logo">
                 <img class="logo" src="{{logo-symbol}}">
+            </div>
+            <div class="powered">
+                <div class="type clj">
+                    <img class="clj-logo" src="{{clj-logo}}">
+                    <div class="type-card">
+                        <img class="clj-type-logo" src="{{clj-type-logo}}">
+                        <p>{{clj-type}}</p>
+                    </div>
+                </div>
+                <div class="type cljs">
+                    <img class="cljs-logo" src="{{cljs-logo}}">
+                    <div class="type-card">
+                        <img class="cljs-type-logo" src="{{cljs-type-logo}}">
+                        <p>{{cljs-type}}</p>
+                    </div>
+                </div>
             </div>
         </div>
         <h3>Calva REPL – Powered by <a href="https://github.com/clojure-emacs/orchard">The Orchard</a>.</h3>
