@@ -101,10 +101,12 @@ class REPLWindow {
         html = html.replace("{{baseUri}}", getUrl());
         html = html.replace("{{script}}", getUrl("/main.js"));
         html = html.replace("{{font}}", getUrl("/fira_code.css"));
-        html = html.replace("{{logo}}", getUrl(`/calva-${type}.svg`));
+        html = html.replace("{{logo-symbol}}", getUrl(`/calva-symbol-logo.svg`));
         html = html.replace("{{hero-classes}}", `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
         html = html.replace("{{clj-type-logo}}", getUrl(`/${cljTypeSlug}.png`));
+        html = html.replace("{{clj-logo}}", getUrl(`/clj.svg`));
         html = html.replace("{{cljs-type-logo}}", getUrl((`/${cljsTypeSlug}.png`)));
+        html = html.replace("{{cljs-logo}}", getUrl(`/cljs.svg`));
         panel.webview.html = html;
 
         this.connect().catch(reason => {

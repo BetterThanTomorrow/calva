@@ -4,20 +4,19 @@
 
 #hero {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     img.logo {
-        width: 200px;
-        height: 200px;
+        height: 100px;
         margin-right: 20px;
     }
     &.clj-type-clojure-cli {
-        .clj {
+        img.clj-type-logo {
             display: none;
         }
     }
     &.cljs-type-figwheel,
     &.cljs-type-figwheel-main {
-        .cljs {
+        img.cljs-type-logo {
             display: none;
         }
     }
@@ -26,34 +25,18 @@
             flex-shrink: 1;
             display: none;
         }
-        .clj {
-            margin-top: 100px;
-        }
     }
     &.cljs {
         .clj {
             display: none;
         }
-        .cljs {
-            margin-top: 100px;
-        }
     }
     .powered {
-        flex-direction: column;
-        justify-content: flex-end;
+        flex-direction: row;
+        justify-content: flex-start;
         img {
             width: 100px;
             height: 100px;
-        }
-        .clj {
-            .cljs {
-                display: none;
-            }
-        }
-        .cljs {
-            .clj {
-                display: none;
-            }
         }
     }
 }
