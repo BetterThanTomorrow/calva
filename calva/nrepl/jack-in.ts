@@ -220,7 +220,7 @@ vscode.tasks.onDidStartTaskProcess(e => {
                 state.cursor.set("launching", null);
                 watcher.close();
                 await connector.connect(true, true);
-                chan.appendLine("Jack-in done.");
+                chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
             }
         })
     }
