@@ -99,15 +99,15 @@ There are lots of stuff that needs attention and lots of possible features to ad
 * List symbols in the current file.
 * Let me know what you want. See below for ways to reach me about Calva.
 
+## How to contribute
+
+Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+
 ## Other
 
 ### Started from Visual Clojure
 
 Calva once started off as a clone of the promising (but abandoned) **visual:clojure** extension.
-
-### How to contribute
-
-Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
 
 ## Happy coding ❤️
 
