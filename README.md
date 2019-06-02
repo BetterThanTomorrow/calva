@@ -12,7 +12,7 @@ With Calva I hope to help lowering the barriers into the Clojure world. Leveragi
 
 ## How to use
 
-There's an easy way and a hard way 😀. The easy way is to let Calva start your project for you (this is also called *Jack-in*):
+There's an easy way and a hard way 😀. The easy way is to let Calva start your project for you (a.k.a. *Jack-in*):
 
 1. Open a Clojure file in a Clojure project.
 1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
