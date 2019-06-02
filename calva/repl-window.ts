@@ -101,14 +101,14 @@ class REPLWindow {
         html = html.replace("{{baseUri}}", getUrl());
         html = html.replace("{{script}}", getUrl("/main.js"));
         html = html.replace("{{font}}", getUrl("/fira_code.css"));
-        html = html.replace("{{logo-symbol}}", getUrl(`/calva-symbol-logo.svg`));
+        html = html.replace("{{logo-symbol}}", getUrl(`/images/calva-symbol-logo.svg`));
         html = html.replace("{{hero-classes}}", `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
         html = html.replace("{{clj-type}}", `${cljType.replace(/ /g, "&nbsp;")}`);
         html = html.replace("{{cljs-type}}", `${cljsType.replace(/ /g, "&nbsp;")}`);
-        html = html.replace("{{clj-type-logo}}", getUrl(`/${cljTypeSlug}.svg`));
-        html = html.replace("{{clj-logo}}", getUrl(`/clj.svg`));
-        html = html.replace("{{cljs-type-logo}}", getUrl((`/${cljsTypeSlug}.svg`)));
-        html = html.replace("{{cljs-logo}}", getUrl(`/cljs.svg`));
+        html = html.replace("{{clj-type-logo}}", getUrl(`/images/${cljTypeSlug}.svg`));
+        html = html.replace("{{clj-logo}}", getUrl(`/images/clj.svg`));
+        html = html.replace("{{cljs-type-logo}}", getUrl((`/images/${cljsTypeSlug}.svg`)));
+        html = html.replace("{{cljs-logo}}", getUrl(`/images/cljs.svg`));
         panel.webview.html = html;
 
         this.connect().catch(reason => {

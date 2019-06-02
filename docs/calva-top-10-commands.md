@@ -1,6 +1,6 @@
 ## The Top 10 Calva Commands
 
-There are not all that many Calva commands, you can quite easily learn them all. But not all commands are created equal. Here are the most important to know about for effective Clojure/ClojureScript coding:
+There are not all that many Calva commands, you can quite easily learn them all. But not all commands are created equal. Here are the most important ones to know about for effective Clojure/ClojureScript coding:
 
 * **Load current file**: `alt+ctrl+c enter`, evaluates the namespace code in the active editor tab. This also loads any required namespaces, and generally gives Calva what it needs to work.
 * **Evaluate current form**:  `alt+ctrl+c e`, finds the form from the cursor position, evaluates it and displays the result inline. Hit `esc` to dismiss the results display.
