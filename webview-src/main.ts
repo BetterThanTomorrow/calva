@@ -425,7 +425,7 @@ window.onmessage = (msg) => {
         let div = document.createElement("div");
         ns = msg.data.ns;
         div.className = "winnage";
-        div.textContent = "REPL reconnected."
+        div.textContent = "REPL connected."
         con.printElement(div);
         restorePrompt();
     }
