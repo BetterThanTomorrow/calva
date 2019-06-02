@@ -2,9 +2,9 @@
 
 ![Calva logo](/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), an easy to use integrated REPL powered environment for productive Clojure and ClojureScript coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), an easy to use, integrated REPL powered environment for productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
 
-*Calva is short for Calvados, a liquid gifted to humanity from God. It is made from Cider.*
+*Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.readthedocs.io/).*
 
 ## Raison d´être
 
@@ -42,7 +42,7 @@ You might want to start with evaluating some code. Calva has this notion about t
 - Easy toggle between clj and cljs repl for cljc files
 - Autoindent according to: https://github.com/bbatsov/clojure-style-guide
 - Enables `clj` evaluation of clojure code in all files (e.g. Markdown, etcetera).
-- Support for [Clojure tools/deps](), [Leiningen](), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](), and [Figwheel Main](). ([Boot]() to be added.)
+- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org). ([Boot](https://boot-clj.com) to be added.)
 
 Demo: switch between clj and cljs repl sessions for cljc files:
 
@@ -81,7 +81,7 @@ Demo: Peek at defintions, etcetera:
 
 ## Calva Paredit and Calva Formatter included
 
-With Calva you also get structural editing using [Paredit](/calva/calva-fmt/README.md) and [formatting](/calva/paredit/README.md).
+With Calva you also get structural editing using [Paredit](/calva/paredit/README.md) and [formatting](/calva/calva-fmt/README.md).
 
 You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format current form** command to `tab`. Good to know, right?
 
