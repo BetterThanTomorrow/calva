@@ -2,13 +2,13 @@
 
 ![Calva logo](/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), an easy to use integrated REPL powered environment for productive Clojure and ClojureScript coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the powere is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), an easy to use integrated REPL powered environment for productive Clojure and ClojureScript coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is made from Cider.*
 
 ## Raison d´être
 
-With Calva we hope to help lowering the barriers into the Clojure world. Leveraging the stregths of VS Code and nREPL together we can offer a productive environment in which to learn and to use Clojure and ClojureScript.
+With Calva I hope to help lowering the barriers into the Clojure world. Leveraging the stregths of VS Code and nREPL together I can offer a productive environment in which to learn and to use Clojure and ClojureScript.
 
 ## How to use
 
@@ -84,6 +84,10 @@ Demo: Peek at defintions, etcetera:
 With Calva you also get structural editing using [Paredit](/calva/calva-fmt/README.md) and [formatting](/calva/paredit/README.md).
 
 You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format current form** command to `tab`. Good to know, right?
+
+## Clojure Warrior included
+
+This extension bundles @tonsky's Clojure Warrior. Bringing you, amongst other things, raindbow parens and sane bracket matching. This allows Calva to diable VS Code's built in (not so sane) bracket matching.
 
 ## Future Stuff
 
