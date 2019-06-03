@@ -111,4 +111,4 @@ Calva once started off as a clone of the promising (but abandoned) **visual:cloj
 
 ## Happy coding ❤️
 
-I hope you will find good use for Calva. Please let me know what you think or want! PRs welcome, file an issue or chat me up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack too, (I'm @pez there). I would appreciate tweets about Calva too, and extra points for mentioning [@pappapez](https://twitter.com/pappapez).
+I hope you will find good use for Calva. Please let me know what you think. PRs welcome, file an issue or chat me up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack, (I'm @pez there). I would appreciate tweets about Calva too, and extra points for mentioning [@pappapez](https://twitter.com/pappapez).
