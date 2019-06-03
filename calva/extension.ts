@@ -90,8 +90,18 @@ function activate(context) {
     status.update();
 
     // COMMANDS
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', () => {
+        vscode.window.showQuickPick(["Start a REPL server and connect (a.k.a. Jack-in)",
+            "Connect to a running REPL server"]
+        ).then(v => {
+            if (v == "Start a REPL server and connect (a.k.a. Jack-in)") {
+                vscode.commands.executeCommand('calva.jackIn');
+            } else {
+                vscode.commands.executeCommand('calva.connect');
+            }
+        })
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.recreateCljsRepl', connector.recreateCljsRepl));
@@ -113,7 +123,7 @@ function activate(context) {
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
-    
+
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearREPLWindowHistory', replWindow.clearHistory));
 
     // Temporary command to teach new default keyboard shortcut chording key

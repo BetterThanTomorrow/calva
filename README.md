@@ -24,11 +24,13 @@ _NB: Some project setups do not lend themselves to Jack-in, but Calva might stil
 
 ## Something to try first
 
-You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`. It looks something like so:
+You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
+
+There are also a command for evaluating the current top level form. Which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with my code.  It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
-There are also a command for evaluating the current top level form. Which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with my code. See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things to try.
+See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things to try.
 
 ## Features
 

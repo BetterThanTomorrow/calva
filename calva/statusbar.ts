@@ -33,7 +33,7 @@ function update() {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.color = "rgb(253, 208, 35)";
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
-        connectionStatus.command = "calva.connect";
+        connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = "rgb(145,220,71)";
         if (fileType == 'cljc' && util.getREPLSessionType() !== null && !activeReplWindow()) {
             typeStatus.text = "cljc/" + util.getREPLSessionType()
@@ -66,7 +66,7 @@ function update() {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.tooltip = "Click to connect";
         connectionStatus.color = disconnectedColor;
-        connectionStatus.command = "calva.connect";
+        connectionStatus.command = "calva.jackInOrConnect";
     }
 
     connectionStatus.show();
