@@ -93,7 +93,7 @@ This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://
 
 ## Where is Calva heading?
 
-There are lots of stuff that needs attention and lots of possible features to add. Please see [the Github issue tracker](https://github.com/BetterThanTomorrow/calva/issues) for those things and provide feedback on the issues, and create new issues, to inform me about what is most important.
+There are lots of stuff that needs attention and lots of possible features to add. Please see [the Github issue tracker](https://github.com/BetterThanTomorrow/calva/issues) for those things. And please regard it as a way to inform me about what is most important. (There are other ways for that as well, see below.)
 
 Right now I am happy to have released [a major upgrade to Calva](https://clojureverse.org/t/TODO-UPDATE-THIS_README-AFTER-POSTING-ON-CLOJUREVERSE) (”Calva dos” as they say in Spanish), but I am not satisfied. I want to make Calva an even better choice for people starting with Clojure and ClojureScript, so that is where my focus will be. Please consider helping me!
 
