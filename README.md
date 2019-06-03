@@ -12,11 +12,7 @@ With Calva I hope to help lowering the barriers into the Clojure world. The idea
 
 ## How to Connect Calva to your project
 
-There are two ways to do this. Of which the first should always be tried first.
-
-### Connect to by letting Calva start your project
-
-*a.k.a. Jack-in*. This ensures that the dependencies Calva needs are in place.
+Connect by letting Calva start your project, *a.k.a. Jack-in*. This ensures that the dependencies Calva needs are in place.
 
 1. Open a Clojure file in a Clojure project.
 1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
@@ -24,9 +20,7 @@ There are two ways to do this. Of which the first should always be tried first.
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
 
-### Connect to a running nREPL server
-
-Some project setups do not lend themselves to Jack-in, but Calva might still be able to connect. See [Connecting without Jack-in](https://github.com/BetterThanTomorrow/calva/wiki/ConnectingWithoutJack-In). 
+_NB: Some project setups do not lend themselves to Jack-in, but Calva might still be able to connect. See [Connecting without Jack-in](https://github.com/BetterThanTomorrow/calva/wiki/ConnectingWithoutJack-In)_. 
 
 ## Something to try first
 
