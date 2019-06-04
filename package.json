@@ -760,22 +760,22 @@
             },
             {
                 "command": "paredit.cutForwardSexp",
-                "key": "ctrl+shift+x ccutright",
+                "key": "ctrl+shift+x right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutBackwardSexp",
-                "key": "ctrl+shift+x ccutleft",
+                "key": "ctrl+shift+x left",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutForwardDownSexp",
-                "key": "ctrl+shift+x ccutdown",
+                "key": "ctrl+shift+x down",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.cutBackwardUpSexp",
-                "key": "ctrl+shift+x ccutup",
+                "key": "ctrl+shift+x up",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -790,22 +790,22 @@
             },
             {
                 "command": "paredit.slurpSexpForward",
-                "key": "ctrl+alt+.",
+                "key": "ctrl+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpBackward",
-                "key": "ctrl+alt+shift+.",
+                "key": "ctrl+shift+left",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpForward",
-                "key": "ctrl+alt+,",
+                "key": "ctrl+left",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpBackward",
-                "key": "ctrl+alt+shift+,",
+                "key": "ctrl+shift+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
