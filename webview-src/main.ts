@@ -162,7 +162,15 @@ window.addEventListener("mousedown", e => {
 })
 window.addEventListener("mouseup", e => {
     if (!dontFocus)
+        setTimeout(() => { // WHOA: This is an ugly workaround for focus glitching
+            con.input.focus();
+        }, 100);
+})
+
+window.addEventListener("focus", e => {
+    setTimeout(() => { // WHOA: This is an ugly workaround for focus glitching
         con.input.focus();
+    }, 100);
 })
 
 document.addEventListener("selectionchange", e => {

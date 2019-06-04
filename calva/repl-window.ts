@@ -16,8 +16,9 @@ import select from './select';
 
 export function activeReplWindow() {
     for (let w in replWindows) {
-        if (replWindows[w].panel.active)
+        if (replWindows[w].panel.active) {
             return replWindows[w];
+        }
     }
     return undefined;
 }
@@ -167,7 +168,7 @@ class REPLWindow {
     executeCommand(command: string) {
         this.panel.webview.postMessage({ type: "ui-command", value: command });
     }
-    
+
     clearHistory() {
         state.extensionContext.workspaceState.update(this.type + "-history", []);
     }
