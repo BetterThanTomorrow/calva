@@ -10,23 +10,27 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.c
 
 With Calva I hope to help lowering the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, I can offer a turn-key, productive, environment in which to learn and to use Clojure and ClojureScript.
 
-## How to use
+## How to Connect Calva to your project
 
-There's an easy way and a hard way 😀. The easy way is to let Calva start your project for you (a.k.a. *Jack-in*):
+Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
-1. Open a Clojure file in a Clojure project.
+1. Open your project in VS Code and then open a Clojure file.
 1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
 
-The hard way is to start the REPL yourself, getting all the dependencies right. This is necessary for some projects. Find some more info about this on the Calva wiki.
+_NB: Some project setups do not lend themselves to Jack-in, but Calva might still be able to connect. See [Connecting to a running REPL server](https://github.com/BetterThanTomorrow/calva/wiki/Connecting-To-a-Running-REPL-Server)_. 
 
-Please also read: [Getting started](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started). 
+## Something to try first
 
-You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`. It looks something like so:
+You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
+
+There are also a command for evaluating the current top level form. Which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with my code.  It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
+
+See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things to try.
 
 ## Features
 
@@ -87,19 +91,17 @@ You really should have a look at the READMEs for those as well. One thing to not
 
 ## Clojure Warrior included
 
-This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, raindbow parens and sane bracket matching. This allows Calva to diable VS Code's built in (not so sane) bracket matching.
+This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching. This allows Calva to diable VS Code's built in (not so sane) bracket matching.
 
-## Future Stuff
+## Where is Calva heading?
 
-There are lots of stuff that needs attention and lots of possible features to add. The following is **not** a comprehensive list:
+There are lots of stuff that needs attention and lots of possible features to add. Please see [the Github issue tracker](https://github.com/BetterThanTomorrow/calva/issues) for those things. And please regard it as a way to inform me about what is most important. (There are other ways for that as well, see below.)
 
-* Test reporting while tests are being run.
-* Open as many REPLs as you like.
-* Custom user commands to execute over the REPL connection.
-* List symbols in the current file.
-* Let me know what you want. See below for ways to reach me about Calva.
+Right now I am happy to have released [a major upgrade to Calva](https://clojureverse.org/t/TODO-UPDATE-THIS_README-AFTER-POSTING-ON-CLOJUREVERSE) (”Calva dos” as they say in Spanish), but I am not satisfied. I want to make Calva an even better choice for people starting with Clojure and ClojureScript, so that is where my focus will be. Please consider helping me!
 
 ## How to contribute
+
+I'm glad you are reading this section!
 
 Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
 
@@ -111,4 +113,4 @@ Calva once started off as a clone of the promising (but abandoned) **visual:cloj
 
 ## Happy coding ❤️
 
-I hope you will find good use for this extension. Please let me know what you think or want! PRs welcome, file an issue or chat me up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack too, (I'm @pez there). Tweeting [@pappapez](https://twitter.com/pappapez) works is appreciated too.
+I hope you will find good use for Calva. Please let me know what you think. PRs welcome, file an issue or chat me up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack, (I'm @pez there). I would appreciate tweets about Calva too, and extra points for mentioning [@pappapez](https://twitter.com/pappapez).

@@ -253,6 +253,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.jackInOrConnect",
+                "title": "Jack-in or Connect",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.openCljReplWindow",
                 "title": "Open a Clojure REPL",
                 "category": "Calva"
