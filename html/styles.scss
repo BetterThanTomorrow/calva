@@ -208,10 +208,10 @@ img {
 
 .prompt-wrap {
   display: flex;
-  flex-direction: column;
+  // flex-direction: column;
+  // align-items: baseline;
   white-space: pre;
   position: relative;
-  align-items: baseline;
 }
 
 .warn {
