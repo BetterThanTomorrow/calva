@@ -1,6 +1,6 @@
 # Calva: Clojure & ClojureScript support for VS Code
 
-![Calva logo](/assets/calva-64h.png)
+![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
 Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an easy to use, integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
 
@@ -14,7 +14,7 @@ With Calva I hope to help lowering the barriers into the Clojure world. The idea
 
 Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
-1. Open your project in VS Code and then open a Clojure file.
+1. Open your project in VS Code.
 1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
 
