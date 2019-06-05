@@ -91,7 +91,7 @@ You really should have a look at the READMEs for those as well. One thing to not
 
 ## Clojure Warrior included
 
-This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching. This allows Calva to diable VS Code's built in (not so sane) bracket matching.
+This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching. This allows Calva to disable VS Code's built in (not so sane) bracket matching.
 
 ## Where is Calva heading?
 
