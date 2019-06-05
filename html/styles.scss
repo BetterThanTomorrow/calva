@@ -1,0 +1,275 @@
+@import url("fira_code.css");
+@import "theme-dark";
+@import "theme-light";
+
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+#hero {
+  display: flex;
+  flex-direction: row;
+  padding-top: 16px;
+  justify-content: space-between;
+  .logo {
+    img.logo {
+      margin-right: 10px;
+      height: 64px;
+    }
+  }
+  .powered {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-self: flex-end;
+    align-items: center;
+    img {
+      flex-shrink: 2;
+      max-height: 64px;
+      min-height: 40px;
+      margin-right: 8px;
+      margin-left: 8px;
+    }
+    .type {
+      display: flex;
+      flex-direction: row;
+      align-content: flex-start;
+      .type-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  }
+  &.clj {
+    .powered .type.cljs {
+      display: none;
+    }
+  }
+  &.cljs {
+    .powered .type.clj {
+      display: none;
+    }
+  }
+}
+
+.output {
+  white-space: pre;
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.error {
+  white-space: pre-wrap;
+  color: var(--vscode-editorError-foreground);
+}
+
+.winnage {
+  white-space: pre-wrap;
+}
+
+.repl {
+  font-family: var(--vscode-editor-font-family), "Fira Code", "Courier New", monospace;
+  font-weight: var(--vscode-editor-font-weight);
+  font-size: 15px; // var(--vscode-editor-font-size);
+  letter-spacing: 0;
+  cursor: text;
+  position: relative;
+}
+
+.match {
+  margin: 0; //When there where -1px margins, the brackets jumped.
+  color: tomato;
+}
+
+.documentation {
+  position: absolute;
+  background-color: var(--vscode-editorWidget-background);
+  border: solid 1px var(--vscode-editorWidget-border);
+  max-width: 400px;
+  overflow-y: scroll;
+  font-family: sans-serif;
+  font-size: 14px;
+  padding: 4px;
+  visibility: hidden;
+  white-space: pre-wrap;
+  max-height: 300px;
+}
+
+.documentation .name,
+.documentation .arglist {
+  font-family: Fira Code;
+  white-space: pre-wrap;
+  padding-bottom: 8px;
+}
+
+.documentation .name {
+  color: var(--vscode-list-highlightForeground);
+}
+
+.documentation .arglist {
+  color: var(--vscode-editorCodeLens-foreground);
+}
+
+.completion {
+  position: absolute;
+  background-color: var(--vscode-editorWidget-background);
+  border: solid 1px var(--vscode-editorWidget-border);
+  max-height: 256px;
+  width: 200px;
+  overflow-y: scroll;
+  font-family: Fira Code;
+  font-size: 14px;
+  padding: 4px;
+  visibility: hidden;
+}
+
+.completion > .active {
+  background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.completion .completed {
+  color: var(--vscode-list-highlightForeground);
+}
+
+.completion .icon {
+  width: 20px;
+  margin-right: 8px;
+  text-align: center;
+  display: inline-block;
+}
+
+.completion .icon.ic-macro::before {
+  content: "m";
+}
+
+.completion .icon.ic-function::before {
+  content: "fn";
+}
+.completion .icon.ic-namespace::before {
+  content: "ns";
+}
+.completion .icon.ic-special-form::before {
+  content: "s";
+}
+
+.caret {
+  position: absolute;
+  height: 14px;
+  top: 0px;
+  pointer-events: none;
+  width: 0 !important;
+}
+
+.is-focused .caret {
+  position: absolute;
+  height: 14px;
+  top: 0px;
+  animation: 1200ms step-end caret-blink infinite;
+  pointer-events: none;
+  width: 0 !important;
+}
+
+.sel-marker {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  height: 100%;
+  background-color: var(--vscode-editor-selectionBackground);
+}
+
+.line {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+@keyframes caret-blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .info-box {
+    display: none;
+  }
+}
+
+.prompt {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.prompt-wrap {
+  display: flex;
+  // flex-direction: column;
+  // align-items: baseline;
+  white-space: pre;
+  position: relative;
+}
+
+.warn {
+  color: var(--vscode-editorWarning-foreground);
+  font-weight: bold;
+  code {
+    color: var(--vscode-editor-foreground);
+  }
+}
+
+#motd {
+  font-style: italic;
+  font-weight: bold;
+  white-space: pre-line;
+}
+
+.stacktrace .stack {
+  color: var(--vscode-editorError-foreground);
+}
+
+.stacktrace .file {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.stacktrace .line {
+  padding-right: 8px;
+}
+
+.stacktrace .stack {
+  padding-right: 8px;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.stacktrace {
+  cursor: default;
+}
+
+.stacktrace.dup tr.dup {
+  display: none;
+}
+
+.stacktrace.java tr.java {
+  display: none;
+}
+.stacktrace.clj tr.clj {
+  display: none;
+}
+.stacktrace.tooling tr.tooling {
+  display: none;
+}
+.show-ctrl > span {
+  padding: 0 16px;
+}
+.navigable:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}

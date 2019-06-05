@@ -5,7 +5,10 @@
 */**/.DS_Store
 
 # Whitelist
+!clojure.tmLanguage.json
+!html/**
 !out/**
+!cljs-out/**
 !package.json
 !node_modules/**
 !assets/**

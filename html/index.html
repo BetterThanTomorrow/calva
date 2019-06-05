@@ -1,139 +1,52 @@
 <!doctype html>
 <html>
-    <head>
-        <style>
-            @import 'https://unpkg.com/firacode@1.205.0/distr/fira_code.css';
-            body {
-                background-color: #222;
-                color: #fff;
-            }
-            .output {
-                color: #ff0;
-                white-space: pre;
-            }
-            .error {
-                color: #f00;
-                white-space: pre;
-            }
-            .repl {
-                font-family: "Fira Code", "Courier New", monospace;
-                font-weight: normal;
-                font-size: 12px;
-                letter-spacing: 0;
-                cursor: text;
-                position: relative;
-            }
 
-            .match {
-                border: solid 1px #777;
-                margin: -1px -1px -1px -1px;
-            }
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+</head>
 
-            .fail-match {
-                background-color: #f00;
-            }
-
-            .caret {
-                position: absolute;
-                height: 14px;
-                top: 0px;
-                background-color: #fff;
-                animation: 500ms ease-in-out caret-blink infinite;
-            }
-
-            .sel-marker {
-                background-color: #264f78;                
-                position: absolute;
-                z-index: -1;
-                top: 0;
-                height: 100%;
-            }
-
-            .line {
-                position: relative;
-                margin: 0;
-                padding: 0;
-            }
-            
-            .id {
-                color: #d4d4d4;
-            }
-            
-            .kw {
-                color: #9cdcfe;
-            }
-
-            .comment {
-                color: #6a9955;
-            }
-
-            .lit {
-                color: #b5cea8;
-            }
-
-            .str, .str-start, .str-inside, .str-end {
-                color: #ce9178;
-            }
-
-            .decl {
-                color: #c586c0;
-            }
-
-            .macro {
-                color: #569cd6;
-            }
-
-            @keyframes caret-blink {
-                0% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0;
-                }
-                100% {
-                    opacity: 1;
-                }
-            }
-
-            @media only screen and (max-width: 600px) {
-                .info-box {
-                    display: none;
-                }
-            }
-
-            .prompt-wrap {
-                display: flex;
-                white-space: pre;
-                position: relative;
-            }
-
-            .prompt {
-                color: #888;
-            }
-
-            .warn {
-                color: #f40;
-                font-weight: bold;
-            }
-
-            #motd {
-                font-style: italic;
-                font-weight: bold;
-                white-space: pre-line;
-            }
-        </style>
-        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
-    </head>
-    <body>
-        <div>
-            <img src={{logo}}>
-            <h3>Calva REPL - version 0.0.1</h3>
-            <div>Copyright (c) 2019 Matt Seddon, Peter Strömberg / Better Than Tomorrow</div>
-            <div class="warn">This is alpha software. Things <u>will</u> break. You have been warned.</div>
-            <p id="motd"></p>
+<body>
+    <div>
+        <div id="hero" class="{{hero-classes}}">
+            <div class="logo">
+                <img class="logo" src="{{logo-symbol}}">
+            </div>
+            <div class="powered">
+                <div class="type clj">
+                    <img class="clj-logo" src="{{clj-logo}}">
+                    <div class="type-card">
+                        <img class="clj-type-logo" src="{{clj-type-logo}}">
+                        <p>{{clj-type}}</p>
+                    </div>
+                </div>
+                <div class="type cljs">
+                    <img class="cljs-logo" src="{{cljs-logo}}">
+                    <div class="type-card">
+                        <img class="cljs-type-logo" src="{{cljs-type-logo}}">
+                        <p>{{cljs-type}}</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="repl">
-        </div>
-        <script src="{{script}}"></script>
-    </body>
+        <h3>Calva REPL – Powered by <a href="https://github.com/clojure-emacs/orchard">The Orchard</a>.</h3>
+        <p class="warn">
+            <p><strong>Welcome to Calva!</strong> Please report any issues you find on
+                <a href="https://github.com/BetterThanTomorrow/calva/issues">GitHub</a>. Also feel welcome to chat us up on the Clojurians Slack, we're in <a href="https://clojurians.slack.com/messages/calva-dev/">#calva-dev</a>.</p>
+        </p>
+        <p id="motd"></p>
+        <p>The REPL prompt is a multiline, Paredit powered, Clojure editor. Some useful shortcuts are:
+            <ul>
+                <li><code>alt+up/down</code>: for history navigation</li>
+                <li><code>alt+enter</code>: to submit the current line</li>
+            </ul>
+        </p>
+        <p>See also <a href="https://github.com/BetterThanTomorrow/calva/tree/master/etc/calva-top-10-commands.md">Calva Top 10 Commands</a>.</p>
+        <p><strong>NB:</strong> It is a good habit to start any Calva session by loading some files. Many things do not work before that is done.
+            Use <code>ctrl+alt+c enter</code> in the code editor to load (evaluate) the active file.</p>
+    </div>
+    <div class="repl">
+    </div>
+    <script src="{{script}}"></script>
+</body>
+
 </html>

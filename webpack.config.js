@@ -4,7 +4,7 @@ module.exports = {
   entry: './webview-src/main.ts',
   mode: "development",
   externals: {
-    },
+  },
   resolve: {
     modules: ['node_modules']
   },
@@ -20,6 +20,17 @@ module.exports = {
         },
         exclude: /node_modules/
       },
+      {
+        test: /\.scss$/,
+        use: ['style-loader', 'css-loader', 'dart-sass-loader']
+      },
+      {
+        test: /\.(eot|woff|woff2|ttf|svg|png|jpg)$/,
+        loader: 'url-loader',
+        options: {
+          emitFile: false
+        }
+      }
     ]
   },
   watchOptions: {
@@ -28,7 +39,7 @@ module.exports = {
     ignored: /node_modules/
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ]
+    extensions: ['.tsx', '.ts', '.js']
   },
   output: {
     filename: 'main.js',

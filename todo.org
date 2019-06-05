@@ -2,18 +2,57 @@
 * DONE Migrate connect, and add cljs support
 * DONE send cljs stuff to the right repl
 * DONE add pretty printing back to evaluate
-* TODO Move paredit here
-* TODO Bind paredit keys to Repl console
-* TODO Jack-in
-    * TODO lein
-    * TODO shadow-cljs
-    * TODO clj
-    * TODO boot
-* TODO Open new cljs repl
+* DONE Move paredit here
+* DONE Bind paredit keys to Repl console
+* DONE Jack-in
+    * DONE clj
+    * DONE boot
+    * DONE shadow-cljs - select watch project(s)
+    * DONE lein
+
+    * DONE Save as workspace configuration.
+
+    * DONE kill/restart jack-in process command
+
+    * DONE Cljs repls
+        * DONE figwheel
+        * DONE figwheel-main
+        * DONE shadow-cljs
+        * DONE inject piggieback
+          * DONE { :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}} in lein
+          * DONE clj
+
+    * DONE prompt for clj aliases
+    * DONE prompt for lein profiles
+    
+* DONE fix repl window to show stack traces
+* DONE add interrupt support to repl window
+* DONE make it clear that a repl window session has been disconnected.
+* DONE replace eval to terminal stuff with new repl stuff.
+* DONE re-connect repl window session when reconnected.
+    * DONE support session disconnection messages - route them to the right window.
+    * DONE webviews do not receive postMessages when not in the foreground. buffer them and blast them when it focuses.
+* DONE repl focus needs to be made sane.
+    * DONE hollow cursor when not focused.
+    * DONE don't snatch focus away from selection
+* DONE update status.update() to show repl type when focused.
+* DONE Repl completions
+    * DONE context!
+    * DONE up/down navigate completion
+    * DONE tab complete
+    * DONE documentation
+    * DONE PageUp/PageDown in completion pane
+    * DONE Only show completions on type or Ctrl+Space (repl-interactor support)
+* DONE Use tonsky font in project, don't use cdn...
+* DONE Preserve Repl history.
+* DONE clj/cljs status notification bugged with webviews because vscode is buggy.
+* DONE Open new cljs repl
 * TODO Ship first stab at repl?
-* TODO Superclass repl-interactor, so it becomes DocMirror.
-* TODO Move calva-fmt here.
-* TODO Select toplevel forms etc, should use DocMirror.
+
+* DONE Move calva-fmt here.
+* DONE Use model from repl-interactor in vscode
+* TODO Select toplevel forms etc, should use model <<<<
 * TODO Use our Paredit logic for calva proper.
-* TODO Repl completions
+* TODO Complete Jack-in
 * TODO Argument-based completions for vscode
+* TODO Remove diagnostics in docmirror that ensure the model doesn't desync from the document.
