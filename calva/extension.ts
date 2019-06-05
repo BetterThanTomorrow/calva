@@ -67,7 +67,7 @@ function activate(context) {
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
 
     if (legacyExtension) {
-        vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall the old Calva extension.", ...["Roger that. Right away!"])
+        vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.", ...["Roger that. Right away!"])
     }
 
     state.setExtensionContext(context);
@@ -75,12 +75,12 @@ function activate(context) {
     if (!fmtExtension) {
         fmt.activate(context);
     } else {
-        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall it before continuing using Calva.", ...["Got it. Will do!"]);
+        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall or, disable, it before continuing using Calva.", ...["Got it. Will do!"]);
     }
     if (!pareEditExtension) {
         paredit.activate(context);
     } else {
-        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall it.", ...["I hear ya. Doing it!"]);
+        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
     }
 
     replWindow.activate(context);
