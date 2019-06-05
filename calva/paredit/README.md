@@ -8,7 +8,7 @@ Structural editing and navigation for Clojure.
 
 ## Part of Calva
 
-Calva Paredit is a part of [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), a Clojure and ClojureScript extension for bringing the REPL power into VS Code.
+Calva Paredit is a part of [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), a Clojure and ClojureScript extension for bringing the REPL power into VS Code.
 
 ## Commands
 
@@ -91,7 +91,7 @@ ctrl+alt+x ctrl+alt+right     | Cut Close List
 * You?
 
 
-I also published and maintain [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode), another Visual Studio Code extension. Calva is aimed at making it super easy to get Clojure and Clojurescript coding done. It sports interactive REPLs, inline evaluation and other stuff people from the Emacs Cider world are used to.
+I also published and maintain [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), another Visual Studio Code extension. Calva is aimed at making it super easy to get Clojure and Clojurescript coding done. It sports interactive REPLs, inline evaluation and other stuff people from the Emacs Cider world are used to.
 
 ## Happy Coding
 

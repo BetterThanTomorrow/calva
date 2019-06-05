@@ -62,8 +62,13 @@ function activate(context) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
-    let fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
+    let legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
+        fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
+
+    if (legacyExtension) {
+        vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall the old Calva extension.", ...["Roger that. Right away!"])
+    }
 
     state.setExtensionContext(context);
 
@@ -75,7 +80,7 @@ function activate(context) {
     if (!pareEditExtension) {
         paredit.activate(context);
     } else {
-        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall it.", ...["Got it. Doing it!"]);
+        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall it.", ...["I hear ya. Doing it!"]);
     }
 
     replWindow.activate(context);

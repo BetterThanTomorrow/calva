@@ -1,12 +1,12 @@
 {
-    "name": "clojure4vscode",
+    "name": "calva",
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
-    "description": "Integrated REPL, inline eval and more. Powered by Cider & nRepl.",
+    "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.0-SNAPSHOT",
-    "publisher": "cospaia",
+    "version": "2.0.0",
+    "publisher": "betterthantomorrow",
     "author": {
-        "name": "Bettar Than Tomorrow",
+        "name": "Better Than Tomorrow",
         "email": "pez@pezius.com"
     },
     "repository": {
@@ -31,18 +31,13 @@
         "Formatting",
         "Pretty",
         "EDN",
-        "interactive programming"
+        "Interactive Programming"
     ],
     "galleryBanner": {
-        "color": "#344D81",
+        "color": "#33333",
         "theme": "dark"
     },
     "badges": [
-        {
-            "url": "https://img.shields.io/badge/clojurians--zulip-calva-brightgreen.svg?logo=zulip",
-            "href": "https://clojurians.zulipchat.com/#narrow/stream/calva",
-            "description": "Let's talk in the #calva stream of Clojurians Zulip"
-        },
         {
             "url": "https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack",
             "href": "https://clojurians.slack.com/messages/calva-dev/",
@@ -50,7 +45,9 @@
         }
     ],
     "activationEvents": [
+        "*",
         "onLanguage:clojure",
+        "onCommand:calva.jackInOrConnect",
         "onCommand:calva.jackIn",
         "onCommand:calva.connect",
         "onCommand:calva.openCljReplWindow",

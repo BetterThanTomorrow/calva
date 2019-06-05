@@ -1,18 +1,18 @@
-# The Calva Journey Continues - Welcome to Jack in
+# Calva Chapter Two - Please Jack In
 
 [Calva](https://github.com/BetterThanTomorrow/calva), an easy to start with, and easy to use, environment for productive Clojure and ClojureScript coding, was just updated with features significant enough for me to sometimes refer to it as Calva 2. In fact, up to now, it couldn't really be said that it was easy to get started with Calva.
 
-Please upgrade Calva and say goodbye to soul crushing, getting started issues, thanks to the [Cider](https://github.com/clojure-emacs/cider) inspired **Jack-in** command, and say hello to the brand new REPL Window. Calva also has a friendly new logo, thanks to @EccentricJ:
+Please install the new version and say goodbye to soul crushing, getting started issues, with the **Jack-in** command. And say hello to the brand new REPL Window. Calva also has a friendly new logo, thanks to @EccentricJ:
 
 ![Calva logo](/assets/calva-64h.png)
 
-The goal with Calva is to leverage the ease of use of [Visual Studio Code](https://code.visualstudio.com/) to provide an environment where starting with Clojure is as smooth as possible.
+The goal with Calva is to leverage the ease of use of [Visual Studio Code](https://code.visualstudio.com/) to provide an environment where starting with, and using, Clojure is as smooth as possible.
 
 ## Jack-in
 
-We have brought the Getting Started story from *reading pages of instructions and trial-and-horror with your profiles and/or project files*, to a simple command: *Calva Jack-in*. Inspiration is taken from Cider.
+We have brought the Getting Started story from *reading pages of instructions and trial-and-horror with your profiles and/or project files, possibly giving up*, to a simple command: *Calva Jack-in*. Inspiration is taken from [CIDER](https://github.com/clojure-emacs/cider).
 
-Calva Jack-in injects the dependencies Calva needs to power your work. It supports [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org) and [clj/deps](https://clojure.org/guides/deps_and_cli). (Boot support to be added.) ClojureScript support is an important part of Calva and a lot of effort has been put into making the Jack-in help here. Calva will, via prompting, inject any necessary shadow-cljs, Figwheel or Figwheel Main dependencies.
+Calva Jack-in starts your project and injects the dependencies Calva needs to power your work. It supports [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org) and [clj/deps](https://clojure.org/guides/deps_and_cli). (Boot support to be added.) ClojureScript support is an important part of Calva and a lot of effort has been put into making the Jack-in help here. Calva will, via prompting, inject any necessary shadow-cljs, Figwheel or Figwheel Main dependencies.
 
 We hope Calva with Jack-in will help make Clojure and ClojureScript more accessible to new users.
 
