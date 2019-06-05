@@ -4,7 +4,7 @@
 
 Please install the new version and say goodbye to soul crushing, getting started issues, with the **Jack-in** command. And say hello to the brand new REPL Window. Calva also has a friendly new logo, thanks to @EccentricJ:
 
-![Calva logo](/assets/calva-64h.png)
+![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
 The goal with Calva is to leverage the ease of use of [Visual Studio Code](https://code.visualstudio.com/) to provide an environment where starting with, and using, Clojure is as smooth as possible.
 
@@ -18,7 +18,7 @@ We hope Calva with Jack-in will help make Clojure and ClojureScript more accessi
 
 ## The new REPL Window Improves Support for Interactive Programming
 
-![Calva REPL Window Screenshot](/assets/repl-window-screenshot.png)
+![Calva REPL Window Screenshot](https://raw.githubusercontent.com/BetterThanTomorrow/calva/master/assets/repl-window-screenshot.png)
 
 Experienced Clojurians, as well as new users of the language, are now much better served in their interactive development. Some of the features of the new REPL Window are:
 * A sweet code editor:
