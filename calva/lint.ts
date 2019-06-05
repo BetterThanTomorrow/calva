@@ -54,7 +54,7 @@ function jokerChildProcess(fileName) {
 function lintDocument(document = {}) {
     let doc = util.getDocument(document);
 
-    if (doc.languageId !== 'clojure') {
+    if (doc && doc.languageId !== 'clojure') {
         return;
     }
     //Reset errors
