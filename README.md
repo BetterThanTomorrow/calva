@@ -15,6 +15,7 @@ With Calva I hope to help lowering the barriers into the Clojure world. The idea
 Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
 1. Open your project in VS Code.
+1. Open at least one Clojure file, so that Calva gets activated.
 1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
 
