@@ -12,6 +12,8 @@ With Calva I hope to help lowering the barriers into the Clojure world. The idea
 
 ## How to Connect Calva to your project
 
+_Note: On windows, change the default shell from **Powershell** to **Cmd**  before trying the below. To do it, press ctrl+shift+P and type 'Terminal' and choose "Select default shell" from search drop down_.
+
 Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
 1. Open your project in VS Code.
