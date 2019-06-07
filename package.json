@@ -910,7 +910,12 @@
             }
         ],
         "menus": {
-            "commandPalette": []
+            "commandPalette": [
+                {
+                    "command": "calva.jackInOrConnect",
+                    "when": "false"
+                }
+            ]
         }
     },
     "scripts": {
