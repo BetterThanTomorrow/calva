@@ -154,14 +154,16 @@ function setCompletionIndex(idx: number) {
     message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
 }
 
-// let dontFocus = false; // This is not needed atm and only messes things up
+let hasSelection = false;
 
 window.addEventListener("mousedown", e => {
-    // dontFocus = false;
+    hasSelection = false;
 })
 
 window.addEventListener("mouseup", e => {
-    con.input.focus();
+    if (!hasSelection) {
+        con.input.focus();
+    }
 })
 
 window.addEventListener("focus", e => {
@@ -169,10 +171,9 @@ window.addEventListener("focus", e => {
 })
 
 document.addEventListener("selectionchange", e => {
-    // This does not seem to be called as we think it would
-    // if (document.getSelection().rangeCount != 0)
-    //     dontFocus = false;
-})
+    const s = document.getSelection();
+    hasSelection = s.focusOffset != s.anchorOffset;
+});
 
 window.addEventListener("keydown", e => {
     if (e.keyCode == 68 && e.ctrlKey) {
