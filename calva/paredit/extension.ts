@@ -269,6 +269,6 @@ export function deactivate() {
 }
 
 export function updatePareditEnabled() {
-    let enabled = activeReplWindow() || (window.activeTextEditor && window.activeTextEditor.document.languageId == "clojure");
-    commands.executeCommand("setContext", "calva:pareditValid", enabled);
+    // let enabled = activeReplWindow() || (window.activeTextEditor && window.activeTextEditor.document.languageId == "clojure");
+    commands.executeCommand("setContext", "calva:pareditValid", true);
 }

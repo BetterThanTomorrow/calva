@@ -152,10 +152,10 @@ function activate(context) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        paredit.updatePareditEnabled();
+        // paredit.updatePareditEnabled();
         status.update();
         if (state.config().syncReplNamespaceToCurrentFile) {
-            replWindow.setREPLNamespace()
+            replWindow.setREPLNamespace().catch(reason => { console.warn(`Namespace sync failed, becauase: ${reason}`) });
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))
