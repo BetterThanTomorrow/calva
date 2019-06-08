@@ -291,7 +291,7 @@ export async function calvaJackIn() {
     state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
 
-    const env = { ...process.env, ...state.config().jackInEnv };
+    const env = { ...process.env, ...state.config().jackInEnv } as { [key: string]: string; };
 
     const execution = new vscode.ShellExecution(executable, args, {
         cwd: utilities.getProjectDir(),
