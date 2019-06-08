@@ -5,6 +5,7 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
+import { activeReplWindow } from './repl-window';
 
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
@@ -155,7 +156,8 @@ async function loadFile(document = {}, callback = () => { }) {
 
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
-    let client = util.getSession(util.getFileType(util.getDocument({})));
+    const replWindow = activeReplWindow();
+    let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;
     if (value !== null)
