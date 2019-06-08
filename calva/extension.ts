@@ -3,6 +3,7 @@ import * as paredit from "./paredit/extension";
 import * as fmt from "./calva-fmt/ts/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
+import * as util from './utilities'
 import status from './status';
 import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
@@ -154,8 +155,9 @@ function activate(context) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         // paredit.updatePareditEnabled();
         status.update();
-        if (state.config().syncReplNamespaceToCurrentFile) {
-            replWindow.setREPLNamespace().catch(reason => { console.warn(`Namespace sync failed, becauase: ${reason}`) });
+        if (editor.document && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
+            replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
+                .catch(reason => { console.warn(`Namespace sync failed, becauase: ${reason}`) });
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))

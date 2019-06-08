@@ -227,12 +227,12 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
     return repl;
 }
 
-function loadNamespaceCommand(focus = true) {
-    setREPLNamespace(focus);
+function loadNamespaceCommand(reload = true) {
+    setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
 }
 
 function setREPLNamespaceCommand() {
-    setREPLNamespace(false);
+    setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
 async function sendTextToREPLWindow(text, ns?: string) {
@@ -252,16 +252,15 @@ async function sendTextToREPLWindow(text, ns?: string) {
     }
 }
 
-export async function setREPLNamespace(reload = false) {
-    let nameSpace = util.getDocumentNamespace();
+export async function setREPLNamespace(ns: string, reload = false) {
 
     if (reload) {
         await evaluate.loadFile();
     }
-    let wnd = await openReplWindow(util.getREPLSessionType());
+    let wnd = replWindows[util.getREPLSessionType()];
     if (wnd) {
-        await wnd.session.eval("(in-ns '" + nameSpace + ")").value;
-        wnd.setNamespace(nameSpace);
+        await wnd.session.eval("(in-ns '" + ns + ")").value;
+        wnd.setNamespace(ns);
     }
 }
 
