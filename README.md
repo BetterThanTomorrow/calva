@@ -12,8 +12,6 @@ With Calva I hope to help lowering the barriers into the Clojure world. The idea
 
 ## How to Connect Calva to your project
 
-_Note: On windows, change the default shell from **Powershell** to **Cmd**  before trying the below. To do it, press ctrl+shift+P and type 'Terminal' and choose "Select default shell" from search drop down_.
-
 Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
 1. Open your project in VS Code.
@@ -21,6 +19,8 @@ Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
+
+Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/Troubleshooting-connection-problems). (Please help keeping that wiki page updated.)
 
 _NB: Some project setups do not lend themselves to Jack-in, but Calva might still be able to connect. See [Connecting to a running REPL server](https://github.com/BetterThanTomorrow/calva/wiki/Connecting-To-a-Running-REPL-Server)_. 
 
