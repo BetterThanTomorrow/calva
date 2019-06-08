@@ -34,6 +34,11 @@ There are also a command for evaluating the current top level form. Which I use 
 
 See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things to try.
 
+## The Calva Wiki
+
+When something doesn't work and you think there might be a workaround for it, please see the [wiki](https://github.com/BetterThanTomorrow/calva/wiki/). Anyone can author the wiki so if you know about workarounds or gotchas or anything that is good to know about when usin Calva, please edit the approriate page (or create a new page).
+
+
 ## Features
 
 ### At a glance
