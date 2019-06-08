@@ -115,6 +115,9 @@ function getNamespace(doc: vscode.TextDocument) {
                 foundNsId: boolean = false;
             do {
                 cursor.downList();
+                if (token && token.offset == cursor.getToken().offset) {
+                    cursor.next();
+                }
                 token = cursor.getToken();
                 foundNsToken = token.type == "id" && token.raw == "ns";
             } while (!foundNsToken && !cursor.atEnd());
