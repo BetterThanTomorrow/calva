@@ -5,7 +5,6 @@ import { NReplSession } from './nrepl';
 
 
 function report(res, chan: vscode.OutputChannel) {
-    console.log(res);
     if (res.status == "ok") {
         chan.appendLine("Reloaded: (" + res.reloaded.join(" ") + ")");
         chan.appendLine(":ok");
