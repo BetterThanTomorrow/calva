@@ -14,17 +14,17 @@
       },
       "problemMatcher": []
     },
-    {
-      "label": "Watch TS",
-      "type": "npm",
-      "script": "watch-ts",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": "$tsc-watch"
-    },
+    // {
+    //   "label": "Watch TS",
+    //   "type": "npm",
+    //   "script": "watch-ts",
+    //   "isBackground": true,
+    //   "group": {
+    //     "kind": "build",
+    //     "isDefault": true
+    //   },
+    //   "problemMatcher": "$tsc-watch"
+    // },
     {
       "label": "Watch Webpack",
       "type": "npm",

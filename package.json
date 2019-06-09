@@ -49,7 +49,7 @@
         "onCommand:calva.jackIn",
         "onCommand:calva.connect"
     ],
-    "main": "./out/extension",
+    "main": "./dist/extension",
     "extensionPack": [
         "tonsky.clojure-warrior"
     ],
@@ -988,13 +988,14 @@
     },
     "scripts": {
         "watch-cljs": "npx shadow-cljs watch :test :calva-lib",
-        "watch-ts": "tsc -watch -p ./tsconfig.json",
-        "watch-webpack": "npx webpack -w",
+        "webpack": "webpack --mode development",
+        "watch-webpack": "webpack --mode development --watch",
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "compile-cljs": "npx shadow-cljs compile :calva-lib",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
-        "release": "npm i && npm run update-grammar && npm run release-cljs && tsc -p ./",
-        "compile": "npm run compile-cljs && npm i && tsc -p ./",
+        "release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
+        "webpack-release": "webpack --mode production",
+        "compile": "npm run compile-cljs && npm run webpack",
         "vscode:prepublish": "npm run release",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },

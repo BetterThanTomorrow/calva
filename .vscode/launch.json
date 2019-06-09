@@ -19,7 +19,7 @@
                 "DEBUG": "no-debug-universal-analytics"
             },
             "outFiles": [
-                "${workspaceFolder}/out/**/*.js"
+                "${workspaceFolder}/dist/**/*.js"
             ]
         }
     ]

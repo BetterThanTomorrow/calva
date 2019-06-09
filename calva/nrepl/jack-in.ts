@@ -5,7 +5,8 @@ import * as state from "../state"
 import connector from "../connector";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
-const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
+//const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
+import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 
 const isWin = /^win/.test(process.platform);
 
