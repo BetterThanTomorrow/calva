@@ -6,6 +6,7 @@ import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
+import { NReplSession } from './nrepl';
 
 /// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
@@ -154,6 +155,17 @@ async function loadFile(document = {}, callback = () => { }) {
     callback();
 }
 
+async function requireREPLUtilitiesCommand() {
+    const chan = state.outputChannel(),
+        replWindow = activeReplWindow(),
+        session: NReplSession = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({}))),
+        CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
+        CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)";
+    let form = util.getREPLSessionType() == "cljs" ? CLJS_FORM : CLJ_FORM;
+    await session.eval(form);
+    chan.appendLine("REPL utilities (like apropos, dir, doc, find-doc, pst, and source) are now available.");
+}
+
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
     const replWindow = activeReplWindow();
@@ -174,5 +186,6 @@ export default {
     evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
-    copyLastResultCommand
+    copyLastResultCommand,
+    requireREPLUtilitiesCommand
 };

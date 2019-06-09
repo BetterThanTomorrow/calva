@@ -325,6 +325,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.requireREPLUtilities",
+                "title": "Require REPL utilities, like (doc) etecetera, into current namespace",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.lintFile",
                 "title": "Lint current file",
                 "category": "Calva"
@@ -657,6 +662,10 @@
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter"
+            },
+            {
+                "command": "calva.requireREPLUtilities",
+                "key": "ctrl+alt+c ctrl+u"
             },
             {
                 "command": "calva.lintFile",
