@@ -57,8 +57,8 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine("Replaced inline.")
                 } else if (asComment) {
                     const indent = `${' '.repeat(c)}`,
-                        output = value.replace(/\"/gm, "").split("\\n").join(`\n${indent};;    `),
-                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}`),
+                        output = value.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `),
+                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
                     vscode.workspace.applyEdit(wsEdit).then((_v) => { 
@@ -96,10 +96,8 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
 
                 annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                if (!pprint) {
-                    const annotation = err.join();
-                    annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
-                }
+                const annotation = err.join();
+                annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
             }
         }
     } else
