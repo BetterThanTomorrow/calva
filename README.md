@@ -20,7 +20,7 @@ Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
 
-Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/Troubleshooting-connection-problems). (Please help keeping that wiki page updated.)
+Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keeping that wiki page updated.)
 
 _NB: Some project setups do not lend themselves to Jack-in, but Calva might still be able to connect. See [Connecting to a running REPL server](https://github.com/BetterThanTomorrow/calva/wiki/Connecting-To-a-Running-REPL-Server)_. 
 
