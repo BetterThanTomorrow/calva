@@ -160,8 +160,8 @@ async function requireREPLUtilitiesCommand() {
         replWindow = activeReplWindow(),
         session: NReplSession = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({}))),
         CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
-        CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)";
-    let form = util.getREPLSessionType() == "cljs" ? CLJS_FORM : CLJ_FORM;
+        CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
+        form = util.getREPLSessionType() == "cljs" ? CLJS_FORM : CLJ_FORM;
     await session.eval(form);
     chan.appendLine("REPL utilities (like apropos, dir, doc, find-doc, pst, and source) are now available.");
 }
