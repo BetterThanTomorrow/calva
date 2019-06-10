@@ -49,7 +49,7 @@ async function evaluateSelection(document = {}, options = {}) {
                 value = context.pprintOut || value;
 
                 if (replace) {
-                    const indent = `${' '.repeat(c)};`,
+                    const indent = `${' '.repeat(c)}`,
                         edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
@@ -61,7 +61,7 @@ async function evaluateSelection(document = {}, options = {}) {
                         edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit).then((_v) => { 
+                    vscode.workspace.applyEdit(wsEdit).then((_v) => {
                         editor.selection = selection;
                     });
                     chan.appendLine("Evaluated as comment.")
