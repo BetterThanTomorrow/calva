@@ -195,8 +195,10 @@ export class NReplSession {
     eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean } = {}) {
         const id = this.client.nextId,
             pprintOpts = opts.pprint ? {
-                "nrepl.middleware.print/print": "cider.nrepl.pprint/fipp-pprint",
-                "nrepl.middleware.print/options": {"length": 120}
+                "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
+                "nrepl.middleware.print/options": {
+                    "width": 120,
+                }
             } : {};
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {

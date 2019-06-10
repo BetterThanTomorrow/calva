@@ -6,8 +6,8 @@ declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
 
 let ns = "user";
-let con = new ReplConsole(document.querySelector(".repl"), line => {
-    message.postMessage({ type: "read-line", line: line })
+let con = new ReplConsole(document.querySelector(".repl"), (line, pprint) => {
+    message.postMessage({ type: "read-line", line: line, pprint: pprint })
 });
 
 let completionDiv = document.createElement("div");
@@ -253,12 +253,23 @@ window.addEventListener("keydown", e => {
 }, { capture: true, passive: false })
 
 function renderReplResponse(newNs: string, text: string) {
-    let div = document.createElement("div")
+    let div = document.createElement("div"),
+        line = null,
+        content = null;
+    div.className = "repl-response";
     for (let tk of scanner.processLine(text)) {
+        if (!line || tk.raw.startsWith("\n")) {
+            line = document.createElement("div");
+            content = document.createElement("div");
+            line.appendChild(content);
+            div.appendChild(line);
+        }
         let el = document.createElement("span");
+        line.className = "line";
+        content.className = "content";
         el.className = tk.type;
-        el.textContent = tk.raw;
-        div.appendChild(el);
+        el.textContent = tk.raw.replace(/\n\r?/, "");
+        content.appendChild(el);
         ns = newNs;
     }
     con.printElement(div);

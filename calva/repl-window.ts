@@ -60,7 +60,7 @@ class REPLWindow {
                     this.evaluation.interrupt();
 
                 if (msg.type == "read-line") {
-                    this.replEval(msg.line);
+                    this.replEval(msg.line, this.ns, msg.pprint);
                 }
 
                 if (msg.type == "goto-file") {
@@ -150,10 +150,11 @@ class REPLWindow {
         this.ns = ns;
     }
 
-    async replEval(line: string, ns?: string) {
+    async replEval(line: string, ns: string, pprint: boolean) {
         this.evaluation = this.session.eval(line, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
-            stdout: m => this.postMessage({ type: "stdout", value: m })
+            stdout: m => this.postMessage({ type: "stdout", value: m }),
+            pprint: pprint
         })
         try {
             this.postMessage({ type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns });
@@ -235,7 +236,7 @@ function setREPLNamespaceCommand() {
     setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-async function sendTextToREPLWindow(text, ns?: string) {
+async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
     let wnd = await openReplWindow(util.getREPLSessionType());
     if (wnd) {
         let oldNs = wnd.ns;
@@ -243,7 +244,7 @@ async function sendTextToREPLWindow(text, ns?: string) {
             await wnd.session.eval("(in-ns '" + ns + ")").value;
         try {
             wnd.evaluate(ns || oldNs, text);
-            await wnd.replEval(text, oldNs);
+            await wnd.replEval(text, oldNs, pprint);
         } finally {
             if (ns && ns != oldNs) {
                 await wnd.session.eval("(in-ns '" + oldNs + ")").value;
@@ -265,7 +266,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
 }
 
 
-function evalCurrentFormInREPLWindow(topLevel = false) {
+function evalCurrentFormInREPLWindow(topLevel = false, pprint = false) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -281,7 +282,7 @@ function evalCurrentFormInREPLWindow(topLevel = false) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(code, util.getNamespace(doc))
+        sendTextToREPLWindow(code, util.getNamespace(doc), pprint)
     }
 }
 
