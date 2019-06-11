@@ -1,9 +1,12 @@
 import { ReplConsole } from "@calva/repl-interactor";
-import * as lexer from "@calva/repl-interactor/js/clojure-lexer"
-import "../html/styles.scss"
+import * as lexer from "@calva/repl-interactor/js/clojure-lexer";
+var Ansi = require('ansi-to-html');
+import "../html/styles.scss";
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
+
+const ansi = new Ansi();
 
 let ns = "user";
 let con = new ReplConsole(document.querySelector(".repl"), (line, pprint) => {
@@ -423,7 +426,7 @@ window.onmessage = (msg) => {
     if (msg.data.type == "repl-error") {
         let div = document.createElement("div")
         div.className = "error"
-        div.textContent = msg.data.ex;
+        div.innerHTML = ansi.toHtml(msg.data.ex);
         con.printElement(div);
         restorePrompt();
     }
@@ -458,7 +461,10 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "stdout") {
-        con.print(msg.data.value);
+        let el = document.createElement("div");
+        el.innerHTML = ansi.toHtml(msg.data.value);
+        el.className = "output";
+        con.printElement(el);
     }
 
     if (msg.data.type == "complete") {
@@ -468,7 +474,7 @@ window.onmessage = (msg) => {
     if (msg.data.type == "stderr") {
         let div = document.createElement("div")
         div.className = "error"
-        div.textContent = msg.data.value;
+        div.innerHTML = ansi.toHtml(msg.data.value);
         con.printElement(div);
     }
 }
