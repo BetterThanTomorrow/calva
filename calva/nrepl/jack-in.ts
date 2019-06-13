@@ -41,7 +41,6 @@ export function detectProjectType(): string[] {
 const cliDependencies = {
     "nrepl": "0.6.0",
     "cider/cider-nrepl": "0.21.1",
-    //"zprint": "0.4.15"
 }
 const figwheelDependencies = {
     "cider/piggieback": "0.4.1",
@@ -49,14 +48,12 @@ const figwheelDependencies = {
 }
 const shadowDependencies = {
     "cider/cider-nrepl": "0.21.1",
-    //"zprint": "0.4.15"
 }
 const leinPluginDependencies = {
     "cider/cider-nrepl": "0.21.1"
 }
 const leinDependencies = {
     "nrepl": "0.6.0",
-    //"zprint": "0.4.15"
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
