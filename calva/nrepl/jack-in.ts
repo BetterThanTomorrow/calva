@@ -270,7 +270,7 @@ export async function calvaJackIn() {
     // Now look in our $PATH variable to check the appropriate command exists.
     const cmd = isWin ? projectType.winCmd : projectType.cmd;
     let executable = findInPath(cmd);
-    let integrated_shell = "";
+    let integrated_shell;
 
     if (!executable) {
         // It doesn't, do not proceed
@@ -289,10 +289,10 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     } else if (executable.endsWith(".bat")) {
         // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
-        integrated_shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows");
+        let windowsterminalssettings  = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
+        integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
         await vscode.workspace.getConfiguration().update("terminal.integrated.shell.windows", "C:\\Windows\\System32\\cmd.exe"); 
     }
-
     state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
 
