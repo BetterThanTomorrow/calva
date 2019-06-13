@@ -1,0 +1,17 @@
+.gitignore
+jsconfig.json
+tsconfig.json
+vsc-extension-quickstart.md
+.eslintrc.json
+.nrepl-port
+
+.vscode/**
+.vscode-test/**
+test/**
+cljc/**
+lib/**
+test_js/**
+js/**
+
+.shadow-cljs/**
+atom-language-clojure/**

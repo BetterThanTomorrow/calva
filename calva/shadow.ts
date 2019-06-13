@@ -1,37 +1,21 @@
 import * as fs from 'fs';
 import * as _ from 'lodash';
-import * as edn from 'jsedn';
 import * as state from './state';
 import * as util from './utilities';
+const { parseEdn } = require('../cljs-out/cljs-lib');
 
-function shadowNReplPortFile() {
-    return util.getProjectDir() + '/.shadow-cljs/nrepl.port';
-}
-
-function shadowConfigFile() {
+export function shadowConfigFile() {
     return util.getProjectDir() + '/shadow-cljs.edn';
 }
 
-function isShadowCljs() {
-    return fs.existsSync(shadowNReplPortFile());
-}
-
-function shadowBuilds() {
-    let parsed = edn.parse(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
-        keys = parsed.at(edn.kw(':builds')).keys,
-        builds = _.map(keys, 'name');
+export function shadowBuilds() {
+    let parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
+        builds = _.map(parsed.builds, (_v, key) => { return ":" + key });
     builds.push("node-repl");
     builds.push("browser-repl")
     return builds;
 }
 
-function shadowBuild() {
-    return state.deref().get('shadowBuild');
+export function shadowBuild() {
+    return state.deref().get('cljsBuild');
 }
-
-export default {
-    isShadowCljs,
-    shadowNReplPortFile,
-    shadowBuilds,
-    shadowBuild
-};

@@ -25,7 +25,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
 
         if (this.state.deref().get("connected")) {
             let client = util.getSession(util.getFileType(document));
-            let res = await client.complete(util.getNamespace(document.getText()), text);
+            let res = await client.complete(util.getNamespace(document), text);
             let results = res.completions || [];
             return new CompletionList(
                 results.map(item => ({

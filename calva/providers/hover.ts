@@ -35,7 +35,7 @@ export default class HoverProvider implements vscode.HoverProvider {
         let text = util.getWordAtPosition(document, position);
         if (this.state.deref().get('connected')) {
             let client = util.getSession(util.getFileType(document));
-            let ns = util.getNamespace(document.getText());
+            let ns = util.getNamespace(document);
             let res = await client.info(ns, text);
             if(res.doc)
                 return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], res.doc))

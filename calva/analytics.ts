@@ -20,12 +20,15 @@ export default class Analytics {
     private GA_ID = (process.env.CALVA_DEV_GA ? process.env.CALVA_DEV_GA : 'FUBAR-69796730-3').replace(/^FUBAR/, "UA");
 
     constructor(context: vscode.ExtensionContext) {
-        this.extension = vscode.extensions.getExtension("cospaia.clojure4vscode")!;
+        this.extension = vscode.extensions.getExtension("betterthantomorrow.calva")!;
         this.extensionVersion = this.extension.packageJSON.version;
         this.store = context.globalState;
 
         this.visitor = UA(this.GA_ID, this.userID());
         this.visitor.set("cd1", this.extensionVersion);
+        this.visitor.set("cd2", vscode.version);
+        this.visitor.set("cd3", this.extensionVersion);
+        this.visitor.set("cd4", `${os.platform()}/${os.release()}`);
         this.visitor.set("cn", `calva-${this.extensionVersion}`);
         this.visitor.set("ua", `Calva/${this.extensionVersion} (${os.platform()}; ${os.release()}; ${os.type}) VSCode/${vscode.version}`);
     }
@@ -41,32 +44,23 @@ export default class Analytics {
         }
     }
 
-    private getVisitor(): UA.Visitor | { pageview, event, screenview } {
-        const noop = {
-            send: function () {
-                //console.log("Not logging!");
-            }
-        }
+    logPath(path: string): Analytics {
         if (userAllowsTelemetry()) {
-            return this.visitor;
-        } else {
-            return {
-                pageview: function (...args) { return noop },
-                event: function (...args) { return noop },
-                screenview: function (...args) { return noop }
-            }
+            this.visitor.pageview(path);
         }
+        return this;
     }
 
-    logPath(path: string) {
-        this.getVisitor().pageview(path).send();
+    logEvent(category: string, action: string, label?: string, value?: string): Analytics {
+        if (userAllowsTelemetry()) {
+            this.visitor.event({ ec: category, ea: action, el: label, ev: value });
+        }
+        return this;
     }
 
-    logView(view: string) {
-        this.getVisitor().screenview(view, "Calva", this.extensionVersion, this.extension.id).send();
-    }
-
-    logEvent(category: string, action: string, label?: string, value?: string) {
-        this.getVisitor().event({ ec: category, ea: action, el: label, ev: value }).send();
+    send() {
+        if (userAllowsTelemetry()) {
+            this.visitor.send();
+        }
     }
 }

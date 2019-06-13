@@ -6,7 +6,7 @@ enum AnnotationStatus {
     PENDING = 0,
     SUCCESS,
     ERROR,
-    TERMINAL
+    REPL_WINDOW
 }
 
 const selectionBackgrounds = [
@@ -68,7 +68,7 @@ const evalSelectionDecorationTypes = [
     createEvalSelectionDecorationType(AnnotationStatus.PENDING),
     createEvalSelectionDecorationType(AnnotationStatus.SUCCESS),
     createEvalSelectionDecorationType(AnnotationStatus.ERROR),
-    createEvalSelectionDecorationType(AnnotationStatus.TERMINAL)
+    createEvalSelectionDecorationType(AnnotationStatus.REPL_WINDOW)
 ]
 
 function setResultDecorations(editor: vscode.TextEditor, ranges) {
@@ -92,7 +92,7 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     setSelectionDecorations(editor, [], AnnotationStatus.PENDING);
     setSelectionDecorations(editor, [], AnnotationStatus.SUCCESS);
     setSelectionDecorations(editor, [], AnnotationStatus.ERROR);
-    setSelectionDecorations(editor, [], AnnotationStatus.TERMINAL);
+    setSelectionDecorations(editor, [], AnnotationStatus.REPL_WINDOW);
 }
 
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
