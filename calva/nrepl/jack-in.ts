@@ -282,6 +282,9 @@ export async function calvaJackIn() {
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await projectType.commandLine(selectedCljsType != "");
 
+    let shellSettingsShouldBeChangedByUs = false;
+    let shellSettingsChangedByUs = false;
+
     if (executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
         args = args.map(escapeString) as Array<string>;
@@ -291,7 +294,25 @@ export async function calvaJackIn() {
         // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
         let windowsterminalssettings  = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
         integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
-        await vscode.workspace.getConfiguration().update("terminal.integrated.shell.windows", "C:\\Windows\\System32\\cmd.exe"); 
+        if (!integrated_shell.endsWith("cmd.exe")) {
+            shellSettingsShouldBeChangedByUs = true;
+            outputChannel.appendLine("Jack-in needs to use cmd.exe to work. Allow the (temporary) switch, please.");
+            await vscode.workspace.getConfiguration()
+                .update("terminal.integrated.shell.windows", "C:\\Windows\\System32\\cmd.exe")
+                .then(
+                    () => {
+                        shellSettingsChangedByUs = true;
+                    },
+                    (reason) => {
+                        outputChannel.appendLine("Jack-in aborted, since it won't work without using cmd.exe");
+                    }
+                );
+        }
+    }
+
+    if (shellSettingsShouldBeChangedByUs && !shellSettingsChangedByUs) {
+        state.analytics().logEvent("REPL", "JackInInterrupted", "Powershell user wont allow change of shell setting").send();
+        return;
     }
     state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
@@ -320,10 +341,13 @@ export async function calvaJackIn() {
             outputChannel.appendLine("Error in Jack-in: " + reason);
         });
 
-    setTimeout(() => {
-        if (executable.endsWith(".bat")) {
-            vscode.workspace.getConfiguration().update("terminal.integrated.shell.windows", integrated_shell);
-        }
-        integrated_shell = undefined;
-    }, 1000);
+    if (executable.endsWith(".bat") && shellSettingsChangedByUs) {
+        setTimeout(() => { // Need to give the task shell time to start
+            vscode.workspace.getConfiguration()
+                .update("terminal.integrated.shell.windows", integrated_shell)
+                .then(() => {
+                    integrated_shell = undefined;
+                });
+        }, 2000);
+    }
 }
