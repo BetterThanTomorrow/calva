@@ -270,6 +270,7 @@ export async function calvaJackIn() {
     // Now look in our $PATH variable to check the appropriate command exists.
     const cmd = isWin ? projectType.winCmd : projectType.cmd;
     let executable = findInPath(cmd);
+    let integrated_shell = "";
 
     if (!executable) {
         // It doesn't, do not proceed
@@ -286,6 +287,10 @@ export async function calvaJackIn() {
         args = args.map(escapeString) as Array<string>;
         args.unshift(executable);
         executable = "powershell.exe";
+    } else if (executable.endsWith(".bat")) {
+        // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
+        integrated_shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows");
+        await vscode.workspace.getConfiguration().update("terminal.integrated.shell.windows", "C:\\Windows\\System32\\cmd.exe"); 
     }
 
     state.cursor.set("launching", projectTypeSelection)
@@ -307,7 +312,6 @@ export async function calvaJackIn() {
     const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
-
     vscode.tasks.executeTask(task).then(
         (v) => {
         },
@@ -315,4 +319,11 @@ export async function calvaJackIn() {
             watcher.close()
             outputChannel.appendLine("Error in Jack-in: " + reason);
         });
+
+    setTimeout(() => {
+        if (executable.endsWith(".bat")) {
+            vscode.workspace.getConfiguration().update("terminal.integrated.shell.windows", integrated_shell);
+        }
+        integrated_shell = undefined;
+    }, 1000);
 }
