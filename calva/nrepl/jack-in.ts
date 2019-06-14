@@ -270,7 +270,7 @@ export async function calvaJackIn() {
     // Now look in our $PATH variable to check the appropriate command exists.
     const cmd = isWin ? projectType.winCmd : projectType.cmd;
     let executable = findInPath(cmd);
-    let integrated_shell = "";
+    let integrated_shell;
 
     if (!executable) {
         // It doesn't, do not proceed
@@ -292,7 +292,8 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     } else if (executable.endsWith(".bat")) {
         // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
-        integrated_shell = vscode.workspace.getConfiguration("terminal.integrated.shell").get("windows");
+        let windowsterminalssettings  = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
+        integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
         if (!integrated_shell.endsWith("cmd.exe")) {
             shellSettingsShouldBeChangedByUs = true;
             outputChannel.appendLine("Jack-in needs to use cmd.exe to work. Allow the (temporary) switch, please.");
@@ -313,7 +314,6 @@ export async function calvaJackIn() {
         state.analytics().logEvent("REPL", "JackInInterrupted", "Powershell user wont allow change of shell setting").send();
         return;
     }
-
     state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
 
