@@ -355,7 +355,7 @@ export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
 function nreplPortFile() {
-    let editor = vscode.window.visibleTextEditors.find(x => x.document.languageId == "clojure" );
+    let editor = vscode.window.visibleTextEditors.find(x => x.document.languageId == "clojure");
     if (editor) {
         let d = path.dirname(editor.document.fileName);
         let prev = null;
@@ -379,14 +379,15 @@ export default {
 
         state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
+        const CLJS_PROJECT_TYPE_NONE = "Don't load any cljs support, thanks"
         if (isJackIn) {
             cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         } else {
             let types = cljsReplTypes.map(x => x.name);
-            types.splice(0, 0, "None")
+            types.splice(0, 0, CLJS_PROJECT_TYPE_NONE)
             cljsTypeName = await util.quickPickSingle({
                 values: types,
-                placeHolder: "Please select a cljs project type, if any", saveAs: "connect-cljs-type", autoSelect: true
+                placeHolder: "If you want ClojureScript support, please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
             });
             if (!cljsTypeName) {
                 state.analytics().logEvent("REPL", "ConnectInterrupted", "NoCljsProjectPicked").send();
@@ -396,7 +397,7 @@ export default {
 
         state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
-        if (cljsTypeName == "None") {
+        if (cljsTypeName == CLJS_PROJECT_TYPE_NONE) {
             cljsTypeName = "";
         }
 
