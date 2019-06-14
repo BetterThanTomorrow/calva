@@ -71,6 +71,7 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
 
                 if (out.length > 0) {
+                    chan.appendLine("stdout:");
                     chan.appendLine(out.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                 }
                 chan.appendLine('=>');
