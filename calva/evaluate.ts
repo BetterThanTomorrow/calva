@@ -8,7 +8,6 @@ import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
 
-/// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = state.outputChannel(),
@@ -72,26 +71,24 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
 
                 if (out.length > 0) {
-                    chan.append("out: ")
-                    chan.append(out.map(x => x.replace("\n$", "")).join("\n"));
+                    chan.appendLine(out.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                 }
-                chan.append('=> ');
+                chan.appendLine('=>');
                 if (pprint) {
-                    chan.appendLine('');
                     chan.show(true);
                     chan.appendLine(value);
                 } else chan.appendLine(value);
 
                 if (err.length > 0) {
-                    chan.append("Error: ")
-                    chan.append(err.join("\n"));
+                    chan.appendLine("Error:")
+                    chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
                     if (err.length > 0) {
-                        chan.append("Error: ")
-                        chan.append(err.join("\n"));
+                        chan.appendLine("Error:")
+                        chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                     }
                 }
 
