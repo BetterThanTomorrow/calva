@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.13",
+    "version": "2.0.14-languages",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -54,6 +54,25 @@
         "tonsky.clojure-warrior"
     ],
     "contributes": {
+        "languages": [
+            {
+                "id": "clojure",
+                "aliases": [
+                    "Clojure",
+                    "clojure"
+                ],
+                "extensions": [
+                    ".clj",
+                    ".cljs",
+                    ".cljc",
+                    ".cljx",
+                    ".clojure",
+                    ".edn",
+                    ".joke",
+                    ".boot"
+                ]
+            }
+        ],
         "grammars": [
             {
                 "language": "clojure",
