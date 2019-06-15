@@ -752,11 +752,11 @@
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
-                "key": "ctrl+alt+c alt+e"
+                "key": "ctrl+alt+c ctrl+alt+e"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "key": "ctrl+alt+c alt+space"
+                "key": "ctrl+alt+c ctrl+alt+space"
             },
             {
                 "command": "paredit.forwardSexp",
