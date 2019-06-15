@@ -7,7 +7,7 @@
 # Whitelist
 !clojure.tmLanguage.json
 !html/**
-!dist/**
+!out/**
 !package.json
 !assets/**
 !README.md

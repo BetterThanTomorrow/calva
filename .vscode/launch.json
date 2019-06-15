@@ -16,7 +16,8 @@
             "sourceMaps": true,
             "env": {
                 "CALVA_DEV_GA": "FUBAR-69796730-4",
-                "DEBUG": "no-debug-universal-analytics"
+                "DEBUG": "no-debug-universal-analytics",
+                "IS_DEV_BUILD": "YES"
             },
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
