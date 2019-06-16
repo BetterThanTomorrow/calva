@@ -295,7 +295,7 @@ export async function calvaJackIn() {
         // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
         let windowsterminalssettings  = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
         integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
-        if (!integrated_shell.endsWith("cmd.exe")) {
+        if (!integrated_shell || !integrated_shell.endsWith("cmd.exe")) {
             shellSettingsShouldBeChangedByUs = true;
             outputChannel.appendLine("Jack-in needs to use cmd.exe to work. Allow the (temporary) switch, please.");
             await vscode.workspace.getConfiguration()
