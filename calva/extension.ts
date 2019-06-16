@@ -21,6 +21,7 @@ import * as replWindow from "./repl-window";
 import { format } from 'url';
 import * as greetings from "./greet";
 import Analytics from './analytics';
+import { edit } from './paredit/utils';
 
 function onDidSave(document) {
     let {
@@ -59,7 +60,7 @@ function onDidOpen(document) {
 }
 
 
-function activate(context) {
+function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -154,11 +155,17 @@ function activate(context) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        // paredit.updatePareditEnabled();
+        const isClojureFile = editor && editor.document.languageId == 'clojure';
+        if (isClojureFile) {
+            vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
+            vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
+        } else if (!replWindow.activeReplWindow()) {
+            vscode.commands.executeCommand("setContext", "calva:pareditValid", editor.document.languageId != "Log");
+        }
         status.update();
         if (editor.document && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
             replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
-                .catch(reason => { console.warn(`Namespace sync failed, becauase: ${reason}`) });
+                .catch(reasons => { console.warn(`Namespace sync failed, becauase: ${reasons}`) });
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))

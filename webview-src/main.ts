@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { ReplConsole } from "@calva/repl-interactor";
 import * as lexer from "@calva/repl-interactor/js/clojure-lexer";
 var Ansi = require('ansi-to-html');
@@ -170,8 +171,14 @@ window.addEventListener("mouseup", e => {
 })
 
 window.addEventListener("focus", e => {
+    message.postMessage({ type: "focus" });
     con.input.focus();
 })
+
+window.addEventListener("blur", e => {
+    message.postMessage({ type: "blur" });
+})
+
 
 document.addEventListener("selectionchange", e => {
     const s = document.getSelection();

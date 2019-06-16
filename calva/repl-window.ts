@@ -74,6 +74,15 @@ class REPLWindow {
                     let result = await this.session.info(msg.ns, msg.symbol);
                     this.postMessage({ type: "info", data: result });
                 }
+                
+                if (msg.type == "focus") {
+                    vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
+                    vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
+                }
+                
+                if (msg.type == "blur") {
+                    vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
+                }
             })
         })
 

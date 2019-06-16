@@ -1,4 +1,5 @@
 'use strict';
+import * as vscode from "vscode";
 import { StatusBar } from './status_bar';
 import * as utils from './utils';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
@@ -261,13 +262,8 @@ export function activate(context: ExtensionContext) {
             .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
         ...pareditCommands
             .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))));
-    updatePareditEnabled()
+    commands.executeCommand("setContext", "calva:pareditValid", true);
 }
 
 export function deactivate() {
-}
-
-export function updatePareditEnabled() {
-    // let enabled = activeReplWindow() || (window.activeTextEditor && window.activeTextEditor.document.languageId == "clojure");
-    commands.executeCommand("setContext", "calva:pareditValid", true);
 }
