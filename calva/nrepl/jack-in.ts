@@ -127,7 +127,7 @@ const projectTypes: {
             }
 
             if (profiles.length) {
-                out.push("with-profile", profiles.map(x => x.substr(1)).join(','));
+                out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
             }
             //out.push("update-in", ":middleware", "conj", `cider-nrepl.plugin/middleware`, '--')
             out.push("repl", ":headless");
