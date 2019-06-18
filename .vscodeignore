@@ -14,3 +14,6 @@
 !CHANGELOG.md
 !LICENSE.txt
 
+# While webpack doesn't work, remove later
+!node_modules/**
+!cljs-out/**

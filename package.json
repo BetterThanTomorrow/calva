@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.15-clear-repl",
+    "version": "2.0.16",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -995,8 +995,10 @@
         "compile-cljs": "npx shadow-cljs compile :calva-lib",
         "compile": "npm run compile-cljs && npm run webpack",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
-        "release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
-        "vscode:prepublish": "rm -rf ./out/* && npm run release",
+        "disabled-release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
+        "release": "npm i && npm run update-grammar && npm run release-cljs && tsc -p ./",
+        "disable-vscode:prepublish": "rm -rf ./out/* && npm run release",
+        "vscode:prepublish": "npm run release",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
