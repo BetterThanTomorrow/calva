@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { ReplConsole } from "@calva/repl-interactor";
 import * as lexer from "@calva/repl-interactor/js/clojure-lexer";
 var Ansi = require('ansi-to-html');
@@ -95,19 +94,29 @@ function createStackTrace(exception: any) {
     label.textContent = "Show: ";
     control.appendChild(label);
 
-    let clojure = makeSpan("toggle clj", "Clojure");
+    let all = makeSpan("toggle none", "None");
+    all.onclick = () => {
+        const newState = all.textContent == "None",
+            newTitle = all.textContent == "None" ? "All" : "None";
+        for (let category of ["clj", "java", "tooling", "dup"]) {
+            div.classList.toggle(category, newState);
+            all.textContent = newTitle;
+        }
+    };
 
-    clojure.onclick = () => div.classList.toggle("clj")
+    let clojure = makeSpan("toggle clj", "Clojure");
+    clojure.onclick = () => div.classList.toggle("clj");
 
     let java = makeSpan("toggle java", "Java");
-    java.onclick = () => div.classList.toggle("java")
+    java.onclick = () => div.classList.toggle("java");
 
     let tool = makeSpan("toggle tooling", "Tooling");
-    tool.onclick = () => div.classList.toggle("tooling")
+    tool.onclick = () => div.classList.toggle("tooling");
 
     let dup = makeSpan("toggle dup", "Duplicates");
-    dup.onclick = () => div.classList.toggle("dup")
+    dup.onclick = () => div.classList.toggle("dup");
 
+    control.appendChild(all)
     control.appendChild(clojure)
     control.appendChild(java)
     control.appendChild(tool)
