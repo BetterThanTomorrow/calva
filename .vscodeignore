@@ -14,6 +14,6 @@
 !CHANGELOG.md
 !LICENSE.txt
 
-# While webpack doesn't work, remove later
-!node_modules/**
-!cljs-out/**
+# When not using webpack to bundle these need to be on the whitelist
+# !node_modules/**
+# !cljs-out/**
