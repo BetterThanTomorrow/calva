@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.17-webpack-back",
+    "version": "2.0.17",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -760,12 +760,12 @@
             },
             {
                 "command": "paredit.forwardSexp",
-                "key": "ctrl+right",
+                "key": "ctrl+alt+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardSexp",
-                "key": "ctrl+left",
+                "key": "ctrl+alt+left",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -780,7 +780,7 @@
             },
             {
                 "command": "paredit.closeList",
-                "key": "ctrl+alt+right",
+                "key": "ctrl+alt+shift+right",
                 "when": "calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
