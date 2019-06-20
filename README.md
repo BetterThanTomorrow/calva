@@ -100,6 +100,12 @@ You really should have a look at the READMEs for those as well. One thing to not
 
 This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching. This allows Calva to disable VS Code's built in (not so sane) bracket matching.
 
+Note. If you for some reason do not want rainbow colors, put this in your `settings.json`:
+
+```json
+    "clojureWarrior.bracketColors": []
+```
+
 ## Where is Calva heading?
 
 There are lots of stuff that needs attention and lots of possible features to add. Please see [the Github issue tracker](https://github.com/BetterThanTomorrow/calva/issues) for those things. And please regard it as a way to inform me about what is most important. (There are other ways for that as well, see below.)
