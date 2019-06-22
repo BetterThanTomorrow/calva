@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.17",
+    "version": "2.0.18-custom-cljs-repl",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -132,10 +132,35 @@
                         "default": false,
                         "description": "Keeps the REPL window's namespace in sync with the current file (if it has a valid clojure namespace form)"
                     },
-                    "calva.startCLJSREPLCommand": {
-                        "type": "string",
-                        "default": "(do (require '[figwheel-sidecar.repl-api :as figwheel]) (figwheel/cljs-repl))",
-                        "description": "Clojure command to start the ClojureScript REPL off of the Clojure REPL. (This setting is not used for shadow-cljs sessions)"
+                    "calva.customCljsRepl": {
+                        "type": "object",
+                        "default": {},
+                        "description": "Configuration for custom any CLJS REPL type your project may use",
+                        "$schema": "http://json-schema.org/draft-06/schema#",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Name of your custom config (used in picker menus)"
+                            },
+                            "startCode": {
+                                "type": "string",
+                                "description": "Clojure code that starts the CLJS repl"
+                            },
+                            "startingRegExp": {
+                                "type": "string",
+                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the repl is starting"
+                            },
+                            "connectedRegExp": {
+                                "type": "string",
+                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the repl is connected"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "startCode",
+                            "startingRegExp",
+                            "connectedRegExp"
+                        ]
                     },
                     "calva.projectRootDirectory": {
                         "type": "string",

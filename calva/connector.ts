@@ -151,7 +151,6 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
 
 export interface ReplType {
     name: string,
-    ns: string;
     start?: connectFn;
     started?: (valueResult: string, out: any[], err: any[]) => boolean;
     connect?: connectFn;
@@ -161,7 +160,6 @@ export interface ReplType {
 export let cljsReplTypes: ReplType[] = [
     {
         name: "Figwheel Main",
-        ns: "figwheel.main",
         start: async (session, name, checkFn) => {
             let projects = getFigwheelMainProjects();
             let builds = projects.length <= 1 ? projects : await util.quickPickMulti({
@@ -208,7 +206,6 @@ export let cljsReplTypes: ReplType[] = [
     },
     {
         name: "Figwheel",
-        ns: "figwheel-sidecar.repl-api",
         connect: async (session, name, checkFn) => {
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
@@ -237,7 +234,6 @@ export let cljsReplTypes: ReplType[] = [
     },
     {
         name: "shadow-cljs",
-        ns: "shadow.cljs.devtools.api",
         connect: async (session, name, checkFn) => {
             let build = await util.quickPickSingle({
                 values: shadow.shadowBuilds(),
@@ -263,23 +259,21 @@ export let cljsReplTypes: ReplType[] = [
 
 type customCLJSREPLType = {
     name: string,
-    ns: string,
     startCode: string,
-    startedRegExp: string,
+    startingRegExp: string,
     connectedRegExp: string
 };
 
 function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
     return {
         name: custom.name,
-        ns: custom.ns,
         connect: (session, name, checkFn) => {
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
             const initCode = custom.startCode;
             return evalConnectCode(session, initCode, name, checkFn,
                 [(output) => {
-                    let matched = output.match(custom.startedRegExp);
+                    let matched = output.match(custom.startingRegExp);
                     if (matched && matched.length > 0) {
                         let chan = state.outputChannel();
                         chan.appendLine(matched[0]);
@@ -295,13 +289,8 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
 }
 
 function getCustomCLJSRepl(): ReplType {
-    return createCustomCLJSReplType({
-        name: "Foo",
-        ns: "figwheel-sidecar.repl-api",
-        startCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
-        startedRegExp: "Figwheel: Starting server at.*",
-        connectedRegExp: "Prompt will show.*"
-    })
+    const replConfig = state.config().customCljsRepl as customCLJSREPLType;
+    return createCustomCLJSReplType(replConfig);
 }
 
 function getCLJSReplTypes() {
