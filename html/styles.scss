@@ -35,7 +35,14 @@ img {
       display: flex;
       flex-direction: row;
       align-content: flex-start;
-      .type-card {
+      .type-card[class^="cljs-type"], // No type-card for custom cljs types
+      .type-card[class*=" cljs-type"] { 
+        display: none;
+      }
+      .type-card,
+      .type-card.cljs-type-figwheel,
+      .type-card.cljs-type-figwheel-main,
+      .type-card.cljs-type-shadow-cljs {
         display: flex;
         flex-direction: column;
         align-items: center;

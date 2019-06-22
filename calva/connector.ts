@@ -13,7 +13,7 @@ import { reconnectReplWindow, openReplWindow } from './repl-window';
 
 
 
-async function connectToHost(hostname, port, cljsTypeName: string) {
+async function connectToHost(hostname, port, cljsTypeName: string, replTypes: ReplType[]) {
     state.analytics().logEvent("REPL", "Connecting").send();
 
     let chan = state.outputChannel();
@@ -51,7 +51,7 @@ async function connectToHost(hostname, port, cljsTypeName: string) {
         //cljsSession = nClient.session;
         //terminal.createREPLTerminal('clj', null, chan);
 
-        let [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName) : [null, null];
+        let [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, replTypes) : [null, null];
         if (cljsSession)
             await setUpCljsRepl(cljsSession, chan, shadowBuild);
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
@@ -149,7 +149,7 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
     }
 }
 
-interface ReplType {
+export interface ReplType {
     name: string,
     ns: string;
     start?: connectFn;
@@ -158,7 +158,7 @@ interface ReplType {
     connected: (valueResult: string, out: any[], err: any[]) => boolean;
 }
 
-let cljsReplTypes: ReplType[] = [
+export let cljsReplTypes: ReplType[] = [
     {
         name: "Figwheel Main",
         ns: "figwheel.main",
@@ -259,7 +259,57 @@ let cljsReplTypes: ReplType[] = [
             return result.search(/:selected/) >= 0;
         }
     }
-]
+];
+
+type customCLJSREPLType = {
+    name: string,
+    ns: string,
+    startCode: string,
+    startedRegExp: string,
+    connectedRegExp: string
+};
+
+function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
+    return {
+        name: custom.name,
+        ns: custom.ns,
+        connect: (session, name, checkFn) => {
+            state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
+            state.cursor.set('cljsBuild', null);
+            const initCode = custom.startCode;
+            return evalConnectCode(session, initCode, name, checkFn,
+                [(output) => {
+                    let matched = output.match(custom.startedRegExp);
+                    if (matched && matched.length > 0) {
+                        let chan = state.outputChannel();
+                        chan.appendLine(matched[0]);
+                        chan.appendLine("Please, start your ClojureScript app.");
+                        chan.appendLine("  The CLJS REPL session will connect when your app is running.");
+                    }
+                }]);
+        },
+        connected: (_result, out, err) => {
+            return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined
+        }
+    }
+}
+
+function getCustomCLJSRepl(): ReplType {
+    return createCustomCLJSReplType({
+        name: "Foo",
+        ns: "figwheel-sidecar.repl-api",
+        startCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
+        startedRegExp: "Figwheel: Starting server at.*",
+        connectedRegExp: "Prompt will show.*"
+    })
+}
+
+function getCLJSReplTypes() {
+    let types = cljsReplTypes.slice();
+    types.push(getCustomCLJSRepl());
+    return types;
+}
+
 
 // async function probeNamespaces(namespaces: string[]) {
 //     let result: string = await cljSession.eval(`(remove nil? (map #(try (do (require %) %) (catch Exception e)) '[${namespaces.join(' ')}]))`).value;
@@ -280,7 +330,7 @@ let cljsReplTypes: ReplType[] = [
 // }
 
 
-async function makeCljsSessionClone(session, replType) {
+async function makeCljsSessionClone(session, replType, replTypes: ReplType[]) {
     let chan = state.outputChannel();
     let repl: ReplType;
 
@@ -290,7 +340,7 @@ async function makeCljsSessionClone(session, replType) {
         chan.show(true);
         state.extensionContext.workspaceState.update('cljsReplType', replType);
         state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
-        repl = cljsReplTypes.find(x => x.name == replType);
+        repl = replTypes.find(x => x.name == replType);
         if (repl.start != undefined) {
             chan.appendLine("Starting repl for: " + repl.name + "...");
             if (await repl.start(newCljsSession, repl.name, repl.started)) {
@@ -304,7 +354,8 @@ async function makeCljsSessionClone(session, replType) {
                 return [null, null];
             }
         }
-        chan.appendLine("Connecting to: " + repl.name + "...");
+        chan.appendLine("Connecting CLJS repl: " + repl.name + "...");
+        chan.appendLine("  (Start your cljs app, if you haven't.)");
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
             state.cursor.set('cljs', cljsSession = newCljsSession);
@@ -320,7 +371,7 @@ async function makeCljsSessionClone(session, replType) {
     return [null, null];
 }
 
-async function promptForNreplUrlAndConnect(port, cljsTypeName) {
+async function promptForNreplUrlAndConnect(port, cljsTypeName, replTypes: ReplType[]) {
     let current = state.deref(),
         chan = state.outputChannel();
 
@@ -337,7 +388,7 @@ async function promptForNreplUrlAndConnect(port, cljsTypeName) {
         if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
             state.cursor.set("hostname", hostname);
             state.cursor.set("port", parsedPort);
-            await connectToHost(hostname, parsedPort, cljsTypeName);
+            await connectToHost(hostname, parsedPort, cljsTypeName, replTypes);
         } else {
             chan.appendLine("Bad url: " + url);
             state.cursor.set('connecting', false);
@@ -379,14 +430,15 @@ export default {
 
         state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
+        const types = getCLJSReplTypes();
         const CLJS_PROJECT_TYPE_NONE = "Don't load any cljs support, thanks"
         if (isJackIn) {
             cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         } else {
-            let types = cljsReplTypes.map(x => x.name);
-            types.splice(0, 0, CLJS_PROJECT_TYPE_NONE)
+            let typeNames = types.map(x => x.name);
+            typeNames.splice(0, 0, CLJS_PROJECT_TYPE_NONE)
             cljsTypeName = await util.quickPickSingle({
-                values: types,
+                values: typeNames,
                 placeHolder: "If you want ClojureScript support, please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
             });
             if (!cljsTypeName) {
@@ -400,6 +452,8 @@ export default {
         if (cljsTypeName == CLJS_PROJECT_TYPE_NONE) {
             cljsTypeName = "";
         }
+        
+        state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
 
         if (fs.existsSync(nreplPortFile())) {
             let port = fs.readFileSync(nreplPortFile(), 'utf8');
@@ -407,16 +461,16 @@ export default {
                 if (isAutoConnect) {
                     state.cursor.set("hostname", "localhost");
                     state.cursor.set("port", port);
-                    await connectToHost("localhost", port, cljsTypeName);
+                    await connectToHost("localhost", port, cljsTypeName, types);
                 } else {
-                    await promptForNreplUrlAndConnect(port, cljsTypeName);
+                    await promptForNreplUrlAndConnect(port, cljsTypeName, types);
                 }
             } else {
                 chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
-                await promptForNreplUrlAndConnect(port, cljsTypeName);
+                await promptForNreplUrlAndConnect(port, cljsTypeName, types);
             }
         } else {
-            await promptForNreplUrlAndConnect(null, cljsTypeName);
+            await promptForNreplUrlAndConnect(null, cljsTypeName, types);
         }
         return true;
     },
@@ -450,9 +504,10 @@ export default {
             chan = state.outputChannel();
         const cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
 
-        let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName);
+        let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName, getCLJSReplTypes());
         if (session)
             await setUpCljsRepl(session, chan, shadowBuild);
         status.update();
-    }
+    },
+    getCustomCLJSRepl: getCustomCLJSRepl
 };

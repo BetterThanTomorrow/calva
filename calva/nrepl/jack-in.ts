@@ -236,7 +236,7 @@ export async function calvaJackIn() {
     // figure out what possible kinds of project we're in
     let cljTypes = detectProjectType();
     if (cljTypes.length == 0) {
-        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn. (Boot projects are not supported by Jack-in yet. You'll need to start those manually, then connect Calva.");
+        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn.");
         state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
         return;
     }
@@ -245,7 +245,12 @@ export async function calvaJackIn() {
     let menu: string[] = [];
     for (const clj of cljTypes) {
         menu.push(projectTypes[clj].name);
-        for (const cljs of projectTypes[clj].cljsTypes) {
+        const customCljsRepl = connector.getCustomCLJSRepl();
+        const cljsTypes = projectTypes[clj].cljsTypes.slice();
+        if (customCljsRepl) {
+            cljsTypes.push(customCljsRepl.name);
+        }
+        for (const cljs of cljsTypes) {
             menu.push(`${projectTypes[clj].name} + ${cljs}`);
         }
     }

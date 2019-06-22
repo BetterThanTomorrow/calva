@@ -112,7 +112,7 @@ class REPLWindow {
         html = html.replace("{{script}}", getUrl("/main.js"));
         html = html.replace("{{font}}", getUrl("/fira_code.css"));
         html = html.replace("{{logo-symbol}}", getUrl(`/images/calva-symbol-logo.svg`));
-        html = html.replace("{{hero-classes}}", `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
+        html = html.replace(/{{hero-classes}}/g, `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
         html = html.replace("{{clj-type}}", `${cljType.replace(/ /g, "&nbsp;")}`);
         html = html.replace("{{cljs-type}}", `${cljsType.replace(/ /g, "&nbsp;")}`);
         html = html.replace("{{clj-type-logo}}", getUrl(`/images/${cljTypeSlug}.svg`));
