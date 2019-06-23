@@ -283,7 +283,7 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
                 }]);
         },
         connected: (_result, out, err) => {
-            return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined
+            return out.find((x: string) => { return x.search(custom.connectedRegExp) >= 0 }) != undefined
         }
     }
 }
