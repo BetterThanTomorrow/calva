@@ -4,8 +4,15 @@
    [cljs.tools.reader.reader-types :as rt]
    [cljs.test :refer [is]]))
 
-(defn jsify [o]
-  (clj->js o))
+(defn jsify
+  "Converts clojure data to js data"
+  {:test (fn []
+           (is (= (pr-str (jsify {:foo [1 {:bar :baz}]}))
+                  (pr-str #js {:foo #js [1 #js {:bar "baz"}]})))
+           (is (= (pr-str (jsify {:foo/bar :foo/bar}))
+                  (pr-str #js {"foo/bar" "foo/bar"}))))}
+  [o]
+  (clj->js o :keyword-fn (fn [kw] (str (symbol kw)))))
 
 (defn cljify [o]
   (js->clj o :keywordize-keys true))
@@ -17,6 +24,7 @@
   {:test (fn []
            (is (= (parse-edn "#=(+ 1 2)") "#=(+ 1 2)"))
            (is (= (parse-edn "{:foo [1 2]}") {:foo [1 2]}))
+           (is (= (parse-edn "{:foo/bar [1 2]}") {:foo/bar [1 2]}))
            (is (= (parse-edn ":a {:foo ['bar] :bar 'foo}") :a)))}
   [s]
   (cljs.reader/read-string {:default #(str "#" %1 %2)} s))
