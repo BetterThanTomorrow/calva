@@ -158,7 +158,6 @@
                         "required": [
                             "name",
                             "startCode",
-                            "startingRegExp",
                             "connectedRegExp"
                         ]
                     },

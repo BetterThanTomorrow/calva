@@ -124,7 +124,7 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
     let chan = state.connectionLogChannel();
     let err = [], out = [], result = await newCljsSession.eval(code, {
         stdout: x => {
-            if (outputProcessors != undefined) {
+            if (outputProcessors) {
                 for (const p of outputProcessors) {
                     p(x);
                 }
@@ -260,7 +260,7 @@ export let cljsReplTypes: ReplType[] = [
 type customCLJSREPLType = {
     name: string,
     startCode: string,
-    startingRegExp: string,
+    startingRegExp?: string,
     connectedRegExp: string
 };
 
@@ -272,15 +272,18 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
             state.cursor.set('cljsBuild', null);
             const initCode = custom.startCode;
             return evalConnectCode(session, initCode, name, checkFn,
+                custom.startingRegExp ?
                 [(output) => {
-                    let matched = output.match(custom.startingRegExp);
-                    if (matched && matched.length > 0) {
-                        let chan = state.outputChannel();
-                        chan.appendLine(matched[0]);
-                        chan.appendLine("Please, start your ClojureScript app.");
-                        chan.appendLine("  The CLJS REPL session will connect when your app is running.");
-                    }
-                }]);
+                    if (custom.startingRegExp) {
+                        let matched = output.match(custom.startingRegExp);
+                        if (matched && matched.length > 0) {
+                            let chan = state.outputChannel();
+                            chan.appendLine(matched[0]);
+                            chan.appendLine("Please, start your ClojureScript app.");
+                            chan.appendLine("  The CLJS REPL session will connect when your app is running.");
+                        }
+                    }}] :
+                    null);
         },
         connected: (_result, out, err) => {
             return out.find((x: string) => { return x.search(custom.connectedRegExp) >= 0 }) != undefined
