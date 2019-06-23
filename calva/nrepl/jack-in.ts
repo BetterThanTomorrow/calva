@@ -175,7 +175,7 @@ const projectTypes: {
 
             for (let dep in dependencies)
                 out.push(dep + " {:mvn/version \\\"" + dependencies[dep] + "\\\"}")
-            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, ...aliases.map(x => "-A" + x), "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
+            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, `-A${aliases.join("")}`, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
         }
     },
     "shadow-cljs": {
