@@ -344,7 +344,7 @@ async function makeCljsSessionClone(session, replType, replTypes: ReplType[]) {
             }
         }
         chan.appendLine("Connecting CLJS repl: " + repl.name + "...");
-        chan.appendLine("  (Start your cljs app, if you haven't.)");
+        chan.appendLine("  (Compiling and stuff. This can take a minute or two.)");
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
             state.cursor.set('cljs', cljsSession = newCljsSession);
