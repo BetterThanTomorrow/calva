@@ -22,8 +22,6 @@ When Calva has connected, it will open a REPL window giving you some getting sta
 
 Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keeping that wiki page updated.)
 
-_NB: Some project setups do not lend themselves to Jack-in, but Calva might still be able to connect. See [Connecting to a running REPL server](https://github.com/BetterThanTomorrow/calva/wiki/Connecting-To-a-Running-REPL-Server)_. 
-
 ## Something to try first
 
 You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
