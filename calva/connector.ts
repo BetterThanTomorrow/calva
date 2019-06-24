@@ -273,16 +273,17 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
             const initCode = custom.startCode;
             return evalConnectCode(session, initCode, name, checkFn,
                 custom.startingRegExp ?
-                [(output) => {
-                    if (custom.startingRegExp) {
-                        let matched = output.match(custom.startingRegExp);
-                        if (matched && matched.length > 0) {
-                            let chan = state.outputChannel();
-                            chan.appendLine(matched[0]);
-                            chan.appendLine("Please, start your ClojureScript app.");
-                            chan.appendLine("  The CLJS REPL session will connect when your app is running.");
+                    [(output) => {
+                        if (custom.startingRegExp) {
+                            let matched = output.match(custom.startingRegExp);
+                            if (matched && matched.length > 0) {
+                                let chan = state.outputChannel();
+                                chan.appendLine(matched[0]);
+                                chan.appendLine("Please, start your ClojureScript app.");
+                                chan.appendLine("  The CLJS REPL session will connect when your app is running.");
+                            }
                         }
-                    }}] :
+                    }] :
                     null);
         },
         connected: (_result, out, err) => {
@@ -292,13 +293,20 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
 }
 
 function getCustomCLJSRepl(): ReplType {
-    const replConfig = state.config().customCljsRepl as customCLJSREPLType;
-    return createCustomCLJSReplType(replConfig);
+    const replConfig = state.config().customCljsRepl;
+    if (replConfig) {
+        return createCustomCLJSReplType(replConfig as customCLJSREPLType);
+    } else {
+        return undefined;
+    }
 }
 
 function getCLJSReplTypes() {
     let types = cljsReplTypes.slice();
-    types.push(getCustomCLJSRepl());
+    const customType = getCustomCLJSRepl();
+    if (customType) {
+        types.push(customType);
+    }
     return types;
 }
 
@@ -444,7 +452,7 @@ export default {
         if (cljsTypeName == CLJS_PROJECT_TYPE_NONE) {
             cljsTypeName = "";
         }
-        
+
         state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
 
         if (fs.existsSync(nreplPortFile())) {

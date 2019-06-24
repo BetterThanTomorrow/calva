@@ -134,7 +134,7 @@
                     },
                     "calva.customCljsRepl": {
                         "type": "object",
-                        "default": {},
+                        "default": null,
                         "description": "Configuration for custom any CLJS REPL type your project may use",
                         "$schema": "http://json-schema.org/draft-06/schema#",
                         "properties": {
