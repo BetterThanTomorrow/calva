@@ -110,7 +110,7 @@
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Enable/disable calva-fmt as clojure formatter"
+                        "description": "Enable/disable calva-fmt as Clojure formatter"
                     },
                     "calva.evalOnSave": {
                         "type": "boolean",
@@ -130,7 +130,7 @@
                     "calva.syncReplNamespaceToCurrentFile": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Keeps the REPL window's namespace in sync with the current file (if it has a valid clojure namespace form)"
+                        "description": "Keeps the REPL window's namespace in sync with the current file (if it has a valid Clojure namespace form)"
                     },
                     "calva.customCljsRepl": {
                         "type": "object",
@@ -144,15 +144,15 @@
                             },
                             "startCode": {
                                 "type": "string",
-                                "description": "Clojure code that starts the CLJS repl"
+                                "description": "Clojure code that starts the CLJS REPL"
                             },
                             "startingRegExp": {
                                 "type": "string",
-                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the repl is starting"
+                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the REPL is starting"
                             },
                             "connectedRegExp": {
                                 "type": "string",
-                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the repl is connected"
+                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the REPL is connected"
                             }
                         },
                         "required": [
