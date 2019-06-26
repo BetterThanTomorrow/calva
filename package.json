@@ -140,6 +140,7 @@
                         "properties": {
                             "name": {
                                 "type": "string",
+                                "default": "My Custom CLJS REPL",
                                 "description": "Name of your custom config (used in picker menus)"
                             },
                             "startCode": {
@@ -148,11 +149,16 @@
                             },
                             "startingRegExp": {
                                 "type": "string",
-                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the REPL is starting"
+                                "description": "When this pattern is matched in the stdout of the `startCode`, Calva will instruct the user to start the cljs app (so that Calva can connect)."
+                            },
+                            "printLineRegExp": {
+                                "type": "string",
+                                "description": "Any lines in the stdout of `startCode` matching this regexp will be printed to `Calva says`. One use for it is to help the user know how to start the cljs app."
                             },
                             "connectedRegExp": {
                                 "type": "string",
-                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the REPL is connected"
+                                "default": "To quit, type: :cljs/quit",
+                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the REPL is connected. (The default often works well)"
                             }
                         },
                         "required": [

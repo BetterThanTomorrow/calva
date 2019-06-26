@@ -261,26 +261,32 @@ type customCLJSREPLType = {
     name: string,
     startCode: string,
     startingRegExp?: string,
-    connectedRegExp: string
+    printLineRegExp?: string,
+    connectedRegExp: string,
 };
 
 function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
     return {
         name: custom.name,
         connect: (session, name, checkFn) => {
+            const chan = state.outputChannel();
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
             const initCode = custom.startCode;
             return evalConnectCode(session, initCode, name, checkFn,
-                custom.startingRegExp ?
+                custom.startingRegExp || custom.printLineRegExp ?
                     [(output) => {
                         if (custom.startingRegExp) {
-                            let matched = output.match(custom.startingRegExp);
+                            const matched = output.match(custom.startingRegExp);
                             if (matched && matched.length > 0) {
-                                let chan = state.outputChannel();
-                                chan.appendLine(matched[0]);
-                                chan.appendLine("Please, start your ClojureScript app.");
-                                chan.appendLine("  The CLJS REPL session will connect when your app is running.");
+                                chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
+                                chan.appendLine("  The CLJS REPL will connect when your app is running.");
+                            }
+                        }
+                        if (custom.printLineRegExp) {
+                            const matched = output.match(`.*(${custom.printLineRegExp}).*`);
+                            if (matched && matched.length > 0) {
+                                chan.appendLine(util.stripAnsi(matched[0]));
                             }
                         }
                     }] :
@@ -355,7 +361,8 @@ async function makeCljsSessionClone(session, replType, replTypes: ReplType[]) {
             }
         }
         chan.appendLine("Connecting CLJS repl: " + repl.name + "...");
-        chan.appendLine("  (Compiling and stuff. This can take a minute or two.)");
+        chan.appendLine("  Compiling and stuff. This can take a minute or two.");
+        chan.appendLine("  See Calva Connection Log for detailed progress updates.");
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
             state.cursor.set('cljs', cljsSession = newCljsSession);
