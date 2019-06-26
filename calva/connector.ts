@@ -120,7 +120,7 @@ type processOutputFn = (output: string) => void;
 type connectFn = (session: NReplSession, name: string, checkSuccess: checkConnectedFn) => Promise<boolean>;
 
 async function evalConnectCode(newCljsSession: NReplSession, code: string,
-    name: string, checkSuccess: checkConnectedFn, outputProcessors?: [processOutputFn]): Promise<boolean> {
+    name: string, checkSuccess: checkConnectedFn, outputProcessors?: processOutputFn[]): Promise<boolean> {
     let chan = state.connectionLogChannel();
     let err = [], out = [], result = await newCljsSession.eval(code, {
         stdout: x => {
@@ -273,24 +273,29 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', false);
             state.cursor.set('cljsBuild', null);
             const initCode = custom.startCode;
-            return evalConnectCode(session, initCode, name, checkFn,
-                custom.startingRegExp || custom.printLineRegExp ?
-                    [(output) => {
-                        if (custom.startingRegExp) {
-                            const matched = output.match(custom.startingRegExp);
-                            if (matched && matched.length > 0) {
-                                chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
-                                chan.appendLine("  The CLJS REPL will connect when your app is running.");
-                            }
+            let outputProcessors: processOutputFn[] = [];
+            if (custom.startingRegExp) {
+                outputProcessors.push((output) => {
+                    if (custom.startingRegExp) {
+                        const matched = output.match(custom.startingRegExp);
+                        if (matched && matched.length > 0) {
+                            chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
+                            chan.appendLine("  The CLJS REPL will connect when your app is running.");
                         }
-                        if (custom.printLineRegExp) {
-                            const matched = output.match(`.*(${custom.printLineRegExp}).*`);
-                            if (matched && matched.length > 0) {
-                                chan.appendLine(util.stripAnsi(matched[0]));
-                            }
+                    }
+                });
+            }
+            if (custom.printLineRegExp) {
+                outputProcessors.push((output) => {
+                    if (custom.printLineRegExp) {
+                        const matched = output.match(`.*(${custom.printLineRegExp}).*`);
+                        if (matched && matched.length > 0) {
+                            chan.appendLine(util.stripAnsi(matched[0]));
                         }
-                    }] :
-                    null);
+                    }
+                });
+            }
+            return evalConnectCode(session, initCode, name, checkFn, outputProcessors);
         },
         connected: (_result, out, err) => {
             return out.find((x: string) => { return x.search(custom.connectedRegExp) >= 0 }) != undefined
