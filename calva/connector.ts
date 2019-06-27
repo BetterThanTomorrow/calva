@@ -252,8 +252,8 @@ export let cljsReplTypes: ReplType[] = [
 type customCLJSREPLType = {
     name: string,
     startCode: string,
-    startingRegExp?: string,
-    printLineRegExp?: string,
+    tellUserToStartRegExp?: string,
+    printThisLineRegExp?: string,
     connectedRegExp: string,
 };
 
@@ -266,10 +266,10 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
             state.cursor.set('cljsBuild', null);
             const initCode = custom.startCode;
             let outputProcessors: processOutputFn[] = [];
-            if (custom.startingRegExp) {
+            if (custom.tellUserToStartRegExp) {
                 outputProcessors.push((output) => {
-                    if (custom.startingRegExp) {
-                        const matched = output.match(custom.startingRegExp);
+                    if (custom.tellUserToStartRegExp) {
+                        const matched = output.match(custom.tellUserToStartRegExp);
                         if (matched && matched.length > 0) {
                             chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
                             chan.appendLine("  The CLJS REPL will connect when your app is running.");
@@ -277,10 +277,10 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
                     }
                 });
             }
-            if (custom.printLineRegExp) {
+            if (custom.printThisLineRegExp) {
                 outputProcessors.push((output) => {
-                    if (custom.printLineRegExp) {
-                        const matched = output.match(`.*(${custom.printLineRegExp}).*`);
+                    if (custom.printThisLineRegExp) {
+                        const matched = output.match(`.*(${custom.printThisLineRegExp}).*`);
                         if (matched && matched.length > 0) {
                             chan.appendLine(util.stripAnsi(matched[0]));
                         }

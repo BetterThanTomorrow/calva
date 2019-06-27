@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.19",
+    "version": "2.0.20",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -147,11 +147,11 @@
                                 "type": "string",
                                 "description": "Clojure code that starts the CLJS REPL"
                             },
-                            "startingRegExp": {
+                            "tellUserToStartRegExp": {
                                 "type": "string",
                                 "description": "When this pattern is matched in the stdout of the `startCode`, Calva will instruct the user to start the cljs app (so that Calva can connect)."
                             },
-                            "printLineRegExp": {
+                            "printThisLineRegExp": {
                                 "type": "string",
                                 "description": "Any lines in the stdout of `startCode` matching this regexp will be printed to `Calva says`. One use for it is to help the user know how to start the cljs app."
                             },
