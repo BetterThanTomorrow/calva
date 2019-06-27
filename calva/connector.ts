@@ -43,6 +43,7 @@ async function connectToHost(hostname, port, cljsTypeName: string, replTypes: Re
         });
 
         state.cursor.set("connected", true);
+        state.analytics().logEvent("REPL", "ConnectedCLJ").send();
         state.cursor.set("connecting", false);
         state.cursor.set('clj', cljSession)
         state.cursor.set('cljc', cljSession)
@@ -50,37 +51,28 @@ async function connectToHost(hostname, port, cljsTypeName: string, replTypes: Re
 
         //cljsSession = nClient.session;
         //terminal.createREPLTerminal('clj', null, chan);
-
-        let [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, replTypes) : [null, null];
+        let cljsSession = null,
+            shadowBuild = null;
+        try {
+            [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, replTypes) : [null, null];
+        } catch (e) {
+            chan.appendLine("Error while connecting cljs REPL: " + e);
+        }
         if (cljsSession)
             await setUpCljsRepl(cljsSession, chan, shadowBuild);
         chan.appendLine('cljc files will use the clj REPL.' + (cljsSession ? ' (You can toggle this at will.)' : ''));
         //evaluate.loadFile();
         status.update();
-        state.analytics().logEvent("REPL", "ConnectedCLJ").send();
 
     } catch (e) {
         state.cursor.set("connected", false);
         state.cursor.set("connecting", false);
-        chan.appendLine("Failed connecting. (Calva needs a REPL started before it can connect.)");
+        chan.appendLine("Failed connecting.");
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
 
     return true;
-
-    /*
-    disconnect({ hostname, port }, () => {
-        let onDisconnect = (_client, err) => {
-            chan.appendLine("Disconnected from nREPL server." + (err ? " Error: " + err : ""));
-            state.cursor.set("clj", null);
-            state.cursor.set("cljc", null);
-            state.cursor.set("connected", false);
-            state.cursor.set("connecting", false);
-            status.update();
-        }
-    });
-    */
 }
 
 async function setUpCljsRepl(cljsSession, chan, shadowBuild) {
@@ -320,26 +312,6 @@ function getCLJSReplTypes() {
     }
     return types;
 }
-
-
-// async function probeNamespaces(namespaces: string[]) {
-//     let result: string = await cljSession.eval(`(remove nil? (map #(try (do (require %) %) (catch Exception e)) '[${namespaces.join(' ')}]))`).value;
-//     return result.substring(1, result.length - 1).split(' ')
-// }
-
-// async function findCljsRepls(): Promise<ReplType[]> {
-//     let probe = [];
-//     for (let repl of cljsReplTypes)
-//         probe.push(repl.ns);
-//     let valid = await probeNamespaces(probe);
-//     let output: ReplType[] = [];
-//     for (let repl of cljsReplTypes) {
-//         if (valid.indexOf(repl.ns) != -1)
-//             output.push(repl);
-//     }
-//     return output;
-// }
-
 
 async function makeCljsSessionClone(session, replType, replTypes: ReplType[]) {
     let chan = state.outputChannel();
