@@ -2,10 +2,6 @@
 
 Structural editing and navigation for Clojure.
 
-<p align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=cospaia.paredit-revived"><img width="128px" height="128px" src="https://github.com/PEZ/paredit-for-vscode/raw/master/assets/paredit.png" title="Paredit icon"></img></a>
-</p>
-
 ## Part of Calva
 
 Calva Paredit is a part of [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), a Clojure and ClojureScript extension for bringing the REPL power into VS Code.
@@ -18,11 +14,13 @@ Note: You can choose to disable all default key bindings by configuring `calva.p
 
 Default keybinding | Action
 ------------------ | ------
-ctrl+right         | Forward Sexp
-ctrl+left          | Backward Sexp
+ctrl+alt+right     | Forward Sexp
+ctrl+cmd+right (on Mac) | Forward Sexp
+ctrl+alt+left      | Backward Sexp
+ctrl+cmd+left  (on Mac) | Backward Sexp
 ctrl+down          | Forward Down Sexp
 ctrl+up            | Backward Up Sexp
-ctrl+alt+right     | Close List
+ctrl+alt+shift+right    | Close List
 
 ### Selecting
 
@@ -36,10 +34,10 @@ ctrl+alt+w space   | Select Current Top Level Form
 
 Default keybinding                | Action
 ------------------                | ------
-ctrl+alt+.                        | Slurp Forward
-ctrl+alt+<                        | Slurp Backward
-ctrl+alt+,                        | Barf Forward
-ctrl+alt+>                        | Barf Backward
+ctrl+right                        | Slurp Forward
+ctrl+shift+left                   | Slurp Backward
+ctrl+left                         | Barf Forward
+ctrl+shift+right                  | Barf Backward
 ctrl+alt+s                        | Splice
 ctrl+alt+shift+s                  | Split Sexp
 ctrl+delete                       | Kill Sexp Forward

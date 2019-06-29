@@ -94,6 +94,12 @@ With Calva you also get structural editing using [Paredit](/calva/paredit/README
 
 You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format current form** command to `tab`. Good to know, right?
 
+### Slurp and Barf keyboard shortcuts
+
+To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortucts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
+
+![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
+
 ## Clojure Warrior included
 
 This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching. This allows Calva to disable VS Code's built in (not so sane) bracket matching.
