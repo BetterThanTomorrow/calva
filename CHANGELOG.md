@@ -1,3 +1,10 @@
+# 0.2.0
+
+- Option to disable rainbow brackets `clojureWarrior.enableBracketColors` (#12)
+- Handle setting `clojureWarrior.bracketColors` to empty array (#12)
+- Handle config changes when done from Setting GUI
+- Disable default `editor.matchBrackets` for Clojure files
+
 # 0.1.8
 
 - Highlight and match compound brackets: `#()`, `#{}`, `#?()`, `#?@()` (#10, thx @maratynsky)

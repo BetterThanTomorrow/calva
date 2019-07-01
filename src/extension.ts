@@ -39,9 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
       misplacedType: vscode.TextEditorDecorationType,
       matchedBracketStyle,
       matchedType:   vscode.TextEditorDecorationType,
+      enableBracketColors,
       pairsBack:     Map<string, [Range, Range]> = new Map(),
       pairsForward:  Map<string, [Range, Range]> = new Map(),
-      rainbowTimer = undefined;
+      rainbowTimer = undefined,
+      dirty = false;
 
   if (is_clojure(activeEditor))
     reloadConfig();
@@ -79,46 +81,55 @@ export function activate(context: vscode.ExtensionContext) {
       return decorationType({color: color});
   }
 
+  function reset_styles() {
+    if (!!rainbowTypes)
+      rainbowTypes.forEach(type => activeEditor.setDecorations(type, []));
+    rainbowTypes = rainbowColors.map(colorDecorationType);
+
+    if (!!misplacedType)
+      activeEditor.setDecorations(misplacedType, []);
+    misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, 
+      dark: {color: "#ccc", backgroundColor: "#933"},
+      overviewRulerColor: new vscode.ThemeColor("editorOverviewRuler.errorForeground"),
+        overviewRulerLane: 4});
+
+    if (!!matchedType)
+      activeEditor.setDecorations(matchedType, []);
+    matchedType = decorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
+
+    dirty = false;
+  }
+
   function reloadConfig() {
-    if (activeEditor) {
-      let configuration = vscode.workspace.getConfiguration("clojureWarrior", activeEditor.document.uri),
-          dirty = false;
+    let configuration = vscode.workspace.getConfiguration("clojureWarrior", (!!activeEditor) ? activeEditor.document.uri : null);
 
-      if (!isEqual(rainbowColors, configuration.get<string[]>("bracketColors"))) {
-        if (!!rainbowTypes)
-          rainbowTypes.forEach(type => activeEditor.setDecorations(type, []));
-        rainbowColors = configuration.get<string[]>("bracketColors") || [["#000", "#ccc"], "#0098e6", "#e16d6d", "#3fa455", "#c968e6", "#999", "#ce7e00"];
-        rainbowTypes = rainbowColors.map(colorDecorationType);
-        dirty = true;
-      }
-
-      if (cycleBracketColors !== configuration.get<boolean>("cycleBracketColors")) {
-        cycleBracketColors = configuration.get<boolean>("cycleBracketColors");
-        dirty = true;
-      }
-      
-      if (!isEqual(misplacedBracketStyle, configuration.get("misplacedBracketStyle"))) {
-        if (!!misplacedType)
-          activeEditor.setDecorations(misplacedType, []);
-        misplacedBracketStyle = configuration.get("misplacedBracketStyle");
-        misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, 
-                                     dark: {color: "#ccc", backgroundColor: "#933"},
-                                     overviewRulerColor: new vscode.ThemeColor("editorOverviewRuler.errorForeground"),
-                                       overviewRulerLane: 4});
-        dirty = true;
-      }
-
-      if (!isEqual(matchedBracketStyle, configuration.get("matchedBracketStyle"))) {
-        if (!!matchedType)
-          activeEditor.setDecorations(matchedType, []);
-        matchedBracketStyle = configuration.get("matchedBracketStyle");
-        matchedType = decorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
-        dirty = true;
-      }
-
-      if (dirty)
-        scheduleRainbowBrackets();
+    if (!isEqual(rainbowColors, configuration.get<string[]>("bracketColors"))) {
+      rainbowColors = configuration.get<string[]>("bracketColors") || [["#000", "#ccc"], "#0098e6", "#e16d6d", "#3fa455", "#c968e6", "#999", "#ce7e00"];
+      dirty = true;
     }
+
+    if (cycleBracketColors !== configuration.get<boolean>("cycleBracketColors")) {
+      cycleBracketColors = configuration.get<boolean>("cycleBracketColors");
+      dirty = true;
+    }
+    
+    if (!isEqual(misplacedBracketStyle, configuration.get("misplacedBracketStyle"))) {
+      misplacedBracketStyle = configuration.get("misplacedBracketStyle");
+      dirty = true;
+    }
+
+    if (!isEqual(matchedBracketStyle, configuration.get("matchedBracketStyle"))) {
+      matchedBracketStyle = configuration.get("matchedBracketStyle");
+      dirty = true;
+    }
+
+    if (enableBracketColors !== configuration.get<boolean>("enableBracketColors")) {
+      enableBracketColors = configuration.get<boolean>("enableBracketColors");
+      dirty = true;
+    }
+
+    if (dirty)
+      scheduleRainbowBrackets();
   }
 
   function scheduleRainbowBrackets() {
@@ -131,12 +142,15 @@ export function activate(context: vscode.ExtensionContext) {
   function updateRainbowBrackets() {
     if (!is_clojure(activeEditor)) return;
 
-    const doc        = activeEditor.document,
-          text       = doc.getText(),
-          rainbow    = rainbowTypes.map(()=>[]),
-          misplaced  = [],
-          len        = rainbowTypes.length,
-          colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len-1));
+    if (dirty) reset_styles();
+
+    const doc           = activeEditor.document,
+          text          = doc.getText(),
+          rainbow       = rainbowTypes.map(()=>[]),
+          misplaced     = [],
+          len           = rainbowTypes.length,
+          colorsEnabled = enableBracketColors && len > 0,
+          colorIndex    = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len-1));
 
     let match,
         in_string = false,
@@ -164,9 +178,11 @@ export function activate(context: vscode.ExtensionContext) {
         continue;
       } else if (opening[char]) {
         const len = char.length,
-              pos = activeEditor.document.positionAt(match.index),
-              decoration = { range: new Range(pos, pos.translate(0,len)) };
-        rainbow[colorIndex(stack_depth)].push(decoration);
+              pos = activeEditor.document.positionAt(match.index);
+        if (colorsEnabled) {
+          const decoration = { range: new Range(pos, pos.translate(0,len)) };
+          rainbow[colorIndex(stack_depth)].push(decoration);
+        }
         ++stack_depth;
         stack.push({ char: char, pos: pos, pair_idx: undefined});
         continue;
@@ -189,7 +205,7 @@ export function activate(context: vscode.ExtensionContext) {
           for (let i=0; i<pair.char.length; ++i)
             pairsForward.set(position_str(pair.pos.translate(0,i)), [opening, closing]);
           --stack_depth;
-          rainbow[colorIndex(stack_depth)].push(decoration);
+          if (colorsEnabled) rainbow[colorIndex(stack_depth)].push(decoration);
         }
         continue;
       }

@@ -2,7 +2,7 @@
 	"name": "clojure-warrior",
 	"displayName": "Clojure Warrior",
 	"description": "Extension for Clojure development",
-	"version": "0.1.8",
+	"version": "0.2.0",
 	"publisher": "tonsky",
 	"license": "MIT",
 	"maintainers": [
@@ -46,8 +46,14 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "BracketPair",
+			"title": "Clojure Warrior",
 			"properties": {
+				"clojureWarrior.enableBracketColors": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable rainbow brackets",
+					"scope": "resource"
+				},
 				"clojureWarrior.bracketColors": {
 					"type": "array",
 					"items": {
@@ -75,6 +81,11 @@
 					"description": "Style of pair bracket highlight",
 					"scope": "resource"
 				}
+			}
+		},
+		"configurationDefaults": {
+			"[clojure]": {
+				"editor.matchBrackets": false
 			}
 		}
 	},

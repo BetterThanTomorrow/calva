@@ -30,6 +30,7 @@ Jump to matching bracket commands:
 
 | Key | Meaning | Example |
 | --- | ------- | ------- |
+| `"clojureWarrior.enableBracketColors"` | Enable rainbow colors |  `true` |
 | `"clojureWarrior.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
 | `"clojureWarrior.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
 | `"clojureWarrior.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
