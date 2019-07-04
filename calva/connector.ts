@@ -173,7 +173,9 @@ export let cljsReplTypes: ReplType[] = [
         },
         started: (result, out, err) => {
             return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined ||
-                err != undefined && err.find((x: string) => { return x.search("already running") >= 0 });
+                err != undefined && err.find((x: string) => {
+                    return x.search("already running") >= 0
+                });
         },
         connect: async (session, name, checkFn) => {
             let build = await util.quickPickSingle({
@@ -193,7 +195,7 @@ export let cljsReplTypes: ReplType[] = [
             }
         },
         connected: (_result, out, _err) => {
-            return out.find((x: string) => { return x.search("Prompt will show") >= 0 }) != undefined
+            return out.find((x: string) => { return x.search("To quit, type: :cljs/quit") >= 0 }) != undefined
         }
     },
     {
