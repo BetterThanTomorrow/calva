@@ -1,3 +1,7 @@
+# 0.2.1 - July 4, 2019
+
+- Removed `configurationDefault` as it was conflicting with Calva (#13)
+
 # 0.2.0
 
 - Option to disable rainbow brackets `clojureWarrior.enableBracketColors` (#12)

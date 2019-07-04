@@ -36,6 +36,14 @@ Jump to matching bracket commands:
 | `"clojureWarrior.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
 | `"clojureWarrior.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
 
+To disable VS Code default bracket matching for Clojure files, add this to `settings.json`:
+
+```
+    "[clojure]": {
+        "editor.matchBrackets": false
+    }
+```
+
 ## Installation
 
 1. Go to `Extensions`
