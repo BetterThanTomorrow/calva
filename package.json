@@ -80,16 +80,6 @@
                 "path": "./clojure.tmLanguage.json"
             }
         ],
-        "debuggers": [
-            {
-                "type": "clojure",
-                "enableBreakpointsFor": {
-                    "languageIds": [
-                        "clojure"
-                    ]
-                }
-            }
-        ],
         "configurationDefaults": {
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
@@ -98,8 +88,7 @@
                 "editor.formatOnType": true,
                 "editor.autoIndent": true,
                 "editor.formatOnPaste": true,
-                "files.trimTrailingWhitespace": false,
-                "editor.matchBrackets": false
+                "files.trimTrailingWhitespace": false
             }
         },
         "configuration": [

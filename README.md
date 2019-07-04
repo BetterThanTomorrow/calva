@@ -102,12 +102,12 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 ## Clojure Warrior included
 
-This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching. This allows Calva to disable VS Code's built in (not so sane) bracket matching.
+This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching.
 
 Note. If you for some reason do not want rainbow colors, put this in your `settings.json`:
 
 ```json
-    "clojureWarrior.bracketColors": []
+    "clojureWarrior.enableBracketColors": false
 ```
 
 ## Where is Calva heading?
