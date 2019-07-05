@@ -20,7 +20,7 @@ export default class Analytics {
     private GA_ID = (process.env.CALVA_DEV_GA ? process.env.CALVA_DEV_GA : 'FUBAR-69796730-3').replace(/^FUBAR/, "UA");
 
     constructor(context: vscode.ExtensionContext) {
-        this.extension = vscode.extensions.getExtension("cospaia.clojure4vscode")!;
+        this.extension = vscode.extensions.getExtension("betterthantomorrow.calva")!;
         this.extensionVersion = this.extension.packageJSON.version;
         this.store = context.globalState;
 

@@ -5,7 +5,8 @@ import * as state from "../state"
 import connector from "../connector";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
-const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
+//const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
+import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 
 const isWin = /^win/.test(process.platform);
 
@@ -40,20 +41,20 @@ export function detectProjectType(): string[] {
 
 const cliDependencies = {
     "nrepl": "0.6.0",
-    "cider/cider-nrepl": "0.21.1"
+    "cider/cider-nrepl": "0.21.1",
 }
 const figwheelDependencies = {
-    "cider/piggieback": "0.4.0",
+    "cider/piggieback": "0.4.1",
     "figwheel-sidecar": "0.5.18"
 }
 const shadowDependencies = {
-    "cider/cider-nrepl": "0.21.1"
+    "cider/cider-nrepl": "0.21.1",
 }
 const leinPluginDependencies = {
     "cider/cider-nrepl": "0.21.1"
 }
 const leinDependencies = {
-    "nrepl": "0.6.0"
+    "nrepl": "0.6.0",
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
@@ -126,7 +127,7 @@ const projectTypes: {
             }
 
             if (profiles.length) {
-                out.push("with-profile", profiles.map(x => x.substr(1)).join(','));
+                out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
             }
             //out.push("update-in", ":middleware", "conj", `cider-nrepl.plugin/middleware`, '--')
             out.push("repl", ":headless");
@@ -171,10 +172,10 @@ const projectTypes: {
 
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
-
+            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : ''
             for (let dep in dependencies)
                 out.push(dep + " {:mvn/version \\\"" + dependencies[dep] + "\\\"}")
-            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`, ...aliases.map(x => "-A" + x)]
+            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
         }
     },
     "shadow-cljs": {
@@ -220,7 +221,7 @@ vscode.tasks.onDidStartTaskProcess(e => {
                 state.cursor.set("launching", null);
                 watcher.close();
                 await connector.connect(true, true);
-                chan.appendLine("Jack-in done.");
+                chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
             }
         })
     }
@@ -235,7 +236,7 @@ export async function calvaJackIn() {
     // figure out what possible kinds of project we're in
     let cljTypes = detectProjectType();
     if (cljTypes.length == 0) {
-        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn. (Boot projects are not supported by Jack-in yet. You'll need to start those manually, then connect Calva.");
+        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn.");
         state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
         return;
     }
@@ -244,7 +245,12 @@ export async function calvaJackIn() {
     let menu: string[] = [];
     for (const clj of cljTypes) {
         menu.push(projectTypes[clj].name);
-        for (const cljs of projectTypes[clj].cljsTypes) {
+        const customCljsRepl = connector.getCustomCLJSRepl();
+        const cljsTypes = projectTypes[clj].cljsTypes.slice();
+        if (customCljsRepl) {
+            cljsTypes.push(customCljsRepl.name);
+        }
+        for (const cljs of cljsTypes) {
             menu.push(`${projectTypes[clj].name} + ${cljs}`);
         }
     }
@@ -268,29 +274,56 @@ export async function calvaJackIn() {
     }
 
     // Now look in our $PATH variable to check the appropriate command exists.
-    let executable = findInPath(isWin ? projectType.winCmd : projectType.cmd);
+    const cmd = isWin ? projectType.winCmd : projectType.cmd;
+    let executable = findInPath(cmd);
+    let integrated_shell;
 
     if (!executable) {
         // It doesn't, do not proceed
         state.analytics().logEvent("REPL", "JackInInterrupted", "CommandNotInPath").send();
-        vscode.window.showErrorMessage(projectType.cmd + " is not on your PATH, please add it.")
+        vscode.window.showErrorMessage(cmd + " is not on your PATH, please add it.")
         return;
     }
 
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await projectType.commandLine(selectedCljsType != "");
 
+    let shellSettingsShouldBeChangedByUs = false;
+    let shellSettingsChangedByUs = false;
+
     if (executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
         args = args.map(escapeString) as Array<string>;
         args.unshift(executable);
         executable = "powershell.exe";
+    } else if (executable.endsWith(".bat")) {
+        // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
+        let windowsterminalssettings  = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
+        integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
+        if (!integrated_shell || !integrated_shell.endsWith("cmd.exe")) {
+            shellSettingsShouldBeChangedByUs = true;
+            outputChannel.appendLine("Jack-in needs to use cmd.exe to work. Allow the (temporary) switch, please.");
+            await vscode.workspace.getConfiguration()
+                .update("terminal.integrated.shell.windows", "C:\\Windows\\System32\\cmd.exe")
+                .then(
+                    () => {
+                        shellSettingsChangedByUs = true;
+                    },
+                    (reason) => {
+                        outputChannel.appendLine("Jack-in aborted, since it won't work without using cmd.exe");
+                    }
+                );
+        }
     }
 
+    if (shellSettingsShouldBeChangedByUs && !shellSettingsChangedByUs) {
+        state.analytics().logEvent("REPL", "JackInInterrupted", "Powershell user wont allow change of shell setting").send();
+        return;
+    }
     state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
 
-    const env = { ...process.env, ...state.config().jackInEnv };
+    const env = { ...process.env, ...state.config().jackInEnv } as { [key: string]: string; };
 
     const execution = new vscode.ShellExecution(executable, args, {
         cwd: utilities.getProjectDir(),
@@ -306,7 +339,6 @@ export async function calvaJackIn() {
     const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
-
     vscode.tasks.executeTask(task).then(
         (v) => {
         },
@@ -314,4 +346,14 @@ export async function calvaJackIn() {
             watcher.close()
             outputChannel.appendLine("Error in Jack-in: " + reason);
         });
+
+    if (executable.endsWith(".bat") && shellSettingsChangedByUs) {
+        setTimeout(() => { // Need to give the task shell time to start
+            vscode.workspace.getConfiguration()
+                .update("terminal.integrated.shell.windows", integrated_shell)
+                .then(() => {
+                    integrated_shell = undefined;
+                });
+        }, 2000);
+    }
 }

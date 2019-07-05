@@ -107,9 +107,9 @@ export class NReplClient {
                 })
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
-            })
+            });
             let client = new NReplClient(socket);
-        })
+        });
     }
 }
 
@@ -193,7 +193,13 @@ export class NReplSession {
     }
 
     eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean } = {}) {
-        let id = this.client.nextId;
+        const id = this.client.nextId,
+            pprintOpts = opts.pprint ? {
+                "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
+                "nrepl.middleware.print/options": {
+                    "width": 120,
+                }
+            } : {};
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             let ex;
@@ -227,8 +233,7 @@ export class NReplSession {
                     return true;
                 }
             }
-            const opMsg = { op: "eval", session: this.sessionId, code, id, ...opts };
-            //console.log(opMsg);
+            const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
             this.client.write(opMsg);
         }))
 
@@ -262,7 +267,9 @@ export class NReplSession {
                 if (msg.err)
                     evaluation.out(msg.err)
                 if (msg.ex) {
-                    this.stacktrace().then(ex => reject(ex));
+                    this.stacktrace().then(ex => reject(ex)).catch(reason => {
+                        console.error("Problems processing the stack trace: ", reason);
+                    });
                 }
                 if (msg.status && msg.status.indexOf("done") != -1)
                     return true;

@@ -86,7 +86,9 @@ function config() {
         jokerPath: configOptions.get("jokerPath"),
         useWSL: configOptions.get("useWSL"),
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
-        jackInEnv: configOptions.get("jackInEnv")
+        jackInEnv: configOptions.get("jackInEnv"),
+        openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted"),
+        customCljsRepl: configOptions.get("customCljsRepl", null)
     };
 }
 

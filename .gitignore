@@ -1,7 +1,5 @@
-package-lock.json
-
 # visual code
-*.vsix
+/*.vsix
 .vscode/settings.json
 
 # Logs
@@ -60,3 +58,5 @@ pom.xml
 ## TS
 out/
 html/main.js
+tsconfig.tsbuildinfo
+html/main.js.map

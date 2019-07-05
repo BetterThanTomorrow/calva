@@ -42,7 +42,7 @@ Install it and edit away. It will keep the code fomatted mostly as you type, in 
 
 ## You might not need to install it
 
-*Calva Formatter* comes bundled with [Calva](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode)
+*Calva Formatter* comes bundled with [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
 
 ## Written in ClojureScipt
 

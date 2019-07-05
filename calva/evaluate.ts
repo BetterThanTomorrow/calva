@@ -5,8 +5,9 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
+import { activeReplWindow } from './repl-window';
+import { NReplSession } from './nrepl';
 
-/// FIXME: We need to add pprint options back in.
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = state.outputChannel(),
@@ -47,7 +48,7 @@ async function evaluateSelection(document = {}, options = {}) {
                 value = context.pprintOut || value;
 
                 if (replace) {
-                    const indent = `${' '.repeat(c)};`,
+                    const indent = `${' '.repeat(c)}`,
                         edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
@@ -55,11 +56,11 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine("Replaced inline.")
                 } else if (asComment) {
                     const indent = `${' '.repeat(c)}`,
-                        output = value.replace(/\"/gm, "").split("\\n").join(`\n${indent};;    `),
-                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}`),
+                        output = value.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `),
+                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit).then((_v) => { 
+                    vscode.workspace.applyEdit(wsEdit).then((_v) => {
                         editor.selection = selection;
                     });
                     chan.appendLine("Evaluated as comment.")
@@ -70,34 +71,31 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
 
                 if (out.length > 0) {
-                    chan.append("out: ")
-                    chan.append(out.map(x => x.replace("\n$", "")).join("\n"));
+                    chan.appendLine("stdout:");
+                    chan.appendLine(out.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                 }
-                chan.append('=> ');
+                chan.appendLine('=>');
                 if (pprint) {
-                    chan.appendLine('');
                     chan.show(true);
                     chan.appendLine(value);
                 } else chan.appendLine(value);
 
                 if (err.length > 0) {
-                    chan.append("Error: ")
-                    chan.append(err.join("\n"));
+                    chan.appendLine("Error:")
+                    chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
                     if (err.length > 0) {
-                        chan.append("Error: ")
-                        chan.append(err.join("\n"));
+                        chan.appendLine("Error:")
+                        chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
                     }
                 }
 
                 annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                if (!pprint) {
-                    const annotation = err.join();
-                    annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
-                }
+                const annotation = err.join();
+                annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
             }
         }
     } else
@@ -133,7 +131,7 @@ async function loadFile(document = {}, callback = () => { }) {
         shortFileName = path.basename(fileName),
         dirName = path.dirname(fileName);
 
-    if (doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
         chan.show(true);
@@ -153,9 +151,21 @@ async function loadFile(document = {}, callback = () => { }) {
     callback();
 }
 
+async function requireREPLUtilitiesCommand() {
+    const chan = state.outputChannel(),
+        replWindow = activeReplWindow(),
+        session: NReplSession = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({}))),
+        CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
+        CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
+        form = util.getREPLSessionType() == "cljs" ? CLJS_FORM : CLJ_FORM;
+    await session.eval(form);
+    chan.appendLine("REPL utilities (like apropos, dir, doc, find-doc, pst, and source) are now available.");
+}
+
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
-    let client = util.getSession(util.getFileType(util.getDocument({})));
+    const replWindow = activeReplWindow();
+    let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;
     if (value !== null)
@@ -172,5 +182,6 @@ export default {
     evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
-    copyLastResultCommand
+    copyLastResultCommand,
+    requireREPLUtilitiesCommand
 };

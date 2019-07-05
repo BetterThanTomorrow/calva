@@ -8,11 +8,12 @@
 !clojure.tmLanguage.json
 !html/**
 !out/**
-!cljs-out/**
 !package.json
-!node_modules/**
 !assets/**
 !README.md
 !CHANGELOG.md
 !LICENSE.txt
 
+# When not using webpack to bundle these need to be on the whitelist
+# !node_modules/**
+# !cljs-out/**
