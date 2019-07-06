@@ -143,7 +143,7 @@
 					"name": "punctuation.definition.comment.end.clojure"
 				}
 			},
-			"name": "meta.ignore.clojure",
+			"name": "markup.italic.markdown",
 			"patterns": [
 				{
 					"include": "#string"
@@ -163,7 +163,7 @@
 					"name": "punctuation.definition.comment.end.clojure"
 				}
 			},
-			"name": "meta.ignore.clojure",
+			"name": "markup.italic.markdown",
 			"patterns": [
 				{
 					"include": "#regexp"
@@ -183,7 +183,7 @@
 					"name": "punctuation.definition.comment.end.clojure"
 				}
 			},
-			"name": "meta.ignore.clojure",
+			"name": "markup.italic.markdown",
 			"patterns": [
 				{
 					"include": "#var"
@@ -215,7 +215,7 @@
 					"name": "punctuation.definition.comment.end.clojure"
 				}
 			},
-			"name": "meta.ignore.clojure",
+			"name": "markup.italic.markdown",
 			"patterns": [
 				{
 					"include": "$self"
@@ -235,7 +235,7 @@
 					"name": "punctuation.definition.comment.end.clojure"
 				}
 			},
-			"name": "meta.ignore.clojure",
+			"name": "markup.italic.markdown",
 			"patterns": [
 				{
 					"include": "$self"
@@ -255,7 +255,7 @@
 					"name": "punctuation.definition.comment.end.clojure"
 				}
 			},
-			"name": "meta.ignore.clojure",
+			"name": "markup.italic.markdown",
 			"patterns": [
 				{
 					"include": "$self"
