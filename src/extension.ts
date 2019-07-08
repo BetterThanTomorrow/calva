@@ -11,11 +11,11 @@ export function activate(context: vscode.ExtensionContext) {
                  ["#(",  ")"],
                  ["#{",  "}"],
                  ["#?(", ")"],
-                 ["#?@(",")"]];
+                 ["#?@(",")"],];
   const opening  = {},
         closing  = {},
         pairings = {},
-        tokens   = ['"', "\\.", ";", "\n"];
+        tokens   = ['"', "\\.", ";", "\n", "#_"];
   pairs.forEach(pair => {
     const [o,c]   = pair;
     opening[o]    = true;
@@ -23,9 +23,9 @@ export function activate(context: vscode.ExtensionContext) {
     pairings[o+c] = true;
     tokens.push(o, c);
   });
-  const regexp = new RegExp("(" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
+  const regexp = new RegExp("(" + "\\bcomment\\b|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
-  function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; } 
+  function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
   vscode.commands.registerCommand("clojureWarrior.jumpToMatchingBracket", jumpToMatchingBracket);
   vscode.commands.registerCommand("clojureWarrior.selectToMatchingBracket", selectToMatchingBracket);
@@ -34,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
       configuration: vscode.WorkspaceConfiguration,
       rainbowColors,
       rainbowTypes:  vscode.TextEditorDecorationType[],
+      commentType: vscode.TextEditorDecorationType,
       cycleBracketColors,
       misplacedBracketStyle,
       misplacedType: vscode.TextEditorDecorationType,
@@ -68,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
     reloadConfig();
     scheduleRainbowBrackets();
   }, null, context.subscriptions);
-  
+
   function decorationType(opts) {
     opts.rangeBehavior = vscode.DecorationRangeBehavior.ClosedClosed;
     return vscode.window.createTextEditorDecorationType(opts);
@@ -88,7 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (!!misplacedType)
       activeEditor.setDecorations(misplacedType, []);
-    misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"}, 
+    misplacedType = decorationType(misplacedBracketStyle || {light: {color: "#fff", backgroundColor: "#c33"},
       dark: {color: "#ccc", backgroundColor: "#933"},
       overviewRulerColor: new vscode.ThemeColor("editorOverviewRuler.errorForeground"),
         overviewRulerLane: 4});
@@ -96,6 +97,10 @@ export function activate(context: vscode.ExtensionContext) {
     if (!!matchedType)
       activeEditor.setDecorations(matchedType, []);
     matchedType = decorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
+
+    if(!!commentType)
+      activeEditor.setDecorations(commentType, []);
+    commentType = decorationType({ textDecoration: "none; opacity: 0.5" });
 
     dirty = false;
   }
@@ -112,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
       cycleBracketColors = configuration.get<boolean>("cycleBracketColors");
       dirty = true;
     }
-    
+
     if (!isEqual(misplacedBracketStyle, configuration.get("misplacedBracketStyle"))) {
       misplacedBracketStyle = configuration.get("misplacedBracketStyle");
       dirty = true;
@@ -148,6 +153,7 @@ export function activate(context: vscode.ExtensionContext) {
           text          = doc.getText(),
           rainbow       = rainbowTypes.map(()=>[]),
           misplaced     = [],
+          comment_forms = [],
           len           = rainbowTypes.length,
           colorsEnabled = enableBracketColors && len > 0,
           colorIndex    = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len-1));
@@ -155,19 +161,23 @@ export function activate(context: vscode.ExtensionContext) {
     let match,
         in_string = false,
         in_comment = false,
+        in_ignore = false,
+        in_comment_form = false,
         stack = [],
         stack_depth = 0;
     pairsBack = new Map();
     pairsForward = new Map();
     regexp.lastIndex = 0;
     while (match = regexp.exec(text)) {
-      let char = match[0];
+      let char: string = match[0];
       if (in_comment) {
         if (char === "\n") { in_comment = false; continue; }
       } else if (char[0] === "\\") {
         continue;
       } else if (in_string) {
         if (char === "\"") { in_string = false; continue; }
+      } else if (char === "#_") {
+        in_ignore = true;
       } else if (char === ";") {
         in_comment = true;
         continue;
@@ -176,44 +186,55 @@ export function activate(context: vscode.ExtensionContext) {
         continue;
       } else if (char === "\n") {
         continue;
-      } else if (opening[char]) {
-        const len = char.length,
-              pos = activeEditor.document.positionAt(match.index);
-        if (colorsEnabled) {
-          const decoration = { range: new Range(pos, pos.translate(0,len)) };
-          rainbow[colorIndex(stack_depth)].push(decoration);
+      } else {
+        if (!in_comment_form && char === "comment" && stack[stack.length - 1].char === "(") {
+          in_comment_form = true;
+          stack[stack.length - 1].opens_comment_form = true;
         }
-        ++stack_depth;
-        stack.push({ char: char, pos: pos, pair_idx: undefined});
-        continue;
-      } else if (closing[char]) {
-        const pos = activeEditor.document.positionAt(match.index),
-              decoration = { range: new Range(pos, pos.translate(0,1)) };
-        var pair_idx = stack.length - 1;
-        while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
-          pair_idx = stack[pair_idx].pair_idx - 1;
-        }
-        if (pair_idx === undefined || pair_idx < 0 || !pairings[stack[pair_idx].char + char]) {
-          misplaced.push(decoration);
-        } else {
-          let pair = stack[pair_idx],
+        if (opening[char]) {
+          const len = char.length,
+            pos = activeEditor.document.positionAt(match.index);
+          if (colorsEnabled) {
+            const decoration = { range: new Range(pos, pos.translate(0, len)) };
+            rainbow[colorIndex(stack_depth)].push(decoration);
+          }
+          ++stack_depth;
+          stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false });
+          continue;
+        } else if (closing[char]) {
+          const pos = activeEditor.document.positionAt(match.index),
+            decoration = { range: new Range(pos, pos.translate(0, 1)) };
+          var pair_idx = stack.length - 1;
+          while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
+            pair_idx = stack[pair_idx].pair_idx - 1;
+          }
+          if (pair_idx === undefined || pair_idx < 0 || !pairings[stack[pair_idx].char + char]) {
+            misplaced.push(decoration);
+          } else {
+            let pair = stack[pair_idx],
               closing = new Range(pos, pos.translate(0, char.length)),
               opening = new Range(pair.pos, pair.pos.translate(0, pair.char.length));
-          stack.push({ char: char, pos: pos, pair_idx: pair_idx });
-          for (let i=0; i<char.length; ++i)
-            pairsBack.set(position_str(pos.translate(0,i)), [opening, closing]);
-          for (let i=0; i<pair.char.length; ++i)
-            pairsForward.set(position_str(pair.pos.translate(0,i)), [opening, closing]);
-          --stack_depth;
-          if (colorsEnabled) rainbow[colorIndex(stack_depth)].push(decoration);
+            if (in_comment_form && pair.opens_comment_form) {
+              in_comment_form = false;
+              comment_forms.push(new Range(pair.pos, pos.translate(0, char.length)));
+            }
+            stack.push({ char: char, pos: pos, pair_idx: pair_idx });
+            for (let i = 0; i < char.length; ++i)
+              pairsBack.set(position_str(pos.translate(0, i)), [opening, closing]);
+            for (let i = 0; i < pair.char.length; ++i)
+              pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
+            --stack_depth;
+            if (colorsEnabled) rainbow[colorIndex(stack_depth)].push(decoration);
+          }
+          continue;
         }
-        continue;
       }
     }
     for (var i=0; i<rainbowTypes.length; ++i) {
       activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
     }
     activeEditor.setDecorations(misplacedType, misplaced);
+    activeEditor.setDecorations(commentType, comment_forms);
     matchPairs();
   }
 
@@ -247,7 +268,7 @@ export function activate(context: vscode.ExtensionContext) {
         matches.push({range: match_after[1]});
       }
     });
-    activeEditor.setDecorations(matchedType, matches);  
+    activeEditor.setDecorations(matchedType, matches);
   }
 
   function jumpToMatchingBracket() {
@@ -270,7 +291,7 @@ export function activate(context: vscode.ExtensionContext) {
   function selectToMatchingBracket() {
     if (!is_clojure(activeEditor)) return;
 
-    
+
     activeEditor.selections = activeEditor.selections.map(selection => {
       const cursor = selection.active,
             match_before  = matchBefore(selection),
