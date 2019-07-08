@@ -23,10 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
     pairings[o+c] = true;
     tokens.push(o, c);
   });
-  const regexp = new RegExp("(" + "\\bcomment\\b|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g"),
-  commentFormStyles = {"dimmed": {textDecoration: "none; opacity: 0.5"},
-                       "italics": {fontStyle: "italic"},
-                       "comment": {color: new vscode.ThemeColor("editorLineNumber.foreground")}};
+  const regexp = new RegExp("(" + "\\bcomment\\b|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -37,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
       configuration: vscode.WorkspaceConfiguration,
       rainbowColors,
       rainbowTypes:  vscode.TextEditorDecorationType[],
-      commentFormStyle: "dimmed" | "italics" | "comment",
+      commentFormStyle,
       commentFormType: vscode.TextEditorDecorationType,
       cycleBracketColors,
       misplacedBracketStyle,
@@ -104,7 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if(!!commentFormType)
       activeEditor.setDecorations(commentFormType, []);
-    commentFormType = decorationType(commentFormStyles[commentFormStyle]);
+    commentFormType = decorationType(commentFormStyle);
 
     dirty = false;
   }
@@ -203,7 +200,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (opening[char]) {
           const len = char.length,
             pos = activeEditor.document.positionAt(match.index);
-          if (colorsEnabled && !(commentFormStyle === "comment" && in_comment_form)) {
+          if (colorsEnabled) {
             const decoration = { range: new Range(pos, pos.translate(0, len)) };
             rainbow[colorIndex(stack_depth)].push(decoration);
           }
@@ -233,7 +230,7 @@ export function activate(context: vscode.ExtensionContext) {
             for (let i = 0; i < pair.char.length; ++i)
               pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
             --stack_depth;
-            if (colorsEnabled && !(commentFormStyle === "comment" && in_comment_form)) rainbow[colorIndex(stack_depth)].push(decoration);
+            if (colorsEnabled) rainbow[colorIndex(stack_depth)].push(decoration);
           }
           continue;
         }

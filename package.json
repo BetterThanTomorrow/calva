@@ -82,9 +82,11 @@
 					"scope": "resource"
 				},
 				"clojureWarrior.commentFormStyle": {
-					"type": "string",
-					"default": "dimmed",
-					"enum": ["dimmed", "italics", "comment"],
+					"type": "object",
+					"default": {
+						"textDecoration": "none; opacity: 0.5"
+					},
+					"description": "Style of `(comment)` forms",
 					"scope": "resource"
 				}
 			}
