@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
                  ["#(",  ")"],
                  ["#{",  "}"],
                  ["#?(", ")"],
-                 ["#?@(",")"],];
+                 ["#?@(",")"]];
   const opening  = {},
         closing  = {},
         pairings = {},
@@ -23,7 +23,10 @@ export function activate(context: vscode.ExtensionContext) {
     pairings[o+c] = true;
     tokens.push(o, c);
   });
-  const regexp = new RegExp("(" + "\\bcomment\\b|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
+  const regexp = new RegExp("(" + "\\bcomment\\b|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g"),
+  commentFormStyles = {"dimmed": {textDecoration: "none; opacity: 0.5"},
+                       "italics": {fontStyle: "italic"},
+                       "comment": new vscode.ThemeColor("comment")};
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -34,7 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
       configuration: vscode.WorkspaceConfiguration,
       rainbowColors,
       rainbowTypes:  vscode.TextEditorDecorationType[],
-      commentType: vscode.TextEditorDecorationType,
+      commentFormStyle: "dimmed" | "italics" | "comment",
+      commentFormType: vscode.TextEditorDecorationType,
       cycleBracketColors,
       misplacedBracketStyle,
       misplacedType: vscode.TextEditorDecorationType,
@@ -98,9 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
       activeEditor.setDecorations(matchedType, []);
     matchedType = decorationType(matchedBracketStyle || {light: {backgroundColor: "#d0d0d0"}, dark: {backgroundColor: "#444"}});
 
-    if(!!commentType)
-      activeEditor.setDecorations(commentType, []);
-    commentType = decorationType({ textDecoration: "none; opacity: 0.5" });
+    if(!!commentFormType)
+      activeEditor.setDecorations(commentFormType, []);
+    commentFormType = decorationType(commentFormStyles[commentFormStyle]);
 
     dirty = false;
   }
@@ -130,6 +134,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (enableBracketColors !== configuration.get<boolean>("enableBracketColors")) {
       enableBracketColors = configuration.get<boolean>("enableBracketColors");
+      dirty = true;
+    }
+
+    if (!isEqual(commentFormStyle, configuration.get("commentFormStyle"))) {
+      commentFormStyle = configuration.get("commentFormStyle");
       dirty = true;
     }
 
@@ -234,7 +243,7 @@ export function activate(context: vscode.ExtensionContext) {
       activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
     }
     activeEditor.setDecorations(misplacedType, misplaced);
-    activeEditor.setDecorations(commentType, comment_forms);
+    activeEditor.setDecorations(commentFormType, comment_forms);
     matchPairs();
   }
 

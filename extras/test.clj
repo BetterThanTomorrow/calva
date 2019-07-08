@@ -44,6 +44,8 @@
 "(comment foo)"
 foo(comment)bar
 ( comment )
+(
+ comment "[foo]")
 (comment
   (Math/abs -1)
   (range 10)
