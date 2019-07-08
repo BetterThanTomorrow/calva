@@ -35,10 +35,10 @@ describe "Clojure grammar", ->
 
   it "tokenizes ignored strings", ->
     {tokens} = grammar.tokenizeLine '#_"foo bar"'
-    expect(tokens[0]).toEqual value: '#_', scopes: ["source.clojure", "markup.italic.markdown", "punctuation.definition.comment.begin.clojure"]
-    expect(tokens[1]).toEqual value: '"', scopes: ["source.clojure", "markup.italic.markdown", "string.quoted.double.clojure", "punctuation.definition.string.begin.clojure"]
-    expect(tokens[2]).toEqual value: 'foo bar', scopes: ["source.clojure", "markup.italic.markdown", "string.quoted.double.clojure"]
-    expect(tokens[3]).toEqual value: '"', scopes: ["source.clojure", "markup.italic.markdown", "string.quoted.double.clojure", "punctuation.definition.string.end.clojure"]
+    expect(tokens[0]).toEqual value: '#_', scopes: ["source.clojure", "markup.italic.clojure", "punctuation.definition.comment.begin.clojure"]
+    expect(tokens[1]).toEqual value: '"', scopes: ["source.clojure", "markup.italic.clojure", "string.quoted.double.clojure", "punctuation.definition.string.begin.clojure"]
+    expect(tokens[2]).toEqual value: 'foo bar', scopes: ["source.clojure", "markup.italic.clojure", "string.quoted.double.clojure"]
+    expect(tokens[3]).toEqual value: '"', scopes: ["source.clojure", "markup.italic.clojure", "string.quoted.double.clojure", "punctuation.definition.string.end.clojure"]
 
   it "tokenizes character escape sequences", ->
     {tokens} = grammar.tokenizeLine '"\\n"'
@@ -54,10 +54,10 @@ describe "Clojure grammar", ->
 
   it "tokenizes ignored regexes", ->
     {tokens} = grammar.tokenizeLine '#_#"foo *bar"'
-    expect(tokens[0]).toEqual value: '#_', scopes: ["source.clojure", "markup.italic.markdown", "punctuation.definition.comment.begin.clojure"]
-    expect(tokens[1]).toEqual value: '#"', scopes: ["source.clojure", "markup.italic.markdown", "string.regexp.clojure", "punctuation.definition.regexp.begin.clojure"]
-    expect(tokens[2]).toEqual value: 'foo *bar', scopes: ["source.clojure", "markup.italic.markdown", "string.regexp.clojure"]
-    expect(tokens[3]).toEqual value: '"', scopes: ["source.clojure", "markup.italic.markdown", "string.regexp.clojure", "punctuation.definition.regexp.end.clojure"]
+    expect(tokens[0]).toEqual value: '#_', scopes: ["source.clojure", "markup.italic.clojure", "punctuation.definition.comment.begin.clojure"]
+    expect(tokens[1]).toEqual value: '#"', scopes: ["source.clojure", "markup.italic.clojure", "string.regexp.clojure", "punctuation.definition.regexp.begin.clojure"]
+    expect(tokens[2]).toEqual value: 'foo *bar', scopes: ["source.clojure", "markup.italic.clojure", "string.regexp.clojure"]
+    expect(tokens[3]).toEqual value: '"', scopes: ["source.clojure", "markup.italic.clojure", "string.regexp.clojure", "punctuation.definition.regexp.end.clojure"]
 
   it "tokenizes backslash escape character in regexes", ->
     {tokens} = grammar.tokenizeLine '#"\\\\" "/"'
@@ -90,7 +90,7 @@ describe "Clojure grammar", ->
         {tokens} = grammar.tokenizeLine num
         expect(tokens[0]).toEqual value: num, scopes: ["source.clojure", scope]
         {tokens} = grammar.tokenizeLine "#_#{num}"
-        expect(tokens[1]).toEqual value: num, scopes: ["source.clojure", "markup.italic.markdown", scope]
+        expect(tokens[1]).toEqual value: num, scopes: ["source.clojure", "markup.italic.clojure", scope]
 
   it "tokenizes booleans", ->
     booleans =
@@ -101,13 +101,13 @@ describe "Clojure grammar", ->
         {tokens} = grammar.tokenizeLine bool
         expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
         {tokens} = grammar.tokenizeLine "#_#{bool}"
-        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", "markup.italic.markdown", scope]
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", "markup.italic.clojure", scope]
 
   it "tokenizes nil", ->
     {tokens} = grammar.tokenizeLine "nil"
     expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
     {tokens} = grammar.tokenizeLine "#_nil"
-    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "markup.italic.markdown", "constant.language.nil.clojure"]
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "markup.italic.clojure", "constant.language.nil.clojure"]
 
   it "tokenizes keywords", ->
     tests =
@@ -115,7 +115,7 @@ describe "Clojure grammar", ->
       "meta.map.clojure": ["{:foo}"]
       "meta.vector.clojure": ["[:foo]"]
       "meta.quoted-expression.clojure": ["'(:foo)", "`(:foo)"]
-      "markup.italic.markdown": ["#_:foo"]
+      "markup.italic.clojure": ["#_:foo"]
 
     for metaScope, lines of tests
       for line in lines
@@ -192,7 +192,7 @@ describe "Clojure grammar", ->
       {tokens} = grammar.tokenizeLine expr
       expect(tokens[1]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
       {tokens} = grammar.tokenizeLine "#_#{expr}"
-      expect(tokens[2]).toEqual value: "foo", scopes: ["source.clojure", "markup.italic.markdown", "meta.expression.clojure", "entity.name.function.clojure"]
+      expect(tokens[2]).toEqual value: "foo", scopes: ["source.clojure", "markup.italic.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
 
     #non-ASCII letters
     {tokens} = grammar.tokenizeLine "(Öπ 2 20)"
@@ -249,12 +249,12 @@ describe "Clojure grammar", ->
 
     [ignoreStart, start, mid..., end] = tokens
 
-    expect(ignoreStart).toEqual value: "#_", scopes: ["source.clojure", "markup.italic.markdown", "punctuation.definition.comment.begin.clojure"]
-    expect(start).toEqual value: startsWith, scopes: ["source.clojure", "markup.italic.markdown", "meta.#{metaScope}.clojure", "punctuation.section.#{puncScope}.begin.clojure"]
-    expect(end).toEqual value: endsWith, scopes: ["source.clojure", "markup.italic.markdown", "meta.#{metaScope}.clojure", "punctuation.section.#{puncScope}.end.trailing.clojure"]
+    expect(ignoreStart).toEqual value: "#_", scopes: ["source.clojure", "markup.italic.clojure", "punctuation.definition.comment.begin.clojure"]
+    expect(start).toEqual value: startsWith, scopes: ["source.clojure", "markup.italic.clojure", "meta.#{metaScope}.clojure", "punctuation.section.#{puncScope}.begin.clojure"]
+    expect(end).toEqual value: endsWith, scopes: ["source.clojure", "markup.italic.clojure", "meta.#{metaScope}.clojure", "punctuation.section.#{puncScope}.end.trailing.clojure"]
 
     for token in mid
-      expect(token.scopes.slice(0, 3)).toEqual ["source.clojure", "markup.italic.markdown", "meta.#{metaScope}.clojure"]
+      expect(token.scopes.slice(0, 3)).toEqual ["source.clojure", "markup.italic.clojure", "meta.#{metaScope}.clojure"]
 
 
     # Expression broken over multiple lines.

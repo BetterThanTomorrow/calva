@@ -167,7 +167,7 @@
     'endCaptures':
       '0':
         'name': 'punctuation.definition.comment.end.clojure'
-    'name': 'markup.italic.markdown'
+    'name': 'markup.italic.clojure'
     'patterns': [
       {
         'include': '#string'
@@ -182,7 +182,7 @@
     'endCaptures':
       '0':
         'name': 'punctuation.definition.comment.end.clojure'
-    'name': 'markup.italic.markdown'
+    'name': 'markup.italic.clojure'
     'patterns': [
       {
         'include': '#regexp'
@@ -197,7 +197,7 @@
     'endCaptures':
       '0':
         'name': 'punctuation.definition.comment.end.clojure'
-    'name': 'markup.italic.markdown'
+    'name': 'markup.italic.clojure'
     'patterns': [
       {
         'include': '#var'
@@ -224,7 +224,7 @@
     'endCaptures':
       '0':
         'name': 'punctuation.definition.comment.end.clojure'
-    'name': 'markup.italic.markdown'
+    'name': 'markup.italic.clojure'
     'patterns': [
       {
         'include': '$self'
@@ -239,7 +239,7 @@
     'endCaptures':
       '0':
         'name': 'punctuation.definition.comment.end.clojure'
-    'name': 'markup.italic.markdown'
+    'name': 'markup.italic.clojure'
     'patterns': [
       {
         'include': '$self'
@@ -254,7 +254,7 @@
     'endCaptures':
       '0':
         'name': 'punctuation.definition.comment.end.clojure'
-    'name': 'markup.italic.markdown'
+    'name': 'markup.italic.clojure'
     'patterns': [
       {
         'include': '$self'
