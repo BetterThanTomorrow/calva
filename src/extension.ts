@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
   const regexp = new RegExp("(" + "\\bcomment\\b|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g"),
   commentFormStyles = {"dimmed": {textDecoration: "none; opacity: 0.5"},
                        "italics": {fontStyle: "italic"},
-                       "comment": new vscode.ThemeColor("comment")};
+                       "comment": {color: new vscode.ThemeColor("editorLineNumber.foreground")}};
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -203,7 +203,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (opening[char]) {
           const len = char.length,
             pos = activeEditor.document.positionAt(match.index);
-          if (colorsEnabled) {
+          if (colorsEnabled && !(commentFormStyle === "comment" && in_comment_form)) {
             const decoration = { range: new Range(pos, pos.translate(0, len)) };
             rainbow[colorIndex(stack_depth)].push(decoration);
           }
@@ -233,7 +233,7 @@ export function activate(context: vscode.ExtensionContext) {
             for (let i = 0; i < pair.char.length; ++i)
               pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
             --stack_depth;
-            if (colorsEnabled) rainbow[colorIndex(stack_depth)].push(decoration);
+            if (colorsEnabled && !(commentFormStyle === "comment" && in_comment_form)) rainbow[colorIndex(stack_depth)].push(decoration);
           }
           continue;
         }
