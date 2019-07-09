@@ -134,7 +134,6 @@ async function loadFile(document = {}, callback = () => { }) {
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
-        chan.show(true);
 
         let value = await client.loadFile(doc.getText(), {
             fileName: fileName,
