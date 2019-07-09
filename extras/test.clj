@@ -65,3 +65,24 @@ foo(comment)bar
   foo)
 (comment foo (comment bar))
 (foo (comment ({["(comment)"]})) ([{"(comment)"}]))
+
+#_foo bar
+#_ foo bar
+#_,foo,bar
+#_
+foo bar
+#_
+foo
+bar
+#_(:bar [#{foo}])
+([{#_"foo"}])
+[:a
+ #_
+ [:b
+  [:c {:d :e}]]
+ [:b
+  [:c {:d :e}]]]
+(comment 
+  (foo #_"bar" baz))
+#_{:foo "foo"
+   :bar (comment [["bar"]])}
