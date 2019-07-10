@@ -1,3 +1,7 @@
+# 0.2.2 - July 10, 2019
+
+- Comment decoration (#14 by @PEZ)
+
 # 0.2.1 - July 4, 2019
 
 - Removed `configurationDefault` as it was conflicting with Calva (#13)
