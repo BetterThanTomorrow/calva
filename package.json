@@ -447,7 +447,13 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardUpSexp",
-                "title": "Up Sexp",
+                "title": "Backward Up Sexp",
+                "enablement": "calva:activated"
+            },
+	    {
+                "category": "Calva Paredit",
+                "command": "paredit.forwardUpSexp",
+                "title": "Forward Up Sexp",
                 "enablement": "calva:activated"
             },
             {
@@ -796,6 +802,11 @@
             {
                 "command": "paredit.backwardUpSexp",
                 "key": "ctrl+up",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.forwardUpSexp",
+                "key": "ctrl+alt+up",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {

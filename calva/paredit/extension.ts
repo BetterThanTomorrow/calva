@@ -109,6 +109,7 @@ const navCopyCutcommands = {
     'backwardSexp': paredit.navigator.backwardSexp,
     'forwardDownSexp': paredit.navigator.forwardDownSexp,
     'backwardUpSexp': paredit.navigator.backwardUpSexp,
+    'forwardUpSexp': paredit.navigator.forwardUpSexp,
     'closeList': paredit.navigator.closeList
 };
 
@@ -204,6 +205,7 @@ const toConsoleCommand = {
     'paredit.backwarddSexp': "backward-sexp",
     'paredit.forwardDownSexp': "down-list",
     'paredit.backwardUpSexp': "backward-up-list",
+    'paredit.forwardUpSexp': "forward-up-list",
     'paredit.deleteBackward': "backspace",
     'paredit.deleteForward': "delete",
 }
