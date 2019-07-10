@@ -1,3 +1,7 @@
+# 0.2.3 - July 10, 2019
+
+- Do not merge defaults for `commentFormStyle` and `ignoredFormStyle`
+
 # 0.2.2 - July 10, 2019
 
 - Comment decoration (#14 by @PEZ)

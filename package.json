@@ -2,7 +2,7 @@
 	"name": "clojure-warrior",
 	"displayName": "Clojure Warrior",
 	"description": "Extension for Clojure development",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"publisher": "tonsky",
 	"license": "MIT",
 	"maintainers": [
@@ -83,13 +83,13 @@
 				},
 				"clojureWarrior.commentFormStyle": {
 					"type": "object",
-					"default": {"textDecoration": "none; opacity: 0.5"},
+					"default": null,
 					"description": "Style of `(comment)` forms",
 					"scope": "resource"
 				},
 				"clojureWarrior.ignoredFormStyle": {
 					"type": "object",
-					"default": {"textDecoration": "none; opacity: 0.5"},
+					"default": null,
 					"description": "Style of `#_` ignored forms",
 					"scope": "resource"
 				}

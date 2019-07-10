@@ -103,11 +103,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     if(!!commentFormType)
       activeEditor.setDecorations(commentFormType, []);
-    commentFormType = decorationType(commentFormStyle);
+    commentFormType = decorationType(commentFormStyle || {"textDecoration": "none; opacity: 0.5"});
 
     if(!!ignoredFormType)
       activeEditor.setDecorations(ignoredFormType, []);
-    ignoredFormType = decorationType(ignoredFormStyle);
+    ignoredFormType = decorationType(ignoredFormStyle || {"textDecoration": "none; opacity: 0.5"});
 
     dirty = false;
   }
