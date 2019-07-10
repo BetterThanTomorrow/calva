@@ -83,11 +83,13 @@
 				},
 				"clojureWarrior.commentFormStyle": {
 					"type": "object",
+					"default": {"textDecoration": "none; opacity: 0.5"},
 					"description": "Style of `(comment)` forms",
 					"scope": "resource"
 				},
-				"clojureWarrior.ignoreStyle": {
+				"clojureWarrior.ignoredFormStyle": {
 					"type": "object",
+					"default": {"textDecoration": "none; opacity: 0.5"},
 					"description": "Style of `#_` ignored forms",
 					"scope": "resource"
 				}

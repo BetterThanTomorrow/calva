@@ -41,8 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
       matchedType:   vscode.TextEditorDecorationType,
       commentFormStyle,
       commentFormType: vscode.TextEditorDecorationType,
-      ignoreStyle,
-      ignoreType: vscode.TextEditorDecorationType,
+      ignoredFormStyle,
+      ignoredFormType: vscode.TextEditorDecorationType,
       enableBracketColors,
       pairsBack:     Map<string, [Range, Range]> = new Map(),
       pairsForward:  Map<string, [Range, Range]> = new Map(),
@@ -103,11 +103,11 @@ export function activate(context: vscode.ExtensionContext) {
 
     if(!!commentFormType)
       activeEditor.setDecorations(commentFormType, []);
-    commentFormType = decorationType(commentFormStyle || {textDecoration: "none; opacity: 0.5"});
+    commentFormType = decorationType(commentFormStyle);
 
-    if(!!ignoreType)
-      activeEditor.setDecorations(ignoreType, []);
-    ignoreType = decorationType(ignoreStyle || {textDecoration: "none; opacity: 0.5"});
+    if(!!ignoredFormType)
+      activeEditor.setDecorations(ignoredFormType, []);
+    ignoredFormType = decorationType(ignoredFormStyle);
 
     dirty = false;
   }
@@ -145,8 +145,8 @@ export function activate(context: vscode.ExtensionContext) {
       dirty = true;
     }
 
-    if (!isEqual(ignoreStyle, configuration.get("ignoreStyle"))) {
-      ignoreStyle = configuration.get("ignoreStyle");
+    if (!isEqual(ignoredFormStyle, configuration.get("ignoredFormStyle"))) {
+      ignoredFormStyle = configuration.get("ignoredFormStyle");
       dirty = true;
     }
 
@@ -182,7 +182,7 @@ export function activate(context: vscode.ExtensionContext) {
         in_ignore = false,
         ignore_start: Position,
         ignored_text_start: Position,
-        ignore_list_opened = false,
+        ignored_list_opened = false,
         in_comment_form = false,
         stack = [],
         stack_depth = 0;
@@ -209,7 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
         ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
         continue;
       } else if (char.match(/[\s,]+/)) {
-        if (in_ignore && !ignore_list_opened) {
+        if (in_ignore && !ignored_list_opened) {
           in_ignore = false;
           ignores.push(new Range(ignore_start, activeEditor.document.positionAt(match.index)));
         }
@@ -227,9 +227,9 @@ export function activate(context: vscode.ExtensionContext) {
             rainbow[colorIndex(stack_depth)].push(decoration);
           }
           ++stack_depth;
-          const opens_ignore = in_ignore && !ignore_list_opened && pos.isEqual(ignored_text_start);
+          const opens_ignore = in_ignore && !ignored_list_opened && pos.isEqual(ignored_text_start);
           if (opens_ignore)
-            ignore_list_opened = true;
+            ignored_list_opened = true;
           stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false, opens_ignore: opens_ignore });
           continue;
         } else if (closing[char]) {
@@ -249,11 +249,11 @@ export function activate(context: vscode.ExtensionContext) {
               comment_forms.push(new Range(pair.pos, pos.translate(0, char.length)));
               in_comment_form = false;
             }
-            if (in_ignore && (pair.opens_ignore || !ignore_list_opened)) {
-              const ignore_end = ignore_list_opened ? pos.translate(0, char.length) : pos;
+            if (in_ignore && (pair.opens_ignore || !ignored_list_opened)) {
+              const ignore_end = ignored_list_opened ? pos.translate(0, char.length) : pos;
               ignores.push(new Range(ignore_start, ignore_end));
               in_ignore = false;
-              ignore_list_opened = false;
+              ignored_list_opened = false;
             }
             stack.push({ char: char, pos: pos, pair_idx: pair_idx });
             for (let i = 0; i < char.length; ++i)
@@ -272,7 +272,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
     activeEditor.setDecorations(misplacedType, misplaced);
     activeEditor.setDecorations(commentFormType, comment_forms);
-    activeEditor.setDecorations(ignoreType, ignores);
+    activeEditor.setDecorations(ignoredFormType, ignores);
     matchPairs();
   }
 

@@ -35,6 +35,8 @@ Jump to matching bracket commands:
 | `"clojureWarrior.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
 | `"clojureWarrior.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
 | `"clojureWarrior.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
+| `"clojureWarrior.commentFormStyle"` | Style of `(comment ...)` form | `{"textDecoration": "none; opacity: 0.5"}` |
+| `"clojureWarrior.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
 
 To disable VS Code default bracket matching for Clojure files, add this to `settings.json`:
 
@@ -51,6 +53,28 @@ To disable VS Code default bracket matching for Clojure files, add this to `sett
 3. Install
 4. Restart Visual Studio Code (or click `Reload window`)
 5. Open a Clojure/ClojureScript/EDN file
+
+## Workign on Clojure Warrior
+
+Compiling:
+
+```
+cd clojure-warrior
+npm install
+npm run watch
+```
+
+Installing dev version locally:
+
+```
+ln -s `pwd` ~/.vscode/extensions/tonsky.clojure-warrior-0.2.0
+```
+
+Publishing:
+
+```
+vsce publish
+```
 
 ## License
 
