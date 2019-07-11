@@ -86,3 +86,14 @@ bar
   (foo #_"bar" baz))
 #_{:foo "foo"
    :bar (comment [["bar"]])}
+#_^{:foo foo} ^{:foo foo}
+#_@foo @foo
+#_@(foo bar)  @(foo bar)
+#_'(foo bar) '(foo bar)
+#_`(foo bar) `(foo bar)
+#_~(foo bar) ~(foo bar)
+#_'foo 'foo
+#_#foo #foo
+#_@foo @foo
+#_~foo ~foo
+#_#"foo\sbar" #"foo\sbar"
