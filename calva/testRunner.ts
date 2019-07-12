@@ -104,16 +104,34 @@ async function runNamespaceTests(document = {}) {
         doc = util.getDocument(document),
         ns = util.getNamespace(doc),
         nss = [ns];
-    
+
     evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running namespace tests…");
         nss = await considerTestNS(ns, client, nss);
-        let resultPromises = [client.test(nss[0])];
+        let resultPromises = [client.testNs(nss[0])];
         if (nss.length > 1)
-            resultPromises.push(client.test(nss[1]));
+            resultPromises.push(client.testNs(nss[1]));
         let results = await Promise.all(resultPromises);
-        reportTests(results, "Running tests")
+        reportTests(results, "Running tests");
     });
+}
+
+async function runTestUnderCursor() {
+    const doc = util.getDocument({}),
+        client = util.getSession(util.getFileType(doc)),
+        ns = util.getNamespace(doc),
+        test = util.getTestUnderCursor();
+
+    evaluate.loadFile(doc, async () => {
+        state.outputChannel().appendLine(`Running test: ${test}…`);
+        const results = [await client.test(ns, [test])];
+        reportTests(results, `Running test: ${test}`);
+    });
+}
+
+function runTestUnderCursorCommand() {
+    state.outputChannel().show(true);
+    runTestUnderCursor();
 }
 
 function runNamespaceTestsCommand() {
@@ -139,5 +157,6 @@ export default {
     runNamespaceTestsCommand,
     runAllTests,
     runAllTestsCommand,
-    rerunTestsCommand
+    rerunTestsCommand,
+    runTestUnderCursorCommand
 };

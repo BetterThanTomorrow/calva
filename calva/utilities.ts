@@ -10,6 +10,7 @@ const { parseForms } = require('../cljs-out/cljs-lib');
 import * as docMirror from './calva-fmt/ts/docmirror';
 import { TokenCursor, LispTokenCursor } from '@calva/repl-interactor/js/token-cursor';
 import { Token } from '@calva/repl-interactor/js/clojure-lexer';
+import select from './select';
 
 
 export function stripAnsi(str: string) {
@@ -155,6 +156,28 @@ function getNamespace(doc: vscode.TextDocument) {
         }
     }
     return ns;
+}
+
+function getTestUnderCursor() {
+    const doc = getDocument(null);
+    if (doc) {
+        try {
+            const topLevelFormRange = select.getFormSelection(doc, vscode.window.activeTextEditor.selection.active, true),
+                topLevelForm = doc.getText(topLevelFormRange);
+            const forms = parseForms(topLevelForm);
+            if (forms !== undefined) {
+                const formArray = forms.filter(x => x[0] == "deftest");
+                if (formArray != undefined && formArray.length > 0) {
+                    const form = formArray[0].filter(x => typeof (x) == "string");
+                    if (form != undefined) {
+                        return form[1];
+                    }
+                }
+            }
+        } catch (e) {
+            console.log("Error parsing deftest form under cursor." + e);
+        }
+    }
 }
 
 function getStartExpression(text) {
@@ -381,5 +404,6 @@ export {
     getShadowCljsReplStartCode,
     quickPick,
     quickPickSingle,
-    quickPickMulti
+    quickPickMulti,
+    getTestUnderCursor,
 };

@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.24",
+    "version": "2.0.25",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -380,6 +380,12 @@
                 "enablement": "calva:activated"
             },
             {
+                "command": "calva.runTestUnderCursor",
+                "title": "Run current test",
+                "category": "Calva",
+                "enablement": "calva:activated"
+            },
+            {
                 "command": "calva.loadNamespace",
                 "title": "Load current namespace in REPL window",
                 "category": "Calva",
@@ -701,7 +707,7 @@
             },
             {
                 "command": "calva.toggleCLJCSession",
-                "key": "ctrl+alt+c ctrl+alt+t"
+                "key": "ctrl+alt+c ctrl+alt+s"
             },
             {
                 "command": "calva.recreateCljsRepl",
@@ -767,6 +773,10 @@
             {
                 "command": "calva.rerunTests",
                 "key": "ctrl+alt+c ctrl+t"
+            },
+            {
+                "command": "calva.runTestUnderCursor",
+                "key": "ctrl+alt+c ctrl+alt+t"
             },
             {
                 "command": "calva.loadNamespace",
