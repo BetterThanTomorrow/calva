@@ -1,3 +1,7 @@
+# 0.2.4 - July 12, 2019
+
+- Fixed trailing whitespace in comment, symbols with word comment in them (#15, #17)
+
 # 0.2.3 - July 10, 2019
 
 - Do not merge defaults for `commentFormStyle` and `ignoredFormStyle`

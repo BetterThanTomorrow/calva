@@ -22,6 +22,7 @@
 ;; \
 "()"
 ;; \
+;; 
 (((((())))))
 ([ { }()[]] )
 
@@ -53,6 +54,7 @@
 (foo) comment (bar)
 "(comment foo)"
 foo(comment)bar
+(def contains-comment (go-fish))
 ( comment )
 (
  comment "[foo]")

@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
     pairings[o+c] = true;
     tokens.push(o, c);
   });
-  const regexp = new RegExp("(" + "#_[\\s,~@'^`]*|\\bcomment\\b|[\\s,]+|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
+  const regexp = new RegExp("(#_[\\s,~@'^`]*|(?<=[ ,(])comment(?=\\s)|[\\s,]+|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -192,7 +192,7 @@ export function activate(context: vscode.ExtensionContext) {
     while (match = regexp.exec(text)) {
       let char: string = match[0];
       if (in_comment) {
-        if (char.startsWith("\n")) { in_comment = false; continue; }
+        if (char.includes("\n")) { in_comment = false; continue; }
       } else if (char[0] === "\\") {
         continue;
       } else if (in_string) {
