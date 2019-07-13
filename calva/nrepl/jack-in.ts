@@ -298,7 +298,7 @@ export async function calvaJackIn() {
         executable = "powershell.exe";
     } else if (executable.endsWith(".bat")) {
         // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
-        let windowsterminalssettings  = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
+        let windowsterminalssettings = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
         integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
         if (!integrated_shell || !integrated_shell.endsWith("cmd.exe")) {
             shellSettingsShouldBeChangedByUs = true;
@@ -322,6 +322,11 @@ export async function calvaJackIn() {
     }
     state.cursor.set("launching", projectTypeSelection)
     statusbar.update();
+
+    const nreplPortFile = connector.nreplPortFile();
+    if (nreplPortFile && fs.existsSync(nreplPortFile)) {
+        fs.unlinkSync(nreplPortFile);
+    }
 
     const env = { ...process.env, ...state.config().jackInEnv } as { [key: string]: string; };
 

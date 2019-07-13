@@ -391,7 +391,7 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-function nreplPortFile() {
+function nreplPortFile(): string {
     let editor = vscode.window.visibleTextEditors.find(x => x.document.languageId == "clojure");
     if (editor) {
         let d = path.dirname(editor.document.fileName);
