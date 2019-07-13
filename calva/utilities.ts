@@ -166,7 +166,7 @@ function getTestUnderCursor() {
                 topLevelForm = doc.getText(topLevelFormRange);
             const forms = parseForms(topLevelForm);
             if (forms !== undefined) {
-                const formArray = forms.filter(x => x[0].startsWith("deftest"));
+                const formArray = forms.filter(x => x[0].startsWith("def"));
                 if (formArray != undefined && formArray.length > 0) {
                     const form = formArray[0].filter(x => typeof (x) == "string");
                     if (form != undefined) {
