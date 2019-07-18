@@ -115,6 +115,10 @@ bar))")
 (deftest new-index-on-type
   (is (= 6
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 6}))))
+  (is (= 8
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :idx 6}))))
+  (is (= 8
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :idx 6}))))
   (is (= 9
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 7}))))
   (is (= 7

@@ -56,8 +56,8 @@ function _formatIndex(allText: string, index: number, eol: string, onType: boole
         return result;
     }
     else {
-        console.log(result["error"]);
-        return null;
+        console.error("Error in `_formatIndex`:", result["error"]);
+        throw result["error"];
     }
 }
 
@@ -76,7 +76,6 @@ function _formatRange(rangeText: string, allText: string, range: number[], eol: 
         return result["range-text"];
     }
     else {
-        console.log(result["error"]);
-        return rangeText;
+        throw result["error"];
     }
 }

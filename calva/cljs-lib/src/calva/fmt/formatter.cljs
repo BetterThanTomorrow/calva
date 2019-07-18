@@ -17,6 +17,19 @@
     (catch js/Error e
       (assoc m :error (.-message e)))))
 
+(comment
+  (def s "(defn\n0\n#_)")
+  (format-text #_s
+               {:range-text s
+                :eol "\n"
+                :config {
+                         :remove-surrounding-whitespace? false
+                         :remove-trailing-whitespace? false
+                         :remove-consecutive-blank-lines? false
+                         :align-associative? true}}
+               )
+  (format-text {:current-line "#_)", :config {:format-as-you-type true, :indentation? true, :remove-surrounding-whitespace? false, :remove-trailing-whitespace? false, :insert-missing-whitespace? true, :remove-consecutive-blank-lines? false, :align-associative? false}, :on-type true, :head "(foo \n", :tail "#_)", :eol "\n", :range-text "(foo \n#_)", :idx 6, :all-text "(foo \n#_)", :range [0 9]})
+  {:current-line "#_)", :config {:format-as-you-type true, :indentation? true, :remove-surrounding-whitespace? false, :remove-trailing-whitespace? false, :insert-missing-whitespace? true, :remove-consecutive-blank-lines? false, :align-associative? false}, :on-type true, :head "(foo \n", :tail "#_)", :eol "\n", :range-text "(foo \n#_)", :error "(:uneval 1 \"\")%s node expects %d value%s. [at line 2, column 4]", :idx 6, :all-text "(foo \n#_)", :range [0 9]})
 
 (defn current-line-empty?
   "Figure out if `:current-line` is empty"
@@ -144,7 +157,7 @@
         range-index (- idx (first range))
         tail (subs range-text range-index)
         formatted-m (format-text (assoc m :range-text padded-text))]
-    (-> (assoc m :range-text (subs (:range-text formatted-m) indent-before))
+    (-> (assoc formatted-m :range-text (subs (:range-text formatted-m) indent-before))
         (assoc :range-tail tail)
         (index-for-tail-in-range))))
 
