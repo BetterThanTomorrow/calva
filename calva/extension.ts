@@ -163,11 +163,18 @@ function activate(context: vscode.ExtensionContext) {
         if (isClojureFile) {
             vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
             vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
-        } else if (!replWindow.activeReplWindow()) {
-            vscode.commands.executeCommand("setContext", "calva:pareditValid", editor.document.languageId != "Log");
+        } else if (editor) {
+            if (!replWindow.activeReplWindow()) {
+                vscode.commands.executeCommand("setContext", "calva:pareditValid", editor.document.languageId != "Log");
+            } else {
+                vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
+                vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
+            }
+        } else {
+            vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
         }
         status.update();
-        if (editor.document && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
+        if (editor && editor.document && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
             replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
                 .catch(reasons => { console.warn(`Namespace sync failed, becauase: ${reasons}`) });
         }

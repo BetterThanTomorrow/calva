@@ -73,7 +73,9 @@ export function activate() {
     })
     
     vscode.window.onDidChangeActiveTextEditor(e => {
-        addDocument(e.document);
+        if(e && e.document && e.document.languageId == "clojure") {
+            addDocument(e.document);
+        }
     });
     
     vscode.workspace.onDidOpenTextDocument(doc => {
