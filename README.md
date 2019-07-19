@@ -1,214 +1,133 @@
-# Calva: Clojure & Clojurescript interactive programming made easy
+# Calva: Clojure & ClojureScript support for VS Code
 
-[Integrated REPL, linting, inline eval and more for VSCode](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode). Powered by Cider & nRepl.
+![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an easy to use, integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+
+*Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
 ## Raison d´être
 
-Try to bring some of the Emacs CIDER experience to VS Code. Supporting both Clojure and ClojureScript. Hopefully lowering the barriers to the Clojarian world. If we can bring some productive concepts from other Clojure dev environments, like Cursive, to VSCode as well, we will.
+With Calva I hope to help lower the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, I can offer a turn-key, productive environment in which to learn and use Clojure and ClojureScript.
 
-Demo: evaluate files
+## How to Connect Calva to your project
+
+Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
+
+1. Open your project in VS Code.
+1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
+1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
+
+When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
+
+Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keep that wiki page updated.)
+
+## Something to try first
+
+You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
+
+There is also a command for evaluating the current top level form which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with code.  It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
+
+See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things to try.
+
+## The Calva Wiki
+
+When something doesn't work and you think there might be a workaround for it, please see the [wiki](https://github.com/BetterThanTomorrow/calva/wiki/). Anyone can author the wiki so if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page).
+
 
 ## Features
 
 ### At a glance
 - Evaluate code inline
 - Run tests
-- Integrated repls (using the VS Code Terminal)
+- Integrated REPL windows
 - Intellisense
-- Underlining compile-time errors
 - Go to / Peek at definition
 - View docstrings on hover
 - View function signatures on hover
-- Supports all clojure filetypes, clj, cljc and cljs.
-- Easy toggle between clj and cljs repl for cljc files
-- Autoindent according to: https://github.com/bbatsov/clojure-style-guide
-- Enables `clj` evaluation of clojure code in all files (e.g. Markdown, etcetera).
-- Support for [shadow-cljs](http://shadow-cljs.org).
+- Supports all Clojure filetypes: `clj`, `cljc`, and `cljs`
+- Easy toggle between `clj` and `cljs` repl for `cljc` files
+- Autoindent according to https://github.com/bbatsov/clojure-style-guide
+- Enables `clj` evaluation of Clojure code in all files (e.g. Markdown, etcetera).
+- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org). ([Boot](https://boot-clj.com) to be added.)
 
-Demo: switch between clj and cljs repl sessions for cljc files:
+Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
 ### More in depth (and some usage info)
 - Running tests through the REPL connection, and mark them in the Problems tab
-  - Run namespace tests: `ctrl+alt+v t`
-  - Run all tests: `ctrl+alt+v shift+t`
-  - Rerun previously failing tests: `ctrl+alt+v ctrl+t`
+  - Run namespace tests: `ctrl+alt+c t`
+  - Run all tests: `ctrl+alt+c shift+t`
+  - Rerun previously failing tests: `ctrl+alt+c ctrl+t`
   - Marks test failures using the Problem tab
   - User setting for running namespace tests on save (defaults to **on**)
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Code evaluation
-  - Evaluate code and show the results as annotation in the editor: `ctrl+alt+v e`
-  - Evaluate code and replace it in the editor, inline: `ctrl+alt+v r`
-  - Pretty printing evaluation resuls: `ctrl+alt+v p`
+  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e`
+    - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
+  - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
+  - Pretty printing evaluation resuls: `ctrl+alt+c p` (Currently broken, see issues on Github).
+  - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
+    - Send the current top level form to the REPL terminal: `ctrl+alt+c alt+space`
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
-  - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
+  - Enables `clj` REPL for all files/editors. You now can evaluate those Clojure code snippets in Markdown files.
   - The evaluation commands will auto-”detect” vectors and maps as well as list.
   - User setting to evaluate namespace on save/open file (defaults to **on**)
-- Integrated REPLs using the Terminal tab
-  - Switch to current namespace in the terminal REPL: `ctrl+alt+v n`
-  - Load current namespace in the terminal REPL: `ctrl+alt+v alt+n`
-  - Evaluate code from the editor to the terminal REPL: `ctrl+alt+v alt+e`
-- When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl by clicking the `cljc/clj[s]` indicator in the status bar.
-- Selection of current form: `ctrl+alt+v s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
+- Integrated REPLs
+  - Switch to current namespace in the REPL window: `ctrl+alt+c n`
+  - Load current namespace in the REPL window: `ctrl+alt+c alt+n`
+  - Evaluate code from the editor to the REPL window: `ctrl+alt+c alt+e`
+- When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
+- Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
 Demo: Peek at defintions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
-Demo: lint errors are marked in the editor. (As are unit test failures)
+## Calva Paredit and Calva Formatter included
 
-![underline error](/assets/howto/error.png)
+With Calva you also get structural editing using [Paredit](/calva/paredit/README.md) and [formatting](/calva/calva-fmt/README.md).
 
+You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format current form** command to `tab`. Good to know, right?
 
-## Future Stuff
+### Slurp and Barf keyboard shortcuts
 
-* Test reporting while tests are being run. HIGH PRIORITY.
-* Open as many REPLs as you like.
-* Custom user commands to execute over the REPL connection.
-* Commands to start the REPLs from VS Code, injecting dependencies automatically.
-* Let me know what you want. PRs welcome, file an issue or tweet me: [@pappapez](https://twitter.com/pappapez)
+To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortucts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
 
-## Team
+![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
-Haha, but actually we are now two, so that's a team. Neither of us actually have a lot of spare time, but Calva is a dear project so we try.
+## Clojure Warrior included
 
-* [Peter Strömberg](https://github.com/PEZ)
-* [Pedro Girardi](https://github.com/pedrorgirardi)
-* Your name here
+This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching.
 
-## Usage notes
+Note: If you for some reason do not want rainbow colors, put this in your `settings.json`:
 
-Mostly Calva just works, but there are still some things to know beforehand. One good thing to know is that all commands and settings are of the category `Calva`, so bringing up the VSCode's list of commands or settings and searching for ”Calva” will take you a long way.
-
-It is also necessary to know that Calva does not start the Clojure/Clojurescript repls for you. You will need to start them some other way (usually in a terminal), then connect.
-
-### Autolinting
-
-The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
-```
-"calva.lintOnSave": true
-```
-
-#### Unrecognized macros
-One thing to note with this linter is that it doesn't do a full scan of all files and does not recognize macros it doesn't know about. Leading to false complains about `Unable to resolve symbol x`. You might now and then tell it about macros you use. Create a `.joker` file somewhere in the path from the root of your project to where you are using the macro (the project root might be the best choice), and add:
-```
-{:known-macros [some-ns/some-macro some-other-ns/some-other-macro]}
-```
-Read more about Joker's linter mode here: https://github.com/candid82/joker#linter-mode
-
-### Dependencies
-
-(See also about Autolinting above.)
-
-Calva uses nrepl for evaluation / communication, and cider-nrepl for added nrepl functionality
-
-Best place, imho, to configure them is in the `~/.lein/profiles.clj` like so:
-
-```
-{:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
-        :dependencies [[org.clojure/tools.nrepl "0.2.12"]]}
-```
-
-If you are only using Clojure then you are all set.
-
-#### For Clojurescript
-
-This depends some on wether the project is powered by **Figwheel** or **shadow-cljs** or something else.
-
-##### Figwheel
-Most ClojureScript projects has this setup in the project configuration file. But you can have it configured in your profiles.clj as well. A complete repl profile (from Calva's point of view, will look like so:
-
-```clojure
-{:repl {:plugins [[cider/cider-nrepl "0.16.0"]]
-        :dependencies [[org.clojure/tools.nrepl "0.2.12"]
-                       [com.cemerick/piggieback "0.2.2"]
-                       [figwheel-sidecar "0.5.14"]]
-        :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
-```
-
-##### shadow-cljs
-
-See the [Calva section](https://shadow-cljs.github.io/docs/UsersGuide.html#_calva_vs_code) in the shadow-cljs User Guide.
-
-TL;DR; You need `cider-nrepl` in your classpath. Add `[cider/cider-nrepl "0.16.0"]` to the `:dependencies` map in the`shadow-cljs.edn` project config. Shadow-cljs will autoinject the other requirements when it encounters cider-nrepl.
-
-### Connecting to the REPL
-
-Calva defaults to automatically connecting to a running nrepl session, it does not start the repl for you. Start it from the terminal/command prompt if it is not running. Leiningen users do it like so:
-
-```
-$ lein repl
-```
-
-Shadow-cljs folks do not need to start an interactive repl. It's enough to start the app like so:
-
-```
-$ shadow-cljs watch <build>
-```
-
-When the app is running, start VS Code and open the project root directory. The extension will then connect, and you are ready to bend the laws of nature using Clojure.
-
-Yay! 🍾 🎆 ✨
-
-**Note** If your workspace root is not the same as the project root of your Clojure project you must tell Calva which sub directory is the project root. Search for `calva.projectRootDirectory` in settings and modify the workspace settings. This path should be relative to the workspace root (which is why it defaults to `.`).
-
-#### ClojureScript REPL
-
-For Calva to be able to connect the Clojurescript repl, your ClojureScript app needs to be running and connected to the repl session. (Calva is at the moment only tested with browser apps, but might work with other project types as well anyway.)
-
-##### shadow-cljs projects
-
-When Calva detects a shadow-cljs project it will read the `shadow-cljs.edn` configuration file and give you a list of build ids to pick from. Pick the build you started the app from and ClojureScript power should get injected into your favorite editor.
-
-##### Figwheel projects
-If you want to use ClojureScript, you start its repl off of the repl you have just started, i.e. **not** using `lein figwheel` because then the extension will not know how to connect. Open the project in VS Code and the extension will connect to the ClojureScript repl for `cljs` files and to the Clojure repl for `clj` and `cljc` files.
-
-Yay! 🥂 🤘 🍻
-
-Read on for some pointers on this if you are not familiar.
-
-**To initiate a figwheel-repl you need the figwheel-sidecar dependency -> [figwheel-sidecar "0.5.8"] as well correct cljs classpaths**
-read more about this [here](https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl)
-
-If you have created a figwheel-project from a template (using e.g. lein new), you should be good to go as long as you start the repl in the projects folder.
-
-Having started the initial repl like above with ```lein repl```, initiate figwheel from there (beacuse reasons stated above). Then:
-
-```
- (use 'figwheel-sidecar.repl-api)
- (start-figwheel!)
- (cljs-repl)
-```
-
-Consider adding a `(start)` function in your projects `dev` namespace to pack these calls together.
-
-
-## Other stuff
-
-### Paredit & Parinfer
-Calva works nicely together with [Paredit](https://marketplace.visualstudio.com/items?itemName=clptn.code-paredit)
-
-However [Parinfer](https://marketplace.visualstudio.com/items?itemName=shaunlebron.vscode-parinfer) clashes with the auto adjustment of indents feature. Therefore Calva provides a command for toggling the auto adjustment off and on (`ctrl+alt+v tab`), just like Parinfer has commands for enabling and disabling its assistance.
-
-Consider these settings for keeping auto adjust of indents on:
 ```json
-    "parinfer.defaultMode": "disabled",
-    "calva.autoAdjustIndent": true,
+    "clojureWarrior.enableBracketColors": false
 ```
 
-Switch them around if you prefer to default to Parinfer on. We'll be looking for a solution to this problem.
+## Where is Calva heading?
 
-### Built on Visual Clojure
+There are lots of stuff that needs attention and lots of possible features to add. Please see [the Github issue tracker](https://github.com/BetterThanTomorrow/calva/issues) for those things. And please regard it as a way to inform me about what is most important. (There are other ways for that as well, see below.)
 
-Calva started off as a clone of the promising (but abandoned) **visual:clojure** extension.
+Right now I am happy to have released [a major upgrade to Calva](https://clojureverse.org/t/the-calva-journey-continues-please-jack-in/4335) (”Calva dos” as they say in Spanish), but I am not satisfied. I want to make Calva an even better choice for people starting with Clojure and ClojureScript, so that is where my focus will be. Please consider helping me!
 
-## Happy coding
+## How to contribute
 
-We hope you will find tons of use for this extension! Please let me know what you think or want. PRs welcome, file an issue or chat us (@pez, @pedrorgirardi) up in the [`#editors` channel](https://clojurians.slack.com/messages/editors/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
+I'm glad you are reading this section!
 
-❤️
+Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+
+## Other
+
+### Started from Visual Clojure
+
+Calva once started off as a clone of the promising (but abandoned) **visual:clojure** extension.
+
+## Happy coding ❤️
+
+I hope you will find good use for Calva. Please let me know what you think. PRs welcome, file an issue or chat me up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack, (I'm @pez there). I would appreciate tweets about Calva too, and extra points for mentioning [@pappapez](https://twitter.com/pappapez).

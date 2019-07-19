@@ -9,11 +9,19 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": ["--extensionDevelopmentPath=${workspaceRoot}" ],
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}"
+            ],
             "stopOnEntry": false,
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/out/src",
-            "preLaunchTask": "npm"
+            "env": {
+                "CALVA_DEV_GA": "FUBAR-69796730-4",
+                "DEBUG": "no-debug-universal-analytics",
+                "IS_DEV_BUILD": "YES"
+            },
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
         }
     ]
 }

@@ -1,7 +1,19 @@
-.vscode/**
-.vscode-test/**
-test/**
-.gitignore
-jsconfig.json
-vsc-extension-quickstart.md
-.eslintrc.json
+# Put everything on the blacklist by default
+*
+*/**
+**/.DS_Store
+*/**/.DS_Store
+
+# Whitelist
+!clojure.tmLanguage.json
+!html/**
+!out/**
+!package.json
+!assets/**
+!README.md
+!CHANGELOG.md
+!LICENSE.txt
+
+# When not using webpack to bundle these need to be on the whitelist
+# !node_modules/**
+# !cljs-out/**

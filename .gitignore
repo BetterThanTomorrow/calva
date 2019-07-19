@@ -1,5 +1,6 @@
 # visual code
-*.visx
+/*.vsix
+.vscode/settings.json
 
 # Logs
 logs
@@ -41,3 +42,21 @@ jspm_packages
 
 #Macos
 .DS_Store
+
+## CLJS
+.shadow-cljs/
+lib/
+cljs-out/
+test-out/
+.nrepl-port
+dist/
+pom.xml
+.idea
+*.iml
+
+
+## TS
+out/
+html/main.js
+tsconfig.tsbuildinfo
+html/main.js.map
