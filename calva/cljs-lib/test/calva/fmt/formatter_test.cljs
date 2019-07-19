@@ -109,7 +109,9 @@ bar))")
   (is (= "\"bar \n \n \""
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :idx 7}))))
   (is (= "'([]\n    [])"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :idx 7})))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :idx 7}))))
+  (is (= "[:foo\n \n (foo) (bar)]"
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6})))))
 
 
 (deftest new-index-on-type
@@ -117,7 +119,7 @@ bar))")
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 6}))))
   (is (= 8
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :idx 6}))))
-  (is (= 8
+  (is (= 8 ;; Fails due to a bug in rewrite-cljs
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :idx 6}))))
   (is (= 9
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 7}))))
@@ -130,7 +132,9 @@ bar))")
   (is (= 10
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :idx 8}))))
   (is (= 13
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :idx 12})))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :idx 12}))))
+  (is (= 7
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6})))))
 
 
 (deftest new-index-on-type-crlf
