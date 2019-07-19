@@ -182,37 +182,37 @@
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
                     },
-                                    "calva.customCommandSnippets": {
-                    "type": "array",
-                    "default": [],
-                    "description": "Custom commands that can be sent to the active REPL.",
-                    "$schema": "http://json-schema.org/draft-06/schema#",
-                    "items": {
-                        "title": "customCommandSnippet",
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "Identify this command so that it is easy to select it in a picker menu"
+                    "calva.customCommandSnippets": {
+                        "type": "array",
+                        "default": [],
+                        "description": "Custom commands that can be sent to the active REPL.",
+                        "$schema": "http://json-schema.org/draft-06/schema#",
+                        "items": {
+                            "title": "customCommandSnippet",
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Identify this command so that it is easy to select it in a picker menu"
+                                },
+                                "command": {
+                                    "type": [
+                                        "string",
+                                        "array"
+                                    ],
+                                    "description": "Command to send to the REPL"
+                                },
+                                "ns": {
+                                    "type": "string",
+                                    "description": "Namespace to eval the command in (current file's top namespace if omitted)"
+                                }
                             },
-                            "command": {
-                                "type": [
-                                    "string",
-                                    "array"
-                                ],
-                                "description": "Command to send to the REPL"
-                            },
-                            "ns": {
-                                "type": "string",
-                                "description": "Namespace to eval the command in (current file's top namespace if omitted)"
-                            }
-                        },
-                        "required": [
-                            "name",
-                            "command"
-                        ]
+                            "required": [
+                                "name",
+                                "command"
+                            ]
+                        }
                     }
-                }
                 }
             },
             {
@@ -437,6 +437,12 @@
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "title": "Send current top level form to REPL window and evaluate it (aka defun)",
+                "category": "Calva",
+                "enablement": "calva:activated"
+            },
+            {
+                "command": "calva.sendCustomCommandToREPL",
+                "title": "Evaluate custom command in REPL Window",
                 "category": "Calva",
                 "enablement": "calva:activated"
             },

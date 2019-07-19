@@ -88,7 +88,8 @@ function config() {
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted"),
-        customCljsRepl: configOptions.get("customCljsRepl", null)
+        customCljsRepl: configOptions.get("customCljsRepl", null),
+        customCommandSnippets: configOptions.get("customCommandSnippets")
     };
 }
 

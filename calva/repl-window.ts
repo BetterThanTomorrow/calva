@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as fs from "fs";
+import * as _ from "lodash";
 import * as state from "./state";
 import status from "./status"
 import { readFileSync } from "fs";
@@ -303,6 +304,39 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true);
 }
 
+type customCommand = { name: string, command: string, ns: string };
+
+function sendCustomCommandSnippetToREPLCommand() {
+    let chan = state.outputChannel(),
+        commands = state.config().customCommandSnippets as customCommand[],
+        commandPicks = _.map(commands, (c: customCommand) => {
+            return c.name + ": " + c.command;
+        }),
+        commandsDict = {};
+
+    commands.forEach(c => {
+        commandsDict[c.name + ": " + c.command] = c;
+    });
+
+    if (commands && commands.length > 0) {
+        vscode.window.showQuickPick(commandPicks, {
+            placeHolder: "Select command snippet",
+            ignoreFocusOut: true
+        }).then(pick => {
+            if (pick && commandsDict[pick] && commandsDict[pick].command) {
+                let command = commandsDict[pick].command,
+                    ns = commandsDict[pick].ns;
+                if (ns) {
+                    command = `(in-ns '${ns})${command}`;
+                }
+                sendTextToREPLWindow(command, ns, false);
+            }
+        });
+    } else {
+        chan.appendLine("No command snippets configured. Configure commands in calva.customCommandSnippets.");
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj")));
@@ -311,6 +345,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.sendCustomCommandToREPL', sendCustomCommandSnippetToREPLCommand));
 }
 
 export function clearHistory() {
