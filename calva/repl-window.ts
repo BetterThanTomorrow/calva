@@ -246,8 +246,8 @@ function setREPLNamespaceCommand() {
     setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(util.getREPLSessionType());
+async function sendTextToREPLWindow(text: string, ns: string, pprint: boolean, mode?: ["clj", "cljs"]) {
+    let wnd = await openReplWindow(mode ? mode : util.getREPLSessionType());
     if (wnd) {
         let oldNs = wnd.ns;
         if (ns && ns != oldNs)
@@ -304,36 +304,37 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true);
 }
 
-type customCommand = { name: string, command: string, ns: string };
+type customCodeSnippet = { name: string, snippet: string, repl:string, ns?: string};
 
 function sendCustomCommandSnippetToREPLCommand() {
     let chan = state.outputChannel(),
-        commands = state.config().customCommandSnippets as customCommand[],
-        commandPicks = _.map(commands, (c: customCommand) => {
-            return c.name + ": " + c.command;
+        snippets = state.config().customCodeSnippets as customCodeSnippet[],
+        snippetPicks = _.map(snippets, (c: customCodeSnippet) => {
+            return `${c.name} (${c.repl}): ${c.snippet}`;
         }),
-        commandsDict = {};
+        snippetsDict = {};
 
-    commands.forEach(c => {
-        commandsDict[c.name + ": " + c.command] = c;
+    snippets.forEach((c: customCodeSnippet) => {
+        snippetsDict[`${c.name} (${c.repl}): ${c.snippet}`] = c;
     });
 
-    if (commands && commands.length > 0) {
-        vscode.window.showQuickPick(commandPicks, {
-            placeHolder: "Select command snippet",
+    if (snippets && snippets.length > 0) {
+        vscode.window.showQuickPick(snippetPicks, {
+            placeHolder: "Select snippet",
             ignoreFocusOut: true
         }).then(pick => {
-            if (pick && commandsDict[pick] && commandsDict[pick].command) {
-                let command = commandsDict[pick].command,
-                    ns = commandsDict[pick].ns;
+            if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
+                let snippet = snippetsDict[pick].snippet,
+                    ns = snippetsDict[pick].ns,
+                    mode = snippetsDict[pick].repl;
                 if (ns) {
-                    command = `(in-ns '${ns})${command}`;
+                    snippet = `(in-ns '${ns})${snippet}`;
                 }
-                sendTextToREPLWindow(command, ns, false);
+                sendTextToREPLWindow(snippet, ns, false, mode);
             }
         });
     } else {
-        chan.appendLine("No command snippets configured. Configure commands in calva.customCommandSnippets.");
+        chan.appendLine("No snippets configured. Configure snippets in calva.customCoodeSnippets.");
     }
 }
 
@@ -345,7 +346,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.sendCustomCommandToREPL', sendCustomCommandSnippetToREPLCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCustomCodeSnippetInREPL', sendCustomCommandSnippetToREPLCommand));
 }
 
 export function clearHistory() {

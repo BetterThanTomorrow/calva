@@ -89,7 +89,7 @@ function config() {
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted"),
         customCljsRepl: configOptions.get("customCljsRepl", null),
-        customCommandSnippets: configOptions.get("customCommandSnippets")
+        customCodeSnippets: configOptions.get("customCodeSnippets")
     };
 }
 

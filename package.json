@@ -182,7 +182,7 @@
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
                     },
-                    "calva.customCommandSnippets": {
+                    "calva.customCodeSnippets": {
                         "type": "array",
                         "default": [],
                         "description": "Custom commands that can be sent to the active REPL.",
@@ -195,7 +195,7 @@
                                     "type": "string",
                                     "description": "Identify this command so that it is easy to select it in a picker menu"
                                 },
-                                "command": {
+                                "snippet": {
                                     "type": [
                                         "string",
                                         "array"
@@ -205,11 +205,20 @@
                                 "ns": {
                                     "type": "string",
                                     "description": "Namespace to eval the command in (current file's top namespace if omitted)"
+                                },
+                                "repl": {
+                                    "type": "string",
+                                    "enum": [
+                                        "clj",
+                                        "cljs"
+                                    ],
+                                    "default": "clj"
                                 }
                             },
                             "required": [
                                 "name",
-                                "command"
+                                "snippet",
+                                "repl"
                             ]
                         }
                     }
@@ -441,8 +450,8 @@
                 "enablement": "calva:activated"
             },
             {
-                "command": "calva.sendCustomCommandToREPL",
-                "title": "Evaluate custom command in REPL Window",
+                "command": "calva.evalCustomCodeSnippetInREPL",
+                "title": "Evaluate custom code snippet in REPL Window",
                 "category": "Calva",
                 "enablement": "calva:activated"
             },
@@ -748,7 +757,7 @@
             },
             {
                 "command": "calva.recreateCljsRepl",
-                "key": "ctrl+alt+c ctrl+alt+r"
+                "key": "ctrl+alt+c ctrl+b"
             },
             {
                 "command": "calva.selectCurrentForm",
@@ -830,6 +839,10 @@
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "key": "ctrl+alt+c ctrl+alt+space"
+            },
+            {
+                "command": "calva.evalCustomCodeSnippetInREPL",
+                "key": "ctrl+alt+c ctrl+s"
             },
             {
                 "command": "paredit.forwardSexp",
