@@ -9,7 +9,7 @@ function readConfiguration() {
         "remove-trailing-whitespace?": workspaceConfig.get("removeTrailingWhitespace"),
         "insert-missing-whitespace?": workspaceConfig.get("insertMissingWhitespace"),
         "remove-consecutive-blank-lines?": workspaceConfig.get("removeConsecutiveBlankLines"),
-        "align-associative?": workspaceConfig.get("allgnMapItems")
+        "align-associative?": workspaceConfig.get("alignMapItems")
     };
 }
 
