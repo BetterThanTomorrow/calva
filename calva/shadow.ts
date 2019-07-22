@@ -5,7 +5,8 @@ import * as util from './utilities';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 
 export function shadowConfigFile() {
-    return util.getProjectDir() + '/shadow-cljs.edn';
+    let { shadowCljsEdnPath } = state.config();
+    return util.getProjectDir() + '/' + shadowCljsEdnPath;
 }
 
 export function shadowBuilds() {

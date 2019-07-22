@@ -167,6 +167,11 @@
                         "default": "joker",
                         "description": "Sets the path in which the Joker executable can be found. If useWSL has been set to true, this should be a valid WSL path."
                     },
+                    "calva.shadowCljsEdnPath": {
+                        "type": "string",
+                        "default": "shadow-cljs.edn",
+                        "description": "Sets the path in which the `shadow-cljs.edn` file can be found. This will be required when connecting to a Shadow-CLJS nREPL. Please provide a relative path."
+                    },
                     "calva.useWSL": {
                         "type": "boolean",
                         "default": false,
