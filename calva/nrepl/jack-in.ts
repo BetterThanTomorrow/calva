@@ -69,7 +69,7 @@ const projectTypes: {
         winCmd: string,
         commandLine: (includeCljs: boolean) => any,
         useWhenExists: string,
-        useShell?: boolean
+        winShell?: string
     }
 } = {
     "lein": {
@@ -77,7 +77,7 @@ const projectTypes: {
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "lein",
         winCmd: "lein.bat",
-        useShell: true,
+        winShell: "cmd.exe",
         useWhenExists: "project.clj",
         commandLine: async (includeCljs) => {
             let out: string[] = [];
@@ -139,7 +139,7 @@ const projectTypes: {
         name: "Boot",
         cmd: "boot",
         winCmd: "boot.exe",
-        useShell: true,
+        winShell: true,
         useWhenExists: "build.boot",      
         commandLine: () => {
             let out: string[] = [];
@@ -153,7 +153,8 @@ const projectTypes: {
         name: "Clojure CLI",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "clojure",
-        winCmd: "clojure.ps1",
+        winCmd: "clojure",
+        winShell: "powershell.exe",
         useWhenExists: "deps.edn",
         commandLine: async (includeCljs) => {
             let out: string[] = [];
@@ -172,10 +173,11 @@ const projectTypes: {
 
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
-            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : ''
+            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+            const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
-                out.push(dep + " {:mvn/version \\\"" + dependencies[dep] + "\\\"}")
-            return ["-Sdeps", `"${"{:deps {" + out.join(' ') + "}}"}"`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
+                out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
+            return ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
         }
     },
     "shadow-cljs": {
@@ -183,7 +185,7 @@ const projectTypes: {
         cljsTypes: [],
         cmd: "npx",
         winCmd: "npx.cmd",
-        useShell: true,
+        winShell: null,
         useWhenExists: "shadow-cljs.edn",
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
@@ -275,7 +277,7 @@ export async function calvaJackIn() {
 
     // Now look in our $PATH variable to check the appropriate command exists.
     const cmd = isWin ? projectType.winCmd : projectType.cmd;
-    let executable = findInPath(cmd);
+    let executable = cmd;
     let integrated_shell;
 
     if (!executable) {
@@ -291,33 +293,33 @@ export async function calvaJackIn() {
     let shellSettingsShouldBeChangedByUs = false;
     let shellSettingsChangedByUs = false;
 
-    if (executable.endsWith(".ps1")) {
         // launch powershell scripts through powershell, doing crazy powershell escaping.
-        args = args.map(escapeString) as Array<string>;
-        args.unshift(executable);
-        executable = "powershell.exe";
-    } else if (executable.endsWith(".bat")) {
-        // Current workaround for the not working powershell etc. changes to cmd.exe and later back to whaterver was set before
+        // args = args.map(escapeString) as Array<string>;
+        // args.unshift(executable);
+        // executable = "powershell.exe";
+    if (isWin && projectType.winShell != null) {
+        // Current workaround for making sure we can escape windows commands correctly
         let windowsterminalssettings = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
         integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
-        if (!integrated_shell || !integrated_shell.endsWith("cmd.exe")) {
+        if (!integrated_shell || !integrated_shell.endsWith(projectType.winShell)) {
             shellSettingsShouldBeChangedByUs = true;
-            outputChannel.appendLine("Jack-in needs to use cmd.exe to work. Allow the (temporary) switch, please.");
+            let shellPath = projectType.winShell === "cmd.exe" ? "C:\\Windows\\System32\\cmd.exe" : "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
+            outputChannel.appendLine(`Jack-in needs to use ${projectType.winShell} to work. Allow the (temporary) switch, please.`);
             await vscode.workspace.getConfiguration()
-                .update("terminal.integrated.shell.windows", "C:\\Windows\\System32\\cmd.exe")
+                .update("terminal.integrated.shell.windows", shellPath)
                 .then(
                     () => {
                         shellSettingsChangedByUs = true;
                     },
                     (reason) => {
-                        outputChannel.appendLine("Jack-in aborted, since it won't work without using cmd.exe");
+                        outputChannel.appendLine(`Jack-in aborted, since it won't work without using ${projectType.winShell}`);
                     }
                 );
         }
     }
 
     if (shellSettingsShouldBeChangedByUs && !shellSettingsChangedByUs) {
-        state.analytics().logEvent("REPL", "JackInInterrupted", "Powershell user wont allow change of shell setting").send();
+        state.analytics().logEvent("REPL", "JackInInterrupted", "Windows user wont allow change of shell setting").send();
         return;
     }
     state.cursor.set("launching", projectTypeSelection)
@@ -337,7 +339,8 @@ export async function calvaJackIn() {
 
     const taskDefinition: vscode.TaskDefinition = {
         type: "shell",
-        label: "Calva: Jack-in"
+        label: "Calva: Jack-in",
+        
     };
 
     const folder = vscode.workspace.workspaceFolders[0];
