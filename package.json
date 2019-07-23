@@ -240,7 +240,7 @@
                         "default": false,
                         "description": "Help beta test the new indent engine (it is MUCH faster than the previous one)."
                     },
-                    "calva.fmt.allgnMapItems": {
+                    "calva.fmt.alignMapItems": {
                         "type": "boolean",
                         "default": false,
                         "description": "Align map items in columns? (Experimental)"
