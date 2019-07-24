@@ -293,7 +293,7 @@
                 "command": "calva.selectCurrentForm",
                 "title": "Select current form",
                 "category": "Calva",
-                "enablement": "calva:activated && editor.langid == clojure"
+                "enablement": "calva:activated && editorLangid == clojure"
             },
             {
                 "command": "calva.clearInlineResults",
@@ -359,7 +359,7 @@
                 "command": "calva.lintFile",
                 "title": "Lint current file",
                 "category": "Calva",
-                "enablement": "calva:activated && editor.langid == clojure"
+                "enablement": "calva:activated && editorLangid == clojure"
             },
             {
                 "command": "calva.runNamespaceTests",
