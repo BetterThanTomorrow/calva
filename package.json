@@ -260,6 +260,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.cleanNS",
+                "title": "Clean current NS",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.connect",
                 "title": "Connect to a running REPL server",
                 "category": "Calva"

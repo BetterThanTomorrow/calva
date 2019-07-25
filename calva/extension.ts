@@ -131,6 +131,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.artifactVersions', RefactorMiddleWare.artifactVersions));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.cleanNS', RefactorMiddleWare.cleanNS));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));

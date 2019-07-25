@@ -321,6 +321,17 @@ export class NReplSession {
         })
     }
 
+    cleanNS(path: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "clean-ns", path, id, session: this.sessionId })
+        })
+    }
+
     info(ns: string, symbol: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
