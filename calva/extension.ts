@@ -11,6 +11,7 @@ import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './evaluate';
+import RefactorMiddleWare from './refactor';
 import LintMiddleWare from './lint';
 import TestRunnerMiddleWare from './testRunner';
 import annotations from './providers/annotations';
@@ -129,6 +130,8 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.artifactVersions', RefactorMiddleWare.artifactVersions));
+
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', evaluate.requireREPLUtilitiesCommand));
@@ -174,7 +177,7 @@ function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
         }
         status.update();
-        if (editor && editor.document && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
+        if (editor && editor.document && editor.document.fileName && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
             replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
                 .catch(reasons => { console.warn(`Namespace sync failed, becauase: ${reasons}`) });
         }

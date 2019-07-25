@@ -255,6 +255,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.artifactVersions",
+                "title": "Artifact Versions",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.connect",
                 "title": "Connect to a running REPL server",
                 "category": "Calva"

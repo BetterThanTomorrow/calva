@@ -51,12 +51,13 @@ const shadowDependencies = {
     "cider/cider-nrepl": "0.21.1",
 }
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.21.1"
+    "cider/cider-nrepl": "0.21.1",
+    "refactor-nrepl": "2.4.1-SNAPSHOT"
 }
 const leinDependencies = {
     "nrepl": "0.6.0",
 }
-const middleware = ["cider.nrepl/cider-middleware"];
+const middleware = ["cider.nrepl/cider-middleware", "refactor-nrepl.middleware/wrap-refactor"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
 const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
