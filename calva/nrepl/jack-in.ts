@@ -174,7 +174,7 @@ const projectTypes: {
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-            const dQ = isWin ? '""' : '"';
+            const dQ = isWin ? '""""""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
             return ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
@@ -339,7 +339,7 @@ export async function calvaJackIn() {
 
     const taskDefinition: vscode.TaskDefinition = {
         type: "shell",
-        label: "Calva: Jack-in",
+        label: "Calva: Jack-in"
         
     };
 

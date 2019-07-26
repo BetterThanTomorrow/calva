@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.27-powershell-fix-2",
+    "version": "2.0.27-powershell-fix-3",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
