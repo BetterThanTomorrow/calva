@@ -1,7 +1,6 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
-import { InputBoxOptions, window } from "vscode";
 import { windowsToWsl } from "wsl-path";
 
 
@@ -293,7 +292,7 @@ export class NReplSession {
         })
     }
 
-    artifactVersions() {
+    artifactVersions(artifact: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
             console.log("Artiifact-list before message");
@@ -302,22 +301,12 @@ export class NReplSession {
                 return true;
             }
 
-            let options: InputBoxOptions = {
-                prompt: "Artifact: ",
-                placeHolder: "(artifact eg. org.clojure/clojure)"
-            }
-
-            window.showInputBox(options).then(value => {
-                if (!value) return;
-                let artifact = value;
-                console.log("User artifact" + artifact);
-                this.client.write({
-                    op: "artifact-versions",
-                    artifact,
-                    id,
-                    session: this.sessionId
-                });
-            }); 
+            this.client.write({
+                op: "artifact-versions",
+                artifact,
+                id,
+                session: this.sessionId
+            });
         })
     }
 

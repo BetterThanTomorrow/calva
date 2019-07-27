@@ -1,7 +1,18 @@
 import * as state from './state';
 import * as util from './utilities';
 import * as path from 'path';
-import { Position, TextDocument, WorkspaceEdit, Range, workspace } from 'vscode';
+import { Position, TextDocument, WorkspaceEdit, Range, workspace, InputBoxOptions, window} from 'vscode';
+
+function neededVariables(document) {
+    let current = state.deref(),
+        doc = util.getDocument(document),
+        fileName = util.getFileName(doc),
+        fileType = util.getFileType(doc),
+        client = util.getSession(util.getFileType(doc)),
+        chan = state.outputChannel(),
+        isValid = doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected');
+    return {current, doc, fileName, client, chan, isValid};
+}
 
 function count(main_str: string, sub_str: string) {
     main_str += '';
@@ -53,34 +64,38 @@ function findNamespaceRange(document: TextDocument): Range {
     }
 }
 
-async function artifactVersions(document = {}, callback = () => { }) {
-    let current = state.deref(),
-        doc = util.getDocument(document),
-        fileName = util.getFileName(doc),
-        fileType = util.getFileType(doc),
-        client = util.getSession(util.getFileType(doc)),
-        chan = state.outputChannel();
+async function artifactVersions(document = {}) {
+    let {client, chan, isValid} = neededVariables(document);
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (isValid) {
         chan.appendLine("Artifact-Versions");
 
-        let {versions} = await client.artifactVersions();
-        console.log("Artifact-Versions result:", versions);
-    }
+        let options: InputBoxOptions = {
+            prompt: "Artifact: ",
+            placeHolder: "(artifact eg. org.clojure/clojure)"
+        }
 
-    callback();
+        window.showInputBox(options).then(value => {
+            if (!value) return;
+            let artifact = value;
+
+            console.log("User Artifact: " + artifact);
+
+            if (artifact) {
+                return client.artifactVersions(artifact);
+            }
+        }).then(response => {
+            let {versions} = response;
+            console.log("Artifact Versions:", versions);
+        }); 
+    }
 }
 
-async function cleanNS(document = {}, callback = () => { }) {
-    let current = state.deref(),
-        doc = util.getDocument(document),
-        filePath = doc.fileName,
-        fileName = util.getFileName(doc),
-        fileType = util.getFileType(doc),
-        client = util.getSession(util.getFileType(doc)),
-        chan = state.outputChannel();
+async function cleanNS(document = {}) {
+    let { doc, fileName, client, chan, isValid } = neededVariables(document);
+    let filePath = doc.fileName;
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (isValid) {
         chan.appendLine("Clean-NS: " + fileName);
         let {ns} = await client.cleanNS(filePath);
 
@@ -90,12 +105,11 @@ async function cleanNS(document = {}, callback = () => { }) {
             edit.replace(doc.uri, namespaceRange, ns);
 
             workspace.applyEdit(edit).then(() => {
-                console.log("applied edit to workspace");
+                let nsNamme = util.getDocumentNamespace(doc);
+                window.showInformationMessage("Cleaned ns—Form for " + nsNamme);
             });
         }
     }
-
-    callback();
 }
 
 export default {
