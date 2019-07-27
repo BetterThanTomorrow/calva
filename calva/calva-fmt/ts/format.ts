@@ -1,6 +1,26 @@
 import * as vscode from 'vscode';
 import * as config from './config';
+import { getIndent, getDocument, getDocumentOffset } from "./docmirror";
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../cljs-out/cljs-lib');
+
+
+export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
+    let editor = vscode.window.activeTextEditor;
+    let pos = new vscode.Position(position.line, 0);
+    let indent = getIndent(getDocument(document), getDocumentOffset(document, position));
+    let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
+    if (delta > 0) {
+        //return [vscode.TextEdit.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta)))];
+        editor.edit(edits => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))), { undoStopAfter: false, undoStopBefore: false });
+    }
+    else if (delta < 0) {
+        let str = "";
+        while (delta++ < 0)
+            str += " ";
+        //return [vscode.TextEdit.insert(pos, str)];
+        editor.edit(edits => edits.insert(pos, str), { undoStopAfter: false, undoStopBefore: false });
+    }
+}
 
 export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Range): vscode.TextEdit[] {
     const text: string = document.getText(range),

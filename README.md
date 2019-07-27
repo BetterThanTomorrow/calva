@@ -8,7 +8,7 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 ## Raison d´être
 
-With Calva I hope to help lowering the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, I can offer a turn-key, productive, environment in which to learn and to use Clojure and ClojureScript.
+With Calva I hope to help lower the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, I can offer a turn-key, productive environment in which to learn and use Clojure and ClojureScript.
 
 ## How to Connect Calva to your project
 
@@ -20,13 +20,13 @@ Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
 
-Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keeping that wiki page updated.)
+Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keep that wiki page updated.)
 
 ## Something to try first
 
 You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
 
-There are also a command for evaluating the current top level form. Which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with my code.  It looks something like so:
+There is also a command for evaluating the current top level form which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with code.  It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
@@ -34,7 +34,7 @@ See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things 
 
 ## The Calva Wiki
 
-When something doesn't work and you think there might be a workaround for it, please see the [wiki](https://github.com/BetterThanTomorrow/calva/wiki/). Anyone can author the wiki so if you know about workarounds or gotchas or anything that is good to know about when usin Calva, please edit the approriate page (or create a new page).
+When something doesn't work and you think there might be a workaround for it, please see the [wiki](https://github.com/BetterThanTomorrow/calva/wiki/). Anyone can author the wiki so if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page).
 
 
 ## Features
@@ -42,18 +42,18 @@ When something doesn't work and you think there might be a workaround for it, pl
 ### At a glance
 - Evaluate code inline
 - Run tests
-- Integrated repl windows
+- Integrated REPL windows
 - Intellisense
 - Go to / Peek at definition
 - View docstrings on hover
 - View function signatures on hover
-- Supports all clojure filetypes, clj, cljc and cljs.
-- Easy toggle between clj and cljs repl for cljc files
-- Autoindent according to: https://github.com/bbatsov/clojure-style-guide
-- Enables `clj` evaluation of clojure code in all files (e.g. Markdown, etcetera).
+- Supports all Clojure filetypes: `clj`, `cljc`, and `cljs`
+- Easy toggle between `clj` and `cljs` repl for `cljc` files
+- Autoindent according to https://github.com/bbatsov/clojure-style-guide
+- Enables `clj` evaluation of Clojure code in all files (e.g. Markdown, etcetera).
 - Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org). ([Boot](https://boot-clj.com) to be added.)
 
-Demo: switch between clj and cljs repl sessions for cljc files:
+Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
@@ -74,14 +74,14 @@ Demo: switch between clj and cljs repl sessions for cljc files:
     - Send the current top level form to the REPL terminal: `ctrl+alt+c alt+space`
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
-  - Enables `clj` repl for all files/editors. You now can evaluate those clojure code snippets in Markdown files.
+  - Enables `clj` REPL for all files/editors. You now can evaluate those Clojure code snippets in Markdown files.
   - The evaluation commands will auto-”detect” vectors and maps as well as list.
   - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Integrated REPLs
   - Switch to current namespace in the REPL window: `ctrl+alt+c n`
   - Load current namespace in the REPL window: `ctrl+alt+c alt+n`
   - Evaluate code from the editor to the REPL window: `ctrl+alt+c alt+e`
-- When editing `cljc` files, easily choose if repl commands should go to the `clj` or `cljs` repl by clicking the `cljc/clj[s]` indicator in the status bar.
+- When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
 Demo: Peek at defintions, etcetera:
@@ -104,7 +104,7 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching.
 
-Note. If you for some reason do not want rainbow colors, put this in your `settings.json`:
+Note: If you for some reason do not want rainbow colors, put this in your `settings.json`:
 
 ```json
     "clojureWarrior.enableBracketColors": false

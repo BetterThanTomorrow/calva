@@ -18,18 +18,16 @@
       (assoc m :error (.-message e)))))
 
 (comment
-  (def s "(defn\n0\n#_)")
+  {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6}
+  (def s "[:foo\n\n(foo)(bar)]")
+  #_(def s "(defn\n0\n#_)")
   (format-text #_s
                {:range-text s
                 :eol "\n"
-                :config {
-                         :remove-surrounding-whitespace? false
+                :config {:remove-surrounding-whitespace? false
                          :remove-trailing-whitespace? false
                          :remove-consecutive-blank-lines? false
-                         :align-associative? true}}
-               )
-  (format-text {:current-line "#_)", :config {:format-as-you-type true, :indentation? true, :remove-surrounding-whitespace? false, :remove-trailing-whitespace? false, :insert-missing-whitespace? true, :remove-consecutive-blank-lines? false, :align-associative? false}, :on-type true, :head "(foo \n", :tail "#_)", :eol "\n", :range-text "(foo \n#_)", :idx 6, :all-text "(foo \n#_)", :range [0 9]})
-  {:current-line "#_)", :config {:format-as-you-type true, :indentation? true, :remove-surrounding-whitespace? false, :remove-trailing-whitespace? false, :insert-missing-whitespace? true, :remove-consecutive-blank-lines? false, :align-associative? false}, :on-type true, :head "(foo \n", :tail "#_)", :eol "\n", :range-text "(foo \n#_)", :error "(:uneval 1 \"\")%s node expects %d value%s. [at line 2, column 4]", :idx 6, :all-text "(foo \n#_)", :range [0 9]})
+                         :align-associative? true}}))
 
 (defn current-line-empty?
   "Figure out if `:current-line` is empty"
@@ -93,6 +91,8 @@
                     :idx 4})
   (enclosing-range {:all-text "  (#{foo})"
                     :idx 5})
+  (enclosing-range {:all-text "[:foo\n\n(foo)(bar)]" 
+                    :idx 6})
   (def s "(foo \"([\\[\\]\\])\")")
   (count s)
   (enclosing-range {:all-text s
@@ -132,24 +132,24 @@
 
 (defn index-for-tail-in-range
   "Find index for the `tail` in `text` disregarding whitespace"
-  [{:keys [range-text range-tail on-type idx] :as m}]
-  #_(if-not (= range-text "0")
-      (assoc m :new-index idx))
+  [{:keys [range-text range-tail on-type] :as m}]
   (let [leading-space-length (count (re-find #"^[ \t]*" range-tail))
+        space-sym (str "@" (gensym "ESPACEIALLY") "@")
         tail-pattern (-> range-tail
+                         (clojure.string/replace #"[\]\)\}\"]" (str "$&" space-sym))
                          (util/escape-regexp)
                          (clojure.string/replace #"^[ \t]+" "")
-                         (clojure.string/replace #"\s+" "\\s*"))
+                         (clojure.string/replace #"\s+" "\\s*")
+                         (clojure.string/replace space-sym " ?"))
         tail-pattern (if (and on-type (re-find #"^\r?\n" range-tail))
                        (str "(\\r?\\n)+" tail-pattern)
                        tail-pattern)
         pos (util/re-pos-first (str "[ \\t]{0," leading-space-length "}" tail-pattern "$") range-text)]
     (assoc m :new-index pos)))
 
-
 (defn format-text-at-range
   "Formats text from all-text at the range"
-  [{:keys [all-text range idx config on-type] :as m}]
+  [{:keys [all-text range idx] :as m}]
   (let [indent-before (indent-before-range m)
         padding (apply str (repeat indent-before " "))
         range-text (subs all-text (first range) (last range))
@@ -168,7 +168,11 @@
                          :head "  '([]\n"
                          :tail "[])"
                          :current-line "[])"
-                         :range [4 9]}))
+                         :range [4 9]})
+  (format-text-at-range {:eol "\n" 
+                         :all-text "[:foo\n\n(foo)(bar)]" 
+                         :idx 6
+                         :range [0 18]}))
 
 
 (defn add-indent-token-if-empty-current-line

@@ -91,10 +91,8 @@ function getProjectDir() {
         } catch (err) {
             return workspaceRoot.uri.fsPath;
         }
-    } else if (vscode.workspace.workspaceFolders != undefined) {
-        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : ".";
     } else {
-        return "";
+        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : ".";
     }
 }
 
