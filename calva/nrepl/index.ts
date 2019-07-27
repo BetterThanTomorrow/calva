@@ -2,7 +2,7 @@ import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import { windowsToWsl } from "wsl-path";
-
+import * as RefactorClient from '../refactor/nreplClient'; 
 
 /** An nRREPL client */
 export class NReplClient {
@@ -293,32 +293,11 @@ export class NReplSession {
     }
 
     artifactVersions(artifact: string) {
-        return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
-            console.log("Artiifact-list before message");
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
-
-            this.client.write({
-                op: "artifact-versions",
-                artifact,
-                id,
-                session: this.sessionId
-            });
-        })
+        return RefactorClient.artifactVersion(this, artifact);
     }
 
     cleanNS(path: string) {
-        return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
-            this.client.write({ op: "clean-ns", path, id, session: this.sessionId })
-        })
+        return RefactorClient.cleanNS(this, path);
     }
 
     info(ns: string, symbol: string) {

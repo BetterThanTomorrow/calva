@@ -11,7 +11,7 @@ import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './evaluate';
-import RefactorMiddleWare from './refactor';
+import refactor from './refactor/index';
 import LintMiddleWare from './lint';
 import TestRunnerMiddleWare from './testRunner';
 import annotations from './providers/annotations';
@@ -130,9 +130,6 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
 
-    context.subscriptions.push(vscode.commands.registerCommand('calva.artifactVersions', RefactorMiddleWare.artifactVersions));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.cleanNS', RefactorMiddleWare.cleanNS));
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', evaluate.requireREPLUtilitiesCommand));
@@ -141,6 +138,8 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearREPLWindowHistory', replWindow.clearHistory));
+
+    refactor.activate(context);
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
