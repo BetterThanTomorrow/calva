@@ -79,8 +79,8 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
     })
 }
 
-function getProjectDir() {
-    const doc = getDocument({}),
+function getProjectDir(document = {}) {
+    const doc = getDocument(document),
         workspaceRoot = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : undefined;
     if (workspaceRoot != undefined) {
         let configProjectRoot = state.config().projectRootDirectory;

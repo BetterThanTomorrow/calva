@@ -300,6 +300,10 @@ export class NReplSession {
         return RefactorClient.cleanNS(this, path);
     }
 
+    findSymbol(params: any) {
+        return RefactorClient.findSymbol(this, params);
+    }
+
     info(ns: string, symbol: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;

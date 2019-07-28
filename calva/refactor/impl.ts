@@ -32,6 +32,7 @@ async function artifactVersions(document = {}) {
 async function cleanNS(document = {}) {
     let { doc, fileName, client, chan, isValid } = refacortUtils.neededVariables(document);
     let filePath = doc.fileName;
+    let nsName = util.getDocumentNamespace(doc);
 
     if (isValid) {
         chan.appendLine("Clean-NS: " + fileName);
@@ -43,9 +44,10 @@ async function cleanNS(document = {}) {
             edit.replace(doc.uri, namespaceRange, ns);
 
             workspace.applyEdit(edit).then(() => {
-                let nsNamme = util.getDocumentNamespace(doc);
-                window.showInformationMessage("Cleaned ns—Form for " + nsNamme);
+                window.showInformationMessage("Cleaned ns form for " + nsName);
             });
+        } else {
+            window.showInformationMessage("Nothing to clean for ns " + nsName)
         }
     }
 }
