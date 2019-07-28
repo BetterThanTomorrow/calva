@@ -229,6 +229,34 @@ vscode.tasks.onDidStartTaskProcess(e => {
     }
 });
 
+function executeJackInTask(projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
+    state.cursor.set("launching", projectTypeSelection);
+    statusbar.update();
+    const nreplPortFile = connector.nreplPortFile();
+    if (nreplPortFile && fs.existsSync(nreplPortFile)) {
+        fs.unlinkSync(nreplPortFile);
+    }
+    const env = { ...process.env, ...state.config().jackInEnv } as {
+        [key: string]: string;
+    };
+    const execution = new vscode.ShellExecution(executable, args, {
+        cwd: utilities.getProjectDir(),
+        env: env
+    });
+    const taskDefinition: vscode.TaskDefinition = {
+        type: "shell",
+        label: "Calva: Jack-in"
+    };
+    const folder = vscode.workspace.workspaceFolders[0];
+    const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
+    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
+    vscode.tasks.executeTask(task).then((v) => {
+    }, (reason) => {
+        watcher.close();
+        outputChannel.appendLine("Error in Jack-in: " + reason);
+    });
+}
+
 export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
 
@@ -290,78 +318,36 @@ export async function calvaJackIn() {
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await projectType.commandLine(selectedCljsType != "");
 
-    let shellSettingsShouldBeChangedByUs = false;
-    let shellSettingsChangedByUs = false;
-
-        // launch powershell scripts through powershell, doing crazy powershell escaping.
-        // args = args.map(escapeString) as Array<string>;
-        // args.unshift(executable);
-        // executable = "powershell.exe";
     if (isWin && projectType.winShell != null) {
         // Current workaround for making sure we can escape windows commands correctly
         let windowsterminalssettings = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
         integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
         if (!integrated_shell || !integrated_shell.endsWith(projectType.winShell)) {
-            shellSettingsShouldBeChangedByUs = true;
             let shellPath = projectType.winShell === "cmd.exe" ? "C:\\Windows\\System32\\cmd.exe" : "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
             outputChannel.appendLine(`Jack-in needs to use ${projectType.winShell} to work. Allow the (temporary) switch, please.`);
-            await vscode.workspace.getConfiguration()
+            vscode.workspace.getConfiguration()
                 .update("terminal.integrated.shell.windows", shellPath)
                 .then(
                     () => {
-                        shellSettingsChangedByUs = true;
+                        executeJackInTask(projectTypeSelection, executable, args, cljTypes, outputChannel);
                     },
                     (reason) => {
                         outputChannel.appendLine(`Jack-in aborted, since it won't work without using ${projectType.winShell}`);
+                        state.analytics().logEvent("REPL", "JackInInterrupted", "Windows user wont allow change of shell setting").send();
                     }
-                );
+                ).then(() => {
+                    setTimeout(() => { // Need to give the task shell time to start
+                        vscode.workspace.getConfiguration()
+                            .update("terminal.integrated.shell.windows", integrated_shell)
+                            .then(() => {
+                                integrated_shell = undefined;
+                            });
+                    }, 2000);
+                })
+        } else {
+            executeJackInTask(projectTypeSelection, executable, args, cljTypes, outputChannel);
         }
-    }
-
-    if (shellSettingsShouldBeChangedByUs && !shellSettingsChangedByUs) {
-        state.analytics().logEvent("REPL", "JackInInterrupted", "Windows user wont allow change of shell setting").send();
-        return;
-    }
-    state.cursor.set("launching", projectTypeSelection)
-    statusbar.update();
-
-    const nreplPortFile = connector.nreplPortFile();
-    if (nreplPortFile && fs.existsSync(nreplPortFile)) {
-        fs.unlinkSync(nreplPortFile);
-    }
-
-    const env = { ...process.env, ...state.config().jackInEnv } as { [key: string]: string; };
-
-    const execution = new vscode.ShellExecution(executable, args, {
-        cwd: utilities.getProjectDir(),
-        env: env
-    });
-
-    const taskDefinition: vscode.TaskDefinition = {
-        type: "shell",
-        label: "Calva: Jack-in"
-        
-    };
-
-    const folder = vscode.workspace.workspaceFolders[0];
-    const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
-
-    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
-    vscode.tasks.executeTask(task).then(
-        (v) => {
-        },
-        (reason) => {
-            watcher.close()
-            outputChannel.appendLine("Error in Jack-in: " + reason);
-        });
-
-    if (executable.endsWith(".bat") && shellSettingsChangedByUs) {
-        setTimeout(() => { // Need to give the task shell time to start
-            vscode.workspace.getConfiguration()
-                .update("terminal.integrated.shell.windows", integrated_shell)
-                .then(() => {
-                    integrated_shell = undefined;
-                });
-        }, 2000);
+    } else {
+        executeJackInTask(projectTypeSelection, executable, args, cljTypes, outputChannel);
     }
 }
