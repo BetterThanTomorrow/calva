@@ -61,22 +61,22 @@ const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
 const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
 
-const projectTypes: {
-    [id: string]: {
-        name: string,
-        cljsTypes: string[],
-        cmd: string,
-        winCmd: string,
-        commandLine: (includeCljs: boolean) => any,
-        useWhenExists: string,
-        winShell?: string
-    }
-} = {
+type ProjectType = {
+    name: string;
+    cljsTypes: string[];
+    cmd: string;
+    winCmd: string;
+    commandLine: (includeCljs: boolean) => any;
+    useWhenExists: string;
+    winShell?: string;
+};
+
+const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
         name: "Leiningen",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "lein",
-        winCmd: "lein.bat",
+        winCmd: "cmd.exe",
         winShell: "cmd.exe",
         useWhenExists: "project.clj",
         commandLine: async (includeCljs) => {
@@ -110,26 +110,32 @@ const projectTypes: {
                 }
             }
 
+            if (isWin) {
+                out.push("/d", "/c", "lein");
+            }
+            const q = isWin ? '' : "'",
+            dQ = '"',
+            s = isWin ? "^ " : " ";
+
             for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
-                out.push("update-in", ":dependencies", "conj", `"[${dep} \\"${dependencies[dep]}\\"]"`, '--');
+                out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
             }
 
             keys = Object.keys(leinPluginDependencies);
             for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
-                out.push("update-in", ":plugins", "conj", `"[${dep} \\"${leinPluginDependencies[dep]}\\"]"`, '--');
+                out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
             }
 
             const useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             for (let mw of useMiddleware) {
-                out.push("update-in", '"[:repl-options :nrepl-middleware]"', "conj", `"[\\"${mw.replace('"', '\\"')}\\"]"`, '--');
+                out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `["${mw}"]`, '--');
             }
 
             if (profiles.length) {
                 out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
             }
-            //out.push("update-in", ":middleware", "conj", `cider-nrepl.plugin/middleware`, '--')
             out.push("repl", ":headless");
             return out;
         }
@@ -153,7 +159,7 @@ const projectTypes: {
         name: "Clojure CLI",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "clojure",
-        winCmd: "clojure",
+        winCmd: "powershell.exe",
         winShell: "powershell.exe",
         useWhenExists: "deps.edn",
         commandLine: async (includeCljs) => {
@@ -174,10 +180,14 @@ const projectTypes: {
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-            const dQ = isWin ? '""""""' : '"';
+            const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
-            return ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`]
+            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`];
+            if (isWin) {
+                args.unshift("clojure");
+            }
+            return args;
         }
     },
     "shadow-cljs": {
@@ -229,7 +239,7 @@ vscode.tasks.onDidStartTaskProcess(e => {
     }
 });
 
-function executeJackInTask(projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
+function executeJackInTask(projectType: ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
     const nreplPortFile = connector.nreplPortFile();
@@ -239,12 +249,17 @@ function executeJackInTask(projectTypeSelection: any, executable: string, args: 
     const env = { ...process.env, ...state.config().jackInEnv } as {
         [key: string]: string;
     };
-    const execution = new vscode.ShellExecution(executable, args, {
-        cwd: utilities.getProjectDir(),
-        env: env
-    });
+    const execution = isWin ?
+        new vscode.ProcessExecution(executable, args, {
+            cwd: utilities.getProjectDir(),
+            env: env,
+        }) :
+        new vscode.ShellExecution(executable, args, {
+            cwd: utilities.getProjectDir(),
+            env: env,
+        });
     const taskDefinition: vscode.TaskDefinition = {
-        type: "shell",
+        type: isWin ? "process" : "shell",
         label: "Calva: Jack-in"
     };
     const folder = vscode.workspace.workspaceFolders[0];
@@ -290,7 +305,6 @@ export async function calvaJackIn() {
         return;
     }
 
-
     // Resolve the selection to an entry in projectTypes
     const projectTypeName: string = projectTypeSelection.replace(/ \+ .*$/, "");
     let projectType = getProjectTypeForName(projectTypeName);
@@ -303,51 +317,10 @@ export async function calvaJackIn() {
         return;
     }
 
-    // Now look in our $PATH variable to check the appropriate command exists.
-    const cmd = isWin ? projectType.winCmd : projectType.cmd;
-    let executable = cmd;
-    let integrated_shell;
-
-    if (!executable) {
-        // It doesn't, do not proceed
-        state.analytics().logEvent("REPL", "JackInInterrupted", "CommandNotInPath").send();
-        vscode.window.showErrorMessage(cmd + " is not on your PATH, please add it.")
-        return;
-    }
+    let executable = isWin ? projectType.winCmd : projectType.cmd;
 
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await projectType.commandLine(selectedCljsType != "");
 
-    if (isWin && projectType.winShell != null) {
-        // Current workaround for making sure we can escape windows commands correctly
-        let windowsterminalssettings = vscode.workspace.getConfiguration("terminal.integrated.shell").inspect("windows");
-        integrated_shell = windowsterminalssettings.workspaceFolderValue || windowsterminalssettings.workspaceValue;
-        if (!integrated_shell || !integrated_shell.endsWith(projectType.winShell)) {
-            let shellPath = projectType.winShell === "cmd.exe" ? "C:\\Windows\\System32\\cmd.exe" : "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
-            outputChannel.appendLine(`Jack-in needs to use ${projectType.winShell} to work. Allow the (temporary) switch, please.`);
-            vscode.workspace.getConfiguration()
-                .update("terminal.integrated.shell.windows", shellPath)
-                .then(
-                    () => {
-                        executeJackInTask(projectTypeSelection, executable, args, cljTypes, outputChannel);
-                    },
-                    (reason) => {
-                        outputChannel.appendLine(`Jack-in aborted, since it won't work without using ${projectType.winShell}`);
-                        state.analytics().logEvent("REPL", "JackInInterrupted", "Windows user wont allow change of shell setting").send();
-                    }
-                ).then(() => {
-                    setTimeout(() => { // Need to give the task shell time to start
-                        vscode.workspace.getConfiguration()
-                            .update("terminal.integrated.shell.windows", integrated_shell)
-                            .then(() => {
-                                integrated_shell = undefined;
-                            });
-                    }, 2000);
-                })
-        } else {
-            executeJackInTask(projectTypeSelection, executable, args, cljTypes, outputChannel);
-        }
-    } else {
-        executeJackInTask(projectTypeSelection, executable, args, cljTypes, outputChannel);
-    }
+    executeJackInTask(projectType, projectTypeSelection, executable, args, cljTypes, outputChannel);
 }
