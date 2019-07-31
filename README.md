@@ -26,7 +26,7 @@ Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wi
 
 You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
 
-There is also a command for evaluating the current top level form which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with code.  It looks something like so:
+There is also a command for evaluating the current top level form which I use even more often, especially since it works inside `(comment)` forms and supports my way of experimenting with code.  It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
@@ -69,7 +69,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e`
     - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
-  - Pretty printing evaluation resuls: `ctrl+alt+c p` (Currently broken, see issues on Github).
+  - Pretty printing evaluation results: `ctrl+alt+c p` (Currently broken, see issues on Github).
   - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
     - Send the current top level form to the REPL terminal: `ctrl+alt+c alt+space`
   - Error information when evaluation fails (at least a hint)
@@ -84,7 +84,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
-Demo: Peek at defintions, etcetera:
+Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
@@ -96,7 +96,7 @@ You really should have a look at the READMEs for those as well. One thing to not
 
 ### Slurp and Barf keyboard shortcuts
 
-To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortucts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
+To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortcuts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
 
 ![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
