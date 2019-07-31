@@ -5,27 +5,9 @@ import * as state from "../state"
 import connector from "../connector";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
-//const { parseEdn, parseForms } = require('../../cljs-out/cljs-lib');
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 
 const isWin = /^win/.test(process.platform);
-
-/** Finds a file in PATH */
-function findInPath(name: string) {
-    const paths = process.env.PATH.split(isWin ? ";" : ":");
-    for (let path of paths) {
-        let fullPath = path + (isWin ? "\\" : "/") + name;
-        if (fs.existsSync(fullPath))
-            return fullPath;
-    }
-}
-
-/** If this looks like a string and we are under windows, escape it in a powershell compatible way. */
-function escapeString(str: string) {
-    if (str.startsWith('"') && str.endsWith('"') && isWin)
-        return str.replace(/\\"/g, "\\`\"");
-    return str;
-}
 
 export function detectProjectType(): string[] {
     let rootDir = utilities.getProjectDir(),
@@ -59,8 +41,6 @@ const leinDependencies = {
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
-const initEval = '"(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\\"cider.nrepl/cider-middleware\\", \\"cider.piggieback/wrap-cljs-repl\\"])"';
-
 type ProjectType = {
     name: string;
     cljsTypes: string[];
@@ -68,7 +48,6 @@ type ProjectType = {
     winCmd: string;
     commandLine: (includeCljs: boolean) => any;
     useWhenExists: string;
-    winShell?: string;
 };
 
 const projectTypes: { [id: string]: ProjectType } = {
@@ -77,7 +56,6 @@ const projectTypes: { [id: string]: ProjectType } = {
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "lein",
         winCmd: "cmd.exe",
-        winShell: "cmd.exe",
         useWhenExists: "project.clj",
         commandLine: async (includeCljs) => {
             let out: string[] = [];
@@ -145,7 +123,6 @@ const projectTypes: { [id: string]: ProjectType } = {
         name: "Boot",
         cmd: "boot",
         winCmd: "boot.exe",
-        winShell: true,
         useWhenExists: "build.boot",      
         commandLine: () => {
             let out: string[] = [];
@@ -160,7 +137,6 @@ const projectTypes: { [id: string]: ProjectType } = {
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "clojure",
         winCmd: "powershell.exe",
-        winShell: "powershell.exe",
         useWhenExists: "deps.edn",
         commandLine: async (includeCljs) => {
             let out: string[] = [];
@@ -195,7 +171,6 @@ const projectTypes: { [id: string]: ProjectType } = {
         cljsTypes: [],
         cmd: "npx",
         winCmd: "npx.cmd",
-        winShell: null,
         useWhenExists: "shadow-cljs.edn",
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
@@ -220,32 +195,10 @@ function getProjectTypeForName(name: string) {
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
-vscode.tasks.onDidStartTaskProcess(e => {
-    if (e.execution.task.name == TASK_NAME) {
-        if (watcher != undefined) {
-            watcher.removeAllListeners();
-        }
-        // Create a watcher to wait for the nREPL port file to appear, and connect + open the repl window at that point.
-        watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
-            if (filename == ".nrepl-port") {
-                const chan = state.outputChannel();
-                setTimeout(() => { chan.show() }, 1000);
-                state.cursor.set("launching", null);
-                watcher.close();
-                await connector.connect(true, true);
-                chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
-            }
-        })
-    }
-});
-
 function executeJackInTask(projectType: ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
     const nreplPortFile = connector.nreplPortFile();
-    if (nreplPortFile && fs.existsSync(nreplPortFile)) {
-        fs.unlinkSync(nreplPortFile);
-    }
     const env = { ...process.env, ...state.config().jackInEnv } as {
         [key: string]: string;
     };
@@ -264,8 +217,29 @@ function executeJackInTask(projectType: ProjectType, projectTypeSelection: any, 
     };
     const folder = vscode.workspace.workspaceFolders[0];
     const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
+
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
+    if (nreplPortFile && fs.existsSync(nreplPortFile)) {
+        fs.unlinkSync(nreplPortFile);
+    }
     vscode.tasks.executeTask(task).then((v) => {
+        // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
+        if (watcher != undefined) {
+            watcher.removeAllListeners();
+        }
+        watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
+            if (filename == ".nrepl-port") {
+                if (isWin && eventType != "change") {
+                    return;
+                }
+                const chan = state.outputChannel();
+                setTimeout(() => { chan.show() }, 1000);
+                state.cursor.set("launching", null);
+                watcher.close();
+                await connector.connect(true, true);
+                chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
+            }
+        });
     }, (reason) => {
         watcher.close();
         outputChannel.appendLine("Error in Jack-in: " + reason);
