@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import * as utilities from "../utilities";
 import * as fs from "fs";
+import * as path from "path";
 import * as state from "../state"
-import connector from "../connector";
+import * as connector from "../connector";
 import statusbar from "../statusbar";
 import * as shadow from "../shadow"
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
@@ -41,22 +42,16 @@ const leinDependencies = {
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
-type ProjectType = {
-    name: string;
-    cljsTypes: string[];
-    cmd: string;
-    winCmd: string;
-    commandLine: (includeCljs: boolean) => any;
-    useWhenExists: string;
-};
-
-const projectTypes: { [id: string]: ProjectType } = {
+const projectTypes: { [id: string]: connector.ProjectType } = {
     "lein": {
         name: "Leiningen",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "lein",
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
+        nReplPortFile: () => {
+            return connector.nreplPortFile();
+        },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
@@ -138,6 +133,9 @@ const projectTypes: { [id: string]: ProjectType } = {
         cmd: "clojure",
         winCmd: "powershell.exe",
         useWhenExists: "deps.edn",
+        nReplPortFile: () => {
+            return connector.nreplPortFile();
+        },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let data = fs.readFileSync(utilities.getProjectDir() + "/deps.edn", 'utf8').toString();
@@ -172,6 +170,9 @@ const projectTypes: { [id: string]: ProjectType } = {
         cmd: "npx",
         winCmd: "npx.cmd",
         useWhenExists: "shadow-cljs.edn",
+        nReplPortFile: () => {
+            return connector.nreplPortFile(`.shadow-cljs${isWin ? "\\" : "/"}nrepl.port`);
+        },
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
@@ -195,10 +196,10 @@ function getProjectTypeForName(name: string) {
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
-function executeJackInTask(projectType: ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
+function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
-    const nreplPortFile = connector.nreplPortFile();
+    const nReplPortFile = projectType.nReplPortFile();
     const env = { ...process.env, ...state.config().jackInEnv } as {
         [key: string]: string;
     };
@@ -219,16 +220,19 @@ function executeJackInTask(projectType: ProjectType, projectTypeSelection: any, 
     const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
-    if (nreplPortFile && fs.existsSync(nreplPortFile)) {
-        fs.unlinkSync(nreplPortFile);
-    }
+
     vscode.tasks.executeTask(task).then((v) => {
         // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
+        const portFileDir = path.dirname(nReplPortFile),
+            portFileBase = path.basename(nReplPortFile);
         if (watcher != undefined) {
             watcher.removeAllListeners();
         }
-        watcher = fs.watch(utilities.getProjectDir(), async (eventType, filename) => {
-            if (filename == ".nrepl-port") {
+        if (nReplPortFile && fs.existsSync(nReplPortFile)) {
+           fs.unlinkSync(nReplPortFile);
+        }
+        watcher = fs.watch(portFileDir, async (eventType, fileName) => {
+            if (fileName == portFileBase) {
                 if (isWin && eventType != "change") {
                     return;
                 }
