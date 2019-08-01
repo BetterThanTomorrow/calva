@@ -11,7 +11,15 @@ import status from './status';
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow } from './repl-window';
 
-
+export type ProjectType = {
+    name: string;
+    cljsTypes: string[];
+    cmd: string;
+    winCmd: string;
+    commandLine: (includeCljs: boolean) => any;
+    useWhenExists: string;
+    nReplPortFile: () => string;
+};
 
 async function connectToHost(hostname, port, cljsTypeName: string, replTypes: ReplType[]) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -297,7 +305,7 @@ function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
     }
 }
 
-function getCustomCLJSRepl(): ReplType {
+export function getCustomCLJSRepl(): ReplType {
     const replConfig = state.config().customCljsRepl;
     if (replConfig) {
         return createCustomCLJSReplType(replConfig as customCLJSREPLType);
@@ -391,26 +399,26 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-function nreplPortFile(): string {
+export function nreplPortFile(subPath: string = ".nrepl-port"): string {
     let editor = vscode.window.visibleTextEditors.find(x => x.document.languageId == "clojure");
     if (editor) {
         let d = path.dirname(editor.document.fileName);
         let prev = null;
         while (d != prev) {
-            const p = path.resolve(d, ".nrepl-port");
+            const p = path.resolve(d, subPath);
             if (fs.existsSync(p)) {
                 return p;
             }
             prev = d;
             d = path.resolve(d, "..");
         }
+        return path.join(util.getProjectDir(), subPath);
     } else {
-        return util.getProjectDir() + '/.nrepl-port'
+        return path.join(util.getProjectDir(), subPath);
     }
 }
 
-export default {
-    connect: async function (isAutoConnect = false, isJackIn = false) {
+export async function connect(isAutoConnect = false, isJackIn = false) {
         let chan = state.outputChannel();
         let cljsTypeName: string;
 
@@ -439,10 +447,12 @@ export default {
             cljsTypeName = "";
         }
 
+        const portFile = cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile();
+
         state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
 
-        if (fs.existsSync(nreplPortFile())) {
-            let port = fs.readFileSync(nreplPortFile(), 'utf8');
+        if (fs.existsSync(portFile)) {
+            let port = fs.readFileSync(portFile, 'utf8');
             if (port) {
                 if (isAutoConnect) {
                     state.cursor.set("hostname", "localhost");
@@ -459,7 +469,10 @@ export default {
             await promptForNreplUrlAndConnect(null, cljsTypeName, types);
         }
         return true;
-    },
+    }
+
+export default {
+    connect: connect,
     disconnect: function (options = null, callback = () => { }) {
         ['clj', 'cljs'].forEach(sessionType => {
             state.cursor.set(sessionType, null);
