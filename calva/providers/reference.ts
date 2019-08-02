@@ -1,6 +1,6 @@
 import * as util from '../utilities';
 import * as state from '../state';
-import { ProviderResult, Location, TextDocument, Position, ReferenceContext, CancellationToken, ReferenceProvider, Uri, Range } from 'vscode';
+import {Location, TextDocument, Position, ReferenceContext, CancellationToken, ReferenceProvider, Uri, Range, window } from 'vscode';
 
 function refToLocation(r: any): Location {
     let startPos = new Position(r["line-beg"] - 1, r["col-beg"] - 1);
@@ -32,7 +32,12 @@ export default class CalvaReferenceProvider implements ReferenceProvider {
             line: position.line,
         };
 
-        let { refs, count } = await client.findSymbol(params);
+        let { refs, count, error } = await client.findSymbol(params);
+
+        if (error) {
+            window.showErrorMessage(error);
+            return new Array();
+        }
 
         let locs = refs.map(r => refToLocation(r));
 

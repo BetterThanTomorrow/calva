@@ -39,15 +39,21 @@ function findSymbol(nReplSession: NReplSession, params) {
         let { client, messageHandlers, sessionId } = nReplSession;
 
         let id = client.nextId;
-        let resultRefercens = { refs: [], count: null };
+        let resultRefercens = { refs: [], count: null , error: null};
         messageHandlers[id] = (msg) => {
-            
             if (msg.occurrence) {
                 let parsed = parseEdn(msg.occurrence);
                 resultRefercens.refs.push(parsed);
             }
+            
             if (msg.count) {
                 resultRefercens.count = msg.count;
+            }
+
+            if (msg.error) {
+                resultRefercens.error = msg.error;
+                resolve(resultRefercens);
+                return true;
             }
 
             if (resultRefercens.count) {
