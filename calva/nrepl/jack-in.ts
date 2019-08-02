@@ -106,7 +106,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
 
             const useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             for (let mw of useMiddleware) {
-                out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `["${mw}"]`, '--');
+                out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
             }
 
             if (profiles.length) {
