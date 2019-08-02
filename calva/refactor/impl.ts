@@ -1,6 +1,7 @@
 import {WorkspaceEdit, workspace, InputBoxOptions, window } from 'vscode';
 import * as refacortUtils from './utils';
 import * as util from '../utilities';
+import * as state from '../state';
 
 async function artifactVersions(document = {}) {
     let { client, chan, isValid } = util.neededVariables(document);
@@ -45,9 +46,11 @@ async function cleanNS(document = {}) {
 
             workspace.applyEdit(edit).then(() => {
                 window.showInformationMessage("Cleaned ns form for " + nsName);
+                state.analytics().logEvent("Refactor", "clean-ns", "success").send();
             });
         } else {
             window.showInformationMessage("Nothing to clean for ns " + nsName)
+            state.analytics().logEvent("Refactor", "clean-ns", "no-clean").send();
         }
     }
 }

@@ -1,5 +1,5 @@
-import * as util from '../utilities';
-import * as state from '../state';
+import * as util from '../../utilities';
+import * as state from '../../state';
 import {Location, TextDocument, Position, ReferenceContext, CancellationToken, ReferenceProvider, Uri, Range, window } from 'vscode';
 
 function refToLocation(r: any): Location {
@@ -18,13 +18,19 @@ export default class CalvaReferenceProvider implements ReferenceProvider {
         position: Position,
         context: ReferenceContext,
         token: CancellationToken) {
+        
+        if (!state.deref().connected) {
+            window.showInformationMessage("Must be connected to a repl");
+            return new Array();
+        }
+
         let text = util.getWordAtPosition(document, position);
         let client = util.getSession(util.getFileType(document));
 
         let ns = util.getDocumentNamespace(document);
 
         let params = {
-            file: document.uri.fsPath, //"G:\\repos\\modern-wingchun-website\\src\\clj\\modern_wingchun\\pages.clj",
+            file: document.uri.fsPath,
             dir: util.getProjectDir(document),
             ns: ns,
             name: text,
@@ -36,12 +42,17 @@ export default class CalvaReferenceProvider implements ReferenceProvider {
 
         if (error) {
             window.showErrorMessage(error);
+            if (error.includes(".clj")) {
+                state.analytics().logEvent("Refactor", "Find references", "error", "tried with cljs").send();
+            }
             return new Array();
         }
 
         let locs = refs.map(r => refToLocation(r));
 
         //console.log({ text, document, position, context, token, params, refs});
+
+        state.analytics().logEvent("Refactor", "Find references", "success", count).send();
 
         return locs;
     }
