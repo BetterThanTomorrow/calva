@@ -1,4 +1,5 @@
 import { NReplSession } from "../nrepl";
+import * as jsedn from "jsedn";
 
 function artifactVersion (nReplSession:NReplSession, artifact: string) {
     return new Promise<any>((resolve, reject) => {
@@ -38,14 +39,30 @@ function findSymbol(nReplSession: NReplSession, params) {
         let { client, messageHandlers, sessionId } = nReplSession;
 
         let id = client.nextId;
+        let resultRefercens = { refs: [], count: null };
         messageHandlers[id] = (msg) => {
-            resolve(msg);
-            return true;
+            
+            if (msg.occurrence) {
+                let parsed = jsedn.parse(msg.occurrence).jsEncode();
+                resultRefercens.refs.push(parsed);
+            }
+            if (msg.count) {
+                resultRefercens.count = msg.count;
+            }
+
+            if (resultRefercens.count) {
+                console.log("found all references", resultRefercens);
+                resolve(resultRefercens);
+                return true;
+            } else {
+                return false;
+            }
+            
         }
 
-        let {file, dir, ns, line, column, name} = params;
+        Object.assign(params, { op: "find-symbol", id, session: sessionId});
 
-        client.write({ op: "find-symbol", file, dir, ns, name, line, column, id, session: sessionId })
+        client.write(params)
     })
 }
 

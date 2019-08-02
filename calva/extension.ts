@@ -10,6 +10,7 @@ import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
+import RefactorMiddleWare from './refactor/index';
 import EvaluateMiddleWare from './evaluate';
 import refactor from './refactor/index';
 import LintMiddleWare from './lint';
@@ -129,8 +130,6 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.artifactVersions', RefactorMiddleWare.artifactVersions));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
