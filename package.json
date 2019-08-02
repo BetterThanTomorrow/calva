@@ -257,8 +257,7 @@
             {
                 "command": "calva.cleanNS",
                 "title": "Clean current NS",
-                "category": "Calva",
-                "enablement": "calva:activated && editorLangid == clojure"
+                "category": "Calva"
             },
             {
                 "command": "calva.connect",

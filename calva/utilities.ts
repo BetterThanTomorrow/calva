@@ -252,6 +252,11 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
+function isClojureFile(document: vscode.TextDocument) {
+    let fileType = getFileType(document);
+    return document && document.languageId == "clojure" && fileType != "edn";
+}
+
 function neededVariables(document) {
     let current = state.deref(),
         doc = getDocument(document),
@@ -401,6 +406,7 @@ export {
     getFileName,
     getSession,
     neededVariables,
+    isClojureFile,
     specialWords,
     ERROR_TYPE,
     logError,

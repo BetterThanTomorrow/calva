@@ -19,9 +19,9 @@ export default class CalvaReferenceProvider implements ReferenceProvider {
         context: ReferenceContext,
         token: CancellationToken) {
         
-        if (!state.deref().connected) {
+        if (!this.state.deref().get("connected")) {
             window.showInformationMessage("Must be connected to a repl");
-            return new Array();
+            return [];
         }
 
         let text = util.getWordAtPosition(document, position);
@@ -45,7 +45,7 @@ export default class CalvaReferenceProvider implements ReferenceProvider {
             if (error.includes(".clj")) {
                 state.analytics().logEvent("Refactor", "Find references", "error", "tried with cljs").send();
             }
-            return new Array();
+            return [];
         }
 
         let locs = refs.map(r => refToLocation(r));
