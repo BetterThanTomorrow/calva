@@ -255,14 +255,10 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.artifactVersions",
-                "title": "Artifact Versions",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.cleanNS",
                 "title": "Clean current NS",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "calva:activated && editorLangid == clojure"
             },
             {
                 "command": "calva.connect",
@@ -710,6 +706,11 @@
             {
                 "command": "calva.jackIn",
                 "key": "ctrl+alt+c ctrl+alt+j"
+            },
+            {
+                "command": "calva.cleanNS",
+                "key": "ctrl+alt+c ctrl+n",
+                "when": "editorLangId == clojure"
             },
             {
                 "command": "calva.connect",
