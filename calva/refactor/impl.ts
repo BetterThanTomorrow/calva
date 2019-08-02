@@ -3,7 +3,7 @@ import * as refacortUtils from './utils';
 import * as util from '../utilities';
 
 async function artifactVersions(document = {}) {
-    let { client, chan, isValid } = refacortUtils.neededVariables(document);
+    let { client, chan, isValid } = util.neededVariables(document);
 
     if (isValid) {
         chan.appendLine("Artifact-Versions");
@@ -30,7 +30,7 @@ async function artifactVersions(document = {}) {
 }
 
 async function cleanNS(document = {}) {
-    let { doc, fileName, client, chan, isValid } = refacortUtils.neededVariables(document);
+    let { doc, fileName, client, chan, isValid } = util.neededVariables(document);
     let filePath = doc.fileName;
     let nsName = util.getDocumentNamespace(doc);
 

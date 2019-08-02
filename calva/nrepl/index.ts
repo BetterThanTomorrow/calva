@@ -304,6 +304,10 @@ export class NReplSession {
         return RefactorClient.findSymbol(this, params);
     }
 
+    warmAstCache() {
+        return RefactorClient.warmAstCache(this);
+    }
+
     info(ns: string, symbol: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;

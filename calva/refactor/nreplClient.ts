@@ -34,6 +34,20 @@ function cleanNS(nReplSession: NReplSession, path: string) {
     })
 }
 
+function warmAstCache(nReplSession: NReplSession) {
+    return new Promise<any>((resolve, reject) => {
+        let { client, messageHandlers, sessionId } = nReplSession;
+
+        let id = client.nextId;
+        messageHandlers[id] = (msg) => {
+            resolve(msg);
+            console.log(msg);
+            return true;
+        }
+        client.write({ op: "warm-ast-cache", id, session: sessionId })
+    }) 
+}
+
 function findSymbol(nReplSession: NReplSession, params) {
     return new Promise<any>((resolve, reject) => {
         let { client, messageHandlers, sessionId } = nReplSession;
@@ -41,14 +55,14 @@ function findSymbol(nReplSession: NReplSession, params) {
         let id = client.nextId;
         let resultRefercens = { refs: [], count: null , error: null};
         messageHandlers[id] = (msg) => {
+            console.log(msg);
+
             if (msg.occurrence) {
                 let parsed = parseEdn(msg.occurrence);
                 resultRefercens.refs.push(parsed);
             }
             
-            if (msg.count) {
-                resultRefercens.count = msg.count;
-            }
+            resultRefercens.count = msg.count;
 
             if (msg.error) {
                 resultRefercens.error = msg.error;
@@ -56,7 +70,7 @@ function findSymbol(nReplSession: NReplSession, params) {
                 return true;
             }
 
-            if (resultRefercens.count) {
+            if (resultRefercens.count || resultRefercens.count == 0) {
                 console.log("found all references", resultRefercens);
                 resolve(resultRefercens);
                 return true;
@@ -74,6 +88,7 @@ function findSymbol(nReplSession: NReplSession, params) {
 
 export {
     artifactVersion,
+    warmAstCache,
     cleanNS,
     findSymbol
 }

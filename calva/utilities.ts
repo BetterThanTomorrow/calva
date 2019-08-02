@@ -252,6 +252,17 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
+function neededVariables(document) {
+    let current = state.deref(),
+        doc = getDocument(document),
+        fileName = getFileName(doc),
+        fileType = getFileType(doc),
+        client = getSession(getFileType(doc)),
+        chan = state.outputChannel(),
+        isValid = doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected');
+    return { current, doc, fileName, client, chan, isValid };
+}
+
 // ERROR HELPERS
 const ERROR_TYPE = {
     WARNING: "warning",
@@ -389,6 +400,7 @@ export {
     getFileType,
     getFileName,
     getSession,
+    neededVariables,
     specialWords,
     ERROR_TYPE,
     logError,

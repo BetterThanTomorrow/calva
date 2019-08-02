@@ -52,6 +52,7 @@ async function connectToHost(hostname, port, cljsTypeName: string, replTypes: Re
 
         state.cursor.set("connected", true);
         state.analytics().logEvent("REPL", "ConnectedCLJ").send();
+        cljSession.warmAstCache();
         state.cursor.set("connecting", false);
         state.cursor.set('clj', cljSession)
         state.cursor.set('cljc', cljSession)

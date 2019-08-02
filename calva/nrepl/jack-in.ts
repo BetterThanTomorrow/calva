@@ -25,6 +25,7 @@ export function detectProjectType(): string[] {
 const cliDependencies = {
     "nrepl": "0.6.0",
     "cider/cider-nrepl": "0.21.1",
+    "refactor-nrepl": "2.4.1-SNAPSHOT"
 }
 const figwheelDependencies = {
     "cider/piggieback": "0.4.1",
@@ -32,10 +33,11 @@ const figwheelDependencies = {
 }
 const shadowDependencies = {
     "cider/cider-nrepl": "0.21.1",
+    "refactor-nrepl": "2.4.1-SNAPSHOT",
 }
 const leinPluginDependencies = {
     "cider/cider-nrepl": "0.21.1",
-    "refactor-nrepl": "2.4.1-SNAPSHOT"
+    "refactor-nrepl": "2.4.1-SNAPSHOT",
 }
 const leinDependencies = {
     "nrepl": "0.6.0",
