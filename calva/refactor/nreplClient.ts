@@ -1,5 +1,5 @@
 import { NReplSession } from "../nrepl";
-import * as jsedn from "jsedn";
+import { parseEdn } from "../../cljs-out/cljs-lib";
 
 function artifactVersion (nReplSession:NReplSession, artifact: string) {
     return new Promise<any>((resolve, reject) => {
@@ -43,7 +43,7 @@ function findSymbol(nReplSession: NReplSession, params) {
         messageHandlers[id] = (msg) => {
             
             if (msg.occurrence) {
-                let parsed = jsedn.parse(msg.occurrence).jsEncode();
+                let parsed = parseEdn(msg.occurrence);
                 resultRefercens.refs.push(parsed);
             }
             if (msg.count) {

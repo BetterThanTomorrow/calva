@@ -3,9 +3,9 @@ import * as state from '../state';
 import { ProviderResult, Location, TextDocument, Position, ReferenceContext, CancellationToken, ReferenceProvider, Uri, Range } from 'vscode';
 
 function refToLocation(r: any): Location {
-    let startPos = new Position(r[":line-beg"] - 1, r[":col-beg"] - 1);
-    let endPos = new Position(r[":line-end"] - 1, r[":col-end"] - 1);
-    return new Location(Uri.file(r[":file"]), new Range(startPos, endPos))
+    let startPos = new Position(r["line-beg"] - 1, r["col-beg"] - 1);
+    let endPos = new Position(r["line-end"] - 1, r["col-end"] - 1);
+    return new Location(Uri.file(r["file"]), new Range(startPos, endPos))
 }
 
 export default class CalvaReferenceProvider implements ReferenceProvider {
