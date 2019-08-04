@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.29",
+    "version": "2.0.30",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -293,170 +293,142 @@
             {
                 "command": "calva.jackInOrConnect",
                 "title": "Jack-in or Connect",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.openCljReplWindow",
                 "title": "Open the Clojure REPL Window",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.openCljsReplWindow",
                 "title": "Open the ClojureScript REPL Window",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.clearREPLWindowHistory",
                 "title": "Clear history of active REPL window (mainly in case it has been borked)",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle the REPL connection (clj or cljs) used for CLJC files",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.selectCurrentForm",
                 "title": "Select current form",
-                "category": "Calva",
-                "enablement": "calva:activated && editorLangid == clojure"
+                "category": "Calva"
             },
             {
                 "command": "calva.clearInlineResults",
                 "title": "Clear all inline display of evaluation results",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate current form/selection inline and print to output",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "title": "Evaluate current top level form inline and print to output (aka defun)",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
                 "title": "Evaluate current form/selection, and pretty print to output",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
                 "title": "Evaluate current top level form, and pretty print (aka defun)",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
                 "title": "Evaluate current form, and replace it with the result",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
                 "title": "Evaluate current form, and append a comment with the result",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.copyLastResults",
                 "title": "Copy the result of last evaluation to the clipboard",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.loadFile",
                 "title": "Load (evaluate) current file and its dependencies",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.requireREPLUtilities",
                 "title": "Require REPL utilities, like (doc) etcetera, into current namespace",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.lintFile",
                 "title": "Lint current file",
-                "category": "Calva",
-                "enablement": "calva:activated && editorLangid == clojure"
+                "category": "Calva"
             },
             {
                 "command": "calva.runNamespaceTests",
                 "title": "Run tests for current namespace",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.runAllTests",
                 "title": "Run all tests",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.rerunTests",
                 "title": "Run previously failing tests again",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.runTestUnderCursor",
                 "title": "Run current test",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.loadNamespace",
                 "title": "Load current namespace in REPL window",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.setREPLNamespace",
                 "title": "Switch namespace in current window REPL to namespace of this file",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
                 "title": "Send current form to REPL window and evaluate it",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "title": "Send current top level form to REPL window and evaluate it (aka defun)",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.recreateCljsRepl",
                 "title": "Attach (or re-attach) a Clojurescript session",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.refresh",
                 "title": "Refresh changed namespaces (since last run of this command)",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "command": "calva.refreshAll",
                 "title": "Refresh all namespaces in the project",
-                "category": "Calva",
-                "enablement": "calva:activated"
+                "category": "Calva"
             },
             {
                 "category": "Calva Paredit",
@@ -466,260 +438,217 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardSexp",
-                "title": "Forward Sexp",
-                "enablement": "calva:activated"
+                "title": "Forward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardSexp",
-                "title": "Backward Sexp",
-                "enablement": "calva:activated"
+                "title": "Backward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardDownSexp",
-                "title": "Down Sexp",
-                "enablement": "calva:activated"
+                "title": "Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardUpSexp",
-                "title": "Backward Up Sexp",
-                "enablement": "calva:activated"
+                "title": "Backward Up Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardUpSexp",
-                "title": "Forward Up Sexp",
-                "enablement": "calva:activated"
+                "title": "Forward Up Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.closeList",
-                "title": "Close List",
-                "enablement": "calva:activated"
+                "title": "Close List"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.rangeForDefun",
-                "title": "Select Current Top Level (aka defun) Form",
-                "enablement": "calva:activated"
+                "title": "Select Current Top Level (aka defun) Form"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.sexpRangeExpansion",
-                "title": "Expand Selection",
-                "enablement": "calva:activated"
+                "title": "Expand Selection"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.sexpRangeContraction",
-                "title": "Shrink Selection",
-                "enablement": "calva:activated"
+                "title": "Shrink Selection"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.yankForwardSexp",
-                "title": "Copy Forward Sexp",
-                "enablement": "calva:activated"
+                "title": "Copy Forward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.yankBackwardSexp",
-                "title": "Copy Backward Sexp",
-                "enablement": "calva:activated"
+                "title": "Copy Backward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.yankForwardDownSexp",
-                "title": "Copy Down Sexp",
-                "enablement": "calva:activated"
+                "title": "Copy Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.yankBackwardUpSexp",
-                "title": "Copy Up Sexp",
-                "enablement": "calva:activated"
+                "title": "Copy Up Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.yankCloseList",
-                "title": "Copy Close List",
-                "enablement": "calva:activated"
+                "title": "Copy Close List"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.yankRangeForDefun",
-                "title": "Copy Current Top Level (aka defun) Form",
-                "enablement": "calva:activated"
+                "title": "Copy Current Top Level (aka defun) Form"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.cutForwardSexp",
-                "title": "Cut Forward Sexp",
-                "enablement": "calva:activated"
+                "title": "Cut Forward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.cutBackwardSexp",
-                "title": "Cut Backward Sexp",
-                "enablement": "calva:activated"
+                "title": "Cut Backward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.cutForwardDownSexp",
-                "title": "Cut Down Sexp",
-                "enablement": "calva:activated"
+                "title": "Cut Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.cutBackwardUpSexp",
-                "title": "Cut Up Sexp",
-                "enablement": "calva:activated"
+                "title": "Cut Up Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.cutCloseList",
-                "title": "Cut Close List",
-                "enablement": "calva:activated"
+                "title": "Cut Close List"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.cutRangeForDefun",
-                "title": "Cut Select Current Top Level (aka defun) Form",
-                "enablement": "calva:activated"
+                "title": "Cut Select Current Top Level (aka defun) Form"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.slurpSexpForward",
-                "title": "Slurp Sexp Forward",
-                "enablement": "calva:activated"
+                "title": "Slurp Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.slurpSexpBackward",
-                "title": "Slurp Sexp Backward",
-                "enablement": "calva:activated"
+                "title": "Slurp Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpForward",
-                "title": "Barf Sexp",
-                "enablement": "calva:activated"
+                "title": "Barf Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpBackward",
-                "title": "Barf Sexp",
-                "enablement": "calva:activated"
+                "title": "Barf Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexp",
-                "title": "Splice Sexp",
-                "enablement": "calva:activated"
+                "title": "Splice Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.splitSexp",
-                "title": "Split Sexp",
-                "enablement": "calva:activated"
+                "title": "Split Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
-                "title": "Kill Sexp Forward",
-                "enablement": "calva:activated"
+                "title": "Kill Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpBackward",
-                "title": "Kill Sexp Backward",
-                "enablement": "calva:activated"
+                "title": "Kill Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexpKillForward",
-                "title": "Splice & Kill Forward",
-                "enablement": "calva:activated"
+                "title": "Splice & Kill Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexpKillBackward",
-                "title": "Splice & Kill Backward",
-                "enablement": "calva:activated"
+                "title": "Splice & Kill Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.deleteForward",
-                "title": "Delete Forward",
-                "enablement": "calva:activated"
+                "title": "Delete Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.deleteBackward",
-                "title": "Delete Backward",
-                "enablement": "calva:activated"
+                "title": "Delete Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundParens",
-                "title": "Wrap Around ()",
-                "enablement": "calva:activated"
+                "title": "Wrap Around ()"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundSquare",
-                "title": "Wrap Around []",
-                "enablement": "calva:activated"
+                "title": "Wrap Around []"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundCurly",
-                "title": "Wrap Around {}",
-                "enablement": "calva:activated"
+                "title": "Wrap Around {}"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.indentRange",
-                "title": "Indent",
-                "enablement": "calva:activated"
+                "title": "Indent"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.transpose",
-                "title": "Transpose",
-                "enablement": "calva:activated"
+                "title": "Transpose"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",
                 "title": "Format Current Form",
-                "category": "Calva Format",
-                "enablement": "calva:activated"
+                "category": "Calva Format"
             },
             {
                 "command": "calva-fmt.alignCurrentForm",
                 "title": "Format and Align Current Form (recursively, experimental)",
-                "category": "Calva Format",
-                "enablement": "calva:activated"
+                "category": "Calva Format"
             },
             {
                 "command": "calva-fmt.inferParens",
                 "title": "Infer Parens (from the indentation)",
-                "category": "Calva Format",
-                "enablement": "calva:activated"
+                "category": "Calva Format"
             },
             {
                 "command": "calva-fmt.tabIndent",
                 "title": "Indent Line",
-                "category": "Calva Format",
-                "enablement": "calva:activated"
+                "category": "Calva Format"
             },
             {
                 "command": "calva-fmt.tabDedent",
                 "title": "Dedent Line",
-                "category": "Calva Format",
-                "enablement": "calva:activated"
+                "category": "Calva Format"
             }
         ],
         "keybindings": [
