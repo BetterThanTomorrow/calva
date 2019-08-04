@@ -122,6 +122,37 @@
                         "default": false,
                         "description": "Keeps the REPL window's namespace in sync with the current file (if it has a valid Clojure namespace form)"
                     },
+                    "calva.statusColor": {
+                        "type": "object",
+                        "default": {},
+                        "description": "Configuration for custom coloring of the statusbar.",
+                        "properties": {
+                            "disconnectedColor": {
+                                "type": "string",
+                                "default": "#c0c0c0",
+                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                "description": "Foreground color for the disconnected status"
+                            },
+                            "launchingColor": {
+                                "type": "string",
+                                "default": "#fdd023",
+                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                "description": "Foreground color for the launching status"
+                            },
+                            "connectedSatusColor": {
+                                "type": "string",
+                                "default": "#fdd023",
+                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                "description": "Foreground color for the connected status"
+                            },
+                            "typeStatusColor": {
+                                "type": "string",
+                                "default": "#91dc47",
+                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                "description": "Foreground color for the type status"
+                            }
+                        }
+                    },
                     "calva.customCljsRepl": {
                         "type": "object",
                         "default": null,
