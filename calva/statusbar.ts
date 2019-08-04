@@ -6,12 +6,12 @@ import * as util from './utilities';
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const defaultColors = {
-    disconnectedColor: "rgb(192,192,192)",
-    launchingColor: "rgb(253, 208, 35)",
-    connectedSatusColor: "rgb(253, 208, 35)",
-    typeStatusColor: "rgb(145,220,71)"
-};
+
+function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration):string {
+    let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
+
+    return workspaceFolderValue || workspaceValue || globalValue || defaultValue;
+}
 
 function update() {
 
@@ -27,7 +27,7 @@ function update() {
     typeStatus.command = null;
     typeStatus.text = "Disconnected";
     typeStatus.tooltip = "No active REPL session";
-    typeStatus.color = currentConf.get("disconnectedColor") || defaultColors.disconnectedColor;
+    typeStatus.color = colorValue("disconnectedColor", currentConf);
 
     connectionStatus.command = null;
     connectionStatus.tooltip = "REPL connection status";
@@ -38,10 +38,10 @@ function update() {
 
     if (current.get('connected')) {
         connectionStatus.text = "nREPL $(zap)";
-        connectionStatus.color = currentConf.get("connectedSatusColor") || defaultColors.connectedSatusColor;
+        connectionStatus.color = colorValue("connectedSatusColor", currentConf);
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
-        typeStatus.color = currentConf.get("typeStatusColor") || defaultColors.typeStatusColor;
+        typeStatus.color = colorValue("typeStatusColor", currentConf);
         if (fileType == 'cljc' && util.getREPLSessionType() !== null && !activeReplWindow()) {
             typeStatus.text = "cljc/" + util.getREPLSessionType()
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
@@ -65,14 +65,14 @@ function update() {
             }
         }
     } else if (current.get('launching')) {
-        connectionStatus.color = currentConf.get("launchingColor") || defaultColors.launchingColor;
+        connectionStatus.color = colorValue("launchingColor", currentConf);
         connectionStatus.text = "Launching REPL using " + current.get('launching');
     } else if (current.get('connecting')) {
         connectionStatus.text = "nREPL - trying to connect";
     } else {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.tooltip = "Click to connect";
-        connectionStatus.color = currentConf.get("disconnectedColor") || defaultColors.disconnectedColor;
+        connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.jackInOrConnect";
     }
 
