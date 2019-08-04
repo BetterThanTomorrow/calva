@@ -1,5 +1,5 @@
-import { NReplSession } from "../nrepl";
 import { parseEdn } from "../../cljs-out/cljs-lib";
+import { NReplSession } from "../nrepl";
 
 function artifactVersion (nReplSession:NReplSession, artifact: string) {
     return new Promise<any>((resolve, reject) => {
@@ -64,8 +64,8 @@ function findSymbol(nReplSession: NReplSession, params) {
             
             resultRefercens.count = msg.count;
 
-            if (msg.error) {
-                resultRefercens.error = msg.error;
+            if (msg.error || msg.ex) {
+                resultRefercens.error = msg.error || msg.ex;
                 resolve(resultRefercens);
                 return true;
             }
@@ -86,9 +86,4 @@ function findSymbol(nReplSession: NReplSession, params) {
     })
 }
 
-export {
-    artifactVersion,
-    warmAstCache,
-    cleanNS,
-    findSymbol
-}
+export { artifactVersion, warmAstCache, cleanNS, findSymbol };
