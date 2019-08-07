@@ -228,24 +228,25 @@ function executeJackInTask(projectType: connector.ProjectType, projectTypeSelect
         if (watcher != undefined) {
             watcher.removeAllListeners();
         }
-        if (nReplPortFile && fs.existsSync(nReplPortFile)) {
-           fs.unlinkSync(nReplPortFile);
-        }
         watcher = fs.watch(portFileDir, async (eventType, fileName) => {
             if (fileName == portFileBase) {
-                if (isWin && eventType != "change") {
+                if (!fs.existsSync(nReplPortFile)) {
                     return;
+                }
+                const port = fs.readFileSync(nReplPortFile, 'utf, in8');
+                if (!port) { // On Windows we get two events, one for file creation and one for the change of content
+                    return;  // If there is no port to be read yet, wait for the next event instead.
                 }
                 const chan = state.outputChannel();
                 setTimeout(() => { chan.show() }, 1000);
                 state.cursor.set("launching", null);
-                watcher.close();
+                watcher.removeAllListeners();
                 await connector.connect(true, true);
                 chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
             }
         });
     }, (reason) => {
-        watcher.close();
+        watcher.removeAllListeners();
         outputChannel.appendLine("Error in Jack-in: " + reason);
     });
 }
