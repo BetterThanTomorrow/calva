@@ -233,7 +233,7 @@ function executeJackInTask(projectType: connector.ProjectType, projectTypeSelect
                 if (!fs.existsSync(nReplPortFile)) {
                     return;
                 }
-                const port = fs.readFileSync(nReplPortFile, 'utf, in8');
+                const port = fs.readFileSync(nReplPortFile, 'utf8');
                 if (!port) { // On Windows we get two events, one for file creation and one for the change of content
                     return;  // If there is no port to be read yet, wait for the next event instead.
                 }
