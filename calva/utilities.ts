@@ -97,7 +97,7 @@ function getProjectDir() {
             fs.accessSync(projectRootDir, fs.constants.R_OK);
             return projectRootDir;
         } catch (err) {
-            chan.appendLine(`Error: The directory ${projectRootDir} is not accessible. Check your settings for Calva project root directory.`)
+            chan.appendLine(`Error: The directory ${projectRootDir} is not accessible. You might need to adjust "calva.projectRootDirectory" in your Workspace Settings.`)
         }
     }
     return workspaceRootPath;
