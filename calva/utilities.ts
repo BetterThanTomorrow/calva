@@ -81,26 +81,33 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
 }
 
 function getProjectDir() {
-    const doc = getDocument({}),
+    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
+        doc = getDocument({}),
         chan = state.outputChannel(),
-        workspaceRoot = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : undefined,
-        configProjectRoot = state.config().projectRootDirectory;
-    let workspaceRootPath: string;
-    if (workspaceRoot != undefined) {
-        workspaceRootPath = workspaceRoot.uri.fsPath;
-    } else {
-        workspaceRootPath = vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : ".";
+        windowRoot = vscode.workspace.workspaceFolders[0];
+    if (!doc) {
+        vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
+        state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
+        throw "There is no document opened in thw workspace. Aborting.";
     }
-    if (configProjectRoot != "") {
-        const projectRootDir = path.join(workspaceRootPath, configProjectRoot);
-        try {
-            fs.accessSync(projectRootDir, fs.constants.R_OK);
-            return projectRootDir;
-        } catch (err) {
-            chan.appendLine(`Error: The directory ${projectRootDir} is not accessible. You might need to adjust "calva.projectRootDirectory" in your Workspace Settings.`)
+    const workspaceRoot = vscode.workspace.getWorkspaceFolder(doc.uri);
+    let rootPath: string = path.resolve(workspaceRoot ? workspaceRoot.uri.fsPath : windowRoot.uri.fsPath);
+    let d = path.dirname(doc.uri.fsPath);
+    let prev = null;
+    while (d != prev) {
+        for (let projectFile in projectFileNames) {
+            const p = path.resolve(d, projectFileNames[projectFile]);
+            if (fs.existsSync(p)) {
+                return d;
+            }
         }
+        if (d == rootPath) {
+            return rootPath;
+        }
+        prev = d;
+        d = path.resolve(d, "..");
     }
-    return workspaceRootPath;
+    return rootPath;
 }
 
 function getCljsReplStartCode() {

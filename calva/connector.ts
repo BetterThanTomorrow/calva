@@ -138,7 +138,7 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
     });
     let valueResult = await result.value
         .catch(reason => {
-            // console.error("Error evaluating connect form: ", reason);
+            console.error("Error evaluating connect form: ", reason);
         });
     if (checkSuccess(valueResult, out, err)) {
         state.analytics().logEvent("REPL", "ConnectedCLJS", name).send();
