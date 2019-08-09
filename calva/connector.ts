@@ -400,22 +400,13 @@ export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
 export function nreplPortFile(subPath: string = ".nrepl-port"): string {
-    let editor = vscode.window.visibleTextEditors.find(x => x.document.languageId == "clojure");
-    if (editor) {
-        let d = path.dirname(editor.document.fileName);
-        let prev = null;
-        while (d != prev) {
-            const p = path.resolve(d, subPath);
-            if (fs.existsSync(p)) {
-                return p;
-            }
-            prev = d;
-            d = path.resolve(d, "..");
-        }
-        return path.join(util.getProjectDir(), subPath);
-    } else {
-        return path.join(util.getProjectDir(), subPath);
+    try {
+        const projectRoot = util.getProjectDir(),
+        return path.resolve(projectRoot, subPath);
+    } catch (e) {
+        console.log(e);
     }
+    return subPath;
 }
 
 export async function connect(isAutoConnect = false, isJackIn = false) {
@@ -462,7 +453,7 @@ export async function connect(isAutoConnect = false, isJackIn = false) {
                     await promptForNreplUrlAndConnect(port, cljsTypeName, types);
                 }
             } else {
-                chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.) You might need to adjust "calva.projectRootDirectory" in Workspace Settings.');
+                chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
                 await promptForNreplUrlAndConnect(port, cljsTypeName, types);
             }
         } else {
