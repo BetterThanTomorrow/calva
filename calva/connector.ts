@@ -18,7 +18,7 @@ export type ProjectType = {
     winCmd: string;
     commandLine: (includeCljs: boolean) => any;
     useWhenExists: string;
-    nReplPortFile: () => string;
+    nReplPortFile: () => Promise<string>;
 };
 
 async function connectToHost(hostname, port, cljsTypeName: string, replTypes: ReplType[]) {
@@ -102,9 +102,9 @@ function shadowCljsReplStart(buildOrRepl: string) {
         return `(shadow.cljs.devtools.api/${buildOrRepl})`
 }
 
-function getFigwheelMainProjects() {
+async function getFigwheelMainProjects() {
     let chan = state.outputChannel();
-    let res = fs.readdirSync(util.getProjectDir());
+    let res = fs.readdirSync(await util.getProjectDir());
     let projects = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
     if (projects.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel project files (.cljs.edn) in the project directory.");
@@ -161,7 +161,7 @@ export let cljsReplTypes: ReplType[] = [
     {
         name: "Figwheel Main",
         start: async (session, name, checkFn) => {
-            let projects = getFigwheelMainProjects();
+            let projects = await getFigwheelMainProjects();
             let builds = projects.length <= 1 ? projects : await util.quickPickMulti({
                 values: projects,
                 placeHolder: "Please select which builds to start",
@@ -187,7 +187,7 @@ export let cljsReplTypes: ReplType[] = [
         },
         connect: async (session, name, checkFn) => {
             let build = await util.quickPickSingle({
-                values: getFigwheelMainProjects(),
+                values: await getFigwheelMainProjects(),
                 placeHolder: "Select which build to connect to",
                 saveAs: "figwheel-main-build"
             });
@@ -238,7 +238,7 @@ export let cljsReplTypes: ReplType[] = [
         name: "shadow-cljs",
         connect: async (session, name, checkFn) => {
             let build = await util.quickPickSingle({
-                values: shadow.shadowBuilds(),
+                values: await shadow.shadowBuilds(),
                 placeHolder: "Select which build to connect to",
                 saveAs: "shadow-cljs-build"
             });
@@ -399,9 +399,9 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-export function nreplPortFile(subPath: string = ".nrepl-port"): string {
+export async function nreplPortFile(subPath: string = ".nrepl-port"): Promise<string> {
     try {
-        const projectRoot = util.getProjectDir(),
+        const projectRoot = await util.getProjectDir();
         return path.resolve(projectRoot, subPath);
     } catch (e) {
         console.log(e);
@@ -438,7 +438,7 @@ export async function connect(isAutoConnect = false, isJackIn = false) {
             cljsTypeName = "";
         }
 
-        const portFile = cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile();
+        const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile());
 
         state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
 

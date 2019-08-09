@@ -80,34 +80,25 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
     })
 }
 
-function getProjectDir() {
-    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
+async function getProjectDir() {
+    const projectFilesGlob = "{project.clj,shadow-cljs.edn,deps.edn}",
         doc = getDocument({}),
-        chan = state.outputChannel(),
-        windowRoot = vscode.workspace.workspaceFolders[0];
-    if (!doc) {
+        workspaceFolder = vscode.workspace.getWorkspaceFolder(doc ? doc.uri : null);
+    if (!workspaceFolder) {
         vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
         state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There is no document opened in thw workspace. Aborting.";
+    } else {
+        const relativePattern = new vscode.RelativePattern(workspaceFolder, projectFilesGlob),
+            p = await vscode.workspace.findFiles(relativePattern, null, 1).then(
+                (res) => {
+                    return path.dirname(res[0].fsPath);
+                },
+                (reason) => {
+                    return workspaceFolder.uri.fsPath;
+                });
+        return p;
     }
-    const workspaceRoot = vscode.workspace.getWorkspaceFolder(doc.uri);
-    let rootPath: string = path.resolve(workspaceRoot ? workspaceRoot.uri.fsPath : windowRoot.uri.fsPath);
-    let d = path.dirname(doc.uri.fsPath);
-    let prev = null;
-    while (d != prev) {
-        for (let projectFile in projectFileNames) {
-            const p = path.resolve(d, projectFileNames[projectFile]);
-            if (fs.existsSync(p)) {
-                return d;
-            }
-        }
-        if (d == rootPath) {
-            return rootPath;
-        }
-        prev = d;
-        d = path.resolve(d, "..");
-    }
-    return rootPath;
 }
 
 function getCljsReplStartCode() {

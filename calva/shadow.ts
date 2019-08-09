@@ -4,12 +4,13 @@ import * as state from './state';
 import * as util from './utilities';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 
-export function shadowConfigFile() {
-    return util.getProjectDir() + '/shadow-cljs.edn';
+export async function shadowConfigFile() {
+    const projectDir =  await util.getProjectDir();
+    return projectDir + '/shadow-cljs.edn';
 }
 
-export function shadowBuilds() {
-    let parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
+export async function shadowBuilds() {
+    let parsed = parseEdn(fs.readFileSync(await shadowConfigFile(), 'utf8').toString()),
         builds = _.map(parsed.builds, (_v, key) => { return ":" + key });
     builds.push("node-repl");
     builds.push("browser-repl")

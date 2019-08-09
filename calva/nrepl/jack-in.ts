@@ -10,8 +10,8 @@ import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 
 const isWin = /^win/.test(process.platform);
 
-export function detectProjectType(): string[] {
-    let rootDir = utilities.getProjectDir(),
+export async function detectProjectType(): Promise<string[]> {
+    let rootDir = await utilities.getProjectDir(),
         cljProjTypes = []
     for (let clj in projectTypes) {
         try {
@@ -56,8 +56,9 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             let out: string[] = [];
             let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
             let keys = Object.keys(dependencies);
+            const projectDir = await utilities.getProjectDir();
 
-            let data = fs.readFileSync(utilities.getProjectDir() + "/project.clj", 'utf8').toString();
+            let data = fs.readFileSync(projectDir + "/project.clj", 'utf8').toString();
             let parsed;
             try {
                 parsed = parseForms(data);
@@ -138,7 +139,8 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
-            let data = fs.readFileSync(utilities.getProjectDir() + "/deps.edn", 'utf8').toString();
+            const projectDir = utilities.getProjectDir();
+            let data = fs.readFileSync(projectDir + "/deps.edn", 'utf8').toString();
             let parsed;
             try {
                 parsed = parseEdn(data);
@@ -178,7 +180,8 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             for (let dep in shadowDependencies)
                 args.push("-d", dep + ":" + shadowDependencies[dep]);
 
-            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: "shadowcljs-jack-in" })
+            const shadowBuilds = await shadow.shadowBuilds();
+            let builds = await utilities.quickPickMulti({ values: shadowBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: "shadowcljs-jack-in" })
             if (!builds || !builds.length)
                 return;
             return ["shadow-cljs", ...args, "watch", ...builds];
@@ -196,20 +199,20 @@ function getProjectTypeForName(name: string) {
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
-function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
+async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
-    const nReplPortFile = projectType.nReplPortFile();
+    const nReplPortFile = await projectType.nReplPortFile();
     const env = { ...process.env, ...state.config().jackInEnv } as {
         [key: string]: string;
     };
     const execution = isWin ?
         new vscode.ProcessExecution(executable, args, {
-            cwd: utilities.getProjectDir(),
+            cwd: await utilities.getProjectDir(),
             env: env,
         }) :
         new vscode.ShellExecution(executable, args, {
-            cwd: utilities.getProjectDir(),
+            cwd: await utilities.getProjectDir(),
             env: env,
         });
     const taskDefinition: vscode.TaskDefinition = {
@@ -257,7 +260,7 @@ export async function calvaJackIn() {
     outputChannel.appendLine("Jacking in...");
 
     // figure out what possible kinds of project we're in
-    let cljTypes = detectProjectType();
+    let cljTypes = await detectProjectType();
     if (cljTypes.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn.");
         state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
