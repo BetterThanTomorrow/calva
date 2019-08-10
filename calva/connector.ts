@@ -45,7 +45,7 @@ export async function initProjectDir(): Promise<void> {
     if (!workspaceFolder) {
         vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
         state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no document opened in thw workspace. Aborting.";
+        throw "There is no document opened in the workspace. Aborting.";
     } else {
         state.cursor.set(PROJECT_WS_FOLDER_KEY, workspaceFolder);
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
