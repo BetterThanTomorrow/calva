@@ -41,7 +41,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
         doc = util.getDocument({}),
-        workspaceFolder = vscode.workspace.getWorkspaceFolder(doc ? doc.uri : null);
+        workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
         vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
         state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
