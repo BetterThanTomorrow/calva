@@ -5,13 +5,12 @@ import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
 import statusbar from "../statusbar";
-import * as shadow from "../shadow"
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 
 const isWin = /^win/.test(process.platform);
 
 export async function detectProjectType(): Promise<string[]> {
-    let rootDir = await utilities.getProjectDir(),
+    let rootDir = connector.getProjectRoot(),
         cljProjTypes = []
     for (let clj in projectTypes) {
         try {
@@ -50,15 +49,13 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
         nReplPortFile: () => {
-            return connector.nreplPortFile();
+            return connector.nreplPortFile(".nrepl-port");
         },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
             let keys = Object.keys(dependencies);
-            const projectDir = await utilities.getProjectDir();
-
-            let data = fs.readFileSync(projectDir + "/project.clj", 'utf8').toString();
+            let data = fs.readFileSync(path.resolve(connector.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
             try {
                 parsed = parseForms(data);
@@ -135,12 +132,11 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "powershell.exe",
         useWhenExists: "deps.edn",
         nReplPortFile: () => {
-            return connector.nreplPortFile();
+            return connector.nreplPortFile(".nrepl-port");
         },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
-            const projectDir = utilities.getProjectDir();
-            let data = fs.readFileSync(projectDir + "/deps.edn", 'utf8').toString();
+            let data = fs.readFileSync(path.relative(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
             let parsed;
             try {
                 parsed = parseEdn(data);
@@ -173,14 +169,14 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "npx.cmd",
         useWhenExists: "shadow-cljs.edn",
         nReplPortFile: () => {
-            return connector.nreplPortFile(`.shadow-cljs${isWin ? "\\" : "/"}nrepl.port`);
+            return connector.nreplPortFile(path.resolve(".shadow-cljs$", "nrepl.port"));
         },
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
                 args.push("-d", dep + ":" + shadowDependencies[dep]);
 
-            const shadowBuilds = await shadow.shadowBuilds();
+            const shadowBuilds = await connector.shadowBuilds();
             let builds = await utilities.quickPickMulti({ values: shadowBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: "shadowcljs-jack-in" })
             if (!builds || !builds.length)
                 return;
@@ -202,17 +198,17 @@ const TASK_NAME = "Calva Jack-in";
 async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
-    const nReplPortFile = await projectType.nReplPortFile();
+    const nReplPortFile = projectType.nReplPortFile();
     const env = { ...process.env, ...state.config().jackInEnv } as {
         [key: string]: string;
     };
     const execution = isWin ?
         new vscode.ProcessExecution(executable, args, {
-            cwd: await utilities.getProjectDir(),
+            cwd: connector.getProjectRoot(),
             env: env,
         }) :
         new vscode.ShellExecution(executable, args, {
-            cwd: await utilities.getProjectDir(),
+            cwd: connector.getProjectRoot(),
             env: env,
         });
     const taskDefinition: vscode.TaskDefinition = {
@@ -256,6 +252,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
 export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
 
+    await connector.initProjectDir();
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     outputChannel.appendLine("Jacking in...");
 

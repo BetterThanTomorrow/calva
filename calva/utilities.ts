@@ -80,27 +80,6 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
     })
 }
 
-async function getProjectDir() {
-    const projectFilesGlob = "{project.clj,shadow-cljs.edn,deps.edn}",
-        doc = getDocument({}),
-        workspaceFolder = vscode.workspace.getWorkspaceFolder(doc ? doc.uri : null);
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
-        state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no document opened in thw workspace. Aborting.";
-    } else {
-        const relativePattern = new vscode.RelativePattern(workspaceFolder, projectFilesGlob),
-            p = await vscode.workspace.findFiles(relativePattern, null, 1).then(
-                (res) => {
-                    return path.dirname(res[0].fsPath);
-                },
-                (reason) => {
-                    return workspaceFolder.uri.fsPath;
-                });
-        return p;
-    }
-}
-
 function getCljsReplStartCode() {
     return vscode.workspace.getConfiguration('calva').startCLJSREPLCommand;
 }
@@ -385,7 +364,6 @@ function getREPLSessionType() {
 }
 
 export {
-    getProjectDir,
     getNamespace,
     getStartExpression,
     getWordAtPosition,
