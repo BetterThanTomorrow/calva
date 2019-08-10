@@ -136,7 +136,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
-            let data = fs.readFileSync(path.relative(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
+            let data = fs.readFileSync(path.join(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
             let parsed;
             try {
                 parsed = parseEdn(data);
