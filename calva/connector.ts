@@ -32,7 +32,7 @@ export function getProjectRoot(): string {
  * (This situation will be detected later by the connect process.)
  */
 export async function initProjectDir(): Promise<void> {
-    const projectFilesGlob = "{project.clj,shadow-cljs.edn,deps.edn}",
+    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
         doc = util.getDocument({}),
         workspaceFolder = vscode.workspace.getWorkspaceFolder(doc ? doc.uri : null);
     if (!workspaceFolder) {
@@ -40,15 +40,24 @@ export async function initProjectDir(): Promise<void> {
         state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There is no document opened in thw workspace. Aborting.";
     } else {
-        const relativePattern = new vscode.RelativePattern(workspaceFolder, projectFilesGlob),
-            p = await vscode.workspace.findFiles(relativePattern, null, 1).then(
-                (res) => {
-                    return path.dirname(res[0].fsPath);
-                },
-                (reason) => {
-                    return workspaceFolder.uri.fsPath;
-                });
-        state.cursor.set(PROJECTDIR_KEY, p);
+        let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
+        let d = path.dirname(doc.uri.fsPath);
+        let prev = null;
+        while (d != prev) {
+            for (let projectFile in projectFileNames) {
+                const p = path.resolve(d, projectFileNames[projectFile]);
+                if (fs.existsSync(p)) {
+                    rootPath = d;
+                    break;
+                }
+            }
+            if (d == rootPath) {
+                break;
+            }
+            prev = d;
+            d = path.resolve(d, "..");
+        }
+        state.cursor.set(PROJECTDIR_KEY, rootPath);
     }
 }
 
@@ -466,58 +475,62 @@ export function nreplPortFile(subPath: string): string {
 }
 
 export async function connect(isAutoConnect = false, isJackIn = false) {
-        let chan = state.outputChannel();
-        let cljsTypeName: string;
+    let chan = state.outputChannel();
+    let cljsTypeName: string;
 
-        state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
+    state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
-        const types = getCLJSReplTypes();
-        const CLJS_PROJECT_TYPE_NONE = "Don't load any cljs support, thanks"
-        if (isJackIn) {
-            cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
-        } else {
+    const types = getCLJSReplTypes();
+    const CLJS_PROJECT_TYPE_NONE = "Don't load any cljs support, thanks"
+    if (isJackIn) {
+        cljsTypeName = state.extensionContext.workspaceState.get('selectedCljsTypeName');
+    } else {
+        try {
             await initProjectDir();
-            let typeNames = types.map(x => x.name);
-            typeNames.splice(0, 0, CLJS_PROJECT_TYPE_NONE)
-            cljsTypeName = await util.quickPickSingle({
-                values: typeNames,
-                placeHolder: "If you want ClojureScript support, please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
-            });
-            if (!cljsTypeName) {
-                state.analytics().logEvent("REPL", "ConnectInterrupted", "NoCljsProjectPicked").send();
-                return;
-            }
+        } catch {
+            return;
         }
-
-        state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
-
-        if (cljsTypeName == CLJS_PROJECT_TYPE_NONE) {
-            cljsTypeName = "";
+        let typeNames = types.map(x => x.name);
+        typeNames.splice(0, 0, CLJS_PROJECT_TYPE_NONE)
+        cljsTypeName = await util.quickPickSingle({
+            values: typeNames,
+            placeHolder: "If you want ClojureScript support, please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
+        });
+        if (!cljsTypeName) {
+            state.analytics().logEvent("REPL", "ConnectInterrupted", "NoCljsProjectPicked").send();
+            return;
         }
+    }
 
-        const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile(".nrepl-port"));
+    state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
-        state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
+    if (cljsTypeName == CLJS_PROJECT_TYPE_NONE) {
+        cljsTypeName = "";
+    }
 
-        if (fs.existsSync(portFile)) {
-            let port = fs.readFileSync(portFile, 'utf8');
-            if (port) {
-                if (isAutoConnect) {
-                    state.cursor.set("hostname", "localhost");
-                    state.cursor.set("port", port);
-                    await connectToHost("localhost", port, cljsTypeName, types);
-                } else {
-                    await promptForNreplUrlAndConnect(port, cljsTypeName, types);
-                }
+    const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile(".nrepl-port"));
+
+    state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
+
+    if (fs.existsSync(portFile)) {
+        let port = fs.readFileSync(portFile, 'utf8');
+        if (port) {
+            if (isAutoConnect) {
+                state.cursor.set("hostname", "localhost");
+                state.cursor.set("port", port);
+                await connectToHost("localhost", port, cljsTypeName, types);
             } else {
-                chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
                 await promptForNreplUrlAndConnect(port, cljsTypeName, types);
             }
         } else {
-            await promptForNreplUrlAndConnect(null, cljsTypeName, types);
+            chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
+            await promptForNreplUrlAndConnect(port, cljsTypeName, types);
         }
-        return true;
+    } else {
+        await promptForNreplUrlAndConnect(null, cljsTypeName, types);
     }
+    return true;
+}
 
 export default {
     connect: connect,
