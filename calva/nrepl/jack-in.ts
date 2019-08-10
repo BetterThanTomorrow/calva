@@ -169,7 +169,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "npx.cmd",
         useWhenExists: "shadow-cljs.edn",
         nReplPortFile: () => {
-            return connector.nreplPortFile(path.resolve(".shadow-cljs$", "nrepl.port"));
+            return connector.nreplPortFile(path.join(".shadow-cljs", "nrepl.port"));
         },
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
@@ -251,8 +251,11 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
 
 export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
-
-    await connector.initProjectDir();
+    try {
+        await connector.initProjectDir();
+    } catch {
+        return;
+    }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     outputChannel.appendLine("Jacking in...");
 
