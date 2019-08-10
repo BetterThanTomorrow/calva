@@ -215,7 +215,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
         type: isWin ? "process" : "shell",
         label: "Calva: Jack-in"
     };
-    const task = new vscode.Task(taskDefinition, TASK_NAME, "Calva", execution);
+    const task = new vscode.Task(taskDefinition, connector.getProjectWsFolder(), TASK_NAME, "Calva", execution);
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 

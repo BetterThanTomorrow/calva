@@ -11,14 +11,21 @@ const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow } from './repl-window';
 
-const PROJECTDIR_KEY = "connect.projectDir";
+const PROJECT_DIR_KEY = "connect.projectDir";
+const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
 
 export function getProjectRoot(): string {
-    return state.deref().get(PROJECTDIR_KEY);
+    return state.deref().get(PROJECT_DIR_KEY);
+}
+
+export function getProjectWsFolder(): vscode.WorkspaceFolder {
+    return state.deref().get(PROJECT_WS_FOLDER_KEY);
 }
 
 /**
  * Figures out, and stores, the current clojure project root
+ * Also stores the WorkSpace folder for the project to be used
+ * when executing the Task and get proper vscode reporting.
  * 
  * 1. If there is no file open. Stop and complain.
  * 2. If there is a file open, use it to determine the project root
@@ -40,6 +47,7 @@ export async function initProjectDir(): Promise<void> {
         state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There is no document opened in thw workspace. Aborting.";
     } else {
+        state.cursor.set(PROJECT_WS_FOLDER_KEY, workspaceFolder);
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         let d = path.dirname(doc.uri.fsPath);
         let prev = null;
@@ -57,7 +65,7 @@ export async function initProjectDir(): Promise<void> {
             prev = d;
             d = path.resolve(d, "..");
         }
-        state.cursor.set(PROJECTDIR_KEY, rootPath);
+        state.cursor.set(PROJECT_DIR_KEY, rootPath);
     }
 }
 
