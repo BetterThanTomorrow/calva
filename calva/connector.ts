@@ -239,7 +239,7 @@ export let cljsReplTypes: ReplType[] = [
             let builds = projects.length <= 1 ? projects : await util.quickPickMulti({
                 values: projects,
                 placeHolder: "Please select which builds to start",
-                saveAs: "figwheel-main-projects"
+                saveAs: `${getProjectRoot()}/figwheel-main-projects`
             })
             if (builds) {
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
@@ -263,7 +263,7 @@ export let cljsReplTypes: ReplType[] = [
             let build = await util.quickPickSingle({
                 values: await getFigwheelMainProjects(),
                 placeHolder: "Select which build to connect to",
-                saveAs: "figwheel-main-build"
+                saveAs: `${getProjectRoot()}/figwheel-main-build`
             });
             if (build) {
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
@@ -314,7 +314,7 @@ export let cljsReplTypes: ReplType[] = [
             let build = await util.quickPickSingle({
                 values: await shadowBuilds(),
                 placeHolder: "Select which build to connect to",
-                saveAs: "shadow-cljs-build"
+                saveAs: `${getProjectRoot()}/shadow-cljs-build`
             });
             if (build) {
                 state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
@@ -502,7 +502,7 @@ export async function connect(isAutoConnect = false, isJackIn = false) {
         typeNames.splice(0, 0, CLJS_PROJECT_TYPE_NONE)
         cljsTypeName = await util.quickPickSingle({
             values: typeNames,
-            placeHolder: "If you want ClojureScript support, please select a cljs project type", saveAs: "connect-cljs-type", autoSelect: true
+            placeHolder: "If you want ClojureScript support, please select a cljs project type", saveAs: `${getProjectRoot()}/connect-cljs-type`, autoSelect: true
         });
         if (!cljsTypeName) {
             state.analytics().logEvent("REPL", "ConnectInterrupted", "NoCljsProjectPicked").send();

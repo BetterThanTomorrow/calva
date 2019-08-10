@@ -72,7 +72,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                         const profilesMap = defproject[profilesIndex + 1];
                         profiles = [...profiles, ...Object.keys(profilesMap).map((v, k) => { return ":" + v })];
                         if (profiles.length) {
-                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: "lein-cli-profiles", placeHolder: "Pick any profiles to launch with" });
+                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: `${connector.getProjectRoot()}/lein-cli-profiles`, placeHolder: "Pick any profiles to launch with" });
                         }
                     } catch (error) {
                         vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
@@ -146,7 +146,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             }
             let aliases = [];
             if (parsed.aliases != undefined) {
-                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with" });
+                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
@@ -177,7 +177,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 args.push("-d", dep + ":" + shadowDependencies[dep]);
 
             const shadowBuilds = await connector.shadowBuilds();
-            let builds = await utilities.quickPickMulti({ values: shadowBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: "shadowcljs-jack-in" })
+            let builds = await utilities.quickPickMulti({ values: shadowBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${connector.getProjectRoot()}/shadowcljs-jack-in` })
             if (!builds || !builds.length)
                 return;
             return ["shadow-cljs", ...args, "watch", ...builds];
@@ -280,7 +280,7 @@ export async function calvaJackIn() {
             menu.push(`${projectTypes[clj].name} + ${cljs}`);
         }
     }
-    let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
+    let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: `${connector.getProjectRoot()}/jack-in-type`, autoSelect: true });
     if (!projectTypeSelection) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypePicked").send();
         return;
