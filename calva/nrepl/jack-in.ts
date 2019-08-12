@@ -180,7 +180,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
-            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`];
+            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`, aliasesOption];
             if (isWin) {
                 args.unshift("clojure");
             }
