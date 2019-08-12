@@ -3,6 +3,7 @@ const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import * as _ from 'lodash';
 import * as state from './state';
 import * as fs from 'fs';
+import * as path from 'path';
 import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
@@ -77,23 +78,6 @@ async function quickPick(itemsToPick: string[], active: string[], selected: stri
             qp.hide();
         })
     })
-}
-
-function getProjectDir() {
-    const doc = getDocument({}),
-        workspaceRoot = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : undefined;
-    if (workspaceRoot != undefined) {
-        let configProjectRoot = state.config().projectRootDirectory;
-        let path = workspaceRoot.uri.fsPath + (configProjectRoot != "" ? "/" + configProjectRoot : "");
-        try {
-            fs.accessSync(path, fs.constants.R_OK);
-            return path;
-        } catch (err) {
-            return workspaceRoot.uri.fsPath;
-        }
-    } else {
-        return vscode.workspace.workspaceFolders != undefined ? vscode.workspace.workspaceFolders[0].uri.fsPath : ".";
-    }
 }
 
 function getCljsReplStartCode() {
@@ -380,7 +364,6 @@ function getREPLSessionType() {
 }
 
 export {
-    getProjectDir,
     getNamespace,
     getStartExpression,
     getWordAtPosition,

@@ -5,13 +5,12 @@ import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
 import statusbar from "../statusbar";
-import * as shadow from "../shadow"
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 
 const isWin = /^win/.test(process.platform);
 
-export function detectProjectType(): string[] {
-    let rootDir = utilities.getProjectDir(),
+export async function detectProjectType(): Promise<string[]> {
+    let rootDir = connector.getProjectRoot(),
         cljProjTypes = []
     for (let clj in projectTypes) {
         try {
@@ -50,14 +49,13 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
         nReplPortFile: () => {
-            return connector.nreplPortFile();
+            return connector.nreplPortFile(".nrepl-port");
         },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
             let keys = Object.keys(dependencies);
-
-            let data = fs.readFileSync(utilities.getProjectDir() + "/project.clj", 'utf8').toString();
+            let data = fs.readFileSync(path.resolve(connector.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
             try {
                 parsed = parseForms(data);
@@ -93,7 +91,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                         const profilesMap = defproject[profilesIndex + 1];
                         profiles = [...profiles, ...Object.keys(profilesMap).map((v, k) => { return ":" + v })];
                         if (profiles.length) {
-                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: "lein-cli-profiles", placeHolder: "Pick any profiles to launch with" });
+                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: `${connector.getProjectRoot()}/lein-cli-profiles`, placeHolder: "Pick any profiles to launch with" });
                         }
                     } catch (error) {
                         vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
@@ -159,11 +157,11 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "powershell.exe",
         useWhenExists: "deps.edn",
         nReplPortFile: () => {
-            return connector.nreplPortFile();
+            return connector.nreplPortFile(".nrepl-port");
         },
         commandLine: async (includeCljs) => {
             let out: string[] = [];
-            let data = fs.readFileSync(utilities.getProjectDir() + "/deps.edn", 'utf8').toString();
+            let data = fs.readFileSync(path.join(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
             let parsed;
             try {
                 parsed = parseEdn(data);
@@ -173,7 +171,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             }
             let aliases = [];
             if (parsed.aliases != undefined) {
-                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: "clj-cli-aliases", placeHolder: "Pick any aliases to launch with" });
+                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
@@ -196,14 +194,15 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         winCmd: "npx.cmd",
         useWhenExists: "shadow-cljs.edn",
         nReplPortFile: () => {
-            return connector.nreplPortFile(`.shadow-cljs${isWin ? "\\" : "/"}nrepl.port`);
+            return connector.nreplPortFile(path.join(".shadow-cljs", "nrepl.port"));
         },
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
                 args.push("-d", dep + ":" + shadowDependencies[dep]);
 
-            let builds = await utilities.quickPickMulti({ values: shadow.shadowBuilds().filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: "shadowcljs-jack-in" })
+            const shadowBuilds = await connector.shadowBuilds();
+            let builds = await utilities.quickPickMulti({ values: shadowBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${connector.getProjectRoot()}/shadowcljs-jack-in` })
             if (!builds || !builds.length)
                 return;
             return ["shadow-cljs", ...args, "watch", ...builds];
@@ -221,7 +220,7 @@ function getProjectTypeForName(name: string) {
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
-function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
+async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectType.nReplPortFile();
@@ -230,19 +229,18 @@ function executeJackInTask(projectType: connector.ProjectType, projectTypeSelect
     };
     const execution = isWin ?
         new vscode.ProcessExecution(executable, args, {
-            cwd: utilities.getProjectDir(),
+            cwd: connector.getProjectRoot(),
             env: env,
         }) :
         new vscode.ShellExecution(executable, args, {
-            cwd: utilities.getProjectDir(),
+            cwd: connector.getProjectRoot(),
             env: env,
         });
     const taskDefinition: vscode.TaskDefinition = {
         type: isWin ? "process" : "shell",
         label: "Calva: Jack-in"
     };
-    const folder = vscode.workspace.workspaceFolders[0];
-    const task = new vscode.Task(taskDefinition, folder, TASK_NAME, "Calva", execution);
+    const task = new vscode.Task(taskDefinition, connector.getProjectWsFolder(), TASK_NAME, "Calva", execution);
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 
@@ -253,36 +251,42 @@ function executeJackInTask(projectType: connector.ProjectType, projectTypeSelect
         if (watcher != undefined) {
             watcher.removeAllListeners();
         }
-        if (nReplPortFile && fs.existsSync(nReplPortFile)) {
-            fs.unlinkSync(nReplPortFile);
-        }
+      
         watcher = fs.watch(portFileDir, async (eventType, fileName) => {
             if (fileName == portFileBase) {
-                if (isWin && eventType != "change") {
+                if (!fs.existsSync(nReplPortFile)) {
                     return;
+                }
+                const port = fs.readFileSync(nReplPortFile, 'utf8');
+                if (!port) { // On Windows we get two events, one for file creation and one for the change of content
+                    return;  // If there is no port to be read yet, wait for the next event instead.
                 }
                 const chan = state.outputChannel();
                 setTimeout(() => { chan.show() }, 1000);
                 state.cursor.set("launching", null);
-                watcher.close();
+                watcher.removeAllListeners();
                 await connector.connect(true, true);
                 chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
             }
         });
     }, (reason) => {
-        watcher.close();
+        watcher.removeAllListeners();
         outputChannel.appendLine("Error in Jack-in: " + reason);
     });
 }
 
 export async function calvaJackIn() {
     const outputChannel = state.outputChannel();
-
+    try {
+        await connector.initProjectDir();
+    } catch {
+        return;
+    }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     outputChannel.appendLine("Jacking in...");
 
     // figure out what possible kinds of project we're in
-    let cljTypes = detectProjectType();
+    let cljTypes = await detectProjectType();
     if (cljTypes.length == 0) {
         vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn.");
         state.analytics().logEvent("REPL", "JackInInterrupted", "FailedFindingProjectType").send();
@@ -302,7 +306,7 @@ export async function calvaJackIn() {
             menu.push(`${projectTypes[clj].name} + ${cljs}`);
         }
     }
-    let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: "jack-in-type", autoSelect: true });
+    let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: `${connector.getProjectRoot()}/jack-in-type`, autoSelect: true });
     if (!projectTypeSelection) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypePicked").send();
         return;
