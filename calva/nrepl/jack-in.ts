@@ -66,8 +66,27 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 throw e;
             }
             let profiles: string[] = [];
+            let alias: string;
             const defproject = parsed.find(x => x[0] == "defproject");
-            if (defproject != undefined) {
+
+            if (defproject) {
+                let aliasesIndex = defproject.indexOf("aliases");
+                if (aliasesIndex > -1) {
+                    try {
+                        let aliases: string[] = [];
+                        const aliasesMap = defproject[aliasesIndex + 1];
+                        aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
+                        if (aliases.length) {
+                            alias = await utilities.quickPickSingle({ values: aliases, placeHolder: "Choose alias to run" });
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
+                        console.log(error);
+                    }
+                }
+            }
+
+            if (defproject != undefined && alias == undefined) {
                 let profilesIndex = defproject.indexOf("profiles");
                 if (profilesIndex > -1) {
                     try {
@@ -109,7 +128,13 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             if (profiles.length) {
                 out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
             }
-            out.push("repl", ":headless");
+
+            if (alias) {
+                out.push(alias);
+            } else {
+                out.push("repl", ":headless");
+            }
+            
             return out;
         }
     },
@@ -229,7 +254,7 @@ function executeJackInTask(projectType: connector.ProjectType, projectTypeSelect
             watcher.removeAllListeners();
         }
         if (nReplPortFile && fs.existsSync(nReplPortFile)) {
-           fs.unlinkSync(nReplPortFile);
+            fs.unlinkSync(nReplPortFile);
         }
         watcher = fs.watch(portFileDir, async (eventType, fileName) => {
             if (fileName == portFileBase) {
