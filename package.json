@@ -188,11 +188,6 @@
                             "connectedRegExp"
                         ]
                     },
-                    "calva.projectRootDirectory": {
-                        "type": "string",
-                        "default": "",
-                        "description": "The root directory of your Clojure project, relative to the Workspace root"
-                    },
                     "calva.jokerPath": {
                         "type": "string",
                         "default": "joker",
