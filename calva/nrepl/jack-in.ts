@@ -171,7 +171,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
-            let aliases = [];
+            let aliases:string[] = [];
             if (parsed.aliases != undefined) {
                 aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
@@ -179,16 +179,25 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+            let aliasHasMain:boolean = false;
+            for (let ali in aliases) {
+                let aliasKey = aliases[ali].substr(1);
+                let alias =  parsed.aliases[aliasKey];
+                aliasHasMain = (alias["main-opts"] != undefined);
+                if (aliasHasMain)
+                    break;
+            }
+
             const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
 
             let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`];
             
-            if (aliasesOption) {
+            if (aliasHasMain) {
                 args.push(aliasesOption);
             } else {
-                args.push("-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
+                args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
             }
 
             if (isWin) {
