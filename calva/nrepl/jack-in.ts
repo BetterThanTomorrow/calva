@@ -51,6 +51,14 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         nReplPortFile: () => {
             return connector.nreplPortFile(".nrepl-port");
         },
+        /** Build the Commandline args for a lein-project. 
+         * 1. Parsing the project.clj
+         * 2. Let the user choose a alias
+         * 3. Let the user choose profiles to use
+         * 4. Add nedded middleware deps to args
+         * 5. Add all profiles choosed by the user
+         * 6. Use alias if selected otherwise repl :headless
+        */
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
@@ -161,6 +169,14 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         nReplPortFile: () => {
             return connector.nreplPortFile(".nrepl-port");
         },
+        /** Build the Commandline args for a clj-project.
+         * 1. Read the deps.edn and parsed it 
+         * 2. Present the user all found aliases
+         * 3. Define needed dependencies and middlewares used by calva
+         * 4. Check if the selected aliases have main-opts
+         * 5. If main-opts in alias => just use aliases
+         * 6. if no main-opts => supply our own main to run nrepl with middlewares
+         */
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let data = fs.readFileSync(path.join(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
@@ -215,6 +231,9 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         nReplPortFile: () => {
             return connector.nreplPortFile(path.join(".shadow-cljs", "nrepl.port"));
         },
+        /**
+         *  Build the Commandline args for a shadow-project.
+         */
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
