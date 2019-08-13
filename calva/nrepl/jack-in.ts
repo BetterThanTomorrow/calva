@@ -75,7 +75,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                         const aliasesMap = defproject[aliasesIndex + 1];
                         aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
                         if (aliases.length) {
-                            alias = await utilities.quickPickSingle({ values: aliases, placeHolder: "Choose alias to run" });
+                            alias = await utilities.quickPickSingle({ values: aliases, saveAs: `${connector.getProjectRoot()}/lein-cli-alias`, placeHolder: "Choose alias to run" });
                         }
                     } catch (error) {
                         vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
@@ -84,7 +84,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 }
             }
 
-            if (defproject != undefined && alias == undefined) {
+            if (defproject != undefined) {
                 let profilesIndex = defproject.indexOf("profiles");
                 if (profilesIndex > -1) {
                     try {
@@ -180,7 +180,15 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
-            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`, aliasesOption];
+
+            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`];
+            
+            if (aliasesOption) {
+                args.push(aliasesOption);
+            } else {
+                args.push("-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
+            }
+            
             if (isWin) {
                 args.unshift("clojure");
             }
