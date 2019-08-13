@@ -75,7 +75,9 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                         const aliasesMap = defproject[aliasesIndex + 1];
                         aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
                         if (aliases.length) {
+                            aliases.unshift("No alias");
                             alias = await utilities.quickPickSingle({ values: aliases, saveAs: `${connector.getProjectRoot()}/lein-cli-alias`, placeHolder: "Choose alias to run" });
+                            alias = (alias == "No alias") ? undefined : alias;
                         }
                     } catch (error) {
                         vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
@@ -188,7 +190,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             } else {
                 args.push("-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
             }
-            
+
             if (isWin) {
                 args.unshift("clojure");
             }
