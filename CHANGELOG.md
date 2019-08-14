@@ -1,6 +1,9 @@
 # Change Log
 Changes to Calva. (We really will try to keep this updated now.)
 
+## [2.0.32] - Unreleased
+- Better alias support for leiningen and clj Projects
+
 ## [2.0.31] - 13.08.2019
 - Support Jack-in and Connect in multi-project workspaces.
 - Fix bug with snippet field navigation not working.
