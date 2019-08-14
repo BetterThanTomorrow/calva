@@ -51,6 +51,14 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         nReplPortFile: () => {
             return connector.nreplPortFile(".nrepl-port");
         },
+        /** Build the Commandline args for a lein-project. 
+         * 1. Parsing the project.clj
+         * 2. Let the user choose a alias
+         * 3. Let the user choose profiles to use
+         * 4. Add nedded middleware deps to args
+         * 5. Add all profiles choosed by the user
+         * 6. Use alias if selected otherwise repl :headless
+        */
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
@@ -64,7 +72,28 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 throw e;
             }
             let profiles: string[] = [];
+            let alias: string;
             const defproject = parsed.find(x => x[0] == "defproject");
+
+            if (defproject) {
+                let aliasesIndex = defproject.indexOf("aliases");
+                if (aliasesIndex > -1) {
+                    try {
+                        let aliases: string[] = [];
+                        const aliasesMap = defproject[aliasesIndex + 1];
+                        aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
+                        if (aliases.length) {
+                            aliases.unshift("No alias");
+                            alias = await utilities.quickPickSingle({ values: aliases, saveAs: `${connector.getProjectRoot()}/lein-cli-alias`, placeHolder: "Choose alias to run" });
+                            alias = (alias == "No alias") ? undefined : alias;
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
+                        console.log(error);
+                    }
+                }
+            }
+
             if (defproject != undefined) {
                 let profilesIndex = defproject.indexOf("profiles");
                 if (profilesIndex > -1) {
@@ -107,7 +136,13 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             if (profiles.length) {
                 out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
             }
-            out.push("repl", ":headless");
+
+            if (alias) {
+                out.push(alias);
+            } else {
+                out.push("repl", ":headless");
+            }
+            
             return out;
         }
     },
@@ -134,6 +169,14 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         nReplPortFile: () => {
             return connector.nreplPortFile(".nrepl-port");
         },
+        /** Build the Commandline args for a clj-project.
+         * 1. Read the deps.edn and parsed it 
+         * 2. Present the user all found aliases
+         * 3. Define needed dependencies and middlewares used by calva
+         * 4. Check if the selected aliases have main-opts
+         * 5. If main-opts in alias => just use aliases
+         * 6. if no main-opts => supply our own main to run nrepl with middlewares
+         */
         commandLine: async (includeCljs) => {
             let out: string[] = [];
             let data = fs.readFileSync(path.join(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
@@ -144,7 +187,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
-            let aliases = [];
+            let aliases:string[] = [];
             if (parsed.aliases != undefined) {
                 aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
@@ -152,10 +195,27 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+            let aliasHasMain:boolean = false;
+            for (let ali in aliases) {
+                let aliasKey = aliases[ali].substr(1);
+                let alias =  parsed.aliases[aliasKey];
+                aliasHasMain = (alias["main-opts"] != undefined);
+                if (aliasHasMain)
+                    break;
+            }
+
             const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
-            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`, aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`];
+
+            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`];
+            
+            if (aliasHasMain) {
+                args.push(aliasesOption);
+            } else {
+                args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
+            }
+
             if (isWin) {
                 args.unshift("clojure");
             }
@@ -171,6 +231,9 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         nReplPortFile: () => {
             return connector.nreplPortFile(path.join(".shadow-cljs", "nrepl.port"));
         },
+        /**
+         *  Build the Commandline args for a shadow-project.
+         */
         commandLine: async (_includeCljs) => {
             let args: string[] = [];
             for (let dep in shadowDependencies)
@@ -226,6 +289,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
         if (watcher != undefined) {
             watcher.removeAllListeners();
         }
+      
         watcher = fs.watch(portFileDir, async (eventType, fileName) => {
             if (fileName == portFileBase) {
                 if (!fs.existsSync(nReplPortFile)) {
