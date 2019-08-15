@@ -220,7 +220,7 @@
                             "properties": {
                                 "name": {
                                     "type": "string",
-                                    "description": "Name shown in the selection"
+                                    "description": "This will show up in the Jack-in quick-pick menu when you start Jack-in if you have more than one sequence configured."
                                 },
                                 "projectType": {
                                     "type": "string",
@@ -233,20 +233,22 @@
                                 },
                                 "afterCLJReplJackInCode": {
                                     "type": "object",
-                                    "description": "Define what should happen after the Jack-in connect.",
+                                    "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
                                     "required": false,
                                     "properties": {
                                         "code": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "description": "The Clojure code to evaluate."
                                         },
                                         "continueStdOutRegExp": {
                                             "type": "string",
+                                            "description": "A regular expression which, when matched in the stdout from the evaluation, will tell Calva that the CLJ REPL is ready. If this field is omitted the sequence will continue when the code is evaluated.",
                                             "required": false
                                         }
                                     }
                                 },
                                 "cljsType": {
-                                    "description": "Choose a cljs Type or define your own.",
+                                    "description": "If omitted Calva will show a menu with the built-in types.",
                                     "anyOf": [
                                         {
                                             "type": "string",
@@ -258,25 +260,28 @@
                                         },
                                         {
                                             "type": "object",
+                                            "required": ["connectCode"],
                                             "properties": {
                                                 "startCode": {
                                                     "type": "string",
-                                                    "required": false
+                                                    "description": "Clojure code to be evaluated to create and/or start your custom CLJS REPL."
                                                 },
                                                 "isStartedRegExp": {
                                                     "type": "string",
-                                                    "required": false
+                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL"
                                                 },
                                                 "connectCode": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "description": ": Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application."
                                                 },
                                                 "isConnectedRegExp": {
                                                     "type": "string",
-                                                    "required": false
+                                                    "description": "A regular experession which, when matched in the stdout from the connectCode evaluation, will tell Calva that the application is connected.",
+                                                    "default": "To quit, type: :cljs/quit"
                                                 },
                                                 "printThisLineRegExp": {
                                                     "type": "string",
-                                                    "required": false
+                                                    "description": "regular experession which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
                                                 }
                                             }
                                         }
