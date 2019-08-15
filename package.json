@@ -208,13 +208,13 @@
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
                     },
-                    "calva.customCodeSnippets": {
+                    "calva.replCommands": {
                         "type": "array",
                         "default": [],
-                        "description": "Custom commands that can be sent to the active REPL.",
+                        "description": "Custom code that can be sent to the active REPL at will.",
                         "$schema": "http://json-schema.org/draft-06/schema#",
                         "items": {
-                            "title": "customCommandSnippet",
+                            "title": "replCommand",
                             "type": "object",
                             "properties": {
                                 "name": {
@@ -451,7 +451,7 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.evalCustomCodeSnippetInREPL",
+                "command": "calva.evalCustomreplCommandInREPL",
                 "title": "Evaluate custom code snippet in REPL Window",
                 "category": "Calva",
                 "enablement": "calva:activated"
@@ -796,7 +796,7 @@
                 "key": "ctrl+alt+c ctrl+alt+space"
             },
             {
-                "command": "calva.evalCustomCodeSnippetInREPL",
+                "command": "calva.evalCustomreplCommandInREPL",
                 "key": "ctrl+alt+c ctrl+s"
             },
             {
