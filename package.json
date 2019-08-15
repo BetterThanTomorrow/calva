@@ -224,7 +224,7 @@
                                 },
                                 "projectType": {
                                     "type": "string",
-                                    "description": "Define the type of your project.",
+                                    "description": "Select one of the project types supported by Calva.",
                                     "enum": [
                                         "Leiningen",
                                         "Clojure-CLI",
