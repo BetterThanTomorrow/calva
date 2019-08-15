@@ -210,7 +210,7 @@
                     },
                     "calva.replConnectSequences": {
                         "type": "array",
-                        "description": "Custom Repl connect sequences that calva should use.",
+                        "description": "For when your project needs a custom REPL connect sequence.",
                         "items": {
                             "type": "object",
                             "required": [
@@ -248,7 +248,7 @@
                                     }
                                 },
                                 "cljsType": {
-                                    "description": "If omitted Calva will show a menu with the built-in types.",
+                                    "description": "Either a built in type, or an object configuring a custom type. If omitted Calva will show a menu with the built-in types.",
                                     "anyOf": [
                                         {
                                             "type": "string",
@@ -268,11 +268,11 @@
                                                 },
                                                 "isStartedRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL"
+                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated. Special case: _If the regexp has a group, it will be assumed to match the URL where the application is started and Calva will automatically open it in order to connect to it._"
                                                 },
                                                 "connectCode": {
                                                     "type": "string",
-                                                    "description": ": Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application."
+                                                    "description": "Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application."
                                                 },
                                                 "isConnectedRegExp": {
                                                     "type": "string",
@@ -281,7 +281,7 @@
                                                 },
                                                 "printThisLineRegExp": {
                                                     "type": "string",
-                                                    "description": "regular experession which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
+                                                    "description": "A regular experession which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
                                                 }
                                             }
                                         }
