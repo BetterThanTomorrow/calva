@@ -75,14 +75,12 @@ function reset() {
 }
 
 function config() {
-    let configOptions = vscode.workspace.getConfiguration('calva'),
-        projectRootDirectoryConfig: string = configOptions.get("projectRootDirectory");
+    let configOptions = vscode.workspace.getConfiguration('calva');
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
         lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
-        projectRootDirectory: projectRootDirectoryConfig.replace(/^\/|\/$/g, ""),
         jokerPath: configOptions.get("jokerPath"),
         useWSL: configOptions.get("useWSL"),
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),

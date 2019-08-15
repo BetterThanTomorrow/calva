@@ -8,7 +8,7 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 ## Raison d´être
 
-With Calva I hope to help lower the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, I can offer a turn-key, productive environment in which to learn and use Clojure and ClojureScript.
+With Calva we hope to help lower the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, we can offer a turn-key, productive environment in which to learn and use Clojure and ClojureScript.
 
 ## How to Connect Calva to your project
 
@@ -26,7 +26,7 @@ Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wi
 
 You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
 
-There is also a command for evaluating the current top level form which I use even more often, especially since it works inside `(commment)` forms and supports my way of experimenting with code.  It looks something like so:
+There is also a command for evaluating the current top level form, which aösp works inside `(comment)` forms supporting code experimentation.  It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
@@ -69,7 +69,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e`
     - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
-  - Pretty printing evaluation resuls: `ctrl+alt+c p` (Currently broken, see issues on Github).
+  - Pretty printing evaluation results: `ctrl+alt+c p` (Currently broken, see issues on Github).
   - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
     - Send the current top level form to the REPL terminal: `ctrl+alt+c alt+space`
   - Error information when evaluation fails (at least a hint)
@@ -84,7 +84,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
-Demo: Peek at defintions, etcetera:
+Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
@@ -96,7 +96,7 @@ You really should have a look at the READMEs for those as well. One thing to not
 
 ### Slurp and Barf keyboard shortcuts
 
-To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortucts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
+To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortcuts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
 
 ![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
@@ -110,24 +110,26 @@ Note: If you for some reason do not want rainbow colors, put this in your `setti
     "clojureWarrior.enableBracketColors": false
 ```
 
-## Where is Calva heading?
-
-There are lots of stuff that needs attention and lots of possible features to add. Please see [the Github issue tracker](https://github.com/BetterThanTomorrow/calva/issues) for those things. And please regard it as a way to inform me about what is most important. (There are other ways for that as well, see below.)
-
-Right now I am happy to have released [a major upgrade to Calva](https://clojureverse.org/t/the-calva-journey-continues-please-jack-in/4335) (”Calva dos” as they say in Spanish), but I am not satisfied. I want to make Calva an even better choice for people starting with Clojure and ClojureScript, so that is where my focus will be. Please consider helping me!
-
 ## How to contribute
 
 I'm glad you are reading this section!
 
 Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
 
-## Other
+## The Calva Team
 
-### Started from Visual Clojure
+Many people have contributed to Calva. Here are the ones who have engaged in the project as such.
 
-Calva once started off as a clone of the promising (but abandoned) **visual:clojure** extension.
+## Current Maintainers:
+
+* [Peter Strömberg](https://github.com/PEZ)
+* [Kevin Stehn](https://github.com/kstehn)
+
+### Alumni
+* [Matt Seddon](https://github.com/mseddon)
+* [Pedro Girardi](https://github.com/pedrorgirardi)
+* [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
 
 ## Happy coding ❤️
 
-I hope you will find good use for Calva. Please let me know what you think. PRs welcome, file an issue or chat me up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack, (I'm @pez there). I would appreciate tweets about Calva too, and extra points for mentioning [@pappapez](https://twitter.com/pappapez).
+We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.

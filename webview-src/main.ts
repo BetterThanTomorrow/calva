@@ -494,5 +494,5 @@ window.onmessage = (msg) => {
         con.printElement(div);
     }
 }
-message.postMessage({ type: "init" })
-document.querySelector("#motd").textContent = motd[Math.floor(Math.random() * motd.length)];
+message.postMessage({ type: "init" });
+// document.querySelector("#motd").textContent = motd[Math.floor(Math.random() * motd.length)];

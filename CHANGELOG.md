@@ -1,5 +1,34 @@
 # Change Log
-Changes to Calva that I remembered to log.
+Changes to Calva. (We really will try to keep this updated now.)
+
+## [2.0.32] - Unreleased
+- Better alias support for leiningen and clj Projects
+
+## [2.0.31] - 13.08.2019
+- Support Jack-in and Connect in multi-project workspaces.
+- Fix bug with snippet field navigation not working.
+
+## [2.0.30] - 04.08.2019
+- nREPL status bar indicator can now be styled
+
+## [2.0.29] - 04.08.2019
+- Fix jack-in command quoting for `zsh`.
+
+## [2.0.28] - 01.08.2019
+- Jack in quoting fixes, mainly for Windows with `clojure/clj`.
+- Fix formatting bug when forms not separated by whitespace.
+
+## [2.0.25] - 12.07.2019
+- Add command for running test under cursor (at point in CIDER lingo).
+
+## [2.0.24] - 12.07.2019
+- Add ParEdit `forwardUpSexp`.
+
+## [2.0.20] - 20.06.2019
+- Improve custom CLJS REPL.
+
+## [1.3.x -> 2.0.20] - -> 06.2019
+... huge gap in the Changelog. Sorry about that, but now we have decided to pick up maintaining this log again.
 
 ## [1.3.0] - 16.04.2018
 - Add support for [shadow-cljs](http://shadow-cljs.org). Please contact me with any information on how this is working for you out there.

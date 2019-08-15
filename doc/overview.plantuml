@@ -1,0 +1,156 @@
+@startuml "Overview"
+skinparam linetype ortho
+
+object "cljs-lib" as cljsLib
+object analytics
+object connector
+object evaluate
+object extension
+object greet
+object lint
+object refresh
+object "repl-window" as replWindow
+object select
+object state
+object status
+object statusbar
+object testRunner
+object "utilities" as ult
+
+package "calva-fmt" {
+    object "state" as fmtState
+    object config
+    object format
+    object infer
+    object "extension" as fmtExtension
+    package "docmirror" {
+        object "index" as doc
+    }
+    package "providers" as fmtProviders {
+        object ontype_formatter
+        object range_formatter
+    }
+
+    format --> config
+    fmtExtension  --> format
+    fmtExtension --> infer
+    fmtExtension --> range_formatter
+    fmtExtension --> ontype_formatter
+    fmtExtension --> doc
+    ontype_formatter --> format
+    range_formatter --> format
+    infer --> cljsLib
+    doc --> ult 
+}
+
+package "nrepl" {
+    object "index" as nrepl
+    object bencode
+    object "jack-in" as jackIn
+
+    nrepl --> bencode
+    jackIn --> state
+    jackIn --> statusbar
+    jackIn --> connector
+    jackIn --> cljsLib
+    jackIn --> ult
+}
+
+package "paredit" {
+    object "extension" as parExtension
+    object "utils" as parUtils
+    object "status_bar" as parStatusBar
+
+    parExtension --> parUtils
+    parExtension --> parStatusBar
+}
+
+package "providers" {
+    object annotations
+    object content
+    object definition
+    object completion
+    object hover
+
+    annotations --> state
+    content --> state
+    definition --> ult
+    definition --> state
+    completion --> ult
+    completion --> state
+    hover --> ult
+    hover --> state
+}
+
+connector --> state
+connector --> ult
+connector --> status
+
+evaluate --> state
+evaluate --> annotations
+evaluate --> select
+evaluate --> ult
+evaluate --> replWindow
+evaluate --> nrepl
+
+extension --> parExtension
+extension --> fmtExtension
+extension --> state
+extension --> jackIn
+extension --> ult
+extension --> status
+extension --> connector
+extension --> completion
+extension --> content
+extension --> hover
+extension --> definition
+extension --> evaluate
+extension --> lint
+extension --> testRunner
+extension --> annotations
+extension --> select
+extension --> evaluate
+extension --> refresh
+extension --> replWindow
+extension --> greet
+extension --> analytics
+
+lint --> state
+lint --> ult
+
+refresh --> ult
+refresh --> state
+refresh --> nrepl
+
+replWindow --> connector
+replWindow --> state
+replWindow --> status
+replWindow --> nrepl
+replWindow --> annotations
+replWindow --> ult
+replWindow --> evaluate
+replWindow --> select
+
+select --> ult
+
+state --> analytics
+
+status --> ult
+status --> statusbar
+
+statusbar --> replWindow
+statusbar --> state
+statusbar --> ult
+
+testRunner --> state
+testRunner --> evaluate
+testRunner --> ult
+
+ult --> state
+ult --> nrepl
+ult --> replWindow
+ult --> cljsLib
+ult --> doc
+ult --> select 
+
+@enduml
