@@ -207,6 +207,83 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
+                    },
+                    "calva.replConnectSequences": {
+                        "type": "array",
+                        "description": "Custom Repl connect sequences that calva should use.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name shown in the selection"
+                                },
+                                "projectType": {
+                                    "type": "string",
+                                    "description": "Define the type of your project.",
+                                    "enum": [
+                                        "Leiningen",
+                                        "Clojure-CLI",
+                                        "shadow-cljs"
+                                    ]
+                                },
+                                "afterCLJReplJackInCode": {
+                                    "type": "object",
+                                    "description": "Define what should happen after the Jack-in connect.",
+                                    "required": false,
+                                    "properties": {
+                                        "code": {
+                                            "type": "string"
+                                        },
+                                        "continueStdOutRegExp": {
+                                            "type": "string",
+                                            "required": false
+                                        }
+                                    }
+                                },
+                                "cljsType": {
+                                    "description": "Choose a cljs Type or define your own.",
+                                    "anyOf": [
+                                        {
+                                            "type": "string",
+                                            "enum": [
+                                                "Figwheel Main",
+                                                "lein-figwheel",
+                                                "shadow-cljs"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "startCode": {
+                                                    "type": "string",
+                                                    "required": false
+                                                },
+                                                "isStartedRegExp": {
+                                                    "type": "string",
+                                                    "required": false
+                                                },
+                                                "connectCode": {
+                                                    "type": "string"
+                                                },
+                                                "isConnectedRegExp": {
+                                                    "type": "string",
+                                                    "required": false
+                                                },
+                                                "printThisLineRegExp": {
+                                                    "type": "string",
+                                                    "required": false
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "projectType"
+                        ]
                     }
                 }
             },
