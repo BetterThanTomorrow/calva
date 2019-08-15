@@ -213,6 +213,10 @@
                         "description": "Custom Repl connect sequences that calva should use.",
                         "items": {
                             "type": "object",
+                            "required": [
+                                "name",
+                                "projectType"
+                            ],
                             "properties": {
                                 "name": {
                                     "type": "string",
@@ -279,11 +283,7 @@
                                     ]
                                 }
                             }
-                        },
-                        "required": [
-                            "name",
-                            "projectType"
-                        ]
+                        }
                     }
                 }
             },
