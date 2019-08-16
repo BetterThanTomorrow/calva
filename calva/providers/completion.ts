@@ -1,6 +1,7 @@
 import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem } from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
+import select from '../select';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -24,9 +25,11 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         let text = util.getWordAtPosition(document, position);
 
         if (this.state.deref().get("connected")) {
-            let client = util.getSession(util.getFileType(document));
-            let res = await client.complete(util.getNamespace(document), text);
-            let results = res.completions || [];
+            const formSelection = select.getFormSelection(document, position, true),
+                currentWordRange = document.getWordRangeAtPosition(position),
+                client = util.getSession(util.getFileType(document)),
+                res = await client.complete(util.getNamespace(document), text),
+                results = res.completions || [];
             return new CompletionList(
                 results.map(item => ({
                     label: item.candidate,
