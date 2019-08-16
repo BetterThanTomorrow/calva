@@ -23,17 +23,17 @@ export async function detectProjectType(): Promise<string[]> {
 
 const cliDependencies = {
     "nrepl": "0.6.0",
-    "cider/cider-nrepl": "0.21.1",
+    "cider/cider-nrepl": "0.22.0-beta10",
 }
 const figwheelDependencies = {
     "cider/piggieback": "0.4.1",
     "figwheel-sidecar": "0.5.18"
 }
 const shadowDependencies = {
-    "cider/cider-nrepl": "0.21.1",
+    "cider/cider-nrepl": "0.22.0-beta10",
 }
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.21.1"
+    "cider/cider-nrepl": "0.22.0-beta10"
 }
 const leinDependencies = {
     "nrepl": "0.6.0",
