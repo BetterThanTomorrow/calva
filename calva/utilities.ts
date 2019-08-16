@@ -184,7 +184,9 @@ function getActualWord(document, position, selected, word) {
 }
 
 function getWordAtPosition(document, position) {
-    let selected = document.getWordRangeAtPosition(position), selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "", text = getActualWord(document, position, selected, selectedText);
+    let selected = document.getWordRangeAtPosition(position),
+        selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "", 
+        text = getActualWord(document, position, selected, selectedText);
     return text;
 }
 
