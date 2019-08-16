@@ -1,3 +1,5 @@
+import { workspace } from "vscode";
+
 enum ProjectTypes {
     "Leiningen",
     "Clojure-CLI",
@@ -73,3 +75,26 @@ const defaultSequences = {
     "clj": cljDefaults,
     "shadow-cljs": shadowCljsDefaults
 };
+
+/** Retrieve the replConnectSequences from the config */
+function getConfigcustomConnectSequences(): ReplConnectSequence[] {
+    return workspace.getConfiguration('calva')
+        .get<ReplConnectSequence[]>("replConnectSequences", []);
+}
+
+/**
+ * Retrieve the replConnectSequences and returns only that if only one was defined.
+ * Otherwise the user defined will be combined with the defaults one to be returned.
+ * @param projectType what default Sequences would be used (leiningen, clj, shadow-cljs)
+ */
+function getConnectSequences(projectType: string) {
+    let customSequences = getConfigcustomConnectSequences();
+    if (customSequences.length == 1) {
+        return customSequences;
+    }
+    return defaultSequences[projectType].slice().push(customSequences.push());
+}
+
+export {
+    getConnectSequences
+}
