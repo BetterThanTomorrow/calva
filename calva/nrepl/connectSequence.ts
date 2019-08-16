@@ -87,7 +87,7 @@ function getConfigcustomConnectSequences(): ReplConnectSequence[] {
  * Otherwise the user defined will be combined with the defaults one to be returned.
  * @param projectType what default Sequences would be used (leiningen, clj, shadow-cljs)
  */
-function getConnectSequences(projectType: string) {
+function getConnectSequences(projectType: string): ReplConnectSequence[] {
     let customSequences = getConfigcustomConnectSequences();
     if (customSequences.length == 1) {
         return customSequences;
