@@ -2,6 +2,7 @@ import { TextDocument, Position, CancellationToken, CompletionContext, Hover, Co
 import * as state from '../state';
 import * as util from '../utilities';
 import select from '../select';
+import * as docMirror from '../calva-fmt/ts/docmirror';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -28,6 +29,8 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
             const toplevelSelection = select.getFormSelection(document, position, true),
                 toplevel = document.getText(toplevelSelection),
                 toplevelStartOffset = document.offsetAt(toplevelSelection.start),
+                toplevelStartCursor = docMirror.getDocument(document).getTokenCursor(toplevelStartOffset + 1),
+                toplevelIsValidForm = toplevelStartCursor.forwardList(),
                 wordRange = document.getWordRangeAtPosition(position),
                 wordStartLocalOffset = document.offsetAt(wordRange.start) - toplevelStartOffset,
                 wordEndLocalOffset = document.offsetAt(wordRange.end) - toplevelStartOffset,
@@ -35,7 +38,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 contextEnd = toplevel.substring(wordEndLocalOffset),
                 context = `${contextStart}__prefix__${contextEnd}`,
                 client = util.getSession(util.getFileType(document)),
-                res = await client.complete(util.getNamespace(document), text, context),
+                res = await client.complete(util.getNamespace(document), text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];
             return new CompletionList(
                 results.map(item => ({
