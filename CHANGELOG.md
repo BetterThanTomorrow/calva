@@ -1,8 +1,12 @@
 # Change Log
 Changes to Calva. (We really will try to keep this updated now.)
 
-## [2.0.32] - Unreleased
-- Better alias support for leiningen and clj Projects
+## Working on
+- [Customizing the REPL connect sequence](https://github.com/BetterThanTomorrow/calva/issues/282)
+- [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
+
+## [2.0.32] - 17.08.2019
+- Support for starting leiningen and clj projects with aliases
 
 ## [2.0.31] - 13.08.2019
 - Support Jack-in and Connect in multi-project workspaces.
