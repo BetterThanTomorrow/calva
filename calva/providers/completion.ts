@@ -25,10 +25,17 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         let text = util.getWordAtPosition(document, position);
 
         if (this.state.deref().get("connected")) {
-            const formSelection = select.getFormSelection(document, position, true),
-                currentWordRange = document.getWordRangeAtPosition(position),
+            const toplevelSelection = select.getFormSelection(document, position, true),
+                toplevel = document.getText(toplevelSelection),
+                toplevelStartOffset = document.offsetAt(toplevelSelection.start),
+                wordRange = document.getWordRangeAtPosition(position),
+                wordStartLocalOffset = document.offsetAt(wordRange.start) - toplevelStartOffset,
+                wordEndLocalOffset = document.offsetAt(wordRange.end) - toplevelStartOffset,
+                contextStart = toplevel.substring(0, wordStartLocalOffset),
+                contextEnd = toplevel.substring(wordEndLocalOffset),
+                context = `${contextStart}__prefix__${contextEnd}`,
                 client = util.getSession(util.getFileType(document)),
-                res = await client.complete(util.getNamespace(document), text),
+                res = await client.complete(util.getNamespace(document), text, context),
                 results = res.completions || [];
             return new CompletionList(
                 results.map(item => ({
