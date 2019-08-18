@@ -82,6 +82,15 @@ const REPL_WINDOW = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'html')
   },
+  devServer: {
+    historyApiFallback: true,
+    host: "0.0.0.0",
+    compress: true,
+    contentBase: path.join(__dirname, 'www'),
+    proxy: {
+      '/api': 'http://localhost:3000',
+    }
+  },
   devtool: 'source-map'
 }
 
