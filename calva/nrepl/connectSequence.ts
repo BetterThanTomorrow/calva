@@ -1,15 +1,15 @@
 import { workspace } from "vscode";
 
 enum ProjectTypes {
-    "Leiningen",
-    "Clojure-CLI",
-    "shadow-cljs"
+    "Leiningen" = "Leiningen",
+    "Clojure-CLI" = "Clojure-CLI",
+    "shadow-cljs" = "shadow-cljs"
 }
 
 enum CljsTypes {
-    "Figwheel Main",
-    "lein-figwheel",
-    "shadow-cljs"
+    "Figwheel Main" = "Figwheel Main",
+    "lein-figwheel" = "lein-figwheel",
+    "shadow-cljs" = "shadow-cljs"
 }
 
 interface CustomCljsType {
@@ -71,7 +71,7 @@ const shadowCljsDefaults: ReplConnectSequence[] = [{
 }]
 
 const defaultSequences = {
-    "leiningen": leiningenDefaults,
+    "lein": leiningenDefaults,
     "clj": cljDefaults,
     "shadow-cljs": shadowCljsDefaults
 };
@@ -87,12 +87,19 @@ function getConfigcustomConnectSequences(): ReplConnectSequence[] {
  * Otherwise the user defined will be combined with the defaults one to be returned.
  * @param projectType what default Sequences would be used (leiningen, clj, shadow-cljs)
  */
-function getConnectSequences(projectType: string): ReplConnectSequence[] {
+function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     let customSequences = getConfigcustomConnectSequences();
     if (customSequences.length == 1) {
         return customSequences;
     }
-    return defaultSequences[projectType].slice().push(customSequences.push());
+    console.log("defaultSeq", defaultSequences);
+    let result = [];
+    for (let pType of projectTypes) {
+        console.log("pType", pType);
+        console.log("pSeq", defaultSequences[pType]);
+        result = result.concat(defaultSequences[pType]);
+    }
+    return result.concat(customSequences);
 }
 
 export {

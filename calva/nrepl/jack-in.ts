@@ -6,6 +6,7 @@ import * as state from "../state"
 import * as connector from "../connector";
 import statusbar from "../statusbar";
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
+import { getConnectSequences } from "./connectSequence";
 
 const isWin = /^win/.test(process.platform);
 
