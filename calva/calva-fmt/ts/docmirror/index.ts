@@ -1,5 +1,5 @@
-import * as model from "@calva/repl-interactor/js/model"
-export { getIndent } from "@calva/repl-interactor/js/indent"
+import * as model from "../../../webview-src/client/model"
+export { getIndent } from "../../../webview-src/client/indent"
 import * as vscode from "vscode"
 import * as utilities from '../../../utilities';
 

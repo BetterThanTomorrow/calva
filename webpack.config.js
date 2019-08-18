@@ -34,7 +34,7 @@ const CALVA_MAIN = {
 }
 
 const REPL_WINDOW = {
-  entry: './webview-src/server/main.ts',
+  entry: './calva/webview-src/server/main.ts',
   performance: {
     maxEntrypointSize: 1024000,
     maxAssetSize: 1024000,
@@ -53,7 +53,7 @@ const REPL_WINDOW = {
         options: {
           transpileOnly: true,
           experimentalWatchApi: true,
-          configFile: 'webview-src/tsconfig.json'
+          configFile: 'calva/webview-src/tsconfig.json'
         },
         exclude: /node_modules/
       },

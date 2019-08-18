@@ -9,8 +9,8 @@ import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../cljs-out/cljs-lib');
 import * as docMirror from './calva-fmt/ts/docmirror';
-import { TokenCursor, LispTokenCursor } from '@calva/repl-interactor/js/token-cursor';
-import { Token } from '@calva/repl-interactor/js/clojure-lexer';
+import { TokenCursor, LispTokenCursor } from './webview-src/client/token-cursor';
+import { Token } from './webview-src/client/clojure-lexer';
 import select from './select';
 
 
