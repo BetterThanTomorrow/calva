@@ -22,17 +22,15 @@ function processChanges(document: vscode.TextDocument, contentChanges: vscode.Te
     model.insertedLines.clear()
     model.deletedLines.clear();
 
-    // FIXME:
     //    this is an important diagnostic check to ensure the models haven't de-synced, but it MUST be removed before release.
-
-    let mtext = model.getText(0, model.maxOffset)
-    let dtext = document.getText().replace(/\r\n/g,"\n");
-    if(mtext != dtext) {
-        vscode.window.showErrorMessage("document hozed")
-        console.error(mtext)
-        console.error("vs")
-        console.error(dtext)
-    }
+    // let mtext = model.getText(0, model.maxOffset)
+    // let dtext = document.getText().replace(/\r\n/g,"\n");
+    // if(mtext != dtext) {
+    //     vscode.window.showErrorMessage("document hozed")
+    //     console.error(mtext)
+    //     console.error("vs")
+    //     console.error(dtext)
+    // }
 }
 
 export function getDocument(doc: vscode.TextDocument) {
