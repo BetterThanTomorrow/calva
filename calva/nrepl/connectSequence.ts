@@ -2,7 +2,7 @@ import { workspace } from "vscode";
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
-    "Clojure-CLI" = "Clojure-CLI",
+    "Clojure CLI" = "Clojure CLI",
     "shadow-cljs" = "shadow-cljs"
 }
 
@@ -103,5 +103,6 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
 }
 
 export {
-    getConnectSequences
+    getConnectSequences,
+    ReplConnectSequence
 }

@@ -6,7 +6,7 @@ import * as state from "../state"
 import * as connector from "../connector";
 import statusbar from "../statusbar";
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
-import { getConnectSequences } from "./connectSequence";
+import { getConnectSequences, ReplConnectSequence } from "./connectSequence";
 
 const isWin = /^win/.test(process.platform);
 
@@ -332,9 +332,11 @@ export async function calvaJackIn() {
         return;
     }
 
+    let sequences = getConnectSequences(cljTypes);
+
     // Show a prompt to pick one if there are multiple
     let menu: string[] = [];
-    for (const clj of cljTypes) {
+    /** for (const clj of cljTypes) {
         menu.push(projectTypes[clj].name);
         const customCljsRepl = connector.getCustomCLJSRepl();
         const cljsTypes = projectTypes[clj].cljsTypes.slice();
@@ -344,29 +346,32 @@ export async function calvaJackIn() {
         for (const cljs of cljsTypes) {
             menu.push(`${projectTypes[clj].name} + ${cljs}`);
         }
+    }*/
+    for (const seq of sequences) {
+        menu.push(seq.name);
     }
-    let projectTypeSelection = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: `${connector.getProjectRoot()}/jack-in-type`, autoSelect: true });
-    if (!projectTypeSelection) {
+    let projectConnectSequenceName = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: `${connector.getProjectRoot()}/jack-in-type`, autoSelect: true });
+    if (!projectConnectSequenceName) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypePicked").send();
         return;
     }
 
     // Resolve the selection to an entry in projectTypes
-    const projectTypeName: string = projectTypeSelection.replace(/ \+ .*$/, "");
-    let projectType = getProjectTypeForName(projectTypeName);
+    const projectTypeName: string = projectConnectSequenceName.replace(/ \+ .*$/, "");
+
+    let projectConnectSequence: ReplConnectSequence  = sequences.find(seq => seq.name === projectConnectSequenceName);
     state.extensionContext.workspaceState.update('selectedCljTypeName', projectTypeName);
-    let matched = projectTypeSelection.match(/ \+ (.*)$/);
-    const selectedCljsType = projectType.name == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
+    let matched = projectConnectSequenceName.match(/ \+ (.*)$/);
+    const selectedCljsType = projectConnectSequence.cljsType == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
     state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
-    if (!projectType) {
+    if (!projectConnectSequence) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
         return;
     }
-
+    let projectType = getProjectTypeForName(projectTypeName);
     let executable = isWin ? projectType.winCmd : projectType.cmd;
-
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await projectType.commandLine(selectedCljsType != "");
 
-    executeJackInTask(projectType, projectTypeSelection, executable, args, cljTypes, outputChannel);
+    executeJackInTask(projectType, projectConnectSequenceName, executable, args, cljTypes, outputChannel);
 }
