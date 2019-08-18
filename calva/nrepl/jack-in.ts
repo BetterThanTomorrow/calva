@@ -115,8 +115,8 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 out.push("/d", "/c", "lein");
             }
             const q = isWin ? '' : "'",
-            dQ = '"',
-            s = isWin ? "^ " : " ";
+                dQ = '"',
+                s = isWin ? "^ " : " ";
 
             for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
@@ -143,7 +143,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             } else {
                 out.push("repl", ":headless");
             }
-            
+
             return out;
         }
     },
@@ -188,7 +188,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
-            let aliases:string[] = [];
+            let aliases: string[] = [];
             if (parsed.aliases != undefined) {
                 aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
@@ -196,10 +196,10 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-            let aliasHasMain:boolean = false;
+            let aliasHasMain: boolean = false;
             for (let ali in aliases) {
                 let aliasKey = aliases[ali].substr(1);
-                let alias =  parsed.aliases[aliasKey];
+                let alias = parsed.aliases[aliasKey];
                 aliasHasMain = (alias["main-opts"] != undefined);
                 if (aliasHasMain)
                     break;
@@ -210,7 +210,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
 
             let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`];
-            
+
             if (aliasHasMain) {
                 args.push(aliasesOption);
             } else {
@@ -259,7 +259,7 @@ function getProjectTypeForName(name: string) {
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
-async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel) {
+async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence : ReplConnectSequence) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectType.nReplPortFile();
@@ -290,7 +290,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
         if (watcher != undefined) {
             watcher.removeAllListeners();
         }
-      
+
         watcher = fs.watch(portFileDir, async (eventType, fileName) => {
             if (fileName == portFileBase) {
                 if (!fs.existsSync(nReplPortFile)) {
@@ -359,7 +359,7 @@ export async function calvaJackIn() {
     // Resolve the selection to an entry in projectTypes
     const projectTypeName: string = projectConnectSequenceName.replace(/ \+ .*$/, "");
 
-    let projectConnectSequence: ReplConnectSequence  = sequences.find(seq => seq.name === projectConnectSequenceName);
+    let projectConnectSequence: ReplConnectSequence = sequences.find(seq => seq.name === projectConnectSequenceName);
     state.extensionContext.workspaceState.update('selectedCljTypeName', projectTypeName);
     let matched = projectConnectSequenceName.match(/ \+ (.*)$/);
     const selectedCljsType = projectConnectSequence.cljsType == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
@@ -373,5 +373,6 @@ export async function calvaJackIn() {
     // Ask the project type to build up the command line. This may prompt for further information.
     let args = await projectType.commandLine(selectedCljsType != "");
 
-    executeJackInTask(projectType, projectConnectSequenceName, executable, args, cljTypes, outputChannel);
+    executeJackInTask(projectType, projectConnectSequenceName, executable, args, cljTypes, outputChannel, projectConnectSequence)
+        .then(() => { }, () => { });
 }
