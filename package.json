@@ -1000,7 +1000,6 @@
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
-        "@calva/repl-interactor": "0.0.20",
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.10.6",
         "@types/universal-analytics": "^0.4.2",
