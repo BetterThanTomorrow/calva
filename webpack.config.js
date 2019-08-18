@@ -34,7 +34,7 @@ const CALVA_MAIN = {
 }
 
 const REPL_WINDOW = {
-  entry: './webview-src/main.ts',
+  entry: './webview-src/server/main.ts',
   performance: {
     maxEntrypointSize: 1024000,
     maxAssetSize: 1024000,
@@ -86,7 +86,7 @@ const REPL_WINDOW = {
     historyApiFallback: true,
     host: "0.0.0.0",
     compress: true,
-    contentBase: path.join(__dirname, 'www'),
+    contentBase: path.join(__dirname, 'html'),
     proxy: {
       '/api': 'http://localhost:3000',
     }
