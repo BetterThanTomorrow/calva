@@ -36,8 +36,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 contextStart = toplevel.substring(0, wordStartLocalOffset),
                 contextEnd = toplevel.substring(wordEndLocalOffset),
                 context = `${contextStart}__prefix__${contextEnd}`,
-                // using forwardList() here to see that the toplevel form is balanced
-                toplevelIsValidForm = toplevelStartCursor.forwardList() && context != '__prefix__',
+                toplevelIsValidForm = toplevelStartCursor.withinValidList() && context != '__prefix__',
                 client = util.getSession(util.getFileType(document)),
                 res = await client.complete(util.getNamespace(document), text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];

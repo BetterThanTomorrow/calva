@@ -367,4 +367,13 @@ export class LispTokenCursor extends TokenCursor {
         }
         return false;
     }
+
+    /**
+     * Tells if the cursor is inside a properly closed list.
+     */
+    withinValidList(): boolean {
+        let cursor = this.clone();
+        while(cursor.forwardSexp()) { }
+        return cursor.getToken().type == "close";
+    }
 }
