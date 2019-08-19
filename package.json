@@ -207,6 +207,20 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
+                    },
+                    "calva.myLeinProfiles": {
+                        "type": "array",
+                        "description": "At Jack in, any profiles listed here will be added to the profiles found in the `project.clj` file.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "calva.myCljAliases": {
+                        "type": "array",
+                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the projects's `deps.edn` file.",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },

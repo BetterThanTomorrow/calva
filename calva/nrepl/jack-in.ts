@@ -95,11 +95,12 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             }
 
             if (defproject != undefined) {
-                let profilesIndex = defproject.indexOf("profiles");
+                const profilesIndex = defproject.indexOf("profiles"),
+                    myProfiles = state.config().myLeinProfiles;
                 if (profilesIndex > -1) {
                     try {
-                        const profilesMap = defproject[profilesIndex + 1];
-                        profiles = [...profiles, ...Object.keys(profilesMap).map((v, k) => { return ":" + v })];
+                        const profilesList = [...Object.keys(defproject[profilesIndex + 1]), ...myProfiles];
+                        profiles = [...profiles, ...profilesList.map(v => { return ":" + v })];
                         if (profiles.length) {
                             profiles = await utilities.quickPickMulti({ values: profiles, saveAs: `${connector.getProjectRoot()}/lein-cli-profiles`, placeHolder: "Pick any profiles to launch with" });
                         }

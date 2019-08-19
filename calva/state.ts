@@ -86,7 +86,11 @@ function config() {
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted"),
-        customCljsRepl: configOptions.get("customCljsRepl", null)
+        customCljsRepl: configOptions.get("customCljsRepl", null),
+        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(v => {
+            return v.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
+        }),
+        myCljAliases: configOptions.get("myCljAliases", []),
     };
 }
 
