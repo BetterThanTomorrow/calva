@@ -74,6 +74,10 @@ function reset() {
     data = Immutable.fromJS(initialData);
 }
 
+function _trimAliasName(name: string): string {
+    return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
+}
+
 function config() {
     let configOptions = vscode.workspace.getConfiguration('calva');
     return {
@@ -87,10 +91,8 @@ function config() {
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted"),
         customCljsRepl: configOptions.get("customCljsRepl", null),
-        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(v => {
-            return v.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
-        }),
-        myCljAliases: configOptions.get("myCljAliases", []),
+        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName),
+        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName),
     };
 }
 

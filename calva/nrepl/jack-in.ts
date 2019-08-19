@@ -96,17 +96,17 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
 
             if (defproject != undefined) {
                 const profilesIndex = defproject.indexOf("profiles"),
+                    projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [],
                     myProfiles = state.config().myLeinProfiles;
-                if (profilesIndex > -1) {
-                    try {
-                        const profilesList = [...Object.keys(defproject[profilesIndex + 1]), ...myProfiles];
-                        profiles = [...profiles, ...profilesList.map(v => { return ":" + v })];
-                        if (profiles.length) {
-                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: `${connector.getProjectRoot()}/lein-cli-profiles`, placeHolder: "Pick any profiles to launch with" });
-                        }
-                    } catch (error) {
-                        vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
-                        console.log(error);
+                if (projectProfiles.length + myProfiles.length > 0) {
+                    const profilesList = [...projectProfiles, ...myProfiles];
+                    profiles = [...profiles, ...profilesList.map(v => { return ":" + v })];
+                    if (profiles.length) {
+                        profiles = await utilities.quickPickMulti({
+                            values: profiles,
+                            saveAs: `${connector.getProjectRoot()}/lein-cli-profiles`,
+                            placeHolder: "Pick any profiles to launch with"
+                        });
                     }
                 }
             }
@@ -115,8 +115,8 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 out.push("/d", "/c", "lein");
             }
             const q = isWin ? '' : "'",
-            dQ = '"',
-            s = isWin ? "^ " : " ";
+                dQ = '"',
+                s = isWin ? "^ " : " ";
 
             for (let i = 0; i < keys.length; i++) {
                 let dep = keys[i];
@@ -143,7 +143,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             } else {
                 out.push("repl", ":headless");
             }
-            
+
             return out;
         }
     },
@@ -182,25 +182,31 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             let out: string[] = [];
             let data = fs.readFileSync(path.join(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
             let parsed;
+
             try {
                 parsed = parseEdn(data);
             } catch (e) {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
-            let aliases:string[] = [];
-            if (parsed.aliases != undefined) {
-                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
+
+            const projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [],
+                myAliases = state.config().myCljAliases;
+            let aliases: string[] = [];
+            if (projectAliases.length + myAliases.length > 0) {
+                aliases = await utilities.quickPickMulti({ values: [...projectAliases, ...myAliases].map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
                 useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-            let aliasHasMain:boolean = false;
+            let aliasHasMain: boolean = false;
             for (let ali in aliases) {
-                let aliasKey = aliases[ali].substr(1);
-                let alias =  parsed.aliases[aliasKey];
-                aliasHasMain = (alias["main-opts"] != undefined);
+                const aliasKey = aliases[ali].substr(1);
+                if (parsed.aliases) {
+                    let alias = parsed.aliases[aliasKey];
+                    aliasHasMain = alias && alias["main-opts"] != undefined;
+                }
                 if (aliasHasMain)
                     break;
             }
@@ -210,7 +216,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
 
             let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`];
-            
+
             if (aliasHasMain) {
                 args.push(aliasesOption);
             } else {
@@ -290,7 +296,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
         if (watcher != undefined) {
             watcher.removeAllListeners();
         }
-      
+
         watcher = fs.watch(portFileDir, async (eventType, fileName) => {
             if (fileName == portFileBase) {
                 if (!fs.existsSync(nReplPortFile)) {
