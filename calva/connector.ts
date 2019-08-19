@@ -10,6 +10,7 @@ import status from './status';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow } from './repl-window';
+import { CustomCljsType } from './nrepl/connectSequence';
 
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
@@ -115,6 +116,9 @@ async function connectToHost(hostname, port, cljsTypeName: string, replTypes: Re
         state.cursor.set('cljc', cljSession)
         status.update();
 
+        //TODO Execute here cljJackInCode
+        //TODO Check continueStdOutRegExp when present, if so wait for it in stdout, otherwise only wait for eval
+        //! connection stdout as option in eval 
         //cljsSession = nClient.session;
         //terminal.createREPLTerminal('clj', null, chan);
         let cljsSession = null,
@@ -156,7 +160,7 @@ export function shadowConfigFile() {
 
 export function shadowBuilds() {
     let parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
-        builds = _.map(parsed.builds, (_v, key) => { return ":" + key });
+        builds: string[] = _.map(parsed.builds, (_v, key) => { return ":" + key });
     builds.push("node-repl");
     builds.push("browser-repl")
     return builds;
@@ -187,6 +191,13 @@ function getFigwheelMainProjects() {
         throw "Aborted";
     }
     return projects;
+}
+
+/**
+ * ! DO it later
+ */
+function getFigwheelBuilds() {
+
 }
 
 type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
@@ -340,6 +351,112 @@ type customCLJSREPLType = {
     printThisLineRegExp?: string,
     connectedRegExp: string,
 };
+
+function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
+    if (cljsTypeName.includes("Figwheel Main")) {
+        return getFigwheelMainProjects();
+    } else if (cljsTypeName.includes("shadow-cljs")) {
+        return shadowBuilds();
+    }
+}
+
+function updateInitCode(build: string, initCode): string {
+    if (build && typeof initCode === 'object') {
+        if (build.charAt(0) == ":") {
+            return initCode.build.replace("%BUILD%", build);
+        } else {
+            return initCode.repl.replace("%REPL%", build);
+        }
+    } else if (build && typeof initCode === 'string') {
+        return initCode.replace("%BUILD%", build);
+    }
+    return null;
+}
+
+function createCLJSReplType(cljsTypeName: string, desc: CustomCljsType): ReplType {
+    let result: ReplType = {
+        name: cljsTypeName,
+        connect: async (session, name, checkFn) => {
+            const chan = state.outputChannel();
+            state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', !(desc.builds === undefined));
+            let initCode = desc.connectCode;
+            let build: string = null;
+
+            if (desc.builds === [] && (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
+                let projects = await figwheelOrShadowBuilds(cljsTypeName);
+                build = await util.quickPickSingle({
+                    values: projects,
+                    placeHolder: "Select which build to connect to",
+                    saveAs: `${getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`
+                });
+
+                initCode = updateInitCode(build, initCode);
+
+                if (!initCode) {
+                    //TODO error message
+                    return;
+                }
+            }
+
+            if (!(typeof initCode == 'string')) {
+                //TODO error message
+                return;
+            }
+
+            state.cursor.set('cljsBuild', null);
+
+            return evalConnectCode(session, initCode, name, checkFn);
+        },
+        connected: (result, out, _err) => {
+            if (desc.isConnectedRegExp) {
+                return (result.search(desc.isConnectedRegExp) >= 0 ||
+                    out.find((x: string) => { return x.search(desc.isConnectedRegExp) >= 0 }) != undefined);
+            }
+            return true;
+        }
+    };
+
+    if (desc.startCode) {
+        result.start = async (session, name, checkFn) => {
+            let startCode = desc.startCode;
+
+            let builds: string[];
+
+            if (startCode.includes("%BUILDS")) {
+                let projects = await figwheelOrShadowBuilds(cljsTypeName);
+                builds = projects.length <= 1 ? projects : await util.quickPickMulti({
+                    values: projects,
+                    placeHolder: "Please select which builds to start",
+                    saveAs: `${getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-projects`
+                });
+
+                if (builds) {
+                    state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
+                    state.cursor.set('cljsBuild', builds[0]);
+                    startCode =  startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
+                    return evalConnectCode(session, startCode, name, checkFn);
+                } else {
+                    let chan = state.outputChannel();
+                    chan.appendLine("Starting REPL for " + cljsTypeName + " aborted.");
+                    throw "Aborted";
+                }
+            }
+
+            return evalConnectCode(session, startCode, name, checkFn);
+        };
+    }
+
+    if (desc.isStartedRegExp) {
+        result.started = (result, out, err) => {
+            return out.find((x: string) => { return x.search(desc.isStartedRegExp) >= 0 }) != undefined ||
+            err != undefined && err.find((x: string) => {
+                return x.search("already running") >= 0
+            });
+        }
+    }
+
+    return result;
+}
 
 function createCustomCLJSReplType(custom: customCLJSREPLType): ReplType {
     return {
