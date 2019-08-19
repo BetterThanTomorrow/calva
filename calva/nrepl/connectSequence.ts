@@ -14,8 +14,9 @@ enum CljsTypes {
 
 interface CustomCljsType {
     startCode?: string,
+    builds?: string[],
     isStartedRegExp?: string,
-    connectCode: string,
+    connectCode: string | Object,
     isConnectedRegExp?: string,
     printThisLineRegExp?: string
 }
@@ -76,6 +77,28 @@ const defaultSequences = {
     "shadow-cljs": shadowCljsDefaults
 };
 
+const defaultCljsTypes = {
+    "Figwheel Main": {
+        startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
+        builds: [],
+        isStartedRegExp: "Prompt will show",
+        connectCode: `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl %BUILD%))`,
+        isConnectedRegExp: "To quit, type: :cljs/quit"
+    },
+    "lein-figwheel": {
+        connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
+        isConnectedRegExp: "Prompt will show"
+    },
+    "shadow-cljs": {
+        connectCode: {
+            build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
+            repl: `(shadow.cljs.devtools.api/%REPL%)`
+        },
+        builds: [],
+        isConnectedRegExp: /:selected/
+    }
+};
+
 /** Retrieve the replConnectSequences from the config */
 function getConfigcustomConnectSequences(): ReplConnectSequence[] {
     return workspace.getConfiguration('calva')
@@ -102,7 +125,17 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     return result.concat(customSequences);
 }
 
+/**
+ * Returns the CLJS-Type description of one of the build-in.
+ * @param cljsType Build-in cljsType
+ */
+function getDefaultCljsType(cljsType: string): CustomCljsType {
+    return defaultCljsTypes[cljsType];
+}
+
 export {
     getConnectSequences,
-    ReplConnectSequence
+    getDefaultCljsType,
+    ReplConnectSequence,
+    CustomCljsType
 }
