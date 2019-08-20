@@ -261,12 +261,21 @@
                                         {
                                             "type": "object",
                                             "required": [
-                                                "connectCode"
+                                                "connectCode",
+                                                "name"
                                             ],
                                             "properties": {
+                                                "name": {
+                                                    "type": "string",
+                                                    "description": "Used internally to save selection and states."
+                                                },
                                                 "startCode": {
                                                     "type": "string",
                                                     "description": "Clojure code to be evaluated to create and/or start your custom CLJS REPL."
+                                                },
+                                                "builds": {
+                                                    "type": "array",
+                                                    "description": "List of all builds that should be started."
                                                 },
                                                 "isStartedRegExp": {
                                                     "type": "string",

@@ -13,6 +13,7 @@ enum CljsTypes {
 }
 
 interface CustomCljsType {
+    name: string,
     startCode?: string,
     builds?: string[],
     isStartedRegExp?: string,
@@ -79,6 +80,7 @@ const defaultSequences = {
 
 const defaultCljsTypes = {
     "Figwheel Main": {
+        name: "Figwheel Main",
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
         builds: [],
         isStartedRegExp: "Prompt will show",
@@ -86,10 +88,12 @@ const defaultCljsTypes = {
         isConnectedRegExp: "To quit, type: :cljs/quit"
     },
     "lein-figwheel": {
+        name: "lein-figwheel",
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
         isConnectedRegExp: "Prompt will show"
     },
     "shadow-cljs": {
+        name: "shadow-cljs",
         connectCode: {
             build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
             repl: `(shadow.cljs.devtools.api/%REPL%)`

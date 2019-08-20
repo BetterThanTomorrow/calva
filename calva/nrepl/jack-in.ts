@@ -304,7 +304,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
                 setTimeout(() => { chan.show() }, 1000);
                 state.cursor.set("launching", null);
                 watcher.removeAllListeners();
-                await connector.connect(true, true);
+                await connector.connect(connectSequence, true, true);
                 chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
             }
         });
