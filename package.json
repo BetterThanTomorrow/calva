@@ -260,7 +260,9 @@
                                         },
                                         {
                                             "type": "object",
-                                            "required": ["connectCode"],
+                                            "required": [
+                                                "connectCode"
+                                            ],
                                             "properties": {
                                                 "startCode": {
                                                     "type": "string",
