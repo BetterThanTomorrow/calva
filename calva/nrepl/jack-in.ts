@@ -100,7 +100,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                     myProfiles = state.config().myLeinProfiles;
                 if (projectProfiles.length + myProfiles.length > 0) {
                     const profilesList = [...projectProfiles, ...myProfiles];
-                    profiles = [...profiles, ...profilesList.map(v => { return ":" + v })];
+                    profiles = [...profiles, ...profilesList.map(_keywordize)];
                     if (profiles.length) {
                         profiles = await utilities.quickPickMulti({
                             values: profiles,
@@ -135,7 +135,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             }
 
             if (profiles.length) {
-                out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
+                out.push("with-profile", profiles.map(x => `+${_unKeywordize(x)}`).join(','));
             }
 
             if (alias) {
@@ -194,7 +194,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 myAliases = state.config().myCljAliases;
             let aliases: string[] = [];
             if (projectAliases.length + myAliases.length > 0) {
-                aliases = await utilities.quickPickMulti({ values: [...projectAliases, ...myAliases].map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
+                aliases = await utilities.quickPickMulti({ values: [...projectAliases, ...myAliases].map(_keywordize), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
             const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
@@ -202,7 +202,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
-                const aliasKey = aliases[ali].substr(1);
+                const aliasKey = _unKeywordize(aliases[ali]);
                 if (parsed.aliases) {
                     let alias = parsed.aliases[aliasKey];
                     aliasHasMain = alias && alias["main-opts"] != undefined;
@@ -253,6 +253,26 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
             return ["shadow-cljs", ...args, "watch", ...builds];
         }
     }
+}
+
+/**
+ * Prepends a `:` to a string, so it can be used as an EDN keyword.
+ * (Or at least made to look like one).
+ * @param  {string} s the string to be keywordized
+ * @return {string} keywordized string
+ */
+function _keywordize(s: string): string {
+    return `:${s}`;
+}
+
+/**
+ * Remove the leading `:` from strings (EDN keywords)'
+ * NB: Does not check if the leading character is really a `:`.
+ * @param  {string} kw
+ * @return {string} kw without the first character
+ */
+function _unKeywordize(kw: string) {
+    return kw.substr(1);
 }
 
 /** Given the name of a project in project types, find that project. */

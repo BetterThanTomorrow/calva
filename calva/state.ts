@@ -74,6 +74,12 @@ function reset() {
     data = Immutable.fromJS(initialData);
 }
 
+/**
+ * Trims EDN alias and profile names from any surrounding whitespace or `:` characters.
+ * This in order to free the user from having to figure out how the name should be entered.
+ * @param  {string} name 
+ * @return {string} The trimmed name
+ */
 function _trimAliasName(name: string): string {
     return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
