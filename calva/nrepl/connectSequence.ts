@@ -100,7 +100,7 @@ const defaultCljsTypes = {
 };
 
 /** Retrieve the replConnectSequences from the config */
-function getConfigcustomConnectSequences(): ReplConnectSequence[] {
+function getConfigCustomConnectSequences(): ReplConnectSequence[] {
     return workspace.getConfiguration('calva')
         .get<ReplConnectSequence[]>("replConnectSequences", []);
 }
@@ -111,7 +111,7 @@ function getConfigcustomConnectSequences(): ReplConnectSequence[] {
  * @param projectType what default Sequences would be used (leiningen, clj, shadow-cljs)
  */
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
-    let customSequences = getConfigcustomConnectSequences();
+    let customSequences = getConfigCustomConnectSequences();
     if (customSequences.length == 1) {
         return customSequences;
     }
