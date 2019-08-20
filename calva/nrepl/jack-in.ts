@@ -259,7 +259,7 @@ function getProjectTypeForName(name: string) {
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
-async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence : ReplConnectSequence) {
+async function executeJackInTask(projectType: connector.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectType.nReplPortFile();
@@ -335,7 +335,7 @@ export async function calvaJackIn() {
     let sequences = getConnectSequences(cljTypes);
 
     // Show a prompt to pick one if there are multiple
-    let menu: string[] = [];
+    //let menu: string[] = [];
     /** for (const clj of cljTypes) {
         menu.push(projectTypes[clj].name);
         const customCljsRepl = connector.getCustomCLJSRepl();
@@ -347,10 +347,15 @@ export async function calvaJackIn() {
             menu.push(`${projectTypes[clj].name} + ${cljs}`);
         }
     }*/
-    for (const seq of sequences) {
-        menu.push(seq.name);
-    }
-    let projectConnectSequenceName = await utilities.quickPickSingle({ values: menu, placeHolder: "Please select a project type", saveAs: `${connector.getProjectRoot()}/jack-in-type`, autoSelect: true });
+    // for (const seq of sequences) {
+    //     menu.push(seq.name);
+    // }
+    const projectConnectSequenceName = await utilities.quickPickSingle({
+        values: sequences.map(s => { return s.name }),
+        placeHolder: "Please select a project type",
+        saveAs: `${connector.getProjectRoot()}/jack-in-type`,
+        autoSelect: true
+    });
     if (!projectConnectSequenceName) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypePicked").send();
         return;
