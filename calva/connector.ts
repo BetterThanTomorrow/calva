@@ -312,8 +312,8 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
         },
         connected: (result, out, _err) => {
             if (desc.isConnectedRegExp) {
-                return (result.search(desc.isConnectedRegExp) >= 0 ||
-                    out.find((x: string) => { return x.search(desc.isConnectedRegExp) >= 0 }) != undefined);
+                return (result != undefined && (result.search(desc.isConnectedRegExp) >= 0)) ||
+                    (out != undefined && out.find((x: string) => { return x.search(desc.isConnectedRegExp) >= 0 }) != undefined);
             }
             return true;
         }
@@ -351,7 +351,7 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
 
     if (desc.isStartedRegExp) {
         result.started = (result, out, err) => {
-            return out.find((x: string) => { return x.search(desc.isStartedRegExp) >= 0 }) != undefined ||
+            return (out != undefined && out.find((x: string) => { return x.search(desc.isStartedRegExp) >= 0 }) != undefined) ||
             err != undefined && err.find((x: string) => {
                 return x.search("already running") >= 0
             });
