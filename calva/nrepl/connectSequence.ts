@@ -52,17 +52,17 @@ const leiningenDefaults: ReplConnectSequence[] =
 
 const cljDefaults: ReplConnectSequence[] =
     [{
-        name: "Clojure-CLI",
-        projectType: ProjectTypes["Clojure-CLI"]
+        name: "Clojure CLI",
+        projectType: ProjectTypes["Clojure CLI"]
     },
     {
-        name: "Clojure-CLI + Figwheel",
-        projectType: ProjectTypes["Clojure-CLI"],
+        name: "Clojure CLI + Figwheel",
+        projectType: ProjectTypes["Clojure CLI"],
         cljsType: CljsTypes["lein-figwheel"]
     },
     {
-        name: "Clujure-CLI + Figwheel Main",
-        projectType: ProjectTypes["Clojure-CLI"],
+        name: "Clojure CLI + Figwheel Main",
+        projectType: ProjectTypes["Clojure CLI"],
         cljsType: CljsTypes["Figwheel Main"]
     }];
 

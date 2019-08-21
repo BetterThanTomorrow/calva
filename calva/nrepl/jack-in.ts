@@ -361,13 +361,10 @@ export async function calvaJackIn() {
         return;
     }
 
-    // Resolve the selection to an entry in projectTypes
-    const projectTypeName: string = projectConnectSequenceName.replace(/ \+ .*$/, "");
-
     let projectConnectSequence: ReplConnectSequence = sequences.find(seq => seq.name === projectConnectSequenceName);
-    state.extensionContext.workspaceState.update('selectedCljTypeName', projectTypeName);
-    let matched = projectConnectSequenceName.match(/ \+ (.*)$/);
-    const selectedCljsType = projectConnectSequence.cljsType == "shadow-cljs" ? "shadow-cljs" : matched != null ? matched[1] : "";
+    const projectTypeName: string = projectConnectSequence.projectType;
+    state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
+    const selectedCljsType = typeof projectConnectSequence.cljsType == "string" ? projectConnectSequence.cljsType : projectConnectSequence.cljsType.name;
     state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
     if (!projectConnectSequence) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
