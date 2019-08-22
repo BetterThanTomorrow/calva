@@ -270,7 +270,7 @@ function updateInitCode(build: string, initCode): string {
             return initCode.repl.replace("%REPL%", build);
         }
     } else if (build && typeof initCode === 'string') {
-        return initCode.replace("%BUILD%", build);
+        return initCode.replace("%BUILD%", `"${build}"`);
     }
     return null;
 }
@@ -285,7 +285,7 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
             let initCode = desc.connectCode;
             let build: string = null;
 
-            if (desc.builds === [] && (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
+            if (desc.builds.length === 0 && (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
                 let projects = await figwheelOrShadowBuilds(cljsTypeName);
                 build = await util.quickPickSingle({
                     values: projects,
