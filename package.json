@@ -228,7 +228,7 @@
                                     "description": "Select one of the project types supported by Calva.",
                                     "enum": [
                                         "Leiningen",
-                                        "Clojure-CLI",
+                                        "Clojure CLI",
                                         "shadow-cljs"
                                     ]
                                 },
