@@ -119,16 +119,17 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
         if (connectSequence.afterCLJReplJackInCode) {
             let afterCljRepl = connectSequence.afterCLJReplJackInCode;
             let stdout = (msg) => {
-                state.outputChannel().appendLine(msg);
+                state.outputChannel().appendLine(util.stripAnsi(msg.trim()));
             };
 
             let  stderr = (msg) => {
-                state.outputChannel().appendLine(msg);
+                state.outputChannel().appendLine("ERR: " + util.stripAnsi(msg.trim()));
             };
             
+            state.outputChannel().appendLine("Executing afterCLJReplJackInCode: " + afterCljRepl);
             let result = await cljSession.eval(afterCljRepl, { stdout, stderr }).value;
 
-            state.outputChannel().appendLine(result);
+            state.outputChannel().appendLine("=> " + result);
         }
 
         //cljsSession = nClient.session;
@@ -280,7 +281,9 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
             let initCode = desc.connectCode;
             let build: string = null;
 
-            if (desc.builds.length === 0 && (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
+            if (desc.builds != undefined && 
+                desc.builds.length === 0 && 
+                (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
                 let projects = await figwheelOrShadowBuilds(cljsTypeName);
                 build = await util.quickPickSingle({
                     values: projects,
