@@ -135,7 +135,7 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
 
             await cljSession.eval(afterCljRepl.code, { stdout, stderr });
 
-            while (!done) { }; //TODO Find better way to wait?
+            //TODO Find way to wait
         }
 
         //cljsSession = nClient.session;
