@@ -118,24 +118,17 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
 
         if (connectSequence.afterCLJReplJackInCode) {
             let afterCljRepl = connectSequence.afterCLJReplJackInCode;
-            let done = true;
-            let stdout;
-            let stderr;
-            if (afterCljRepl.continueStdOutRegExp) {
-                done = false;
-                stdout = (msg) => {
-                    done = (msg.search(afterCljRepl.continueStdOutRegExp) >= 0 ||
-                        msg.find((x: string) => { return x.search(afterCljRepl.continueStdOutRegExp) >= 0 }) != undefined);
-                };
+            let stdout = (msg) => {
+                state.outputChannel().appendLine(msg);
+            };
 
-                stderr = (msg) => {
-                    done = true;
-                }
-            }
+            let  stderr = (msg) => {
+                state.outputChannel().appendLine(msg);
+            };
+            
+            let result = await cljSession.eval(afterCljRepl.code, { stdout, stderr }).value;
 
-            await cljSession.eval(afterCljRepl.code, { stdout, stderr });
-
-            //TODO Find way to wait
+            state.outputChannel().appendLine(result);
         }
 
         //cljsSession = nClient.session;
