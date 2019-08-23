@@ -245,7 +245,7 @@ function setREPLNamespaceCommand() {
     setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
+export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
     let wnd = await openReplWindow(util.getREPLSessionType());
     if (wnd) {
         let oldNs = wnd.ns;

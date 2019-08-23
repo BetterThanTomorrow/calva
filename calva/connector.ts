@@ -9,7 +9,7 @@ import status from './status';
 
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
-import { reconnectReplWindow, openReplWindow } from './repl-window';
+import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow } from './repl-window';
 import { CustomCljsType, ReplConnectSequence, getDefaultCljsType } from './nrepl/connectSequence';
 
 const PROJECT_DIR_KEY = "connect.projectDir";
@@ -117,19 +117,8 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
         status.update();
 
         if (connectSequence.afterCLJReplJackInCode) {
-            let afterCljRepl = connectSequence.afterCLJReplJackInCode;
-            let stdout = (msg) => {
-                state.outputChannel().appendLine(util.stripAnsi(msg.trim()));
-            };
-
-            let  stderr = (msg) => {
-                state.outputChannel().appendLine("ERR: " + util.stripAnsi(msg.trim()));
-            };
-            
-            state.outputChannel().appendLine("Executing afterCLJReplJackInCode: " + afterCljRepl);
-            let result = await cljSession.eval(afterCljRepl, { stdout, stderr }).value;
-
-            state.outputChannel().appendLine("=> " + result);
+            state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");
+            await sendTextToREPLWindow(connectSequence.afterCLJReplJackInCode, null, false);
         }
 
         //cljsSession = nClient.session;
