@@ -22,15 +22,10 @@ interface CustomCljsType {
     printThisLineRegExp?: string
 }
 
-interface CLJJackInCode {
-    code: string,
-    continueStdOutRegExp?: string
-}
-
 interface ReplConnectSequence {
     name: string,
     projectType: ProjectTypes,
-    afterCLJReplJackInCode?: CLJJackInCode,
+    afterCLJReplJackInCode?: string,
     cljsType?: CljsTypes | CustomCljsType
 }
 

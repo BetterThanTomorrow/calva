@@ -126,7 +126,7 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
                 state.outputChannel().appendLine(msg);
             };
             
-            let result = await cljSession.eval(afterCljRepl.code, { stdout, stderr }).value;
+            let result = await cljSession.eval(afterCljRepl, { stdout, stderr }).value;
 
             state.outputChannel().appendLine(result);
         }

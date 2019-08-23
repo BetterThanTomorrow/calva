@@ -232,20 +232,9 @@
                                     ]
                                 },
                                 "afterCLJReplJackInCode": {
-                                    "type": "object",
+                                    "type": "string",
                                     "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
-                                    "required": false,
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "description": "The Clojure code to evaluate."
-                                        },
-                                        "continueStdOutRegExp": {
-                                            "type": "string",
-                                            "description": "A regular expression which, when matched in the stdout from the evaluation, will tell Calva that the CLJ REPL is ready. If this field is omitted the sequence will continue when the code is evaluated.",
-                                            "required": false
-                                        }
-                                    }
+                                    "required": false
                                 },
                                 "cljsType": {
                                     "description": "Either a built in type, or an object configuring a custom type. If omitted Calva will show a menu with the built-in types.",
