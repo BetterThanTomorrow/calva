@@ -116,10 +116,7 @@ function getConfigCustomConnectSequences(): ReplConnectSequence[] {
  */
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     let customSequences = getConfigCustomConnectSequences();
-    if (customSequences.length == 1) {
-        return customSequences;
-    }
-    console.log("defaultSeq", defaultSequences);
+
     let result = [];
     for (let pType of projectTypes) {
         console.log("pType", pType);

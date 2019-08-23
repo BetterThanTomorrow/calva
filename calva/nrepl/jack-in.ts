@@ -362,14 +362,26 @@ export async function calvaJackIn() {
     }
 
     let projectConnectSequence: ReplConnectSequence = sequences.find(seq => seq.name === projectConnectSequenceName);
-    const projectTypeName: string = projectConnectSequence.projectType;
-    state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
-    const selectedCljsType = typeof projectConnectSequence.cljsType == "string" ? projectConnectSequence.cljsType : projectConnectSequence.cljsType.name;
-    state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
+
     if (!projectConnectSequence) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
         return;
     }
+
+    const projectTypeName: string = projectConnectSequence.projectType;
+    state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
+    let selectedCljsType: string;
+
+    if (projectConnectSequence.cljsType == undefined) {
+        selectedCljsType = "";
+    } else if (typeof projectConnectSequence.cljsType == "string") {
+        selectedCljsType = projectConnectSequence.cljsType;
+    } else {
+        selectedCljsType = projectConnectSequence.cljsType.name;
+    }
+
+    state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
+
     let projectType = getProjectTypeForName(projectTypeName);
     let executable = isWin ? projectType.winCmd : projectType.cmd;
     // Ask the project type to build up the command line. This may prompt for further information.

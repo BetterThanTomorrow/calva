@@ -125,7 +125,7 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
                 done = false;
                 stdout = (msg) => {
                     done = (msg.search(afterCljRepl.continueStdOutRegExp) >= 0 ||
-                            msg.find((x: string) => { return x.search(afterCljRepl.continueStdOutRegExp) >= 0 }) != undefined);
+                        msg.find((x: string) => { return x.search(afterCljRepl.continueStdOutRegExp) >= 0 }) != undefined);
                 };
 
                 stderr = (msg) => {
@@ -133,9 +133,9 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
                 }
             }
 
-            await cljSession.eval(afterCljRepl.code, {stdout, stderr});
+            await cljSession.eval(afterCljRepl.code, { stdout, stderr });
 
-            while (! done) {}; //TODO Find better way to wait?
+            while (!done) { }; //TODO Find better way to wait?
         }
 
         //cljsSession = nClient.session;
@@ -143,10 +143,12 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
         let cljsSession = null,
             shadowBuild = null;
         try {
-            let cljsType: CustomCljsType = typeof connectSequence.cljsType == "string"? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
-            let translatedReplType = createCLJSReplType(cljsType);
+            if (connectSequence.cljsType != undefined) {
+                let cljsType: CustomCljsType = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
+                let translatedReplType = createCLJSReplType(cljsType);
 
-            [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType) : [null, null];
+                [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType) : [null, null];
+            }
         } catch (e) {
             chan.appendLine("Error while connecting cljs REPL: " + e);
         }
@@ -336,7 +338,7 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
                 if (builds) {
                     state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                     state.cursor.set('cljsBuild', builds[0]);
-                    startCode =  startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
+                    startCode = startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
                     return evalConnectCode(session, startCode, name, checkFn);
                 } else {
                     let chan = state.outputChannel();
@@ -352,9 +354,9 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
     if (desc.isStartedRegExp) {
         result.started = (result, out, err) => {
             return (out != undefined && out.find((x: string) => { return x.search(desc.isStartedRegExp) >= 0 }) != undefined) ||
-            err != undefined && err.find((x: string) => {
-                return x.search("already running") >= 0
-            });
+                err != undefined && err.find((x: string) => {
+                    return x.search("already running") >= 0
+                });
         }
     }
 
@@ -432,7 +434,7 @@ async function promptForNreplUrlAndConnect(port, cljsTypeName, connectSequence: 
 }
 
 export let nClient: NReplClient;
-export let  cljSession: NReplSession;
+export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
 export function nreplPortFile(subPath: string): string {
@@ -450,10 +452,17 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
-    cljsTypeName = typeof connectSequence.cljsType == "string"? connectSequence.cljsType : connectSequence.cljsType.name;
+    if (connectSequence.cljsType == undefined) {
+        cljsTypeName = "";
+    } else if (typeof connectSequence.cljsType == "string") {
+        cljsTypeName = connectSequence.cljsType;
+    } else {
+        cljsTypeName = connectSequence.cljsType.name;
+    }
+
     state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
-    console.log("connect", {connectSequence, cljsTypeName});
+    console.log("connect", { connectSequence, cljsTypeName });
 
     const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile(".nrepl-port"));
 
@@ -512,7 +521,7 @@ export default {
             chan = state.outputChannel();
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         const connectSequence: ReplConnectSequence = state.extensionContext.workspaceState.get('selectedConnectSequence');
-        let cljsType: CustomCljsType = typeof connectSequence.cljsType == "string"? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
+        let cljsType: CustomCljsType = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
         let translatedReplType = createCLJSReplType(cljsType);
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType);
