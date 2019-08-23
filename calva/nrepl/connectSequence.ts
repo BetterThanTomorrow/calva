@@ -1,4 +1,4 @@
-import { workspace } from "vscode";
+import { workspace , window } from "vscode";
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
@@ -105,8 +105,22 @@ const defaultCljsTypes = {
 
 /** Retrieve the replConnectSequences from the config */
 function getConfigCustomConnectSequences(): ReplConnectSequence[] {
-    return workspace.getConfiguration('calva')
-        .get<ReplConnectSequence[]>("replConnectSequences", []);
+    let result: ReplConnectSequence[] = workspace.getConfiguration('calva')
+    .get<ReplConnectSequence[]>("replConnectSequences", []);
+
+    for (let conSeq of result) {
+        if (conSeq.name == undefined || 
+            conSeq.projectType == undefined) {
+            
+            window.showWarningMessage("Check your calva.replConnectSequences. "+
+            "You need to supply name and projectType for every sequence. " +
+            "After fixing the customSequences can be used.");
+            
+            return [];
+        } 
+    }
+
+    return result;
 }
 
 /**
