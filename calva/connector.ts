@@ -260,18 +260,18 @@ function updateInitCode(build: string, initCode): string {
     return null;
 }
 
-function createCLJSReplType(desc: CustomCljsType): ReplType {
-    const cljsTypeName = desc.name;
-    let result: ReplType = {
+function createCLJSReplType(cljsType: CustomCljsType): ReplType {
+    const cljsTypeName = cljsType.name;
+    let replType: ReplType = {
         name: cljsTypeName,
         connect: async (session, name, checkFn) => {
             const chan = state.outputChannel();
-            state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', !(desc.builds === undefined));
-            let initCode = desc.connectCode;
+            state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', !(cljsType.builds === undefined));
+            let initCode = cljsType.connectCode;
             let build: string = null;
 
-            if (desc.builds != undefined && 
-                desc.builds.length === 0 && 
+            if (cljsType.builds != undefined && 
+                cljsType.builds.length === 0 && 
                 (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
                 let projects = await figwheelOrShadowBuilds(cljsTypeName);
                 build = await util.quickPickSingle({
@@ -297,18 +297,18 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
 
             return evalConnectCode(session, initCode, name, checkFn);
         },
-        connected: (result, out, _err) => {
-            if (desc.isConnectedRegExp) {
-                return (result != undefined && (result.search(desc.isConnectedRegExp) >= 0)) ||
-                    (out != undefined && out.find((x: string) => { return x.search(desc.isConnectedRegExp) >= 0 }) != undefined);
+        connected: (replType, out, _err) => {
+            if (cljsType.isConnectedRegExp) {
+                return (replType != undefined && (replType.search(cljsType.isConnectedRegExp) >= 0)) ||
+                    (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
             }
             return true;
         }
     };
 
-    if (desc.startCode) {
-        result.start = async (session, name, checkFn) => {
-            let startCode = desc.startCode;
+    if (cljsType.startCode) {
+        replType.start = async (session, name, checkFn) => {
+            let startCode = cljsType.startCode;
 
             let builds: string[];
 
@@ -336,16 +336,16 @@ function createCLJSReplType(desc: CustomCljsType): ReplType {
         };
     }
 
-    if (desc.isStartedRegExp) {
-        result.started = (result, out, err) => {
-            return (out != undefined && out.find((x: string) => { return x.search(desc.isStartedRegExp) >= 0 }) != undefined) ||
+    if (cljsType.isStartedRegExp) {
+        replType.started = (result, out, err) => {
+            return (out != undefined && out.find((x: string) => { return x.search(cljsType.isStartedRegExp) >= 0 }) != undefined) ||
                 err != undefined && err.find((x: string) => {
                     return x.search("already running") >= 0
                 });
         }
     }
 
-    return result;
+    return replType;
 }
 
 async function makeCljsSessionClone(session, replType, repl: ReplType) {
