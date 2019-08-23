@@ -154,6 +154,7 @@
                         }
                     },
                     "calva.customCljsRepl": {
+                        "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead.",
                         "type": "object",
                         "default": null,
                         "description": "Configuration for custom any CLJS REPL type your project may use",
