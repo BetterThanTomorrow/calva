@@ -4,6 +4,10 @@ Changes to Calva. (We really will try to keep this updated now.)
 ## Working on
 - [Customizing the REPL connect sequence](https://github.com/BetterThanTomorrow/calva/issues/282)
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
+- [Support for launching with user aliases/profiles](https://github.com/BetterThanTomorrow/calva/issues/288)
+
+## About to be released
+- Use context when collecting code completion candidates.
 
 ## [2.0.32] - 17.08.2019
 - Support for starting leiningen and clj projects with aliases
