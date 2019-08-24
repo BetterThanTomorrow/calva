@@ -78,14 +78,14 @@ const defaultCljsTypes = {
         name: "Figwheel Main",
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
         builds: [],
-        isStartedRegExp: "Prompt will show",
+        isStartedRegExp: /Prompt will show|already running/,
         connectCode: `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl %BUILD%))`,
-        isConnectedRegExp: "To quit, type: :cljs/quit"
+        isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
     "lein-figwheel": {
         name: "lein-figwheel",
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
-        isConnectedRegExp: "Prompt will show"
+        isConnectedRegExp: /Prompt will show/
     },
     "shadow-cljs": {
         name: "shadow-cljs",
