@@ -340,7 +340,7 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
         replType.started = (result, out, err) => {
             return (out != undefined && out.find((x: string) => { return x.search(cljsType.isStartedRegExp) >= 0 }) != undefined) ||
                 err != undefined && err.find((x: string) => {
-                    return x.search("already running") >= 0
+                    return x.search(cljsType.isStartedRegExp) >= 0
                 });
         }
     }
