@@ -234,9 +234,9 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
 export interface ReplType {
     name: string,
     start?: connectFn;
-    started?: (valueResult: string, out: any[], err: any[]) => boolean;
+    started?: (valueResult: string, out: string[], err: string[]) => boolean;
     connect?: connectFn;
-    connected: (valueResult: string, out: any[], err: any[]) => boolean;
+    connected: (valueResult: string, out: string[], err: string[]) => boolean;
 }
 
 function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
@@ -261,11 +261,12 @@ function updateInitCode(build: string, initCode): string {
 }
 
 function createCLJSReplType(cljsType: CustomCljsType): ReplType {
-    const cljsTypeName = cljsType.name;
+    const cljsTypeName = cljsType.name,
+        chan = state.outputChannel();
+
     let replType: ReplType = {
         name: cljsTypeName,
         connect: async (session, name, checkFn) => {
-            const chan = state.outputChannel();
             state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', !(cljsType.builds === undefined));
             let initCode = cljsType.connectCode;
             let build: string = null;
@@ -297,10 +298,19 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
 
             return evalConnectCode(session, initCode, name, checkFn);
         },
-        connected: (replType, out, _err) => {
+        connected: (replType, out, err) => {
+            if (cljsType.printThisLineRegExp) {
+                [...out, ...err].forEach(x => {
+                    if (x.search(cljsType.printThisLineRegExp) >= 0) {
+                        chan.appendLine(x);
+                    }
+                });
+            }
+            
             if (cljsType.isConnectedRegExp) {
-                return (replType != undefined && (replType.search(cljsType.isConnectedRegExp) >= 0)) ||
-                    (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
+                return out.find(x => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined;
+                // return (replType != undefined && (replType.search(cljsType.isConnectedRegExp) >= 0)) ||
+                //     (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
             }
             return true;
         }
@@ -326,7 +336,6 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
                     startCode = startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
                     return evalConnectCode(session, startCode, name, checkFn);
                 } else {
-                    let chan = state.outputChannel();
                     chan.appendLine("Starting REPL for " + cljsTypeName + " aborted.");
                     throw "Aborted";
                 }
@@ -338,10 +347,14 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
 
     if (cljsType.isStartedRegExp) {
         replType.started = (result, out, err) => {
-            return (out != undefined && out.find((x: string) => { return x.search(cljsType.isStartedRegExp) >= 0 }) != undefined) ||
-                err != undefined && err.find((x: string) => {
-                    return x.search(cljsType.isStartedRegExp) >= 0
+            if (cljsType.printThisLineRegExp) {
+                [...out, ...err].forEach(x => {
+                    if (x.search(cljsType.printThisLineRegExp) >= 0) {
+                        chan.appendLine(x);
+                    }
                 });
+            }
+            return [...out, ...err].find(x => { return x.search(cljsType.isStartedRegExp) >= 0 }) != undefined;
         }
     }
 
@@ -357,6 +370,8 @@ async function makeCljsSessionClone(session, replType, repl: ReplType) {
         chan.show(true);
         state.extensionContext.workspaceState.update('cljsReplType', replType);
         state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
+        chan.appendLine("Connecting CLJS repl: " + repl.name + "...");
+        chan.appendLine("See Calva Connection Log for detailed progress updates.");
         if (repl.start != undefined) {
             chan.appendLine("Starting repl for: " + repl.name + "...");
             if (await repl.start(newCljsSession, repl.name, repl.started)) {
@@ -370,9 +385,6 @@ async function makeCljsSessionClone(session, replType, repl: ReplType) {
                 return [null, null];
             }
         }
-        chan.appendLine("Connecting CLJS repl: " + repl.name + "...");
-        chan.appendLine("  Compiling and stuff. This can take a minute or two.");
-        chan.appendLine("  See Calva Connection Log for detailed progress updates.");
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
             state.cursor.set('cljs', cljsSession = newCljsSession);
