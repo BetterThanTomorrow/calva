@@ -363,7 +363,7 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
                     state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                     state.cursor.set('cljsBuild', builds[0]);
                     startCode = startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
-                    return evalConnectCode(session, startCode, name, checkFn);
+                    return evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
                 } else {
                     chan.appendLine("Starting REPL for " + cljsTypeName + " aborted.");
                     throw "Aborted";
