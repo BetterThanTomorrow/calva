@@ -97,6 +97,7 @@ const defaultCljsTypes: { [id: string]: CustomCljsType } = {
     },
     "shadow-cljs": {
         name: "shadow-cljs",
+        isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
         connectCode: {
             build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
             repl: `(shadow.cljs.devtools.api/%REPL%)`

@@ -262,7 +262,7 @@ function updateInitCode(build: string, initCode): string {
 }
 
 function createCLJSReplType(cljsType: CustomCljsType): ReplType {
-    let appURL: string,
+    let appURL: string;
     const cljsTypeName = cljsType.name,
         chan = state.outputChannel(),
         printThisPrinter: processOutputFn = x => {
@@ -337,8 +337,6 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
         connected: (result, out, err) => {            
             if (cljsType.isConnectedRegExp) {
                 return [...out, result].find(x => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined;
-                // return (replType != undefined && (replType.search(cljsType.isConnectedRegExp) >= 0)) ||
-                //      (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
             } else {
                 return true;
             }
@@ -376,9 +374,11 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
         };
     }
 
-    if (cljsType.isReadyToStartRegExp) {
-        replType.started = (result, out, err) => {
+    replType.started = (result, out, err) => {
+        if (cljsType.isReadyToStartRegExp) {
             return [...out, ...err].find(x => { return x.search(cljsType.isReadyToStartRegExp) >= 0 }) != undefined;
+        } else {
+            return true;
         }
     }
 
