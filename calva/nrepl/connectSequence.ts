@@ -1,4 +1,5 @@
 import { workspace , window } from "vscode";
+import { config } from "../state";
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
@@ -16,10 +17,12 @@ interface CustomCljsType {
     name: string,
     startCode?: string,
     builds?: string[],
-    isStartedRegExp?: string,
+    isReadyToStartRegExp?: string | RegExp,
+    openUrlRegExp?: string | RegExp,
+    shouldOpenURL?: boolean,
     connectCode: string | Object,
-    isConnectedRegExp?: string,
-    printThisLineRegExp?: string
+    isConnectedRegExp?: string | RegExp,
+    printThisLineRegExp?: string | RegExp
 }
 
 interface ReplConnectSequence {
@@ -73,19 +76,24 @@ const defaultSequences = {
     "shadow-cljs": shadowCljsDefaults
 };
 
-const defaultCljsTypes = {
+const defaultCljsTypes: { [id: string]: CustomCljsType } = {
     "Figwheel Main": {
         name: "Figwheel Main",
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
         builds: [],
-        isStartedRegExp: /Prompt will show|already running/,
+        isReadyToStartRegExp: /Starting Server at|already running/,
+        openUrlRegExp: /Starting Server at (\S+)/,
+        shouldOpenURL: false,
         connectCode: `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl %BUILD%))`,
         isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
     "lein-figwheel": {
         name: "lein-figwheel",
+        isReadyToStartRegExp: /Launching ClojureScript REPL for build/,
+        openUrlRegExp: /Figwheel: Starting server at (\S+)/,
+        shouldOpenURL: config().openBrowserWhenFigwheelStarted,
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
-        isConnectedRegExp: /Prompt will show/
+        isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
     "shadow-cljs": {
         name: "shadow-cljs",
@@ -93,6 +101,7 @@ const defaultCljsTypes = {
             build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
             repl: `(shadow.cljs.devtools.api/%REPL%)`
         },
+        shouldOpenURL: false,
         builds: [],
         isConnectedRegExp: /:selected/
     }

@@ -206,17 +206,17 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
     let chan = state.connectionLogChannel();
     let err = [], out = [], result = await newCljsSession.eval(code, {
         stdout: x => {
-            for (const p of outputProcessors) {
-                p(x);
-            }
             out.push(util.stripAnsi(x));
             chan.append(util.stripAnsi(x));
-        }, stderr: x => {
-            for (const p of errorProcessors) {
-                p(x);
+            for (const p of outputProcessors) {
+                p(util.stripAnsi(x));
             }
+        }, stderr: x => {
             err.push(util.stripAnsi(x));
             chan.append(util.stripAnsi(x));
+            for (const p of errorProcessors) {
+                p(util.stripAnsi(x));
+            }
         }
     });
     let valueResult = await result.value
@@ -262,19 +262,36 @@ function updateInitCode(build: string, initCode): string {
 }
 
 function createCLJSReplType(cljsType: CustomCljsType): ReplType {
+    let appURL: string,
     const cljsTypeName = cljsType.name,
         chan = state.outputChannel(),
         printThisPrinter: processOutputFn = x => {
             if (cljsType.printThisLineRegExp) {
                 if (x.search(cljsType.printThisLineRegExp) >= 0) {
-                    chan.appendLine(util.stripAnsi(x).replace(/\s*$/, ""));
+                    chan.appendLine(x.replace(/\s*$/, ""));
                 }
             }
         },
         startAppNowProcessor: processOutputFn = x => {
-            if (cljsType.isStartedRegExp) {
-                if (x.search(cljsType.isStartedRegExp) >= 0) {
+            if (cljsType.openUrlRegExp) {
+                let matched = util.stripAnsi(x).match(cljsType.openUrlRegExp);
+                if (matched && matched.length > 1) {
+                    appURL = matched[1];
+                }
+            }
+            if (cljsType.isReadyToStartRegExp) {
+                if (x.search(cljsType.isReadyToStartRegExp) >= 0) {
                     chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
+                    if (appURL) {
+                        if (cljsType.shouldOpenURL) {
+                            chan.appendLine(`  Opening ClojureScript app in the browser at: ${appURL} ...`);
+                            open(appURL).catch(reason => {
+                                chan.appendLine("Error opening ClojureScript app in the browser: " + reason);
+                            });
+                        } else {
+                            chan.appendLine("  Open the app on this URL: " + appURL);
+                        }
+                    }
                     chan.appendLine("  The CLJS REPL will connect when your app is running.");
                 }
             }
@@ -321,7 +338,7 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
             if (cljsType.isConnectedRegExp) {
                 return out.find(x => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined;
                 // return (replType != undefined && (replType.search(cljsType.isConnectedRegExp) >= 0)) ||
-                //     (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
+                //      (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
             } else {
                 return true;
             }
@@ -359,9 +376,9 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
         };
     }
 
-    if (cljsType.isStartedRegExp) {
+    if (cljsType.isReadyToStartRegExp) {
         replType.started = (result, out, err) => {
-            return [...out, ...err].find(x => { return x.search(cljsType.isStartedRegExp) >= 0 }) != undefined;
+            return [...out, ...err].find(x => { return x.search(cljsType.isReadyToStartRegExp) >= 0 }) != undefined;
         }
     }
 

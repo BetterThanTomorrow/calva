@@ -85,7 +85,7 @@ function config() {
         useWSL: configOptions.get("useWSL"),
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
-        openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted"),
+        openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null)
     };
 }

@@ -267,9 +267,17 @@
                                                     "type": "array",
                                                     "description": "List of all builds that should be started."
                                                 },
-                                                "isStartedRegExp": {
+                                                "isReadyToStartRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated. Special case: _If the regexp has a group, it will be assumed to match the URL where the application is started and Calva will automatically open it in order to connect to it._"
+                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
+                                                },
+                                                "openUrlRegExp": {
+                                                    "type": "string",
+                                                    "description": "A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have one, and only one, group for extracting the URL. E.g. \\”Open URL: (.+)$\\”"
+                                                },
+                                                "shouldOpenUrl": {
+                                                    "type": "boolean",
+                                                    "description": "Choose if Calva should automatically open the URL for you or not."
                                                 },
                                                 "connectCode": {
                                                     "type": "string",
@@ -277,7 +285,7 @@
                                                 },
                                                 "isConnectedRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from the connectCode evaluation, will tell Calva that the application is connected.",
+                                                    "description": "A regular experession which, when matched in the stdout of the connectCode evaluation, will tell Calva that the application is connected.",
                                                     "default": "To quit, type: :cljs/quit"
                                                 },
                                                 "printThisLineRegExp": {
