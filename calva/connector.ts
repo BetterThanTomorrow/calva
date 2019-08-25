@@ -334,9 +334,9 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
 
             return evalConnectCode(session, initCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
         },
-        connected: (replType, out, err) => {            
+        connected: (result, out, err) => {            
             if (cljsType.isConnectedRegExp) {
-                return out.find(x => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined;
+                return [...out, result].find(x => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined;
                 // return (replType != undefined && (replType.search(cljsType.isConnectedRegExp) >= 0)) ||
                 //      (out != undefined && out.find((x: string) => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined);
             } else {
