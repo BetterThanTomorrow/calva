@@ -271,6 +271,14 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
                 }
             }
         },
+        startAppNowProcessor: processOutputFn = x => {
+            if (cljsType.isStartedRegExp) {
+                if (x.search(cljsType.isStartedRegExp) >= 0) {
+                    chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
+                    chan.appendLine("  The CLJS REPL will connect when your app is running.");
+                }
+            }
+        },
         allPrinter: processOutputFn = x => {
             chan.appendLine(util.stripAnsi(x).replace(/\s*$/, ""));
         }
@@ -307,7 +315,7 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
 
             state.cursor.set('cljsBuild', null);
 
-            return evalConnectCode(session, initCode, name, checkFn, [printThisPrinter], [allPrinter]);
+            return evalConnectCode(session, initCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
         },
         connected: (replType, out, err) => {            
             if (cljsType.isConnectedRegExp) {
@@ -346,7 +354,7 @@ function createCLJSReplType(cljsType: CustomCljsType): ReplType {
                     throw "Aborted";
                 }
             } else {
-                return evalConnectCode(session, startCode, name, checkFn, [printThisPrinter], [allPrinter]);
+                return evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
             }
         };
     }
