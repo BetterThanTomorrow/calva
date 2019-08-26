@@ -81,8 +81,8 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         name: "Figwheel Main",
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
         builds: [],
-        isReadyToStartRegExp: /Starting Server at|already running/,
-        openUrlRegExp: /Starting Server at (\S+)/,
+        isReadyToStartRegExp: /Open(ing)? URL|already running/,
+        openUrlRegExp: /(Starting Server at|Open(ing)? URL) (?<url>\S+)/,
         shouldOpenURL: false,
         connectCode: `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl %BUILD%))`,
         isConnectedRegExp: /To quit, type: :cljs\/quit/
@@ -90,7 +90,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     "lein-figwheel": {
         name: "lein-figwheel",
         isReadyToStartRegExp: /Launching ClojureScript REPL for build/,
-        openUrlRegExp: /Figwheel: Starting server at (\S+)/,
+        openUrlRegExp: /Figwheel: Starting server at (?<url>\S+)/,
         shouldOpenURL: config().openBrowserWhenFigwheelStarted,
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
         isConnectedRegExp: /To quit, type: :cljs\/quit/

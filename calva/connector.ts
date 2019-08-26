@@ -262,7 +262,8 @@ function updateInitCode(build: string, initCode): string {
 }
 
 function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
-    let appURL: string;
+    let appURL: string,
+        hasShownStartMessage = false;
     const cljsTypeName = cljsType.name,
         chan = state.outputChannel(),
         printThisPrinter: processOutputFn = x => {
@@ -275,13 +276,14 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
         startAppNowProcessor: processOutputFn = x => {
             if (cljsType.openUrlRegExp) {
                 let matched = util.stripAnsi(x).match(cljsType.openUrlRegExp);
-                if (matched && matched.length > 1) {
-                    appURL = matched[1];
+                if (matched && matched["groups"] && matched["groups"].url != undefined) {
+                    appURL = matched["groups"].url;
                 }
             }
-            if (cljsType.isReadyToStartRegExp) {
+            if (!hasShownStartMessage && cljsType.isReadyToStartRegExp) {
                 if (x.search(cljsType.isReadyToStartRegExp) >= 0) {
                     chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
+                    hasShownStartMessage = true;
                     if (appURL) {
                         if (cljsType.shouldOpenURL) {
                             chan.appendLine(`  Opening ClojureScript app in the browser at: ${appURL} ...`);

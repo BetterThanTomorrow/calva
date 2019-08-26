@@ -273,7 +273,8 @@
                                                 },
                                                 "openUrlRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have one, and only one, group for extracting the URL. E.g. \\”Open URL: (.+)$\\”"
+                                                    "description": "A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named 'url'. E.g. \\”Open URL: (?<url>\\S+)\\”",
+                                                    "default": "Open(ing)? URL (?<url>\\S+)"
                                                 },
                                                 "shouldOpenUrl": {
                                                     "type": "boolean",
