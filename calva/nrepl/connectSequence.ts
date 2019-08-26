@@ -13,7 +13,7 @@ enum CljsTypes {
     "shadow-cljs" = "shadow-cljs"
 }
 
-interface CustomCljsType {
+interface CljsTypeConfig {
     name: string,
     startCode?: string,
     builds?: string[],
@@ -29,7 +29,7 @@ interface ReplConnectSequence {
     name: string,
     projectType: ProjectTypes,
     afterCLJReplJackInCode?: string,
-    cljsType?: CljsTypes | CustomCljsType
+    cljsType?: CljsTypes | CljsTypeConfig
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
@@ -76,7 +76,7 @@ const defaultSequences = {
     "shadow-cljs": shadowCljsDefaults
 };
 
-const defaultCljsTypes: { [id: string]: CustomCljsType } = {
+const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     "Figwheel Main": {
         name: "Figwheel Main",
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
@@ -109,13 +109,12 @@ const defaultCljsTypes: { [id: string]: CustomCljsType } = {
 };
 
 /** Retrieve the replConnectSequences from the config */
-function getConfigCustomConnectSequences(): ReplConnectSequence[] {
-    let result: ReplConnectSequence[] = workspace.getConfiguration('calva')
-    .get<ReplConnectSequence[]>("replConnectSequences", []);
+function getCustomConnectSequences(): ReplConnectSequence[] {
+    let sequences = config().replConnectSequences;
 
-    for (let conSeq of result) {
-        if (conSeq.name == undefined || 
-            conSeq.projectType == undefined) {
+    for (let sequence of sequences) {
+        if (sequence.name == undefined || 
+            sequence.projectType == undefined) {
             
             window.showWarningMessage("Check your calva.replConnectSequences. "+
             "You need to supply name and projectType for every sequence. " +
@@ -125,7 +124,7 @@ function getConfigCustomConnectSequences(): ReplConnectSequence[] {
         } 
     }
 
-    return result;
+    return sequences;
 }
 
 /**
@@ -134,7 +133,7 @@ function getConfigCustomConnectSequences(): ReplConnectSequence[] {
  * @param projectType what default Sequences would be used (leiningen, clj, shadow-cljs)
  */
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
-    let customSequences = getConfigCustomConnectSequences();
+    let customSequences = getCustomConnectSequences();
 
     let result = [];
     for (let pType of projectTypes) {
@@ -149,7 +148,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
  * Returns the CLJS-Type description of one of the build-in.
  * @param cljsType Build-in cljsType
  */
-function getDefaultCljsType(cljsType: string): CustomCljsType {
+function getDefaultCljsType(cljsType: string): CljsTypeConfig {
     return defaultCljsTypes[cljsType];
 }
 
@@ -157,5 +156,5 @@ export {
     getConnectSequences,
     getDefaultCljsType,
     ReplConnectSequence,
-    CustomCljsType
+    CljsTypeConfig
 }

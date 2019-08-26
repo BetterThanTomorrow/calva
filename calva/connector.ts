@@ -10,7 +10,7 @@ import status from './status';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow } from './repl-window';
-import { CustomCljsType, ReplConnectSequence, getDefaultCljsType } from './nrepl/connectSequence';
+import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType } from './nrepl/connectSequence';
 
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
@@ -127,7 +127,7 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
             shadowBuild = null;
         try {
             if (connectSequence.cljsType != undefined) {
-                let cljsType: CustomCljsType = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
+                let cljsType: CljsTypeConfig = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
                 let translatedReplType = createCLJSReplType(cljsType);
 
                 [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType) : [null, null];
@@ -261,7 +261,7 @@ function updateInitCode(build: string, initCode): string {
     return null;
 }
 
-function createCLJSReplType(cljsType: CustomCljsType): ReplType {
+function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
     let appURL: string;
     const cljsTypeName = cljsType.name,
         chan = state.outputChannel(),
@@ -542,7 +542,7 @@ export default {
             chan = state.outputChannel();
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         const connectSequence: ReplConnectSequence = state.extensionContext.workspaceState.get('selectedConnectSequence');
-        let cljsType: CustomCljsType = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
+        let cljsType: CljsTypeConfig = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
         let translatedReplType = createCLJSReplType(cljsType);
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType);

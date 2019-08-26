@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as Immutable from 'immutable';
 import * as ImmutableCursor from 'immutable-cursor';
 import Analytics from './analytics';
+import { ReplConnectSequence } from './nrepl/connectSequence'
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -86,7 +87,8 @@ function config() {
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
-        customCljsRepl: configOptions.get("customCljsRepl", null)
+        customCljsRepl: configOptions.get("customCljsRepl", null),
+        replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[]
     };
 }
 
