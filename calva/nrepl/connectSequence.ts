@@ -81,7 +81,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         name: "Figwheel Main",
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
         builds: [],
-        isReadyToStartRegExp: /Open(ing)? URL|already running/,
+        isReadyToStartRegExp: /Prompt will show|Open(ing)? URL|already running/,
         openUrlRegExp: /(Starting Server at|Open(ing)? URL) (?<url>\S+)/,
         shouldOpenURL: false,
         connectCode: `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl %BUILD%))`,
