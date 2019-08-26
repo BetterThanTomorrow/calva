@@ -263,9 +263,14 @@ function updateInitCode(build: string, initCode): string {
 
 function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
     let appURL: string,
-        hasShownStartMessage = false;
+        haveShownStartMessage = false,
+        haveShownAppURL = false,
+        haveShownStartSuffix = false;
     const cljsTypeName = cljsType.name,
         chan = state.outputChannel(),
+        // The output processors are used to keep the user informed about the connection process
+        // The output from Figwheel is meant for printing to the REPL prompt,
+        // and since we print to Calva says we, only print some of the messages.
         printThisPrinter: processOutputFn = x => {
             if (cljsType.printThisLineRegExp) {
                 if (x.search(cljsType.printThisLineRegExp) >= 0) {
@@ -273,31 +278,43 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
                 }
             }
         },
+        // Having and app to connect to is crucial so we do what we can to help the user
+        // start the app at the right time in the process.
         startAppNowProcessor: processOutputFn = x => {
-            if (cljsType.openUrlRegExp) {
+            // Extract the appURL if we have the regexp for it configured.
+            if (cljsType.openUrlRegExp && !appURL) {
                 let matched = util.stripAnsi(x).match(cljsType.openUrlRegExp);
                 if (matched && matched["groups"] && matched["groups"].url != undefined) {
                     appURL = matched["groups"].url;
                 }
             }
-            if (!hasShownStartMessage && cljsType.isReadyToStartRegExp) {
+            // When the app is ready to start, say so.
+            if (!haveShownStartMessage && cljsType.isReadyToStartRegExp) {
                 if (x.search(cljsType.isReadyToStartRegExp) >= 0) {
                     chan.appendLine("CLJS REPL ready to connect. Please, start your ClojureScript app.");
-                    hasShownStartMessage = true;
-                    if (appURL) {
-                        if (cljsType.shouldOpenURL) {
-                            chan.appendLine(`  Opening ClojureScript app in the browser at: ${appURL} ...`);
-                            open(appURL).catch(reason => {
-                                chan.appendLine("Error opening ClojureScript app in the browser: " + reason);
-                            });
-                        } else {
-                            chan.appendLine("  Open the app on this URL: " + appURL);
-                        }
-                    }
-                    chan.appendLine("  The CLJS REPL will connect when your app is running.");
+                    haveShownStartMessage = true;
                 }
             }
+            // If we have an appURL to go with the ”start now” message, say so
+            if (appURL && haveShownStartMessage && !haveShownAppURL) {
+                if (cljsType.shouldOpenURL) {
+                    chan.appendLine(`  Opening ClojureScript app in the browser at: ${appURL} ...`);
+                    open(appURL).catch(reason => {
+                        chan.appendLine("Error opening ClojureScript app in the browser: " + reason);
+                    });
+                } else {
+                    chan.appendLine("  Open the app on this URL: " + appURL);
+                }
+                haveShownAppURL = true;
+            }
+            // Wait for any appURL to be printed before we round of the ”start now” message.
+            // (If we do not have the regexp for extracting the appURL, do not wait for appURL.)
+            if (!haveShownStartSuffix && (haveShownAppURL || (haveShownStartMessage && !cljsType.openUrlRegExp))) {
+                chan.appendLine("  The CLJS REPL will connect when your app is running.");
+                haveShownStartSuffix = true;
+            }
         },
+        // This processor prints everything. We use it for stderr below.
         allPrinter: processOutputFn = x => {
             chan.appendLine(util.stripAnsi(x).replace(/\s*$/, ""));
         }
