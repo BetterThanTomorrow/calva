@@ -336,7 +336,9 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
         },
         connected: (result, out, err) => {            
             if (cljsType.isConnectedRegExp) {
-                return [...out, result].find(x => { return x.search(cljsType.isConnectedRegExp) >= 0 }) != undefined;
+                return [...out, result].find(x => { 
+                    return x.search(cljsType.isConnectedRegExp) >= 0 
+                }) != undefined;
             } else {
                 return true;
             }
@@ -376,7 +378,9 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
 
     replType.started = (result, out, err) => {
         if (cljsType.isReadyToStartRegExp) {
-            return [...out, ...err].find(x => { return x.search(cljsType.isReadyToStartRegExp) >= 0 }) != undefined;
+            return [...out, ...err].find(x => {
+                return x.search(cljsType.isReadyToStartRegExp) >= 0
+            }) != undefined;
         } else {
             return true;
         }
