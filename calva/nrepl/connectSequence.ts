@@ -149,6 +149,8 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
  * @param cljsType Build-in cljsType
  */
 function getDefaultCljsType(cljsType: string): CljsTypeConfig {
+    // TODO: Find a less hacky way to get dynamic config for lein-figwheel
+    defaultCljsTypes["lein-figwheel"].shouldOpenURL = config().openBrowserWhenFigwheelStarted;
     return defaultCljsTypes[cljsType];
 }
 
