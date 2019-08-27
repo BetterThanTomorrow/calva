@@ -91,7 +91,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         name: "lein-figwheel",
         isReadyToStartRegExp: /Launching ClojureScript REPL for build/,
         openUrlRegExp: /Figwheel: Starting server at (?<url>\S+)/,
-        shouldOpenURL: config().openBrowserWhenFigwheelStarted,
+        // shouldOpenURL: will be added later, at use-time of this config,
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
         isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
