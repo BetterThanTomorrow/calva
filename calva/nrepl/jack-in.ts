@@ -305,7 +305,7 @@ async function executeJackInTask(projectType: connector.ProjectType, projectType
                 state.cursor.set("launching", null);
                 watcher.removeAllListeners();
                 await connector.connect(connectSequence, true, true);
-                chan.appendLine("Jack-in done.\nUse the VS Code task management UI to control the life cycle of the Jack-in task.");
+                chan.appendLine("Jack-in done. Use the VS Code task management UI to control the life cycle of the Jack-in task.");
             }
         });
     }, (reason) => {
@@ -322,7 +322,6 @@ export async function calvaJackIn() {
         return;
     }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
-    outputChannel.appendLine("Jacking in...");
 
     // figure out what possible kinds of project we're in
     let cljTypes = await detectProjectType();
@@ -360,6 +359,8 @@ export async function calvaJackIn() {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypePicked").send();
         return;
     }
+
+    outputChannel.appendLine("Jacking in...");
 
     let projectConnectSequence: ReplConnectSequence = sequences.find(seq => seq.name === projectConnectSequenceName);
 
