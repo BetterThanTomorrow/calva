@@ -10,7 +10,7 @@ import status from './status';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow } from './repl-window';
-import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType } from './nrepl/connectSequence';
+import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes } from './nrepl/connectSequence';
 
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
@@ -75,7 +75,7 @@ export type ProjectType = {
     cljsTypes: string[];
     cmd: string;
     winCmd: string;
-    commandLine: (includeCljs: boolean) => any;
+    commandLine: (cljsType: CljsTypes) => any;
     useWhenExists: string;
     nReplPortFile: () => string;
 };
@@ -266,7 +266,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
         haveShownStartMessage = false,
         haveShownAppURL = false,
         haveShownStartSuffix = false;
-    const cljsTypeName = cljsType.name,
+    const cljsTypeName = cljsType.baseType,
         chan = state.outputChannel(),
         // The output processors are used to keep the user informed about the connection process
         // The output from Figwheel is meant for printing to the REPL prompt,
@@ -496,12 +496,13 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
+    // TODO: MUST DO: REALLY BAD IF WE DO NOT DO: distinguish between baseType and cljsType.
     if (connectSequence.cljsType == undefined) {
         cljsTypeName = "";
     } else if (typeof connectSequence.cljsType == "string") {
         cljsTypeName = connectSequence.cljsType;
     } else {
-        cljsTypeName = connectSequence.cljsType.name;
+        cljsTypeName = connectSequence.cljsType.baseType;
     }
 
     state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();

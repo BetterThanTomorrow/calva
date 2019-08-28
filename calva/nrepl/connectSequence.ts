@@ -10,11 +10,13 @@ enum ProjectTypes {
 enum CljsTypes {
     "Figwheel Main" = "Figwheel Main",
     "lein-figwheel" = "lein-figwheel",
-    "shadow-cljs" = "shadow-cljs"
+    "shadow-cljs" = "shadow-cljs",
+    "Other" = "Other"
 }
 
 interface CljsTypeConfig {
     name: string,
+    baseType?: CljsTypes,
     startCode?: string,
     builds?: string[],
     isReadyToStartRegExp?: string | RegExp,
@@ -157,6 +159,7 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 export {
     getConnectSequences,
     getDefaultCljsType,
+    CljsTypes,
     ReplConnectSequence,
     CljsTypeConfig
 }

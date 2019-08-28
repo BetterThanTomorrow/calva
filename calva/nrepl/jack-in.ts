@@ -6,7 +6,7 @@ import * as state from "../state"
 import * as connector from "../connector";
 import statusbar from "../statusbar";
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
-import { getConnectSequences, ReplConnectSequence } from "./connectSequence";
+import { getConnectSequences, ReplConnectSequence, CljsTypes } from "./connectSequence";
 
 const isWin = /^win/.test(process.platform);
 
@@ -26,13 +26,22 @@ const cliDependencies = {
     "nrepl": "0.6.0",
     "cider/cider-nrepl": "0.21.1",
 }
-const figwheelDependencies = {
-    "cider/piggieback": "0.4.1",
-    "figwheel-sidecar": "0.5.18"
+
+const cljsDependencies: { [id: string]: Object } = {
+    "lein-figwheel": {
+        "cider/piggieback": "0.4.1",
+        "figwheel-sidecar": "0.5.18"
+    },
+    "Figwheel Main": {
+        "cider/piggieback": "0.4.1",
+        "com.bhauman/figwheel-main": "0.2.3"
+    },
+    "shadow-cljs": {
+        "cider/cider-nrepl": "0.21.1",
+    },
+    "Other": {}
 }
-const shadowDependencies = {
-    "cider/cider-nrepl": "0.21.1",
-}
+
 const leinPluginDependencies = {
     "cider/cider-nrepl": "0.21.1"
 }
@@ -60,9 +69,9 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
          * 5. Add all profiles choosed by the user
          * 6. Use alias if selected otherwise repl :headless
         */
-        commandLine: async (includeCljs) => {
+        commandLine: async (cljsType: CljsTypes) => {
             let out: string[] = [];
-            let dependencies = includeCljs ? { ...leinDependencies, ...figwheelDependencies } : leinDependencies;
+            let dependencies = { ...leinDependencies, ...(cljsType ? cljsDependencies[cljsType] : {}) };
             let keys = Object.keys(dependencies);
             let data = fs.readFileSync(path.resolve(connector.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
@@ -129,7 +138,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
             }
 
-            const useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
+            const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             for (let mw of useMiddleware) {
                 out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
             }
@@ -178,7 +187,7 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
          * 5. If main-opts in alias => just use aliases
          * 6. if no main-opts => supply our own main to run nrepl with middlewares
          */
-        commandLine: async (includeCljs) => {
+        commandLine: async (cljsType) => {
             let out: string[] = [];
             let data = fs.readFileSync(path.join(connector.getProjectRoot(), "deps.edn"), 'utf8').toString();
             let parsed;
@@ -193,8 +202,8 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
                 aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${connector.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
-            const dependencies = includeCljs ? { ...cliDependencies, ...figwheelDependencies } : cliDependencies,
-                useMiddleware = includeCljs ? [...middleware, ...cljsMiddleware] : middleware;
+            const dependencies = { ...cliDependencies, ...(cljsType ? cljsDependencies[cljsType] : {}) },
+                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
@@ -235,10 +244,10 @@ const projectTypes: { [id: string]: connector.ProjectType } = {
         /**
          *  Build the Commandline args for a shadow-project.
          */
-        commandLine: async (_includeCljs) => {
+        commandLine: async (cljsType) => {
             let args: string[] = [];
-            for (let dep in shadowDependencies)
-                args.push("-d", dep + ":" + shadowDependencies[dep]);
+            for (let dep in { ...(cljsType ? cljsDependencies[cljsType] : {})})
+                args.push("-d", dep + ":" + cljsDependencies[cljsType][dep]);
 
             const shadowBuilds = await connector.shadowBuilds();
             let builds = await utilities.quickPickMulti({ values: shadowBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${connector.getProjectRoot()}/shadowcljs-jack-in` })
@@ -371,14 +380,14 @@ export async function calvaJackIn() {
 
     const projectTypeName: string = projectConnectSequence.projectType;
     state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
-    let selectedCljsType: string;
+    let selectedCljsType: CljsTypes;
 
     if (projectConnectSequence.cljsType == undefined) {
-        selectedCljsType = "";
+        selectedCljsType = CljsTypes["Figwheel Main"];
     } else if (typeof projectConnectSequence.cljsType == "string") {
         selectedCljsType = projectConnectSequence.cljsType;
     } else {
-        selectedCljsType = projectConnectSequence.cljsType.name;
+        selectedCljsType = projectConnectSequence.cljsType.baseType;
     }
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
@@ -386,7 +395,7 @@ export async function calvaJackIn() {
     let projectType = getProjectTypeForName(projectTypeName);
     let executable = isWin ? projectType.winCmd : projectType.cmd;
     // Ask the project type to build up the command line. This may prompt for further information.
-    let args = await projectType.commandLine(selectedCljsType != "");
+    let args = await projectType.commandLine(selectedCljsType);
 
     executeJackInTask(projectType, projectConnectSequenceName, executable, args, cljTypes, outputChannel, projectConnectSequence)
         .then(() => { }, () => { });
