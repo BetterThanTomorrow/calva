@@ -246,7 +246,7 @@ function setREPLNamespaceCommand() {
 }
 
 async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(util.getREPLSessionType());
+    let wnd = await openReplWindow(util.getREPLSessionType(), true);
     if (wnd) {
         let oldNs = wnd.ns;
         if (ns && ns != oldNs)
