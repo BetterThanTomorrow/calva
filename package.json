@@ -252,18 +252,18 @@
                                             "type": "object",
                                             "required": [
                                                 "connectCode",
-                                                "baseType"
+                                                "dependsOn"
                                             ],
                                             "properties": {
-                                                "baseType": {
+                                                "dependsOn": {
                                                     "type": "string",
                                                     "enum": [
                                                         "Figwheel Main",
                                                         "lein-figwheel",
                                                         "shadow-cljs",
-                                                        "Other"
+                                                        "User provided"
                                                     ],
-                                                    "description": "The kind of CLojureScript REPL this customization is based on. NB: If it is `Other`, then you need to launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that specifies the dependencies needed."
+                                                    "description": "The CLojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that privides the dependencies needed."
                                                 },
                                                 "startCode": {
                                                     "type": "string",

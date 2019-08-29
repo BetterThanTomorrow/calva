@@ -11,17 +11,17 @@ enum CljsTypes {
     "Figwheel Main" = "Figwheel Main",
     "lein-figwheel" = "lein-figwheel",
     "shadow-cljs" = "shadow-cljs",
-    "Other" = "Other"
+    "User provided" = "User provided"
 }
 
 interface CljsTypeConfig {
     name: string,
-    baseType?: CljsTypes,
+    dependsOn?: CljsTypes,
     startCode?: string,
     builds?: string[],
     isReadyToStartRegExp?: string | RegExp,
     openUrlRegExp?: string | RegExp,
-    shouldOpenURL?: boolean,
+    shouldOpenUrl?: boolean,
     connectCode: string | Object,
     isConnectedRegExp?: string | RegExp,
     printThisLineRegExp?: string | RegExp
@@ -85,7 +85,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         builds: [],
         isReadyToStartRegExp: /Prompt will show|Open(ing)? URL|already running/,
         openUrlRegExp: /(Starting Server at|Open(ing)? URL) (?<url>\S+)/,
-        shouldOpenURL: false,
+        shouldOpenUrl: false,
         connectCode: `(do (use 'figwheel.main.api) (figwheel.main.api/cljs-repl %BUILD%))`,
         isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
@@ -93,7 +93,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         name: "lein-figwheel",
         isReadyToStartRegExp: /Launching ClojureScript REPL for build/,
         openUrlRegExp: /Figwheel: Starting server at (?<url>\S+)/,
-        // shouldOpenURL: will be added later, at use-time of this config,
+        // shouldOpenUrl: will be added later, at use-time of this config,
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
         isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
@@ -104,7 +104,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
             build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
             repl: `(shadow.cljs.devtools.api/%REPL%)`
         },
-        shouldOpenURL: false,
+        shouldOpenUrl: false,
         builds: [],
         isConnectedRegExp: /:selected/
     }
@@ -152,7 +152,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
  */
 function getDefaultCljsType(cljsType: string): CljsTypeConfig {
     // TODO: Find a less hacky way to get dynamic config for lein-figwheel
-    defaultCljsTypes["lein-figwheel"].shouldOpenURL = config().openBrowserWhenFigwheelStarted;
+    defaultCljsTypes["lein-figwheel"].shouldOpenUrl = config().openBrowserWhenFigwheelStarted;
     return defaultCljsTypes[cljsType];
 }
 

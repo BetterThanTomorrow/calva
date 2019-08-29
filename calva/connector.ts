@@ -266,7 +266,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
         haveShownStartMessage = false,
         haveShownAppURL = false,
         haveShownStartSuffix = false;
-    const cljsTypeName = cljsType.baseType,
+    const cljsTypeName = cljsType.dependsOn,
         chan = state.outputChannel(),
         // The output processors are used to keep the user informed about the connection process
         // The output from Figwheel is meant for printing to the REPL prompt,
@@ -297,7 +297,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
             }
             // If we have an appURL to go with the ”start now” message, say so
             if (appURL && haveShownStartMessage && !haveShownAppURL) {
-                if (cljsType.shouldOpenURL) {
+                if (cljsType.shouldOpenUrl) {
                     chan.appendLine(`  Opening ClojureScript app in the browser at: ${appURL} ...`);
                     open(appURL).catch(reason => {
                         chan.appendLine("Error opening ClojureScript app in the browser: " + reason);
@@ -496,13 +496,13 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
-    // TODO: MUST DO: REALLY BAD IF WE DO NOT DO: distinguish between baseType and cljsType.
+    // TODO: MUST DO: REALLY BAD IF WE DO NOT DO: distinguish between dependsOn and cljsType.
     if (connectSequence.cljsType == undefined) {
         cljsTypeName = "";
     } else if (typeof connectSequence.cljsType == "string") {
         cljsTypeName = connectSequence.cljsType;
     } else {
-        cljsTypeName = connectSequence.cljsType.baseType;
+        cljsTypeName = connectSequence.cljsType.dependsOn;
     }
 
     state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();

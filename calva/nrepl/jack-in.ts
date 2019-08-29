@@ -39,7 +39,7 @@ const cljsDependencies: { [id: string]: Object } = {
     "shadow-cljs": {
         "cider/cider-nrepl": "0.21.1",
     },
-    "Other": {}
+    "User provided": {}
 }
 
 const leinPluginDependencies = {
@@ -387,7 +387,7 @@ export async function calvaJackIn() {
     } else if (typeof projectConnectSequence.cljsType == "string") {
         selectedCljsType = projectConnectSequence.cljsType;
     } else {
-        selectedCljsType = projectConnectSequence.cljsType.baseType;
+        selectedCljsType = projectConnectSequence.cljsType.dependsOn;
     }
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
