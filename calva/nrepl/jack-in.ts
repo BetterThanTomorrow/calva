@@ -390,8 +390,6 @@ export async function calvaJackIn() {
         selectedCljsType = projectConnectSequence.cljsType.dependsOn;
     }
 
-    state.extensionContext.workspaceState.update('selectedCljsTypeName', selectedCljsType);
-
     let projectType = getProjectTypeForName(projectTypeName);
     let executable = isWin ? projectType.winCmd : projectType.cmd;
     // Ask the project type to build up the command line. This may prompt for further information.

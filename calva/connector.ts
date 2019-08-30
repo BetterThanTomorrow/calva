@@ -80,7 +80,7 @@ export type ProjectType = {
     nReplPortFile: () => string;
 };
 
-async function connectToHost(hostname, port, cljsTypeName: string, connectSequence: ReplConnectSequence) {
+async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
 
     let chan = state.outputChannel();
@@ -127,10 +127,12 @@ async function connectToHost(hostname, port, cljsTypeName: string, connectSequen
             shadowBuild = null;
         try {
             if (connectSequence.cljsType != undefined) {
-                let cljsType: CljsTypeConfig = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
+                const isBuiltinType: boolean = typeof connectSequence.cljsType == "string";
+                let cljsType: CljsTypeConfig = isBuiltinType ? getDefaultCljsType(connectSequence.cljsType as string) : connectSequence.cljsType as CljsTypeConfig;
                 let translatedReplType = createCLJSReplType(cljsType);
 
-                [cljsSession, shadowBuild] = cljsTypeName != "" ? await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType) : [null, null];
+                [cljsSession, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
+                state.analytics().logEvent("REPL", "ConnectCljsRepl", isBuiltinType ? connectSequence.cljsType as string: "Custom").send();
             }
         } catch (e) {
             chan.appendLine("Error while connecting cljs REPL: " + e);
@@ -408,15 +410,13 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
     return replType;
 }
 
-async function makeCljsSessionClone(session, replType, repl: ReplType) {
+async function makeCljsSessionClone(session, repl: ReplType) {
     let chan = state.outputChannel();
 
     chan.appendLine("Creating cljs repl session...");
     let newCljsSession = await session.clone();
     if (newCljsSession) {
         chan.show(true);
-        state.extensionContext.workspaceState.update('cljsReplType', replType);
-        state.analytics().logEvent("REPL", "ConnectingCLJS", replType).send();
         chan.appendLine("Connecting CLJS repl: " + repl.name + "...");
         chan.appendLine("See Calva Connection Log for detailed progress updates.");
         if (repl.start != undefined) {
@@ -447,7 +447,7 @@ async function makeCljsSessionClone(session, replType, repl: ReplType) {
     return [null, null];
 }
 
-async function promptForNreplUrlAndConnect(port, cljsTypeName, connectSequence: ReplConnectSequence) {
+async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSequence) {
     let current = state.deref(),
         chan = state.outputChannel();
 
@@ -464,7 +464,7 @@ async function promptForNreplUrlAndConnect(port, cljsTypeName, connectSequence: 
         if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
             state.cursor.set("hostname", hostname);
             state.cursor.set("port", parsedPort);
-            await connectToHost(hostname, parsedPort, cljsTypeName, connectSequence);
+            await connectToHost(hostname, parsedPort, connectSequence);
         } else {
             chan.appendLine("Bad url: " + url);
             state.cursor.set('connecting', false);
@@ -502,13 +502,14 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     } else if (typeof connectSequence.cljsType == "string") {
         cljsTypeName = connectSequence.cljsType;
     } else {
-        cljsTypeName = connectSequence.cljsType.dependsOn;
+        cljsTypeName = "custom";
     }
 
     state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
     console.log("connect", { connectSequence, cljsTypeName });
 
+    // TODO: move nrepl-port file to configuration
     const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile(".nrepl-port"));
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
@@ -520,18 +521,23 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
             if (isAutoConnect) {
                 state.cursor.set("hostname", "localhost");
                 state.cursor.set("port", port);
-                await connectToHost("localhost", port, cljsTypeName, connectSequence);
+                await connectToHost("localhost", port, connectSequence);
             } else {
-                await promptForNreplUrlAndConnect(port, cljsTypeName, connectSequence);
+                await promptForNreplUrlAndConnect(port, connectSequence);
             }
         } else {
             chan.appendLine('No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
-            await promptForNreplUrlAndConnect(port, cljsTypeName, connectSequence);
+            await promptForNreplUrlAndConnect(port, connectSequence);
         }
     } else {
-        await promptForNreplUrlAndConnect(null, cljsTypeName, connectSequence);
+        await promptForNreplUrlAndConnect(null, connectSequence);
     }
     return true;
+}
+
+export async function conenctCommand() {
+    // Get the connect sequence from the user
+    // Call connect()
 }
 
 export default {
@@ -567,9 +573,10 @@ export default {
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
         const connectSequence: ReplConnectSequence = state.extensionContext.workspaceState.get('selectedConnectSequence');
         let cljsType: CljsTypeConfig = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
+        state.analytics().logEvent("REPL", "RecreateCljsRepl", cljsTypeName).send();
         let translatedReplType = createCLJSReplType(cljsType);
 
-        let [session, shadowBuild] = await makeCljsSessionClone(cljSession, cljsTypeName, translatedReplType);
+        let [session, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
         if (session)
             await setUpCljsRepl(session, chan, shadowBuild);
         status.update();

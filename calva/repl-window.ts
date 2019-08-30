@@ -105,6 +105,7 @@ class REPLWindow {
         })
         panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "html", "/calva-icon.png"));
 
+        // TODO: Add a custom-cljs.svg
         const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
         const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
