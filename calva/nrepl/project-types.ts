@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as utilities from '../utilities';
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../cljs-out/cljs-lib');
