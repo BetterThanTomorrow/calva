@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as utilities from '../utilities';
-import * as _ from 'lodash';
 
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../cljs-out/cljs-lib');
@@ -33,12 +32,9 @@ export function shadowConfigFile() {
     return state.getProjectRoot() + '/shadow-cljs.edn';
 }
 
-export function shadowBuilds() {
-    let parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
-        builds: string[] = _.map(parsed.builds, (_v, key) => { return ":" + key });
-    builds.push("node-repl");
-    builds.push("browser-repl")
-    return builds;
+export function shadowBuilds(): string[] {
+    const parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString());
+    return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 
 
