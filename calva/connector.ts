@@ -6,79 +6,12 @@ import * as state from './state';
 import * as util from './utilities';
 import * as open from 'open';
 import status from './status';
+import * as projectTypes from './nrepl/project-types';
 
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes } from './nrepl/connectSequence';
-
-const PROJECT_DIR_KEY = "connect.projectDir";
-const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
-
-export function getProjectRoot(): string {
-    return state.deref().get(PROJECT_DIR_KEY);
-}
-
-export function getProjectWsFolder(): vscode.WorkspaceFolder {
-    return state.deref().get(PROJECT_WS_FOLDER_KEY);
-}
-
-/**
- * Figures out, and stores, the current clojure project root
- * Also stores the WorkSpace folder for the project to be used
- * when executing the Task and get proper vscode reporting.
- * 
- * 1. If there is no file open. Stop and complain.
- * 2. If there is a file open, use it to determine the project root
- *    by looking for project files from the file's directory and up to
- *    the window root (for plain folder windows) or the file's
- *    workspace folder root (for workspaces) to find the project root.
- *
- * If there is no project file found, then store either of these
- * 1. the window root for plain folders
- * 2. first workspace root for workspaces.
- * (This situation will be detected later by the connect process.)
- */
-export async function initProjectDir(): Promise<void> {
-    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-        doc = util.getDocument({}),
-        workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
-        state.analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no document opened in the workspace. Aborting.";
-    } else {
-        state.cursor.set(PROJECT_WS_FOLDER_KEY, workspaceFolder);
-        let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        let d = path.dirname(doc.uri.fsPath);
-        let prev = null;
-        while (d != prev) {
-            for (let projectFile in projectFileNames) {
-                const p = path.resolve(d, projectFileNames[projectFile]);
-                if (fs.existsSync(p)) {
-                    rootPath = d;
-                    break;
-                }
-            }
-            if (d == rootPath) {
-                break;
-            }
-            prev = d;
-            d = path.resolve(d, "..");
-        }
-        state.cursor.set(PROJECT_DIR_KEY, rootPath);
-    }
-}
-
-export type ProjectType = {
-    name: string;
-    cljsTypes: string[];
-    cmd: string;
-    winCmd: string;
-    commandLine: (cljsType: CljsTypes) => any;
-    useWhenExists: string;
-    nReplPortFile: () => string;
-};
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -163,25 +96,13 @@ async function setUpCljsRepl(cljsSession, chan, shadowBuild) {
     status.update();
 }
 
-export function shadowConfigFile() {
-    return getProjectRoot() + '/shadow-cljs.edn';
-}
-
-export function shadowBuilds() {
-    let parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString()),
-        builds: string[] = _.map(parsed.builds, (_v, key) => { return ":" + key });
-    builds.push("node-repl");
-    builds.push("browser-repl")
-    return builds;
-}
-
 export function shadowBuild() {
     return state.deref().get('cljsBuild');
 }
 
 function getFigwheelMainProjects() {
     let chan = state.outputChannel();
-    let res = fs.readdirSync(getProjectRoot());
+    let res = fs.readdirSync(state.getProjectRoot());
     let projects = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
     if (projects.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel project files (.cljs.edn) in the project directory.");
@@ -246,7 +167,7 @@ function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
     if (cljsTypeName.includes("Figwheel Main")) {
         return getFigwheelMainProjects();
     } else if (cljsTypeName.includes("shadow-cljs")) {
-        return shadowBuilds();
+        return projectTypes.shadowBuilds();
     }
 }
 
@@ -335,7 +256,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
                 build = await util.quickPickSingle({
                     values: projects,
                     placeHolder: "Select which build to connect to",
-                    saveAs: `${getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`
+                    saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`
                 });
 
                 initCode = updateInitCode(build, initCode);
@@ -379,7 +300,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
                 builds = projects.length <= 1 ? projects : await util.quickPickMulti({
                     values: projects,
                     placeHolder: "Please select which builds to start",
-                    saveAs: `${getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-projects`
+                    saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-projects`
                 });
 
                 if (builds) {
@@ -481,15 +402,6 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-export function nreplPortFile(subPath: string): string {
-    try {
-        return path.resolve(getProjectRoot(), subPath);
-    } catch (e) {
-        console.log(e);
-    }
-    return subPath;
-}
-
 export async function connect(connectSequence: ReplConnectSequence, isAutoConnect = false, isJackIn = false) {
     let chan = state.outputChannel();
     let cljsTypeName: string;
@@ -510,7 +422,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     console.log("connect", { connectSequence, cljsTypeName });
 
     // TODO: move nrepl-port file to configuration
-    const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? nreplPortFile(".shadow-cljs/nrepl.port") : nreplPortFile(".nrepl-port"));
+    const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? projectTypes.nreplPortFile(".shadow-cljs/nrepl.port") : projectTypes.nreplPortFile(".nrepl-port"));
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
     state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
@@ -535,7 +447,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     return true;
 }
 
-export async function conenctCommand() {
+export async function connectCommand() {
     // Get the connect sequence from the user
     // Call connect()
 }
@@ -553,7 +465,7 @@ export default {
         nClient.close();
         callback();
     },
-    nreplPortFile: nreplPortFile,
+    nreplPortFile: projectTypes.nreplPortFile,
     toggleCLJCSession: function () {
         let current = state.deref();
 

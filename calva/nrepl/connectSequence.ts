@@ -1,5 +1,7 @@
-import { workspace , window } from "vscode";
-import { config } from "../state";
+import * as vscode from "vscode";
+import * as state from "../state";
+import * as projectTypes from './project-types';
+import * as utilities from '../utilities';
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
@@ -112,13 +114,13 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
-    let sequences = config().replConnectSequences;
+    let sequences = state.config().replConnectSequences;
 
     for (let sequence of sequences) {
         if (sequence.name == undefined || 
             sequence.projectType == undefined) {
             
-            window.showWarningMessage("Check your calva.replConnectSequences. "+
+            vscode.window.showWarningMessage("Check your calva.replConnectSequences. "+
             "You need to supply name and projectType for every sequence. " +
             "After fixing the customSequences can be used.");
             
@@ -152,11 +154,37 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
  */
 function getDefaultCljsType(cljsType: string): CljsTypeConfig {
     // TODO: Find a less hacky way to get dynamic config for lein-figwheel
-    defaultCljsTypes["lein-figwheel"].shouldOpenUrl = config().openBrowserWhenFigwheelStarted;
+    defaultCljsTypes["lein-figwheel"].shouldOpenUrl = state.config().openBrowserWhenFigwheelStarted;
     return defaultCljsTypes[cljsType];
 }
 
+async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabel: string): Promise<ReplConnectSequence> {
+    // figure out what possible kinds of project we're in
+    if (cljTypes.length == 0) {
+        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn.");
+        state.analytics().logEvent("REPL", logLabel, "FailedFindingProjectType").send();
+        return;
+    }
+
+    const sequences = getConnectSequences(cljTypes);
+
+    const projectConnectSequenceName = await utilities.quickPickSingle({
+        values: sequences.map(s => { return s.name }),
+        placeHolder: "Please select a project type",
+        saveAs: `${state.getProjectRoot()}/${saveAs}`,
+        autoSelect: true
+    });
+    if (!projectConnectSequenceName) {
+        state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
+        return;
+    }
+    
+    
+    return sequences.find(seq => seq.name === projectConnectSequenceName);
+}
+
 export {
+    askForConnectSequence,
     getConnectSequences,
     getDefaultCljsType,
     CljsTypes,
