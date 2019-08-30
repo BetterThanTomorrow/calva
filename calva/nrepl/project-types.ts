@@ -261,15 +261,20 @@ const projectTypes: { [id: string]: ProjectType } = {
          *  Build the Commandline args for a shadow-project.
          */
         commandLine: async (cljsType) => {
+            const chan = state.outputChannel();
             let args: string[] = [];
             for (let dep in { ...(cljsType ? cljsDependencies[cljsType] : {})})
                 args.push("-d", dep + ":" + cljsDependencies[cljsType][dep]);
 
-            const foundBuilds = await shadowBuilds();
-            let selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` })
-            if (!selectedBuilds || !selectedBuilds.length)
-                return;
-            return ["shadow-cljs", ...args, "watch", ...selectedBuilds];
+            const foundBuilds = await shadowBuilds(),
+                selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
+                if (selectedBuilds && selectedBuilds.length) {
+                    return ["shadow-cljs", ...args, "watch", ...selectedBuilds];
+                } else {
+                    chan.show();
+                    chan.appendLine("Aborting. No valid shadow-cljs build selected.");
+                    throw "No shadow-cljs build selected"
+                }
         }
     }
 }
