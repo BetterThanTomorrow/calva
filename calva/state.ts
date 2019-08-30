@@ -96,7 +96,6 @@ function config() {
 }
 
 const PROJECT_DIR_KEY = "connect.projectDir";
-const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
 
 export function getProjectRoot(useCache = true): string {
     if (useCache) {
@@ -105,7 +104,8 @@ export function getProjectRoot(useCache = true): string {
 }
 
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
-    return deref().get(PROJECT_WS_FOLDER_KEY);
+    const doc = util.getDocument({});
+    return doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
 }
 
 /**
@@ -133,7 +133,6 @@ export async function initProjectDir(): Promise<void> {
         analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There is no document opened in the workspace. Aborting.";
     } else {
-        cursor.set(PROJECT_WS_FOLDER_KEY, workspaceFolder);
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         let d = path.dirname(doc.uri.fsPath);
         let prev = null;
