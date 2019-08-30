@@ -403,19 +403,10 @@ export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
 export async function connect(connectSequence: ReplConnectSequence, isAutoConnect = false, isJackIn = false) {
-    let chan = state.outputChannel();
-    let cljsTypeName: string;
+    const chan = state.outputChannel(),
+        cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
-
-    if (connectSequence.cljsType == undefined) {
-        cljsTypeName = "";
-    } else if (typeof connectSequence.cljsType == "string") {
-        cljsTypeName = connectSequence.cljsType;
-    } else {
-        cljsTypeName = "custom";
-    }
-
     state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
     console.log("connect", { connectSequence, cljsTypeName });
@@ -447,6 +438,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 }
 
 export async function connectCommand() {
+    const chan = state.outputChannel();
     // TODO: Figure out a better way to have an initializwd project directory.
     try {
         await state.initProjectDir();
@@ -455,7 +447,14 @@ export async function connectCommand() {
     }
     const cljTypes = await projectTypes.detectProjectTypes(),
         connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
-    connect(connectSequence, false, false);
+    if (connectSequence) {
+        const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
+        chan.appendLine(`Connecting ...`);
+        state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
+        connect(connectSequence, false, false);
+    } else {
+        chan.appendLine("Aborting connect, error determining connect sequence.")
+    }
 }
 
 export default {

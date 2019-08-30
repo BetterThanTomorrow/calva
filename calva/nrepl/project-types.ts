@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as utilities from '../utilities';
 import _ from 'lodash';
 
-import { CljsTypes } from './connectSequence';
+import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../cljs-out/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -297,4 +297,16 @@ export async function detectProjectTypes(): Promise<string[]> {
     return cljProjTypes;
 }
 
-
+export function getCljsTypeName(connectSequence: ReplConnectSequence) {
+    let cljsTypeName;
+    if (connectSequence.cljsType == undefined) {
+        cljsTypeName = "";
+    }
+    else if (typeof connectSequence.cljsType == "string") {
+        cljsTypeName = connectSequence.cljsType;
+    }
+    else {
+        cljsTypeName = "custom";
+    }
+    return cljsTypeName;
+}
