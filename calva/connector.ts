@@ -62,7 +62,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
             if (connectSequence.cljsType != undefined) {
                 const isBuiltinType: boolean = typeof connectSequence.cljsType == "string";
                 let cljsType: CljsTypeConfig = isBuiltinType ? getDefaultCljsType(connectSequence.cljsType as string) : connectSequence.cljsType as CljsTypeConfig;
-                let translatedReplType = createCLJSReplType(cljsType);
+                let translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence));
 
                 [cljsSession, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
                 state.analytics().logEvent("REPL", "ConnectCljsRepl", isBuiltinType ? connectSequence.cljsType as string: "Custom").send();
@@ -184,13 +184,12 @@ function updateInitCode(build: string, initCode): string {
     return null;
 }
 
-function createCLJSReplType(cljsType: CljsTypeConfig): ReplType {
+function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string): ReplType {
     let appURL: string,
         haveShownStartMessage = false,
         haveShownAppURL = false,
         haveShownStartSuffix = false;
-    const cljsTypeName = cljsType.dependsOn,
-        chan = state.outputChannel(),
+    const chan = state.outputChannel(),
         // The output processors are used to keep the user informed about the connection process
         // The output from Figwheel is meant for printing to the REPL prompt,
         // and since we print to Calva says we, only print some of the messages.
@@ -491,7 +490,7 @@ export default {
         const connectSequence: ReplConnectSequence = state.extensionContext.workspaceState.get('selectedConnectSequence');
         let cljsType: CljsTypeConfig = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
         state.analytics().logEvent("REPL", "RecreateCljsRepl", cljsTypeName).send();
-        let translatedReplType = createCLJSReplType(cljsType);
+        let translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence));
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
         if (session)

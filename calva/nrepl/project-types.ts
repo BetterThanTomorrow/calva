@@ -301,11 +301,11 @@ export function getCljsTypeName(connectSequence: ReplConnectSequence) {
     let cljsTypeName;
     if (connectSequence.cljsType == undefined) {
         cljsTypeName = "";
-    }
-    else if (typeof connectSequence.cljsType == "string") {
+    } else if (typeof connectSequence.cljsType == "string") {
         cljsTypeName = connectSequence.cljsType;
-    }
-    else {
+    } else if (connectSequence.cljsType.dependsOn != undefined) {
+        cljsTypeName = connectSequence.cljsType.dependsOn;
+    } else {
         cljsTypeName = "custom";
     }
     return cljsTypeName;
