@@ -11,7 +11,7 @@ import * as projectTypes from './nrepl/project-types';
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow } from './repl-window';
-import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes } from './nrepl/connectSequence';
+import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -408,7 +408,6 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
 
-    // TODO: MUST DO: REALLY BAD IF WE DO NOT DO: distinguish between dependsOn and cljsType.
     if (connectSequence.cljsType == undefined) {
         cljsTypeName = "";
     } else if (typeof connectSequence.cljsType == "string") {
@@ -448,12 +447,19 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 }
 
 export async function connectCommand() {
-    // Get the connect sequence from the user
-    // Call connect()
+    // TODO: Figure out a better way to have an initializwd project directory.
+    try {
+        await state.initProjectDir();
+    } catch {
+        return;
+    }
+    const cljTypes = await projectTypes.detectProjectTypes(),
+        connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
+    connect(connectSequence, false, false);
 }
 
 export default {
-    connect: connect,
+    connectCommand: connectCommand,
     disconnect: function (options = null, callback = () => { }) {
         ['clj', 'cljs'].forEach(sessionType => {
             state.cursor.set(sessionType, null);

@@ -78,7 +78,7 @@ export async function calvaJackIn() {
     state.analytics().logEvent("REPL", "JackInInitiated").send();
 
     const cljTypes = await projectTypes.detectProjectTypes();
-    const projectConnectSequence: ReplConnectSequence = await askForConnectSequence(cljTypes,'jack-in-type', "JackInInterrupted")
+    const projectConnectSequence: ReplConnectSequence = await askForConnectSequence(cljTypes,'jack-in-type', "JackInInterrupted");
     
     if (!projectConnectSequence) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();

@@ -6,7 +6,7 @@ import * as utilities from '../utilities';
 import _ from 'lodash';
 
 import { CljsTypes } from './connectSequence';
-const { parseForms, parseEdn } = require('../cljs-out/cljs-lib');
+const { parseForms, parseEdn } = require('../../cljs-out/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
 

@@ -98,8 +98,10 @@ function config() {
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_WS_FOLDER_KEY = "connect.projecWsFolder";
 
-export function getProjectRoot(): string {
-    return deref().get(PROJECT_DIR_KEY);
+export function getProjectRoot(useCache = true): string {
+    if (useCache) {
+        return deref().get(PROJECT_DIR_KEY);
+    }
 }
 
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
