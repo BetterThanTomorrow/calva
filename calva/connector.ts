@@ -62,7 +62,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
             if (connectSequence.cljsType != undefined) {
                 const isBuiltinType: boolean = typeof connectSequence.cljsType == "string";
                 let cljsType: CljsTypeConfig = isBuiltinType ? getDefaultCljsType(connectSequence.cljsType as string) : connectSequence.cljsType as CljsTypeConfig;
-                let translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence));
+                translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence));
 
                 [cljsSession, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
                 state.analytics().logEvent("REPL", "ConnectCljsRepl", isBuiltinType ? connectSequence.cljsType as string: "Custom").send();
@@ -162,6 +162,8 @@ export interface ReplType {
     connect?: connectFn;
     connected: (valueResult: string, out: string[], err: string[]) => boolean;
 }
+
+let translatedReplType: ReplType;
 
 function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
     if (cljsTypeName.includes("Figwheel Main")) {
@@ -480,14 +482,10 @@ export default {
         }
     },
     recreateCljsRepl: async () => {
-        let current = state.deref(),
-            cljSession = util.getSession('clj'),
+        let cljSession = util.getSession('clj'),
             chan = state.outputChannel();
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
-        const connectSequence: ReplConnectSequence = state.extensionContext.workspaceState.get('selectedConnectSequence');
-        let cljsType: CljsTypeConfig = typeof connectSequence.cljsType == "string" ? getDefaultCljsType(cljsTypeName) : connectSequence.cljsType;
         state.analytics().logEvent("REPL", "RecreateCljsRepl", cljsTypeName).send();
-        let translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence));
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
         if (session) {
