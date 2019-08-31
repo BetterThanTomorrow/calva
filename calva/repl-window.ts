@@ -208,7 +208,8 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         nreplClient = session.client;
 
     if (replWindows[mode]) {
-        if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
+        const modeSession = nreplClient.sessions[replWindows[mode].session.sessionId];
+        if (!modeSession || modeSession !== session) {
             replWindows[mode].session = await session.clone();
         }
         replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
