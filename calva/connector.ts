@@ -271,7 +271,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string): Rep
                 return;
             }
 
-            state.cursor.set('cljsBuild', null);
+            state.cursor.set('cljsBuild', build);
 
             return evalConnectCode(session, initCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
         },
