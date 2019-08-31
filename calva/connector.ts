@@ -436,29 +436,27 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     return true;
 }
 
-export async function connectCommand() {
-    const chan = state.outputChannel();
-    // TODO: Figure out a better way to have an initializwd project directory.
-    try {
-        await state.initProjectDir();
-    } catch {
-        return;
-    }
-    const cljTypes = await projectTypes.detectProjectTypes(),
-        connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
-    if (connectSequence) {
-        const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
-        chan.appendLine(`Connecting ...`);
-        state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
-        connect(connectSequence, false, false);
-    } else {
-        chan.appendLine("Aborting connect, error determining connect sequence.")
-    }
-}
-
 export default {
-    connectCommand: connectCommand,
-    disconnect: function (options = null, callback = () => { }) {
+    connectCommand: async () => {
+        const chan = state.outputChannel();
+        // TODO: Figure out a better way to have an initializwd project directory.
+        try {
+            await state.initProjectDir();
+        } catch {
+            return;
+        }
+        const cljTypes = await projectTypes.detectProjectTypes(),
+            connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
+        if (connectSequence) {
+            const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
+            chan.appendLine(`Connecting ...`);
+            state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
+            connect(connectSequence, false, false);
+        } else {
+            chan.appendLine("Aborting connect, error determining connect sequence.")
+        }
+    },
+    disconnect: (options = null, callback = () => { }) => {
         ['clj', 'cljs'].forEach(sessionType => {
             state.cursor.set(sessionType, null);
         });
@@ -469,8 +467,7 @@ export default {
         nClient.close();
         callback();
     },
-    nreplPortFile: projectTypes.nreplPortFile,
-    toggleCLJCSession: function () {
+    toggleCLJCSession: () => {
         let current = state.deref();
 
         if (current.get('connected')) {
@@ -482,7 +479,7 @@ export default {
             status.update();
         }
     },
-    recreateCljsRepl: async function () {
+    recreateCljsRepl: async () => {
         let current = state.deref(),
             cljSession = util.getSession('clj'),
             chan = state.outputChannel();
@@ -493,8 +490,9 @@ export default {
         let translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence));
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
-        if (session)
+        if (session) {
             await setUpCljsRepl(session, chan, shadowBuild);
+        }
         status.update();
     }
 };
