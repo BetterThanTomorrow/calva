@@ -57,6 +57,8 @@ const cljsDependencies: { [id: string]: Object } = {
     "shadow-cljs": {
         "cider/cider-nrepl": "0.21.1",
     },
+    "Nashorn": {
+    },
     "User provided": {
     }
 }

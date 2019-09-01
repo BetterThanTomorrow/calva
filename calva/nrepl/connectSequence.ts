@@ -13,6 +13,7 @@ enum CljsTypes {
     "Figwheel Main" = "Figwheel Main",
     "lein-figwheel" = "lein-figwheel",
     "shadow-cljs" = "shadow-cljs",
+    "Nashorn" = "Nashorn",
     "User provided" = "User provided"
 }
 
@@ -50,6 +51,11 @@ const leiningenDefaults: ReplConnectSequence[] =
         name: "Leiningen + Figwheel Main",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["Figwheel Main"]
+    },
+    {
+        name: "Leiningen + Nashorn",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["Nashorn"]
     }];
 
 const cljDefaults: ReplConnectSequence[] =
@@ -66,6 +72,11 @@ const cljDefaults: ReplConnectSequence[] =
         name: "Clojure CLI + Figwheel Main",
         projectType: ProjectTypes["Clojure CLI"],
         cljsType: CljsTypes["Figwheel Main"]
+    },
+    {
+        name: "Clojure CLI + Nashorn",
+        projectType: ProjectTypes["Clojure CLI"],
+        cljsType: CljsTypes["Nashorn"]
     }];
 
 const shadowCljsDefaults: ReplConnectSequence[] = [{
@@ -109,6 +120,11 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         shouldOpenUrl: false,
         builds: [],
         isConnectedRegExp: /:selected/
+    },
+    "Nashorn": {
+        name: "Nashorn",
+        connectCode: "(do (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env)))",
+        isConnectedRegExp: "To quit, type: :cljs/quit"
     }
 };
 

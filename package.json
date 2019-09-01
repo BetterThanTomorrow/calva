@@ -245,7 +245,8 @@
                                             "enum": [
                                                 "Figwheel Main",
                                                 "lein-figwheel",
-                                                "shadow-cljs"
+                                                "shadow-cljs",
+                                                "Nashorn"
                                             ]
                                         },
                                         {
@@ -261,6 +262,7 @@
                                                         "Figwheel Main",
                                                         "lein-figwheel",
                                                         "shadow-cljs",
+                                                        "Nashorn",
                                                         "User provided"
                                                     ],
                                                     "description": "The CLojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that privides the dependencies needed."
