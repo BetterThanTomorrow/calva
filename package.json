@@ -509,8 +509,8 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.recreateCljsRepl",
-                "title": "Attach (or re-attach) a Clojurescript session",
+                "command": "calva.switchCljsBuild",
+                "title": "Switch CLJS build",
                 "category": "Calva"
             },
             {
@@ -763,8 +763,8 @@
                 "key": "ctrl+alt+c ctrl+alt+s"
             },
             {
-                "command": "calva.recreateCljsRepl",
-                "key": "ctrl+alt+c ctrl+alt+r"
+                "command": "calva.switchCljsBuild",
+                "key": "ctrl+alt+c ctrl+alt+b"
             },
             {
                 "command": "calva.selectCurrentForm",

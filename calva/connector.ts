@@ -481,11 +481,11 @@ export default {
             status.update();
         }
     },
-    recreateCljsRepl: async () => {
+    switchCljsBuild: async () => {
         let cljSession = util.getSession('clj'),
             chan = state.outputChannel();
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
-        state.analytics().logEvent("REPL", "RecreateCljsRepl", cljsTypeName).send();
+        state.analytics().logEvent("REPL", "switchCljsBuild", cljsTypeName).send();
 
         let [session, shadowBuild] = await makeCljsSessionClone(cljSession, translatedReplType);
         if (session) {

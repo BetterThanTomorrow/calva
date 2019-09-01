@@ -33,7 +33,7 @@ function update() {
     connectionStatus.tooltip = "REPL connection status";
 
     cljsBuildStatus.text = null;
-    cljsBuildStatus.command = "calva.recreateCljsRepl";
+    cljsBuildStatus.command = "calva.switchCljsBuild";
     cljsBuildStatus.tooltip = null;
 
     if (current.get('connected')) {
