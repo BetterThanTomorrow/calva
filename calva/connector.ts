@@ -412,8 +412,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
     console.log("connect", { connectSequence, cljsTypeName });
 
-    // TODO: move nrepl-port file to configuration
-    const portFile: string = await Promise.resolve(cljsTypeName === "shadow-cljs" ? projectTypes.nreplPortFile(".shadow-cljs/nrepl.port") : projectTypes.nreplPortFile(".nrepl-port"));
+    const portFile = projectTypes.nreplPortFile(connectSequence.projectType);
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
     state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);

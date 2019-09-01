@@ -16,10 +16,11 @@ export type ProjectType = {
     winCmd: string;
     commandLine: (cljsType: CljsTypes) => any;
     useWhenExists: string;
-    nReplPortFile: () => string;
+    nReplPortFile: string;
 };
 
-export function nreplPortFile(subPath: string): string {
+export function nreplPortFile(projectType: ProjectType | string): string {
+    const subPath: string = typeof projectType == "string" ? getProjectTypeForName(projectType).nReplPortFile : projectType.nReplPortFile;
     try {
         return path.resolve(state.getProjectRoot(), subPath);
     } catch (e) {
@@ -79,9 +80,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         cmd: "lein",
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
-        nReplPortFile: () => {
-            return nreplPortFile(".nrepl-port");
-        },
+        nReplPortFile: ".nrepl-port",
         /** Build the Commandline args for a lein-project. 
          * 1. Parsing the project.clj
          * 2. Let the user choose a alias
@@ -197,9 +196,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         cmd: "clojure",
         winCmd: "powershell.exe",
         useWhenExists: "deps.edn",
-        nReplPortFile: () => {
-            return nreplPortFile(".nrepl-port");
-        },
+        nReplPortFile: ".nrepl-port",
         /** Build the Commandline args for a clj-project.
          * 1. Read the deps.edn and parsed it 
          * 2. Present the user all found aliases
@@ -259,9 +256,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         cmd: "npx",
         winCmd: "npx.cmd",
         useWhenExists: "shadow-cljs.edn",
-        nReplPortFile: () => {
-            return nreplPortFile(path.join(".shadow-cljs", "nrepl.port"));
-        },
+        nReplPortFile: path.join(".shadow-cljs", "nrepl.port"),
         /**
          *  Build the Commandline args for a shadow-project.
          */
