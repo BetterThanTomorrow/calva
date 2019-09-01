@@ -43,19 +43,22 @@ const cliDependencies = {
     "cider/cider-nrepl": "0.21.1",
 }
 
+const cljsCommonDependencies = {
+    "cider/piggieback": "0.4.1"
+}
+
 const cljsDependencies: { [id: string]: Object } = {
     "lein-figwheel": {
-        "cider/piggieback": "0.4.1",
         "figwheel-sidecar": "0.5.18"
     },
     "Figwheel Main": {
-        "cider/piggieback": "0.4.1",
         "com.bhauman/figwheel-main": "0.2.3"
     },
     "shadow-cljs": {
         "cider/cider-nrepl": "0.21.1",
     },
-    "User provided": {}
+    "User provided": {
+    }
 }
 
 const leinPluginDependencies = {
@@ -87,7 +90,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         */
         commandLine: async (cljsType: CljsTypes) => {
             let out: string[] = [];
-            let dependencies = { ...leinDependencies, ...(cljsType ? cljsDependencies[cljsType] : {}) };
+            let dependencies = { ...leinDependencies, ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) };
             let keys = Object.keys(dependencies);
             let data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
@@ -218,7 +221,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
-            const dependencies = { ...cliDependencies, ...(cljsType ? cljsDependencies[cljsType] : {}) },
+            const dependencies = { ...cliDependencies, ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
@@ -261,10 +264,11 @@ const projectTypes: { [id: string]: ProjectType } = {
          *  Build the Commandline args for a shadow-project.
          */
         commandLine: async (cljsType) => {
-            const chan = state.outputChannel();
+            const chan = state.outputChannel(),
+            dependencies = { ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) };
             let args: string[] = [];
-            for (let dep in { ...(cljsType ? cljsDependencies[cljsType] : {})})
-                args.push("-d", dep + ":" + cljsDependencies[cljsType][dep]);
+            for (let dep in dependencies)
+                args.push("-d", dep + ":" + dependencies[dep]);
 
             const foundBuilds = await shadowBuilds(),
                 selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
