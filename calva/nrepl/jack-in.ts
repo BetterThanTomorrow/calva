@@ -82,8 +82,7 @@ export async function calvaJackIn() {
     
     if (!projectConnectSequence) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
-        // TODO: Say something helpful
-        outputChannel.appendLine("Aborting Jack-in, because reasons");
+        outputChannel.appendLine("Aborting Jack-in, since no project typee was selected.");
         return;
     }
     
