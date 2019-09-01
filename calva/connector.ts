@@ -100,17 +100,17 @@ export function shadowBuild() {
     return state.deref().get('cljsBuild');
 }
 
-function getFigwheelMainProjects() {
+function getFigwheelMainBuilds() {
     let chan = state.outputChannel();
     let res = fs.readdirSync(state.getProjectRoot());
-    let projects = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
-    if (projects.length == 0) {
-        vscode.window.showErrorMessage("There are no figwheel project files (.cljs.edn) in the project directory.");
-        chan.appendLine("There are no figwheel project files (.cljs.edn) in the project directory.");
+    let builds = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
+    if (builds.length == 0) {
+        vscode.window.showErrorMessage("There are no figwheel build files (.cljs.edn) in the project directory.");
+        chan.appendLine("There are no figwheel build files (.cljs.edn) in the project directory.");
         chan.appendLine("Connection to Figwheel Main aborted.");
         throw "Aborted";
     }
-    return projects;
+    return builds;
 }
 
 /**
@@ -167,7 +167,7 @@ let translatedReplType: ReplType;
 
 function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
     if (cljsTypeName.includes("Figwheel Main")) {
-        return getFigwheelMainProjects();
+        return getFigwheelMainBuilds();
     } else if (cljsTypeName.includes("shadow-cljs")) {
         return projectTypes.shadowBuilds();
     }
@@ -253,9 +253,9 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string): Rep
             if (cljsType.builds != undefined && 
                 cljsType.builds.length === 0 && 
                 (typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
-                let projects = await figwheelOrShadowBuilds(cljsTypeName);
+                let allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                 build = await util.quickPickSingle({
-                    values: projects,
+                    values: allBuilds,
                     placeHolder: "Select which build to connect to",
                     saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`
                 });
@@ -292,21 +292,16 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string): Rep
         replType.start = async (session, name, checkFn) => {
             let startCode = cljsType.startCode;
 
-            let builds: string[];
-
-            let outputProcessors: processOutputFn[];
-
             if (startCode.includes("%BUILDS")) {
-                let projects = await figwheelOrShadowBuilds(cljsTypeName);
-                builds = projects.length <= 1 ? projects : await util.quickPickMulti({
-                    values: projects,
+                let allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+                const builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
+                    values: allBuilds,
                     placeHolder: "Please select which builds to start",
-                    saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-projects`
+                    saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-builds`
                 });
 
                 if (builds) {
                     state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
-                    state.cursor.set('cljsBuild', builds[0]);
                     startCode = startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
                     return evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
                 } else {
