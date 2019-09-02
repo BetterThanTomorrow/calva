@@ -267,6 +267,10 @@
                                                     ],
                                                     "description": "The CLojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that privides the dependencies needed."
                                                 },
+                                                "isStarted": {
+                                                    "type": "boolean",
+                                                    "description": "For cljs repls that Calva does not need to start, set this to true. (If you base your custom cljs repl on shadow-cljs workflow, for instance.)"
+                                                },
                                                 "startCode": {
                                                     "type": "string",
                                                     "description": "Clojure code to be evaluated to create and/or start your custom CLJS REPL."
