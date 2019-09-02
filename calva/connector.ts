@@ -185,7 +185,8 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, proj
     let appURL: string,
         haveShownStartMessage = false,
         haveShownAppURL = false,
-        haveShownStartSuffix = false;
+        haveShownStartSuffix = false,
+        hasStarted = cljsType.isStarted;
     const chan = state.outputChannel(),
         // The output processors are used to keep the user informed about the connection process
         // The output from Figwheel is meant for printing to the REPL prompt,
@@ -289,7 +290,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, proj
     if (cljsType.startCode) {
         replType.start = async (session, name, checkFn) => {
             let startCode = cljsType.startCode;
-            if (!cljsType.isStarted) {
+            if (!hasStarted) {
                 if (startCode.includes("%BUILDS")) {
                     let allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                     const builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
@@ -318,16 +319,16 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, proj
     }
 
     replType.started = (result, out, err) => {
-        if (cljsType.isReadyToStartRegExp && !cljsType.isStarted) {
+        if (cljsType.isReadyToStartRegExp && !hasStarted) {
             const started = [...out, ...err].find(x => {
                 return x.search(cljsType.isReadyToStartRegExp) >= 0
             }) != undefined;
             if (started) {
-                cljsType.isStarted = true;
+                hasStarted = true;
             }
             return started;
         } else {
-            cljsType.isStarted = true;
+            hasStarted = true;
             return true;
         }
     }
