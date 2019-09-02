@@ -20,6 +20,7 @@ enum CljsTypes {
 interface CljsTypeConfig {
     name: string,
     dependsOn?: CljsTypes,
+    isStarted: boolean,
     startCode?: string,
     builds?: string[],
     isReadyToStartRegExp?: string | RegExp,
@@ -94,6 +95,7 @@ const defaultSequences = {
 const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     "Figwheel Main": {
         name: "Figwheel Main",
+        isStarted: false,
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
         builds: [],
         isReadyToStartRegExp: /Prompt will show|Open(ing)? URL|already running/,
@@ -104,6 +106,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     },
     "lein-figwheel": {
         name: "lein-figwheel",
+        isStarted: false,
         isReadyToStartRegExp: /Launching ClojureScript REPL for build/,
         openUrlRegExp: /Figwheel: Starting server at (?<url>\S+)/,
         // shouldOpenUrl: will be added later, at use-time of this config,
@@ -112,7 +115,8 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     },
     "shadow-cljs": {
         name: "shadow-cljs",
-        isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
+        isStarted: true,
+        // isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
         connectCode: {
             build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
             repl: `(shadow.cljs.devtools.api/%REPL%)`
@@ -123,6 +127,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     },
     "Nashorn": {
         name: "Nashorn",
+        isStarted: true,
         connectCode: "(do (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env)))",
         isConnectedRegExp: "To quit, type: :cljs/quit"
     }
@@ -130,7 +135,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
-    let sequences = state.config().replConnectSequences;
+    let sequences: ReplConnectSequence[] = state.config().replConnectSequences;
 
     for (let sequence of sequences) {
         if (sequence.name == undefined || 

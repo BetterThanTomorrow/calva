@@ -89,7 +89,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
 
 async function setUpCljsRepl(cljsSession, chan, build) {
     state.cursor.set("cljs", cljsSession);
-    chan.appendLine("Connected session: cljs, build: " + build);
+    chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
     await openReplWindow("cljs", true);
     await reconnectReplWindow("cljs");
     status.update();
@@ -286,11 +286,10 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, proj
         }
     };
 
-    let hasStarted = false;
     if (cljsType.startCode) {
         replType.start = async (session, name, checkFn) => {
             let startCode = cljsType.startCode;
-            if (!hasStarted) {
+            if (!cljsType.isStarted) {
                 if (startCode.includes("%BUILDS")) {
                     let allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                     const builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
@@ -319,16 +318,16 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, proj
     }
 
     replType.started = (result, out, err) => {
-        if (cljsType.isReadyToStartRegExp && !hasStarted) {
+        if (cljsType.isReadyToStartRegExp && !cljsType.isStarted) {
             const started = [...out, ...err].find(x => {
                 return x.search(cljsType.isReadyToStartRegExp) >= 0
             }) != undefined;
             if (started) {
-                hasStarted = true;
+                cljsType.isStarted = true;
             }
             return started;
         } else {
-            hasStarted = true;
+            cljsType.isStarted = true;
             return true;
         }
     }
@@ -344,7 +343,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
     if (newCljsSession) {
         chan.show(true);
         chan.appendLine("Connecting cljs repl: " + projectTypeName + "...");
-        chan.appendLine("THe Calva Connection Log might have more connection progress information.");
+        chan.appendLine("The Calva Connection Log might have more connection progress information.");
         if (repl.start != undefined) {
             if (await repl.start(newCljsSession, repl.name, repl.started)) {
                 state.analytics().logEvent("REPL", "StartedCLJS", repl.name).send();
