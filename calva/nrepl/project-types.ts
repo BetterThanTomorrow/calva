@@ -91,7 +91,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         */
         commandLine: async (cljsType: CljsTypes) => {
             let out: string[] = [];
-            let dependencies = { ...leinDependencies, ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) };
+            let dependencies = { ...leinDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
             let keys = Object.keys(dependencies);
             let data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
@@ -125,17 +125,18 @@ const projectTypes: { [id: string]: ProjectType } = {
             }
 
             if (defproject != undefined) {
-                let profilesIndex = defproject.indexOf("profiles");
-                if (profilesIndex > -1) {
-                    try {
-                        const profilesMap = defproject[profilesIndex + 1];
-                        profiles = [...profiles, ...Object.keys(profilesMap).map((v, k) => { return ":" + v })];
-                        if (profiles.length) {
-                            profiles = await utilities.quickPickMulti({ values: profiles, saveAs: `${state.getProjectRoot()}/lein-cli-profiles`, placeHolder: "Pick any profiles to launch with" });
-                        }
-                    } catch (error) {
-                        vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
-                        console.log(error);
+                const profilesIndex = defproject.indexOf("profiles"),
+                    projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [],
+                    myProfiles = state.config().myLeinProfiles;
+                if (projectProfiles.length + myProfiles.length > 0) {
+                    const profilesList = [...projectProfiles, ...myProfiles];
+                    profiles = [...profiles, ...profilesList.map(_keywordize)];
+                    if (profiles.length) {
+                        profiles = await utilities.quickPickMulti({
+                            values: profiles,
+                            saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
+                            placeHolder: "Pick any profiles to launch with"
+                        });
                     }
                 }
             }
@@ -164,7 +165,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             }
 
             if (profiles.length) {
-                out.push("with-profile", profiles.map(x => `+${x.substr(1)}`).join(','));
+                out.push("with-profile", profiles.map(x => `+${_unKeywordize(x)}`).join(','));
             }
 
             if (alias) {
@@ -215,23 +216,25 @@ const projectTypes: { [id: string]: ProjectType } = {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
+            const projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [],
+                myAliases = state.config().myCljAliases;
             let aliases: string[] = [];
-            if (parsed.aliases != undefined) {
-                aliases = await utilities.quickPickMulti({ values: Object.keys(parsed.aliases).map(x => ":" + x), saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
+            if (projectAliases.length + myAliases.length > 0) {
+                aliases = await utilities.quickPickMulti({ values: [...projectAliases, ...myAliases].map(_keywordize), saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
             }
 
             const dependencies = { ...cliDependencies, ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
-            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
-                let aliasKey = aliases[ali].substr(1);
-                let alias = parsed.aliases[aliasKey];
-                aliasHasMain = (alias["main-opts"] != undefined);
+                const aliasKey = _unKeywordize(aliases[ali]);
+                if (parsed.aliases) {
+                    let alias = parsed.aliases[aliasKey];
+                    aliasHasMain = alias && alias["main-opts"] != undefined;
+                }
                 if (aliasHasMain)
                     break;
             }
-
             const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
                 out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
@@ -262,23 +265,44 @@ const projectTypes: { [id: string]: ProjectType } = {
          */
         commandLine: async (cljsType) => {
             const chan = state.outputChannel(),
-            dependencies = { ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) };
+                dependencies = { ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
             let args: string[] = [];
             for (let dep in dependencies)
                 args.push("-d", dep + ":" + dependencies[dep]);
 
             const foundBuilds = await shadowBuilds(),
                 selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
-                if (selectedBuilds && selectedBuilds.length) {
-                    return ["shadow-cljs", ...args, "watch", ...selectedBuilds];
-                } else {
-                    chan.show();
-                    chan.appendLine("Aborting. No valid shadow-cljs build selected.");
-                    throw "No shadow-cljs build selected"
-                }
+            if (selectedBuilds && selectedBuilds.length) {
+                return ["shadow-cljs", ...args, "watch", ...selectedBuilds];
+            } else {
+                chan.show();
+                chan.appendLine("Aborting. No valid shadow-cljs build selected.");
+                throw "No shadow-cljs build selected"
+            }
         }
     }
 }
+
+/**
+ * Prepends a `:` to a string, so it can be used as an EDN keyword.
+ * (Or at least made to look like one).
+ * @param  {string} s the string to be keywordized
+ * @return {string} keywordized string
+ */
+function _keywordize(s: string): string {
+    return `:${s}`;
+}
+
+/**
+ * Remove the leading `:` from strings (EDN keywords)'
+ * NB: Does not check if the leading character is really a `:`.
+ * @param  {string} kw
+ * @return {string} kw without the first character
+ */
+function _unKeywordize(kw: string) {
+    return kw.substr(1);
+}
+
 
 /** Given the name of a project in project types, find that project. */
 export function getProjectTypeForName(name: string) {
