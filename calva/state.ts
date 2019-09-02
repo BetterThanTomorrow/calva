@@ -102,8 +102,8 @@ function config() {
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
-        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName),
-        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName),
+        // myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName),
+        // myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName),
     };
 }
 

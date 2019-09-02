@@ -35,49 +35,59 @@ interface ReplConnectSequence {
     name: string,
     projectType: ProjectTypes,
     afterCLJReplJackInCode?: string,
-    cljsType?: CljsTypes | CljsTypeConfig
+    cljsType?: CljsTypes | CljsTypeConfig,
+    myLeinProfiles?: string[],
+    myCljAliases?: string[]
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
     [{
         name: "Leiningen",
-        projectType: ProjectTypes.Leiningen
+        projectType: ProjectTypes.Leiningen,
+        myLeinProfiles: []
     },
     {
         name: "Leiningen + Figwheel",
         projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["lein-figwheel"]
+        cljsType: CljsTypes["lein-figwheel"],
+        myLeinProfiles: []
     },
     {
         name: "Leiningen + Figwheel Main",
         projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Figwheel Main"]
+        cljsType: CljsTypes["Figwheel Main"],
+        myLeinProfiles: []
     },
     {
         name: "Leiningen + Nashorn",
         projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Nashorn"]
+        cljsType: CljsTypes["Nashorn"],
+        myLeinProfiles: []
     }];
 
 const cljDefaults: ReplConnectSequence[] =
     [{
         name: "Clojure CLI",
-        projectType: ProjectTypes["Clojure CLI"]
+        projectType: ProjectTypes["Clojure CLI"],
+        myCljAliases: []
     },
     {
         name: "Clojure CLI + Figwheel",
         projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["lein-figwheel"]
+        cljsType: CljsTypes["lein-figwheel"],
+        myCljAliases: []
     },
     {
         name: "Clojure CLI + Figwheel Main",
         projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["Figwheel Main"]
+        cljsType: CljsTypes["Figwheel Main"],
+        myCljAliases: []
     },
     {
         name: "Clojure CLI + Nashorn",
         projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["Nashorn"]
+        cljsType: CljsTypes["Nashorn"],
+        myCljAliases: []
     }];
 
 const shadowCljsDefaults: ReplConnectSequence[] = [{

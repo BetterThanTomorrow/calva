@@ -237,6 +237,20 @@
                                     "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
                                     "required": false
                                 },
+                                "myLeinProfiles": {
+                                    "type": "array",
+                                    "description": "At Jack in, any profiles listed here will be added to the profiles found in the `project.clj` file.",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "myCljAliases": {
+                                    "type": "array",
+                                    "description": "At Jack in, any aliases listed here will be added to the aliases found in the projects's `deps.edn` file.",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },            
                                 "cljsType": {
                                     "description": "Either a built in type, or an object configuring a custom type. If omitted Calva will show a menu with the built-in types.",
                                     "anyOf": [
@@ -310,20 +324,6 @@
                                     ]
                                 }
                             }
-                        }
-                    },
-                    "calva.myLeinProfiles": {
-                        "type": "array",
-                        "description": "At Jack in, any profiles listed here will be added to the profiles found in the `project.clj` file.",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "calva.myCljAliases": {
-                        "type": "array",
-                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the projects's `deps.edn` file.",
-                        "items": {
-                            "type": "string"
                         }
                     }
                 }

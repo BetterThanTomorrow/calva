@@ -14,7 +14,7 @@ export type ProjectType = {
     cljsTypes: string[];
     cmd: string;
     winCmd: string;
-    commandLine: (cljsType: CljsTypes) => any;
+    commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
     useWhenExists: string;
     nReplPortFile: string;
 };
@@ -89,7 +89,7 @@ const projectTypes: { [id: string]: ProjectType } = {
          * 5. Add all profiles choosed by the user
          * 6. Use alias if selected otherwise repl :headless
         */
-        commandLine: async (cljsType: CljsTypes) => {
+        commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
             let out: string[] = [];
             let dependencies = { ...leinDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
             let keys = Object.keys(dependencies);
@@ -127,7 +127,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             if (defproject != undefined) {
                 const profilesIndex = defproject.indexOf("profiles"),
                     projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [],
-                    myProfiles = state.config().myLeinProfiles;
+                    myProfiles = connectSequence.myLeinProfiles;
                 if (projectProfiles.length + myProfiles.length > 0) {
                     const profilesList = [...projectProfiles, ...myProfiles];
                     profiles = [...profiles, ...profilesList.map(_keywordize)];
@@ -206,7 +206,7 @@ const projectTypes: { [id: string]: ProjectType } = {
          * 5. If main-opts in alias => just use aliases
          * 6. if no main-opts => supply our own main to run nrepl with middlewares
          */
-        commandLine: async (cljsType) => {
+        commandLine: async (connectSequence, cljsType) => {
             let out: string[] = [];
             let data = fs.readFileSync(path.join(state.getProjectRoot(), "deps.edn"), 'utf8').toString();
             let parsed;
@@ -217,7 +217,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 throw e;
             }
             const projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [],
-                myAliases = state.config().myCljAliases;
+                myAliases = connectSequence.myCljAliases;
             let aliases: string[] = [];
             if (projectAliases.length + myAliases.length > 0) {
                 aliases = await utilities.quickPickMulti({ values: [...projectAliases, ...myAliases].map(_keywordize), saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
@@ -263,7 +263,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         /**
          *  Build the Commandline args for a shadow-project.
          */
-        commandLine: async (cljsType) => {
+        commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
                 dependencies = { ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
             let args: string[] = [];

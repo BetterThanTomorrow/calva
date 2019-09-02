@@ -103,7 +103,7 @@ export async function calvaJackIn() {
     let projectType = projectTypes.getProjectTypeForName(projectTypeName);
     let executable = projectTypes.isWin ? projectType.winCmd : projectType.cmd;
     // Ask the project type to build up the command line. This may prompt for further information.
-    let args = await projectType.commandLine(selectedCljsType);
+    let args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
 
     executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, outputChannel, projectConnectSequence)
         .then(() => { }, () => { });
