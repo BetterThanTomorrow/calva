@@ -147,15 +147,15 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
     let sequences: ReplConnectSequence[] = state.config().replConnectSequences;
 
     for (let sequence of sequences) {
-        if (sequence.name == undefined || 
+        if (sequence.name == undefined ||
             sequence.projectType == undefined) {
-            
-            vscode.window.showWarningMessage("Check your calva.replConnectSequences. "+
-            "You need to supply name and projectType for every sequence. " +
-            "After fixing the customSequences can be used.");
-            
+
+            vscode.window.showWarningMessage("Check your calva.replConnectSequences. " +
+                "You need to supply name and projectType for every sequence. " +
+                "After fixing the customSequences can be used.");
+
             return [];
-        } 
+        }
     }
 
     return sequences;
@@ -169,11 +169,15 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     let customSequences = getCustomConnectSequences();
 
-    let result = [];
-    for (let pType of projectTypes) {
-        result = result.concat(defaultSequences[pType]);
+    if (customSequences.length) {
+        return customSequences;
+    } else {
+        let result = [];
+        for (let pType of projectTypes) {
+            result = result.concat(defaultSequences[pType]);
+        }
+        return result;
     }
-    return result.concat(customSequences);
 }
 
 /**
@@ -195,20 +199,22 @@ async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabe
     }
 
     const sequences = getConnectSequences(cljTypes);
+    if (sequences.length > 1) {
+        const projectConnectSequenceName = await utilities.quickPickSingle({
+            values: sequences.map(s => { return s.name }),
+            placeHolder: "Please select a project type",
+            saveAs: `${state.getProjectRoot()}/${saveAs}`,
+            autoSelect: true
+        });
+        if (!projectConnectSequenceName) {
+            state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
+            return;
+        }
 
-    const projectConnectSequenceName = await utilities.quickPickSingle({
-        values: sequences.map(s => { return s.name }),
-        placeHolder: "Please select a project type",
-        saveAs: `${state.getProjectRoot()}/${saveAs}`,
-        autoSelect: true
-    });
-    if (!projectConnectSequenceName) {
-        state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
-        return;
+        return sequences.find(seq => seq.name === projectConnectSequenceName);
+    } else {
+        return sequences[0];
     }
-    
-    
-    return sequences.find(seq => seq.name === projectConnectSequenceName);
 }
 
 export {
