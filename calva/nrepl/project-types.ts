@@ -335,7 +335,7 @@ function _keywordize(s: string): string {
  * @param  {string} kw
  * @return {string} kw without the first character
  */
-function _unKeywordize(kw: string) {
+function _unKeywordize(kw: string): string {
     return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
@@ -360,7 +360,7 @@ export async function detectProjectTypes(): Promise<string[]> {
 }
 
 export function getCljsTypeName(connectSequence: ReplConnectSequence) {
-    let cljsTypeName;
+    let cljsTypeName: string;
     if (connectSequence.cljsType == undefined) {
         cljsTypeName = "";
     } else if (typeof connectSequence.cljsType == "string") {
