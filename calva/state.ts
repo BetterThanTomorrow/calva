@@ -78,6 +78,16 @@ function reset() {
     data = Immutable.fromJS(initialData);
 }
 
+/**
+ * Trims EDN alias and profile names from any surrounding whitespace or `:` characters.
+ * This in order to free the user from having to figure out how the name should be entered.
+ * @param  {string} name 
+ * @return {string} The trimmed name
+ */
+function _trimAliasName(name: string): string {
+    return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
+}
+
 // TODO find a way to validate the configs
 function config() {
     let configOptions = vscode.workspace.getConfiguration('calva');
@@ -93,6 +103,8 @@ function config() {
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
+        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
+        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[]
     };
 }
 

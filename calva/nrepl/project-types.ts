@@ -126,19 +126,25 @@ const projectTypes: { [id: string]: ProjectType } = {
 
             if (defproject != undefined) {
                 const profilesIndex = defproject.indexOf("profiles"),
-                    projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [],
                     menuSelections = connectSequence.menuSelections,
                     launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined;
                 if (launchProfiles) {
                     profiles = [...profiles, ...launchProfiles.map(_keywordize)];
-                } else if (projectProfiles.length) {
-                    profiles = [...profiles, ...projectProfiles.map(_keywordize)];
-                    if (profiles.length) {
-                        profiles = await utilities.quickPickMulti({
-                            values: profiles,
-                            saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
-                            placeHolder: "Pick any profiles to launch with"
-                        });
+                } else {
+                    let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
+                    const myProfiles = state.config().myLeinProfiles;
+                    if (myProfiles && myProfiles.length) {
+                        projectProfiles = [...projectProfiles, ...myProfiles];
+                    }
+                    if (projectProfiles.length) {
+                        profiles = [...profiles, ...projectProfiles.map(_keywordize)];
+                        if (profiles.length) {
+                            profiles = await utilities.quickPickMulti({
+                                values: profiles,
+                                saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
+                                placeHolder: "Pick any profiles to launch with"
+                            });
+                        }
                     }
                 }
             }
@@ -218,18 +224,24 @@ const projectTypes: { [id: string]: ProjectType } = {
                 vscode.window.showErrorMessage("Could not parse deps.edn");
                 throw e;
             }
-            const projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [],
-                menuSelections = connectSequence.menuSelections,
+            const menuSelections = connectSequence.menuSelections,
                 launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined;
             let aliases: string[] = [];
             if (launchProfiles) {
                 aliases = launchProfiles.map(_keywordize);
-            } else if (projectAliases.length) {
-                aliases = await utilities.quickPickMulti({
-                    values: projectAliases.map(_keywordize),
-                    saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
-                    placeHolder: "Pick any aliases to launch with"
-                });
+            } else {
+                let projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
+                const myAliases = state.config().myCljAliases;
+                if (myAliases && myAliases.length) {
+                    projectAliases = [...projectAliases, ...myAliases];
+                }
+                if (projectAliases.length) {
+                    aliases = await utilities.quickPickMulti({
+                        values: projectAliases.map(_keywordize),
+                        saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
+                        placeHolder: "Pick any aliases to launch with"
+                    });
+                }
             }
 
             const dependencies = { ...cliDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) },
@@ -314,10 +326,7 @@ const projectTypes: { [id: string]: ProjectType } = {
  * @return {string} keywordized string
  */
 function _keywordize(s: string): string {
-    if (!s.match(/^[\s,:]*/))
-        return `:${s}`;
-    else
-        return s;
+    return s.replace(/^[\s,:]*/, ":");
 }
 
 /**
