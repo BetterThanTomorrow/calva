@@ -127,7 +127,8 @@ const projectTypes: { [id: string]: ProjectType } = {
             if (defproject != undefined) {
                 const profilesIndex = defproject.indexOf("profiles"),
                     projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [],
-                    launchProfiles = connectSequence.launchProfiles;
+                    menuSelections = connectSequence.menuSelections,
+                    launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined;
                 if (launchProfiles) {
                     profiles = [...profiles, ...launchProfiles.map(_keywordize)];
                 } else if (projectProfiles.length) {
@@ -218,19 +219,21 @@ const projectTypes: { [id: string]: ProjectType } = {
                 throw e;
             }
             const projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [],
-                launchProfiles = connectSequence.launchProfiles;
+                menuSelections = connectSequence.menuSelections,
+                launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined;
             let aliases: string[] = [];
             if (launchProfiles) {
                 aliases = launchProfiles.map(_keywordize);
             } else if (projectAliases.length) {
-                aliases = await utilities.quickPickMulti({ 
-                    values: projectAliases.map(_keywordize), 
-                    saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, 
-                    placeHolder: "Pick any aliases to launch with" });
+                aliases = await utilities.quickPickMulti({
+                    values: projectAliases.map(_keywordize),
+                    saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
+                    placeHolder: "Pick any aliases to launch with"
+                });
             }
 
-            const dependencies = { ...cliDependencies, ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];           
+            const dependencies = { ...cliDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) },
+                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
@@ -278,15 +281,16 @@ const projectTypes: { [id: string]: ProjectType } = {
                 args.push("-d", dep + ":" + dependencies[dep]);
 
             const foundBuilds = await shadowBuilds(),
-                launchProfiles = connectSequence.launchProfiles,
+                menuSelections = connectSequence.menuSelections,
+                launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined,
                 selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
-            
+
             let aliases: string[] = [];
 
             if (launchProfiles) {
                 aliases = launchProfiles.map(_keywordize);
             } // TODO do the same as clj to prompt the user with a list of aliases
-            
+
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             if (aliasesOption && aliasesOption.length) {
                 args.push(aliasesOption);
@@ -312,7 +316,7 @@ const projectTypes: { [id: string]: ProjectType } = {
 function _keywordize(s: string): string {
     if (!s.match(/^[\s,:]*/))
         return `:${s}`;
-    else 
+    else
         return s;
 }
 

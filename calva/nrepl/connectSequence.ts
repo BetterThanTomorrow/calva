@@ -22,7 +22,7 @@ interface CljsTypeConfig {
     dependsOn?: CljsTypes,
     isStarted: boolean,
     startCode?: string,
-    builds?: string[],
+    buildsRequired?: boolean,
     isReadyToStartRegExp?: string | RegExp,
     openUrlRegExp?: string | RegExp,
     shouldOpenUrl?: boolean,
@@ -31,12 +31,18 @@ interface CljsTypeConfig {
     printThisLineRegExp?: string | RegExp
 }
 
+interface MenuSelecions {
+    projectLaunchProfilesOrAliases?: string[],
+    cljsLaunchBuilds?: string[],
+    cljsDefaultBuild?: string
+}
+
 interface ReplConnectSequence {
     name: string,
     projectType: ProjectTypes,
     afterCLJReplJackInCode?: string,
     cljsType?: CljsTypes | CljsTypeConfig,
-    launchProfiles?: string[]
+    menuSelections?: MenuSelecions,
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
@@ -96,9 +102,9 @@ const defaultSequences = {
 const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     "Figwheel Main": {
         name: "Figwheel Main",
+        buildsRequired: true,
         isStarted: false,
         startCode: `(do (require 'figwheel.main.api) (figwheel.main.api/start %BUILDS%))`,
-        builds: [],
         isReadyToStartRegExp: /Prompt will show|Open(ing)? URL|already running/,
         openUrlRegExp: /(Starting Server at|Open(ing)? URL) (?<url>\S+)/,
         shouldOpenUrl: false,
@@ -107,15 +113,17 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     },
     "lein-figwheel": {
         name: "lein-figwheel",
+        buildsRequired: false,
         isStarted: false,
         isReadyToStartRegExp: /Launching ClojureScript REPL for build/,
         openUrlRegExp: /Figwheel: Starting server at (?<url>\S+)/,
-        // shouldOpenUrl: will be added later, at use-time of this config,
+        // shouldOpenUrl: will be set at use-time of this config,
         connectCode: "(do (use 'figwheel-sidecar.repl-api) (if (not (figwheel-sidecar.repl-api/figwheel-running?)) (figwheel-sidecar.repl-api/start-figwheel!)) (figwheel-sidecar.repl-api/cljs-repl))",
         isConnectedRegExp: /To quit, type: :cljs\/quit/
     },
     "shadow-cljs": {
         name: "shadow-cljs",
+        buildsRequired: true,
         isStarted: true,
         // isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
         connectCode: {
@@ -123,11 +131,11 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
             repl: `(shadow.cljs.devtools.api/%REPL%)`
         },
         shouldOpenUrl: false,
-        builds: [],
         isConnectedRegExp: /:selected/
     },
     "Nashorn": {
         name: "Nashorn",
+        buildsRequired: false,
         isStarted: true,
         connectCode: "(do (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env)))",
         isConnectedRegExp: "To quit, type: :cljs/quit"
