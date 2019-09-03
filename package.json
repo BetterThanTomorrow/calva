@@ -317,10 +317,6 @@
                                                     "type": "string",
                                                     "description": "Clojure code to be evaluated to create and/or start your custom CLJS REPL."
                                                 },
-                                                "builds": {
-                                                    "type": "array",
-                                                    "description": "List of all builds that should be started."
-                                                },
                                                 "isReadyToStartRegExp": {
                                                     "type": "string",
                                                     "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
