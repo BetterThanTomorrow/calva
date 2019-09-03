@@ -127,10 +127,11 @@ const projectTypes: { [id: string]: ProjectType } = {
             if (defproject != undefined) {
                 const profilesIndex = defproject.indexOf("profiles"),
                     projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [],
-                    myProfiles = connectSequence.myLeinProfiles;
-                if (projectProfiles.length + myProfiles.length > 0) {
-                    const profilesList = [...projectProfiles, ...myProfiles];
-                    profiles = [...profiles, ...profilesList.map(_keywordize)];
+                    launchProfiles = connectSequence.launchProfiles;
+                if (launchProfiles) {
+                    profiles = [...profiles, ...launchProfiles.map(_keywordize)];
+                } else if (projectProfiles.length) {
+                    profiles = [...profiles, ...projectProfiles.map(_keywordize)];
                     if (profiles.length) {
                         profiles = await utilities.quickPickMulti({
                             values: profiles,
@@ -217,14 +218,20 @@ const projectTypes: { [id: string]: ProjectType } = {
                 throw e;
             }
             const projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [],
-                myAliases = connectSequence.myCljAliases;
+                launchProfiles = connectSequence.launchProfiles;
             let aliases: string[] = [];
-            if (projectAliases.length + myAliases.length > 0) {
-                aliases = await utilities.quickPickMulti({ values: [...projectAliases, ...myAliases].map(_keywordize), saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, placeHolder: "Pick any aliases to launch with" });
+            if (launchProfiles) {
+                aliases = launchProfiles.map(_keywordize);
+            } else if (projectAliases.length) {
+                aliases = await utilities.quickPickMulti({ 
+                    values: projectAliases.map(_keywordize), 
+                    saveAs: `${state.getProjectRoot()}/clj-cli-aliases`, 
+                    placeHolder: "Pick any aliases to launch with" });
             }
 
             const dependencies = { ...cliDependencies, ...(cljsType ? {...cljsCommonDependencies, ...cljsDependencies[cljsType]} : {}) },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];           
+            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
                 const aliasKey = _unKeywordize(aliases[ali]);
@@ -271,7 +278,20 @@ const projectTypes: { [id: string]: ProjectType } = {
                 args.push("-d", dep + ":" + dependencies[dep]);
 
             const foundBuilds = await shadowBuilds(),
+                launchProfiles = connectSequence.launchProfiles,
                 selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
+            
+            let aliases: string[] = [];
+
+            if (launchProfiles) {
+                aliases = launchProfiles.map(_keywordize);
+            } // TODO do the same as clj to prompt the user with a list of aliases
+            
+            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+            if (aliasesOption && aliasesOption.length) {
+                args.push(aliasesOption);
+            }
+
             if (selectedBuilds && selectedBuilds.length) {
                 return ["shadow-cljs", ...args, "watch", ...selectedBuilds];
             } else {
@@ -290,7 +310,10 @@ const projectTypes: { [id: string]: ProjectType } = {
  * @return {string} keywordized string
  */
 function _keywordize(s: string): string {
-    return `:${s}`;
+    if (!s.match(/^[\s,:]*/))
+        return `:${s}`;
+    else 
+        return s;
 }
 
 /**
@@ -300,7 +323,7 @@ function _keywordize(s: string): string {
  * @return {string} kw without the first character
  */
 function _unKeywordize(kw: string) {
-    return kw.substr(1);
+    return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
 

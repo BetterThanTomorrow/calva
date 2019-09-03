@@ -36,58 +36,49 @@ interface ReplConnectSequence {
     projectType: ProjectTypes,
     afterCLJReplJackInCode?: string,
     cljsType?: CljsTypes | CljsTypeConfig,
-    myLeinProfiles?: string[],
-    myCljAliases?: string[]
+    launchProfiles?: string[]
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
     [{
         name: "Leiningen",
-        projectType: ProjectTypes.Leiningen,
-        myLeinProfiles: []
+        projectType: ProjectTypes.Leiningen
     },
     {
         name: "Leiningen + Figwheel",
         projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["lein-figwheel"],
-        myLeinProfiles: []
+        cljsType: CljsTypes["lein-figwheel"]
     },
     {
         name: "Leiningen + Figwheel Main",
         projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Figwheel Main"],
-        myLeinProfiles: []
+        cljsType: CljsTypes["Figwheel Main"]
     },
     {
         name: "Leiningen + Nashorn",
         projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Nashorn"],
-        myLeinProfiles: []
+        cljsType: CljsTypes["Nashorn"]
     }];
 
 const cljDefaults: ReplConnectSequence[] =
     [{
         name: "Clojure CLI",
-        projectType: ProjectTypes["Clojure CLI"],
-        myCljAliases: []
+        projectType: ProjectTypes["Clojure CLI"]
     },
     {
         name: "Clojure CLI + Figwheel",
         projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["lein-figwheel"],
-        myCljAliases: []
+        cljsType: CljsTypes["lein-figwheel"]
     },
     {
         name: "Clojure CLI + Figwheel Main",
         projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["Figwheel Main"],
-        myCljAliases: []
+        cljsType: CljsTypes["Figwheel Main"]
     },
     {
         name: "Clojure CLI + Nashorn",
         projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["Nashorn"],
-        myCljAliases: []
+        cljsType: CljsTypes["Nashorn"]
     }];
 
 const shadowCljsDefaults: ReplConnectSequence[] = [{
@@ -172,8 +163,6 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
 
     let result = [];
     for (let pType of projectTypes) {
-        console.log("pType", pType);
-        console.log("pSeq", defaultSequences[pType]);
         result = result.concat(defaultSequences[pType]);
     }
     return result.concat(customSequences);

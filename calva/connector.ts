@@ -413,8 +413,6 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
     state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
 
-    console.log("connect", { connectSequence, cljsTypeName });
-
     const portFile = projectTypes.nreplPortFile(connectSequence.projectType);
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
