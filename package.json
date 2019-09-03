@@ -264,7 +264,7 @@
                                         },
                                         "cljsLaunchBuilds": {
                                             "type": "array",
-                                            "description": "Which cljs builds to launch.",
+                                            "description": "The cljs builds to start/watch at Jack-in/comnnect.",
                                             "items": {
                                                 "type": "string"
                                             }
