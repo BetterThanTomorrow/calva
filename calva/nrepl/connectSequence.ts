@@ -32,7 +32,9 @@ interface CljsTypeConfig {
 }
 
 interface MenuSelecions {
-    projectLaunchProfilesOrAliases?: string[],
+    leinProfiles?: string[],
+    leinAlias?: string,
+    cljAliases?: string[],
     cljsLaunchBuilds?: string[],
     cljsDefaultBuild?: string
 }

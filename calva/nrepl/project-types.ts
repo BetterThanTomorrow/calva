@@ -109,13 +109,25 @@ const projectTypes: { [id: string]: ProjectType } = {
                 let aliasesIndex = defproject.indexOf("aliases");
                 if (aliasesIndex > -1) {
                     try {
-                        let aliases: string[] = [];
-                        const aliasesMap = defproject[aliasesIndex + 1];
-                        aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
-                        if (aliases.length) {
-                            aliases.unshift("No alias");
-                            alias = await utilities.quickPickSingle({ values: aliases, saveAs: `${state.getProjectRoot()}/lein-cli-alias`, placeHolder: "Choose alias to run" });
-                            alias = (alias == "No alias") ? undefined : alias;
+                        const menuSelections = connectSequence.menuSelections,
+                        leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
+                        if (leinAlias) {
+                            alias = _unKeywordize(leinAlias);
+                        } else if (leinAlias === null) {
+                            alias = undefined;
+                        } else {
+                            let aliases: string[] = [];
+                            const aliasesMap = defproject[aliasesIndex + 1];
+                            aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
+                            if (aliases.length) {
+                                aliases.unshift("No alias");
+                                alias = await utilities.quickPickSingle({
+                                    values: aliases,
+                                    saveAs: `${state.getProjectRoot()}/lein-cli-alias`,
+                                    placeHolder: "Choose alias to launch with"
+                                });
+                                alias = (alias == "No alias") ? undefined : alias;
+                            }
                         }
                     } catch (error) {
                         vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
@@ -127,7 +139,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             if (defproject != undefined) {
                 const profilesIndex = defproject.indexOf("profiles"),
                     menuSelections = connectSequence.menuSelections,
-                    launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined;
+                    launchProfiles = menuSelections ? menuSelections.leinProfiles : undefined;
                 if (launchProfiles) {
                     profiles = [...profiles, ...launchProfiles.map(_keywordize)];
                 } else {
@@ -225,10 +237,10 @@ const projectTypes: { [id: string]: ProjectType } = {
                 throw e;
             }
             const menuSelections = connectSequence.menuSelections,
-                launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined;
+                launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
             let aliases: string[] = [];
-            if (launchProfiles) {
-                aliases = launchProfiles.map(_keywordize);
+            if (launchAliases) {
+                aliases = launchAliases.map(_keywordize);
             } else {
                 let projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
                 const myAliases = state.config().myCljAliases;
@@ -294,13 +306,13 @@ const projectTypes: { [id: string]: ProjectType } = {
 
             const foundBuilds = await shadowBuilds(),
                 menuSelections = connectSequence.menuSelections,
-                launchProfiles = menuSelections ? menuSelections.projectLaunchProfilesOrAliases : undefined,
+                launchAliases = menuSelections ? menuSelections.cljAliases : undefined,
                 selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
 
             let aliases: string[] = [];
 
-            if (launchProfiles) {
-                aliases = launchProfiles.map(_keywordize);
+            if (launchAliases) {
+                aliases = launchAliases.map(_keywordize);
             } // TODO do the same as clj to prompt the user with a list of aliases
 
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';

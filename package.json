@@ -255,9 +255,27 @@
                                     "type": "object",
                                     "description": "Pre-selected menu options. If a slection is made here. Calva won't prompt for it.",
                                     "properties": {
-                                        "projectLaunchProfilesOrAliases": {
+                                        "leinProfiles": {
                                             "type": "array",
-                                            "description": "At Jack-in, use these project profiles, or aliases, to launch the repl.",
+                                            "description": "At Jack-in to a Leiningen project, use these profiles to launch the repl.",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "leinAlias": {
+                                            "description": "At Jack-in to a Leiningen project, launch with this alias. Set to null to launch with Calva's default task (a headless repl).",
+                                            "anyOf": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "null"
+                                                }
+                                            ]
+                                        },
+                                        "cljAliases": {
+                                            "type": "array",
+                                            "description": "At Jack-in to a Clojure CLI project, use these aliases to launch the repl.",
                                             "items": {
                                                 "type": "string"
                                             }
