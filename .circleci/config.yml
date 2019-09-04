@@ -14,7 +14,7 @@
          command: npm install -g vsce
       - run:
          name: Run Tests
-         command: echo Add Test execution
+         command: node cljs-out/test/cljs-lib-tests.js 
    build:
      docker:
        - image: circleci/openjdk:11.0.4-stretch-node
