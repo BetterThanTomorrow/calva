@@ -983,9 +983,8 @@
         }
     },
     "scripts": {
-        "watch-cljs": "npx shadow-cljs watch :test :calva-lib",
         "watch-webpack": "webpack --mode development --watch",
-        "watch-ts": "rm -rf ./out/* ./tsconfig.tsbuildinfo && tsc -watch -p ./tsconfig.json",
+        "watch-ts": "rm -rf ./out/* ./tsconfig.tsbuildinfo && npm run compile-cljs && tsc -watch -p ./tsconfig.json",
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
         "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\"",
