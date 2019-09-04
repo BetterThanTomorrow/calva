@@ -1,0 +1,38 @@
+ version: 2
+ jobs:
+   test:
+    docker:
+       - image: circleci/openjdk:11.0.4-stretch-node
+    working_directory: ~/calva
+    steps:
+      - checkout:
+         path: ~/calva
+      - run:
+         name: Install node_modules
+         command: npm install
+      - run:
+         name: Install vsce
+         command: npm install -g vsce
+      - run:
+         name: Run Tests
+         command: echo Add Test execution
+   build:
+     docker:
+       - image: circleci/openjdk:11.0.4-stretch-node
+     branches:
+        only:
+          - master
+     working_directory: ~/calva
+     steps:
+       - checkout:
+          path: ~/calva
+       - run:
+          name: Install node_modules
+          command: npm install
+       - run:
+          name: Install vsce
+          command: npm install -g vsce
+       - run:
+          name: Publish to marketplace
+          context: Calva
+          command: vsce publish -p $PUBLISH_TOKEN
