@@ -39,17 +39,16 @@ jobs:
       - run:
           name: Save version to file
           command: node -p 'require("./package.json").version' > /tmp/artifacts/version
-      - save_cache:
+      - persist_to_workspace:
+           root: /tmp
            paths:
-             - /tmp/artifacts
-           key: calva-{{ .BuildNum }}
+              - artifacts
   publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
     steps:
-      - restore_cache:
-          name: restoring previous cache
-          key: calva-{{ .BuildNum }}
+      - attach_workspace:
+         at: /tmp
       - run:
           name: Install vsce
           command: sudo npm install -g vsce
