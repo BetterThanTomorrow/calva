@@ -13,15 +13,15 @@ jobs:
       - run:
           name: Install node_modules
           command: npm install
+      - run:
+          name: Compile and Run Tests
+          command: npm run compile-cljs 
       - save_cache:
           name: Save dependencies
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
             - ~/.m2
-      - run:
-          name: Compile and Run Tests
-          command: npm run compile-cljs 
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
