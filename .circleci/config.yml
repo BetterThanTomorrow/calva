@@ -41,6 +41,9 @@
             cp *.vsix /tmp/artifacts/
        - store_artifacts:
            path: /tmp/artifacts
+       - run:
+          name: Save version to file
+          command: 'cat package.json grep version head -1 awk -F: \'{ print $2 }\' sed \'s/[",]//g\' > /tmp/artifacts/version'
        - save_cache:
            paths: /tmp/artifacts
            key: calva-{{ .BuildNum }}
@@ -55,20 +58,26 @@
            name: restoring previous cache
            key: calva-{{ .BuildNum }}
         - run:
-           name:
-           command: vsce publish --packagePath /tmp/artifacts/*.vsix -p $PUBLISH_TOKEN
+          name: Install vsce
+          command: npm install -g vsce
+        - run:
+           name: Set Version variable
+           commend: export CALVA_VERSION=$(cat /tmp/artifacts/version)
+        - run:
+           name: Publish to the marketplace
+           command: vsce publish --packagePath /tmp/artifacts/calva-$CALVA_VERSION.vsix -p $PUBLISH_TOKEN
  workflows:
   version: 2
-  master-build-publish:
+  build-publish:
     jobs:
-      - test:
+      - test
+      - build:
+          requires: test
+      - publish:
           filters:  
               branches:
                 only:
                   - master
-      - build:
-          requires: test
-      - publish:
           requires: build
           type: approval
 
