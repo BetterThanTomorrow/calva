@@ -33,6 +33,9 @@ jobs:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
+          name: Tamper Calva version if not release
+          command: test "release" = "${CIRCLE_BRANCH}" && echo 'No version tampering on release branch' || npx json -I -f package.json -e 'this.version=this.version.replace(/$/, "-'${CIRCLE_SHA1:0:8}'")'
+      - run:
           name: package vsix
           command: npx vsce package
       - run:
