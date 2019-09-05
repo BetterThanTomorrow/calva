@@ -14,10 +14,11 @@ jobs:
           name: Install node_modules
           command: npm install
       - save_cache:
-          name: Save node-modules
+          name: Save dependencies
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
-            - ./
+            - ./node_modules
+            - ~/.m2
       - run:
           name: Compile and Run Tests
           command: npm run compile-cljs 
@@ -29,7 +30,7 @@ jobs:
       - checkout:
           path: ~/calva
       - restore_cache: 
-          name: Restore node-modules
+          name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: package vsix
@@ -55,7 +56,7 @@ jobs:
       - checkout:
           path: ~/calva
       - restore_cache: 
-          name: Restore node-modules
+          name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Publish to the marketplace
