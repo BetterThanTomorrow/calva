@@ -73,6 +73,6 @@ workflows:
           filters:  
                 branches:
                   only:
-                    - master
+                    - release
           context: Calva
           type: approval
