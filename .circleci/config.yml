@@ -11,9 +11,6 @@ jobs:
           name: Install node_modules
           command: npm install
       - run:
-          name: Install vsce
-          command: npm install -g vsce
-      - run:
           name: Run Tests
           command: node cljs-out/test/cljs-lib-tests.js 
   build:
@@ -28,7 +25,7 @@ jobs:
           command: npm install
       - run:
           name: Install vsce
-          command: npm install -g vsce
+          command: sudo npm install -g vsce
       - run:
           name: package vsix
           command: vsce package
@@ -55,7 +52,7 @@ jobs:
           key: calva-{{ .BuildNum }}
       - run:
           name: Install vsce
-          command: npm install -g vsce
+          command: sudo npm install -g vsce
       - run:
           name: Set Version variable
           command: export CALVA_VERSION=$(cat /tmp/artifacts/version)
