@@ -8,7 +8,7 @@ jobs:
       - checkout:
           path: ~/calva
       - restore_cache: 
-          name: Restore node-modules
+          name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install node_modules
