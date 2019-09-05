@@ -58,11 +58,8 @@ jobs:
           name: Restore node-modules
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: Set Version variable
-          command: export CALVA_VERSION=$(node -p 'require("./package.json").version')
-      - run:
           name: Publish to the marketplace
-          command: npx vsce publish --packagePath /tmp/artifacts/calva-$CALVA_VERSION.vsix -p $PUBLISH_TOKEN
+          command: npx vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}
 workflows:
   version: 2
   build_publish:
