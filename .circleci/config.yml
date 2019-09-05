@@ -17,7 +17,7 @@ jobs:
           name: Save node-modules
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
-            - ./node_modules
+            - ./
       - run:
           name: Compile and Run Tests
           command: npm run compile-cljs 
@@ -51,6 +51,8 @@ jobs:
     steps:
       - attach_workspace:
          at: /tmp
+      - checkout:
+          path: ~/calva
       - restore_cache: 
           name: Restore node-modules
           key: dependency-cache-{{ checksum "package.json" }}
