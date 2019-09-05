@@ -257,11 +257,11 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                 useDefaultBuild = false;
             } else {
                 if ((typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
-                    const projectBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                     build = await util.quickPickSingle({
-                        values: startedBuilds ? startedBuilds : projectBuilds,
+                        values: startedBuilds ? startedBuilds : figwheelOrShadowBuilds(cljsTypeName),
                         placeHolder: "Select which build to connect to",
-                        saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`
+                        saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`,
+                        autoSelect: true
                     });
                 }
             }
