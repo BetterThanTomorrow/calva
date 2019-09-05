@@ -7,9 +7,17 @@ jobs:
     steps:
       - checkout:
           path: ~/calva
+      - restore_cache: 
+          name: Restore node-modules
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install node_modules
           command: npm install
+      - save_cache:
+          name: Save node-modules
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
       - run:
           name: Compile and Run Tests
           command: npm run compile-cljs 
@@ -20,9 +28,17 @@ jobs:
     steps:
       - checkout:
           path: ~/calva
+      - restore_cache: 
+          name: Restore node-modules
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install node_modules
           command: npm install
+      - save_cache:
+          name: Save node-modules
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
       - run:
           name: Install vsce
           command: sudo npm install -g vsce
