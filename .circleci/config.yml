@@ -67,12 +67,16 @@ workflows:
       - build:
           requires:
             - test
-      - publish:
+      - publish-approval:
           requires:
             - build
           filters:  
                 branches:
                   only:
                     - release
-          context: Calva
           type: approval
+      - publish:
+          requires:
+            - publish-approval
+          context: Calva
+          
