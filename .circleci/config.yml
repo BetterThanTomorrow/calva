@@ -19,9 +19,6 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
-    branches:
-      only:
-        - master
     working_directory: ~/calva
     steps:
       - checkout:
@@ -46,14 +43,12 @@ jobs:
           name: Save version to file
           command: "node -p 'require(\"./package.json\").version' > /tmp/artifacts/version"
       - save_cache:
-           paths: /tmp/artifacts
+           paths:
+             - /tmp/artifacts
            key: calva-{{ .BuildNum }}
   publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
-    branches:
-      only:
-        - master
     steps:
       - restore_cache:
           name: restoring previous cache
@@ -63,7 +58,7 @@ jobs:
           command: npm install -g vsce
       - run:
           name: Set Version variable
-          commend: export CALVA_VERSION=$(cat /tmp/artifacts/version)
+          command: export CALVA_VERSION=$(cat /tmp/artifacts/version)
       - run:
           name: Publish to the marketplace
           command: vsce publish --packagePath /tmp/artifacts/calva-$CALVA_VERSION.vsix -p $PUBLISH_TOKEN
@@ -73,14 +68,16 @@ workflows:
     jobs:
       - test
       - build:
-          requires: test
+          requires:
+            - test
           filters:
             branches:
               only:
                 - master
                 - development
       - publish:
-          requires: build
+          requires:
+            - build
           filters:  
                 branches:
                   only:
