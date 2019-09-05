@@ -989,7 +989,7 @@
         "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
         "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\"",
         "webpack-release": "webpack --mode production",
-        "compile-cljs": "npx shadow-cljs compile :calva-lib",
+        "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "compile": "npm run compile-cljs && npm run webpack",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
