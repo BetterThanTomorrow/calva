@@ -1,83 +1,88 @@
-  jobs:
-   test:
+version: 2
+jobs:
+  test:
     docker:
-       - image: circleci/openjdk:11.0.4-stretch-node
+      - image: circleci/openjdk:11.0.4-stretch-node
     working_directory: ~/calva
     steps:
       - checkout:
-         path: ~/calva
-      - run:
-         name: Install node_modules
-         command: npm install
-      - run:
-         name: Install vsce
-         command: npm install -g vsce
-      - run:
-         name: Run Tests
-         command: node cljs-out/test/cljs-lib-tests.js 
-   build:
-     docker:
-       - image: circleci/openjdk:11.0.4-stretch-node
-     branches:
-        only:
-          - master
-     working_directory: ~/calva
-     steps:
-       - checkout:
           path: ~/calva
-       - run:
+      - run:
           name: Install node_modules
           command: npm install
-       - run:
+      - run:
           name: Install vsce
           command: npm install -g vsce
-       - run:
+      - run:
+          name: Run Tests
+          command: node cljs-out/test/cljs-lib-tests.js 
+  build:
+    docker:
+      - image: circleci/openjdk:11.0.4-stretch-node
+    branches:
+      only:
+        - master
+    working_directory: ~/calva
+    steps:
+      - checkout:
+          path: ~/calva
+      - run:
+          name: Install node_modules
+          command: npm install
+      - run:
+          name: Install vsce
+          command: npm install -g vsce
+      - run:
           name: package vsix
           command: vsce package
-       - run:
+      - run:
           name: Copy vsix
           command: |
             mkdir /tmp/artifacts
             cp *.vsix /tmp/artifacts/
-       - store_artifacts:
+      - store_artifacts:
            path: /tmp/artifacts
-       - run:
+      - run:
           name: Save version to file
-          command: 'cat package.json grep version head -1 awk -F: \'{ print $2 }\' sed \'s/[",]//g\' > /tmp/artifacts/version'
-       - save_cache:
+          command: "node -p 'require(\"./package.json\").version' > /tmp/artifacts/version"
+      - save_cache:
            paths: /tmp/artifacts
            key: calva-{{ .BuildNum }}
-   publish:
-      docker:
-         - image: circleci/openjdk:11.0.4-stretch-node
-      branches:
-       only:
-         - master
-      steps:
-        - restore_cache:
-           name: restoring previous cache
-           key: calva-{{ .BuildNum }}
-        - run:
+  publish:
+    docker:
+      - image: circleci/openjdk:11.0.4-stretch-node
+    branches:
+      only:
+        - master
+    steps:
+      - restore_cache:
+          name: restoring previous cache
+          key: calva-{{ .BuildNum }}
+      - run:
           name: Install vsce
           command: npm install -g vsce
-        - run:
-           name: Set Version variable
-           commend: export CALVA_VERSION=$(cat /tmp/artifacts/version)
-        - run:
-           name: Publish to the marketplace
-           command: vsce publish --packagePath /tmp/artifacts/calva-$CALVA_VERSION.vsix -p $PUBLISH_TOKEN
- workflows:
+      - run:
+          name: Set Version variable
+          commend: export CALVA_VERSION=$(cat /tmp/artifacts/version)
+      - run:
+          name: Publish to the marketplace
+          command: vsce publish --packagePath /tmp/artifacts/calva-$CALVA_VERSION.vsix -p $PUBLISH_TOKEN
+workflows:
   version: 2
-  build-publish:
+  build_publish:
     jobs:
       - test
       - build:
           requires: test
+          filters:
+            branches:
+              only:
+                - master
+                - development
       - publish:
-          filters:  
-              branches:
-                only:
-                  - master
           requires: build
+          filters:  
+                branches:
+                  only:
+                    - master
           type: approval
-
