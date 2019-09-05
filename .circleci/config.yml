@@ -48,6 +48,7 @@ jobs:
   publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
+    working_directory: ~/calva
     steps:
       - attach_workspace:
          at: /tmp
