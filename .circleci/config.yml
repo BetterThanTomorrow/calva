@@ -67,11 +67,6 @@ workflows:
       - build:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - master
-                - development
       - publish:
           requires:
             - build
@@ -79,4 +74,5 @@ workflows:
                 branches:
                   only:
                     - master
+          context: Calva
           type: approval
