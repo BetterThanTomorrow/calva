@@ -11,8 +11,8 @@ jobs:
           name: Install node_modules
           command: npm install
       - run:
-          name: Run Tests
-          command: node cljs-out/test/cljs-lib-tests.js 
+          name: Compile and Run Tests
+          command: npm run compile-cljs 
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
