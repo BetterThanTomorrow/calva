@@ -189,7 +189,8 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
         haveShownAppURL = false,
         haveShownStartSuffix = false,
         hasStarted = cljsType.isStarted,
-        useDefaultBuild = true;
+        useDefaultBuild = true,
+        startedBuilds: string[];
     const chan = state.outputChannel(),
         // The output processors are used to keep the user informed about the connection process
         // The output from Figwheel is meant for printing to the REPL prompt,
@@ -255,11 +256,10 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                 build = menuSelections.cljsDefaultBuild;
                 useDefaultBuild = false;
             } else {
-                // TODO: Only allow selecting builds that have been started
                 if ((typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
-                    let allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+                    const projectBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                     build = await util.quickPickSingle({
-                        values: allBuilds,
+                        values: startedBuilds ? startedBuilds : projectBuilds,
                         placeHolder: "Select which build to connect to",
                         saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`
                     });
@@ -304,7 +304,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         builds = menuSelections.cljsLaunchBuilds;
                     }
                     else {
-                        const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
+                        const allBuilds = figwheelOrShadowBuilds(cljsTypeName);
                         builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
                             values: allBuilds,
                             placeHolder: "Please select which builds to start",
@@ -315,7 +315,11 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         chan.appendLine("Starting cljs repl for: " + projectTypeName + "...");
                         state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                         startCode = startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
-                        return evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
+                        const result = evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
+                        if (result) {
+                            startedBuilds = builds;
+                        }
+                        return result;
                     } else {
                         chan.appendLine("Aborted starting cljs repl.");
                         throw "Aborted";
