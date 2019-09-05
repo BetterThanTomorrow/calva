@@ -38,7 +38,7 @@ jobs:
            path: /tmp/artifacts
       - run:
           name: Save version to file
-          command: "node -p 'require(\"./package.json\").version' > /tmp/artifacts/version"
+          command: node -p 'require("./package.json").version' > /tmp/artifacts/version
       - save_cache:
            paths:
              - /tmp/artifacts
