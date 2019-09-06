@@ -6,17 +6,21 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
+Latest build on `master`:
+
+[![CircleCI](https://circleci.com/gh/BetterThanTomorrow/calva.svg?style=svg)](https://circleci.com/gh/BetterThanTomorrow/calva)
+
 ## Raison d´être
 
-With Calva we hope to help lower the barriers into the Clojure world. The idea is that by leveraging the strengths of VS Code and nREPL, we can offer a turn-key, productive environment in which to learn and use Clojure and ClojureScript.
+With Calva we want to help to lower the barriers into the Clojure world. By leveraging the strengths of VS Code and nREPL, we think we can offer an environment in which it is easy to get started with Clojure and ClojureScript, and wich is productive enough for seasoned Clojurians to stay with.
 
 ## How to Connect Calva to your project
 
-Connect by letting Calva start your project (_a.k.a. **Jack-in**_).
+Let Calva start your project (_a.k.a. **Jack-in**_).
 
-1. Open your project in VS Code.
-1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
-1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
+1. Open your project in VS Code, and a file in the project. From the command line it could be something like: `code path/to/myproject README.md`.
+1. Issue the command **Start a REPL project and connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`.
+1. Answer the prompts where Calva asks you a few things about your project.
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
 
@@ -40,6 +44,7 @@ When something doesn't work and you think there might be a workaround for it, pl
 ## Features
 
 ### At a glance
+- Quickly and easily get your REPL connected
 - Evaluate code inline
 - Run tests
 - Integrated REPL windows
