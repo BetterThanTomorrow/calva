@@ -34,7 +34,14 @@ jobs:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Tamper Calva version if not release
-          command: test "release" = "${CIRCLE_BRANCH}" && echo 'No version tampering on release branch' || npx json -I -f package.json -e 'this.version=this.version.replace(/$/, "-'${CIRCLE_SHA1:0:8}'")'
+          command: |
+            if [ "release" = "${CIRCLE_BRANCH}" ]
+            then
+              echo 'No version tampering on release branch'
+            else
+              echo "Bump version and append some commit sha"
+              echo npx json -I -f package.json -e 'const semver = require("semver");this.version=semver.inc(this.version,"patch").replace(/$/,"'-${CIRCLE_BRANCH}-${CIRCLE_SHA1:0:8}'")'
+            fi
       - run:
           name: package vsix
           command: npx vsce package
