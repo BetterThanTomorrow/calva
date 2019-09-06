@@ -40,7 +40,13 @@ jobs:
               echo 'No version tampering on release branch'
             else
               echo "Bump version and append some commit sha"
-              npx json -I -f package.json -e 'const semver = require("semver");this.version=semver.inc(this.version,"patch").replace(/$/,"'-${CIRCLE_BRANCH}-${CIRCLE_SHA1:0:8}'")'
+              npm config set git-tag-version false
+              npm version patch
+              BRANCH=${CIRCLE_BRANCH//\//-}
+              COMMIT=${CIRCLE_SHA1:0:8}
+              PRERELEASE=${BRANCH}-${COMMIT}
+              echo "Addding prerelease: ${PRERELEASE}"
+              npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
             fi
       - run:
           name: package vsix
