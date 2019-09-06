@@ -40,7 +40,7 @@ jobs:
               echo 'No version tampering on release branch'
             else
               echo "Bump version and append some commit sha"
-              echo npx json -I -f package.json -e 'const semver = require("semver");this.version=semver.inc(this.version,"patch").replace(/$/,"'-${CIRCLE_BRANCH}-${CIRCLE_SHA1:0:8}'")'
+              npx json -I -f package.json -e 'const semver = require("semver");this.version=semver.inc(this.version,"patch").replace(/$/,"'-${CIRCLE_BRANCH}-${CIRCLE_SHA1:0:8}'")'
             fi
       - run:
           name: package vsix
