@@ -33,28 +33,61 @@ jobs:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
+         name: "Create artifacts workspace"
+         command: mkdir /tmp/artifacts
+      - run:
           name: Tamper Calva version if not master
           command: |
             if [ "master" = "${CIRCLE_BRANCH}" ]
             then
               echo 'No version tampering on master branch'
             else
-              echo "Bump version and append commit sha fragment"
-              # npm config set git-tag-version false
-              # npm version patch
               BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
               COMMIT=${CIRCLE_SHA1:0:8}
-              PRERELEASE=${BRANCH}-${CIRCLE_BUILD_NUM}-${COMMIT}
-              echo "Addding prerelease: ${PRERELEASE}"
+              PRERELEASE=${BRANCH}-${COMMIT}
+              echo "Append prerelease to version: -${PRERELEASE}"
               npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
             fi
+            VERSION=$(node -p 'require("./package.json").version')
+            echo VERSION=${VERSION} > /tmp/artifacts/env
       - run:
-          name: package vsix
+          name: Tag Commit
+          command: |
+            source /tmp/artifacts/env
+            HEAD_MSG=$(git log --format=%B -n 1 HEAD)
+            EXTRA_RELEASE_OPTIONS=""
+
+            if [ "master" = "${CIRCLE_BRANCH}" ]
+            then
+              TAG_MSG="${HEAD_MSG}"
+            elif [ "dev" = "${CIRCLE_BRANCH}" ]
+            then
+              TAG_MSG="[Prerelease] ${HEAD_MSG}"
+              EXTRA_RELEASE_OPTIONS="-prerelease"
+            else
+              TAG_MSG="[Build] ${HEAD_MSG}"
+              EXTRA_RELEASE_OPTIONS="-prerelease -draft"
+            fi
+            echo EXTRA_RELEASE_OPTIONS=${EXTRA_RELEASE_OPTIONS}
+            echo TAG_MSG=${TAG_MSG}
+
+            GIT_TAG_CMD="git tag -a v${VERSION} -m'${TAG_MSG//\'/\\\'}'"
+            if [ -z "${CIRCLE_BUILD_NUM}" ]
+            then
+              echo "Dry ${GIT_TAG_CMD}"
+              echo "Dry push origin ${}"
+            else
+              ${GIT_TAG_CMD}
+              git push
+            fi
+
+            echo EXTRA_RELEASE_OPTIONS=${EXTRA_RELEASE_OPTIONS} >> /tmp/artifacts/env
+      - run:
+          name: Package vsix
           command: npx vsce package
       - run:
           name: Copy vsix
           command: |
-            mkdir /tmp/artifacts
             cp *.vsix /tmp/artifacts/
       - store_artifacts:
            path: /tmp/artifacts
@@ -62,6 +95,17 @@ jobs:
            root: /tmp
            paths:
               - artifacts
+  github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            source /tmp/artifacts/env
+            ghr -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
   publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
@@ -85,6 +129,9 @@ workflows:
       - build:
           requires:
             - test
+      - github-release:
+          requires:
+            - build
       - publish-approval:
           requires:
             - build
@@ -97,4 +144,3 @@ workflows:
           requires:
             - publish-approval
           context: Calva
-          
