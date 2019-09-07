@@ -33,18 +33,18 @@ jobs:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: Tamper Calva version if not release
+          name: Tamper Calva version if not master
           command: |
-            if [ "release" = "${CIRCLE_BRANCH}" ]
+            if [ "master" = "${CIRCLE_BRANCH}" ]
             then
-              echo 'No version tampering on release branch'
+              echo 'No version tampering on master branch'
             else
               echo "Bump version and append commit sha fragment"
-              npm config set git-tag-version false
-              npm version patch
+              # npm config set git-tag-version false
+              # npm version patch
               BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
               COMMIT=${CIRCLE_SHA1:0:8}
-              PRERELEASE=${BRANCH}-${COMMIT}
+              PRERELEASE=${BRANCH}-${CIRCLE_BUILD_NUM}-${COMMIT}
               echo "Addding prerelease: ${PRERELEASE}"
               npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
             fi
@@ -91,7 +91,7 @@ workflows:
           filters:  
                 branches:
                   only:
-                    - release
+                    - master
           type: approval
       - publish:
           requires:
