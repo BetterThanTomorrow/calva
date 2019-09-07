@@ -39,10 +39,10 @@ jobs:
             then
               echo 'No version tampering on release branch'
             else
-              echo "Bump version and append some commit sha"
+              echo "Bump version and append commit sha fragment"
               npm config set git-tag-version false
               npm version patch
-              BRANCH=${CIRCLE_BRANCH//\//-}
+              BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
               COMMIT=${CIRCLE_SHA1:0:8}
               PRERELEASE=${BRANCH}-${COMMIT}
               echo "Addding prerelease: ${PRERELEASE}"
