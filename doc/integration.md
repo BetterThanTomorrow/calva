@@ -1,5 +1,5 @@
 
-Description of the Calva development process.
+Description of the Calva development and release process.
 
 _Draft._
 
@@ -24,11 +24,9 @@ Smaller changes:
 1. When a PR looks good, we merge it onto `dev`.
 1. Consider if `README.md` needs update.
 1. Make sure that `CHANGELOG.md` contains the right stuff.
-1. `$ npm config set git-tag-version false && npm version patch`
-   * This will bump the Calva version.
 1. Commit with a message like: ”Add feature: **Short Release Description Title**"
-1. (Optional) Tag the prerelease with **vVERSION-release-description-title** and pushes a prerelease to GitHub.
-1. Push. (`--follow-tags` if applicable)
+1. Tag the prerelease with `v<VERSION>-release-description-title` to push a prerelease to GitHub.
+1. Push. (Use `--follow-tags`)
 1. When `dev` is pushed, Circle CI run our tests, and builds a VSIX.
 1. Download this VSIX and test it.
 
@@ -38,13 +36,14 @@ Smaller changes:
 When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
 1. Merge `dev` onto `master`.
-1. Push `master`.
+1. Tag with `v<VERSION>`
+1. Push `master` (Using `--follow-tags`).
    * This will build the release VSIX, push a relase to GitHub, and publish it on the extension Marketplace.
    * You'll get an e-mail when it is published.
 1. When the new version is live, immediatelly install it and see that it works.
    * If the Marketplace version works:
-     1. On the `dev` branch, bump the `patch` part of the version in `package.json`.
-     1. Commit with this message: "Bring on version: **new version**”.
+     1. On `dev`: `$ npm run bump-version`
+     1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
      1. Push.
    * If the Marketplace version does not work:
      1. Install the artifact from the release build and test it.
