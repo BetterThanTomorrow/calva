@@ -91,7 +91,7 @@ jobs:
           command: |
             EXTRA_RELEASE_OPTIONS=""
 
-            if [ "${CIRCLE_TAG}" =~ "^v[0-9]+\.[0-9]+\.[0-9]+$" ]
+            if [ "${CIRCLE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]
             then
               echo "Publishing GitHub Release: ${CIRCLE_TAG}"
             else
