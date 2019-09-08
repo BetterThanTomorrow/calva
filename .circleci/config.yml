@@ -62,7 +62,6 @@ jobs:
             then
               VERSION=$(node -p 'require("./package.json").version')
               echo "Using version: ${VERSION}"
-              echo VERSION=${VERSION} > /tmp/env
             else
               echo >&2 "FATAL! Version missmatch between package.json and tag. Aborting."
               exit 1
@@ -90,7 +89,6 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            source /tmp/env || echo "No env? Hopefully a local run."
             EXTRA_RELEASE_OPTIONS=""
 
             if [ "${CIRCLE_TAG}" =~ "^v\d+\.\d+\.\d+$" ]
@@ -100,7 +98,7 @@ jobs:
               echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
               EXTRA_RELEASE_OPTIONS=-prerelease
             fi
-            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/artifacts/"
+            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${${CIRCLE_TAG}} /tmp/artifacts/"
 
             if [ -z "${CIRCLE_BUILD_NUM}" ]
             then
