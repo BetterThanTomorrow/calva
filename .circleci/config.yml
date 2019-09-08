@@ -111,12 +111,16 @@ workflows:
     jobs:
       - test:
           filters:
+            branches:
+              ignore: master
             tags:
               only: /.*/
       - build:
           requires:
             - test
           filters:
+            branches:
+              ignore: master
             tags:
               only: /.*/
       - github-release:
@@ -133,7 +137,7 @@ workflows:
             - github-release
           filters:
             branches:
-              only: master
+              ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+/
+              only: /^v\d+\.\d+\.\d+$/
           context: Calva
