@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout:
           path: ~/calva
-      - restore_cache: 
+      - restore_cache:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
@@ -15,7 +15,7 @@ jobs:
           command: npm install
       - run:
           name: Compile and Run Tests
-          command: npm run compile-cljs 
+          command: npm run compile-cljs
       - save_cache:
           name: Save dependencies
           key: dependency-cache-{{ checksum "package.json" }}
@@ -29,12 +29,12 @@ jobs:
     steps:
       - checkout:
           path: ~/calva
-      - restore_cache: 
+      - restore_cache:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-         name: "Create artifacts workspace"
-         command: mkdir /tmp/artifacts
+          name: "Create artifacts workspace"
+          command: mkdir /tmp/artifacts
       - run:
           name: Tamper Calva version if not master
           command: |
@@ -51,38 +51,6 @@ jobs:
             VERSION=$(node -p 'require("./package.json").version')
             echo VERSION=${VERSION} > /tmp/artifacts/env
       - run:
-          name: Tag Commit
-          command: |
-            source /tmp/artifacts/env
-            HEAD_MSG=$(git log --format=%B -n 1 HEAD)
-            EXTRA_RELEASE_OPTIONS=""
-
-            if [ "master" = "${CIRCLE_BRANCH}" ]
-            then
-              TAG_MSG="${HEAD_MSG}"
-            elif [ "dev" = "${CIRCLE_BRANCH}" ]
-            then
-              TAG_MSG="[Prerelease] ${HEAD_MSG}"
-              EXTRA_RELEASE_OPTIONS="-prerelease"
-            else
-              TAG_MSG="[Build] ${HEAD_MSG}"
-              EXTRA_RELEASE_OPTIONS="-prerelease -draft"
-            fi
-            echo EXTRA_RELEASE_OPTIONS=${EXTRA_RELEASE_OPTIONS}
-            echo TAG_MSG=${TAG_MSG}
-
-            GIT_TAG_CMD="git tag -a v${VERSION} -m'${TAG_MSG//\'/\\\'}'"
-            if [ -z "${CIRCLE_BUILD_NUM}" ]
-            then
-              echo "Dry ${GIT_TAG_CMD}"
-              echo "Dry push origin ${}"
-            else
-              ${GIT_TAG_CMD}
-              git push
-            fi
-
-            echo EXTRA_RELEASE_OPTIONS=${EXTRA_RELEASE_OPTIONS} >> /tmp/artifacts/env
-      - run:
           name: Package vsix
           command: npx vsce package
       - run:
@@ -90,11 +58,11 @@ jobs:
           command: |
             cp *.vsix /tmp/artifacts/
       - store_artifacts:
-           path: /tmp/artifacts
+          path: /tmp/artifacts
       - persist_to_workspace:
-           root: /tmp
-           paths:
-              - artifacts
+          root: /tmp
+          paths:
+            - artifacts
   github-release:
     docker:
       - image: cibuilds/github:0.10
@@ -104,18 +72,34 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            source /tmp/artifacts/env
-            ghr -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
-  publish:
+            source /tmp/artifacts/env || echo "No env? Hopefully a local run."
+            EXTRA_RELEASE_OPTIONS=""
+
+            if [ "master" = "${CIRCLE_BRANCH}" ]
+            then
+              echo "Publishing GitHub Release: ${CIRCLE_TAG}"
+            else
+              echo "Not on master, publishing as a prerelease: ${CIRCLE_TAG}"
+              EXTRA_RELEASE_OPTIONS=-prerelease
+            fi
+            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/artifacts/"
+
+            if [ -z "${CIRCLE_BUILD_NUM}" ]
+            then
+              echo "Dry ghr ${GHR_ARGS}"
+            else
+              ghr ${GHR_ARGS}
+            fi
+  marketplace-publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
     working_directory: ~/calva
     steps:
       - attach_workspace:
-         at: /tmp
+          at: /tmp
       - checkout:
           path: ~/calva
-      - restore_cache: 
+      - restore_cache:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
@@ -132,15 +116,16 @@ workflows:
       - github-release:
           requires:
             - build
-      - publish-approval:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+/
+          context: Calva
+      - marketplace-publish:
           requires:
-            - build
-          filters:  
-                branches:
-                  only:
-                    - master
-          type: approval
-      - publish:
-          requires:
-            - publish-approval
+            - github-release
+          filters:
+            branches:
+              only: master
           context: Calva
