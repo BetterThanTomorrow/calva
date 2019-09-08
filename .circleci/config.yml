@@ -109,6 +109,7 @@ workflows:
   version: 2
   build_publish:
     jobs:
+      - test
       - build:
           requires:
             - test
