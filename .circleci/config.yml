@@ -98,7 +98,7 @@ jobs:
               echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
               EXTRA_RELEASE_OPTIONS=-prerelease
             fi
-            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${${CIRCLE_TAG}} /tmp/artifacts/"
+            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/"
 
             if [ -z "${CIRCLE_BUILD_NUM}" ]
             then
