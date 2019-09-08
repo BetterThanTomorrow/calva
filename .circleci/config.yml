@@ -109,20 +109,9 @@ workflows:
   version: 2
   build_publish:
     jobs:
-      - test:
-          filters:
-            branches:
-              only: /.*/
-            tags:
-              only: /.*/
       - build:
           requires:
             - test
-          filters:
-            branches:
-              only: /.*/
-            tags:
-              only: /.*/
       - github-release:
           requires:
             - build
