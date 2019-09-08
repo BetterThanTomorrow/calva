@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.34",
+    "version": "2.0.35",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -1149,6 +1149,7 @@
         "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
         "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\"",
         "webpack-release": "webpack --mode production",
+        "bump-version": "npm set git-tag-version false && npm version patch",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "compile": "npm run compile-cljs && npm run webpack",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",

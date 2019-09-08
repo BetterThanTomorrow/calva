@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout:
           path: ~/calva
-      - restore_cache: 
+      - restore_cache:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
@@ -15,7 +15,7 @@ jobs:
           command: npm install
       - run:
           name: Compile and Run Tests
-          command: npm run compile-cljs 
+          command: npm run compile-cljs
       - save_cache:
           name: Save dependencies
           key: dependency-cache-{{ checksum "package.json" }}
@@ -29,72 +29,154 @@ jobs:
     steps:
       - checkout:
           path: ~/calva
-      - restore_cache: 
+      - restore_cache:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: Tamper Calva version if not release
+          name: "Create artifacts workspace"
+          command: mkdir /tmp/artifacts
+      - run:
+          name: Tamper Calva version if not master
           command: |
-            if [ "release" = "${CIRCLE_BRANCH}" ]
+            VERSION=$(node -p 'require("./package.json").version')
+            TAG_VERSION=NO-TAG
+            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
             then
-              echo 'No version tampering on release branch'
+              TAG_VERSION=${BASH_REMATCH[1]}
+              echo 'No version tampering because this is a release tag'
             else
-              echo "Bump version and append commit sha fragment"
-              npm config set git-tag-version false
-              npm version patch
-              BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
               COMMIT=${CIRCLE_SHA1:0:8}
-              PRERELEASE=${BRANCH}-${COMMIT}
-              echo "Addding prerelease: ${PRERELEASE}"
+              if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
+              then
+                TAG_VERSION=${BASH_REMATCH[1]}
+                TAG_TITLE=${BASH_REMATCH[2]}
+                PRERELEASE=${TAG_TITLE}-${COMMIT}
+              else
+                BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
+                PRERELEASE=${BRANCH}-${COMMIT}
+              fi
+              echo "Append prerelease to version: -${PRERELEASE}"
               npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
             fi
+            if [ ${TAG_VERSION} = NO-TAG -o "${TAG_VERSION}" = "${VERSION}" ]
+            then
+              VERSION=$(node -p 'require("./package.json").version')
+              echo "Using version: ${VERSION}"
+            else
+              echo >&2 "FATAL! Version missmatch between package.json and tag. Aborting."
+              exit 1
+            fi
       - run:
-          name: package vsix
+          name: Package vsix
           command: npx vsce package
       - run:
           name: Copy vsix
           command: |
-            mkdir /tmp/artifacts
             cp *.vsix /tmp/artifacts/
       - store_artifacts:
-           path: /tmp/artifacts
+          path: /tmp/artifacts
       - persist_to_workspace:
-           root: /tmp
-           paths:
-              - artifacts
-  publish:
+          root: /tmp
+          paths:
+            - artifacts
+            - env
+  github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            EXTRA_RELEASE_OPTIONS=""
+
+            if [[ "${CIRCLE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            then
+              echo "Publishing GitHub Release: ${CIRCLE_TAG}"
+            else
+              echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
+              EXTRA_RELEASE_OPTIONS=-prerelease
+            fi
+            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/"
+
+            if [ "${IS_LOCAL}" = YES ]
+            then
+              echo "Dry ghr ${GHR_ARGS}"
+            else
+              ghr ${GHR_ARGS}
+            fi
+  marketplace-publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
     working_directory: ~/calva
     steps:
       - attach_workspace:
-         at: /tmp
+          at: /tmp
       - checkout:
           path: ~/calva
-      - restore_cache: 
+      - restore_cache:
           name: Restore dependencies
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Publish to the marketplace
-          command: npx vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}
+          command: |
+            TAGGED_BRANCH=$(git branch --contains tags/${CIRCLE_TAG})
+            if [[ "${TAGGED_BRANCH/\*/}" =~ master ]]
+            then
+              echo "Tag is on master. Proceeding with publish."
+            else
+              echo >&2 "FATAL! Tag is not on master. Aborting."
+              exit 1
+            fi
+
+            VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
+
+            if [ "${IS_LOCAL}" = YES ]
+            then
+              echo "Dry npx ${VSCE_CMD}"
+            else
+              npx ${VSCE_CMD}
+            fi
 workflows:
   version: 2
-  build_publish:
+  build-test:
     jobs:
       - test
       - build:
           requires:
             - test
-      - publish-approval:
+  build-test-release-publish:
+    jobs:
+      - test:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - build:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - github-release:
           requires:
             - build
-          filters:  
-                branches:
-                  only:
-                    - release
-          type: approval
-      - publish:
-          requires:
-            - publish-approval
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
           context: Calva
-          
+      - marketplace-publish:
+          requires:
+            - github-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+          context: Calva
