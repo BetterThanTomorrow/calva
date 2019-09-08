@@ -137,7 +137,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+/
+              only: /^v\d+\.\d+\.\d+-?/
       - build:
           requires:
             - test
@@ -145,7 +145,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+/
+              only: /^v\d+\.\d+\.\d+-?/
       - github-release:
           requires:
             - build
@@ -153,7 +153,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v\d+\.\d+\.\d+/
+              only: /^v\d+\.\d+\.\d+-?/
           context: Calva
       - marketplace-publish:
           requires:
