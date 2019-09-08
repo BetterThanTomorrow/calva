@@ -38,18 +38,35 @@ jobs:
       - run:
           name: Tamper Calva version if not master
           command: |
-            if [ "master" = "${CIRCLE_BRANCH}" ]
+            VERSION=$(node -p 'require("./package.json").version')
+            TAG_VERSION=NO-TAG
+            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
             then
-              echo 'No version tampering on master branch'
+              TAG_VERSION=${BASH_REMATCH[1]}
+              echo 'No version tampering because this is a release tag'
             else
-              BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
               COMMIT=${CIRCLE_SHA1:0:8}
-              PRERELEASE=${BRANCH}-${COMMIT}
+              if [[  "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)-(.*) ]]
+              then
+                TAG_VERSION=${BASH_REMATCH[1]}
+                TAG_TITLE=${BASH_REMATCH[2]}
+                PRERELEASE=${TAG_TITLE}-${COMMIT}
+              else
+                BRANCH=${CIRCLE_BRANCH//[^[:alnum:]]/-}
+                PRERELEASE=${BRANCH}-${COMMIT}
+              fi
               echo "Append prerelease to version: -${PRERELEASE}"
               npx json -I -f package.json -e 'this.version=this.version.replace(/$/,"-'${PRERELEASE}'")'
             fi
-            VERSION=$(node -p 'require("./package.json").version')
-            echo VERSION=${VERSION} > /tmp/artifacts/env
+            if [ ${TAG_VERSION} = NO-TAG -o "${TAG_VERSION}" = "${VERSION}"  ]
+            then
+              VERSION=$(node -p 'require("./package.json").version')
+              echo "Using version: ${VERSION}"
+              echo VERSION=${VERSION} > /tmp/artifacts/env
+            else
+              echo >&2 "FATAL! Version missmatch between package.json and tag. Aborting."
+              exit 1
+            fi
       - run:
           name: Package vsix
           command: npx vsce package
@@ -75,11 +92,11 @@ jobs:
             source /tmp/artifacts/env || echo "No env? Hopefully a local run."
             EXTRA_RELEASE_OPTIONS=""
 
-            if [ "master" = "${CIRCLE_BRANCH}" ]
+            if [ "${CIRCLE_TAG}" =~ "^v\d+\.\d+\.\d+$" ]
             then
               echo "Publishing GitHub Release: ${CIRCLE_TAG}"
             else
-              echo "Not on master, publishing as a prerelease: ${CIRCLE_TAG}"
+              echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
               EXTRA_RELEASE_OPTIONS=-prerelease
             fi
             GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/artifacts/"
@@ -107,22 +124,28 @@ jobs:
           command: npx vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}
 workflows:
   version: 2
-  build_publish:
+  build-test:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test
+  build-test-release-publish:
     jobs:
       - test:
           filters:
             branches:
-              ignore: master
+              ignore: /.*/
             tags:
-              only: /.*/
+              only: /^v\d+\.\d+\.\d+/
       - build:
           requires:
             - test
           filters:
             branches:
-              ignore: master
+              ignore: /.*/
             tags:
-              only: /.*/
+              only: /^v\d+\.\d+\.\d+/
       - github-release:
           requires:
             - build
