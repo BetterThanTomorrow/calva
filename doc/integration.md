@@ -48,7 +48,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
    * If the Marketplace version does not work:
      1. Install the artifact from the release build and test it.
         * If this works, then something in Microsoft's publish pipeline has broken the extension. This has happened (once) before. To retry again you need to build a new VSIX with a bumped version:
-          1. `$ npm version patch`.
+          1. `$ npm run bump-version`.
           1. Push.
         * If the artifact doesn't work (we should never be here).
           1. ???
