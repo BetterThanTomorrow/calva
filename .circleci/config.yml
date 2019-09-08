@@ -109,10 +109,16 @@ workflows:
   version: 2
   build_publish:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /.*/
       - build:
           requires:
             - test
+          filters:
+            tags:
+              only: /.*/
       - github-release:
           requires:
             - build
@@ -128,4 +134,6 @@ workflows:
           filters:
             branches:
               only: master
+            tags:
+              only: /^v\d+\.\d+\.\d+/
           context: Calva
