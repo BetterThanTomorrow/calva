@@ -26,9 +26,10 @@ Smaller changes:
 1. Make sure that `CHANGELOG.md` contains the right stuff.
 1. `$ npm config set git-tag-version false && npm version patch`
    * This will bump the Calva version.
-1. Commit with a message like: ”Add feature: **Short Feature Description Title**"
-1. Push.
-1. When `dev` is pushed, Circle CI run our tests, and builds a VSIX and pushes a prerelease to GitHub.
+1. Commit with a message like: ”Add feature: **Short Release Description Title**"
+1. (Optional) Tag the prerelease with **vVERSION-release-description-title** and pushes a prerelease to GitHub.
+1. Push. (`--follow-tags` if applicable)
+1. When `dev` is pushed, Circle CI run our tests, and builds a VSIX.
 1. Download this VSIX and test it.
 
 
