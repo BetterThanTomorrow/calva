@@ -277,7 +277,7 @@ function renderReplResponse(newNs: string, text: string) {
         content = null;
     div.className = "repl-response";
     for (let tk of scanner.processLine(text)) {
-        if (!line || tk.raw.startsWith("\n")) {
+        if (!line || tk.raw == "\n") {
             line = document.createElement("div");
             content = document.createElement("div");
             line.appendChild(content);
