@@ -34,7 +34,7 @@ There is also a command for evaluating the current top level form, which aösp w
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
-See [Calva Top 10 Commands](/etc/calva-top-10-commands.md) for some more things to try.
+See also [Calva Top 10 Commands](https://github.com/BetterThanTomorrow/calva/wiki/Commands-the-Top-10).
 
 ## The Calva Wiki
 
