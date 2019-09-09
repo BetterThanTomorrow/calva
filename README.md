@@ -76,16 +76,15 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
   - Pretty printing evaluation results: `ctrl+alt+c p` (Currently broken, see issues on Github).
   - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
-    - Send the current top level form to the REPL terminal: `ctrl+alt+c alt+space`
+    - Send the current top level form to the REPL terminal: `ctrl+alt+c ctrl+alt+space`
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
   - Enables `clj` REPL for all files/editors. You now can evaluate those Clojure code snippets in Markdown files.
   - The evaluation commands will auto-”detect” vectors and maps as well as list.
   - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Integrated REPLs
-  - Switch to current namespace in the REPL window: `ctrl+alt+c n`
-  - Load current namespace in the REPL window: `ctrl+alt+c alt+n`
-  - Evaluate code from the editor to the REPL window: `ctrl+alt+c alt+e`
+  - Load current namespace in the REPL window: `ctrl+alt+c ctrl+alt+n`
+  - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e`
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
