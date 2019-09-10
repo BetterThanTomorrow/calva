@@ -6,7 +6,7 @@ Changes to Calva. (We really will try to keep this updated now.)
 
 ## [Unreleased] -
 - Fix [REPL Window namespace being reset to user](https://github.com/BetterThanTomorrow/calva/issues/302)
-
+- Update nrepl-version to 0.22.1
 ## [2.0.35] - 10.09.2019
 - [Customizing the REPL connect sequence](https://github.com/BetterThanTomorrow/calva/issues/282)
 - [Support for launching with user aliases/profiles](https://github.com/BetterThanTomorrow/calva/issues/288)
