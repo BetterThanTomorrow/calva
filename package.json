@@ -154,6 +154,7 @@
                         }
                     },
                     "calva.customCljsRepl": {
+                        "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead.",
                         "type": "object",
                         "default": null,
                         "description": "Configuration for custom any CLJS REPL type your project may use",
@@ -207,6 +208,165 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
+                    },
+                    "calva.myLeinProfiles": {
+                        "type": "array",
+                        "description": "At Jack in, any profiles listed here will be added to the profiles found in the `project.clj` file.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "calva.myCljAliases": {
+                        "type": "array",
+                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the projects's `deps.edn` file.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },            
+                    "calva.replConnectSequences": {
+                        "type": "array",
+                        "description": "For when your project needs a custom REPL connect sequence.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "projectType"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "This will show up in the Jack-in quick-pick menu when you start Jack-in if you have more than one sequence configured."
+                                },
+                                "projectType": {
+                                    "type": "string",
+                                    "description": "Select one of the project types supported by Calva.",
+                                    "enum": [
+                                        "Leiningen",
+                                        "Clojure CLI",
+                                        "shadow-cljs"
+                                    ]
+                                },
+                                "afterCLJReplJackInCode": {
+                                    "type": "string",
+                                    "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
+                                    "required": false
+                                },
+                                "menuSelections": {
+                                    "type": "object",
+                                    "description": "Pre-selected menu options. If a slection is made here. Calva won't prompt for it.",
+                                    "properties": {
+                                        "leinProfiles": {
+                                            "type": "array",
+                                            "description": "At Jack-in to a Leiningen project, use these profiles to launch the repl.",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "leinAlias": {
+                                            "description": "At Jack-in to a Leiningen project, launch with this alias. Set to null to launch with Calva's default task (a headless repl).",
+                                            "anyOf": [
+                                                {
+                                                    "type": "string"
+                                                },
+                                                {
+                                                    "type": "null"
+                                                }
+                                            ]
+                                        },
+                                        "cljAliases": {
+                                            "type": "array",
+                                            "description": "At Jack-in to a Clojure CLI project, use these aliases to launch the repl.",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "cljsLaunchBuilds": {
+                                            "type": "array",
+                                            "description": "The cljs builds to start/watch at Jack-in/comnnect.",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "cljsDefaultBuild": {
+                                            "type": "string",
+                                            "description": "Which cljs build to acttach to at the initial connect."
+                                        }
+                                    }
+                                },
+                                "cljsType": {
+                                    "description": "Either a built in type, or an object configuring a custom type. If omitted Calva will show a menu with the built-in types.",
+                                    "anyOf": [
+                                        {
+                                            "type": "string",
+                                            "enum": [
+                                                "Figwheel Main",
+                                                "lein-figwheel",
+                                                "shadow-cljs",
+                                                "Nashorn"
+                                            ]
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "connectCode",
+                                                "dependsOn"
+                                            ],
+                                            "properties": {
+                                                "dependsOn": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Figwheel Main",
+                                                        "lein-figwheel",
+                                                        "shadow-cljs",
+                                                        "Nashorn",
+                                                        "User provided"
+                                                    ],
+                                                    "description": "The CLojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that privides the dependencies needed."
+                                                },
+                                                "buildsRequired": {
+                                                    "type": "boolean",
+                                                    "description": "If the repl type requires that builds are started in order to connect to them, set this to true."
+                                                },
+                                                "isStarted": {
+                                                    "type": "boolean",
+                                                    "description": "For cljs repls that Calva does not need to start, set this to true. (If you base your custom cljs repl on shadow-cljs workflow, for instance.)"
+                                                },
+                                                "startCode": {
+                                                    "type": "string",
+                                                    "description": "Clojure code to be evaluated to create and/or start your custom CLJS REPL."
+                                                },
+                                                "isReadyToStartRegExp": {
+                                                    "type": "string",
+                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
+                                                },
+                                                "openUrlRegExp": {
+                                                    "type": "string",
+                                                    "description": "A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named 'url'. E.g. \\”Open URL: (?<url>\\S+)\\”",
+                                                    "default": "Open(ing)? URL (?<url>\\S+)"
+                                                },
+                                                "shouldOpenUrl": {
+                                                    "type": "boolean",
+                                                    "description": "Choose if Calva should automatically open the URL for you or not."
+                                                },
+                                                "connectCode": {
+                                                    "type": "string",
+                                                    "description": "Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application."
+                                                },
+                                                "isConnectedRegExp": {
+                                                    "type": "string",
+                                                    "description": "A regular experession which, when matched in the stdout of the connectCode evaluation, will tell Calva that the application is connected.",
+                                                    "default": "To quit, type: :cljs/quit"
+                                                },
+                                                "printThisLineRegExp": {
+                                                    "type": "string",
+                                                    "description": "A regular experession which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -411,8 +571,8 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.recreateCljsRepl",
-                "title": "Attach (or re-attach) a Clojurescript session",
+                "command": "calva.switchCljsBuild",
+                "title": "Switch CLJS build",
                 "category": "Calva"
             },
             {
@@ -665,8 +825,8 @@
                 "key": "ctrl+alt+c ctrl+alt+s"
             },
             {
-                "command": "calva.recreateCljsRepl",
-                "key": "ctrl+alt+c ctrl+alt+r"
+                "command": "calva.switchCljsBuild",
+                "key": "ctrl+alt+c ctrl+alt+b"
             },
             {
                 "command": "calva.selectCurrentForm",

@@ -21,6 +21,8 @@ import * as replWindow from "./repl-window";
 import { format } from 'url';
 import * as greetings from "./greet";
 import Analytics from './analytics';
+import * as open from 'open';
+
 import { edit } from './paredit/utils';
 
 function onDidSave(document) {
@@ -63,10 +65,28 @@ function onDidOpen(document) {
 function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
+    
+    const chan = state.outputChannel();
 
-    let legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
+
+    const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
         fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
-        pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
+        pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
+        customCljsRepl = state.config().customCljsRepl,
+        replConnectSequences = state.config().replConnectSequences,
+        BUTTON_GOTO_WIKI = "Open the Wiki",
+        BUTTON_OK = "Got it",
+        WIKI_URL = "https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences";
+
+    if (customCljsRepl && replConnectSequences.length == 0) {
+        chan.appendLine("Old customCljsRepl settings detected.");
+        vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specifiy it using the new calva.customConnectSequence setting. See the Calva wiki for instructions.", ...[BUTTON_GOTO_WIKI, BUTTON_OK])
+            .then(v => {
+                if (v == BUTTON_GOTO_WIKI) {
+                    open(WIKI_URL);
+                }
+            })
+    }
 
     if (legacyExtension) {
         vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.", ...["Roger that. Right away!"])
@@ -87,7 +107,6 @@ function activate(context: vscode.ExtensionContext) {
 
     replWindow.activate(context);
 
-    let chan = state.outputChannel();
     chan.appendLine("Calva activated.");
     let {
         lint,
@@ -109,9 +128,9 @@ function activate(context: vscode.ExtensionContext) {
         })
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
-    context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connect));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.recreateCljsRepl', connector.recreateCljsRepl));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
         EvaluateMiddleWare.loadFile();
@@ -174,9 +193,12 @@ function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
         }
         status.update();
-        if (editor && editor.document && editor.document.fileName.match(/\.clj[cs]?/).length && state.config().syncReplNamespaceToCurrentFile) {
-            replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
-                .catch(reasons => { console.warn(`Namespace sync failed, becauase: ${reasons}`) });
+        if (editor && editor.document && editor.document.fileName) {
+            const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
+            if (fileExtIfClj && fileExtIfClj.length && state.config().syncReplNamespaceToCurrentFile) {
+                replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
+                    .catch(reasons => { console.warn(`Namespace sync failed, becauase: ${reasons}`) });
+            }
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))
