@@ -4,7 +4,10 @@ Changes to Calva. (We really will try to keep this updated now.)
 ## When time allows, this will be worked on
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
-## About to be released
+## [Unreleased] -
+- Fix [REPL Window namespace being reset to user](https://github.com/BetterThanTomorrow/calva/issues/302)
+
+## [2.0.35] - 10.09.2019
 - [Customizing the REPL connect sequence](https://github.com/BetterThanTomorrow/calva/issues/282)
 - [Support for launching with user aliases/profiles](https://github.com/BetterThanTomorrow/calva/issues/288)
 
