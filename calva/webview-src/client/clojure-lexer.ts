@@ -30,8 +30,10 @@ export interface Token extends LexerToken {
     state: ScannerState;
 }
 
-// whitespace
-toplevel.terminal(/[\s,]+/, (l, m) => ({ type: "ws" }))
+// whitespace, excluding newlines
+toplevel.terminal(/[\t ,]+/, (l, m) => ({ type: "ws" }))
+// newlines, we want each one as a token of its own
+toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 // open parens

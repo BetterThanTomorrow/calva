@@ -56,7 +56,9 @@ When something doesn't work and you think there might be a workaround for it, pl
 - Easy toggle between `clj` and `cljs` repl for `cljc` files
 - Autoindent according to https://github.com/bbatsov/clojure-style-guide
 - Enables `clj` evaluation of Clojure code in all files (e.g. Markdown, etcetera).
-- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org). ([Boot](https://boot-clj.com) to be added.)
+- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, no Jack-in yet.)
+- Your [Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences), including fully customized CLJS REPLs.
+- Switch the CLJS REPL connection between your different CLJS builds at will.
 
 Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
