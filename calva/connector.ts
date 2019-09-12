@@ -10,7 +10,7 @@ import * as projectTypes from './nrepl/project-types';
 
 const { parseEdn } = require('../cljs-out/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
-import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow } from './repl-window';
+import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
@@ -90,6 +90,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
 async function setUpCljsRepl(cljsSession, chan, build) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
+    await createReplWindow(cljsSession, "cljs");
     await openReplWindow("cljs", true);
     await reconnectReplWindow("cljs");
     status.update();
