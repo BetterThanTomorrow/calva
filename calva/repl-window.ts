@@ -246,12 +246,12 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
 
 async function loadNamespaceCommand(reload = true) {
     await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
-    openReplWindow(util.getREPLSessionType());
+    await openReplWindow(util.getREPLSessionType());
 }
 
-function setREPLNamespaceCommand() {
-    setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
-    openReplWindow(util.getREPLSessionType());
+async function setREPLNamespaceCommand() {
+    await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
+    await openReplWindow(util.getREPLSessionType());
 }
 
 export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
