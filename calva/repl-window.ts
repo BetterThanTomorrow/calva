@@ -74,12 +74,12 @@ class REPLWindow {
                     let result = await this.session.info(msg.ns, msg.symbol);
                     this.postMessage({ type: "info", data: result });
                 }
-                
+
                 if (msg.type == "focus") {
                     vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
                     vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
                 }
-                
+
                 if (msg.type == "blur") {
                     vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
                 }
@@ -203,52 +203,59 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
     }
 }
 
-export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = false) {
+export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
     let session = mode == "clj" ? cljSession : cljsSession,
         nreplClient = session.client;
+
+    if (!replWindows[mode]) {
+        await createReplWindow(session, mode);
+    } else  if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
+        replWindows[mode].session = await session.clone();
+    }
+
+    replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
+    return replWindows[mode];
+}
+
+export async function createReplWindow(session: NReplSession, mode: "clj" | "cljs" = "clj") {
+    const nreplClient = session.client;
 
     if (replWindows[mode]) {
         const modeSession = nreplClient.sessions[replWindows[mode].session.sessionId];
         if (!modeSession || modeSession !== session) {
             replWindows[mode].session = await session.clone();
         }
-        replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
         return replWindows[mode];
-    }
-
-    if (!session) {
-        vscode.window.showErrorMessage("Not connected to nREPL");
-        return;
     }
 
     const sessionClone = await session.clone();
     let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
-    const panel = vscode.window.createWebviewPanel("replInteractor",
-        title, {
-            viewColumn: vscode.ViewColumn.Two,
-            preserveFocus: preserveFocus
-        },
-        {
-            retainContextWhenHidden: true,
-            enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
-        });
+    const panel = vscode.window.createWebviewPanel("replInteractor", title, {
+        viewColumn: vscode.ViewColumn.Two,
+        preserveFocus: true
+    }, {
+        retainContextWhenHidden: true,
+        enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
+    });
     const cljType: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
     const cljsType: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
-    let repl = replWindows[mode] = new REPLWindow(panel, sessionClone, mode, cljType, cljsType);
-    await repl.initialized;
-    return repl;
+    let replWin = replWindows[mode] = new REPLWindow(panel, sessionClone, mode, cljType, cljsType);
+    await replWin.initialized;
+    return replWin;
 }
 
-function loadNamespaceCommand(reload = true) {
-    setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
+async function loadNamespaceCommand(reload = true) {
+    await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
+    openReplWindow(util.getREPLSessionType());
 }
 
 function setREPLNamespaceCommand() {
     setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
+    openReplWindow(util.getREPLSessionType());
 }
 
 export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(util.getREPLSessionType());
+    let wnd = await openReplWindow(util.getREPLSessionType(), true);
     if (wnd) {
         let oldNs = wnd.ns;
         if (ns && ns != oldNs)
@@ -307,8 +314,8 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
 
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj")));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', () => openReplWindow("cljs")));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj", true)));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', () => openReplWindow("cljs"), true));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
