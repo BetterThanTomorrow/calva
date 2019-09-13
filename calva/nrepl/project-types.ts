@@ -19,8 +19,14 @@ export type ProjectType = {
     nReplPortFile: string;
 };
 
-export function nreplPortFile(projectType: ProjectType | string): string {
-    const subPath: string = typeof projectType == "string" ? getProjectTypeForName(projectType).nReplPortFile : projectType.nReplPortFile;
+export function nreplPortFile(connectSequence: ReplConnectSequence): string {
+    let subPath: string = ".nrepl-port";
+    if (connectSequence.nReplPortFile) {
+        subPath = connectSequence.nReplPortFile;
+    } else {
+        const projectType: ProjectType | string = connectSequence.projectType;
+        subPath = getProjectTypeForName(projectType).nReplPortFile
+    }
     try {
         return path.resolve(state.getProjectRoot(), subPath);
     } catch (e) {

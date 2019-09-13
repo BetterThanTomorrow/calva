@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as state from "../state";
 import * as projectTypes from './project-types';
+import * as path from 'path';
 import * as utilities from '../utilities';
 
 enum ProjectTypes {
@@ -45,6 +46,7 @@ interface ReplConnectSequence {
     afterCLJReplJackInCode?: string,
     cljsType?: CljsTypes | CljsTypeConfig,
     menuSelections?: MenuSelecions,
+    nReplPortFile?: string
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
@@ -53,14 +55,20 @@ const leiningenDefaults: ReplConnectSequence[] =
         projectType: ProjectTypes.Leiningen
     },
     {
-        name: "Leiningen + Figwheel",
-        projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["lein-figwheel"]
-    },
-    {
         name: "Leiningen + Figwheel Main",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["Figwheel Main"]
+    },
+    {
+        name: "Leiningen + shadow-cljs",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["shadow-cljs"],
+        nReplPortFile: path.join(".shadow-cljs", "nrepl.port")
+    },
+    {
+        name: "Leiningen + Legacy Figwheel",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["lein-figwheel"]
     },
     {
         name: "Leiningen + Nashorn",
