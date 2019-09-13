@@ -46,7 +46,7 @@ interface ReplConnectSequence {
     afterCLJReplJackInCode?: string,
     cljsType?: CljsTypes | CljsTypeConfig,
     menuSelections?: MenuSelecions,
-    nReplPortFile?: string
+    nReplPortFile?: string[]
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
@@ -63,7 +63,7 @@ const leiningenDefaults: ReplConnectSequence[] =
         name: "Leiningen + shadow-cljs",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["shadow-cljs"],
-        nReplPortFile: path.join(".shadow-cljs", "nrepl.port")
+        nReplPortFile: [".shadow-cljs", "nrepl.port"]
     },
     {
         name: "Leiningen + Legacy Figwheel",

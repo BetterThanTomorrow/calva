@@ -246,6 +246,13 @@
                                         "shadow-cljs"
                                     ]
                                 },
+                                "nReplPortFile": {
+                                    "type": "array",
+                                    "description": "An array of path segments with the project root-releative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
                                 "afterCLJReplJackInCode": {
                                     "type": "string",
                                     "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
