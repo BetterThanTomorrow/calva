@@ -82,14 +82,20 @@ const cljDefaults: ReplConnectSequence[] =
         projectType: ProjectTypes["Clojure CLI"]
     },
     {
-        name: "Clojure CLI + Figwheel",
-        projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["lein-figwheel"]
-    },
-    {
         name: "Clojure CLI + Figwheel Main",
         projectType: ProjectTypes["Clojure CLI"],
         cljsType: CljsTypes["Figwheel Main"]
+    },
+    {
+        name: "Clojure CLI + shadow-cljs",
+        projectType: ProjectTypes["Clojure CLI"],
+        cljsType: CljsTypes["shadow-cljs"],
+        nReplPortFile: [".shadow-cljs", "nrepl.port"]
+    },
+    {
+        name: "Clojure CLI + Legacy Figwheel",
+        projectType: ProjectTypes["Clojure CLI"],
+        cljsType: CljsTypes["lein-figwheel"]
     },
     {
         name: "Clojure CLI + Nashorn",
