@@ -11,7 +11,7 @@ import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connect
 import { stringify } from "querystring";
 import * as projectTypes from './project-types';
 
-export let JackinExecution:vscode.TaskExecution = undefined;
+let JackinExecution:vscode.TaskExecution = undefined;
 
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
