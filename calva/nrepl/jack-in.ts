@@ -4,14 +4,30 @@ import * as fs from "fs";
 import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
+import {nClient} from "../connector";
 import statusbar from "../statusbar";
 import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import { stringify } from "querystring";
 import * as projectTypes from './project-types';
 
+export let JackinExecution:vscode.TaskExecution = undefined;
+
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
+
+vscode.tasks.onDidStartTask(((e) => {
+    if(e.execution.task.name == TASK_NAME) {
+        JackinExecution = e.execution; 
+    }
+}));
+
+vscode.tasks.onDidEndTask(((e) => {
+    if(e.execution.task.name == TASK_NAME) {
+       JackinExecution = undefined;
+       connector.default.disconnect();
+    }
+}));
 
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
     state.cursor.set("launching", projectTypeSelection);
@@ -37,6 +53,9 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 
+    // in case we have a running task present try to end it.
+    calvaJackout();
+
     vscode.tasks.executeTask(task).then((v) => {
         // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
         const portFileDir = path.dirname(nReplPortFile),
@@ -59,13 +78,28 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
                 state.cursor.set("launching", null);
                 watcher.removeAllListeners();
                 await connector.connect(connectSequence, true, true);
-                chan.appendLine("Jack-in done. Use the VS Code task management UI to control the life cycle of the Jack-in task.");
+                chan.appendLine("Jack-in done.");
             }
         });
     }, (reason) => {
         watcher.removeAllListeners();
         outputChannel.appendLine("Error in Jack-in: " + reason);
     });
+}
+
+export function calvaJackout() {
+    if (JackinExecution != undefined) {
+        if (projectTypes.isWin) {
+            // this is a hack under Windows to terminate the 
+            // repl process from the repl client because the 
+            // ShellExecution under Windows will not terminate 
+            // all child processes.
+            if (nClient && nClient.session) {
+                nClient.session.eval("(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)");
+            }
+        }
+        JackinExecution.terminate();
+    }
 }
 
 export async function calvaJackIn() {

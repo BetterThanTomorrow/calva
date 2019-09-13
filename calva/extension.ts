@@ -228,6 +228,7 @@ function activate(context: vscode.ExtensionContext) {
 
 function deactivate() {
     state.analytics().logEvent("LifeCycle", "Dectivated").send();
+    jackIn.calvaJackout();
     paredit.deactivate()
 }
 
