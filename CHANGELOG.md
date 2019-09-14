@@ -5,7 +5,7 @@ Changes to Calva. (We really will try to keep this updated now.)
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [Unreleased]
-- Nothing to see here
+- [Support connecting to Leiningen and CLI project using shadow-cljs watcher](https://github.com/BetterThanTomorrow/calva/issues/314)
 
 ## [2.0.36] - 12.09.2019
 - Fix [REPL Window namespace being reset to user](https://github.com/BetterThanTomorrow/calva/issues/302)
