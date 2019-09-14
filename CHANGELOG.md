@@ -5,7 +5,7 @@ Changes to Calva. (We really will try to keep this updated now.)
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [Unreleased]
-- Fix [Figwheel Main deps added to non-cljs projects](https://github.com/BetterThanTomorrow/calva/issues/317)
+- Nothing to see here
 
 ## [2.0.36] - 12.09.2019
 - Fix [REPL Window namespace being reset to user](https://github.com/BetterThanTomorrow/calva/issues/302)
