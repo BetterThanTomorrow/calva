@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as state from "../state";
 import * as projectTypes from './project-types';
+import * as path from 'path';
 import * as utilities from '../utilities';
 
 enum ProjectTypes {
@@ -45,6 +46,7 @@ interface ReplConnectSequence {
     afterCLJReplJackInCode?: string,
     cljsType?: CljsTypes | CljsTypeConfig,
     menuSelections?: MenuSelecions,
+    nReplPortFile?: string[]
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
@@ -53,14 +55,20 @@ const leiningenDefaults: ReplConnectSequence[] =
         projectType: ProjectTypes.Leiningen
     },
     {
-        name: "Leiningen + Figwheel",
-        projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["lein-figwheel"]
-    },
-    {
         name: "Leiningen + Figwheel Main",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["Figwheel Main"]
+    },
+    {
+        name: "Leiningen + shadow-cljs",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["shadow-cljs"],
+        nReplPortFile: [".shadow-cljs", "nrepl.port"]
+    },
+    {
+        name: "Leiningen + Legacy Figwheel",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["lein-figwheel"]
     },
     {
         name: "Leiningen + Nashorn",
@@ -74,14 +82,20 @@ const cljDefaults: ReplConnectSequence[] =
         projectType: ProjectTypes["Clojure CLI"]
     },
     {
-        name: "Clojure CLI + Figwheel",
-        projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["lein-figwheel"]
-    },
-    {
         name: "Clojure CLI + Figwheel Main",
         projectType: ProjectTypes["Clojure CLI"],
         cljsType: CljsTypes["Figwheel Main"]
+    },
+    {
+        name: "Clojure CLI + shadow-cljs",
+        projectType: ProjectTypes["Clojure CLI"],
+        cljsType: CljsTypes["shadow-cljs"],
+        nReplPortFile: [".shadow-cljs", "nrepl.port"]
+    },
+    {
+        name: "Clojure CLI + Legacy Figwheel",
+        projectType: ProjectTypes["Clojure CLI"],
+        cljsType: CljsTypes["lein-figwheel"]
     },
     {
         name: "Clojure CLI + Nashorn",
