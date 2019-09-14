@@ -16,7 +16,7 @@ const TASK_NAME = "Calva Jack-in";
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
-    const nReplPortFile = projectTypes.nreplPortFile(projectType);
+    const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
     const env = { ...process.env, ...state.config().jackInEnv } as {
         [key: string]: string;
     };
@@ -78,7 +78,7 @@ export async function calvaJackIn() {
     state.analytics().logEvent("REPL", "JackInInitiated").send();
 
     const cljTypes = await projectTypes.detectProjectTypes();
-    const projectConnectSequence: ReplConnectSequence = await askForConnectSequence(cljTypes,'jack-in-type', "JackInInterrupted");
+    const projectConnectSequence: ReplConnectSequence = await askForConnectSequence(cljTypes, 'jack-in-type', "JackInInterrupted");
     
     if (!projectConnectSequence) {
         state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
