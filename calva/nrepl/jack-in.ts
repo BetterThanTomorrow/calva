@@ -92,11 +92,9 @@ export async function calvaJackIn() {
     state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
     let selectedCljsType: CljsTypes;
 
-    if (projectConnectSequence.cljsType == undefined) {
-        selectedCljsType = CljsTypes["Figwheel Main"];
-    } else if (typeof projectConnectSequence.cljsType == "string") {
+    if (typeof projectConnectSequence.cljsType == "string") {
         selectedCljsType = projectConnectSequence.cljsType;
-    } else {
+    } else if (projectConnectSequence.cljsType) {
         selectedCljsType = projectConnectSequence.cljsType.dependsOn;
     }
 
