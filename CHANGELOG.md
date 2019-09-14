@@ -1,10 +1,13 @@
 # Change Log
-Changes to Calva. (We really will try to keep this updated now.)
+Changes to Calva.
 
 ## When time allows, this will be worked on
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [Unreleased]
+- [Close java processes when clsoing or reloading VS Code. (Windows)](https://github.com/BetterThanTomorrow/calva/issues/305)
+
+## [2.0.37] - 14.09.2019
 - [Support connecting to Leiningen and CLI project using shadow-cljs watcher](https://github.com/BetterThanTomorrow/calva/issues/314)
 - Fix [Figwheel Main deps added to non-cljs projects](https://github.com/BetterThanTomorrow/calva/issues/317)
 
