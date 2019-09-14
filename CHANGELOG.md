@@ -5,6 +5,8 @@ Changes to Calva.
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [Unreleased]
+
+## [2.0.38] - 14.09.2019
 - [Close java processes when clsoing or reloading VS Code. (Windows)](https://github.com/BetterThanTomorrow/calva/issues/305)
 
 ## [2.0.37] - 14.09.2019
