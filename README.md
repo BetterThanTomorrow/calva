@@ -106,6 +106,10 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 ![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
+### Conflicting with Parinfer extension
+
+There have been reports of the Parinfer extension and Calva not working too well together. You might to some extent get away with switching off Calva's formatting as-you-type, but also you might not. With Calva it is probably better to learn to use Paredit **slurp** and **barf** and generally rely on Calva's automatic formatting.
+
 ## Clojure Warrior included
 
 This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching.
