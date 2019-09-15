@@ -13,7 +13,7 @@ Generally:
 Bigger changes:
 * These go into a `wip` branch and we send PR’s asking for feedback.
 * We keep `wip` branches updated by merging  `dev` onto them often.
-* Circle-CI runs tests and buildls a VSIX package for any commits pushed to a PR. Follow the links to the build to find the VSIX (the **Artifact** tab).
+* Circle-CI runs tests and builds a VSIX package for any commits pushed to a PR. Follow the links to the build to find the VSIX (the **Artifact** tab).
 * Consider asking for help testing in `#calva-dev` and wherever.
 
 Smaller changes:
@@ -27,7 +27,7 @@ Smaller changes:
 1. Commit with a message like: ”Add feature: **Short Release Description Title**"
 1. Tag the prerelease with `v<VERSION>-release-description-title` to push a prerelease to GitHub.
 1. Push. (Use `--follow-tags`)
-1. When `dev` is pushed, Circle CI run our tests, and builds a VSIX.
+1. When `dev` is pushed, Circle CI runs our tests, and builds a VSIX.
 1. Download this VSIX and test it.
 
 
@@ -53,7 +53,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
         * If the artifact doesn't work (we should never be here).
           1. ???
 
-## 4. Updating README.md (and other docs)
+## 4. Updating README.md (and other docs) after publishing
 
 Sometimes we need to update the documentation contained in the Calva repo, such as `README.md`, of the published extension, w/o publishing a new version. There are basically two scenarios:
 
@@ -62,5 +62,5 @@ Sometimes we need to update the documentation contained in the Calva repo, such 
   1. Move `master` to point at `dev`: `git checkout -B master`, and push.
 1. `dev` has updated versions of the files that reflects _coming_ functionality.
   1. Checkout master w/o the `-B` flag.
-  1. Make the changes, commit with `[skip ci]` in the comnmit message, and push.
+  1. Make the changes, commit with `[skip ci]` in the commit message, and push.
   1. Make the changes on `dev` as well (if applicable). Merge, or whatever method seems most appropriate.
