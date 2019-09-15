@@ -1,7 +1,7 @@
 
 Description of the Calva development and release process.
 
-_Draft._
+_This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feeback and tips on how to improve this process is very welcome._
 
 ## 1. Introducing Changes
 
@@ -35,7 +35,7 @@ Smaller changes:
 
 When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
-1. Merge `dev` onto `master`.
+1. With `dev` checked out: `git checkout -B master`. (This ”moves” `master` to where `dev`'s `HEAD` is pointing.)
 1. Tag with `v<VERSION>`
 1. Push `master` (Using `--follow-tags`).
    * This will build the release VSIX, push a relase to GitHub, and publish it on the extension Marketplace.
@@ -52,3 +52,15 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
           1. Push.
         * If the artifact doesn't work (we should never be here).
           1. ???
+
+## 4. Updating README.md (and other docs)
+
+Sometimes we need to update the documentation contained in the Calva repo, such as `README.md`, of the published extension, w/o publishing a new version. There are basically two scenarios:
+
+1. `dev`'s versions of the documentation files reflect what is published (sans the change you want to make).
+  1. Make the changes on `dev`, commit with `[skip ci]` in the commit message, and push.
+  1. Move `master` to point at `dev`: `git checkout -B master`, and push.
+1. `dev` has updated versions of the files that reflects _coming_ functionality.
+  1. Checkout master w/o the `-B` flag.
+  1. Make the changes, commit with `[skip ci]` in the comnmit message, and push.
+  1. Make the changes on `dev` as well (if applicable). Merge, or whatever method seems most appropriate.
