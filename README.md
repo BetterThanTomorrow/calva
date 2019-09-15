@@ -68,6 +68,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 - Running tests through the REPL connection, and mark them in the Problems tab
   - Run namespace tests: `ctrl+alt+c t`
   - Run all tests: `ctrl+alt+c shift+t`
+  - Run current test: `ctrl+alt+c ctrl+alt+t`
   - Rerun previously failing tests: `ctrl+alt+c ctrl+t`
   - Marks test failures using the Problem tab
   - User setting for running namespace tests on save (defaults to **on**)
@@ -93,6 +94,10 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
+
+### Test features not available with ClojureScript
+
+Currently [`cider-nrepl` does not provide its test functionality for ClojureScript](https://github.com/clojure-emacs/cider-nrepl/issues/555) code. Please consider contributing to fixing that.
 
 ## Calva Paredit and Calva Formatter included
 
