@@ -1202,19 +1202,19 @@
         "json": "^9.0.6",
         "node-gyp": "^5.0.0",
         "nodemon": "^1.19.1",
+        "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.39",
+        "shadow-cljs": "^2.8.52",
         "style-loader": "^0.23.1",
         "tar": "^4.4.10",
         "ts-loader": "^5.4.5",
         "tslint": "^5.17.0",
         "typescript": "^3.5.1",
         "url-loader": "^1.1.2",
+        "vsce": "^1.66.0",
         "vscode": "^1.1.34",
         "webpack": "^4.33.0",
         "webpack-cli": "^3.3.3",
-        "webpack-dev-server": "^3.8.0",
-        "vsce": "^1.66.0",
-        "rimraf": "^2.7.1"
+        "webpack-dev-server": "^3.8.0"
     }
 }
