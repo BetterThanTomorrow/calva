@@ -1,6 +1,4 @@
 import * as vscode from "vscode";
-import * as jackIn from './nrepl/jack-in';
-import * as connector from "./connector";
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as fs from "fs";
@@ -137,11 +135,8 @@ class REPLWindow {
     }
 
     onClose = () => {
-        jackIn.calvaJackout();
-        connector.default.disconnect();
         this.postMessage({ type: "disconnected" });
     }
-        
 
     ns: string = "user";
 
