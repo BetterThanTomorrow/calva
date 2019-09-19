@@ -86,14 +86,12 @@ ctrl+alt+x ctrl+alt+right     | Cut Close List
 ## Maintained by Better Than Tomorrow
 
 * Peter Strömberg
+* Kevin Stehn
 * You?
-
-
-I also published and maintain [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), another Visual Studio Code extension. Calva is aimed at making it super easy to get Clojure and Clojurescript coding done. It sports interactive REPLs, inline evaluation and other stuff people from the Emacs Cider world are used to.
 
 ## Happy Coding
 
-PRs welcome, as are Issues. Or chat @pez or @mseddon up in the [`#calva-dev` channel](https://clojurians.slack.com/messages/calva-dev/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
+PRs welcome, as are Issues. Or chat @pez or @kstehn up in the [`#calva-dev` channel](https://clojurians.slack.com/messages/calva-dev/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
 
 [![#calva-dev in Clojurians Slack](https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack)](https://clojurians.slack.com/messages/calva-dev/)
 
