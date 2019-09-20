@@ -6,6 +6,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.39] - 20.09.2019
+- [Revert disconnecting and jacking out on closing of REPL window](https://github.com/BetterThanTomorrow/calva/issues/326)
+
 ## [2.0.38] - 14.09.2019
 - [Close java processes when clsoing or reloading VS Code. (Windows)](https://github.com/BetterThanTomorrow/calva/issues/305)
 
