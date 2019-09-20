@@ -18,7 +18,6 @@ import select from './select';
 import evaluate from "./evaluate"
 import refresh from "./refresh";
 import * as replWindow from "./repl-window";
-import { format } from 'url';
 import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
@@ -116,18 +115,8 @@ function activate(context: vscode.ExtensionContext) {
     status.update();
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', () => {
-        vscode.window.showQuickPick(["Start a REPL server and connect (a.k.a. Jack-in)",
-            "Connect to a running REPL server"]
-        ).then(v => {
-            if (v == "Start a REPL server and connect (a.k.a. Jack-in)") {
-                vscode.commands.executeCommand('calva.jackIn');
-            } else {
-                vscode.commands.executeCommand('calva.connect');
-            }
-        })
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.jackInOrConnect));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));

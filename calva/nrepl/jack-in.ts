@@ -6,10 +6,9 @@ import * as state from "../state"
 import * as connector from "../connector";
 import {nClient} from "../connector";
 import statusbar from "../statusbar";
-import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
-import { stringify } from "querystring";
 import * as projectTypes from './project-types';
+import { isReplWindowVisible } from "../repl-window";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -146,3 +145,33 @@ export async function calvaJackIn() {
     executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, outputChannel, projectConnectSequence)
         .then(() => { }, () => { });
 }
+
+export async function jackInOrConnect() {
+
+    let commands = ["Start a REPL server and connect (a.k.a. Jack-in)", "Connect to a running REPL server"];
+    if (JackinExecution != undefined) {
+       commands.push("Terminate the running REPL server");
+    }
+    if (state.deref().get('connected')) {
+        if(!isReplWindowVisible(utilities.getREPLSessionType())) {
+            commands.push("Open the REPL window");
+        }
+    }
+
+    let selection = await utilities.quickPickSingle({
+        values: commands,
+        placeHolder: "Please select a command",
+        autoSelect: false
+    })
+    if (selection == "Start a REPL server and connect (a.k.a. Jack-in)") {
+        vscode.commands.executeCommand('calva.jackIn');
+    } else if (selection == "Connect to a running REPL server")  {
+        vscode.commands.executeCommand('calva.connect');
+    } else if(selection == "Terminate the running REPL server") {
+        calvaJackout();
+    } else if(selection == "Open the REPL window") {
+        vscode.commands.executeCommand('calva.setREPLNamespace');
+    }
+}
+
+

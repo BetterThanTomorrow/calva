@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
-import * as fs from "fs";
 import * as state from "./state";
 import status from "./status"
 import { readFileSync } from "fs";
@@ -23,6 +22,7 @@ export function activeReplWindow() {
     return undefined;
 }
 
+let lastViewColum :vscode.ViewColumn = vscode.ViewColumn.Two;
 
 class REPLWindow {
     evaluation: NReplEvaluation;
@@ -96,10 +96,10 @@ class REPLWindow {
 
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
-
             if (e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
                 this.buffer = [];
+                lastViewColum = e.webviewPanel.viewColumn;
             }
             status.update();
         })
@@ -204,6 +204,21 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
     }
 }
 
+export function isReplWindowVisible(mode: "clj" | "cljs" = "clj") {
+    if (!replWindows[mode]) {
+        return(false);   
+    }
+    try {
+        // the webview may already be disposed.
+        if(!replWindows[mode].panel.visible) {
+            return(false);  
+        }
+    } catch(e) {
+        return(false);
+    }
+    return(true);
+}
+
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
     let session = mode == "clj" ? cljSession : cljsSession,
         nreplClient = session.client;
@@ -214,7 +229,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         replWindows[mode].session = await session.clone();
     }
 
-    replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
+    replWindows[mode].panel.reveal(lastViewColum, preserveFocus);
     return replWindows[mode];
 }
 
@@ -232,7 +247,7 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
     const sessionClone = await session.clone();
     let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
     const panel = vscode.window.createWebviewPanel("replInteractor", title, {
-        viewColumn: vscode.ViewColumn.Two,
+        viewColumn: lastViewColum,
         preserveFocus: true
     }, {
         retainContextWhenHidden: true,
@@ -246,13 +261,13 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
 }
 
 async function loadNamespaceCommand(reload = true) {
-    await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
     await openReplWindow(util.getREPLSessionType());
+    await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
 }
 
 async function setREPLNamespaceCommand() {
-    await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
     await openReplWindow(util.getREPLSessionType());
+    await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
 export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
