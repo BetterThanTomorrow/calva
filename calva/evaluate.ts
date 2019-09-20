@@ -42,9 +42,18 @@ async function evaluateSelection(document = {}, options = {}) {
             let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
 
             try {
-
-                let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
-                let value = await context.value
+                const line = codeSelection.start.line,
+                    column = codeSelection.start.character,
+                    filePath = doc.fileName,
+                    context = client.eval(code, {
+                        file: filePath,
+                        line: line,
+                        column: column,
+                        stdout: m => out.push(m),
+                        stderr: m => err.push(m),
+                        pprint: !!pprint
+                    });
+                let value = await context.value;
                 value = context.pprintOut || value;
 
                 if (replace) {
