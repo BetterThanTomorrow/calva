@@ -1,7 +1,7 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
-
+import * as replWindow from './../repl-window';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -132,6 +132,7 @@ export class NReplSession {
     }
 
     messageHandlers: { [id: string]: (msg: any) => boolean } = {};
+    replType: "clj" | "cljs" = null;
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })
@@ -151,11 +152,34 @@ export class NReplSession {
         })
     }
 
+    async _defaultMessageHandler(data: any) {
+        if (data["repl-type"]) {
+            this.replType = data["repl-type"];
+        }
+
+        if (data.out && !this.replType) {
+            this.replType = "clj";
+        }
+
+        if (data.out && this.replType) {
+            const window = await replWindow.openReplWindow(this.replType, true);
+            const windowMsg = {
+                "data": {
+                    "type": "stdout",
+                    "value": data.out
+                }
+            };
+            window.postMessage(windowMsg);
+        }
+    }
+
     _response(data: any) {
         if (this.messageHandlers[data.id]) {
             let res = this.messageHandlers[data.id](data);
             if (res)
                 delete this.messageHandlers[data.id];
+        } else {
+            this._defaultMessageHandler(data).then(() => {}, () => {});
         }
     }
 

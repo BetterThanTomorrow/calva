@@ -6,6 +6,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
+- [Adding default messaage handler for the nrepl](https://github.com/BetterThanTomorrow/calva/issues/218)
 
 ## [2.0.39] - 20.09.2019
 - [Revert disconnecting and jacking out on closing of REPL window](https://github.com/BetterThanTomorrow/calva/issues/326)
