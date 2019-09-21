@@ -47,6 +47,7 @@
     "activationEvents": [
         "onLanguage:clojure",
         "onCommand:calva.jackIn",
+        "onCommand:calva.jackInOrConnect",
         "onCommand:calva.connect",
         "onCommand:calva.connectNonProjectREPL"
     ],
@@ -832,6 +833,10 @@
             {
                 "command": "calva.connect",
                 "key": "ctrl+alt+c ctrl+alt+c"
+            },
+            {
+                "command": "calva.connectNonProjectREPL",
+                "key": "ctrl+alt+c alt+c"
             },
             {
                 "command": "calva.toggleCLJCSession",

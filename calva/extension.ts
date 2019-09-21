@@ -65,7 +65,7 @@ function onDidOpen(document) {
 function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
-    
+
     const chan = state.outputChannel();
 
 
@@ -117,14 +117,13 @@ function activate(context: vscode.ExtensionContext) {
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', () => {
-        vscode.window.showQuickPick(["Start a REPL server and connect (a.k.a. Jack-in)",
-            "Connect to a running REPL server"]
-        ).then(v => {
-            if (v == "Start a REPL server and connect (a.k.a. Jack-in)") {
-                vscode.commands.executeCommand('calva.jackIn');
-            } else {
-                vscode.commands.executeCommand('calva.connect');
-            }
+        const menu = {
+            "Start a REPL server and connect (a.k.a. Jack-in)": "calva.jackIn",
+            "Connect to a running REPL server, in your project": "calva.connect",
+            "Connect to a running REPL server, not in your project": "calva.connectNonProjectREPL"
+        }
+        vscode.window.showQuickPick([...Object.keys(menu)]).then(v => {
+            vscode.commands.executeCommand(menu[v]);
         })
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
