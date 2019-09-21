@@ -81,7 +81,7 @@ async function evaluateSelection(document = {}, options = {}) {
 
                 if (out.length > 0) {
                     chan.appendLine("stdout:");
-                    chan.appendLine(out.map(x => x.replace(/\n\r?$/, "")).join("\n"));
+                    chan.appendLine(normalizeNewLines(out));
                 }
                 chan.appendLine('=>');
                 if (pprint) {
@@ -91,15 +91,15 @@ async function evaluateSelection(document = {}, options = {}) {
 
                 if (err.length > 0) {
                     chan.appendLine("Error:")
-                    chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
+                    chan.appendLine(normalizeNewLines(err));
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
-                    if (err.length > 0) {
-                        chan.appendLine("Error:")
-                        chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
-                    }
+                }
+                if (err.length > 0) {
+                    chan.appendLine("Error:")
+                    chan.appendLine(normalizeNewLines(err));
                 }
 
                 annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
@@ -109,6 +109,10 @@ async function evaluateSelection(document = {}, options = {}) {
         }
     } else
         vscode.window.showErrorMessage("Not connected to a REPL")
+}
+
+function normalizeNewLines(strings: string[]): string {
+    return strings.map(x => x.replace(/\n\r?$/, "")).join("\n");
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
