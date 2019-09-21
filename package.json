@@ -223,6 +223,16 @@
                             "type": "string"
                         }
                     },
+                    "calva.sendAsyncOutputTo": {
+                        "type": "string",
+                        "description": "Set the output chanel for outputs outside of an evaluation.",
+                        "enum": [
+                            "REPL Window",
+                            "Calva says",
+                            "Both"
+                        ],
+                        "default": "Calva says"
+                    },
                     "calva.replConnectSequences": {
                         "type": "array",
                         "description": "For when your project needs a custom REPL connect sequence.",

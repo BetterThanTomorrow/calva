@@ -152,25 +152,35 @@ export class NReplSession {
         })
     }
 
-    async _defaultMessageHandler(data: any) {
-        if (data["repl-type"]) {
-            this.replType = data["repl-type"];
+    async _defaultMessageHandler(msgData: any) {
+        if (msgData["repl-type"]) {
+            this.replType = msgData["repl-type"];
         }
 
-        if (data.out && !this.replType) {
+        if (msgData.out && !this.replType) {
             this.replType = "clj";
         }
 
-        if (data.out && this.replType) {
+        const msgValue: string = msgData.out || msgData.err;
+        const msgType: string = msgData.out? "stdout" : "stderr";
+
+        if (msgValue && this.replType) {
             const window = await replWindow.openReplWindow(this.replType, true);
             const windowMsg = {
-                "data": {
-                    "type": "stdout",
-                    "value": data.out
-                }
+                type: msgType,
+                value: msgValue
             };
-            window.postMessage(windowMsg);
-            state.outputChannel().appendLine(data.out);
+
+            const outputChan = state.config().outputChannel;
+
+            if (outputChan == "REPL Window") {
+                window.postMessage(windowMsg);
+            } else if (outputChan == "Calva says") {
+                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+            } else if (outputChan == "Both") {
+                window.postMessage(windowMsg);
+                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+            }
         }
     }
 
