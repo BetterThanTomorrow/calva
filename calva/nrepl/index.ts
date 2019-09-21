@@ -170,6 +170,7 @@ export class NReplSession {
                 }
             };
             window.postMessage(windowMsg);
+            state.outputChannel().appendLine(data.out);
         }
     }
 
