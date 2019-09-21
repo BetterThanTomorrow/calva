@@ -97,6 +97,11 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
+                    "calva.prettyPrint": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Pretty print evaluations"
+                    },
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
