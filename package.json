@@ -453,6 +453,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.disconnect",
+                "title": "Disonnect from the REPL server",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.jackInOrConnect",
                 "title": "Jack-in or Connect",
                 "category": "Calva"

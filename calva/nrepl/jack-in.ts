@@ -4,11 +4,11 @@ import * as fs from "fs";
 import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
-import {nClient} from "../connector";
+import {nClient, cljSession, cljsSession} from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import { isReplWindowVisible } from "../repl-window";
+import { isReplWindowVisible, openReplWindow } from "../repl-window";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -17,7 +17,7 @@ const TASK_NAME = "Calva Jack-in";
 
 vscode.tasks.onDidStartTask(((e) => {
     if(e.execution.task.name == TASK_NAME) {
-        JackinExecution = e.execution; 
+        JackinExecution = e.execution;
     }
 }));
 
@@ -146,15 +146,29 @@ export async function calvaJackIn() {
         .then(() => { }, () => { });
 }
 
-export async function jackInOrConnect() {
+export async function calvaDisonnect() {
 
-    let commands = ["Start a REPL server and connect (a.k.a. Jack-in)", "Connect to a running REPL server"];
+    if (state.deref().get('connected')) {
+        calvaJackout();
+        connector.default.disconnect();
+        return;
+    }
+    vscode.window.showInformationMessage("Not connected to a REPL server");
+}
+
+export async function calvaJackInOrConnect() {
+
+    let commands = ["Start a REPL server and connect (a.k.a. Jack-in)", 
+                    "Connect to a running REPL server"];
     if (JackinExecution != undefined) {
-       commands.push("Terminate the running REPL server");
+       commands.push("Disonnect from the REPL server");
     }
     if (state.deref().get('connected')) {
-        if(!isReplWindowVisible(utilities.getREPLSessionType())) {
-            commands.push("Open the REPL window");
+        if(cljSession && !isReplWindowVisible("clj")) {
+            commands.push("Open the Clojure REPL Window");
+        }
+        if(cljsSession && !isReplWindowVisible("cljs")) {
+            commands.push("Open the ClojureScript REPL Window");
         }
     }
 
@@ -167,10 +181,12 @@ export async function jackInOrConnect() {
         vscode.commands.executeCommand('calva.jackIn');
     } else if (selection == "Connect to a running REPL server")  {
         vscode.commands.executeCommand('calva.connect');
-    } else if(selection == "Terminate the running REPL server") {
-        calvaJackout();
-    } else if(selection == "Open the REPL window") {
-        vscode.commands.executeCommand('calva.setREPLNamespace');
+    } else if(selection == "Disonnect from the REPL server") {
+        vscode.commands.executeCommand('calva.disconnect');
+    } else if(selection == "Open the Clojure REPL Window") {
+        vscode.commands.executeCommand('calva.openCljReplWindow');
+    } else if(selection == "Open the ClojureScript REPL Window") {
+        vscode.commands.executeCommand('calva.openCljsReplWindow');
     }
 }
 

@@ -115,9 +115,10 @@ function activate(context: vscode.ExtensionContext) {
     status.update();
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.jackInOrConnect));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.disconnect', jackIn.calvaDisonnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));

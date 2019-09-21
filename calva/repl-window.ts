@@ -22,7 +22,20 @@ export function activeReplWindow() {
     return undefined;
 }
 
-let lastViewColum :vscode.ViewColumn = vscode.ViewColumn.Two;
+export function isReplWindowVisible(mode: "clj" | "cljs" = "clj") {
+    if (!replWindows[mode]) {
+        return(false);   
+    }
+    try {
+        // the webview may already be disposed.
+        if(!replWindows[mode].panel.visible) {
+            return(false);  
+        }
+    } catch(e) {
+        return(false);
+    }
+    return(true);
+}
 
 class REPLWindow {
     evaluation: NReplEvaluation;
@@ -99,7 +112,7 @@ class REPLWindow {
             if (e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
                 this.buffer = [];
-                lastViewColum = e.webviewPanel.viewColumn;
+                replViewColum[this.type] = e.webviewPanel.viewColumn;
             }
             status.update();
         })
@@ -189,6 +202,8 @@ class REPLWindow {
 let ctx: vscode.ExtensionContext
 
 let replWindows: { [id: string]: REPLWindow } = {};
+let replViewColum: { [id: string]: vscode.ViewColumn } = {"clj": vscode.ViewColumn.Two, 
+                                                          "cljs": vscode.ViewColumn.Two};
 
 function getUrl(name?: string) {
     if (name)
@@ -204,19 +219,24 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
     }
 }
 
-export function isReplWindowVisible(mode: "clj" | "cljs" = "clj") {
-    if (!replWindows[mode]) {
-        return(false);   
-    }
-    try {
-        // the webview may already be disposed.
-        if(!replWindows[mode].panel.visible) {
-            return(false);  
+export async function openClojureReplWindows() {
+    if (state.deref().get('connected')) {
+        if(cljSession) {
+            openReplWindow("clj", true);
+            return;
         }
-    } catch(e) {
-        return(false);
     }
-    return(true);
+    vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
+}
+
+export async function openClojureScriptReplWindows() {
+    if (state.deref().get('connected')) {
+        if(cljsSession) {
+            openReplWindow("cljs", true);
+            return;
+        }
+    }
+    vscode.window.showInformationMessage("Not connected to a ClojureScript REPL server");
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
@@ -229,7 +249,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         replWindows[mode].session = await session.clone();
     }
 
-    replWindows[mode].panel.reveal(lastViewColum, preserveFocus);
+    replWindows[mode].panel.reveal(replViewColum[mode], preserveFocus);
     return replWindows[mode];
 }
 
@@ -247,7 +267,7 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
     const sessionClone = await session.clone();
     let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
     const panel = vscode.window.createWebviewPanel("replInteractor", title, {
-        viewColumn: lastViewColum,
+        viewColumn: replViewColum[mode],
         preserveFocus: true
     }, {
         retainContextWhenHidden: true,
@@ -261,7 +281,7 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
 }
 
 async function loadNamespaceCommand(reload = true) {
-    await openReplWindow(util.getREPLSessionType());
+    await openReplWindow(util.getREPLSessionType(), reload);
     await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
 }
 
@@ -330,8 +350,8 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
 
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj", true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', () => openReplWindow("cljs"), true));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', openClojureReplWindows));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', openClojureScriptReplWindows));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
