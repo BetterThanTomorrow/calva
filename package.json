@@ -846,7 +846,8 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "key": "ctrl+alt+c e"
+                "key": "ctrl+alt+c e",
+                "win": "ctrl+alt+c v"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
@@ -910,7 +911,8 @@
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
-                "key": "ctrl+alt+c ctrl+alt+e"
+                "key": "ctrl+alt+c ctrl+alt+e",
+                "win": "ctrl+alt+c ctrl+alt+v"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
