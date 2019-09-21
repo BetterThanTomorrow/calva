@@ -285,7 +285,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
 }
 
 
-function evalCurrentFormInREPLWindow(topLevel = false, pprint = false) {
+function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
