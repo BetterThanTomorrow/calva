@@ -377,6 +377,10 @@ export async function detectProjectTypes(): Promise<string[]> {
     return cljProjTypes;
 }
 
+export function getAllProjectTypes(): string[] {
+    return [...Object.keys(projectTypes)];
+}
+
 export function getCljsTypeName(connectSequence: ReplConnectSequence) {
     let cljsTypeName: string;
     if (connectSequence.cljsType == undefined) {
