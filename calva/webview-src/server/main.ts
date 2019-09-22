@@ -2,6 +2,7 @@ import { ReplConsole } from "../client/repl-console";
 import * as lexer from "../client/clojure-lexer";
 var Ansi = require('ansi-to-html');
 import "../../../html/styles.scss";
+import escapeHTML = require("escape-html");
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
@@ -478,7 +479,7 @@ window.onmessage = (msg) => {
 
     if (msg.data.type == "stdout") {
         let el = document.createElement("div");
-        el.innerHTML = ansi.toHtml(msg.data.value);
+        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
         el.className = "output";
         con.printElement(el);
     }
@@ -490,7 +491,7 @@ window.onmessage = (msg) => {
     if (msg.data.type == "stderr") {
         let div = document.createElement("div")
         div.className = "error"
-        div.innerHTML = ansi.toHtml(msg.data.value);
+        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
         con.printElement(div);
     }
 }
