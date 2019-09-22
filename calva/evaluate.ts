@@ -42,9 +42,18 @@ async function evaluateSelection(document = {}, options = {}) {
             let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
 
             try {
-
-                let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
-                let value = await context.value
+                const line = codeSelection.start.line,
+                    column = codeSelection.start.character,
+                    filePath = doc.fileName,
+                    context = client.eval(code, {
+                        file: filePath,
+                        line: line,
+                        column: column,
+                        stdout: m => out.push(m),
+                        stderr: m => err.push(m),
+                        pprint: !!pprint
+                    });
+                let value = await context.value;
                 value = context.pprintOut || value;
 
                 if (replace) {
@@ -71,7 +80,7 @@ async function evaluateSelection(document = {}, options = {}) {
 
                 if (out.length > 0) {
                     chan.appendLine("stdout:");
-                    chan.appendLine(out.map(x => x.replace(/\n\r?$/, "")).join("\n"));
+                    chan.appendLine(normalizeNewLines(out));
                 }
                 chan.appendLine('=>');
                 if (pprint) {
@@ -81,15 +90,15 @@ async function evaluateSelection(document = {}, options = {}) {
 
                 if (err.length > 0) {
                     chan.appendLine("Error:")
-                    chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
+                    chan.appendLine(normalizeNewLines(err));
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
-                    if (err.length > 0) {
-                        chan.appendLine("Error:")
-                        chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
-                    }
+                }
+                if (err.length > 0) {
+                    chan.appendLine("Error:")
+                    chan.appendLine(normalizeNewLines(err));
                 }
 
                 annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
@@ -99,6 +108,10 @@ async function evaluateSelection(document = {}, options = {}) {
         }
     } else
         vscode.window.showErrorMessage("Not connected to a REPL")
+}
+
+function normalizeNewLines(strings: string[]): string {
+    return strings.map(x => x.replace(/\n\r?$/, "")).join("\n");
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
