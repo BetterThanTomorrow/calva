@@ -857,7 +857,8 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "key": "ctrl+alt+c e"
+                "key": "ctrl+alt+c e",
+                "win": "ctrl+alt+c v"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
@@ -921,7 +922,8 @@
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
-                "key": "ctrl+alt+c ctrl+alt+e"
+                "key": "ctrl+alt+c ctrl+alt+e",
+                "win": "ctrl+alt+c ctrl+alt+v"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
@@ -1161,8 +1163,8 @@
         }
     },
     "scripts": {
-        "watch-webpack": "webpack --mode development --watch",
-        "watch-ts": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && npm run compile-cljs && tsc -watch -p ./tsconfig.json",
+        "watch-repl-webview-src": "webpack --mode development --watch",
+        "watch-ts-src": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && npm run compile-cljs && tsc -watch -p ./tsconfig.json",
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
         "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\"",
@@ -1172,9 +1174,7 @@
         "compile": "npm run compile-cljs && npm run webpack",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
-        "disabled-release": "npm i && npm run update-grammar && npm run release-cljs && tsc -p ./",
         "vscode:prepublish": "rimraf ./out && npm run release",
-        "disabled-vscode:prepublish": "npm run release",
         "postinstall": "node ./node_modules/vscode/bin/install"
     },
     "dependencies": {
