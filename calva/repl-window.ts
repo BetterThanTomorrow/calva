@@ -60,7 +60,7 @@ class REPLWindow {
                     this.evaluation.interrupt();
 
                 if (msg.type == "read-line") {
-                    this.replEval(msg.line, this.ns, msg.pprint);
+                    this.replEval(msg.line, this.ns, state.config().pprint);
                 }
 
                 if (msg.type == "goto-file") {
