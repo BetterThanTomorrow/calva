@@ -165,7 +165,7 @@ export async function calvaJackInOrConnect() {
     }
     if (state.deref().get('connected')) {
         if(cljSession && !isReplWindowVisible("clj")) {
-            commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow"];
+            commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
         }
         if(cljsSession && !isReplWindowVisible("cljs")) {
             commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
@@ -173,27 +173,10 @@ export async function calvaJackInOrConnect() {
     }
 
     vscode.window.showQuickPick([...Object.keys(commands)]).then(v => {
-        vscode.commands.executeCommand(commands[v]);
+        if(commands[v]) {
+            vscode.commands.executeCommand(commands[v]);
+        }
     })
-
-    /*
-    let selection = await utilities.quickPickSingle({
-        values: commands,
-        placeHolder: "Please select a command",
-        autoSelect: false
-    })
-    if (selection == "Start a REPL server and connect (a.k.a. Jack-in)") {
-        vscode.commands.executeCommand('calva.jackIn');
-    } else if (selection == "Connect to a running REPL server")  {
-        vscode.commands.executeCommand('calva.connect');
-    } else if(selection == "Disonnect from the REPL server") {
-        vscode.commands.executeCommand('calva.disconnect');
-    } else if(selection == "Open the Clojure REPL Window") {
-        vscode.commands.executeCommand('calva.openCljReplWindow');
-    } else if(selection == "Open the ClojureScript REPL Window") {
-        vscode.commands.executeCommand('calva.openCljsReplWindow');
-    }
-    */
 }
 
 
