@@ -7,6 +7,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
 - [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
+- [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)
 - [Add hover to inline result display, containing the full results](https://github.com/BetterThanTomorrow/calva/pull/336)
 
 ## [2.0.39] - 20.09.2019

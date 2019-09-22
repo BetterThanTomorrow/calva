@@ -47,7 +47,9 @@
     "activationEvents": [
         "onLanguage:clojure",
         "onCommand:calva.jackIn",
-        "onCommand:calva.connect"
+        "onCommand:calva.jackInOrConnect",
+        "onCommand:calva.connect",
+        "onCommand:calva.connectNonProjectREPL"
     ],
     "main": "./out/extension",
     "extensionPack": [
@@ -449,7 +451,12 @@
             },
             {
                 "command": "calva.connect",
-                "title": "Connect to a running REPL server",
+                "title": "Connect to a running REPL server in your project",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.connectNonProjectREPL",
+                "title": "Connect to a running REPL server, not in your project",
                 "category": "Calva"
             },
             {
@@ -826,6 +833,10 @@
             {
                 "command": "calva.connect",
                 "key": "ctrl+alt+c ctrl+alt+c"
+            },
+            {
+                "command": "calva.connectNonProjectREPL",
+                "key": "ctrl+alt+c alt+c"
             },
             {
                 "command": "calva.toggleCLJCSession",
