@@ -129,7 +129,6 @@ export async function calvaJackIn() {
     outputChannel.appendLine("Jacking in...");
 
     const projectTypeName: string = projectConnectSequence.projectType;
-    state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
     let selectedCljsType: CljsTypes;
 
     if (typeof projectConnectSequence.cljsType == "string") {
