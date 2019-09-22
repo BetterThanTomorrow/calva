@@ -28,26 +28,34 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
         textDecoration: 'none',
         fontWeight: 'normal',
         fontStyle: 'normal',
-    },
+        width: "250px",
+},
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
-function evaluated(contentText, hasError) {
+
+//<a href="#" data-href="command:gitlens.showQuickCommitDetails?%7B%22sha%22%3A%22ec09a1477b748da5d0d59b6e9f1eaff031aca4e2%22%7D" title="Show Commit Details"><code>ec09a14</code></a>
+
+function evaluated(contentText, hoverText, hasError) {
+    const commandUri = vscode.Uri.parse("command:calva.copyLastResults"),
+    commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
+    let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + hoverText + '\n```');
+    hoverMessage.isTrusted = true;
     return {
+        hoverMessage: hasError ? hoverText : hoverMessage,
         renderOptions: {
             before: {
                 contentText: contentText,
+                overflow: "hidden"
             },
             light: {
                 before: {
                     color: hasError ? 'rgb(255, 127, 127)' : 'black',
-                    backgroundColor: 'white',
                 },
             },
             dark: {
                 before: {
                     color: hasError ? 'rgb(255, 175, 175)' : 'white',
-                    backgroundColor: 'black',
                 }
             },
         },
@@ -99,7 +107,7 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
         decorationRanges = state.deref().get(key) || [],
-        decoration = evaluated(resultString, hasError);
+        decoration = evaluated(` => ${resultString} `, resultString, hasError);
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.codeRange.intersection(codeSelection) });
     decoration["codeRange"] = codeSelection;
     decoration["range"] = new vscode.Selection(codeSelection.end, codeSelection.end);
