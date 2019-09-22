@@ -75,8 +75,7 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine("Evaluated as comment.")
                 } else {
                     annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
-                    if (!pprint)
-                        annotations.decorateResults(' => ' + value.replace(/\n/gm, " ") + " ", false, codeSelection, editor);
+                    annotations.decorateResults(value, false, codeSelection, editor);
                 }
 
                 if (out.length > 0) {
@@ -103,8 +102,8 @@ async function evaluateSelection(document = {}, options = {}) {
                 }
 
                 annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                const annotation = err.join();
-                annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
+                const annotation = err.join("\n");
+                annotations.decorateResults(annotation, true, codeSelection, editor);
             }
         }
     } else
@@ -180,8 +179,10 @@ async function copyLastResultCommand() {
     let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;
-    if (value !== null)
+    if (value !== null) {
         vscode.env.clipboard.writeText(value);
+        vscode.window.showInformationMessage("Results copied to the clipboard.");
+    }
     else
         chan.appendLine("Nothing to copy");
 }

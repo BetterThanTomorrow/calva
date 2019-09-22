@@ -74,7 +74,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - User setting for running namespace tests on save (defaults to **on**)
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Code evaluation
-  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e`
+  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e` (`ctrl+alt+c v` on Windows)
     - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
   - Pretty printing evaluation results: `ctrl+alt+c p` (Currently broken, see issues on Github).
@@ -87,7 +87,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Integrated REPLs
   - Load current namespace in the REPL window: `ctrl+alt+c ctrl+alt+n`
-  - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e`
+  - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e` (`ctrl+alt+c ctrl+alt+v` on Windows)
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 

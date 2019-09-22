@@ -4,9 +4,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Watch TS",
+      "label": "Watch TS source",
       "type": "npm",
-      "script": "watch-ts",
+      "script": "watch-ts-src",
       "isBackground": true,
       "group": {
         "kind": "build",
@@ -15,9 +15,9 @@
       "problemMatcher": "$tsc-watch"
     },
     {
-      "label": "Watch Webpack",
+      "label": "Watch REPL Webview src",
       "type": "npm",
-      "script": "watch-webpack",
+      "script": "watch-repl-webview-src",
       "isBackground": true,
       "group": {
         "kind": "build",
