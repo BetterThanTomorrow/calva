@@ -1,7 +1,7 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
-
+import * as replWindow from './../repl-window';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -132,6 +132,7 @@ export class NReplSession {
     }
 
     messageHandlers: { [id: string]: (msg: any) => boolean } = {};
+    replType: "clj" | "cljs" = null;
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })
@@ -151,11 +152,45 @@ export class NReplSession {
         })
     }
 
+    async _defaultMessageHandler(msgData: any) {
+        if (msgData["repl-type"]) {
+            this.replType = msgData["repl-type"];
+        }
+
+        if (msgData.out && !this.replType) {
+            this.replType = "clj";
+        }
+
+        const msgValue: string = msgData.out || msgData.err;
+        const msgType: string = msgData.out? "stdout" : "stderr";
+
+        if (msgValue && this.replType) {
+            const window = await replWindow.openReplWindow(this.replType, true);
+            const windowMsg = {
+                type: msgType,
+                value: msgValue
+            };
+
+            const outputChan = state.config().outputChannel;
+
+            if (outputChan == "REPL Window") {
+                window.postMessage(windowMsg);
+            } else if (outputChan == "Calva says") {
+                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+            } else if (outputChan == "Both") {
+                window.postMessage(windowMsg);
+                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+            }
+        }
+    }
+
     _response(data: any) {
         if (this.messageHandlers[data.id]) {
             let res = this.messageHandlers[data.id](data);
             if (res)
                 delete this.messageHandlers[data.id];
+        } else {
+            this._defaultMessageHandler(data).then(() => {}, () => {});
         }
     }
 
