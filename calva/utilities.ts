@@ -206,7 +206,7 @@ function getFileType(document) {
     let doc = getDocument(document);
 
     if (doc) {
-        return doc.fileName.substr((doc.fileName.lastIndexOf('.') + 1), doc.fileName.length);
+        return path.extname(doc.fileName);
     }
     else {
         return 'clj';
@@ -214,8 +214,7 @@ function getFileType(document) {
 }
 
 function getFileName(document) {
-    let fileNameIndex = (document.fileName.lastIndexOf('\\') + 1);
-    return document.fileName.substr(fileNameIndex, document.fileName.length)
+    return path.basename(document.fileName);
 }
 
 function getDocumentNamespace(document = {}) {

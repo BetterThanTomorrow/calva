@@ -128,7 +128,6 @@ export async function calvaJackIn() {
     outputChannel.appendLine("Jacking in...");
 
     const projectTypeName: string = projectConnectSequence.projectType;
-    state.extensionContext.workspaceState.update('selectedCljTypeName', projectConnectSequence.projectType);
     let selectedCljsType: CljsTypes;
 
     if (typeof projectConnectSequence.cljsType == "string") {
@@ -158,20 +157,26 @@ export async function calvaDisonnect() {
 
 export async function calvaJackInOrConnect() {
 
-    let commands = ["Start a REPL server and connect (a.k.a. Jack-in)", 
-                    "Connect to a running REPL server"];
+    let commands = {"Start a REPL server and connect (a.k.a. Jack-in)": "calva.jackIn", 
+                    "Connect to a running REPL server": "calva.jackIn",
+                    "Connect to a running REPL server, not in your project": "calva.connectNonProjectREPL"};
     if (JackinExecution != undefined) {
-       commands.push("Disonnect from the REPL server");
+       commands["Disonnect from the REPL server"] = "calva.disconnect";
     }
     if (state.deref().get('connected')) {
         if(cljSession && !isReplWindowVisible("clj")) {
-            commands.push("Open the Clojure REPL Window");
+            commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow"];
         }
         if(cljsSession && !isReplWindowVisible("cljs")) {
-            commands.push("Open the ClojureScript REPL Window");
+            commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
         }
     }
 
+    vscode.window.showQuickPick([...Object.keys(commands)]).then(v => {
+        vscode.commands.executeCommand(commands[v]);
+    })
+
+    /*
     let selection = await utilities.quickPickSingle({
         values: commands,
         placeHolder: "Please select a command",
@@ -188,6 +193,7 @@ export async function calvaJackInOrConnect() {
     } else if(selection == "Open the ClojureScript REPL Window") {
         vscode.commands.executeCommand('calva.openCljsReplWindow');
     }
+    */
 }
 
 

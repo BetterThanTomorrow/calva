@@ -104,7 +104,8 @@ function config() {
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
-        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[]
+        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
+        outputChannel: configOptions.get("sendAsyncOutputTo") as string
     };
 }
 
