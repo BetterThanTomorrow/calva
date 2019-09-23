@@ -26,14 +26,9 @@ export function isReplWindowVisible(mode: "clj" | "cljs" = "clj") {
     if (!replWindows[mode]) {
         return(false);   
     }
-    try {
-        // the webview may already be disposed.
-        if(!replWindows[mode].panel.visible) {
-            return(false);  
-        }
-    } catch(e) {
-        return(false);
-    }
+    // Do not check for visability because the REPL window can 
+    // exist and be obscured in the editor bar. See if it exists 
+    // but not if it is visible.
     return(true);
 }
 
@@ -221,7 +216,7 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
 
 export async function openClojureReplWindows() {
     if (state.deref().get('connected')) {
-        if(cljSession) {
+        if(util.getSession("clj")) {
             openReplWindow("clj", true);
             return;
         }
@@ -231,7 +226,7 @@ export async function openClojureReplWindows() {
 
 export async function openClojureScriptReplWindows() {
     if (state.deref().get('connected')) {
-        if(cljsSession) {
+        if(util.getSession("cljs")) {
             openReplWindow("cljs", true);
             return;
         }
