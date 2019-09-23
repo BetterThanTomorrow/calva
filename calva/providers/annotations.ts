@@ -29,7 +29,7 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
         fontWeight: 'normal',
         fontStyle: 'normal',
         width: "250px",
-},
+    },
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
@@ -110,17 +110,16 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
 
 function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, status: AnnotationStatus) {
     const uri = editor.document.uri,
-    key = uri + ':selectionDecorationRanges',
-    commandUri = vscode.Uri.parse("command:calva.copyLastResults"),
-    commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
-    let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + resultString + '\n```');
-    hoverMessage.isTrusted = true;
-
+        key = uri + ':selectionDecorationRanges';
     let decoration = {},
         decorationRanges = state.deref().get(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
     if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
+        const commandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(JSON.stringify([{text: resultString}]))}`,
+            commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
+        let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + resultString + '\n```');
+        hoverMessage.isTrusted = true;
         decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
     }
     for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
@@ -141,10 +140,15 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
     }
 }
 
+function copyHoverTextCommand(args: { [x: string]: string; }) {
+    vscode.env.clipboard.writeText(args["text"]);
+}
+
 export default {
     AnnotationStatus,
     clearEvaluationDecorations,
     decorateResults,
     decorateSelection,
-    onDidChangeTextDocument
+    onDidChangeTextDocument,
+    copyHoverTextCommand
 };
