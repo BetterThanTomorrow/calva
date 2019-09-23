@@ -87,7 +87,8 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     if (editor === undefined) {
         editor = vscode.window.activeTextEditor;
     }
-
+    state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
+    state.cursor.delete(editor.document.uri + ':selectionDecorationRanges');
     setResultDecorations(editor, []);
     setSelectionDecorations(editor, [], AnnotationStatus.PENDING);
     setSelectionDecorations(editor, [], AnnotationStatus.SUCCESS);
