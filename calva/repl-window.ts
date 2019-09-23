@@ -169,6 +169,10 @@ class REPLWindow {
         })
         try {
             this.postMessage({ type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns });
+            if(this.evaluation.ns && this.ns != this.evaluation.ns) {
+                // the evaluation changed the namespace so set the new namespace.
+                this.setNamespace(this.evaluation.ns);
+            }
         } catch (e) {
             this.postMessage({ type: "repl-error", ex: e });
             let stacktrace = await this.session.stacktrace();

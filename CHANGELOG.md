@@ -5,6 +5,7 @@ Changes to Calva.
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [Unreleased]
+- [REPL ns prompt does not change with (ns ..) form](https://github.com/BetterThanTomorrow/calva/issues/280)
 - [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
 - [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
 - [Adding default message handler for the nrepl](https://github.com/BetterThanTomorrow/calva/issues/218)
