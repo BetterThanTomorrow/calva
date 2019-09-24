@@ -109,17 +109,16 @@ class REPLWindow {
         const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
         const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
         let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
-        html = html.replace("{{baseUri}}", getUrl());
-        html = html.replace("{{script}}", getUrl("/main.js"));
-        html = html.replace("{{font}}", getUrl("/fira_code.css"));
-        html = html.replace("{{logo-symbol}}", getUrl(`/images/calva-symbol-logo.svg`));
+        let script = vscode.Uri.file(path.join(ctx.extensionPath, "html/main.js")).with({ scheme: 'vscode-resource' }).toString()
+        html = html.replace("{{script}}", script);
+        html = html.replace("{{logo-symbol}}", getImageUrl(`calva-symbol-logo.svg`));
         html = html.replace(/{{hero-classes}}/g, `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
         html = html.replace("{{clj-type}}", `${cljType.replace(/ /g, "&nbsp;")}`);
+        html = html.replace("{{clj-type-logo}}", getImageUrl(`${cljTypeSlug}.svg`));
+        html = html.replace("{{clj-logo}}", getImageUrl(`clj.svg`));
         html = html.replace("{{cljs-type}}", `${cljsType.replace(/ /g, "&nbsp;")}`);
-        html = html.replace("{{clj-type-logo}}", getUrl(`/images/${cljTypeSlug}.svg`));
-        html = html.replace("{{clj-logo}}", getUrl(`/images/clj.svg`));
-        html = html.replace("{{cljs-type-logo}}", getUrl((`/images/${cljsTypeSlug}.svg`)));
-        html = html.replace("{{cljs-logo}}", getUrl(`/images/cljs.svg`));
+        html = html.replace("{{cljs-type-logo}}", getImageUrl((`${cljsTypeSlug}.svg`)));
+        html = html.replace("{{cljs-logo}}", getImageUrl(`cljs.svg`));
         panel.webview.html = html;
 
         this.connect().catch(reason => {
@@ -190,11 +189,17 @@ let ctx: vscode.ExtensionContext
 
 let replWindows: { [id: string]: REPLWindow } = {};
 
-function getUrl(name?: string) {
-    if (name)
-        return vscode.Uri.file(path.join(ctx.extensionPath, "html", name)).with({ scheme: 'vscode-resource' }).toString()
+function getImageUrl(name: string) {
+    let imagepath = "";
+    if (!name)
+         imagepath = path.join(ctx.extensionPath, "html/images/empty.svg");
     else
-        return vscode.Uri.file(path.join(ctx.extensionPath, "html")).with({ scheme: 'vscode-resource' }).toString()
+         imagepath = path.join(ctx.extensionPath, "html/images/", name);
+
+    if(!fs.existsSync(imagepath)) {
+        imagepath = path.join(ctx.extensionPath, "html/images/empty.svg");
+    }
+    return vscode.Uri.file(imagepath).with({ scheme: 'vscode-resource' }).toString()
 }
 
 export async function reconnectReplWindow(mode: "clj" | "cljs") {
