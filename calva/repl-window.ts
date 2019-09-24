@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
-import * as fs from "fs";
 import * as state from "./state";
 import status from "./status"
 import { readFileSync } from "fs";
@@ -23,6 +22,15 @@ export function activeReplWindow() {
     return undefined;
 }
 
+export function existsReplWindow(mode: "clj" | "cljs" = "clj") {
+    if (!replWindows[mode]) {
+        return(false);   
+    }
+    // Do not check for visability because the REPL window can 
+    // exist and be obscured in the editor bar. See if it exists 
+    // but not if it is visible.
+    return(true);
+}
 
 class REPLWindow {
     evaluation: NReplEvaluation;
@@ -96,10 +104,10 @@ class REPLWindow {
 
         panel.onDidChangeViewState(e => {
             this.useBuffer = !e.webviewPanel.visible;
-
             if (e.webviewPanel.visible) {
                 this.buffer.forEach(x => this.panel.webview.postMessage(x))
                 this.buffer = [];
+                replViewColum[this.type] = e.webviewPanel.viewColumn;
             }
             status.update();
         })
@@ -189,6 +197,8 @@ class REPLWindow {
 let ctx: vscode.ExtensionContext
 
 let replWindows: { [id: string]: REPLWindow } = {};
+let replViewColum: { [id: string]: vscode.ViewColumn } = {"clj": vscode.ViewColumn.Two, 
+                                                          "cljs": vscode.ViewColumn.Two};
 
 function getUrl(name?: string) {
     if (name)
@@ -204,6 +214,26 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
     }
 }
 
+export async function openClojureReplWindows() {
+    if (state.deref().get('connected')) {
+        if(util.getSession("clj")) {
+            openReplWindow("clj", true);
+            return;
+        }
+    }
+    vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
+}
+
+export async function openClojureScriptReplWindows() {
+    if (state.deref().get('connected')) {
+        if(util.getSession("cljs")) {
+            openReplWindow("cljs", true);
+            return;
+        }
+    }
+    vscode.window.showInformationMessage("Not connected to a ClojureScript REPL server");
+}
+
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
     let session = mode == "clj" ? cljSession : cljsSession,
         nreplClient = session.client;
@@ -214,7 +244,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         replWindows[mode].session = await session.clone();
     }
 
-    replWindows[mode].panel.reveal(vscode.ViewColumn.Two, preserveFocus);
+    replWindows[mode].panel.reveal(replViewColum[mode], preserveFocus);
     return replWindows[mode];
 }
 
@@ -232,7 +262,7 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
     const sessionClone = await session.clone();
     let title = mode == "clj" ? "CLJ REPL" : "CLJS REPL";
     const panel = vscode.window.createWebviewPanel("replInteractor", title, {
-        viewColumn: vscode.ViewColumn.Two,
+        viewColumn: replViewColum[mode],
         preserveFocus: true
     }, {
         retainContextWhenHidden: true,
@@ -246,13 +276,13 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
 }
 
 async function loadNamespaceCommand(reload = true) {
+    await openReplWindow(util.getREPLSessionType(), reload);
     await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
-    await openReplWindow(util.getREPLSessionType());
 }
 
 async function setREPLNamespaceCommand() {
-    await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
     await openReplWindow(util.getREPLSessionType());
+    await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
 export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
@@ -315,8 +345,8 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
 
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', () => openReplWindow("clj", true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', () => openReplWindow("cljs"), true));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', openClojureReplWindows));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCljsReplWindow', openClojureScriptReplWindows));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadNamespace', loadNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
