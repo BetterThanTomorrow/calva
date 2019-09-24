@@ -100,9 +100,9 @@ jobs:
               echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
               EXTRA_RELEASE_OPTIONS=-prerelease
             fi
+            [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
             TAG_VERSION=${BASH_REMATCH[1]}
-            echo TAG_VERSION=${TAG_VERSION}
-            BODY=$(awk '/'${TAG_VERSION}'/, /^$/' ~/calva/CHANGELOG.md | tail -n +2)
+            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/'\''/, "'\'\\\\\'\''"); print }' ~/calva/CHANGELOG.md | tail -n +2)
             GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b '${BODY}' -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/"
 
             if [ "${IS_LOCAL}" = YES ]
