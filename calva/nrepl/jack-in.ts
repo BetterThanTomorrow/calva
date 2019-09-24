@@ -4,12 +4,11 @@ import * as fs from "fs";
 import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
-import {nClient} from "../connector";
+import {nClient, cljSession, cljsSession} from "../connector";
 import statusbar from "../statusbar";
-import { parseEdn, parseForms } from "../../cljs-out/cljs-lib";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
-import { stringify } from "querystring";
 import * as projectTypes from './project-types';
+import { existsReplWindow, openReplWindow } from "../repl-window";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -18,7 +17,7 @@ const TASK_NAME = "Calva Jack-in";
 
 vscode.tasks.onDidStartTask(((e) => {
     if(e.execution.task.name == TASK_NAME) {
-        JackinExecution = e.execution; 
+        JackinExecution = e.execution;
     }
 }));
 
@@ -145,3 +144,42 @@ export async function calvaJackIn() {
     executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, outputChannel, projectConnectSequence)
         .then(() => { }, () => { });
 }
+
+export async function calvaDisonnect() {
+
+    if (state.deref().get('connected')) {
+        calvaJackout();
+        connector.default.disconnect();
+        return;
+    }
+    vscode.window.showInformationMessage("Not connected to a REPL server");
+}
+
+export async function calvaJackInOrConnect() {
+
+    let commands = {};
+    if (!state.deref().get('connected')) {
+        // if not connected add the connect commands
+        commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
+        commands["Connect to a running REPL server in your project"] = "calva.connect";
+        commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
+    } else {
+        // if connected add the disconnect command and the 
+        // REPL window open commands if needed.
+        commands["Disonnect from the REPL server"] = "calva.disconnect";
+        if(utilities.getSession("clj") && !existsReplWindow("clj")) {
+            commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
+        }
+        if(utilities.getSession("cljs") && !existsReplWindow("cljs"))  {
+            commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
+        }
+    }
+
+    vscode.window.showQuickPick([...Object.keys(commands)]).then(v => {
+        if(commands[v]) {
+            vscode.commands.executeCommand(commands[v]);
+        }
+    })
+}
+
+
