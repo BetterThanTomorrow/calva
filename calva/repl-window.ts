@@ -22,7 +22,8 @@ export function activeReplWindow() {
     return undefined;
 }
 
-export function existsReplWindow(mode: "clj" | "cljs" = "clj") {
+export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
+    // If we find `mode` in ythe `replWindows` dictionary, then it is open.
     if (!replWindows[mode]) {
         return(false);   
     }
