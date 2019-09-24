@@ -10,6 +10,7 @@ Changes to Calva.
 - [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
 - [Enhancement REPL window handling / nREPL menu button](https://github.com/BetterThanTomorrow/calva/issues/337)
 - [Print async output, and a setting for where it should go](https://github.com/BetterThanTomorrow/calva/issues/218)
+- [Fix REPL window prompt does not always reflect current ns](https://github.com/BetterThanTomorrow/calva/issues/280)
 - [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
 - [Add content security policy to webview and remove image load error](https://github.com/BetterThanTomorrow/calva/issues/341)
 
