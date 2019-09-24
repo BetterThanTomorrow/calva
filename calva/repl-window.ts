@@ -3,7 +3,7 @@ import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as state from "./state";
 import status from "./status"
-import { readFileSync } from "fs";
+import * as fs from "fs";
 import { NReplEvaluation, NReplSession } from "./nrepl";
 
 import annotations from './providers/annotations';
@@ -26,9 +26,6 @@ export function existsReplWindow(mode: "clj" | "cljs" = "clj") {
     if (!replWindows[mode]) {
         return(false);   
     }
-    // Do not check for visability because the REPL window can 
-    // exist and be obscured in the editor bar. See if it exists 
-    // but not if it is visible.
     return(true);
 }
 
@@ -116,7 +113,7 @@ class REPLWindow {
         // TODO: Add a custom-cljs.svg
         const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
         const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
-        let html = readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
+        let html = fs.readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
         let script = vscode.Uri.file(path.join(ctx.extensionPath, "html/main.js")).with({ scheme: 'vscode-resource' }).toString()
         html = html.replace("{{script}}", script);
         html = html.replace("{{logo-symbol}}", getImageUrl(`calva-symbol-logo.svg`));
