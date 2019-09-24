@@ -29,20 +29,12 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
         fontWeight: 'normal',
         fontStyle: 'normal',
         width: "250px",
-},
+    },
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
-
-//<a href="#" data-href="command:gitlens.showQuickCommitDetails?%7B%22sha%22%3A%22ec09a1477b748da5d0d59b6e9f1eaff031aca4e2%22%7D" title="Show Commit Details"><code>ec09a14</code></a>
-
 function evaluated(contentText, hoverText, hasError) {
-    const commandUri = vscode.Uri.parse("command:calva.copyLastResults"),
-    commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
-    let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + hoverText + '\n```');
-    hoverMessage.isTrusted = true;
     return {
-        hoverMessage: hasError ? hoverText : hoverMessage,
         renderOptions: {
             before: {
                 contentText: contentText,
@@ -68,7 +60,7 @@ function createEvalSelectionDecorationType(status: AnnotationStatus) {
         backgroundColor: selectionBackgrounds[status],
         overviewRulerColor: selectionRulerColors[status],
         overviewRulerLane: vscode.OverviewRulerLane.Right,
-        rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+        rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
     })
 }
 
@@ -86,7 +78,7 @@ function setResultDecorations(editor: vscode.TextEditor, ranges) {
 }
 
 function setSelectionDecorations(editor, ranges, status) {
-    let key = editor.document.uri + ':selectionDecorationRanges:' + status;
+    let key = editor.document.uri + ':selectionDecorationRanges';
     state.cursor.set(key, ranges);
     editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
@@ -95,7 +87,8 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     if (editor === undefined) {
         editor = vscode.window.activeTextEditor;
     }
-
+    state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
+    state.cursor.delete(editor.document.uri + ':selectionDecorationRanges');
     setResultDecorations(editor, []);
     setSelectionDecorations(editor, [], AnnotationStatus.PENDING);
     setSelectionDecorations(editor, [], AnnotationStatus.SUCCESS);
@@ -115,13 +108,23 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(codeSelection, editor: vscode.TextEditor, status: AnnotationStatus) {
-    let uri = editor.document.uri,
-        key = uri + ':selectionDecorationRanges:' + status,
-        decoration = {},
+function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, status: AnnotationStatus) {
+    const uri = editor.document.uri,
+        key = uri + ':selectionDecorationRanges';
+    let decoration = {},
         decorationRanges = state.deref().get(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
+    if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
+        const commandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(JSON.stringify([{text: resultString}]))}`,
+            commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
+        let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + resultString + '\n```');
+        hoverMessage.isTrusted = true;
+        decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
+    }
+    for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
+        setSelectionDecorations(editor, [], s);
+    }
     decorationRanges.push(decoration);
     setSelectionDecorations(editor, decorationRanges, status);
 }
@@ -137,10 +140,15 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
     }
 }
 
+function copyHoverTextCommand(args: { [x: string]: string; }) {
+    vscode.env.clipboard.writeText(args["text"]);
+}
+
 export default {
     AnnotationStatus,
     clearEvaluationDecorations,
     decorateResults,
     decorateSelection,
-    onDidChangeTextDocument
+    onDidChangeTextDocument,
+    copyHoverTextCommand
 };

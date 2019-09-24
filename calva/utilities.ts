@@ -206,7 +206,7 @@ function getFileType(document) {
     let doc = getDocument(document);
 
     if (doc) {
-        return path.extname(doc.fileName);
+        return path.extname(doc.fileName).replace(/^\./, "");
     }
     else {
         return 'clj';

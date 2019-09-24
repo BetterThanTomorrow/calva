@@ -34,7 +34,7 @@ async function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
-            annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.PENDING);
+            annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
             let err: string[] = [], out: string[] = [];
@@ -74,7 +74,7 @@ async function evaluateSelection(document = {}, options = {}) {
                     });
                     chan.appendLine("Evaluated as comment.")
                 } else {
-                    annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
+                    annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     annotations.decorateResults(value, false, codeSelection, editor);
                 }
 
@@ -101,9 +101,9 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine(normalizeNewLines(err));
                 }
 
-                annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                const annotation = err.join("\n");
-                annotations.decorateResults(annotation, true, codeSelection, editor);
+                const message = err.join("\n");
+                annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
+                annotations.decorateResults(message, true, codeSelection, editor);
             }
         }
     } else
