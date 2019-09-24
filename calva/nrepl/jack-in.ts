@@ -8,7 +8,7 @@ import {nClient, cljSession, cljsSession} from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import { isReplWindowVisible, openReplWindow } from "../repl-window";
+import { existsReplWindow, openReplWindow } from "../repl-window";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -167,10 +167,10 @@ export async function calvaJackInOrConnect() {
         // if connected add the disconnect command and the 
         // REPL window open commands if needed.
         commands["Disonnect from the REPL server"] = "calva.disconnect";
-        if(utilities.getSession("clj") && !isReplWindowVisible("clj")) {
+        if(utilities.getSession("clj") && !existsReplWindow("clj")) {
             commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
         }
-        if(utilities.getSession("cljs") && !isReplWindowVisible("cljs"))  {
+        if(utilities.getSession("cljs") && !existsReplWindow("cljs"))  {
             commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
         }
     }

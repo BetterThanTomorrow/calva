@@ -22,7 +22,7 @@ export function activeReplWindow() {
     return undefined;
 }
 
-export function isReplWindowVisible(mode: "clj" | "cljs" = "clj") {
+export function existsReplWindow(mode: "clj" | "cljs" = "clj") {
     if (!replWindows[mode]) {
         return(false);   
     }
