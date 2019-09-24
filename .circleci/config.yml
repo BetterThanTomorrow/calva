@@ -109,7 +109,6 @@ jobs:
             then
               echo "Dry ghr ${GHR_ARGS}"
             else
-              echo "Running: ghr ${GHR_ARGS}"
               ghr ${GHR_ARGS}
             fi
   marketplace-publish:
