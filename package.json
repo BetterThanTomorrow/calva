@@ -1174,6 +1174,48 @@
                     "command": "calva.jackInOrConnect",
                     "when": "false"
                 }
+            ],
+            "editor/context": [
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.jackInOrConnect",
+                    "group": "calva/jack-in"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.selectCurrentForm",
+                    "group": "calva/inline"
+                },
+                {
+                  "when": "editorLangId == clojure",
+                  "command": "calva.loadFile",
+                  "group": "calva/inline"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.evaluateSelection",
+                    "group": "calva/inline"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.evaluateCurrentTopLevelForm",
+                    "group": "calva/inline"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.evalCurrentFormInREPLWindow",
+                    "group": "calva/repl"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.evalCurrentTopLevelFormInREPLWindow",
+                    "group": "calva/repl"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.loadNamespace",
+                    "group": "calva/repl"
+                }
             ]
         }
     },
