@@ -84,6 +84,8 @@ jobs:
     docker:
       - image: cibuilds/github:0.10
     steps:
+      - checkout:
+          path: ~/calva
       - attach_workspace:
           at: /tmp
       - run:
@@ -91,14 +93,17 @@ jobs:
           command: |
             EXTRA_RELEASE_OPTIONS=""
 
-            if [[ "${CIRCLE_TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
             then
               echo "Publishing GitHub Release: ${CIRCLE_TAG}"
             else
               echo "Publishing GitHub Prerelease: ${CIRCLE_TAG}"
               EXTRA_RELEASE_OPTIONS=-prerelease
             fi
-            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/"
+            TAG_VERSION=${BASH_REMATCH[1]}
+            echo TAG_VERSION=${TAG_VERSION}
+            BODY=$(awk '/'${TAG_VERSION}'/, /^$/' ~/calva/CHANGELOG.md | tail -n +2)
+            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b '${BODY}' -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/"
 
             if [ "${IS_LOCAL}" = YES ]
             then
