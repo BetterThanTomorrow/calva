@@ -102,14 +102,14 @@ jobs:
             fi
             [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
             TAG_VERSION=${BASH_REMATCH[1]}
-            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/'\''/, "'\'\\\\\'\''"); print }' ~/calva/CHANGELOG.md | tail -n +2)
+            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/["$]/, "\\\\&"); print }' ~/calva/CHANGELOG.md | tail -n +2)
             if [ "${IS_LOCAL}" = YES ]
             then
               GHR_CMD=echo
             else
               GHR_CMD=ghr
             fi
-            ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "'${BODY}'" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
+            ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "${BODY}" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
   marketplace-publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
