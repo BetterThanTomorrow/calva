@@ -105,7 +105,8 @@ function config() {
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
-        pprint: configOptions.get("prettyPrint", true)
+        pprint: configOptions.get("prettyPrint", true),
+        outputChannel: configOptions.get("sendAsyncOutputTo") as string
     };
 }
 

@@ -270,10 +270,11 @@ export class ReplConsole {
     printElement(element: HTMLElement) {
         if (!this.readline || this.input.disabled) {
             this.elem.appendChild(element);
+            element.scrollIntoView({ block: "end" });
         } else {
             this.elem.insertBefore(element, this.readline.elem);
+            this.readline.elem.scrollIntoView({ block: "end" });
         }
-        this.elem.lastElementChild.scrollIntoView({ block: "end" })
     }
 
     print(text: string) {
