@@ -9,10 +9,11 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
+          # TODO: Add run step before this that cooks a dependency file that we use for checksum
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install node_modules
-          command: npm install
+          command: cp package.json /tmp && npm install && cp /tmp/package.json .
       - run:
           name: Compile and Run Tests
           command: npm run compile-cljs
@@ -102,16 +103,14 @@ jobs:
             fi
             [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
             TAG_VERSION=${BASH_REMATCH[1]}
-            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/'\''/, "'\'\\\\\'\''"); print }' ~/calva/CHANGELOG.md | tail -n +2)
-            GHR_ARGS="-t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b '${BODY}' -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/"
-
+            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/["$]/, "\\\\&"); print }' ~/calva/CHANGELOG.md | tail -n +2)
             if [ "${IS_LOCAL}" = YES ]
             then
-              echo "Dry ghr ${GHR_ARGS}"
+              GHR_CMD=echo
             else
-              echo "Running: ghr ${GHR_ARGS}"
-              ghr ${GHR_ARGS}
+              GHR_CMD=ghr
             fi
+            ${GHR_CMD} -t ${GITHUB_TOKEN} ${EXTRA_RELEASE_OPTIONS} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "${BODY}" -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} /tmp/artifacts/
   marketplace-publish:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
