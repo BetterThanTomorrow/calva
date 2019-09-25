@@ -4,9 +4,12 @@ Changes to Calva.
 ## When time allows, this will be worked on
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
+## Being distilled
+- [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
+
 ## [Unreleased]
 
-## [2.0.40] - 24.09.2019
+## [2.0.40] - 25.09.2019
 - [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)
 - [Add hover to inline result display, containing the full results](https://github.com/BetterThanTomorrow/calva/pull/336)
 - [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
