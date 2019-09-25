@@ -122,13 +122,6 @@ function evaluateSelectionAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: true }));
 }
 
-function evaluateSelectionPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true }));
-}
-function evaluateCurrentTopLevelFormPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true, topLevel: true }));
-}
-
 function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
 }
@@ -191,8 +184,6 @@ export default {
     loadFile,
     evaluateSelection,
     evaluateTopLevelForm,
-    evaluateSelectionPrettyPrint,
-    evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     copyLastResultCommand,
