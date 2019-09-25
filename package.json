@@ -1202,7 +1202,7 @@
                     "group": "calva/inline"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure ",
                     "command": "calva.evalCurrentFormInREPLWindow",
                     "group": "calva/repl"
                 },
