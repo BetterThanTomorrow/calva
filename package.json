@@ -460,6 +460,11 @@
         ],
         "commands": [
             {
+                "command": "calva.togglePrettyPrint",
+                "title": "Toggle pretty printing for all evaluations",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.jackIn",
                 "title": "Start a project REPL and connect (aka Jack-In)",
                 "category": "Calva"

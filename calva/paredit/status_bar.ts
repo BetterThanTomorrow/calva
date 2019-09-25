@@ -19,8 +19,6 @@ export class StatusBar {
         this._toggleBarItem.command = 'paredit.toggle';
         this.enabled = enabled;
         this.visible = visible;
-
-        this.visible = visible;
     }
 
     get enabled() {
