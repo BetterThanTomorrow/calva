@@ -8,7 +8,7 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 
-const { parseEdn } = require('../cljs-out/cljs-lib');
+const { parseEdn } = require('../out/cljs-lib/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';

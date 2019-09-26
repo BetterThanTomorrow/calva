@@ -7,7 +7,7 @@ import * as path from 'path';
 import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
-const { parseForms } = require('../cljs-out/cljs-lib');
+const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import * as docMirror from './calva-fmt/ts/docmirror';
 import { TokenCursor, LispTokenCursor } from './webview/token-cursor';
 import { Token } from './webview/clojure-lexer';

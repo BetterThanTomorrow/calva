@@ -1185,7 +1185,7 @@
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
-        "postrelease": "rimraf ./cljs-out",
+        "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
         "bump-version": "npm set git-tag-version false && npm version patch",
         "postinstall": "node ./node_modules/vscode/bin/install",
