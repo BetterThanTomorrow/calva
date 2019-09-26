@@ -68,7 +68,7 @@ const REPL_WINDOW = {
     historyApiFallback: true,
     host: "0.0.0.0",
     compress: true,
-    contentBase: path.join(__dirname, 'html'),
+    contentBase: path.join(__dirname, 'out'),
     proxy: {
       '/api': 'http://localhost:3000',
     }
