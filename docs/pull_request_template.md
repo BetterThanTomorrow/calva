@@ -1,5 +1,3 @@
-This pull request:
-
 Fixes #.
 
 Introduces the following change(s):
@@ -7,7 +5,7 @@ Introduces the following change(s):
 - 
 - 
 
-(If you have considered alternative ways to introduce the change, replace this paragrah with a brief reasoning about why you made the choices you did. Otherwise just remove this paragraph.)
+<!-- If you have considered alternative ways to introduce the change, replace this paragrah with a brief reasoning about why you made the choices you did. Otherwise just remove this paragraph. -->
 
 I have:
 
@@ -19,5 +17,7 @@ I have:
      - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
 - [ ] Updated the `[Unrleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
+
+<!-- Remove the checkboxes that do not apply, as Github reports how many are not ticked. 😀-->
 
 Ping: @pez, @kstehn
