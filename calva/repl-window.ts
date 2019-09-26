@@ -115,7 +115,7 @@ class REPLWindow {
         const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
         const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
         let html = fs.readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
-        let script = vscode.Uri.file(path.join(ctx.extensionPath, "html/main.js")).with({ scheme: 'vscode-resource' }).toString()
+        let script = vscode.Uri.file(path.join(ctx.extensionPath, "out/webview.js")).with({ scheme: 'vscode-resource' }).toString()
         html = html.replace("{{script}}", script);
         html = html.replace("{{logo-symbol}}", getImageUrl(`calva-symbol-logo.svg`));
         html = html.replace(/{{hero-classes}}/g, `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
@@ -273,7 +273,8 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
         preserveFocus: true
     }, {
         retainContextWhenHidden: true,
-        enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
+        enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html')),
+                                                  vscode.Uri.file(path.join(ctx.extensionPath, 'out'))]
     });
     const cljType: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
     const cljsType: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');

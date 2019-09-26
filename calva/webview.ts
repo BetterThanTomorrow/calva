@@ -1,7 +1,7 @@
-import { ReplConsole } from "../client/repl-console";
-import * as lexer from "../client/clojure-lexer";
+import { ReplConsole } from "./webview/repl-console";
+import * as lexer from "./webview/clojure-lexer";
 var Ansi = require('ansi-to-html');
-import "../../../html/styles.scss";
+import "../html/styles.scss";
 import escapeHTML = require("escape-html");
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
