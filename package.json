@@ -1178,19 +1178,19 @@
         }
     },
     "scripts": {
-        "watch-repl-webview-src": "webpack --mode development --watch",
-        "watch-ts-src": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && npm run compile-cljs && tsc -watch -p ./tsconfig.json",
-        "release-cljs": "npx shadow-cljs release :calva-lib",
-        "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
-        "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\"",
-        "webpack-release": "webpack --mode production",
-        "bump-version": "npm set git-tag-version false && npm version patch",
+        "clean": "rimraf ./out && rimraf ./html/main.js && rimraf ./html/main.js.map && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
-        "compile": "npm run compile-cljs && npm run webpack",
+        "prewatch": "npm run clean && npm run compile-cljs",
+        "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
+        "release-cljs": "npx shadow-cljs release :calva-lib",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
-        "release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
-        "vscode:prepublish": "rimraf ./out && npm run release",
-        "postinstall": "node ./node_modules/vscode/bin/install"
+        "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
+        "postrelease": "rimraf ./cljs-out",
+        "vscode:prepublish": "npm run release",
+        "bump-version": "npm set git-tag-version false && npm version patch",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
+        "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\""
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
