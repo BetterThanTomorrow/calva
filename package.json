@@ -1178,7 +1178,7 @@
         }
     },
     "scripts": {
-        "clean": "rimraf ./out && rimraf ./html/main.js && rimraf ./html/main.js.map && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
+        "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm run clean && npm run compile-cljs",
         "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
