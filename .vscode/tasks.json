@@ -4,31 +4,15 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Watch TS source",
+      "label": "Calva Watch",
       "type": "npm",
-      "script": "watch-ts-src",
+      "script": "watch",
       "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "problemMatcher": "$tsc-watch"
-    },
-    {
-      "label": "Watch REPL Webview src",
-      "type": "npm",
-      "script": "watch-repl-webview-src",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "options": {
-        "env": {
-          "IS_DEV_BUILD": "YES"
-        }
-      },
-      "problemMatcher": []
     }
   ]
 }
