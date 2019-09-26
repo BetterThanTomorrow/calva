@@ -1178,14 +1178,14 @@
         }
     },
     "scripts": {
-        "clean": "rimraf ./out && rimraf ./html/main.js && rimraf ./html/main.js.map && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
+        "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm run clean && npm run compile-cljs",
         "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
-        "postrelease": "rimraf ./cljs-out",
+        "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
         "bump-version": "npm set git-tag-version false && npm version patch",
         "postinstall": "node ./node_modules/vscode/bin/install",

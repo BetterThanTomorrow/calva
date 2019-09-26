@@ -54,12 +54,12 @@ const REPL_WINDOW = {
   target: 'node', 
   // the entry point of this webview, 
   // 📖 -> https://webpack.js.org/configuration/entry-context/
-  entry: path.resolve(__dirname, 'calva/webview-src/server/main.ts'),
+  entry: path.resolve(__dirname, 'calva/webview.ts'),
   // the bundle is stored in the 'html' folder. 
   // 📖 -> https://webpack.js.org/configuration/output/
   output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'html'),
+    filename: 'webview.js',
+    path: path.resolve(__dirname, 'out'),
     publicPath: './'
   },
   // Webpack dev server settings.
@@ -68,7 +68,7 @@ const REPL_WINDOW = {
     historyApiFallback: true,
     host: "0.0.0.0",
     compress: true,
-    contentBase: path.join(__dirname, 'html'),
+    contentBase: path.join(__dirname, 'out'),
     proxy: {
       '/api': 'http://localhost:3000',
     }
@@ -101,7 +101,7 @@ const REPL_WINDOW = {
         options: {
           transpileOnly: true,
           experimentalWatchApi: true,
-          configFile: path.resolve(__dirname, 'calva/webview-src/tsconfig.json')
+          configFile: path.resolve(__dirname, 'calva/webview/tsconfig.json')
         },
       },
       {
