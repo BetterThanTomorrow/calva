@@ -120,6 +120,10 @@ function evaluateSelectionAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: true }));
 }
 
+function evaluateTopLevelFormAsComment(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: true }));
+}
+
 function evaluateSelectionPrettyPrint(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprint: true }));
 }
@@ -193,6 +197,7 @@ export default {
     evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
+    evaluateTopLevelFormAsComment,
     copyLastResultCommand,
     requireREPLUtilitiesCommand
 };
