@@ -1,10 +1,6 @@
 'use strict';
 import { window, StatusBarAlignment, StatusBarItem } from 'vscode';
-
-const activeColour = "white";
-const inactiveColour = "#b3b3b3";
-
-const colour = { "active": "white", "inactive": "#b3b3b3" };
+import statusbar from '../statusbar';
 
 export class StatusBar {
 
@@ -30,10 +26,10 @@ export class StatusBar {
 
         if (this._enabled) {
             this._toggleBarItem.tooltip = "Disable Paredit"
-            this._toggleBarItem.color = colour.active;
+            this._toggleBarItem.color = statusbar.color.active;
         } else {
             this._toggleBarItem.tooltip = "Enable Paredit"
-            this._toggleBarItem.color = colour.inactive;
+            this._toggleBarItem.color = statusbar.color.inactive;
         }
     }
 

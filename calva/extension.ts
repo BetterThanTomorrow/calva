@@ -21,6 +21,7 @@ import * as replWindow from "./repl-window";
 import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
+import statusbar from './statusbar';
 
 import { edit } from './paredit/utils';
 
@@ -116,8 +117,11 @@ function activate(context: vscode.ExtensionContext) {
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', () => {
-        let wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-        
+        const config = vscode.workspace.getConfiguration('calva');
+        const pprintConfigKey = 'prettyPrint';
+        const pprint = config.get(pprintConfigKey);
+        config.update(pprintConfigKey, !pprint);
+        statusbar.update();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
