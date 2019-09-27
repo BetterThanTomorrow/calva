@@ -6,10 +6,9 @@
 
 # Whitelist
 !clojure.tmLanguage.json
-!html/**
+!assets/**
 !out/**
 !package.json
-!assets/**
 !README.md
 !CHANGELOG.md
 !LICENSE.txt

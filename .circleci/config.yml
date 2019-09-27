@@ -9,6 +9,7 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
+          # TODO: Add run step before this that cooks a dependency file that we use for checksum
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: Install node_modules

@@ -27,7 +27,8 @@
     },
     "exclude": [
         "node_modules",
-        "calva/webview-src",
+        "calva/webview",
+        "calva/webview.ts",
         ".vscode-test"
     ]
 }
