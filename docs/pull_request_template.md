@@ -16,7 +16,7 @@ I have:
      - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
      - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
-- [ ] Updated the `[Unrleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
+- [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
 
 <!-- Remove the checkboxes that do not apply, as Github reports how many are not ticked. 😀-->
 
