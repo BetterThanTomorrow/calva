@@ -120,8 +120,9 @@ function activate(context: vscode.ExtensionContext) {
         const config = vscode.workspace.getConfiguration('calva');
         const pprintConfigKey = 'prettyPrint';
         const pprint = config.get(pprintConfigKey);
-        config.update(pprintConfigKey, !pprint);
-        statusbar.update();
+        config.update(pprintConfigKey, !pprint).then(() => {
+            statusbar.update();
+        });
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
