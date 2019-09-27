@@ -73,7 +73,7 @@ const REPL_WINDOW = {
       '/api': 'http://localhost:3000',
     }
   },
-  devtool: 'source-map',
+  devtool: 'eval-source-map',
   resolve: {
     // support reading TypeScript and JavaScript files, 
     // 📖 -> https://github.com/TypeStrong/ts-loader
