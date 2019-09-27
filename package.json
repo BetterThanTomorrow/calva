@@ -456,22 +456,22 @@
         "commands": [
             {
                 "command": "calva.jackIn",
-                "title": "Start a project REPL and connect (aka Jack-In)",
+                "title": "Start a Project REPL and Connect (aka Jack-In)",
                 "category": "Calva"
             },
             {
                 "command": "calva.connect",
-                "title": "Connect to a running REPL server in your project",
+                "title": "Connect to a Running REPL Server in Project",
                 "category": "Calva"
             },
             {
                 "command": "calva.connectNonProjectREPL",
-                "title": "Connect to a running REPL server, not in your project",
+                "title": "Connect to a Running REPL Server, not in Project",
                 "category": "Calva"
             },
             {
                 "command": "calva.disconnect",
-                "title": "Disonnect from the REPL server",
+                "title": "Disonnect from the REPL Server",
                 "category": "Calva"
             },
             {
@@ -496,122 +496,122 @@
             },
             {
                 "command": "calva.toggleCLJCSession",
-                "title": "Toggle the REPL connection (clj or cljs) used for CLJC files",
+                "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
                 "category": "Calva"
             },
             {
                 "command": "calva.selectCurrentForm",
-                "title": "Select current form",
+                "title": "Select Current Form",
                 "category": "Calva"
             },
             {
                 "command": "calva.clearInlineResults",
-                "title": "Clear all inline display of evaluation results",
+                "title": "Clear Inline Evaluation Results",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelection",
-                "title": "Evaluate current form/selection inline and print to output",
+                "title": "Evaluate Current Form Inline",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "title": "Evaluate current top level form inline and print to output (aka defun)",
+                "title": "Evaluate Top Level Form Inline",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
-                "title": "Evaluate current form/selection, and pretty print to output",
+                "title": "Evaluate Current Form Inline (pretty print)",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "title": "Evaluate current top level form, and pretty print (aka defun)",
+                "title": "Evaluate Top Level Form Inline (pretty print)",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "title": "Evaluate current form, and replace it with the result",
+                "title": "Evaluate Current Form and Replace it with Result",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
-                "title": "Evaluate current form, and append a comment with the result",
+                "title": "Evaluate Current Form and Append Comment with Result",
                 "category": "Calva"
             },
             {
                 "command": "calva.copyLastResults",
-                "title": "Copy the result of last evaluation to the clipboard",
+                "title": "Copy Last Evaluation Result to Clipboard",
                 "category": "Calva"
             },
             {
                 "command": "calva.loadFile",
-                "title": "Load (evaluate) current file and its dependencies",
+                "title": "Load Current File and its Dependencies",
                 "category": "Calva"
             },
             {
                 "command": "calva.requireREPLUtilities",
-                "title": "Require REPL utilities, like (doc) etcetera, into current namespace",
+                "title": "Require REPL utilities, like (doc) etcetera, into Current Namespace",
                 "category": "Calva"
             },
             {
                 "command": "calva.lintFile",
-                "title": "Lint current file",
+                "title": "Lint Current File",
                 "category": "Calva"
             },
             {
                 "command": "calva.runNamespaceTests",
-                "title": "Run tests for current namespace",
+                "title": "Run Tests for Current Namespace",
                 "category": "Calva"
             },
             {
                 "command": "calva.runAllTests",
-                "title": "Run all tests",
+                "title": "Run All Tests",
                 "category": "Calva"
             },
             {
                 "command": "calva.rerunTests",
-                "title": "Run previously failing tests again",
+                "title": "Run Failing Tests again",
                 "category": "Calva"
             },
             {
                 "command": "calva.runTestUnderCursor",
-                "title": "Run current test",
+                "title": "Run Current Test",
                 "category": "Calva"
             },
             {
                 "command": "calva.loadNamespace",
-                "title": "Load current namespace in REPL window",
+                "title": "Load Current Namespace in REPL Window",
                 "category": "Calva"
             },
             {
                 "command": "calva.setREPLNamespace",
-                "title": "Switch namespace in current window REPL to namespace of this file",
+                "title": "Switch Namespace in Current REPL Window to Current Namespace",
                 "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
-                "title": "Send current form to REPL window and evaluate it",
+                "title": "Evaluate Current Form in REPL Window",
                 "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "title": "Send current top level form to REPL window and evaluate it (aka defun)",
+                "title": "Evaluate Top Level Form in REPL Window",
                 "category": "Calva"
             },
             {
                 "command": "calva.switchCljsBuild",
-                "title": "Switch CLJS build",
+                "title": "Switch CLJS Build",
                 "category": "Calva"
             },
             {
                 "command": "calva.refresh",
-                "title": "Refresh changed namespaces (since last run of this command)",
+                "title": "Refresh Changed Namespaces",
                 "category": "Calva"
             },
             {
                 "command": "calva.refreshAll",
-                "title": "Refresh all namespaces in the project",
+                "title": "Refresh All Namespaces",
                 "category": "Calva"
             },
             {
@@ -1178,43 +1178,63 @@
             "editor/context": [
                 {
                     "when": "editorLangId == clojure",
-                    "command": "calva.jackInOrConnect",
-                    "group": "calva/jack-in"
-                },
-                {
-                    "when": "editorLangId == clojure",
-                    "command": "calva.selectCurrentForm",
-                    "group": "calva/inline"
-                },
-                {
-                  "when": "editorLangId == clojure",
-                  "command": "calva.loadFile",
-                  "group": "calva/inline"
-                },
-                {
-                    "when": "editorLangId == clojure",
                     "command": "calva.evaluateSelection",
-                    "group": "calva/inline"
+                    "group": "calva/eval"
                 },
                 {
                     "when": "editorLangId == clojure",
                     "command": "calva.evaluateCurrentTopLevelForm",
-                    "group": "calva/inline"
+                    "group": "calva/eval"
                 },
                 {
                     "when": "editorLangId == clojure ",
                     "command": "calva.evalCurrentFormInREPLWindow",
-                    "group": "calva/repl"
+                    "group": "calva/eval"
                 },
                 {
                     "when": "editorLangId == clojure",
                     "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                    "group": "calva/repl"
+                    "group": "calva/eval"
                 },
                 {
                     "when": "editorLangId == clojure",
+                    "command": "calva.evaluateSelectionPrettyPrint",
+                    "group": "calva/eval"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
+                    "group": "calva/eval"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.loadFile",
+                    "group": "calva/load"
+                },                
+                {
+                    "when": "editorLangId == clojure",
                     "command": "calva.loadNamespace",
-                    "group": "calva/repl"
+                    "group": "calva/load"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.runAllTests",
+                    "group": "calva/test"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.runNamespaceTests",
+                    "group": "calva/test"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.rerunTests",
+                    "group": "calva/test"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.runTestUnderCursor",
+                    "group": "calva/test"
                 }
             ]
         }
