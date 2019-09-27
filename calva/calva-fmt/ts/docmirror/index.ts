@@ -1,5 +1,5 @@
-import * as model from "../../../webview-src/client/model"
-export { getIndent } from "../../../webview-src/client/indent"
+import * as model from "../../../webview/model"
+export { getIndent } from "../../../webview/indent"
 import * as vscode from "vscode"
 import * as utilities from '../../../utilities';
 

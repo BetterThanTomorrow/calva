@@ -72,7 +72,6 @@ async function evaluateSelection(document = {}, options = {}) {
                     vscode.workspace.applyEdit(wsEdit).then((_v) => {
                         editor.selection = selection;
                     });
-                    chan.appendLine("Evaluated as comment.")
                 } else {
                     annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     annotations.decorateResults(value, false, codeSelection, editor);
@@ -82,11 +81,10 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine("stdout:");
                     chan.appendLine(normalizeNewLines(out));
                 }
-                chan.appendLine('=>');
-                if (pprint) {
-                    chan.show(true);
+                if (!asComment) {
+                    chan.appendLine('=>');
                     chan.appendLine(value);
-                } else chan.appendLine(value);
+                }
 
                 if (err.length > 0) {
                     chan.appendLine("Error:")

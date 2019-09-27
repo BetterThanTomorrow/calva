@@ -8,6 +8,7 @@ Changes to Calva.
 - [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
 
 ## [Unreleased]
+- [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
 
 ## [2.0.40] - 25.09.2019
 - [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)

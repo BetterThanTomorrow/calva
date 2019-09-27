@@ -109,13 +109,13 @@ class REPLWindow {
             }
             status.update();
         })
-        panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "html", "/calva-icon.png"));
+        panel.iconPath = vscode.Uri.file(path.join(ctx.extensionPath, "assets/images/calva-icon.png"));
 
         // TODO: Add a custom-cljs.svg
         const cljTypeSlug = `clj-type-${cljType.replace(/ /, "-").toLowerCase()}`;
         const cljsTypeSlug = `cljs-type-${cljsType.replace(/ /, "-").toLowerCase()}`;
-        let html = fs.readFileSync(path.join(ctx.extensionPath, "html/index.html")).toString();
-        let script = vscode.Uri.file(path.join(ctx.extensionPath, "html/main.js")).with({ scheme: 'vscode-resource' }).toString()
+        let html = fs.readFileSync(path.join(ctx.extensionPath, "assets/webview.html")).toString();
+        let script = vscode.Uri.file(path.join(ctx.extensionPath, "out/webview.js")).with({ scheme: 'vscode-resource' }).toString()
         html = html.replace("{{script}}", script);
         html = html.replace("{{logo-symbol}}", getImageUrl(`calva-symbol-logo.svg`));
         html = html.replace(/{{hero-classes}}/g, `${type} ${cljTypeSlug} ${cljsTypeSlug}`);
@@ -204,12 +204,12 @@ let replViewColum: { [id: string]: vscode.ViewColumn } = {"clj": vscode.ViewColu
 function getImageUrl(name: string) {
     let imagepath = "";
     if (!name)
-         imagepath = path.join(ctx.extensionPath, "html/images/empty.svg");
+         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
     else
-         imagepath = path.join(ctx.extensionPath, "html/images/", name);
+         imagepath = path.join(ctx.extensionPath, "assets/images/", name);
 
     if(!fs.existsSync(imagepath)) {
-        imagepath = path.join(ctx.extensionPath, "html/images/empty.svg");
+        imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
     }
     return vscode.Uri.file(imagepath).with({ scheme: 'vscode-resource' }).toString()
 }
@@ -273,7 +273,10 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
         preserveFocus: true
     }, {
         retainContextWhenHidden: true,
-        enableScripts: true, localResourceRoots: [vscode.Uri.file(path.join(ctx.extensionPath, 'html'))]
+        enableScripts: true, localResourceRoots: [
+            vscode.Uri.file(path.join(ctx.extensionPath, 'assets')),
+            vscode.Uri.file(path.join(ctx.extensionPath, 'out'))
+        ]
     });
     const cljType: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
     const cljsType: string = state.extensionContext.workspaceState.get('selectedCljsTypeName');
