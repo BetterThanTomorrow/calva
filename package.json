@@ -472,11 +472,13 @@
             {
                 "command": "calva.disconnect",
                 "title": "Disonnect from the REPL Server",
+                "enablement": "calva:connected && !calva:connecting",
                 "category": "Calva"
             },
             {
                 "command": "calva.jackInOrConnect",
                 "title": "Jack-in or Connect",
+                "enablement": "!calva:connected && !calva:connecting",
                 "category": "Calva"
             },
             {
@@ -1177,62 +1179,72 @@
             ],
             "editor/context": [
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && !calva:connected",
+                    "command": "calva.jackInOrConnect",
+                    "group": "calva/connect"
+                },
+                {
+                    "when": "editorLangId == clojure && calva:connected",
+                    "command": "calva.disconnect",
+                    "group": "calva/disconnect"
+                },
+                {
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateSelection",
                     "group": "calva/eval"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateCurrentTopLevelForm",
                     "group": "calva/eval"
                 },
                 {
-                    "when": "editorLangId == clojure ",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.evalCurrentFormInREPLWindow",
                     "group": "calva/eval"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure  && calva:connected",
                     "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                     "group": "calva/eval"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure  && calva:connected",
                     "command": "calva.evaluateSelectionPrettyPrint",
                     "group": "calva/eval"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure  && calva:connected",
                     "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
                     "group": "calva/eval"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure  && calva:connected",
                     "command": "calva.loadFile",
                     "group": "calva/load"
                 },                
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.loadNamespace",
                     "group": "calva/load"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.runAllTests",
                     "group": "calva/test"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.runNamespaceTests",
                     "group": "calva/test"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.rerunTests",
                     "group": "calva/test"
                 },
                 {
-                    "when": "editorLangId == clojure",
+                    "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.runTestUnderCursor",
                     "group": "calva/test"
                 }
