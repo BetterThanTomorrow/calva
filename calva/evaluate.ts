@@ -7,6 +7,7 @@ import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
+import statusbar from './statusbar'
 
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
@@ -113,22 +114,23 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: true }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: true }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
 }
 
-function evaluateSelectionPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true }));
-}
-function evaluateCurrentTopLevelFormPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true, topLevel: true }));
+function evaluateTopLevelFormAsComment(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+}
+
+function evaluateCurrentForm(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
 }
 
 async function loadFile(document = {}, callback = () => { }) {
@@ -185,14 +187,22 @@ async function copyLastResultCommand() {
         chan.appendLine("Nothing to copy");
 }
 
+async function togglePrettyPrint() {
+    const config = vscode.workspace.getConfiguration('calva');
+    const pprintConfigKey = 'prettyPrint';
+    const pprint = config.get(pprintConfigKey);
+    await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+    statusbar.update();
+};
+
 export default {
     loadFile,
-    evaluateSelection,
+    evaluateCurrentForm,
     evaluateTopLevelForm,
-    evaluateSelectionPrettyPrint,
-    evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
+    evaluateTopLevelFormAsComment,
     copyLastResultCommand,
-    requireREPLUtilitiesCommand
+    requireREPLUtilitiesCommand,
+    togglePrettyPrint
 };

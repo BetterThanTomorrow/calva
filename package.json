@@ -99,6 +99,11 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
+                    "calva.prettyPrint": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Pretty print evaluations"
+                    },
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
@@ -455,6 +460,11 @@
         ],
         "commands": [
             {
+                "command": "calva.togglePrettyPrint",
+                "title": "Toggle pretty printing for all evaluations",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.jackIn",
                 "title": "Start a project REPL and connect (aka Jack-In)",
                 "category": "Calva"
@@ -520,23 +530,18 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "title": "Evaluate current form/selection, and pretty print to output",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "title": "Evaluate current top level form, and pretty print (aka defun)",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.evaluateSelectionReplace",
                 "title": "Evaluate current form, and replace it with the result",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
-                "title": "Evaluate current form, and append a comment with the result",
+                "title": "Evaluate current form, append a comment with the result",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateTopLevelFormAsComment",
+                "title": "Evaluate current top level form, append a comment with the result",
                 "category": "Calva"
             },
             {
@@ -880,14 +885,6 @@
                 "key": "ctrl+alt+c space"
             },
             {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "key": "ctrl+alt+c p"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "key": "ctrl+alt+c ctrl+p"
-            },
-            {
                 "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+c r"
             },
@@ -896,12 +893,20 @@
                 "key": "ctrl+alt+c c"
             },
             {
+                "command": "calva.evaluateTopLevelFormAsComment",
+                "key": "ctrl+alt+c ctrl+space"
+            },
+            {
                 "command": "calva.copyLastResults",
                 "key": "ctrl+alt+c ctrl+c"
             },
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter"
+            },
+            {
+                "command": "calva.togglePrettyPrint",
+                "key": "ctrl+alt+c p"
             },
             {
                 "command": "calva.requireREPLUtilities",

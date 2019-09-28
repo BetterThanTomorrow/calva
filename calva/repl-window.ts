@@ -66,7 +66,7 @@ class REPLWindow {
                     this.evaluation.interrupt();
 
                 if (msg.type == "read-line") {
-                    this.replEval(msg.line, this.ns, msg.pprint);
+                    this.replEval(msg.line, this.ns, state.config().pprint);
                 }
 
                 if (msg.type == "goto-file") {
@@ -325,7 +325,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
 }
 
 
-function evalCurrentFormInREPLWindow(topLevel = false, pprint = false) {
+function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -346,11 +346,11 @@ function evalCurrentFormInREPLWindow(topLevel = false, pprint = false) {
 }
 
 function evalCurrentFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(false);
+    evalCurrentFormInREPLWindow(false, state.config().pprint);
 }
 
 function evalCurrentTopLevelFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(true);
+    evalCurrentFormInREPLWindow(true, state.config().pprint);
 }
 
 export function activate(context: vscode.ExtensionContext) {
