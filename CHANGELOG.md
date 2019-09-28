@@ -8,6 +8,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
+- [Add command for evaluating top level form as comment](https://github.com/BetterThanTomorrow/calva/issues/349)
 - [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
 
 ## [2.0.40] - 25.09.2019

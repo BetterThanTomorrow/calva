@@ -536,7 +536,12 @@
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
-                "title": "Evaluate current form, and append a comment with the result",
+                "title": "Evaluate current form, append a comment with the result",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateTopLevelFormAsComment",
+                "title": "Evaluate current top level form, append a comment with the result",
                 "category": "Calva"
             },
             {
@@ -886,6 +891,10 @@
             {
                 "command": "calva.evaluateSelectionAsComment",
                 "key": "ctrl+alt+c c"
+            },
+            {
+                "command": "calva.evaluateTopLevelFormAsComment",
+                "key": "ctrl+alt+c ctrl+space"
             },
             {
                 "command": "calva.copyLastResults",
