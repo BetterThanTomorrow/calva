@@ -73,7 +73,7 @@ const REPL_WINDOW = {
       '/api': 'http://localhost:3000',
     }
   },
-  devtool: 'eval-source-map',
+  devtool: 'source-map',
   resolve: {
     // support reading TypeScript and JavaScript files, 
     // 📖 -> https://github.com/TypeStrong/ts-loader
@@ -123,6 +123,13 @@ const REPL_WINDOW = {
 // or development mode. The extenion is only 
 // webpacked for production.
 function buildConfig(isProduction) {
+  if(!isProduction) {
+    // if not production set deftool to 
+    // 'eval-source-map' to make the webview 
+    // debugable in the vscode Webview Development 
+    // tools.
+    REPL_WINDOW.devtool = "eval-source-map";
+  }
   let configs = [REPL_WINDOW];
   if (isProduction) {
     configs.unshift(CALVA_MAIN)
