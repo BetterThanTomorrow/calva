@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as config from './config';
 import { getIndent, getDocument, getDocumentOffset } from "./docmirror";
-const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../cljs-out/cljs-lib');
+const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 
 
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {

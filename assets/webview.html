@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src vscode-resource:; script-src 'unsafe-inline' data: vscode-resource:; style-src 'unsafe-inline' data: vscode-resource:; img-src data: vscode-resource:; font-src 'unsafe-inline' data: vscode-resource:">
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 </head>
 
@@ -38,7 +39,6 @@
             <ul>
                 <li><code>alt+up/down</code>: for history navigation</li>
                 <li><code>alt+enter</code>: to submit the current line</li>
-                <li><code>ctrl+enter</code>: to submit the current line and pretty print the results</li>
             </ul>
         </p>
         <p><strong>NB:</strong> Make it a habit to start any Calva session by loading a file. Many things do not work before that is done. Use <code>ctrl+alt+c enter</code> in the code editor to load (evaluate) the active file.</p>

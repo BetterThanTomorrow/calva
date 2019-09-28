@@ -7,6 +7,15 @@ import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
+import statusbar from './statusbar'
+
+function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
+    const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
+    wsEdit.set(editor.document.uri, [edit]);
+    vscode.workspace.applyEdit(wsEdit).then((_v) => {
+        editor.selection = selection;
+    });
+}
 
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
@@ -34,7 +43,7 @@ async function evaluateSelection(document = {}, options = {}) {
         }
 
         if (code.length > 0) {
-            annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.PENDING);
+            annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
             let err: string[] = [], out: string[] = [];
@@ -42,9 +51,18 @@ async function evaluateSelection(document = {}, options = {}) {
             let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
 
             try {
-
-                let context = client.eval(code, { stdout: m => out.push(m), stderr: m => err.push(m), pprint: !!pprint })
-                let value = await context.value
+                const line = codeSelection.start.line,
+                    column = codeSelection.start.character,
+                    filePath = doc.fileName,
+                    context = client.eval(code, {
+                        file: filePath,
+                        line: line,
+                        column: column,
+                        stdout: m => out.push(m),
+                        stderr: m => err.push(m),
+                        pprint: !!pprint
+                    });
+                let value = await context.value;
                 value = context.pprintOut || value;
 
                 if (replace) {
@@ -53,72 +71,69 @@ async function evaluateSelection(document = {}, options = {}) {
                         wsEdit = new vscode.WorkspaceEdit();
                     wsEdit.set(editor.document.uri, [edit]);
                     vscode.workspace.applyEdit(wsEdit);
-                    chan.appendLine("Replaced inline.")
                 } else if (asComment) {
-                    const indent = `${' '.repeat(c)}`,
-                        output = value.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `),
-                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
-                        wsEdit = new vscode.WorkspaceEdit();
-                    wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit).then((_v) => {
-                        editor.selection = selection;
-                    });
-                    chan.appendLine("Evaluated as comment.")
+                    addAsComment(c, value, codeSelection, editor, selection);
                 } else {
-                    annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
-                    if (!pprint)
-                        annotations.decorateResults(' => ' + value.replace(/\n/gm, " ") + " ", false, codeSelection, editor);
+                    annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
+                    annotations.decorateResults(value, false, codeSelection, editor);
                 }
 
                 if (out.length > 0) {
                     chan.appendLine("stdout:");
-                    chan.appendLine(out.map(x => x.replace(/\n\r?$/, "")).join("\n"));
+                    chan.appendLine(normalizeNewLines(out));
                 }
-                chan.appendLine('=>');
-                if (pprint) {
-                    chan.show(true);
+                if (!asComment) {
+                    chan.appendLine('=>');
                     chan.appendLine(value);
-                } else chan.appendLine(value);
+                }
 
                 if (err.length > 0) {
                     chan.appendLine("Error:")
-                    chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
+                    chan.appendLine(normalizeNewLines(err));
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
-                    if (err.length > 0) {
-                        chan.appendLine("Error:")
-                        chan.appendLine(err.map(x => x.replace(/\n\r?$/, "")).join("\n"));
-                    }
+                }
+                if (err.length > 0) {
+                    chan.appendLine("Error:")
+                    chan.appendLine(normalizeNewLines(err));
                 }
 
-                annotations.decorateSelection(codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                const annotation = err.join();
-                annotations.decorateResults(' => ' + annotation.replace(/\n/gm, " ") + " ", true, codeSelection, editor);
+                const message = err.join("\n");
+                annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
+                annotations.decorateResults(message, true, codeSelection, editor);
+                if (asComment) {
+                    addAsComment(c, message, codeSelection, editor, selection);
+                }
             }
         }
     } else
         vscode.window.showErrorMessage("Not connected to a REPL")
 }
 
+function normalizeNewLines(strings: string[]): string {
+    return strings.map(x => x.replace(/\n\r?$/, "")).join("\n");
+}
+
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: true }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: true }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
 }
 
-function evaluateSelectionPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true }));
-}
-function evaluateCurrentTopLevelFormPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true, topLevel: true }));
+function evaluateTopLevelFormAsComment(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+}
+
+function evaluateCurrentForm(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
 }
 
 async function loadFile(document = {}, callback = () => { }) {
@@ -167,20 +182,30 @@ async function copyLastResultCommand() {
     let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
 
     let value = await client.eval("*1").value;
-    if (value !== null)
+    if (value !== null) {
         vscode.env.clipboard.writeText(value);
+        vscode.window.showInformationMessage("Results copied to the clipboard.");
+    }
     else
         chan.appendLine("Nothing to copy");
 }
 
+async function togglePrettyPrint() {
+    const config = vscode.workspace.getConfiguration('calva');
+    const pprintConfigKey = 'prettyPrint';
+    const pprint = config.get(pprintConfigKey);
+    await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+    statusbar.update();
+};
+
 export default {
     loadFile,
-    evaluateSelection,
+    evaluateCurrentForm,
     evaluateTopLevelForm,
-    evaluateSelectionPrettyPrint,
-    evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
+    evaluateTopLevelFormAsComment,
     copyLastResultCommand,
-    requireREPLUtilitiesCommand
+    requireREPLUtilitiesCommand,
+    togglePrettyPrint
 };

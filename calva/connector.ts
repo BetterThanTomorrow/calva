@@ -8,7 +8,7 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 
-const { parseEdn } = require('../cljs-out/cljs-lib');
+const { parseEdn } = require('../out/cljs-lib/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
@@ -455,7 +455,24 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     return true;
 }
 
+function standaloneConnect(connectSequence: ReplConnectSequence, chan: vscode.OutputChannel) {
+    if (connectSequence) {
+        const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
+        chan.appendLine(`Connecting ...`);
+        state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
+        connect(connectSequence, false, false);
+    }
+    else {
+        chan.appendLine("Aborting connect, error determining connect sequence.");
+    }
+}
+
 export default {
+    connectNonProjectREPLCommand: async () => {
+        const chan = state.outputChannel();
+        const connectSequence = await askForConnectSequence(projectTypes.getAllProjectTypes(), 'connect-type', "ConnectInterrupted");
+        standaloneConnect(connectSequence, chan);
+    },
     connectCommand: async () => {
         const chan = state.outputChannel();
         // TODO: Figure out a better way to have an initializwd project directory.
@@ -465,15 +482,8 @@ export default {
             return;
         }
         const cljTypes = await projectTypes.detectProjectTypes(),
-            connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
-        if (connectSequence) {
-            const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
-            chan.appendLine(`Connecting ...`);
-            state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
-            connect(connectSequence, false, false);
-        } else {
-            chan.appendLine("Aborting connect, error determining connect sequence.")
-        }
+        connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
+        standaloneConnect(connectSequence, chan);
     },
     disconnect: (options = null, callback = () => { }) => {
         ['clj', 'cljs'].forEach(sessionType => {

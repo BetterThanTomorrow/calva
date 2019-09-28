@@ -15,10 +15,10 @@
                              :cljify calva.js-utils/cljify
                              :parseEdn calva.js-utils/parse-edn-js
                              :parseForms calva.js-utils/parse-forms-js}
-                 :output-to "cljs-out/cljs-lib.js"}
+                 :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
-                 :output-to "cljs-out/test/cljs-lib-tests.js"
+                 :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
                  :autorun   true}}}
 

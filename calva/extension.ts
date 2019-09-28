@@ -18,12 +18,10 @@ import select from './select';
 import evaluate from "./evaluate"
 import refresh from "./refresh";
 import * as replWindow from "./repl-window";
-import { format } from 'url';
 import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
-
-import { edit } from './paredit/utils';
+import statusbar from './statusbar';
 
 function onDidSave(document) {
     let {
@@ -65,7 +63,7 @@ function onDidOpen(document) {
 function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
-    
+
     const chan = state.outputChannel();
 
 
@@ -116,19 +114,11 @@ function activate(context: vscode.ExtensionContext) {
     status.update();
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', () => {
-        vscode.window.showQuickPick(["Start a REPL server and connect (a.k.a. Jack-in)",
-            "Connect to a running REPL server"]
-        ).then(v => {
-            if (v == "Start a REPL server and connect (a.k.a. Jack-in)") {
-                vscode.commands.executeCommand('calva.jackIn');
-            } else {
-                vscode.commands.executeCommand('calva.connect');
-            }
-        })
-    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
+    context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', connector.connectNonProjectREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.disconnect', jackIn.calvaDisonnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
@@ -136,12 +126,12 @@ function activate(context: vscode.ExtensionContext) {
         EvaluateMiddleWare.loadFile();
         chan.show(true);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', EvaluateMiddleWare.evaluateTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelFormPrettyPrint', EvaluateMiddleWare.evaluateCurrentTopLevelFormPrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', EvaluateMiddleWare.evaluateSelectionAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', EvaluateMiddleWare.evaluateTopLevelFormAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', EvaluateMiddleWare.togglePrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.lintFile', LintMiddleWare.lintDocument));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', TestRunnerMiddleWare.runTestUnderCursorCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
@@ -149,6 +139,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', evaluate.requireREPLUtilitiesCommand));
 

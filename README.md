@@ -2,7 +2,7 @@
 
 ![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an easy to use, integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in Visual Studio Code. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
@@ -12,7 +12,7 @@ Latest build on `master`:
 
 ## Raison d´être
 
-With Calva we want to help to lower the barriers into the Clojure world. By leveraging the strengths of VS Code and nREPL, we think we can offer an environment in which it is easy to get started with Clojure and ClojureScript, and wich is productive enough for seasoned Clojurians to stay with.
+Calva's main reason for existance is to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
 ## How to Connect Calva to your project
 
@@ -74,12 +74,13 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - User setting for running namespace tests on save (defaults to **on**)
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Code evaluation
-  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e`
+  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e` (`ctrl+alt+c v` on Windows)
     - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
-  - Pretty printing evaluation results: `ctrl+alt+c p` (Currently broken, see issues on Github).
+  - Evaluate code and add as comment: `ctrl+alt+c c` (current form), `ctrl+alt+c ctrl space` (current _top level_ form)
   - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
     - Send the current top level form to the REPL terminal: `ctrl+alt+c ctrl+alt+space`
+  - Toggle pretty printing of results on and off: `ctrl+alt+c p`. It's on by default. There is a status bar button showing the status and that also can be used to toggle the setting.
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
   - Enables `clj` REPL for all files/editors. You now can evaluate those Clojure code snippets in Markdown files.
@@ -87,7 +88,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - User setting to evaluate namespace on save/open file (defaults to **on**)
 - Integrated REPLs
   - Load current namespace in the REPL window: `ctrl+alt+c ctrl+alt+n`
-  - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e`
+  - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e` (`ctrl+alt+c ctrl+alt+v` on Windows)
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
 
@@ -139,6 +140,7 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
+* [Christian Fehse](https://github.com/cfehse)
 
 ### Alumni
 * [Matt Seddon](https://github.com/mseddon)

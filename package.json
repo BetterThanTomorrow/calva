@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.39",
+    "version": "2.0.41",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -47,7 +47,9 @@
     "activationEvents": [
         "onLanguage:clojure",
         "onCommand:calva.jackIn",
-        "onCommand:calva.connect"
+        "onCommand:calva.jackInOrConnect",
+        "onCommand:calva.connect",
+        "onCommand:calva.connectNonProjectREPL"
     ],
     "main": "./out/extension",
     "extensionPack": [
@@ -97,6 +99,11 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
+                    "calva.prettyPrint": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Pretty print evaluations"
+                    },
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
@@ -222,6 +229,16 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "calva.sendAsyncOutputTo": {
+                        "type": "string",
+                        "description": "Set the output chanel for outputs outside of an evaluation.",
+                        "enum": [
+                            "REPL Window",
+                            "Calva says",
+                            "Both"
+                        ],
+                        "default": "Calva says"
                     },
                     "calva.replConnectSequences": {
                         "type": "array",
@@ -443,13 +460,28 @@
         ],
         "commands": [
             {
+                "command": "calva.togglePrettyPrint",
+                "title": "Toggle pretty printing for all evaluations",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.jackIn",
                 "title": "Start a project REPL and connect (aka Jack-In)",
                 "category": "Calva"
             },
             {
                 "command": "calva.connect",
-                "title": "Connect to a running REPL server",
+                "title": "Connect to a running REPL server in your project",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.connectNonProjectREPL",
+                "title": "Connect to a running REPL server, not in your project",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.disconnect",
+                "title": "Disonnect from the REPL server",
                 "category": "Calva"
             },
             {
@@ -498,23 +530,18 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "title": "Evaluate current form/selection, and pretty print to output",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "title": "Evaluate current top level form, and pretty print (aka defun)",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.evaluateSelectionReplace",
                 "title": "Evaluate current form, and replace it with the result",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
-                "title": "Evaluate current form, and append a comment with the result",
+                "title": "Evaluate current form, append a comment with the result",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateTopLevelFormAsComment",
+                "title": "Evaluate current top level form, append a comment with the result",
                 "category": "Calva"
             },
             {
@@ -828,6 +855,10 @@
                 "key": "ctrl+alt+c ctrl+alt+c"
             },
             {
+                "command": "calva.connectNonProjectREPL",
+                "key": "ctrl+alt+c alt+c"
+            },
+            {
                 "command": "calva.toggleCLJCSession",
                 "key": "ctrl+alt+c ctrl+alt+s"
             },
@@ -846,19 +877,12 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "key": "ctrl+alt+c e"
+                "key": "ctrl+alt+c e",
+                "win": "ctrl+alt+c v"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "ctrl+alt+c space"
-            },
-            {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "key": "ctrl+alt+c p"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "key": "ctrl+alt+c ctrl+p"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
@@ -869,12 +893,20 @@
                 "key": "ctrl+alt+c c"
             },
             {
+                "command": "calva.evaluateTopLevelFormAsComment",
+                "key": "ctrl+alt+c ctrl+space"
+            },
+            {
                 "command": "calva.copyLastResults",
                 "key": "ctrl+alt+c ctrl+c"
             },
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter"
+            },
+            {
+                "command": "calva.togglePrettyPrint",
+                "key": "ctrl+alt+c p"
             },
             {
                 "command": "calva.requireREPLUtilities",
@@ -910,7 +942,8 @@
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
-                "key": "ctrl+alt+c ctrl+alt+e"
+                "key": "ctrl+alt+c ctrl+alt+e",
+                "win": "ctrl+alt+c ctrl+alt+v"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
@@ -1150,29 +1183,29 @@
         }
     },
     "scripts": {
-        "watch-webpack": "webpack --mode development --watch",
-        "watch-ts": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && npm run compile-cljs && tsc -watch -p ./tsconfig.json",
-        "release-cljs": "npx shadow-cljs release :calva-lib",
-        "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
-        "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\"",
-        "webpack-release": "webpack --mode production",
-        "bump-version": "npm set git-tag-version false && npm version patch",
+        "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
-        "compile": "npm run compile-cljs && npm run webpack",
+        "prewatch": "npm run clean && npm run compile-cljs",
+        "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
+        "release-cljs": "npx shadow-cljs release :calva-lib",
         "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
-        "release": "npm i && npm run update-grammar && npm run release-cljs && npm run webpack-release",
-        "disabled-release": "npm i && npm run update-grammar && npm run release-cljs && tsc -p ./",
-        "vscode:prepublish": "rimraf ./out && npm run release",
-        "disabled-vscode:prepublish": "npm run release",
-        "postinstall": "node ./node_modules/vscode/bin/install"
+        "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
+        "postrelease": "rimraf ./out/cljs-lib",
+        "vscode:prepublish": "npm run release",
+        "bump-version": "npm set git-tag-version false && npm version patch",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "NOT-USED-start": "ts-node --inspect=5858 webview-src/server/main.ts",
+        "NOT-USED-repl-window-dev-server": "concurrently \"npx nodemon -- ./webview-src/client/index.js\" \"npx webpack-dev-server\""
     },
     "dependencies": {
+        "@types/escape-html": "0.0.20",
         "@types/mocha": "^2.2.42",
         "@types/node": "^7.10.6",
         "@types/universal-analytics": "^0.4.2",
         "@types/uuid": "^3.4.4",
         "acorn": "^6.1.1",
         "ansi-to-html": "^0.6.11",
+        "escape-html": "^1.0.3",
         "find": "0.2.9",
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
@@ -1214,7 +1247,7 @@
         "vsce": "^1.66.0",
         "vscode": "^1.1.34",
         "webpack": "^4.33.0",
-        "webpack-cli": "^3.3.3",
+        "webpack-cli": "^3.3.5",
         "webpack-dev-server": "^3.8.0"
     }
 }
