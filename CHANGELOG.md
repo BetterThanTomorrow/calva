@@ -5,11 +5,11 @@ Changes to Calva.
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## Being distilled
-- [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
 
 ## [Unreleased]
 - [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
 - [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
+- [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
 
 ## [2.0.40] - 25.09.2019
 - [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)

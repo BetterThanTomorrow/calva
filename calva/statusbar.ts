@@ -6,6 +6,11 @@ import * as util from './utilities';
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+const color = {
+    active: "white",
+    inactive: "#b3b3b3"
+};
 
 function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration):string {
     let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
@@ -23,6 +28,12 @@ function update() {
         cljsBuild = current.get('cljsBuild');
 
     //let disconnectedColor = "rgb(192,192,192)";
+
+    const pprint = state.config().pprint;
+    prettyPrintToggle.text = "pprint";
+    prettyPrintToggle.color = pprint ? color.active : color.inactive;
+    prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`
+    prettyPrintToggle.command = "calva.togglePrettyPrint"
 
     typeStatus.command = null;
     typeStatus.text = "Disconnected";
@@ -83,8 +94,10 @@ function update() {
     } else {
         cljsBuildStatus.hide();
     }
+    prettyPrintToggle.show();
 }
 
 export default {
-    update
+    update,
+    color
 };
