@@ -471,7 +471,7 @@
             },
             {
                 "command": "calva.connect",
-                "title": "Connect to a Running REPL Server in Project",
+                "title": "Connect to a Running REPL Server in the Project",
                 "category": "Calva"
             },
             {
@@ -527,31 +527,31 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "title": "Evaluate Current Form Inline",
+                "title": "Evaluate Current Form",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "title": "Evaluate Top Level Form Inline",
+                "title": "Evaluate Top Level Form (defun)",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "title": "Evaluate Current Form and Replace it with Result",
+                "title": "Evaluate Current Form to Result",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
-                "title": "Evaluate Current Form Inline Append Result as Comment",
+                "title": "Evaluate Current Form to Comment",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateTopLevelFormAsComment",
-                "title": "Evaluate Top Level Form Inline Append Result as Comment",
+                "title": "Evaluate Top Level Form (defun) to Comment",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -562,7 +562,7 @@
             },
             {
                 "command": "calva.loadFile",
-                "title": "Load Current File and its Dependencies",
+                "title": "Load Current File and Dependencies",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -609,7 +609,7 @@
             },
             {
                 "command": "calva.setREPLNamespace",
-                "title": "Switch Namespace in Current REPL Window to Current Namespace",
+                "title": "Switch Namespace in REPL Window to Current Namespace",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -621,13 +621,13 @@
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "title": "Evaluate Top Level Form in REPL Window",
+                "title": "Evaluate Top Level Form in REPL Window (defun)",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.switchCljsBuild",
-                "title": "Switch CLJS Build",
+                "title": "Select CLJS Build Connection",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
