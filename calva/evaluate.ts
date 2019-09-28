@@ -7,6 +7,7 @@ import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
+import statusbar from './statusbar'
 
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
@@ -177,6 +178,14 @@ async function copyLastResultCommand() {
         chan.appendLine("Nothing to copy");
 }
 
+async function togglePrettyPrint() {
+    const config = vscode.workspace.getConfiguration('calva');
+    const pprintConfigKey = 'prettyPrint';
+    const pprint = config.get(pprintConfigKey);
+    await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+    statusbar.update();
+};
+
 export default {
     loadFile,
     evaluateSelection,
@@ -184,5 +193,6 @@ export default {
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     copyLastResultCommand,
-    requireREPLUtilitiesCommand
+    requireREPLUtilitiesCommand,
+    togglePrettyPrint
 };
