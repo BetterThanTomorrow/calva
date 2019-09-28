@@ -140,6 +140,7 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
+* [Christian Fehse](https://github.com/cfehse)
 
 ### Alumni
 * [Matt Seddon](https://github.com/mseddon)
