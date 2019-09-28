@@ -8,9 +8,9 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
-- [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
-- [Add command for evaluating top level form as comment](https://github.com/BetterThanTomorrow/calva/issues/349)
 - [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
+- [Add command for evaluating top level form as comment](https://github.com/BetterThanTomorrow/calva/issues/349)
+- [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
 
 ## [2.0.40] - 25.09.2019
 - [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)

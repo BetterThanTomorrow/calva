@@ -2,7 +2,7 @@
 
 ![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an easy to use, integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) coding. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in Visual Studio Code. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
@@ -12,7 +12,7 @@ Latest build on `master`:
 
 ## Raison d´être
 
-With Calva we want to help to lower the barriers into the Clojure world. By leveraging the strengths of VS Code and nREPL, we think we can offer an environment in which it is easy to get started with Clojure and ClojureScript, and wich is productive enough for seasoned Clojurians to stay with.
+Calva's main reason for existance is to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
 ## How to Connect Calva to your project
 
@@ -140,6 +140,7 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
+* [Christian Fehse](https://github.com/cfehse)
 
 ### Alumni
 * [Matt Seddon](https://github.com/mseddon)
