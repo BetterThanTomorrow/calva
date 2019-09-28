@@ -22,15 +22,16 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         nClient.close();
     }
     cljsSession = cljSession = null;
-    state.cursor.set('connecting', true);
+    
+    util.setConnectingState(true);
     status.update();
     try {
         chan.appendLine("Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
         nClient = await NReplClient.create({ host: hostname, port: +port })
         nClient.addOnCloseHandler(c => {
-            state.cursor.set("connected", false);
-            state.cursor.set("connecting", false);
+            util.setConnectedState(false);
+            util.setConnectingState(false);
             if (!c["silent"]) // we didn't deliberately close this session, mention this fact.
                 chan.appendLine("nREPL Connection was closed");
             status.update();
@@ -42,12 +43,13 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
             console.error("Failed reconnecting REPL window: ", reason);
         });
 
-        state.cursor.set("connected", true);
+        util.setConnectingState(false);
+        util.setConnectedState(true);
         state.analytics().logEvent("REPL", "ConnectedCLJ").send();
-        state.cursor.set("connecting", false);
         state.cursor.set('clj', cljSession)
         state.cursor.set('cljc', cljSession)
         status.update();
+        
 
         if (connectSequence.afterCLJReplJackInCode) {
             state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");
@@ -77,8 +79,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         status.update();
 
     } catch (e) {
-        state.cursor.set("connected", false);
-        state.cursor.set("connecting", false);
+        util.setConnectingState(false);
+        util.setConnectedState(false);
         chan.appendLine("Failed connecting.");
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
@@ -409,11 +411,11 @@ async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSeq
             await connectToHost(hostname, parsedPort, connectSequence);
         } else {
             chan.appendLine("Bad url: " + url);
-            state.cursor.set('connecting', false);
+            util.setConnectingState(false);
             status.update();
         }
     } else {
-        state.cursor.set('connecting', false);
+        util.setConnectingState(false);
         status.update();
     }
     return true;
@@ -489,7 +491,7 @@ export default {
         ['clj', 'cljs'].forEach(sessionType => {
             state.cursor.set(sessionType, null);
         });
-        state.cursor.set("connected", false);
+        util.setConnectedState(false);
         state.cursor.set('cljc', null);
         status.update();
 
