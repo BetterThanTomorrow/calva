@@ -13,6 +13,7 @@ async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = state.outputChannel(),
         doc = util.getDocument(document),
+        pprint = options["pprint"] || false,
         replace = options["replace"] || false,
         topLevel = options["topLevel"] || false,
         asComment = options["comment"] || false;
@@ -51,7 +52,7 @@ async function evaluateSelection(document = {}, options = {}) {
                         column: column,
                         stdout: m => out.push(m),
                         stderr: m => err.push(m),
-                        pprint: !!state.config().pprint
+                        pprint: !!pprint
                     });
                 let value = await context.value;
                 value = context.pprintOut || value;
@@ -113,26 +114,23 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true}));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: true }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: true }));
-}
-
-function evaluateSelectionPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true }));
-}
-function evaluateCurrentTopLevelFormPrettyPrint(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: true, topLevel: true }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+}
+
+function evaluateCurrentForm(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
 }
 
 async function loadFile(document = {}, callback = () => { }) {
@@ -199,7 +197,7 @@ async function togglePrettyPrint() {
 
 export default {
     loadFile,
-    evaluateSelection,
+    evaluateCurrentForm,
     evaluateTopLevelForm,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
