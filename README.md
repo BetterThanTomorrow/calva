@@ -77,9 +77,9 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e` (`ctrl+alt+c v` on Windows)
     - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
-  - Pretty printing is on by default. You can turn it off via the user setting. You can also toggle it in the status bar.
   - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
     - Send the current top level form to the REPL terminal: `ctrl+alt+c ctrl+alt+space`
+  - Toggle pretty printing of results on and off: `ctrl+alt+c p`. It's on by default. There is a status bar button showing the status and that also can be used to toggle the setting.
   - Error information when evaluation fails (at least a hint)
   - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
   - Enables `clj` REPL for all files/editors. You now can evaluate those Clojure code snippets in Markdown files.

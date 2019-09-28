@@ -896,6 +896,10 @@
                 "key": "ctrl+alt+c enter"
             },
             {
+                "command": "calva.togglePrettyPrint",
+                "key": "ctrl+alt+c p"
+            },
+            {
                 "command": "calva.requireREPLUtilities",
                 "key": "ctrl+alt+c ctrl+u"
             },
