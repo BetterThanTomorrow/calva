@@ -640,7 +640,6 @@
             {
                 "command": "calva.refreshAll",
                 "title": "Refresh All Namespaces",
-                
                 "category": "Calva"
             },
             {
@@ -1249,7 +1248,7 @@
                     "when": "editorLangId == clojure  && calva:connected",
                     "command": "calva.loadFile",
                     "group": "calva/c-load"
-                },                
+                },
                 {
                     "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.loadNamespace",
