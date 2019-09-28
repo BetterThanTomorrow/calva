@@ -472,33 +472,37 @@
             {
                 "command": "calva.disconnect",
                 "title": "Disonnect from the REPL Server",
-                "enablement": "calva:connected && !calva:connecting",
+                "enablement": "calva:connected || calva:connecting",
                 "category": "Calva"
             },
             {
                 "command": "calva.jackInOrConnect",
-                "title": "Jack-in or Connect",
+                "title": "Jack-in or Connect to REPL Server",
                 "enablement": "!calva:connected && !calva:connecting",
                 "category": "Calva"
             },
             {
                 "command": "calva.openCljReplWindow",
                 "title": "Open the Clojure REPL Window",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.openCljsReplWindow",
                 "title": "Open the ClojureScript REPL Window",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.clearREPLWindowHistory",
                 "title": "Clear history of active REPL window (mainly in case it has been borked)",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
@@ -514,31 +518,37 @@
             {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate Current Form Inline",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "title": "Evaluate Top Level Form Inline",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionPrettyPrint",
                 "title": "Evaluate Current Form Inline (pretty print)",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
                 "title": "Evaluate Top Level Form Inline (pretty print)",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
                 "title": "Evaluate Current Form and Replace it with Result",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
                 "title": "Evaluate Current Form and Append Comment with Result",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
@@ -549,11 +559,13 @@
             {
                 "command": "calva.loadFile",
                 "title": "Load Current File and its Dependencies",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.requireREPLUtilities",
                 "title": "Require REPL utilities, like (doc) etcetera, into Current Namespace",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
@@ -564,56 +576,67 @@
             {
                 "command": "calva.runNamespaceTests",
                 "title": "Run Tests for Current Namespace",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.runAllTests",
                 "title": "Run All Tests",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.rerunTests",
                 "title": "Run Failing Tests again",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.runTestUnderCursor",
                 "title": "Run Current Test",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.loadNamespace",
                 "title": "Load Current Namespace in REPL Window",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.setREPLNamespace",
                 "title": "Switch Namespace in Current REPL Window to Current Namespace",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
                 "title": "Evaluate Current Form in REPL Window",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "title": "Evaluate Top Level Form in REPL Window",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.switchCljsBuild",
                 "title": "Switch CLJS Build",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.refresh",
                 "title": "Refresh Changed Namespaces",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.refreshAll",
                 "title": "Refresh All Namespaces",
+                
                 "category": "Calva"
             },
             {
