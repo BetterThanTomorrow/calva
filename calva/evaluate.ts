@@ -9,6 +9,14 @@ import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
 import statusbar from './statusbar'
 
+function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
+    const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
+    wsEdit.set(editor.document.uri, [edit]);
+    vscode.workspace.applyEdit(wsEdit).then((_v) => {
+        editor.selection = selection;
+    });
+}
+
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = state.outputChannel(),
@@ -64,14 +72,7 @@ async function evaluateSelection(document = {}, options = {}) {
                     wsEdit.set(editor.document.uri, [edit]);
                     vscode.workspace.applyEdit(wsEdit);
                 } else if (asComment) {
-                    const indent = `${' '.repeat(c)}`,
-                        output = value.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `),
-                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
-                        wsEdit = new vscode.WorkspaceEdit();
-                    wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit).then((_v) => {
-                        editor.selection = selection;
-                    });
+                    addAsComment(c, value, codeSelection, editor, selection);
                 } else {
                     annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     annotations.decorateResults(value, false, codeSelection, editor);
@@ -103,14 +104,7 @@ async function evaluateSelection(document = {}, options = {}) {
                 annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
                 annotations.decorateResults(message, true, codeSelection, editor);
                 if (asComment) {
-                    const indent = `${' '.repeat(c)}`,
-                        output = message.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `),
-                        edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`),
-                        wsEdit = new vscode.WorkspaceEdit();
-                    wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit).then((_v) => {
-                        editor.selection = selection;
-                    });
+                    addAsComment(c, message, codeSelection, editor, selection);
                 }
             }
         }
