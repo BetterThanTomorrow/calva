@@ -99,6 +99,11 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
+                    "calva.prettyPrint": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Pretty print evaluations"
+                    },
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
@@ -455,6 +460,11 @@
         ],
         "commands": [
             {
+                "command": "calva.togglePrettyPrint",
+                "title": "Toggle pretty printing for all evaluations",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.jackIn",
                 "title": "Start a project REPL and connect (aka Jack-In)",
                 "category": "Calva"
@@ -517,16 +527,6 @@
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "title": "Evaluate current top level form inline and print to output (aka defun)",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "title": "Evaluate current form/selection, and pretty print to output",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "title": "Evaluate current top level form, and pretty print (aka defun)",
                 "category": "Calva"
             },
             {
@@ -885,14 +885,6 @@
                 "key": "ctrl+alt+c space"
             },
             {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "key": "ctrl+alt+c p"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "key": "ctrl+alt+c ctrl+p"
-            },
-            {
                 "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+c r"
             },
@@ -911,6 +903,10 @@
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter"
+            },
+            {
+                "command": "calva.togglePrettyPrint",
+                "key": "ctrl+alt+c p"
             },
             {
                 "command": "calva.requireREPLUtilities",

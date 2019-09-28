@@ -7,12 +7,12 @@ import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
+import statusbar from './statusbar'
 
 async function evaluateSelection(document = {}, options = {}) {
     let current = state.deref(),
         chan = state.outputChannel(),
         doc = util.getDocument(document),
-        pprint = options["pprint"] || false,
         replace = options["replace"] || false,
         topLevel = options["topLevel"] || false,
         asComment = options["comment"] || false;
@@ -51,7 +51,7 @@ async function evaluateSelection(document = {}, options = {}) {
                         column: column,
                         stdout: m => out.push(m),
                         stderr: m => err.push(m),
-                        pprint: !!pprint
+                        pprint: !!state.config().pprint
                     });
                 let value = await context.value;
                 value = context.pprintOut || value;
@@ -113,7 +113,7 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: true }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true}));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
@@ -189,15 +189,22 @@ async function copyLastResultCommand() {
         chan.appendLine("Nothing to copy");
 }
 
+async function togglePrettyPrint() {
+    const config = vscode.workspace.getConfiguration('calva');
+    const pprintConfigKey = 'prettyPrint';
+    const pprint = config.get(pprintConfigKey);
+    await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+    statusbar.update();
+};
+
 export default {
     loadFile,
     evaluateSelection,
     evaluateTopLevelForm,
-    evaluateSelectionPrettyPrint,
-    evaluateCurrentTopLevelFormPrettyPrint,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
     copyLastResultCommand,
-    requireREPLUtilitiesCommand
+    requireREPLUtilitiesCommand,
+    togglePrettyPrint
 };
