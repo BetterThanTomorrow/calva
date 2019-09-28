@@ -99,6 +99,11 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
+                    "calva.prettyPrint": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Pretty print evaluations"
+                    },
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
@@ -455,6 +460,11 @@
         ],
         "commands": [
             {
+                "command": "calva.togglePrettyPrint",
+                "title": "Toggle Pretty Printing for All Evaluations",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.jackIn",
                 "title": "Start a Project REPL and Connect (aka Jack-In)",
                 "category": "Calva"
@@ -524,18 +534,6 @@
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "title": "Evaluate Top Level Form Inline",
-                "enablement": "calva:connected",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "title": "Evaluate Current Form Inline (pretty print)",
-                "enablement": "calva:connected",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "title": "Evaluate Top Level Form Inline (pretty print)",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -905,14 +903,6 @@
                 "key": "ctrl+alt+c space"
             },
             {
-                "command": "calva.evaluateSelectionPrettyPrint",
-                "key": "ctrl+alt+c p"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
-                "key": "ctrl+alt+c ctrl+p"
-            },
-            {
                 "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+c r"
             },
@@ -927,6 +917,10 @@
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter"
+            },
+            {
+                "command": "calva.togglePrettyPrint",
+                "key": "ctrl+alt+c p"
             },
             {
                 "command": "calva.requireREPLUtilities",
@@ -1212,6 +1206,11 @@
                     "group": "calva/disconnect"
                 },
                 {
+                    "when": "editorLangId == clojure",
+                    "command": "calva.togglePrettyPrint",
+                    "group": "calva/toggle"
+                },
+                {
                     "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateSelection",
                     "group": "calva/eval"
@@ -1219,26 +1218,6 @@
                 {
                     "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateCurrentTopLevelForm",
-                    "group": "calva/eval"
-                },
-                {
-                    "when": "editorLangId == clojure && calva:connected",
-                    "command": "calva.evalCurrentFormInREPLWindow",
-                    "group": "calva/eval"
-                },
-                {
-                    "when": "editorLangId == clojure  && calva:connected",
-                    "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                    "group": "calva/eval"
-                },
-                {
-                    "when": "editorLangId == clojure  && calva:connected",
-                    "command": "calva.evaluateSelectionPrettyPrint",
-                    "group": "calva/eval"
-                },
-                {
-                    "when": "editorLangId == clojure  && calva:connected",
-                    "command": "calva.evaluateCurrentTopLevelFormPrettyPrint",
                     "group": "calva/eval"
                 },
                 {
