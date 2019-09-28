@@ -8,6 +8,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
+- [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
 
 ## [2.0.41] - 28.09.2019
 - [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
