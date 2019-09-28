@@ -51,7 +51,6 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
     "Alt+Return": "submit",
-    "Ctrl+Return": "submit-pprint",
     "Ctrl+L": "clear-window"
 })
 
@@ -581,10 +580,6 @@ export class ReplConsole {
         },
         "submit": () => {
             this.submitLine(true, false)
-            this.readline.clearCompletion();
-        },
-        "submit-pprint": () => {
-            this.submitLine(true, true)
             this.readline.clearCompletion();
         },
         "clear-window": () => {

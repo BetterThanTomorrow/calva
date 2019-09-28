@@ -21,8 +21,7 @@ import * as replWindow from "./repl-window";
 import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
-
-import { edit } from './paredit/utils';
+import statusbar from './statusbar';
 
 function onDidSave(document) {
     let {
@@ -115,6 +114,13 @@ function activate(context: vscode.ExtensionContext) {
     status.update();
 
     // COMMANDS
+    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', async () => {
+        const config = vscode.workspace.getConfiguration('calva');
+        const pprintConfigKey = 'prettyPrint';
+        const pprint = config.get(pprintConfigKey);
+        await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+        statusbar.update();
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
     context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', connector.connectNonProjectREPLCommand));
@@ -129,8 +135,6 @@ function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateSelection));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', EvaluateMiddleWare.evaluateTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionPrettyPrint', EvaluateMiddleWare.evaluateSelectionPrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelFormPrettyPrint', EvaluateMiddleWare.evaluateCurrentTopLevelFormPrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', EvaluateMiddleWare.evaluateSelectionAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.lintFile', LintMiddleWare.lintDocument));
