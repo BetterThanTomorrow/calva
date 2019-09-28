@@ -23,8 +23,6 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 
-import { edit } from './paredit/utils';
-
 function onDidSave(document) {
     let {
         evaluate,
