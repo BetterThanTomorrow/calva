@@ -8,6 +8,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Show argument list of fn](https://github.com/BetterThanTomorrow/calva/issues/238)
+- [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
 
 ## [2.0.42] - 29.09.2019
 - [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
