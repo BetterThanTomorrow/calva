@@ -10,15 +10,9 @@ jobs:
       APM_TEST_PACKAGES: ""
       ATOM_CHANNEL: "stable"
     docker:
-      - image: circleci/node:latest
+      - image: arcanemagus/atom-docker-ci:stable
     steps:
       - checkout
-      - run:
-          name: Update system package lists
-          command: sudo apt-get update
-      - run:
-          name: Install some pre-requisite packages
-          command: sudo apt-get --assume-yes --quiet install curl xvfb
       - run:
           name: Start display server for Atom
           command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
