@@ -232,7 +232,7 @@
                     },
                     "calva.sendAsyncOutputTo": {
                         "type": "string",
-                        "description": "Set the output chanel for outputs outside of an evaluation.",
+                        "description": "The destination for output outside of an evaluation.",
                         "enum": [
                             "REPL Window",
                             "Calva says",
