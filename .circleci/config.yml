@@ -1,7 +1,7 @@
 version: 2
 jobs:
   test-grammar:
-    working_directory: ~/calva/calva-fmt/atom-language-clojure
+    working_directory: ~/calva
     environment:
       # Required:
       DISPLAY: ":99"
@@ -25,13 +25,19 @@ jobs:
           background: true
       - run:
           name: Download Atom build script
-          command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+          command: |
+            cd calva/calva-fmt/atom-language-clojure
+            curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
       - run:
           name: Make build script executable
-          command: chmod u+x build-package.sh
+          command: |
+            cd calva/calva-fmt/atom-language-clojure
+            chmod u+x build-package.sh
       - run:
           name: Run package tests
-          command: ./build-package.sh
+          command: |
+            cd calva/calva-fmt/atom-language-clojure
+            ./build-package.sh
       # On MacOS:
       # - run: caffeinate -s build-package.sh
   test:
@@ -179,30 +185,13 @@ jobs:
             fi
 workflows:
   version: 2
-  build-test:
+  build-test-release-publish:
     jobs:
       - test-grammar
       - test
       - build:
           requires:
             - test
-  build-test-release-publish:
-    jobs:
-      - test-grammar
-      - test:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - build:
-          requires:
-            - test
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
       - github-release:
           requires:
             - build
