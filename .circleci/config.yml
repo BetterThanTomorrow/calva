@@ -1,5 +1,39 @@
 version: 2
 jobs:
+  test-grammar:
+    working_directory: ~/calva/calva-fmt/atom-language-clojure
+    environment:
+      # Required:
+      DISPLAY: ":99"
+      # Configurable
+      ATOM_LINT_WITH_BUNDLED_NODE: "true"
+      APM_TEST_PACKAGES: ""
+      ATOM_CHANNEL: "stable"
+    docker:
+      - image: circleci/node:latest
+    steps:
+      - checkout
+      - run:
+          name: Update system package lists
+          command: sudo apt-get update
+      - run:
+          name: Install some pre-requisite packages
+          command: sudo apt-get --assume-yes --quiet install curl xvfb
+      - run:
+          name: Start display server for Atom
+          command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
+          background: true
+      - run:
+          name: Download Atom build script
+          command: curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+      - run:
+          name: Make build script executable
+          command: chmod u+x build-package.sh
+      - run:
+          name: Run package tests
+          command: ./build-package.sh
+      # On MacOS:
+      # - run: caffeinate -s build-package.sh
   test:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
