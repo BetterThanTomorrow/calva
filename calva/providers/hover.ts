@@ -1,47 +1,60 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
-import { nClient as nClient } from "../connector";
 import * as util from '../utilities';
 
 export default class HoverProvider implements vscode.HoverProvider {
     state: any;
+
     constructor() {
         this.state = state;
     }
-    formatDocString(nsname, arglist, doc) {
+
+    formatDocString(nsname: string, arglist: string, documentation: string) {
+
         let result = '';
+        // Format the namespace.
         if (nsname.length > 0 && nsname !== 'undefined') {
             result += '**' + nsname + '**  ';
             result += '\n';
         }
-
         // Format the different signatures for the fn
-        if (arglist & arglist.substring) {
+        if (arglist && arglist != "") {
             result += arglist.substring(0, arglist.length)
-                .replace(/\]/g, ']_')
-                .replace(/\[/g, '* _[');
+                .replace(/\]/g, ']')
+                .replace(/\[/g, '* [');
+            result += '\n\n';
             result += '\n\n';
         }
-
         // Format the actual docstring
-        if (doc) {
-            result += doc.replace(/\s\s+/g, ' ');
+        if (documentation && documentation != "") {
+            result += documentation.replace(/\s\s+/g, ' ');
             result += '  ';
         }
         return result.length > 0 ? result : "";
     }
 
     async provideHover(document, position, _) {
-        let text = util.getWordAtPosition(document, position);
-        if (this.state.deref().get('connected')) {
-            let client = util.getSession(util.getFileType(document));
+
+        if (util.getConnectedState()) {
+            let text = util.getWordAtPosition(document, position);
             let ns = util.getNamespace(document);
-            let res = await client.info(ns, text);
-            if(res.doc)
-                return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], res.doc))
-            if(res.ns)
-                return new vscode.Hover(this.formatDocString(res.ns+"/"+res.name, res["arglists-str"] || [], "No documentation available"));
+            let client = util.getSession(util.getFileType(document));
+            if(client) {
+                await util.loadFileIfNeeded(document);
+                let res = await client.info(ns, text);
+                // I really don't not why result.arglists-str does 
+                // not work, but it leads to an compiler error.
+                if (res.ns && res.doc) {
+                    return new vscode.Hover(this.formatDocString(res.ns + "/" + res.name, res["arglists-str"] || [], res.doc))
+                }
+                if (res.ns) {
+                    return new vscode.Hover(this.formatDocString(res.ns + "/" + res.name, res["arglists-str"] || [], "No documentation available"));
+                } else {
+                    return new vscode.Hover(this.formatDocString(text, "", "No information available"));
+                }
+            }
+            return new vscode.Hover(this.formatDocString(text, "", "No information available"));
         } else
-            return new vscode.Hover("Not connected to nREPL..");
+            return new vscode.Hover("Please connect to a REPL to retrieve information.");
     }
 };
