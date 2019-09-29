@@ -1,5 +1,28 @@
 version: 2
 jobs:
+  install-deps:
+    working_directory: ~/calva
+    docker:
+      - image: circleci/openjdk:11.0.4-stretch-node
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - restore_cache:
+          name: Restore dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+      - run:
+          name: Install node_modules
+          command: cp package.json /tmp && npm install && cp /tmp/package.json .
+      - run:
+          name: Install CLJS dependencies
+          command: npx shadow-cljs classpath
+      - save_cache:
+          name: Save dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          paths:
+            - ./node_modules
+            - ~/.m2
   test-grammar:
     working_directory: ~/calva
     environment:
@@ -13,6 +36,9 @@ jobs:
       - image: circleci/node:latest
     steps:
       - checkout
+      - restore_cache:
+          name: Restore dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Update system package lists
           command: sudo apt-get update
@@ -38,8 +64,12 @@ jobs:
           command: |
             cd calva/calva-fmt/atom-language-clojure
             ./build-package.sh
-      # On MacOS:
-      # - run: caffeinate -s build-package.sh
+      - save_cache:
+          name: Save dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          paths:
+            - ~/.atom/packages
+            - ./node_modules
   test:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
@@ -49,20 +79,10 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
-          # TODO: Add run step before this that cooks a dependency file that we use for checksum
-          key: dependency-cache-{{ checksum "package.json" }}
-      - run:
-          name: Install node_modules
-          command: cp package.json /tmp && npm install && cp /tmp/package.json .
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Compile and Run Tests
           command: npm run compile-cljs
-      - save_cache:
-          name: Save dependencies
-          key: dependency-cache-{{ checksum "package.json" }}
-          paths:
-            - ./node_modules
-            - ~/.m2
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
@@ -72,7 +92,7 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: "Create artifacts workspace"
           command: mkdir /tmp/artifacts
@@ -162,7 +182,7 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Publish to the marketplace
           command: |
@@ -187,8 +207,13 @@ workflows:
   version: 2
   build-test-release-publish:
     jobs:
-      - test-grammar
-      - test
+      - install-deps
+      - test-grammar:
+          requires:
+            - install-deps
+      - test:
+          requires:
+            - install-deps
       - build:
           requires:
             - test

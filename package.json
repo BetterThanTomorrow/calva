@@ -640,7 +640,6 @@
             {
                 "command": "calva.refreshAll",
                 "title": "Refresh All Namespaces",
-                
                 "category": "Calva"
             },
             {
@@ -1249,7 +1248,7 @@
                     "when": "editorLangId == clojure  && calva:connected",
                     "command": "calva.loadFile",
                     "group": "calva/c-load"
-                },                
+                },
                 {
                     "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.loadNamespace",
@@ -1331,7 +1330,8 @@
         "nodemon": "^1.19.1",
         "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.52",
+        "shadow-cljs": "^2.8.59",
+        "source-map-support": "^0.5.13",
         "style-loader": "^0.23.1",
         "tar": "^4.4.10",
         "ts-loader": "^5.4.5",
