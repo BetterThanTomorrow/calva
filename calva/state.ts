@@ -106,7 +106,7 @@ function config() {
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
         pprint: configOptions.get("prettyPrint") as boolean,
-        outputChannel: configOptions.get("sendAsyncOutputTo") as string
+        asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string
     };
 }
 

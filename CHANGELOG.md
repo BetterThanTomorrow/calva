@@ -7,8 +7,12 @@ Changes to Calva.
 ## Being distilled
 
 ## [Unreleased]
-- [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
 - [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
+
+## [2.0.42] - 29.09.2019
+- [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
+- [Fix bug with painting all existing result decoration with the same status](https://github.com/BetterThanTomorrow/calva/issues/353)
+- [Fix bug with reporting errors using off-by-one line and column numbers](https://github.com/BetterThanTomorrow/calva/issues/354)
 
 ## [2.0.41] - 28.09.2019
 - [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
