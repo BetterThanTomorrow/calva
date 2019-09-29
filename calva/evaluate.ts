@@ -56,8 +56,8 @@ async function evaluateSelection(document = {}, options = {}) {
                     filePath = doc.fileName,
                     context = client.eval(code, {
                         file: filePath,
-                        line: line,
-                        column: column,
+                        line: line + 1,
+                        column: column + 1,
                         stdout: m => out.push(m),
                         stderr: m => err.push(m),
                         pprint: !!pprint
