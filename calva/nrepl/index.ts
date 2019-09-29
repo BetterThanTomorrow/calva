@@ -315,6 +315,17 @@ export class NReplSession {
         return evaluation;
     }
 
+    loadFileSilent(file: string, fileName: string, filePath: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": fileName, "file-path": filePath })
+        })
+    }
+
     complete(ns: string, symbol: string, context?: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;

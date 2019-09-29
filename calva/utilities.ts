@@ -2,14 +2,13 @@ import * as vscode from 'vscode';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import * as _ from 'lodash';
 import * as state from './state';
-import * as fs from 'fs';
 import * as path from 'path';
 import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import * as docMirror from './calva-fmt/ts/docmirror';
-import { TokenCursor, LispTokenCursor } from './webview/token-cursor';
+import { LispTokenCursor } from './webview/token-cursor';
 import { Token } from './webview/clojure-lexer';
 import select from './select';
 
@@ -190,6 +189,29 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
+async function loadFileIfNeeded(doc) {
+
+    if (getConnectedState()) {
+        let document = getDocument(doc);
+        if (document) {
+            let ns = getNamespace(document);
+            let name = getFileName(document);
+            let path = "";
+            if(document.hasOwnProperty('fileName')) {
+                path = document.fileName; 
+            }
+            let client = getSession(getFileType(document));
+            if (client) {
+                let nsList = await client.listNamespaces([]);
+                if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
+                    return;
+                }
+                await client.loadFileSilent(document.getText(), name, path);
+            }
+        }
+    }
+}
+
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
@@ -237,8 +259,8 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
-function getConnectedState() {
-    return state.cursor.get('connected');
+function getConnectedState() { 
+    return state.deref().get('connected');
 }
 
 function setConnectedState(value) {
@@ -252,7 +274,7 @@ function setConnectedState(value) {
 }
 
 function getConnectingState() {
-    return state.cursor.get('connecting');
+    return state.deref().get('connecting');
 }
 
 function setConnectingState(value) {
@@ -396,6 +418,7 @@ export {
     getNamespace,
     getStartExpression,
     getWordAtPosition,
+    loadFileIfNeeded,
     getDocument,
     getDocumentNamespace,
     getFileType,
