@@ -192,6 +192,7 @@ workflows:
       - build:
           requires:
             - test
+            - test-grammar
       - github-release:
           requires:
             - build
