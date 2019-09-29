@@ -205,9 +205,13 @@ jobs:
             fi
 workflows:
   version: 2
-  build-test-release-publish:
+  # We have two workflows, because for some reason the tag filter need to be on all jobs...
+  test-build:
     jobs:
-      - install-deps
+      - install-deps:
+          filters:
+            tags:
+              ignore: /^v\d+\.\d+\.\d+-?.*/
       - test-grammar:
           requires:
             - install-deps
@@ -218,6 +222,34 @@ workflows:
           requires:
             - test
             - test-grammar
+  test-build-release-publish:
+    jobs:
+      - install-deps
+      - test-grammar:
+          requires:
+            - install-deps
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - test:
+          requires:
+            - install-deps
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - build:
+          requires:
+            - test
+            - test-grammar
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
       - github-release:
           requires:
             - build
