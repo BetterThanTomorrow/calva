@@ -34,13 +34,19 @@ jobs:
       APM_TEST_PACKAGES: ""
       ATOM_CHANNEL: "stable"
     docker:
-      - image: arcanemagus/atom-docker-ci:stable
+      - image: circleci/node:latest
     steps:
       - checkout
       - restore_cache:
           name: Restore dependencies
           # TODO: Add run step before this that cooks a dependency file that we use for checksum
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+      - run:
+          name: Update system package lists
+          command: sudo apt-get update
+      - run:
+          name: Install some pre-requisite packages
+          command: sudo apt-get --assume-yes --quiet install curl xvfb
       - run:
           name: Start display server for Atom
           command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
