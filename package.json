@@ -765,12 +765,12 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpForward",
-                "title": "Barf Sexp"
+                "title": "Barf Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpBackward",
-                "title": "Barf Sexp"
+                "title": "Barf Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
