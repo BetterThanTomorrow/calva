@@ -226,8 +226,9 @@ async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabe
             state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
             return;
         }
-
-        return sequences.find(seq => seq.name === projectConnectSequenceName);
+        const sequence = sequences.find(seq => seq.name === projectConnectSequenceName);
+        state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
+        return sequence;
     } else {
         return sequences[0];
     }

@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as utilities from '../utilities';
 
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-const { parseForms, parseEdn } = require('../../cljs-out/cljs-lib');
+const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
 
@@ -375,6 +375,10 @@ export async function detectProjectTypes(): Promise<string[]> {
         } catch (_e) { }
     }
     return cljProjTypes;
+}
+
+export function getAllProjectTypes(): string[] {
+    return [...Object.keys(projectTypes)];
 }
 
 export function getCljsTypeName(connectSequence: ReplConnectSequence) {

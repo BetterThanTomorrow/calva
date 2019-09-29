@@ -7,10 +7,10 @@ import * as path from 'path';
 import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
-const { parseForms } = require('../cljs-out/cljs-lib');
+const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import * as docMirror from './calva-fmt/ts/docmirror';
-import { TokenCursor, LispTokenCursor } from './webview-src/client/token-cursor';
-import { Token } from './webview-src/client/clojure-lexer';
+import { TokenCursor, LispTokenCursor } from './webview/token-cursor';
+import { Token } from './webview/clojure-lexer';
 import select from './select';
 
 
@@ -206,7 +206,7 @@ function getFileType(document) {
     let doc = getDocument(document);
 
     if (doc) {
-        return doc.fileName.substr((doc.fileName.lastIndexOf('.') + 1), doc.fileName.length);
+        return path.extname(doc.fileName).replace(/^\./, "");
     }
     else {
         return 'clj';
@@ -214,8 +214,7 @@ function getFileType(document) {
 }
 
 function getFileName(document) {
-    let fileNameIndex = (document.fileName.lastIndexOf('\\') + 1);
-    return document.fileName.substr(fileNameIndex, document.fileName.length)
+    return path.basename(document.fileName);
 }
 
 function getDocumentNamespace(document = {}) {

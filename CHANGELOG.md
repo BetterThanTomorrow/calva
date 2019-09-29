@@ -4,7 +4,27 @@ Changes to Calva.
 ## When time allows, this will be worked on
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
+## Being distilled
+
 ## [Unreleased]
+
+## [2.0.41] - 28.09.2019
+- [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
+- [Add command for evaluating top level form as comment](https://github.com/BetterThanTomorrow/calva/issues/349)
+- [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
+
+## [2.0.40] - 25.09.2019
+- [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)
+- [Add hover to inline result display, containing the full results](https://github.com/BetterThanTomorrow/calva/pull/336)
+- [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
+- [Enhancement REPL window handling / nREPL menu button](https://github.com/BetterThanTomorrow/calva/issues/337)
+- [Print async output, and a setting for where it should go](https://github.com/BetterThanTomorrow/calva/issues/218)
+- [Fix REPL window prompt does not always reflect current ns](https://github.com/BetterThanTomorrow/calva/issues/280)
+- [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
+- [Add content security policy to webview and remove image load error](https://github.com/BetterThanTomorrow/calva/issues/341)
+
+## [2.0.39] - 20.09.2019
+- [Revert disconnecting and jacking out on closing of REPL window](https://github.com/BetterThanTomorrow/calva/issues/326)
 
 ## [2.0.38] - 14.09.2019
 - [Close java processes when clsoing or reloading VS Code. (Windows)](https://github.com/BetterThanTomorrow/calva/issues/305)

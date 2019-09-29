@@ -28,26 +28,26 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
         textDecoration: 'none',
         fontWeight: 'normal',
         fontStyle: 'normal',
+        width: "250px",
     },
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
-function evaluated(contentText, hasError) {
+function evaluated(contentText, hoverText, hasError) {
     return {
         renderOptions: {
             before: {
                 contentText: contentText,
+                overflow: "hidden"
             },
             light: {
                 before: {
                     color: hasError ? 'rgb(255, 127, 127)' : 'black',
-                    backgroundColor: 'white',
                 },
             },
             dark: {
                 before: {
                     color: hasError ? 'rgb(255, 175, 175)' : 'white',
-                    backgroundColor: 'black',
                 }
             },
         },
@@ -60,7 +60,7 @@ function createEvalSelectionDecorationType(status: AnnotationStatus) {
         backgroundColor: selectionBackgrounds[status],
         overviewRulerColor: selectionRulerColors[status],
         overviewRulerLane: vscode.OverviewRulerLane.Right,
-        rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen,
+        rangeBehavior: vscode.DecorationRangeBehavior.OpenOpen,
     })
 }
 
@@ -78,7 +78,7 @@ function setResultDecorations(editor: vscode.TextEditor, ranges) {
 }
 
 function setSelectionDecorations(editor, ranges, status) {
-    let key = editor.document.uri + ':selectionDecorationRanges:' + status;
+    let key = editor.document.uri + ':selectionDecorationRanges';
     state.cursor.set(key, ranges);
     editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
@@ -87,7 +87,8 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     if (editor === undefined) {
         editor = vscode.window.activeTextEditor;
     }
-
+    state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
+    state.cursor.delete(editor.document.uri + ':selectionDecorationRanges');
     setResultDecorations(editor, []);
     setSelectionDecorations(editor, [], AnnotationStatus.PENDING);
     setSelectionDecorations(editor, [], AnnotationStatus.SUCCESS);
@@ -99,7 +100,7 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
         decorationRanges = state.deref().get(key) || [],
-        decoration = evaluated(resultString, hasError);
+        decoration = evaluated(` => ${resultString} `, resultString, hasError);
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.codeRange.intersection(codeSelection) });
     decoration["codeRange"] = codeSelection;
     decoration["range"] = new vscode.Selection(codeSelection.end, codeSelection.end);
@@ -107,13 +108,23 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(codeSelection, editor: vscode.TextEditor, status: AnnotationStatus) {
-    let uri = editor.document.uri,
-        key = uri + ':selectionDecorationRanges:' + status,
-        decoration = {},
+function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, status: AnnotationStatus) {
+    const uri = editor.document.uri,
+        key = uri + ':selectionDecorationRanges';
+    let decoration = {},
         decorationRanges = state.deref().get(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
+    if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
+        const commandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(JSON.stringify([{text: resultString}]))}`,
+            commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
+        let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + resultString + '\n```');
+        hoverMessage.isTrusted = true;
+        decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
+    }
+    for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
+        setSelectionDecorations(editor, [], s);
+    }
     decorationRanges.push(decoration);
     setSelectionDecorations(editor, decorationRanges, status);
 }
@@ -129,10 +140,15 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
     }
 }
 
+function copyHoverTextCommand(args: { [x: string]: string; }) {
+    vscode.env.clipboard.writeText(args["text"]);
+}
+
 export default {
     AnnotationStatus,
     clearEvaluationDecorations,
     decorateResults,
     decorateSelection,
-    onDidChangeTextDocument
+    onDidChangeTextDocument,
+    copyHoverTextCommand
 };
