@@ -181,12 +181,14 @@ workflows:
   version: 2
   build-test:
     jobs:
+      - test-grammar
       - test
       - build:
           requires:
             - test
   build-test-release-publish:
     jobs:
+      - test-grammar
       - test:
           filters:
             branches:
