@@ -1,0 +1,119 @@
+{
+	"name": "clojure-warrior",
+	"displayName": "Clojure Warrior",
+	"description": "Extension for Clojure development",
+	"version": "0.2.4",
+	"publisher": "tonsky",
+	"license": "MIT",
+	"maintainers": [
+		"Nikita Prokopov <prokopov@gmail.com>"
+	],
+	"engines": {
+		"vscode": "^1.15.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"bracket",
+		"brackets",
+		"match",
+		"matching",
+		"clojure"
+	],
+	"activationEvents": [
+		"onLanguage:clojure"
+	],
+	"icon": "extras/icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tonsky/clojure-warrior.git"
+	},
+	"bugs": {
+		"url": "https://github.com/tonsky/clojure-warrior/issues"
+	},
+	"main": "./out/extension",
+	"contributes": {
+		"commands": [
+			{
+				"command": "clojureWarrior.jumpToMatchingBracket",
+				"title": "Clojure Warrior: Jump to matching bracket"
+			},
+			{
+				"command": "clojureWarrior.selectToMatchingBracket",
+				"title": "Clojure Warrior: Select to matching bracket"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "Clojure Warrior",
+			"properties": {
+				"clojureWarrior.enableBracketColors": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable rainbow brackets",
+					"scope": "resource"
+				},
+				"clojureWarrior.bracketColors": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": null,
+					"description": "Bracket colors",
+					"scope": "resource"
+				},
+				"clojureWarrior.cycleBracketColors": {
+					"type": "boolean",
+					"default": true,
+					"description": "If nesting level is greater than amount of colors, start counting over",
+					"scope": "resource"
+				},
+				"clojureWarrior.misplacedBracketStyle": {
+					"type": "object",
+					"default": null,
+					"description": "Style of misplaced bracket",
+					"scope": "resource"
+				},
+				"clojureWarrior.matchedBracketStyle": {
+					"type": "object",
+					"default": null,
+					"description": "Style of pair bracket highlight",
+					"scope": "resource"
+				},
+				"clojureWarrior.commentFormStyle": {
+					"type": "object",
+					"default": null,
+					"description": "Style of `(comment)` forms",
+					"scope": "resource"
+				},
+				"clojureWarrior.ignoredFormStyle": {
+					"type": "object",
+					"default": null,
+					"description": "Style of `#_` ignored forms",
+					"scope": "resource"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install"
+	},
+	"devDependencies": {
+		"vscode": "^1.1.35",
+		"typescript": "^2.5.3",
+		"@types/node": "7.0.4"
+	},
+	"dependencies": {
+		"lodash.isequal": "^4.5.0",
+		"vsce": "^1.64.0"
+	},
+	"__metadata": {
+		"id": "0438d476-077e-4fe0-8f2d-de9fb30901ff",
+		"publisherDisplayName": "Nikita Prokopov",
+		"publisherId": "8fe0f11e-8bd6-4cf2-9ee6-acead847e970"
+	}
+}
