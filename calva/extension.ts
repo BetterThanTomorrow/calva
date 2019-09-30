@@ -221,7 +221,7 @@ function activate(context: vscode.ExtensionContext) {
     if (!cwExtension) {
         clojureWarrior.activate(context);
     } else {
-        vscode.window.showErrorMessage("ClojureWarrior extension detected. Please uninstall or, disable, it before continuing using Calva.", ...["Got it.","Will do!"]);
+        vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.","Will do!"]);
     }
 
     return {
