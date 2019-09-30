@@ -145,9 +145,9 @@ export async function initProjectDir(): Promise<void> {
           doc = util.getDocument({});
 
     // first try the workplace folder 
-    let workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+    let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
-        workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
+        workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
     }
     if (!workspaceFolder) {
         vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
@@ -177,7 +177,19 @@ export async function initProjectDir(): Promise<void> {
             prev = d;
             d = path.resolve(d, "..");
         }
-        cursor.set(PROJECT_DIR_KEY, rootPath);
+
+        // at least be sure the the root folder contains a 
+        // supported project. 
+        for (let projectFile in projectFileNames) {
+            const p = path.resolve(rootPath, projectFileNames[projectFile]);
+            if (fs.existsSync(p)) {
+                cursor.set(PROJECT_DIR_KEY, rootPath);
+                return; 
+            }
+        }
+        vscode.window.showErrorMessage("There is no was no valid project configuration found in the workspace. Aborting. Please open a file in your Clojure project and try again.");
+        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
+        throw "There is no was no valid project configuration found in the workspace. Aborting.";
     }
 }
 
