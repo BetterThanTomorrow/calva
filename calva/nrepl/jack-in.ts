@@ -25,6 +25,11 @@ vscode.tasks.onDidEndTask(((e) => {
     if(e.execution.task.name == TASK_NAME) {
        JackinExecution = undefined;
        connector.default.disconnect();
+       // make sure everything is set back 
+       // even if the task failed to connect
+       // to the repl server.
+       state.cursor.set("launching", null);
+       statusbar.update();
     }
 }));
 
