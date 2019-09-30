@@ -66,7 +66,6 @@ function activate(context: vscode.ExtensionContext) {
 
     const chan = state.outputChannel();
 
-
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
         fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
@@ -207,9 +206,9 @@ function activate(context: vscode.ExtensionContext) {
         chan.dispose();
     }));
 
-    // context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
-    //     console.log(event);
-    // }));
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((_: vscode.ConfigurationChangeEvent) => {
+        statusbar.update();
+    }));
 
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
