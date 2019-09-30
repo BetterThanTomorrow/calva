@@ -206,7 +206,7 @@ async function loadFileIfNamespaceNotExist(doc) {
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
                     return;
                 }
-                client.loadFile(document.getText(), name, dir);
+                await client.loadFile(document.getText(), name, dir);
             }
         }
     }
