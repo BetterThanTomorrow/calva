@@ -196,9 +196,9 @@ async function loadFileIfNamespaceNotExist(doc) {
         if (document) {
             let ns = getNamespace(document);
             let name = getFileName(document);
-            let path = "";
+            let dir = "";
             if(document.hasOwnProperty('fileName')) {
-                path = document.fileName; 
+                dir = path.dirname(document.fileName); 
             }
             let client = getSession(getFileType(document));
             if (client) {
@@ -206,7 +206,7 @@ async function loadFileIfNamespaceNotExist(doc) {
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
                     return;
                 }
-                await client.loadFile(document.getText(), name, path);
+                client.loadFile(document.getText(), name, dir);
             }
         }
     }
