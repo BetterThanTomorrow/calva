@@ -4,9 +4,8 @@ Changes to Calva.
 ## When time allows, this will be worked on
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
-## Being distilled
-
 ## [Unreleased]
+- [Insourcing @tonsky's Clojue Warrior](https://github.com/BetterThanTomorrow/calva/pull/362)
 - [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
 
 ## [2.0.42] - 29.09.2019
