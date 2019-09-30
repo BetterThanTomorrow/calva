@@ -7,6 +7,7 @@ Changes to Calva.
 ## Being distilled
 
 ## [Unreleased]
+- [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
 
 ## [2.0.42] - 29.09.2019
 - [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)

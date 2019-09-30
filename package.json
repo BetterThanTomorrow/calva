@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.42",
+    "version": "2.0.43",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -765,12 +765,12 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpForward",
-                "title": "Barf Sexp"
+                "title": "Barf Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpBackward",
-                "title": "Barf Sexp"
+                "title": "Barf Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
