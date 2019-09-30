@@ -155,8 +155,14 @@ export async function initProjectDir(): Promise<void> {
         throw "There is no document opened in the workspace. Aborting.";
     } else {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        let d = path.dirname(doc.uri.fsPath);
+        let d = null;
         let prev = null;
+        if(doc) {
+            d = path.dirname(doc.uri.fsPath);
+        } else {
+            // the doc can really be null | undefined
+            d = workspaceFolder.uri.fsPath;
+        }
         while (d != prev) {
             for (let projectFile in projectFileNames) {
                 const p = path.resolve(d, projectFileNames[projectFile]);
