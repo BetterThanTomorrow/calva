@@ -100,7 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if(!!commentFormType)
       activeEditor.setDecorations(commentFormType, []);
-    commentFormType = decorationType(commentFormStyle || {"textDecoration": "none; opacity: 0.5"});
+    commentFormType = decorationType(commentFormStyle || {"fontStyle": "italic"});
 
     if(!!ignoredFormType)
       activeEditor.setDecorations(ignoredFormType, []);
