@@ -150,7 +150,7 @@ async function loadFile(document = {}, callback = () => { }) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
 
-        let value = await client.loadFile(doc.getText(), {
+        let value = await client.loadFileVerbose(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),

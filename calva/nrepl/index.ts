@@ -290,7 +290,7 @@ export class NReplSession {
         this.client.write({ op: "stdin", stdin: message, session: this.sessionId });
     }
 
-    loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
+    loadFileVerbose(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
         let id = this.client.nextId;
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
@@ -315,7 +315,7 @@ export class NReplSession {
         return evaluation;
     }
 
-    loadFileSilent(file: string, fileName: string, filePath: string) {
+    loadFile(file: string, fileName: string, filePath: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
             this.messageHandlers[id] = (msg) => {
