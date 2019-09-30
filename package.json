@@ -49,7 +49,9 @@
         "onCommand:calva.jackIn",
         "onCommand:calva.jackInOrConnect",
         "onCommand:calva.connect",
-        "onCommand:calva.connectNonProjectREPL"
+        "onCommand:calva.connectNonProjectREPL",
+        "workspaceContains:**/project.clj",
+        "workspaceContains:**/shadow-cljs.edn"
     ],
     "main": "./out/extension",
     "extensionPack": [
