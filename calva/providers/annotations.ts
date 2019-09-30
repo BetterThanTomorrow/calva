@@ -78,7 +78,7 @@ function setResultDecorations(editor: vscode.TextEditor, ranges) {
 }
 
 function setSelectionDecorations(editor, ranges, status) {
-    let key = editor.document.uri + ':selectionDecorationRanges';
+    let key = editor.document.uri + ':selectionDecorationRanges:' + status;
     state.cursor.set(key, ranges);
     editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
@@ -88,12 +88,11 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
         editor = vscode.window.activeTextEditor;
     }
     state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
-    state.cursor.delete(editor.document.uri + ':selectionDecorationRanges');
     setResultDecorations(editor, []);
-    setSelectionDecorations(editor, [], AnnotationStatus.PENDING);
-    setSelectionDecorations(editor, [], AnnotationStatus.SUCCESS);
-    setSelectionDecorations(editor, [], AnnotationStatus.ERROR);
-    setSelectionDecorations(editor, [], AnnotationStatus.REPL_WINDOW);
+    for (const status in [AnnotationStatus.PENDING, AnnotationStatus.SUCCESS, AnnotationStatus.ERROR, AnnotationStatus.REPL_WINDOW]) {
+        state.cursor.delete(editor.document.uri + ':selectionDecorationRanges:' + status);
+        setSelectionDecorations(editor, [], status);
+    }
 }
 
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
@@ -110,7 +109,7 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
 
 function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, status: AnnotationStatus) {
     const uri = editor.document.uri,
-        key = uri + ':selectionDecorationRanges';
+        key = uri + ':selectionDecorationRanges:' + status;
     let decoration = {},
         decorationRanges = state.deref().get(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
@@ -122,9 +121,10 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
         hoverMessage.isTrusted = true;
         decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
     }
-    for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
-        setSelectionDecorations(editor, [], s);
-    }
+    // for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
+    //     setSelectionDecorations(editor, [], s);
+    // }
+    setSelectionDecorations(editor, [], status);
     decorationRanges.push(decoration);
     setSelectionDecorations(editor, decorationRanges, status);
 }

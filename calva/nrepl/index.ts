@@ -171,7 +171,7 @@ export class NReplSession {
                 value: msgValue
             };
 
-            const outputChan = state.config().outputChannel;
+            const outputChan = state.config().asyncOutputDestination;
 
             if (outputChan == "REPL Window") {
                 window.postMessage(windowMsg);

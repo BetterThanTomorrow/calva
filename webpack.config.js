@@ -123,6 +123,13 @@ const REPL_WINDOW = {
 // or development mode. The extenion is only 
 // webpacked for production.
 function buildConfig(isProduction) {
+  if(!isProduction) {
+    // if not production set deftool to 
+    // 'eval-source-map' to make the webview 
+    // debugable in the vscode Webview Development 
+    // tools.
+    REPL_WINDOW.devtool = "eval-source-map";
+  }
   let configs = [REPL_WINDOW];
   if (isProduction) {
     configs.unshift(CALVA_MAIN)

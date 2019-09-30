@@ -19,7 +19,7 @@ Calva's main reason for existance is to _provide Visual Studio Code users with a
 Let Calva start your project (_a.k.a. **Jack-in**_).
 
 1. Open your project in VS Code, and a file in the project. From the command line it could be something like: `code path/to/myproject README.md`.
-1. Issue the command **Start a REPL project and connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`.
+1. Issue the command **Start a Project REPL and Connect (aka Jack-In)**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the prompts where Calva asks you a few things about your project.
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
@@ -28,7 +28,7 @@ Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wi
 
 ## Something to try first
 
-You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate current form (or selection)** command: `ctrl+alt+c e`.
+You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate Current Form Inline** command: `ctrl+alt+c e`.
 
 There is also a command for evaluating the current top level form, which aösp works inside `(comment)` forms supporting code experimentation.  It looks something like so:
 
@@ -104,7 +104,7 @@ Currently [`cider-nrepl` does not provide its test functionality for ClojureScri
 
 With Calva you also get structural editing using [Paredit](/calva/paredit/README.md) and [formatting](/calva/calva-fmt/README.md).
 
-You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format current form** command to `tab`. Good to know, right?
+You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format Current Form** command to `tab`. Good to know, right?
 
 ### Slurp and Barf keyboard shortcuts
 

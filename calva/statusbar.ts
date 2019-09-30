@@ -82,7 +82,7 @@ function update() {
         connectionStatus.text = "nREPL - trying to connect";
     } else {
         connectionStatus.text = "nREPL $(zap)";
-        connectionStatus.tooltip = "Click to connect";
+        connectionStatus.tooltip = "Click to jack-in or Connect to REPL Server";
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.jackInOrConnect";
     }

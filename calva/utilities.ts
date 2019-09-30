@@ -237,6 +237,34 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
+function getConnectedState() {
+    return state.cursor.get('connected');
+}
+
+function setConnectedState(value) {
+    if(value) {
+        vscode.commands.executeCommand("setContext", "calva:connected", true);
+        state.cursor.set('connected', true);
+    } else {
+        vscode.commands.executeCommand("setContext", "calva:connected", false);
+        state.cursor.set('connected', false);
+    }
+}
+
+function getConnectingState() {
+    return state.cursor.get('connecting');
+}
+
+function setConnectingState(value) {
+    if(value) {
+        vscode.commands.executeCommand("setContext", "calva:connecting", true);
+        state.cursor.set('connecting', true);
+    } else {
+        vscode.commands.executeCommand("setContext", "calva:connecting", false);
+        state.cursor.set('connecting', false);
+    }
+}
+
 // ERROR HELPERS
 const ERROR_TYPE = {
     WARNING: "warning",
@@ -373,6 +401,10 @@ export {
     getFileType,
     getFileName,
     getSession,
+    getConnectedState,
+    setConnectedState,
+    getConnectingState,
+    setConnectingState,
     specialWords,
     ERROR_TYPE,
     logError,
