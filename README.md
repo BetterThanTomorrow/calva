@@ -150,7 +150,7 @@ Calva is built using a combination of TypeScript and ClojureScript. The ClojureS
 
 Many people have contributed to Calva. Here are the ones who have engaged in the project as such.
 
-## Current Maintainers:
+### Current Maintainers:
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
