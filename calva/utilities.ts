@@ -189,7 +189,7 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-async function loadFileIfNeeded(doc) {
+async function loadFileIfNamespaceNotExist(doc) {
 
     if (getConnectedState()) {
         let document = getDocument(doc);
@@ -418,7 +418,7 @@ export {
     getNamespace,
     getStartExpression,
     getWordAtPosition,
-    loadFileIfNeeded,
+    loadFileIfNamespaceNotExist,
     getDocument,
     getDocumentNamespace,
     getFileType,

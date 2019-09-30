@@ -65,7 +65,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         if (util.getConnectedState()) {
             let client = util.getSession(util.getFileType(window.activeTextEditor.document));
             if (client) {
-                await util.loadFileIfNeeded(window.activeTextEditor.document);
+                await util.loadFileIfNamespaceNotExist(window.activeTextEditor.document);
                 let result = await client.info(item.insertText["ns"], item.label)
                 if (result.doc) {
                     item.documentation = this.formatDocString(result.doc);

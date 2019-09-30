@@ -40,7 +40,7 @@ export default class HoverProvider implements vscode.HoverProvider {
             let ns = util.getNamespace(document);
             let client = util.getSession(util.getFileType(document));
             if(client) {
-                await util.loadFileIfNeeded(document);
+                await util.loadFileIfNamespaceNotExist(document);
                 let res = await client.info(ns, text);
                 // I really don't not why result.arglists-str does 
                 // not work, but it leads to an compiler error.
