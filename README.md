@@ -44,6 +44,12 @@ When something doesn't work and you think there might be a workaround for it, pl
 ## Features
 
 ### At a glance
+- Syntax highlighting, plus:
+  - Rainbow parens
+  - Highlights misplaced brackets
+  - LISP friendly bracket matching
+  - Ignore form (`#_`) dimming and `(comment)` form highlighting
+- Clojure code formatting
 - Quickly and easily get your REPL connected
 - Evaluate code inline
 - Run tests
@@ -112,19 +118,27 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 ![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
-### Conflicting with Parinfer extension
-
-There have been reports of the Parinfer extension and Calva not working too well together. You might to some extent get away with switching off Calva's formatting as-you-type, but also you might not. With Calva it is probably better to learn to use Paredit **slurp** and **barf** and generally rely on Calva's automatic formatting.
-
 ## Clojure Warrior included
 
-This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching.
+Calva includes **Clojure Warrior**. Bringing you, amongst other things, rainbow parens, sane bracket matching, and comment form highlighting.
 
-Note: If you for some reason do not want rainbow colors, put this in your `settings.json`:
+You are in charge of how brackets and comments are highlighted:
 
-```json
-    "clojureWarrior.enableBracketColors": false
-```
+| Setting | Meaning | Example |
+| --- | ------- | ------- |
+| `"clojureWarrior.enableBracketColors"` | Enable rainbow colors |  `true` |
+| `"clojureWarrior.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
+| `"clojureWarrior.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
+| `"clojureWarrior.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
+| `"clojureWarrior.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
+| `"clojureWarrior.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
+| `"clojureWarrior.commentFormStyle"` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
+
+Clojure Warrior was created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s.
+
+## Conflicting with Parinfer extension
+
+There have been reports of the Parinfer extension and Calva not working too well together. You might to some extent get away with switching off Calva's formatting as-you-type, but also you might not. With Calva it is probably better to learn to use Paredit **slurp** and **barf** and generally rely on Calva's automatic formatting.
 
 ## How to contribute
 
