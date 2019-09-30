@@ -143,14 +143,18 @@ export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
           workspace = vscode.workspace.workspaceFolders![0],
           doc = util.getDocument({});
-
+          
     // first try the workplace folder 
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
-        workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+        if(vscode.workspace.workspaceFolders.length == 1) {
+           // this is only save in a one directory workspace 
+           // (aks "Open Folder") environment. 
+           workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+        }
     }
     if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
+        vscode.window.showErrorMessage("There is no document opened in the workspace. Please open a file in your Clojure project and try again. Aborting.");
         analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There is no document opened in the workspace. Aborting.";
     } else {
@@ -160,7 +164,6 @@ export async function initProjectDir(): Promise<void> {
         if(doc) {
             d = path.dirname(doc.uri.fsPath);
         } else {
-            // the doc can really be null | undefined
             d = workspaceFolder.uri.fsPath;
         }
         while (d != prev) {
@@ -187,9 +190,9 @@ export async function initProjectDir(): Promise<void> {
                 return; 
             }
         }
-        vscode.window.showErrorMessage("There is no was no valid project configuration found in the workspace. Aborting. Please open a file in your Clojure project and try again.");
+        vscode.window.showErrorMessage("There was no valid project configuration found in the workspace. Please open a file in your Clojure project and try again. Aborting.");
         analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no was no valid project configuration found in the workspace. Aborting.";
+        throw "There was no valid project configuration found in the workspace. Aborting.";
     }
 }
 
