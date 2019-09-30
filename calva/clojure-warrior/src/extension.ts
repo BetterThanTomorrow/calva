@@ -27,9 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
-  vscode.commands.registerCommand("clojureWarrior.jumpToMatchingBracket", jumpToMatchingBracket);
-  vscode.commands.registerCommand("clojureWarrior.selectToMatchingBracket", selectToMatchingBracket);
-
   let activeEditor:  vscode.TextEditor = vscode.window.activeTextEditor,
       configuration: vscode.WorkspaceConfiguration,
       rainbowColors,
@@ -307,42 +304,5 @@ export function activate(context: vscode.ExtensionContext) {
       }
     });
     activeEditor.setDecorations(matchedType, matches);
-  }
-
-  function jumpToMatchingBracket() {
-    if (!is_clojure(activeEditor)) return;
-    activeEditor.selections = activeEditor.selections.map(selection => {
-      const match_before  = matchBefore(selection),
-            match_after   = matchAfter(selection);
-      if (!!match_before) {
-        const opening = match_before[0];
-        return new Selection(opening.start, opening.start);
-      } else if (!!match_after) {
-        const closing = match_after[1];
-        return new Selection(closing.end, closing.end);
-      } else
-        return selection;
-    });
-    activeEditor.revealRange(activeEditor.selections[0]);
-  }
-
-  function selectToMatchingBracket() {
-    if (!is_clojure(activeEditor)) return;
-
-
-    activeEditor.selections = activeEditor.selections.map(selection => {
-      const cursor = selection.active,
-            match_before  = matchBefore(selection),
-            match_after   = matchAfter(selection);
-      if (!!match_before) {
-        const opening = match_before[0];
-        return new Selection(cursor, opening.start);
-      } else if (!!match_after) {
-        const closing = match_after[1];
-        return new Selection(cursor, closing.end);
-      } else
-        return selection;
-    });
-    activeEditor.revealRange(new Range(activeEditor.selections[0].active, activeEditor.selections[0].active));
   }
 }

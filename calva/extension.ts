@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as paredit from "./paredit/extension";
 import * as fmt from "./calva-fmt/ts/extension";
+import * as clojureWarrior from "./clojure-warrior/src/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as util from './utilities'
@@ -69,6 +70,7 @@ function activate(context: vscode.ExtensionContext) {
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
         fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
+        cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior'),
         customCljsRepl = state.config().customCljsRepl,
         replConnectSequences = state.config().replConnectSequences,
         BUTTON_GOTO_WIKI = "Open the Wiki",
@@ -215,6 +217,12 @@ function activate(context: vscode.ExtensionContext) {
     chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.")
     chan.appendLine("Default keybinding for Jack-in: ctrl+alt+c ctrl+alt+j");
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
+
+    if (!cwExtension) {
+        clojureWarrior.activate(context);
+    } else {
+        vscode.window.showErrorMessage("ClojureWarrior extension detected. Please uninstall or, disable, it before continuing using Calva.", ...["Got it.","Will do!"]);
+    }
 
     return {
         hasParedit: true,
