@@ -10,7 +10,26 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}"
+                "--extensionDevelopmentPath=${workspaceRoot}",
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "env": {
+                "CALVA_DEV_GA": "FUBAR-69796730-4",
+                "DEBUG": "no-debug-universal-analytics"
+            },
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+        },
+        {
+            "name": "Launch w/ test folder",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}",
+                "${workspaceFolder}/test-data"
             ],
             "stopOnEntry": false,
             "sourceMaps": true,
@@ -22,5 +41,6 @@
                 "${workspaceFolder}/dist/**/*.js"
             ]
         }
+
     ]
 }
