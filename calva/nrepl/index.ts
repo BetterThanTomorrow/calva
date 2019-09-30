@@ -291,8 +291,8 @@ export class NReplSession {
     }
 
     loadFileVerbose(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
+        
         let id = this.client.nextId;
-
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 if (msg.value)
@@ -316,14 +316,18 @@ export class NReplSession {
     }
 
     loadFile(file: string, fileName: string, filePath: string) {
-        return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
+
+        let id = this.client.nextId;
+        let evaluation = new NReplEvaluation(id, this, null, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
+                if (msg.value)
+                    resolve(msg.value);
+                if (msg.status && msg.status.indexOf("done") != -1)
+                    return true;
             }
             this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": fileName, "file-path": filePath })
-        })
+        }))
+        return evaluation;
     }
 
     complete(ns: string, symbol: string, context?: string) {
