@@ -495,7 +495,11 @@ export default {
         state.cursor.set('cljc', null);
         status.update();
 
-        nClient.close();
+        if(nClient) {
+            // the connection may be ended before 
+            // the REPL client was connected.
+            nClient.close();
+        }
         callback();
     },
     toggleCLJCSession: () => {
