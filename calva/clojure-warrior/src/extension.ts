@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import { Position, Range, Selection } from 'vscode';
+import { Position, Range } from 'vscode';
 import * as isEqual from 'lodash.isequal';
 import { isArray } from 'util';
-import { open } from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
   const pairs = [["(",   ")"],
@@ -28,7 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
   let activeEditor:  vscode.TextEditor = vscode.window.activeTextEditor,
-      configuration: vscode.WorkspaceConfiguration,
       rainbowColors,
       rainbowTypes:  vscode.TextEditorDecorationType[],
       cycleBracketColors,
