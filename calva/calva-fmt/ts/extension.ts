@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as state from '../../state';
 import { FormatOnTypeEditProvider } from './providers/ontype_formatter';
 import { RangeEditProvider } from './providers/range_formatter';
 import * as formatter from './format';
@@ -38,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.inferParens', inferer.inferParensCommand));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabIndent', (e) => { inferer.indentCommand(e, " ", true) }));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabDedent', (e) => { inferer.indentCommand(e, " ", false) }));
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider("clojure", new FormatOnTypeEditProvider, "\r", "\n"));
-    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider("clojure", new RangeEditProvider));
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(state.documentSelector, new FormatOnTypeEditProvider, "\r", "\n"));
+    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(state.documentSelector, new RangeEditProvider));
     vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
 }

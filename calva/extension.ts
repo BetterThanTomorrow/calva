@@ -163,9 +163,9 @@ function activate(context: vscode.ExtensionContext) {
 
 
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 

@@ -15,10 +15,14 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
     }
 }
 
-const mode = {
-    language: 'clojure',
-    //scheme: 'file'
-};
+// include the 'file' and 'untitled' to the 
+// document selector. All other schemes are 
+// not known and therefore not supported.
+const documentSelector = [
+    { scheme: 'file', language: 'clojure' },
+    { scheme: 'untitled', language: 'clojure' }
+];
+
 var data;
 const initialData = {
     hostname: null,
@@ -198,7 +202,7 @@ export async function initProjectDir(): Promise<void> {
 
 export {
     cursor,
-    mode,
+    documentSelector,
     deref,
     reset,
     config,
