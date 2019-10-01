@@ -44,6 +44,12 @@ When something doesn't work and you think there might be a workaround for it, pl
 ## Features
 
 ### At a glance
+- Syntax highlighting, plus:
+  - Rainbow parens
+  - Highlights misplaced brackets
+  - LISP friendly bracket matching
+  - Ignore form (`#_`) dimming and `(comment)` form highlighting
+- Clojure code formatting
 - Quickly and easily get your REPL connected
 - Evaluate code inline
 - Run tests
@@ -112,19 +118,27 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 ![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
-### Conflicting with Parinfer extension
+## Calva Highlight
+
+Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras inclode rainbow parens, sane bracket matching, and comment form dimming/highlighting.
+
+You are in charge of how brackets and comments are highlighted:
+
+| Setting | Meaning | Example |
+| --- | ------- | ------- |
+| `"calva.highlight.enableBracketColors"` | Enable rainbow colors |  `true` |
+| `"calva.highlight.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
+| `"calva.highlight.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
+| `"calva.highlight.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
+| `"calva.highlight.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
+| `"calva.highlight.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
+| `"calva.highlight.commentFormStyle"` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
+
+Calva Highlight is built from **Clojure Warrior**, created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s.
+
+## Conflicting with Parinfer extension
 
 There have been reports of the Parinfer extension and Calva not working too well together. You might to some extent get away with switching off Calva's formatting as-you-type, but also you might not. With Calva it is probably better to learn to use Paredit **slurp** and **barf** and generally rely on Calva's automatic formatting.
-
-## Clojure Warrior included
-
-This extension bundles [@tonsky](https://tonsky.me)'s [Clojure Warrior](https://marketplace.visualstudio.com/items?itemName=tonsky.clojure-warrior). Bringing you, amongst other things, rainbow parens and sane bracket matching.
-
-Note: If you for some reason do not want rainbow colors, put this in your `settings.json`:
-
-```json
-    "clojureWarrior.enableBracketColors": false
-```
 
 ## How to contribute
 
@@ -136,7 +150,7 @@ Calva is built using a combination of TypeScript and ClojureScript. The ClojureS
 
 Many people have contributed to Calva. Here are the ones who have engaged in the project as such.
 
-## Current Maintainers:
+### Current Maintainers:
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
