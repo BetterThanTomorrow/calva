@@ -29,12 +29,12 @@ The major themes are:
 
 ## The Right Features
 * Support clj-fmt indent settings.
-* Enable clj-kondo as default Calva linter
+* Enable clj-kondo as default Calva linter ([clj-kondo](https://github.com/borkdude/clj-kondo/releases/tag/v2019.09.22-alpha) does not support Windows)
 * Enable using nrepl in streaming mode
   * Use this for the test runner
 * Add some basic refactorings support
-* Use ”last opened in” column when opening the REPL window at jack in.
-* Consider not opening the REPL window at jack-in.
+* Use ”last opened in” column when opening the REPL window at jack in. (example? I do not fully understand.)
+* Consider not opening the REPL window at jack-in / make it an option.
 * Bettter connection life-cycle control fo shadow-cljs. Either:
   1. Tap in to the shadow message bus (THeller said that there is such a thing that we can quyery about what shadow-cljs is doing.)
   1. Run Jack-in in a Task proper and see if we can somehow catch the output. (This is needed for shadow-cljs Jack-in.)
