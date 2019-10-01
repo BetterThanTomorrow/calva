@@ -29,7 +29,7 @@ The major themes are:
 
 ## The Right Features
 * Support clj-fmt indent settings.
-* Enable clj-kondo as default Calva linter ([clj-kondo](https://github.com/borkdude/clj-kondo/releases/tag/v2019.09.22-alpha) does not support Windows)
+* Enable clj-kondo as default Calva linter ([clj-kondo](https://github.com/borkdude/clj-kondo/releases/tag/v2019.09.22-alpha) does support Windows but distributes no binary for Windows)
 * Enable using nrepl in streaming mode
   * Use this for the test runner
 * Add some basic refactorings support
