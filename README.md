@@ -118,23 +118,23 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 ![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
 
-## Clojure Warrior included
+## Calva Highlight
 
-Calva includes **Clojure Warrior**. Bringing you, amongst other things, rainbow parens, sane bracket matching, and comment form highlighting.
+Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras inclode rainbow parens, sane bracket matching, and comment form dimming/highlighting.
 
 You are in charge of how brackets and comments are highlighted:
 
 | Setting | Meaning | Example |
 | --- | ------- | ------- |
-| `"clojureWarrior.enableBracketColors"` | Enable rainbow colors |  `true` |
-| `"clojureWarrior.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
-| `"clojureWarrior.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
-| `"clojureWarrior.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
-| `"clojureWarrior.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
-| `"clojureWarrior.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
-| `"clojureWarrior.commentFormStyle"` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
+| `"calva.highlight.enableBracketColors"` | Enable rainbow colors |  `true` |
+| `"calva.highlight.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
+| `"calva.highlight.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
+| `"calva.highlight.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
+| `"calva.highlight.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
+| `"calva.highlight.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
+| `"calva.highlight.commentFormStyle"` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
 
-Clojure Warrior was created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s.
+Calva Highlight is built from **Clojure Warrior**, created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s.
 
 ## Conflicting with Parinfer extension
 

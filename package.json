@@ -458,15 +458,15 @@
             },
             {
                 "type": "object",
-                "title": "Clojure Warrior",
+                "title": "Calva Highlight",
                 "properties": {
-                    "clojureWarrior.enableBracketColors": {
+                    "calva.highlight.enableBracketColors": {
                         "type": "boolean",
                         "default": true,
                         "description": "Enable rainbow brackets",
                         "scope": "resource"
                     },
-                    "clojureWarrior.bracketColors": {
+                    "calva.highlight.bracketColors": {
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -475,31 +475,31 @@
                         "description": "Bracket colors",
                         "scope": "resource"
                     },
-                    "clojureWarrior.cycleBracketColors": {
+                    "calva.highlight.cycleBracketColors": {
                         "type": "boolean",
                         "default": true,
                         "description": "If nesting level is greater than amount of colors, start counting over",
                         "scope": "resource"
                     },
-                    "clojureWarrior.misplacedBracketStyle": {
+                    "calva.highlight.misplacedBracketStyle": {
                         "type": "object",
                         "default": null,
                         "description": "Style of misplaced bracket",
                         "scope": "resource"
                     },
-                    "clojureWarrior.matchedBracketStyle": {
+                    "calva.highlight.matchedBracketStyle": {
                         "type": "object",
                         "default": null,
                         "description": "Style of pair bracket highlight",
                         "scope": "resource"
                     },
-                    "clojureWarrior.commentFormStyle": {
+                    "calva.highlight.commentFormStyle": {
                         "type": "object",
                         "default": null,
                         "description": "Style of `(comment)` forms",
                         "scope": "resource"
                     },
-                    "clojureWarrior.ignoredFormStyle": {
+                    "calva.highlight.ignoredFormStyle": {
                         "type": "object",
                         "default": null,
                         "description": "Style of `#_` ignored forms",
