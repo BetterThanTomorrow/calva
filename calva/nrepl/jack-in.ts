@@ -33,6 +33,12 @@ vscode.tasks.onDidEndTask(((e) => {
     }
 }));
 
+function cancelJackInTask() {
+    setTimeout(() => {
+        calvaJackout(); 
+    }, 1000);
+}
+
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
     state.cursor.set("launching", projectTypeSelection);
     statusbar.update();
@@ -68,23 +74,31 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
             watcher.removeAllListeners();
         }
 
-        watcher = fs.watch(portFileDir, async (eventType, fileName) => {
-            if (fileName == portFileBase) {
-                if (!fs.existsSync(nReplPortFile)) {
-                    return;
+        try {
+            watcher = fs.watch(portFileDir, async (eventType, fileName) => {
+                if (fileName == portFileBase) {
+                    if (!fs.existsSync(nReplPortFile)) {
+                        return;
+                    }
+                    const port = fs.readFileSync(nReplPortFile, 'utf8');
+                    if (!port) { // On Windows we get two events, one for file creation and one for the change of content
+                        return;  // If there is no port to be read yet, wait for the next event instead.
+                    }
+                    const chan = state.outputChannel();
+                    setTimeout(() => { chan.show() }, 1000);
+                    state.cursor.set("launching", null);
+                    watcher.removeAllListeners();
+                    await connector.connect(connectSequence, true, true);
+                    chan.appendLine("Jack-in done.");
                 }
-                const port = fs.readFileSync(nReplPortFile, 'utf8');
-                if (!port) { // On Windows we get two events, one for file creation and one for the change of content
-                    return;  // If there is no port to be read yet, wait for the next event instead.
-                }
-                const chan = state.outputChannel();
-                setTimeout(() => { chan.show() }, 1000);
-                state.cursor.set("launching", null);
-                watcher.removeAllListeners();
-                await connector.connect(connectSequence, true, true);
-                chan.appendLine("Jack-in done.");
-            }
-        });
+            });
+        } catch(exception) {
+            outputChannel.appendLine("Error in Jack-in: unable to read port file");
+            outputChannel.appendLine(exception);
+            outputChannel.appendLine("You may have choosen the wrong jack-in configuration for your project.");
+            vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
+            cancelJackInTask();
+        }
     }, (reason) => {
         watcher.removeAllListeners();
         outputChannel.appendLine("Error in Jack-in: " + reason);
