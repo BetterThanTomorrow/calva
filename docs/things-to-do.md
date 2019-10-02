@@ -26,6 +26,7 @@ The major themes are:
     * This should improve the editing capabilities of the editing area
     * All language spezific support (formating, rainbowcolors, intellisense, etc) should be integratable in the editor.
   * Implement something like CIDER inspect: https://github.com/BetterThanTomorrow/calva/issues/228
+  * Make it super easy to use Calva with REBL
 * Fix the statusbar button default colors (or remove this feature if we don't think it is valuable enough).
 
 ## The Right Features
@@ -51,6 +52,8 @@ The major themes are:
 
 ## Code Maintainability
 * We have two ParEdit implementations, we should scrap paredit.js
+* We have two formatters, cljs-lib ormatter and the one in docmirror.
+  * It mmight make sense to keep both for different purposes, but we should fix whatever it is that makes us still keep the `newIndentEngine` setting.
 * Organize Calva functionality in ”components”, more like we do with calva-fmt, ParEdit, and Clojure Warrior.
 * Get better control of Calva state.
 * Clean up extra messy parts of the code. Candidates:
