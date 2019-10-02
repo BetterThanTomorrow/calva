@@ -6,7 +6,7 @@ const CALVA_MAIN = {
   target: 'node', 
   // the entry point of this extension, 
   // 📖 -> https://webpack.js.org/configuration/entry-context/
-  entry: path.resolve(__dirname, 'calva/extension.ts'), 
+  entry: path.resolve(__dirname, 'src/extension.ts'), 
   output: {
     // the bundle is stored in the 'dist' folder (check package.json), 
     // 📖 -> https://webpack.js.org/configuration/output/
@@ -54,7 +54,7 @@ const REPL_WINDOW = {
   target: 'node', 
   // the entry point of this webview, 
   // 📖 -> https://webpack.js.org/configuration/entry-context/
-  entry: path.resolve(__dirname, 'calva/webview.ts'),
+  entry: path.resolve(__dirname, 'src/webview.ts'),
   // the bundle is stored in the 'html' folder. 
   // 📖 -> https://webpack.js.org/configuration/output/
   output: {
@@ -101,7 +101,7 @@ const REPL_WINDOW = {
         options: {
           transpileOnly: true,
           experimentalWatchApi: true,
-          configFile: path.resolve(__dirname, 'calva/webview/tsconfig.json')
+          configFile: path.resolve(__dirname, 'src/webview/tsconfig.json')
         },
       },
       {

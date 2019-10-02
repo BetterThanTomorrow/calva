@@ -33,7 +33,7 @@
         "EDN",
         "Interactive Programming",
         "bracket",
-		"rainbow"
+        "rainbow"
     ],
     "galleryBanner": {
         "color": "#EFEFEF",
@@ -1333,7 +1333,7 @@
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
         "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
         "release-cljs": "npx shadow-cljs release :calva-lib",
-        "update-grammar": "node ./calva/calva-fmt/update-grammar.js ./calva/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
+        "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",

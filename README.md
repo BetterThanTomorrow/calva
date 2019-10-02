@@ -108,7 +108,7 @@ Currently [`cider-nrepl` does not provide its test functionality for ClojureScri
 
 ## Calva Paredit and Calva Formatter included
 
-With Calva you also get structural editing using [Paredit](/calva/paredit/README.md) and [formatting](/calva/calva-fmt/README.md).
+With Calva you also get structural editing using [Paredit](/src/paredit/README.md) and [formatting](/src/calva-fmt/README.md).
 
 You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format Current Form** command to `tab`. Good to know, right?
 

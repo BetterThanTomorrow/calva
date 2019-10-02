@@ -19,5 +19,5 @@
         "suppressImplicitAnyIndexErrors": true
     },
     "compileOnSave": false,
-    "buildOnSave": false,
+    "buildOnSave": false
 }

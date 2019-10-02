@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as paredit from "./paredit/extension";
-import * as fmt from "./calva-fmt/ts/extension";
+import * as fmt from "./calva-fmt/src/extension";
 import * as highlight from "./highlight/src/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
