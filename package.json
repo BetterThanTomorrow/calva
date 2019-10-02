@@ -31,7 +31,9 @@
         "Formatting",
         "Pretty",
         "EDN",
-        "Interactive Programming"
+        "Interactive Programming",
+        "bracket",
+		"rainbow"
     ],
     "galleryBanner": {
         "color": "#EFEFEF",
@@ -54,9 +56,6 @@
         "workspaceContains:**/shadow-cljs.edn"
     ],
     "main": "./out/extension",
-    "extensionPack": [
-        "tonsky.clojure-warrior"
-    ],
     "contributes": {
         "languages": [
             {
@@ -456,6 +455,57 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Align map items in columns? (Experimental)"
+                    }
+                }
+            },
+            {
+                "type": "object",
+                "title": "Calva Highlight",
+                "properties": {
+                    "calva.highlight.enableBracketColors": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Enable rainbow brackets",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.bracketColors": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": null,
+                        "description": "Bracket colors",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.cycleBracketColors": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "If nesting level is greater than amount of colors, start counting over",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.misplacedBracketStyle": {
+                        "type": "object",
+                        "default": null,
+                        "description": "Style of misplaced bracket",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.matchedBracketStyle": {
+                        "type": "object",
+                        "default": null,
+                        "description": "Style of pair bracket highlight",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.commentFormStyle": {
+                        "type": "object",
+                        "default": null,
+                        "description": "Style of `(comment)` forms",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.ignoredFormStyle": {
+                        "type": "object",
+                        "default": null,
+                        "description": "Style of `#_` ignored forms",
+                        "scope": "resource"
                     }
                 }
             }
@@ -1307,6 +1357,7 @@
         "immutable-cursor": "2.0.1",
         "jszip": "3.1.3",
         "lodash": "^4.17.14",
+        "lodash.isequal": "4.5.0",
         "net": "1.0.2",
         "npm": "^6.10.0",
         "open": "^6.3.0",

@@ -25,6 +25,7 @@ The major themes are:
     * This should probably fix some performance issues
     * This should improve the editing capabilities of the editing area
     * All language spezific support (formating, rainbowcolors, intellisense, etc) should be integratable in the editor.
+  * Implement something like CIDER inspect: https://github.com/BetterThanTomorrow/calva/issues/228
 * Fix the statusbar button default colors (or remove this feature if we don't think it is valuable enough).
 
 ## The Right Features
