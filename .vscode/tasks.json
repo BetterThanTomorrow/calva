@@ -4,42 +4,15 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Watch CLJS",
+      "label": "Calva Watch",
       "type": "npm",
-      "script": "watch-cljs",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Watch TS",
-      "type": "npm",
-      "script": "watch-ts",
+      "script": "watch",
       "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "problemMatcher": "$tsc-watch"
-    },
-    {
-      "label": "Watch Webpack",
-      "type": "npm",
-      "script": "watch-webpack",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "options": {
-        "env": {
-          "IS_DEV_BUILD": "YES"
-        }
-      },
-      "problemMatcher": []
     }
   ]
 }

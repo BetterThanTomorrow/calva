@@ -1,5 +1,83 @@
 # Change Log
-Changes to Calva that I remembered to log.
+Changes to Calva.
+
+## When time allows, this will be worked on
+- [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
+
+## [Unreleased]
+- [Insourcing @tonsky's Clojue Warrior, now named Calva Highlight](https://github.com/BetterThanTomorrow/calva/pull/362)
+- [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
+
+## [2.0.42] - 29.09.2019
+- [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
+- [Fix bug with painting all existing result decoration with the same status](https://github.com/BetterThanTomorrow/calva/issues/353)
+- [Fix bug with reporting errors using off-by-one line and column numbers](https://github.com/BetterThanTomorrow/calva/issues/354)
+
+## [2.0.41] - 28.09.2019
+- [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
+- [Add command for evaluating top level form as comment](https://github.com/BetterThanTomorrow/calva/issues/349)
+- [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
+
+## [2.0.40] - 25.09.2019
+- [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)
+- [Add hover to inline result display, containing the full results](https://github.com/BetterThanTomorrow/calva/pull/336)
+- [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
+- [Enhancement REPL window handling / nREPL menu button](https://github.com/BetterThanTomorrow/calva/issues/337)
+- [Print async output, and a setting for where it should go](https://github.com/BetterThanTomorrow/calva/issues/218)
+- [Fix REPL window prompt does not always reflect current ns](https://github.com/BetterThanTomorrow/calva/issues/280)
+- [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
+- [Add content security policy to webview and remove image load error](https://github.com/BetterThanTomorrow/calva/issues/341)
+
+## [2.0.39] - 20.09.2019
+- [Revert disconnecting and jacking out on closing of REPL window](https://github.com/BetterThanTomorrow/calva/issues/326)
+
+## [2.0.38] - 14.09.2019
+- [Close java processes when clsoing or reloading VS Code. (Windows)](https://github.com/BetterThanTomorrow/calva/issues/305)
+
+## [2.0.37] - 14.09.2019
+- [Support connecting to Leiningen and CLI project using shadow-cljs watcher](https://github.com/BetterThanTomorrow/calva/issues/314)
+- Fix [Figwheel Main deps added to non-cljs projects](https://github.com/BetterThanTomorrow/calva/issues/317)
+
+## [2.0.36] - 12.09.2019
+- Fix [REPL Window namespace being reset to user](https://github.com/BetterThanTomorrow/calva/issues/302)
+- Update nrepl-version to 0.22.1
+
+## [2.0.35] - 10.09.2019
+- [Customizing the REPL connect sequence](https://github.com/BetterThanTomorrow/calva/issues/282)
+- [Support for launching with user aliases/profiles](https://github.com/BetterThanTomorrow/calva/issues/288)
+
+## [2.0.34] - 04.09.2019
+- More accurate code completion lookups.
+- [Keep focus in editor when evaluating to the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/229).
+
+## [2.0.33] - 17.08.2019
+- Support for starting leiningen and clj projects with aliases.
+
+## [2.0.31] - 13.08.2019
+- Support Jack-in and Connect in multi-project workspaces.
+- Fix bug with snippet field navigation not working.
+
+## [2.0.30] - 04.08.2019
+- nREPL status bar indicator can now be styled
+
+## [2.0.29] - 04.08.2019
+- Fix jack-in command quoting for `zsh`.
+
+## [2.0.28] - 01.08.2019
+- Jack in quoting fixes, mainly for Windows with `clojure/clj`.
+- Fix formatting bug when forms not separated by whitespace.
+
+## [2.0.25] - 12.07.2019
+- Add command for running test under cursor (at point in CIDER lingo).
+
+## [2.0.24] - 12.07.2019
+- Add ParEdit `forwardUpSexp`.
+
+## [2.0.20] - 20.06.2019
+- Improve custom CLJS REPL.
+
+## [1.3.x -> 2.0.20] - -> 06.2019
+... huge gap in the Changelog. Sorry about that, but now we have decided to pick up maintaining this log again.
 
 ## [1.3.0] - 16.04.2018
 - Add support for [shadow-cljs](http://shadow-cljs.org). Please contact me with any information on how this is working for you out there.
