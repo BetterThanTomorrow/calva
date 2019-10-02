@@ -1335,6 +1335,7 @@
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
+        "test-compile": "npm i && npx shadow-cljs compile :calva-lib &&  tsc -p ./ && webpack --mode development",
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
         "bump-version": "npm set git-tag-version false && npm version patch",
@@ -1342,7 +1343,6 @@
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
-        "@types/mocha": "^2.2.42",
         "@types/node": "^7.10.6",
         "@types/universal-analytics": "^0.4.2",
         "@types/uuid": "^3.4.4",
@@ -1367,10 +1367,7 @@
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
-        "@types/node": "^7.10.6",
         "@types/vscode": "^1.32.0",
-        "@types/universal-analytics": "^0.4.2",
-        "@types/uuid": "^3.4.4",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.1",
         "css-loader": "^2.1.1",
