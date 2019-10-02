@@ -296,19 +296,18 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(util.getREPLSessionType(), true);
+export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
+    let wnd = await openReplWindow(sessionType, true);
     if (wnd) {
-        let oldNs = wnd.ns;
-        if (ns && ns != oldNs)
-            await wnd.session.eval("(in-ns '" + ns + ")").value;
+        const inNs = ns ? ns : wnd.ns;
+        if (inNs != wnd.ns) {
+            await wnd.session.eval("(in-ns '" + inNs + ")").value;
+        }
         try {
-            wnd.evaluate(ns || oldNs, text);
-            await wnd.replEval(text, oldNs, pprint);
-        } finally {
-            if (ns && ns != oldNs) {
-                await wnd.session.eval("(in-ns '" + oldNs + ")").value;
-            }
+            wnd.evaluate(inNs, text);
+            await wnd.replEval(text, inNs, pprint);
+        } catch (e) {
+            console.warn("Error evaluating: " + e);
         }
     }
 }
@@ -342,7 +341,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(code, util.getNamespace(doc), pprint)
+        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint)
     }
 }
 
@@ -374,12 +373,10 @@ function sendCustomCommandSnippetToREPLCommand() {
             ignoreFocusOut: true
         }).then(pick => {
             if (pick && commandsDict[pick] && commandsDict[pick].command) {
-                let command = commandsDict[pick].command,
-                    ns = commandsDict[pick].ns;
-                if (ns) {
-                    command = `(in-ns '${ns})${command}`;
-                }
-                sendTextToREPLWindow(command, ns, false);
+                const command = commandsDict[pick].command,
+                    ns = commandsDict[pick].ns,
+                    replType = commandsDict[pick].replType;
+                sendTextToREPLWindow(replType ? replType : "clj", command, ns, false);
             }
         });
     } else {
