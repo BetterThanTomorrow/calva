@@ -371,11 +371,14 @@ function sendCustomCommandSnippetToREPLCommand() {
         vscode.window.showQuickPick(commandPicks, {
             placeHolder: "Select command snippet",
             ignoreFocusOut: true
-        }).then(pick => {
+        }).then(async (pick) => {
             if (pick && commandsDict[pick] && commandsDict[pick].command) {
                 const command = commandsDict[pick].command,
-                    ns = commandsDict[pick].ns,
-                    replType = commandsDict[pick].replType;
+                    ns = commandsDict[pick].ns ? commandsDict[pick].ns : "user",
+                    replType = commandsDict[pick].replType ? commandsDict[pick].replType : "clj";
+                // TODO: Find a reliable way to load the namespace
+                // let wnd = await openReplWindow(replType, true);
+                // await wnd.replEval(`(use ['${ns}] :reload)`, ns, state.config().pprint);
                 sendTextToREPLWindow(replType ? replType : "clj", command, ns, false);
             }
         });

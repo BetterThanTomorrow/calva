@@ -238,11 +238,19 @@
                                 "ns": {
                                     "type": "string",
                                     "description": "Namespace to eval the command in (current file's top namespace if omitted)"
+                                },
+                                "replType": {
+                                    "type": "string",
+                                    "enum": [
+                                        "clj",
+                                        "cljs"
+                                    ]
                                 }
                             },
                             "required": [
                                 "name",
-                                "command"
+                                "command",
+                                "ns"
                             ]
                         }
                     },
