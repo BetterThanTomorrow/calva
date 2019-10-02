@@ -1,10 +1,15 @@
 const path = require('path');
 
 const CALVA_MAIN = {
-  target: 'node', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
-  entry: './calva/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+  // vscode extensions run in a Node.js-context 
+  // 📖 -> https://webpack.js.org/configuration/node/
+  target: 'node', 
+  // the entry point of this extension, 
+  // 📖 -> https://webpack.js.org/configuration/entry-context/
+  entry: path.resolve(__dirname, 'src/extension.ts'), 
   output: {
-    // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
+    // the bundle is stored in the 'dist' folder (check package.json), 
+    // 📖 -> https://webpack.js.org/configuration/output/
     path: path.resolve(__dirname, 'out'),
     filename: 'extension.js',
     libraryTarget: 'commonjs2',
@@ -12,38 +17,81 @@ const CALVA_MAIN = {
   },
   devtool: 'source-map',
   externals: {
-    vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+    // the vscode-module is created on-the-fly and must be excluded. 
+    // Add other modules that cannot be webpack'ed, 
+    // 📖 -> https://webpack.js.org/configuration/externals/
+    vscode: 'commonjs vscode'
   },
   resolve: {
-    // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
+    // support reading TypeScript and JavaScript files, 
+    // 📖 -> https://github.com/TypeStrong/ts-loader
     extensions: ['.ts', '.js']
+  },
+  // Watch options for the webview. 
+  // 📖 -> https://webpack.js.org/configuration/watch/
+  watchOptions: {
+    aggregateTimeout: 200,
+    poll: 500,
+    ignored: /node_modules/
   },
   module: {
     rules: [
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'ts-loader'
-          }
-        ]
+        loader: 'ts-loader',
+        options: {
+          configFile: path.resolve(__dirname, 'tsconfig.json')
+        }
       }
     ]
   }
 }
 
 const REPL_WINDOW = {
-  entry: './calva/webview-src/server/main.ts',
+  // vscode extensions run in a Node.js-context 
+  // 📖 -> https://webpack.js.org/configuration/node/
+  target: 'node', 
+  // the entry point of this webview, 
+  // 📖 -> https://webpack.js.org/configuration/entry-context/
+  entry: path.resolve(__dirname, 'src/webview.ts'),
+  // the bundle is stored in the 'html' folder. 
+  // 📖 -> https://webpack.js.org/configuration/output/
+  output: {
+    filename: 'webview.js',
+    path: path.resolve(__dirname, 'out'),
+    publicPath: './'
+  },
+  // Webpack dev server settings.
+  // 📖 -> https://webpack.js.org/configuration/dev-server/
+  devServer: {
+    historyApiFallback: true,
+    host: "0.0.0.0",
+    compress: true,
+    contentBase: path.join(__dirname, 'out'),
+    proxy: {
+      '/api': 'http://localhost:3000',
+    }
+  },
+  devtool: 'source-map',
+  resolve: {
+    // support reading TypeScript and JavaScript files, 
+    // 📖 -> https://github.com/TypeStrong/ts-loader
+    extensions: ['.tsx', '.ts', '.js']
+  },
   performance: {
+    // These options allows you to control how webpack notifies you 
+    // of assets and entry points that exceed a specific file limit.
+    // 📖 -> https://webpack.js.org/configuration/performance/
     maxEntrypointSize: 1024000,
     maxAssetSize: 1024000,
   },
-  mode: "development",
-  externals: {
-  },
-  resolve: {
-    modules: ['node_modules']
+  // Watch options for the webview. 
+  // 📖 -> https://webpack.js.org/configuration/watch/
+  watchOptions: {
+    aggregateTimeout: 200,
+    poll: 500,
+    ignored: /node_modules/
   },
   module: {
     rules: [
@@ -53,9 +101,8 @@ const REPL_WINDOW = {
         options: {
           transpileOnly: true,
           experimentalWatchApi: true,
-          configFile: 'calva/webview-src/tsconfig.json'
+          configFile: path.resolve(__dirname, 'src/webview/tsconfig.json')
         },
-        exclude: /node_modules/
       },
       {
         test: /\.scss$/,
@@ -69,34 +116,30 @@ const REPL_WINDOW = {
         }
       }
     ]
-  },
-  watchOptions: {
-    aggregateTimeout: 200,
-    poll: 500,
-    ignored: /node_modules/
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js']
-  },
-  output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'html')
-  },
-  devServer: {
-    historyApiFallback: true,
-    host: "0.0.0.0",
-    compress: true,
-    contentBase: path.join(__dirname, 'html'),
-    proxy: {
-      '/api': 'http://localhost:3000',
-    }
-  },
-  devtool: 'source-map'
+  }
 }
 
-let configs = [REPL_WINDOW];
-if (!(process.env.IS_DEV_BUILD == "YES")) {
-  configs.unshift(CALVA_MAIN);
+// Build the configuration based on production
+// or development mode. The extenion is only 
+// webpacked for production.
+function buildConfig(isProduction) {
+  if(!isProduction) {
+    // if not production set deftool to 
+    // 'eval-source-map' to make the webview 
+    // debugable in the vscode Webview Development 
+    // tools.
+    REPL_WINDOW.devtool = "eval-source-map";
+  }
+  let configs = [REPL_WINDOW];
+  if (isProduction) {
+    configs.unshift(CALVA_MAIN)
+  } 
+  //return configs
+  return configs
 }
 
-module.exports = configs;
+// Get the mode from the argv array.
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production'
+  return buildConfig(isProduction)
+}
