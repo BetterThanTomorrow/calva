@@ -1367,7 +1367,7 @@
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.6",
-        "@types/vscode": "^1.32.0",
+        "@types/vscode": "^1.30.0",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.1",
         "css-loader": "^2.1.1",
