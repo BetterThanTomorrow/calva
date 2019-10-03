@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as paredit from "./paredit/extension";
-import * as fmt from "./calva-fmt/ts/extension";
+import * as fmt from "./calva-fmt/src/extension";
+import * as highlight from "./highlight/src/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
 import * as util from './utilities'
@@ -66,10 +67,11 @@ function activate(context: vscode.ExtensionContext) {
 
     const chan = state.outputChannel();
 
-
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
         fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
+        cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior'),
+        cwConfig = vscode.workspace.getConfiguration('clojureWarrior'),
         customCljsRepl = state.config().customCljsRepl,
         replConnectSequences = state.config().replConnectSequences,
         BUTTON_GOTO_WIKI = "Open the Wiki",
@@ -204,9 +206,9 @@ function activate(context: vscode.ExtensionContext) {
         chan.dispose();
     }));
 
-    // context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
-    //     console.log(event);
-    // }));
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((_: vscode.ConfigurationChangeEvent) => {
+        statusbar.update();
+    }));
 
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
@@ -216,6 +218,19 @@ function activate(context: vscode.ExtensionContext) {
     chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.")
     chan.appendLine("Default keybinding for Jack-in: ctrl+alt+c ctrl+alt+j");
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
+
+    if (!cwExtension) {
+        highlight.activate(context);
+    } else {
+        vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.","Will do!"]);
+    }
+
+    for (const config of ["enableBracketColors", "bracketColors", "cycleBracketColors", "misplacedBracketStyle", "matchedBracketStyle", "commentFormStyle", "ignoredFormStyle"]) {
+        if (cwConfig.get(config) !== undefined) {
+            vscode.window.showWarningMessage("Legacy Clojure Warrior settings detected. These settings have changed prefix/namespace to from `clojureWarrior´ to `calva.highlight`. You should update `settings.json`.", ...["Roger that!"]);
+            break;
+        }
+    }
 
     return {
         hasParedit: true,

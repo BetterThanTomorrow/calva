@@ -164,9 +164,9 @@ export async function calvaJackInOrConnect() {
         commands["Connect to a running REPL server in your project"] = "calva.connect";
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
-        // if connected add the disconnect command and the 
+        // if connected add the disconnect command and the
         // REPL window open commands if needed.
-        commands["Disonnect from the REPL server"] = "calva.disconnect";
+        commands["Disconnect from the REPL server"] = "calva.disconnect";
         if(utilities.getSession("clj") && !isReplWindowOpen("clj")) {
             commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
         }
