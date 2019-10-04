@@ -1,7 +1,7 @@
 {:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]]
 
- :source-paths ["calva/cljs-lib/src"
-                "calva/cljs-lib/test"]
+ :source-paths ["src/cljs-lib/src"
+                "src/cljs-lib/test"]
 
  :builds       {:calva-lib
                 {:target    :node-library

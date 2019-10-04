@@ -23,12 +23,12 @@
             "dom"
         ],
         "sourceMap": true,
-        "rootDir": "calva"
+        "rootDir": "src"
     },
     "exclude": [
         "node_modules",
-        "calva/webview",
-        "calva/webview.ts",
+        "src/webview",
+        "src/webview.ts",
         ".vscode-test"
     ]
 }

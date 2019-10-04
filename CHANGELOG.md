@@ -4,9 +4,11 @@ Changes to Calva.
 ## When time allows, this will be worked on
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
-## Being distilled
-
 ## [Unreleased]
+
+## [2.0.43] - 03.10.2019
+- [Insourcing @tonsky's Clojue Warrior, now named Calva Highlight](https://github.com/BetterThanTomorrow/calva/pull/362)
+- [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
 
 ## [2.0.42] - 29.09.2019
 - [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
