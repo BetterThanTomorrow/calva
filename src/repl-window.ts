@@ -26,9 +26,9 @@ export function activeReplWindow() {
 export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
     // If we find `mode` in ythe `replWindows` dictionary, then it is open.
     if (!replWindows[mode]) {
-        return(false);   
+        return (false);
     }
-    return(true);
+    return (true);
 }
 
 class REPLWindow {
@@ -175,7 +175,7 @@ class REPLWindow {
         })
         try {
             this.postMessage({ type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns });
-            if(this.evaluation.ns && this.ns != this.evaluation.ns) {
+            if (this.evaluation.ns && this.ns != this.evaluation.ns) {
                 // the evaluation changed the namespace so set the new namespace.
                 this.setNamespace(this.evaluation.ns);
             }
@@ -199,17 +199,19 @@ class REPLWindow {
 let ctx: vscode.ExtensionContext
 
 let replWindows: { [id: string]: REPLWindow } = {};
-let replViewColum: { [id: string]: vscode.ViewColumn } = {"clj": vscode.ViewColumn.Two, 
-                                                          "cljs": vscode.ViewColumn.Two};
+let replViewColum: { [id: string]: vscode.ViewColumn } = {
+    "clj": vscode.ViewColumn.Two,
+    "cljs": vscode.ViewColumn.Two
+};
 
 function getImageUrl(name: string) {
     let imagepath = "";
     if (!name)
-         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
+        imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
     else
-         imagepath = path.join(ctx.extensionPath, "assets/images/", name);
+        imagepath = path.join(ctx.extensionPath, "assets/images/", name);
 
-    if(!fs.existsSync(imagepath)) {
+    if (!fs.existsSync(imagepath)) {
         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
     }
     return vscode.Uri.file(imagepath).with({ scheme: 'vscode-resource' }).toString()
@@ -224,7 +226,7 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
 
 export async function openClojureReplWindows() {
     if (state.deref().get('connected')) {
-        if(util.getSession("clj")) {
+        if (util.getSession("clj")) {
             openReplWindow("clj", true);
             return;
         }
@@ -234,7 +236,7 @@ export async function openClojureReplWindows() {
 
 export async function openClojureScriptReplWindows() {
     if (state.deref().get('connected')) {
-        if(util.getSession("cljs")) {
+        if (util.getSession("cljs")) {
             openReplWindow("cljs", true);
             return;
         }
@@ -248,7 +250,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
 
     if (!replWindows[mode]) {
         await createReplWindow(session, mode);
-    } else  if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
+    } else if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
         replWindows[mode].session = await session.clone();
     }
 
@@ -297,26 +299,29 @@ async function setREPLNamespaceCommand() {
 }
 
 export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(sessionType, true);
+    const chan = state.outputChannel(),
+        wnd = await openReplWindow(sessionType, true);
     if (wnd) {
         const inNs = ns ? ns : wnd.ns;
-        if (inNs != wnd.ns) {
-            // TODO: Find a reliable way to load the namespace
-            // let wnd = await openReplWindow(replType, true);
-            // await wnd.replEval(`(use ['${ns}] :reload)`, ns, state.config().pprint);
-
-            const evaluation = wnd.session.eval("(in-ns '" + inNs + ")")
-            await evaluation.value;
-            if (evaluation) {
-                wnd.setNamespace(evaluation.ns);
+        if (ns && ns !== wnd.ns) {
+            try {
+                const requireEvaluation = wnd.session.eval(`(require '${ns})`)
+                await requireEvaluation.value;
+                const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
+                await inNSEvaluation.value;
+                if (inNSEvaluation) {
+                    wnd.setNamespace(inNSEvaluation.ns);
+                }
+            } catch (e) {
+                vscode.window.showErrorMessage(`Error loading namespcace "${ns}" for command snippet: ${e}`, ...["OK"]);
+                return;
             }
-
         }
         try {
             wnd.evaluate(inNs, text);
             await wnd.replEval(text, inNs, pprint);
         } catch (e) {
-            console.warn("Error evaluating: " + e);
+            vscode.window.showErrorMessage("Error running command snippet: " + e, ...["OK"]);
         }
     }
 }
@@ -362,17 +367,19 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true, state.config().pprint);
 }
 
-export type customREPLCommandSnippet = { name: string, snippet: string, replType:string, ns?: string};
+export type customREPLCommandSnippet = { name: string, snippet: string, replType: string, ns?: string };
 
 function sendCustomCommandSnippetToREPLCommand() {
+    let pickCounter = 1,
+        dictCounter = 1;
     const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
         snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
-            return `${c.name} (${c.replType}): ${c.snippet}`;
+            return `${pickCounter++}: ${c.name} (${c.replType})`;
         }),
         snippetsDict = {};
 
     snippets.forEach((c: customREPLCommandSnippet) => {
-        snippetsDict[`${c.name} (${c.replType}): ${c.snippet}`] = c;
+        snippetsDict[`${dictCounter++}: ${c.name} (${c.replType})`] = c;
     });
 
     if (snippets && snippets.length > 0) {

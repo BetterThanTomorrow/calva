@@ -250,8 +250,7 @@
                             "required": [
                                 "name",
                                 "snippet",
-                                "replType",
-                                "ns"
+                                "replType"
                             ]
                         }
                     },
@@ -1070,7 +1069,7 @@
             },
             {
                 "command": "calva.evalCustomCodeSnippetInREPL",
-                "key": "ctrl+alt+c ctrl+s"
+                "key": "ctrl+alt+c ."
             },
             {
                 "command": "paredit.forwardSexp",
