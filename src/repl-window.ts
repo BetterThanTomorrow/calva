@@ -296,19 +296,27 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(util.getREPLSessionType(), true);
+export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
+    let wnd = await openReplWindow(sessionType, true);
     if (wnd) {
-        let oldNs = wnd.ns;
-        if (ns && ns != oldNs)
-            await wnd.session.eval("(in-ns '" + ns + ")").value;
-        try {
-            wnd.evaluate(ns || oldNs, text);
-            await wnd.replEval(text, oldNs, pprint);
-        } finally {
-            if (ns && ns != oldNs) {
-                await wnd.session.eval("(in-ns '" + oldNs + ")").value;
+        const inNs = ns ? ns : wnd.ns;
+        if (inNs != wnd.ns) {
+            // TODO: Find a reliable way to load the namespace
+            // let wnd = await openReplWindow(replType, true);
+            // await wnd.replEval(`(use ['${ns}] :reload)`, ns, state.config().pprint);
+
+            const evaluation = wnd.session.eval("(in-ns '" + inNs + ")")
+            await evaluation.value;
+            if (evaluation) {
+                wnd.setNamespace(evaluation.ns);
             }
+
+        }
+        try {
+            wnd.evaluate(inNs, text);
+            await wnd.replEval(text, inNs, pprint);
+        } catch (e) {
+            console.warn("Error evaluating: " + e);
         }
     }
 }
@@ -342,7 +350,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(code, util.getNamespace(doc), pprint)
+        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint)
     }
 }
 
@@ -371,15 +379,12 @@ function sendCustomCommandSnippetToREPLCommand() {
         vscode.window.showQuickPick(snippetPicks, {
             placeHolder: "Select snippet",
             ignoreFocusOut: true
-        }).then(pick => {
+        }).then(async (pick) => {
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
-                let snippet = snippetsDict[pick].snippet,
-                    ns = snippetsDict[pick].ns,
-                    mode = snippetsDict[pick].repl;
-                if (ns) {
-                    snippet = `(in-ns '${ns})${snippet}`;
-                }
-                sendTextToREPLWindow(snippet, ns, false);
+                const command = snippetsDict[pick].snippet,
+                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
+                    replType = snippetsDict[pick].replType ? snippetsDict[pick].replType : "clj";
+                sendTextToREPLWindow(replType ? replType : "clj", command, ns, false);
             }
         });
     } else {
