@@ -237,7 +237,7 @@
                                 },
                                 "ns": {
                                     "type": "string",
-                                    "description": "Namespace to eval the command in (current file's top namespace if omitted)"
+                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is only useful for running code in the `user` namespace."
                                 },
                                 "replType": {
                                     "type": "string",
