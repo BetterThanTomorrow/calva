@@ -160,10 +160,10 @@ function activate(context: vscode.ExtensionContext) {
 
     // Initial set of the provided contexts
     vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
+    vscode.commands.executeCommand("setContext", "calva:launching", false);
     vscode.commands.executeCommand("setContext", "calva:connected", false);
     vscode.commands.executeCommand("setContext", "calva:connecting", false);
     vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
-
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));

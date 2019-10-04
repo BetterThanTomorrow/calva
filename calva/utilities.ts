@@ -259,6 +259,20 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
+function getLaunchingState() { 
+    return state.deref().get('launching');
+}
+
+function setLaunchingState(value) {
+    if(value) {
+        vscode.commands.executeCommand("setContext", "calva:launching", true);
+        state.cursor.set('launching', value);
+    } else {
+        vscode.commands.executeCommand("setContext", "calva:launching", false);
+        state.cursor.set('launching', value);
+    }
+}
+
 function getConnectedState() { 
     return state.deref().get('connected');
 }
@@ -424,6 +438,8 @@ export {
     getFileType,
     getFileName,
     getSession,
+    getLaunchingState,
+    setLaunchingState,
     getConnectedState,
     setConnectedState,
     getConnectingState,

@@ -534,7 +534,7 @@
             {
                 "command": "calva.disconnect",
                 "title": "Disonnect from the REPL Server",
-                "enablement": "calva:connected || calva:connecting",
+                "enablement": "calva:connected || calva:connecting || calva:launching",
                 "category": "Calva"
             },
             {
