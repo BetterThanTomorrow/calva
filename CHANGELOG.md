@@ -1,8 +1,59 @@
 # Change Log
-Changes to Calva. (We really will try to keep this updated now.)
+Changes to Calva.
 
-## [2.0.32] - Unreleased
-- Better alias support for leiningen and clj Projects
+## When time allows, this will be worked on
+- [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
+
+## [Unreleased]
+
+## [2.0.43] - 03.10.2019
+- [Insourcing @tonsky's Clojue Warrior, now named Calva Highlight](https://github.com/BetterThanTomorrow/calva/pull/362)
+- [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
+
+## [2.0.42] - 29.09.2019
+- [Adding selected calva commands to the editors context menu](https://github.com/BetterThanTomorrow/calva/issues/338)
+- [Fix bug with painting all existing result decoration with the same status](https://github.com/BetterThanTomorrow/calva/issues/353)
+- [Fix bug with reporting errors using off-by-one line and column numbers](https://github.com/BetterThanTomorrow/calva/issues/354)
+
+## [2.0.41] - 28.09.2019
+- [Add pretty print mode](https://github.com/BetterThanTomorrow/calva/issues/327)
+- [Add command for evaluating top level form as comment](https://github.com/BetterThanTomorrow/calva/issues/349)
+- [Stop writing results from **Evaluate to Comment** to output pane](https://github.com/BetterThanTomorrow/calva/issues/347)
+
+## [2.0.40] - 25.09.2019
+- [Add command for connecting to a non-project REPL](https://github.com/BetterThanTomorrow/calva/issues/328)
+- [Add hover to inline result display, containing the full results](https://github.com/BetterThanTomorrow/calva/pull/336)
+- [Better inline evaluation error reports with file context](https://github.com/BetterThanTomorrow/calva/issues/329)
+- [Enhancement REPL window handling / nREPL menu button](https://github.com/BetterThanTomorrow/calva/issues/337)
+- [Print async output, and a setting for where it should go](https://github.com/BetterThanTomorrow/calva/issues/218)
+- [Fix REPL window prompt does not always reflect current ns](https://github.com/BetterThanTomorrow/calva/issues/280)
+- [Escape HTML in stdout and stderr in REPL window](https://github.com/BetterThanTomorrow/calva/issues/321)
+- [Add content security policy to webview and remove image load error](https://github.com/BetterThanTomorrow/calva/issues/341)
+
+## [2.0.39] - 20.09.2019
+- [Revert disconnecting and jacking out on closing of REPL window](https://github.com/BetterThanTomorrow/calva/issues/326)
+
+## [2.0.38] - 14.09.2019
+- [Close java processes when clsoing or reloading VS Code. (Windows)](https://github.com/BetterThanTomorrow/calva/issues/305)
+
+## [2.0.37] - 14.09.2019
+- [Support connecting to Leiningen and CLI project using shadow-cljs watcher](https://github.com/BetterThanTomorrow/calva/issues/314)
+- Fix [Figwheel Main deps added to non-cljs projects](https://github.com/BetterThanTomorrow/calva/issues/317)
+
+## [2.0.36] - 12.09.2019
+- Fix [REPL Window namespace being reset to user](https://github.com/BetterThanTomorrow/calva/issues/302)
+- Update nrepl-version to 0.22.1
+
+## [2.0.35] - 10.09.2019
+- [Customizing the REPL connect sequence](https://github.com/BetterThanTomorrow/calva/issues/282)
+- [Support for launching with user aliases/profiles](https://github.com/BetterThanTomorrow/calva/issues/288)
+
+## [2.0.34] - 04.09.2019
+- More accurate code completion lookups.
+- [Keep focus in editor when evaluating to the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/229).
+
+## [2.0.33] - 17.08.2019
+- Support for starting leiningen and clj projects with aliases.
 
 ## [2.0.31] - 13.08.2019
 - Support Jack-in and Connect in multi-project workspaces.
