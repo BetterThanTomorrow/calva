@@ -25,15 +25,15 @@ Some examples of what it can be like to use Calva Formatter:
 
 ### Format Current Form
 
-![Format Current Form](/assets/format-current-form.gif)
+![Format Current Form](/src/calva-fmt/assets/format-current-form.gif)
 
 ### Align Current Form
 
-![Align Current Form](/assets/align-items.gif)
+![Align Current Form](/src/calva-fmt/assets/align-items.gif)
 
 ### Parinfer
 
-![Infer parens](/assets/parinfer.gif)
+![Infer parens](/src/calva-fmt/assets/parinfer.gif)
 
 ## How to use
 

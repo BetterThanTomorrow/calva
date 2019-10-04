@@ -1,7 +1,7 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
-import * as state from './../state';
-import * as replWindow from './../repl-window';
+import * as state from '../state';
+import * as replWindow from '../repl-window';
 
 /** An nRREPL client */
 export class NReplClient {

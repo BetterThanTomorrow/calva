@@ -10,7 +10,7 @@ jobs:
       - checkout
       - restore_cache:
           name: Restore dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Install node_modules
           command: cp package.json /tmp && npm install && cp /tmp/package.json .
@@ -19,7 +19,7 @@ jobs:
           command: npx shadow-cljs classpath
       - save_cache:
           name: Save dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
           paths:
             - ./node_modules
             - ~/.m2
@@ -38,7 +38,7 @@ jobs:
       - checkout
       - restore_cache:
           name: Restore dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Update system package lists
           command: sudo apt-get update
@@ -52,21 +52,21 @@ jobs:
       - run:
           name: Download Atom build script
           command: |
-            cd calva/calva-fmt/atom-language-clojure
+            cd src/calva-fmt/atom-language-clojure
             curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
       - run:
           name: Make build script executable
           command: |
-            cd calva/calva-fmt/atom-language-clojure
+            cd src/calva-fmt/atom-language-clojure
             chmod u+x build-package.sh
       - run:
           name: Run package tests
           command: |
-            cd calva/calva-fmt/atom-language-clojure
+            cd src/calva-fmt/atom-language-clojure
             ./build-package.sh
       - save_cache:
           name: Save dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
           paths:
             - ~/.atom/packages
             - ./node_modules
@@ -79,7 +79,7 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Compile and Run Tests
           command: npm run compile-cljs
@@ -92,7 +92,7 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: "Create artifacts workspace"
           command: mkdir /tmp/artifacts
@@ -182,7 +182,7 @@ jobs:
           path: ~/calva
       - restore_cache:
           name: Restore dependencies
-          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "calva/calva-fmt/atom-language-clojure/package.json" }}
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Publish to the marketplace
           command: |

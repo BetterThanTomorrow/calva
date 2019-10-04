@@ -2,7 +2,7 @@ import { TextDocument, Position, CancellationToken, CompletionContext, Hover, Co
 import * as state from '../state';
 import * as util from '../utilities';
 import select from '../select';
-import * as docMirror from '../calva-fmt/ts/docmirror';
+import * as docMirror from '../calva-fmt/src/docmirror';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
