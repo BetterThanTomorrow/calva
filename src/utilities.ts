@@ -190,6 +190,29 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
+async function loadFileIfNamespaceNotExist(doc) {
+
+    if (getConnectedState()) {
+        let document = getDocument(doc);
+        if (document) {
+            let ns = getNamespace(document);
+            let name = getFileName(document);
+            let dir = "";
+            if(document.hasOwnProperty('fileName')) {
+                dir = path.dirname(document.fileName); 
+            }
+            let client = getSession(getFileType(document));
+            if (client) {
+                let nsList = await client.listNamespaces([]);
+                if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
+                    return;
+                }
+                await client.loadFile(document.getText(), name, dir);
+            }
+        }
+    }
+}
+
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
@@ -237,8 +260,22 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
-function getConnectedState() {
-    return state.cursor.get('connected');
+function getLaunchingState() { 
+    return state.deref().get('launching');
+}
+
+function setLaunchingState(value) {
+    if(value) {
+        vscode.commands.executeCommand("setContext", "calva:launching", true);
+        state.cursor.set('launching', value);
+    } else {
+        vscode.commands.executeCommand("setContext", "calva:launching", false);
+        state.cursor.set('launching', value);
+    }
+}
+
+function getConnectedState() { 
+    return state.deref().get('connected');
 }
 
 function setConnectedState(value) {
@@ -252,7 +289,7 @@ function setConnectedState(value) {
 }
 
 function getConnectingState() {
-    return state.cursor.get('connecting');
+    return state.deref().get('connecting');
 }
 
 function setConnectingState(value) {
@@ -396,11 +433,14 @@ export {
     getNamespace,
     getStartExpression,
     getWordAtPosition,
+    loadFileIfNamespaceNotExist,
     getDocument,
     getDocumentNamespace,
     getFileType,
     getFileName,
     getSession,
+    getLaunchingState,
+    setLaunchingState,
     getConnectedState,
     setConnectedState,
     getConnectingState,

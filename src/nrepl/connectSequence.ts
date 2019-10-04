@@ -222,7 +222,7 @@ async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabe
             saveAs: `${state.getProjectRoot()}/${saveAs}`,
             autoSelect: true
         });
-        if (!projectConnectSequenceName) {
+        if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
             state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
             return;
         }

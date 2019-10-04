@@ -125,8 +125,11 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        EvaluateMiddleWare.loadFile();
-        chan.show(true);
+        EvaluateMiddleWare.loadFile().then((resolved) => {
+            chan.show(true);
+        }).catch((reason) => {
+            chan.show(true);
+        });
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', EvaluateMiddleWare.evaluateTopLevelForm));
@@ -157,15 +160,15 @@ function activate(context: vscode.ExtensionContext) {
 
     // Initial set of the provided contexts
     vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
+    vscode.commands.executeCommand("setContext", "calva:launching", false);
     vscode.commands.executeCommand("setContext", "calva:connected", false);
     vscode.commands.executeCommand("setContext", "calva:connecting", false);
     vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
 
-
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.mode, new CalvaCompletionItemProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(state.mode, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.mode, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
@@ -227,7 +230,7 @@ function activate(context: vscode.ExtensionContext) {
 
     for (const config of ["enableBracketColors", "bracketColors", "cycleBracketColors", "misplacedBracketStyle", "matchedBracketStyle", "commentFormStyle", "ignoredFormStyle"]) {
         if (cwConfig.get(config) !== undefined) {
-            vscode.window.showWarningMessage("Legacy Clojure Warrior settings detected. These settings have changed prefix/namespace from `clojureWarrior´ to `calva.highlight`. You should update `settings.json`.", ...["Roger that!"]);
+            vscode.window.showWarningMessage("Legacy Clojure Warrior settings detected. These settings have changed prefix/namespace to from `clojureWarrior´ to `calva.highlight`. You should update `settings.json`.", ...["Roger that!"]);
             break;
         }
     }

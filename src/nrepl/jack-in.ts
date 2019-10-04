@@ -25,11 +25,22 @@ vscode.tasks.onDidEndTask(((e) => {
     if(e.execution.task.name == TASK_NAME) {
        JackinExecution = undefined;
        connector.default.disconnect();
+       // make sure everything is set back 
+       // even if the task failed to connect
+       // to the repl server.
+       utilities.setLaunchingState(null);
+       statusbar.update();
     }
 }));
 
+function cancelJackInTask() {
+    setTimeout(() => {
+        calvaJackout(); 
+    }, 1000);
+}
+
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
-    state.cursor.set("launching", projectTypeSelection);
+    utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
     const env = { ...process.env, ...state.config().jackInEnv } as {
@@ -63,26 +74,43 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
             watcher.removeAllListeners();
         }
 
-        watcher = fs.watch(portFileDir, async (eventType, fileName) => {
-            if (fileName == portFileBase) {
-                if (!fs.existsSync(nReplPortFile)) {
-                    return;
+        if(!fs.existsSync(portFileDir)) {
+            // try to make the directory to allow the 
+            // started process to catch up.
+            fs.mkdirSync(portFileDir);
+        }
+
+        try {
+            watcher = fs.watch(portFileDir, async (eventType, fileName) => {
+                if (fileName == portFileBase) {
+                    if (!fs.existsSync(nReplPortFile)) {
+                        return;
+                    }
+                    const port = fs.readFileSync(nReplPortFile, 'utf8');
+                    if (!port) { // On Windows we get two events, one for file creation and one for the change of content
+                        return;  // If there is no port to be read yet, wait for the next event instead.
+                    }
+                    const chan = state.outputChannel();
+                    setTimeout(() => { chan.show() }, 1000);
+                    utilities.setLaunchingState(null);
+                    watcher.removeAllListeners();
+                    await connector.connect(connectSequence, true, true);
+                    chan.appendLine("Jack-in done.");
                 }
-                const port = fs.readFileSync(nReplPortFile, 'utf8');
-                if (!port) { // On Windows we get two events, one for file creation and one for the change of content
-                    return;  // If there is no port to be read yet, wait for the next event instead.
-                }
-                const chan = state.outputChannel();
-                setTimeout(() => { chan.show() }, 1000);
-                state.cursor.set("launching", null);
-                watcher.removeAllListeners();
-                await connector.connect(connectSequence, true, true);
-                chan.appendLine("Jack-in done.");
-            }
-        });
+            });
+        } catch(exception) {
+            outputChannel.appendLine("Error in Jack-in: unable to read port file");
+            outputChannel.appendLine(exception);
+            outputChannel.appendLine("You may have choosen the wrong jack-in configuration for your project.");
+            vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
+            cancelJackInTask();
+        }
     }, (reason) => {
         watcher.removeAllListeners();
-        outputChannel.appendLine("Error in Jack-in: " + reason);
+        outputChannel.appendLine("Error in Jack-in: ");
+        outputChannel.appendLine(reason);
+        vscode.window.showErrorMessage("Error in Jack-in. See output channel for more information.");
+        cancelJackInTask();
     });
 }
 
@@ -147,9 +175,24 @@ export async function calvaJackIn() {
 
 export async function calvaDisonnect() {
 
-    if (state.deref().get('connected')) {
+    if (utilities.getConnectedState()) {
         calvaJackout();
         connector.default.disconnect();
+        return;
+    } else if (utilities.getConnectingState() ||
+        utilities.getLaunchingState()) {
+        vscode.window.showInformationMessage(
+            "Do you want to interupt the connection process?",
+            { modal: true },
+            ...["Ok"]).then((value) => {
+                if (value == 'Ok') {
+                    const outputChannel = state.outputChannel();
+                    calvaJackout();
+                    connector.default.disconnect();
+                    outputChannel.appendLine("Interrupting Jack-in process.");
+                    outputChannel.show();
+                }
+            });
         return;
     }
     vscode.window.showInformationMessage("Not connected to a REPL server");
@@ -158,15 +201,17 @@ export async function calvaDisonnect() {
 export async function calvaJackInOrConnect() {
 
     let commands = {};
-    if (!state.deref().get('connected')) {
+    if (!utilities.getConnectedState() &&
+        !utilities.getConnectedState() &&
+        !utilities.getLaunchingState()) {
         // if not connected add the connect commands
         commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
         commands["Connect to a running REPL server in your project"] = "calva.connect";
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
-        // if connected add the disconnect command and the
+        // if connected add the disconnect command and the 
         // REPL window open commands if needed.
-        commands["Disconnect from the REPL server"] = "calva.disconnect";
+        commands["Disonnect from the REPL server"] = "calva.disconnect";
         if(utilities.getSession("clj") && !isReplWindowOpen("clj")) {
             commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
         }

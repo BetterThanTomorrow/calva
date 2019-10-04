@@ -51,7 +51,9 @@
         "onCommand:calva.jackIn",
         "onCommand:calva.jackInOrConnect",
         "onCommand:calva.connect",
-        "onCommand:calva.connectNonProjectREPL"
+        "onCommand:calva.connectNonProjectREPL",
+        "workspaceContains:**/project.clj",
+        "workspaceContains:**/shadow-cljs.edn"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -532,7 +534,7 @@
             {
                 "command": "calva.disconnect",
                 "title": "Disonnect from the REPL Server",
-                "enablement": "calva:connected || calva:connecting",
+                "enablement": "calva:connected || calva:connecting || calva:launching",
                 "category": "Calva"
             },
             {
@@ -690,6 +692,7 @@
             {
                 "command": "calva.refreshAll",
                 "title": "Refresh All Namespaces",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
