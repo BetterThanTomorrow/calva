@@ -201,6 +201,10 @@ let replWindows: { [id: string]: REPLWindow } = {};
 let replViewColum: { [id: string]: vscode.ViewColumn } = {"clj": vscode.ViewColumn.Two, 
                                                           "cljs": vscode.ViewColumn.Two};
 
+export function getReplWindow(mode: "clj" | "cljs") {
+    return replWindows[mode];
+}
+
 function getImageUrl(name: string) {
     let imagepath = "";
     if (!name)
