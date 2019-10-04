@@ -354,18 +354,17 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true, state.config().pprint);
 }
 
-type customCodeSnippet = { name: string, snippet: string, repl:string, ns?: string};
+export type customREPLCommandSnippet = { name: string, snippet: string, replType:string, ns?: string};
 
 function sendCustomCommandSnippetToREPLCommand() {
-    let chan = state.outputChannel(),
-        snippets = state.config().customCodeSnippets as customCodeSnippet[],
-        snippetPicks = _.map(snippets, (c: customCodeSnippet) => {
-            return `${c.name} (${c.repl}): ${c.snippet}`;
+    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
+        snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
+            return `${c.name} (${c.replType}): ${c.snippet}`;
         }),
         snippetsDict = {};
 
-    snippets.forEach((c: customCodeSnippet) => {
-        snippetsDict[`${c.name} (${c.repl}): ${c.snippet}`] = c;
+    snippets.forEach((c: customREPLCommandSnippet) => {
+        snippetsDict[`${c.name} (${c.replType}): ${c.snippet}`] = c;
     });
 
     if (snippets && snippets.length > 0) {
@@ -384,7 +383,7 @@ function sendCustomCommandSnippetToREPLCommand() {
             }
         });
     } else {
-        chan.appendLine("No snippets configured. Configure snippets in calva.customCoodeSnippets.");
+        vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
     }
 }
 

@@ -6,6 +6,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fs from 'fs';
+import { customREPLCommandSnippet } from './repl-window';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -107,7 +108,7 @@ function config() {
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
         pprint: configOptions.get("prettyPrint") as boolean,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
-        customCodeSnippets: configOptions.get("customCodeSnippets")
+        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[]
     };
 }
 
