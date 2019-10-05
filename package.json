@@ -716,7 +716,7 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.evalCustomCodeSnippetInREPL",
+                "command": "calva.runCustomREPLCommand",
                 "title": "Run Custom REPL Command",
                 "category": "Calva",
                 "enablement": "calva:connected"
@@ -1069,7 +1069,7 @@
                 "key": "ctrl+alt+c ctrl+alt+space"
             },
             {
-                "command": "calva.evalCustomCodeSnippetInREPL",
+                "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+c ."
             },
             {

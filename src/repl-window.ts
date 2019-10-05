@@ -401,7 +401,7 @@ function sendCustomCommandSnippetToREPLCommand() {
         util.quickPickSingle({
             values: snippetPicks,
             placeHolder: "Choose a command to run at the REPL",
-            saveAs: "evalCustomCodeSnippetInREPL"
+            saveAs: "runCustomREPLCommand"
         }).then(async (pick) => {
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
                 const command = snippetsDict[pick].snippet,
@@ -423,7 +423,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evalCustomCodeSnippetInREPL', sendCustomCommandSnippetToREPLCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
 }
 
 export function clearHistory() {
