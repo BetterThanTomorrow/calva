@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.44] - 05.10.2019
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [2.0.43] - 03.10.2019
