@@ -210,10 +210,12 @@ export function getReplWindow(mode: "clj" | "cljs") {
 
 function getImageUrl(name: string) {
     let imagepath = "";
-    if (!name)
+    if (!name) {
         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
-    else
+    }
+    else {
         imagepath = path.join(ctx.extensionPath, "assets/images/", name);
+    }
 
     if (!fs.existsSync(imagepath)) {
         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
