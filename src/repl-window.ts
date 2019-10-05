@@ -371,31 +371,43 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true, state.config().pprint);
 }
 
-export type customREPLCommandSnippet = { name: string, snippet: string, replType: string, ns?: string };
+export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
 
 function sendCustomCommandSnippetToREPLCommand() {
     let pickCounter = 1,
-        dictCounter = 1;
+        dictCounter = 1,
+        configErrors: {"name": string, "keys": string[]}[] = [];
     const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
         snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
-            return `${pickCounter++}: ${c.name} (${c.replType})`;
+            const undefs = ["name", "snippet", "repl"].filter(k => {
+                return !c[k];
+            })
+            if (undefs.length > 0) {
+                configErrors.push({"name": c.name, "keys": undefs});
+            }
+            return `${pickCounter++}: ${c.name} (${c.repl})`;
         }),
         snippetsDict = {};
 
+    if (configErrors.length > 0) {
+        vscode.window.showErrorMessage("Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: " + JSON.stringify(configErrors), "OK");
+        return;
+    }
     snippets.forEach((c: customREPLCommandSnippet) => {
-        snippetsDict[`${dictCounter++}: ${c.name} (${c.replType})`] = c;
+        snippetsDict[`${dictCounter++}: ${c.name} (${c.repl})`] = c;
     });
 
     if (snippets && snippets.length > 0) {
-        vscode.window.showQuickPick(snippetPicks, {
-            placeHolder: "Select snippet",
-            ignoreFocusOut: true
+        util.quickPickSingle({
+            values: snippetPicks,
+            placeHolder: "Choose a command to run at the REPL",
+            saveAs: "evalCustomCodeSnippetInREPL"
         }).then(async (pick) => {
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
                 const command = snippetsDict[pick].snippet,
                     ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
-                    replType = snippetsDict[pick].replType ? snippetsDict[pick].replType : "clj";
-                sendTextToREPLWindow(replType ? replType : "clj", command, ns, false);
+                    repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
+                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false);
             }
         });
     } else {

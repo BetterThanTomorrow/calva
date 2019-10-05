@@ -218,7 +218,7 @@
                     "calva.customREPLCommandSnippets": {
                         "type": "array",
                         "default": [],
-                        "description": "Custom code that can be sent to the active REPL at will.",
+                        "description": "Configuration for the command **Run Custom REPL Command**",
                         "$schema": "http://json-schema.org/draft-06/schema#",
                         "items": {
                             "title": "replCommand",
@@ -226,7 +226,7 @@
                             "properties": {
                                 "name": {
                                     "type": "string",
-                                    "description": "Identify this command so that it is easy to select it in a picker menu"
+                                    "description": "Name this command so that it is easy to pick from the menu."
                                 },
                                 "snippet": {
                                     "type": [
@@ -239,8 +239,9 @@
                                     "type": "string",
                                     "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is only useful for running code in the `user` namespace."
                                 },
-                                "replType": {
+                                "repl": {
                                     "type": "string",
+                                    "description": "Choose which REPL should the code should be evaluated in.",
                                     "enum": [
                                         "clj",
                                         "cljs"
@@ -250,7 +251,7 @@
                             "required": [
                                 "name",
                                 "snippet",
-                                "replType"
+                                "repl"
                             ]
                         }
                     },
