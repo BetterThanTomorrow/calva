@@ -208,10 +208,6 @@ export function getReplWindow(mode: "clj" | "cljs") {
     return replWindows[mode];
 }
 
-export function getReplWindow(mode: "clj" | "cljs") {
-    return replWindows[mode];
-}
-
 function getImageUrl(name: string) {
     let imagepath = "";
     if (!name) {
