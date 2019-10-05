@@ -375,7 +375,6 @@ export type customREPLCommandSnippet = { name: string, snippet: string, repl: st
 
 function sendCustomCommandSnippetToREPLCommand() {
     let pickCounter = 1,
-        dictCounter = 1,
         configErrors: {"name": string, "keys": string[]}[] = [];
     const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
         snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
@@ -388,13 +387,14 @@ function sendCustomCommandSnippetToREPLCommand() {
             return `${pickCounter++}: ${c.name} (${c.repl})`;
         }),
         snippetsDict = {};
+        pickCounter = 1;
 
     if (configErrors.length > 0) {
         vscode.window.showErrorMessage("Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: " + JSON.stringify(configErrors), "OK");
         return;
     }
     snippets.forEach((c: customREPLCommandSnippet) => {
-        snippetsDict[`${dictCounter++}: ${c.name} (${c.repl})`] = c;
+        snippetsDict[`${pickCounter++}: ${c.name} (${c.repl})`] = c;
     });
 
     if (snippets && snippets.length > 0) {

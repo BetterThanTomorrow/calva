@@ -237,7 +237,7 @@
                                 },
                                 "ns": {
                                     "type": "string",
-                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is only useful for running code in the `user` namespace."
+                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
                                 },
                                 "repl": {
                                     "type": "string",
