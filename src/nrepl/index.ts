@@ -165,7 +165,7 @@ export class NReplSession {
         const msgType: string = msgData.out? "stdout" : "stderr";
 
         if (msgValue && this.replType) {
-            const window = await replWindow.openReplWindow(this.replType, true);
+            const window = replWindow.getReplWindow(this.replType);
             const windowMsg = {
                 type: msgType,
                 value: msgValue

@@ -63,7 +63,7 @@ async function evaluateSelection(document = {}, options = {}) {
                         pprint: !!pprint
                     });
                 let value = await context.value;
-                value = context.pprintOut || value;
+                value = util.stripAnsi(context.pprintOut || value);
 
                 if (replace) {
                     const indent = `${' '.repeat(c)}`,
@@ -100,7 +100,7 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine(normalizeNewLines(err));
                 }
 
-                const message = err.join("\n");
+                const message = util.stripAnsi(err.join("\n"));
                 annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
                 annotations.decorateResults(message, true, codeSelection, editor);
                 if (asComment) {
