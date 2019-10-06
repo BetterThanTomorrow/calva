@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Warnings/Errors should be made more "prominent" in the "Calva says" channel](https://github.com/BetterThanTomorrow/calva/issues/356)
 
 ## [2.0.44] - 05.10.2019
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
