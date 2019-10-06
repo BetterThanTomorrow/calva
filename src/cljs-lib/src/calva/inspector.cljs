@@ -2,10 +2,11 @@
   "Utilities for supporting Calva's inspection of data structures."
   (:require [calva.js-utils :refer [jsify parse-edn]]))
 
-(defn- inspector-annotate
-  "Recursively annotates ClojureScript values with .
-  sets/vectors/lists become Arrays, Keywords and Symbol become Strings,
-  Maps become Objects. Arbitrary keys are encoded to by `inspector-key->js`."
+(defn- annotate
+  "Recursively annotates ClojureScript values with Clojure data type information.
+  Sets/vectors/lists become arrays, keywords and symbol become strings. Maps become
+  objects. All these are wrapped in objects containing `type` and `value`.
+  Values that map to JavaScript primitives are not annotated."
   [x]
   (letfn [(thisfn [x]
             (cond
@@ -29,14 +30,14 @@
   [s]
   (-> s
       (parse-edn)
-      (inspector-annotate)
+      (annotate)
       (jsify)))
 
 (comment
   (map (fn [[k v]] [k (inc v)]) (seq {:foo 1 :bar 2}))
   (into {} (for [[k v] (seq {:foo 1 :bar 2})] [k (inc v)])) 
-  (clj->js (inspector-annotate {:foo (vec (repeat 3 :empty))}))
-  (clj->js (inspector-annotate [1 2 3 4 5]))
-  (clj->js (inspector-annotate #([1 2 3 4 5])))
-  (clj->js (inspector-annotate {:foo 1 :bar ["a", "b", "c"]}))
-  (clj->js (inspector-annotate (def s [1 2 3 4 5]))))
+  (clj->js (annotate {:foo (vec (repeat 3 :empty))}))
+  (clj->js (annotate [1 2 3 4 5]))
+  (clj->js (annotate #([1 2 3 4 5])))
+  (clj->js (annotate {:foo 1 :bar ["a", "b", "c"]}))
+  (clj->js (annotate (def s [1 2 3 4 5]))))
