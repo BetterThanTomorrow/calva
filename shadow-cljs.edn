@@ -14,7 +14,8 @@
                              :jsify calva.js-utils/jsify
                              :cljify calva.js-utils/cljify
                              :parseEdn calva.js-utils/parse-edn-js
-                             :parseForms calva.js-utils/parse-forms-js}
+                             :parseForms calva.js-utils/parse-forms-js
+                             :inspect calva.inspector/inspect}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

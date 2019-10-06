@@ -7,7 +7,8 @@ import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
 import { NReplSession } from './nrepl';
-import statusbar from './statusbar'
+import statusbar from './statusbar';
+import * as inspector from './providers/inspector';
 
 function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
     const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
@@ -64,6 +65,8 @@ async function evaluateSelection(document = {}, options = {}) {
                     });
                 let value = await context.value;
                 value = util.stripAnsi(context.pprintOut || value);
+
+                inspector.inspectForm(value);
 
                 if (replace) {
                     const indent = `${' '.repeat(c)}`,
