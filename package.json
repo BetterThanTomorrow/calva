@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.43",
+    "version": "2.0.45",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -214,6 +214,46 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
+                    },
+                    "calva.customREPLCommandSnippets": {
+                        "type": "array",
+                        "default": [],
+                        "description": "Configuration for the command **Run Custom REPL Command**",
+                        "$schema": "http://json-schema.org/draft-06/schema#",
+                        "items": {
+                            "title": "replCommand",
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name this command so that it is easy to pick from the menu."
+                                },
+                                "snippet": {
+                                    "type": [
+                                        "string",
+                                        "array"
+                                    ],
+                                    "description": "Command to send to the REPL"
+                                },
+                                "ns": {
+                                    "type": "string",
+                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
+                                },
+                                "repl": {
+                                    "type": "string",
+                                    "description": "Choose which REPL should the code should be evaluated in.",
+                                    "enum": [
+                                        "clj",
+                                        "cljs"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "snippet",
+                                "repl"
+                            ]
+                        }
                     },
                     "calva.myLeinProfiles": {
                         "type": "array",
@@ -671,9 +711,15 @@
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "title": "Evaluate Top Level Form in REPL Window (defun)",
+                "title": "Evaluate Top Level Form (defun) in REPL Window",
                 "enablement": "calva:connected",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "title": "Run Custom REPL Command",
+                "category": "Calva",
+                "enablement": "calva:connected"
             },
             {
                 "command": "calva.switchCljsBuild",
@@ -1021,6 +1067,10 @@
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "key": "ctrl+alt+c ctrl+alt+space"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+c ."
             },
             {
                 "command": "paredit.forwardSexp",
