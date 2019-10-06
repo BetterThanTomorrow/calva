@@ -35,7 +35,8 @@ Smaller changes:
 
 When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
-1. With `dev` checked out: `git checkout -B master`. (This ”moves” `master` to where `dev`'s `HEAD` is pointing.)
+1. With `dev` checked out: `git checkout master`.
+  1. `git merge dev`
 1. Tag with `v<VERSION>`
 1. Push `master` (Using `--follow-tags`).
    * This will build the release VSIX, push a relase to GitHub, and publish it on the extension Marketplace.
