@@ -202,7 +202,7 @@ export async function calvaJackInOrConnect() {
 
     let commands = {};
     if (!utilities.getConnectedState() &&
-        !utilities.getConnectedState() &&
+        !utilities.getConnectingState() &&
         !utilities.getLaunchingState()) {
         // if not connected add the connect commands
         commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
