@@ -24,7 +24,7 @@ Let Calva start your project (_a.k.a. **Jack-in**_).
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
 
-Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keep that wiki page updated.)
+Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/Connect-Calva-to-Your-Project). (Please help keep that wiki page updated.)
 
 ## Something to try first
 
@@ -97,6 +97,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e` (`ctrl+alt+c ctrl+alt+v` on Windows)
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
+- Configure and run custom commands, i.e. code snippets, at will: `ctrl+alt+c .`
 
 Demo: Peek at definitions, etcetera:
 

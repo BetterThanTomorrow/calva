@@ -227,7 +227,7 @@ function activate(context: vscode.ExtensionContext) {
 
     for (const config of ["enableBracketColors", "bracketColors", "cycleBracketColors", "misplacedBracketStyle", "matchedBracketStyle", "commentFormStyle", "ignoredFormStyle"]) {
         if (cwConfig.get(config) !== undefined) {
-            vscode.window.showWarningMessage("Legacy Clojure Warrior settings detected. These settings have changed prefix/namespace to from `clojureWarrior´ to `calva.highlight`. You should update `settings.json`.", ...["Roger that!"]);
+            vscode.window.showWarningMessage("Legacy Clojure Warrior settings detected. These settings have changed prefix/namespace from `clojureWarrior´ to `calva.highlight`. You should update `settings.json`.", ...["Roger that!"]);
             break;
         }
     }
