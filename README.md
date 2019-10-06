@@ -97,6 +97,7 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
   - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e` (`ctrl+alt+c ctrl+alt+v` on Windows)
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
+- Configure and run custom commands, i.e. code snippets, at will: `ctrl+alt+c .`
 
 Demo: Peek at definitions, etcetera:
 

@@ -4,6 +4,7 @@ import * as path from "path";
 import * as state from "./state";
 import status from "./status"
 import * as fs from "fs";
+import * as _ from "lodash";
 import { NReplEvaluation, NReplSession } from "./nrepl";
 
 import annotations from './providers/annotations';
@@ -25,9 +26,9 @@ export function activeReplWindow() {
 export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
     // If we find `mode` in ythe `replWindows` dictionary, then it is open.
     if (!replWindows[mode]) {
-        return(false);   
+        return (false);
     }
-    return(true);
+    return (true);
 }
 
 class REPLWindow {
@@ -174,7 +175,7 @@ class REPLWindow {
         })
         try {
             this.postMessage({ type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns });
-            if(this.evaluation.ns && this.ns != this.evaluation.ns) {
+            if (this.evaluation.ns && this.ns != this.evaluation.ns) {
                 // the evaluation changed the namespace so set the new namespace.
                 this.setNamespace(this.evaluation.ns);
             }
@@ -198,17 +199,25 @@ class REPLWindow {
 let ctx: vscode.ExtensionContext
 
 let replWindows: { [id: string]: REPLWindow } = {};
-let replViewColum: { [id: string]: vscode.ViewColumn } = {"clj": vscode.ViewColumn.Two, 
-                                                          "cljs": vscode.ViewColumn.Two};
+let replViewColum: { [id: string]: vscode.ViewColumn } = {
+    "clj": vscode.ViewColumn.Two,
+    "cljs": vscode.ViewColumn.Two
+};
+
+export function getReplWindow(mode: "clj" | "cljs") {
+    return replWindows[mode];
+}
 
 function getImageUrl(name: string) {
     let imagepath = "";
-    if (!name)
-         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
-    else
-         imagepath = path.join(ctx.extensionPath, "assets/images/", name);
+    if (!name) {
+        imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
+    }
+    else {
+        imagepath = path.join(ctx.extensionPath, "assets/images/", name);
+    }
 
-    if(!fs.existsSync(imagepath)) {
+    if (!fs.existsSync(imagepath)) {
         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
     }
     return vscode.Uri.file(imagepath).with({ scheme: 'vscode-resource' }).toString()
@@ -223,7 +232,7 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
 
 export async function openClojureReplWindows() {
     if (state.deref().get('connected')) {
-        if(util.getSession("clj")) {
+        if (util.getSession("clj")) {
             openReplWindow("clj", true);
             return;
         }
@@ -233,7 +242,7 @@ export async function openClojureReplWindows() {
 
 export async function openClojureScriptReplWindows() {
     if (state.deref().get('connected')) {
-        if(util.getSession("cljs")) {
+        if (util.getSession("cljs")) {
             openReplWindow("cljs", true);
             return;
         }
@@ -247,7 +256,7 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
 
     if (!replWindows[mode]) {
         await createReplWindow(session, mode);
-    } else  if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
+    } else if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
         replWindows[mode].session = await session.clone();
     }
 
@@ -295,19 +304,30 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export async function sendTextToREPLWindow(text, ns: string, pprint: boolean) {
-    let wnd = await openReplWindow(util.getREPLSessionType(), true);
+export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
+    const chan = state.outputChannel(),
+        wnd = await openReplWindow(sessionType, true);
     if (wnd) {
-        let oldNs = wnd.ns;
-        if (ns && ns != oldNs)
-            await wnd.session.eval("(in-ns '" + ns + ")").value;
-        try {
-            wnd.evaluate(ns || oldNs, text);
-            await wnd.replEval(text, oldNs, pprint);
-        } finally {
-            if (ns && ns != oldNs) {
-                await wnd.session.eval("(in-ns '" + oldNs + ")").value;
+        const inNs = ns ? ns : wnd.ns;
+        if (ns && ns !== wnd.ns) {
+            try {
+                const requireEvaluation = wnd.session.eval(`(require '${ns})`)
+                await requireEvaluation.value;
+                const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
+                await inNSEvaluation.value;
+                if (inNSEvaluation) {
+                    wnd.setNamespace(inNSEvaluation.ns);
+                }
+            } catch (e) {
+                vscode.window.showErrorMessage(`Error loading namespcace "${ns}" for command snippet: ${e}`, ...["OK"]);
+                return;
             }
+        }
+        try {
+            wnd.evaluate(inNs, text);
+            await wnd.replEval(text, inNs, pprint);
+        } catch (e) {
+            vscode.window.showErrorMessage("Error running command snippet: " + e, ...["OK"]);
         }
     }
 }
@@ -341,7 +361,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(code, util.getNamespace(doc), pprint)
+        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint)
     }
 }
 
@@ -353,6 +373,50 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true, state.config().pprint);
 }
 
+export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
+
+function sendCustomCommandSnippetToREPLCommand() {
+    let pickCounter = 1,
+        configErrors: {"name": string, "keys": string[]}[] = [];
+    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
+        snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
+            const undefs = ["name", "snippet", "repl"].filter(k => {
+                return !c[k];
+            })
+            if (undefs.length > 0) {
+                configErrors.push({"name": c.name, "keys": undefs});
+            }
+            return `${pickCounter++}: ${c.name} (${c.repl})`;
+        }),
+        snippetsDict = {};
+        pickCounter = 1;
+
+    if (configErrors.length > 0) {
+        vscode.window.showErrorMessage("Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: " + JSON.stringify(configErrors), "OK");
+        return;
+    }
+    snippets.forEach((c: customREPLCommandSnippet) => {
+        snippetsDict[`${pickCounter++}: ${c.name} (${c.repl})`] = c;
+    });
+
+    if (snippets && snippets.length > 0) {
+        util.quickPickSingle({
+            values: snippetPicks,
+            placeHolder: "Choose a command to run at the REPL",
+            saveAs: "runCustomREPLCommand"
+        }).then(async (pick) => {
+            if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
+                const command = snippetsDict[pick].snippet,
+                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
+                    repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
+                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false);
+            }
+        });
+    } else {
+        vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCljReplWindow', openClojureReplWindows));
@@ -361,6 +425,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.setREPLNamespace', setREPLNamespaceCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
 }
 
 export function clearHistory() {

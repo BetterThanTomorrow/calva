@@ -53,7 +53,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
 
         if (connectSequence.afterCLJReplJackInCode) {
             state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");
-            await sendTextToREPLWindow(connectSequence.afterCLJReplJackInCode, null, false);
+            await sendTextToREPLWindow("clj", connectSequence.afterCLJReplJackInCode, null, false);
         }
 
         //cljsSession = nClient.session;
