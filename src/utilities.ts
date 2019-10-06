@@ -264,21 +264,16 @@ function getLaunchingState() {
     return state.deref().get('launching');
 }
 
-function setLaunchingState(value) {
-    if(value) {
-        vscode.commands.executeCommand("setContext", "calva:launching", true);
-        state.cursor.set('launching', value);
-    } else {
-        vscode.commands.executeCommand("setContext", "calva:launching", false);
-        state.cursor.set('launching', value);
-    }
+function setLaunchingState(value: any) {
+    vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
+    state.cursor.set('launching', value);
 }
 
 function getConnectedState() { 
     return state.deref().get('connected');
 }
 
-function setConnectedState(value) {
+function setConnectedState(value: Boolean) {
     if(value) {
         vscode.commands.executeCommand("setContext", "calva:connected", true);
         state.cursor.set('connected', true);
@@ -292,7 +287,7 @@ function getConnectingState() {
     return state.deref().get('connecting');
 }
 
-function setConnectingState(value) {
+function setConnectingState(value: Boolean) {
     if(value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
         state.cursor.set('connecting', true);
