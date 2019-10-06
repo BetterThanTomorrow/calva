@@ -53,7 +53,8 @@
         "onCommand:calva.connect",
         "onCommand:calva.connectNonProjectREPL",
         "workspaceContains:**/project.clj",
-        "workspaceContains:**/shadow-cljs.edn"
+        "workspaceContains:**/shadow-cljs.edn",
+        "workspaceContains:**/deps.edn"
     ],
     "main": "./out/extension",
     "contributes": {
