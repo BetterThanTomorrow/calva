@@ -190,24 +190,19 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-async function loadFileIfNamespaceNotExist(doc) {
+async function CreateNamespaceFromDocumentIfNotExists(doc) {
 
     if (getConnectedState()) {
         let document = getDocument(doc);
         if (document) {
             let ns = getNamespace(document);
-            let name = getFileName(document);
-            let dir = "";
-            if(document.hasOwnProperty('fileName')) {
-                dir = path.dirname(document.fileName); 
-            }
             let client = getSession(getFileType(document));
             if (client) {
                 let nsList = await client.listNamespaces([]);
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
                     return;
                 }
-                await client.loadFile(document.getText(), name, dir);
+                await client.eval("(ns " + ns + ")").value;
             }
         }
     }
@@ -428,7 +423,7 @@ export {
     getNamespace,
     getStartExpression,
     getWordAtPosition,
-    loadFileIfNamespaceNotExist,
+    CreateNamespaceFromDocumentIfNotExists,
     getDocument,
     getDocumentNamespace,
     getFileType,

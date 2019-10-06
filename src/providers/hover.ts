@@ -40,21 +40,18 @@ export default class HoverProvider implements vscode.HoverProvider {
             let ns = util.getNamespace(document);
             let client = util.getSession(util.getFileType(document));
             if(client) {
-                await util.loadFileIfNamespaceNotExist(document);
+                await util.CreateNamespaceFromDocumentIfNotExists(document);
                 let res = await client.info(ns, text);
-                // I really don't not why result.arglists-str does 
-                // not work, but it leads to an compiler error.
                 if (res.ns && res.doc) {
                     return new vscode.Hover(this.formatDocString(res.ns + "/" + res.name, res["arglists-str"] || [], res.doc))
                 }
                 if (res.ns) {
                     return new vscode.Hover(this.formatDocString(res.ns + "/" + res.name, res["arglists-str"] || [], "No documentation available"));
-                } else {
-                    return new vscode.Hover(this.formatDocString(text, "", "No information available"));
                 }
             }
             return new vscode.Hover(this.formatDocString(text, "", "No information available"));
-        } else
+        } else {
             return new vscode.Hover("Please connect to a REPL to retrieve information.");
+        }
     }
 };

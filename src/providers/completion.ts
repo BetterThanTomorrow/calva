@@ -65,14 +65,12 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         if (util.getConnectedState()) {
             let client = util.getSession(util.getFileType(window.activeTextEditor.document));
             if (client) {
-                await util.loadFileIfNamespaceNotExist(window.activeTextEditor.document);
+                await util.CreateNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
                 let result = await client.info(item.insertText["ns"], item.label)
                 if (result.doc) {
                     item.documentation = this.formatDocString(result.doc);
                 }
                 if (result['arglists-str']) {
-                    // I really don't not why result.arglists-str does 
-                    // not work, but it leads to an compiler error.
                     item.detail = result['arglists-str'];
                 }
             }
