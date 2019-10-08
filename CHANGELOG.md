@@ -3,6 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.45] - 08.10.2019
+- [Connect warnings and errors as popups](https://github.com/BetterThanTomorrow/calva/issues/356)
+- [Don't remove default indents when Calva is not the auto-formatter](https://github.com/BetterThanTomorrow/calva/pull/383)
+
 ## [2.0.44] - 05.10.2019
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
