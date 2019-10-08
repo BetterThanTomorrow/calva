@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 function readConfiguration() {
     let workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
     return {
-        "format-as-you-type": workspaceConfig.get("formatAsYouType"),
+        "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
         "indentation?": workspaceConfig.get("indentation"),
         "remove-surrounding-whitespace?": workspaceConfig.get("removeSurroundingWhitespace"),
         "remove-trailing-whitespace?": workspaceConfig.get("removeTrailingWhitespace"),
