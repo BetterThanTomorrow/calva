@@ -134,16 +134,15 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * Also stores the WorkSpace folder for the project to be used
  * when executing the Task and get proper vscode reporting.
  * 
- * 1. If there is no file open. Stop and complain.
+ * 1. If there is no file open in single-rooted workspaced use 
+ *    the workspace folder as a starting point. In multi-rooted
+ *    workspaces stop and complain.
  * 2. If there is a file open, use it to determine the project root
  *    by looking for project files from the file's directory and up to
  *    the window root (for plain folder windows) or the file's
  *    workspace folder root (for workspaces) to find the project root.
  *
- * If there is no project file found, then store either of these
- * 1. the window root for plain folders
- * 2. first workspace root for workspaces.
- * (This situation will be detected later by the connect process.)
+ * If there is no project file found, throw an exception.
  */
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
