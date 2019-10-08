@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Warnings/Errors should be made more "prominent" in the "Calva says" channel](https://github.com/BetterThanTomorrow/calva/issues/356)
+- [Don't remove default indents when Calva is not the auto-formatter](https://github.com/BetterThanTomorrow/calva/pull/383)
 
 ## [2.0.44] - 05.10.2019
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
