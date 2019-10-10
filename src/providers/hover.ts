@@ -40,7 +40,7 @@ export default class HoverProvider implements vscode.HoverProvider {
             let ns = util.getNamespace(document);
             let client = util.getSession(util.getFileType(document));
             if(client) {
-                await util.CreateNamespaceFromDocumentIfNotExists(document);
+                await util.createNamespaceFromDocumentIfNotExists(document);
                 let res = await client.info(ns, text);
                 if (res.ns && res.doc) {
                     return new vscode.Hover(this.formatDocString(res.ns + "/" + res.name, res["arglists-str"] || [], res.doc))

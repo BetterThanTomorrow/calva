@@ -190,7 +190,7 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-async function CreateNamespaceFromDocumentIfNotExists(doc) {
+async function createNamespaceFromDocumentIfNotExists(doc) {
 
     if (getConnectedState()) {
         let document = getDocument(doc);
@@ -423,7 +423,7 @@ export {
     getNamespace,
     getStartExpression,
     getWordAtPosition,
-    CreateNamespaceFromDocumentIfNotExists,
+    createNamespaceFromDocumentIfNotExists,
     getDocument,
     getDocumentNamespace,
     getFileType,
