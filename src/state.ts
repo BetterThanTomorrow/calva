@@ -16,10 +16,14 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
     }
 }
 
-const mode = {
-    language: 'clojure',
-    //scheme: 'file'
-};
+// include the 'file' and 'untitled' to the 
+// document selector. All other schemes are 
+// not known and therefore not supported.
+const documentSelector = [
+    { scheme: 'file', language: 'clojure' },
+    { scheme: 'untitled', language: 'clojure' }
+];
+
 var data;
 const initialData = {
     hostname: null,
@@ -130,29 +134,43 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * Also stores the WorkSpace folder for the project to be used
  * when executing the Task and get proper vscode reporting.
  * 
- * 1. If there is no file open. Stop and complain.
+ * 1. If there is no file open in single-rooted workspaced use 
+ *    the workspace folder as a starting point. In multi-rooted
+ *    workspaces stop and complain.
  * 2. If there is a file open, use it to determine the project root
  *    by looking for project files from the file's directory and up to
  *    the window root (for plain folder windows) or the file's
  *    workspace folder root (for workspaces) to find the project root.
  *
- * If there is no project file found, then store either of these
- * 1. the window root for plain folders
- * 2. first workspace root for workspaces.
- * (This situation will be detected later by the connect process.)
+ * If there is no project file found, throw an exception.
  */
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-        doc = util.getDocument({}),
-        workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
+          workspace = vscode.workspace.workspaceFolders![0],
+          doc = util.getDocument({});
+          
+    // first try the workplace folder 
+    let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Aborting. Please open a file in your Clojure project and try again.");
+        if(vscode.workspace.workspaceFolders.length == 1) {
+           // this is only save in a one directory workspace 
+           // (aks "Open Folder") environment. 
+           workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+        }
+    }
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage("There is no document opened in the workspace. Please open a file in your Clojure project and try again. Aborting.");
         analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There is no document opened in the workspace. Aborting.";
     } else {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        let d = path.dirname(doc.uri.fsPath);
+        let d = null;
         let prev = null;
+        if(doc) {
+            d = path.dirname(doc.uri.fsPath);
+        } else {
+            d = workspaceFolder.uri.fsPath;
+        }
         while (d != prev) {
             for (let projectFile in projectFileNames) {
                 const p = path.resolve(d, projectFileNames[projectFile]);
@@ -167,13 +185,25 @@ export async function initProjectDir(): Promise<void> {
             prev = d;
             d = path.resolve(d, "..");
         }
-        cursor.set(PROJECT_DIR_KEY, rootPath);
+
+        // at least be sure the the root folder contains a 
+        // supported project. 
+        for (let projectFile in projectFileNames) {
+            const p = path.resolve(rootPath, projectFileNames[projectFile]);
+            if (fs.existsSync(p)) {
+                cursor.set(PROJECT_DIR_KEY, rootPath);
+                return; 
+            }
+        }
+        vscode.window.showErrorMessage("There was no valid project configuration found in the workspace. Please open a file in your Clojure project and try again. Aborting.");
+        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
+        throw "There was no valid project configuration found in the workspace. Aborting.";
     }
 }
 
 export {
     cursor,
-    mode,
+    documentSelector,
     deref,
     reset,
     config,
