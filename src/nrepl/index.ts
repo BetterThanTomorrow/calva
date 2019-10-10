@@ -1,7 +1,7 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
-import * as state from '../state';
-import * as replWindow from '../repl-window';
+import * as state from './../state';
+import * as replWindow from './../repl-window';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -291,8 +291,8 @@ export class NReplSession {
     }
 
     loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
+        
         let id = this.client.nextId;
-
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 if (msg.value)
