@@ -212,10 +212,9 @@ export function activate(context: vscode.ExtensionContext) {
           if (!ignore_pushed_by_closing) {
             ignore_counter--;
             ignores.push(new Range(ignore_start, activeEditor.document.positionAt(match.index)));
-          } else {
-            ignore_pushed_by_closing = false;
           }
         }
+        ignore_pushed_by_closing = false;
         continue;
       } else {
         if (!in_comment_form && char === "comment" && stack[stack.length - 1].char === "(") {
