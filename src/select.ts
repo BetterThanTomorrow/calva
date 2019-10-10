@@ -22,22 +22,24 @@ function _adjustRangeIgnoringComment(doc, range) {
             postTextLength = postMatch[0].length;
         }
         start += preTextLength;
-        end -= postTextLength - 1;
+        end -= postTextLength;
         return new vscode.Range(doc.positionAt(start), doc.positionAt(end));
     } else {
         return range;
     }
 }
 
-function _getFormSelection(doc, pos, topLevel, ignoreComment = true): vscode.Selection {
+function _getFormSelection(doc, pos: vscode.Position, topLevel): vscode.Selection {
     let allText = doc.getText(),
         ast = paredit.parse(allText),
         idx = doc.offsetAt(pos),
         peRange = topLevel ? paredit.navigator.rangeForDefun(ast, idx) : paredit.navigator.sexpRange(ast, idx);
     if (peRange) {
         let range = new vscode.Selection(doc.positionAt(peRange[0]), doc.positionAt(peRange[1]));
-        if (ignoreComment) {
+        let rangeText = doc.getText(range);
+        if (pos.isAfter(range.start) && pos.isBefore(range.end)) {
             range = _adjustRangeIgnoringComment(doc, range);
+            rangeText = doc.getText(range);
             if (topLevel) {
                 const idxOffset = doc.offsetAt(range.start);
                 ast = paredit.parse(doc.getText(range));
@@ -59,7 +61,7 @@ function _selectCurrentForm(document = {}) {
         selection = editor.selection;
 
     if (selection.isEmpty) {
-        let codeSelection = _getFormSelection(doc, selection.active, false, false);
+        let codeSelection = _getFormSelection(doc, selection.active, false);
         if (codeSelection) {
             editor.selection = codeSelection;
         }
