@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix dimming out of stacked ignored forms](https://github.com/BetterThanTomorrow/calva/issues/385)
 
 ## [2.0.45] - 08.10.2019
 - [Connect warnings and errors as popups](https://github.com/BetterThanTomorrow/calva/issues/356)
