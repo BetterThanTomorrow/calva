@@ -2,7 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
--[calva.evalCurrentTopLevelFormInREPLWindow fails in specific condition](https://github.com/BetterThanTomorrow/calva/issues/374)
+- [calva.evalCurrentTopLevelFormInREPLWindow fails in specific condition](https://github.com/BetterThanTomorrow/calva/issues/374)
 
 ## [2.0.47] - 10.10.2019
 - [Fix dimming out of stacked ignored forms](https://github.com/BetterThanTomorrow/calva/issues/385)
