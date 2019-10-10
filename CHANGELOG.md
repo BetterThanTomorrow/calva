@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+- [Fix dimming out of stacked ignored forms](https://github.com/BetterThanTomorrow/calva/issues/385)
 - [The extension should specify the default schemes for document selectors](https://github.com/BetterThanTomorrow/calva/issues/368)
 - [Make code more robust in case Jack-in task fails](https://github.com/BetterThanTomorrow/calva/issues/367)
 - [Support Jack-in without file open for single-rooted workspace](https://github.com/BetterThanTomorrow/calva/issues/366)
