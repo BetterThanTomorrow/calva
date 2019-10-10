@@ -36,10 +36,8 @@ function _getFormSelection(doc, pos: vscode.Position, topLevel): vscode.Selectio
         peRange = topLevel ? paredit.navigator.rangeForDefun(ast, idx) : paredit.navigator.sexpRange(ast, idx);
     if (peRange) {
         let range = new vscode.Selection(doc.positionAt(peRange[0]), doc.positionAt(peRange[1]));
-        let rangeText = doc.getText(range);
         if (pos.isAfter(range.start) && pos.isBefore(range.end)) {
             range = _adjustRangeIgnoringComment(doc, range);
-            rangeText = doc.getText(range);
             if (topLevel) {
                 const idxOffset = doc.offsetAt(range.start);
                 ast = paredit.parse(doc.getText(range));
