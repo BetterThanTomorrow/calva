@@ -11,8 +11,10 @@ function _adjustRangeIgnoringComment(doc, range) {
             preTextLength = 0,
             end = doc.offsetAt(range.end),
             postTextLength = 0,
+            // find the beginning '(comment...`in the text.
             preMatch = text.match(/^\(\s*comment\s+/m),
-            postMatch = text.match(/\s*\)\s*$/m);
+            // find only the last ')' in the text.
+            postMatch = text.match(/(\))(?!.*\))/m);
         if (preMatch) {
             preTextLength = preMatch[0].length;
         }
