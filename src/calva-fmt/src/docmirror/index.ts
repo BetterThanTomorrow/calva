@@ -7,9 +7,9 @@ let documents = new Map<vscode.TextDocument, model.LineInputModel>();
 
 let registered = false;
 
-function processChanges(document: vscode.TextDocument, contentChanges: vscode.TextDocumentContentChangeEvent[]) {
-    let model = documents.get(document)
-    for(let change of contentChanges) {
+function processChanges(event: vscode.TextDocumentChangeEvent) {
+    let model = documents.get(event.document)
+    for(let change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         let myStartOffset = model.getOffsetForLine(change.range.start.line)+change.range.start.character
         let myEndOffset = model.getOffsetForLine(change.range.end.line)+change.range.end.character
@@ -21,16 +21,6 @@ function processChanges(document: vscode.TextDocument, contentChanges: vscode.Te
     model.dirtyLines = []
     model.insertedLines.clear()
     model.deletedLines.clear();
-
-    //    this is an important diagnostic check to ensure the models haven't de-synced, but it MUST be removed before release.
-    // let mtext = model.getText(0, model.maxOffset)
-    // let dtext = document.getText().replace(/\r\n/g,"\n");
-    // if(mtext != dtext) {
-    //     vscode.window.showErrorMessage("document hozed")
-    //     console.error(mtext)
-    //     console.error("vs")
-    //     console.error(dtext)
-    // }
 }
 
 export function getDocument(doc: vscode.TextDocument) {
@@ -82,7 +72,7 @@ export function activate() {
 
     vscode.workspace.onDidChangeTextDocument(e => {
         if (addDocument(e.document)) {
-            processChanges(e.document, e.contentChanges)
+            processChanges(e);
         }
     });
 }
