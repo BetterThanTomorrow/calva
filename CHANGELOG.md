@@ -3,7 +3,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Remove warning that extensions use the `vscode-resource:` scheme directly](https://github.com/BetterThanTomorrow/calva/issues/391)
-- [calva.evalCurrentTopLevelFormInREPLWindow fails in specific condition](https://github.com/BetterThanTomorrow/calva/issues/374)
+- [Use of undeclared var in REPL window resets the namespace](https://github.com/BetterThanTomorrow/calva/issues/257)
+- [Fix bugs in comment form selection](https://github.com/BetterThanTomorrow/calva/issues/374)
 
 ## [2.0.47] - 10.10.2019
 - [Support Jack-in without file open for single-rooted workspace](https://github.com/BetterThanTomorrow/calva/issues/366)
