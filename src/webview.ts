@@ -50,21 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 
-const motd = [
-    "Some said the world should be in Perl, \nSome said in Lisp.\nNow, having given both a whirl,\nI held with those who favored Perl.\nBut I fear we passed to men\nA disappointing founding myth.\nAnd should we write it all again,\nI'd end it with\nA close-paren. -Randall Munroe",
-    "I object to doing things that computers can do. -Olin Shivers",
-    "Will write code that writes code that writes code that writes code for money.",
-    "Anyone could learn Lisp in one day, except that if they already knew Fortran, it would take three days. -Marvin Minsky",
-    "Your Kitten of Death awaits. -Christopher Rhodes.",
-    "Syntactic sugar causes cancer of the semicolon. -Alan Perlis",
-    "If you have a procedure with ten parameters, you probably missed some. -Alan Perlis",
-    "Beware of the Turing tar-pit in which everything is possible but nothing of interest is easy. -Alan Perlis",
-    "If you give someone Fortran, he has Fortran. If you give someone Lisp, he has any language he pleases. -Guy L. Steele Jr",
-    "If you have more things than names, your design is broken- Stuart Halloway",
-    "Made with secret alien technology."
-]
-
-
 function makeTd(className: string, text: string) {
     let td = document.createElement("td");
     td.className = className;
@@ -321,40 +306,42 @@ function updateCompletion(msg: any) {
     completions = [];
     selectedCompletion = 0;
 
-    msg.data.data.completions.sort((x, y) => {
-        if (x.candidate < y.candidate)
-            return -1;
-        if (x.candidate > y.candidate)
-            return 1;
-        return 0;
-    })
+    if (msg.data.data.completions) {
+        msg.data.data.completions.sort((x, y) => {
+            if (x.candidate < y.candidate)
+                return -1;
+            if (x.candidate > y.candidate)
+                return 1;
+            return 0;
+        })
 
-    for (let completion of msg.data.data.completions) {
-        let comp = document.createElement("div");
-        completions.push(completion.candidate);
-        let icon = document.createElement("span");
-        icon.className = "icon ic-" + completion.type; // nice to actually have icons but this is better than nothing.
-        comp.appendChild(icon);
-        comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
-        comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
-
-        completionDiv.appendChild(comp);
-    }
-
-    if (msg.data.data.completions.length) {
-        let box = con.readline.getCaretOnScreen();
-        if (box.x + completionDiv.offsetWidth > window.innerWidth) {
-            completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
-        } else {
-            completionDiv.style.left = box.x + "px";
+        for (let completion of msg.data.data.completions) {
+            let comp = document.createElement("div");
+            completions.push(completion.candidate);
+            let icon = document.createElement("span");
+            icon.className = "icon ic-" + completion.type; // nice to actually have icons but this is better than nothing.
+            comp.appendChild(icon);
+            comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
+            comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
+    
+            completionDiv.appendChild(comp);
         }
-        completionDiv.style.top = box.y - completionDiv.offsetHeight + "px";
-        completionDiv.style.visibility = "visible"
-        completionDiv.firstElementChild.classList.add("active");
-        message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
-    } else {
-        completionDiv.style.visibility = "hidden"
-        docDiv.style.visibility = "hidden"
+    
+        if (msg.data.data.completions.length) {
+            let box = con.readline.getCaretOnScreen();
+            if (box.x + completionDiv.offsetWidth > window.innerWidth) {
+                completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
+            } else {
+                completionDiv.style.left = box.x + "px";
+            }
+            completionDiv.style.top = box.y - completionDiv.offsetHeight + "px";
+            completionDiv.style.visibility = "visible"
+            completionDiv.firstElementChild.classList.add("active");
+            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
+        } else {
+            completionDiv.style.visibility = "hidden"
+            docDiv.style.visibility = "hidden"
+        }
     }
 }
 /**
@@ -437,6 +424,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "set-ns!") {
+        ns = msg.data.ns;
         con.readline.promptElem.textContent = msg.data.ns + "=> ";
     }
 
@@ -496,4 +484,3 @@ window.onmessage = (msg) => {
     }
 }
 message.postMessage({ type: "init" });
-// document.querySelector("#motd").textContent = motd[Math.floor(Math.random() * motd.length)];
