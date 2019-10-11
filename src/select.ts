@@ -5,25 +5,12 @@ const paredit = require('paredit.js');
 
 function _adjustRangeIgnoringComment(doc, range) {
     let text = doc.getText(range);
-
     if (text.match(/^\(\s*comment\s+/m)) {
-        let start = doc.offsetAt(range.start),
-            preTextLength = 0,
-            end = doc.offsetAt(range.end),
-            postTextLength = 0,
-            // find the beginning '(comment...`in the text.
-            preMatch = text.match(/^\(\s*comment\s+/m),
-            // find the last ')' in the text.
-            postMatch = text.match(/(\))(?!.*\))/m);
-        if (preMatch) {
-            preTextLength = preMatch[0].length;
-        }
-        if (postMatch) {
-            postTextLength = postMatch[0].length;
-        }
-        start += preTextLength;
-        end -= postTextLength;
-        return new vscode.Range(doc.positionAt(start), doc.positionAt(end));
+        // Create a new top level context by removing the first and last characters of the range.
+        // These will always be the opening and the closing parens of the `(comment ...)` form.
+        const start = doc.offsetAt(range.start),
+            end = doc.offsetAt(range.end);
+        return new vscode.Range(doc.positionAt(start + 1), doc.positionAt(end - 1));
     } else {
         return range;
     }
