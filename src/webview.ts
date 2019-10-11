@@ -321,40 +321,42 @@ function updateCompletion(msg: any) {
     completions = [];
     selectedCompletion = 0;
 
-    msg.data.data.completions.sort((x, y) => {
-        if (x.candidate < y.candidate)
-            return -1;
-        if (x.candidate > y.candidate)
-            return 1;
-        return 0;
-    })
+    if (msg.data.data.completions) {
+        msg.data.data.completions.sort((x, y) => {
+            if (x.candidate < y.candidate)
+                return -1;
+            if (x.candidate > y.candidate)
+                return 1;
+            return 0;
+        })
 
-    for (let completion of msg.data.data.completions) {
-        let comp = document.createElement("div");
-        completions.push(completion.candidate);
-        let icon = document.createElement("span");
-        icon.className = "icon ic-" + completion.type; // nice to actually have icons but this is better than nothing.
-        comp.appendChild(icon);
-        comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
-        comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
-
-        completionDiv.appendChild(comp);
-    }
-
-    if (msg.data.data.completions.length) {
-        let box = con.readline.getCaretOnScreen();
-        if (box.x + completionDiv.offsetWidth > window.innerWidth) {
-            completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
-        } else {
-            completionDiv.style.left = box.x + "px";
+        for (let completion of msg.data.data.completions) {
+            let comp = document.createElement("div");
+            completions.push(completion.candidate);
+            let icon = document.createElement("span");
+            icon.className = "icon ic-" + completion.type; // nice to actually have icons but this is better than nothing.
+            comp.appendChild(icon);
+            comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
+            comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
+    
+            completionDiv.appendChild(comp);
         }
-        completionDiv.style.top = box.y - completionDiv.offsetHeight + "px";
-        completionDiv.style.visibility = "visible"
-        completionDiv.firstElementChild.classList.add("active");
-        message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
-    } else {
-        completionDiv.style.visibility = "hidden"
-        docDiv.style.visibility = "hidden"
+    
+        if (msg.data.data.completions.length) {
+            let box = con.readline.getCaretOnScreen();
+            if (box.x + completionDiv.offsetWidth > window.innerWidth) {
+                completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
+            } else {
+                completionDiv.style.left = box.x + "px";
+            }
+            completionDiv.style.top = box.y - completionDiv.offsetHeight + "px";
+            completionDiv.style.visibility = "visible"
+            completionDiv.firstElementChild.classList.add("active");
+            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
+        } else {
+            completionDiv.style.visibility = "hidden"
+            docDiv.style.visibility = "hidden"
+        }
     }
 }
 /**
@@ -437,6 +439,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "set-ns!") {
+        ns = msg.data.ns;
         con.readline.promptElem.textContent = msg.data.ns + "=> ";
     }
 
