@@ -1391,8 +1391,7 @@
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
-        "bump-version": "npm set git-tag-version false && npm version patch",
-        "postinstall": "node ./node_modules/vscode/bin/install"
+        "bump-version": "npm set git-tag-version false && npm version patch"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
