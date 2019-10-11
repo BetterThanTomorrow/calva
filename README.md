@@ -6,10 +6,6 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
-Latest build on `master`:
-
-[![CircleCI](https://circleci.com/gh/BetterThanTomorrow/calva.svg?style=svg)](https://circleci.com/gh/BetterThanTomorrow/calva)
-
 ## Raison d´être
 
 Calva's main reason for existance is to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
