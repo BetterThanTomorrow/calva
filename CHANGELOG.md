@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Remove warning that extensions use the `vscode-resource:` scheme directly](https://github.com/BetterThanTomorrow/calva/issues/391)
 - [calva.evalCurrentTopLevelFormInREPLWindow fails in specific condition](https://github.com/BetterThanTomorrow/calva/issues/374)
 
 ## [2.0.47] - 10.10.2019
