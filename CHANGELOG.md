@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Use of undeclared var in REPL window resets the namespace](https://github.com/BetterThanTomorrow/calva/issues/257)
 - [calva.evalCurrentTopLevelFormInREPLWindow fails in specific condition](https://github.com/BetterThanTomorrow/calva/issues/374)
 
 ## [2.0.47] - 10.10.2019
