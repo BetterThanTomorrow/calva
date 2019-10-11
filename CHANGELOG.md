@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Use of undeclared var in REPL window resets the namespace](https://github.com/BetterThanTomorrow/calva/issues/257)
 
 ## [2.0.47] - 10.10.2019
 - [Support Jack-in without file open for single-rooted workspace](https://github.com/BetterThanTomorrow/calva/issues/366)
