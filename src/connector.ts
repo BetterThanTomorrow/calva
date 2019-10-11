@@ -386,6 +386,15 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
             let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}` : "");
             chan.appendLine(`${failed}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`);
             state.cursor.set('cljsBuild', null);
+            vscode.window.showInformationMessage(
+                failed + "Is the build running and connected?\nOpen the Output channel \"Calva Connection Log\" for more information?",
+                { modal: true },
+                ...["Ok"]).then((value) => {
+                    if (value == 'Ok') {
+                        const outputChannel = state.connectionLogChannel();
+                        outputChannel.show();
+                    }
+                });
         }
     }
     return [null, null];
@@ -495,7 +504,11 @@ export default {
         state.cursor.set('cljc', null);
         status.update();
 
-        nClient.close();
+        if(nClient) {
+            // the connection may be ended before 
+            // the REPL client was connected.
+            nClient.close();
+        }
         callback();
     },
     toggleCLJCSession: () => {

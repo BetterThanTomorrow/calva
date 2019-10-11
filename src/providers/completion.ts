@@ -22,10 +22,20 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         };
     }
 
+    formatDocString(documentation: string) {
+        let result = '';
+        // Format the actual docstring
+        if (documentation && documentation != "") {
+            result += documentation.replace(/\s\s+/g, ' ');
+            result += '  ';
+        }
+        return result.length > 0 ? result : "";
+    }
+
     async provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext) {
         let text = util.getWordAtPosition(document, position);
 
-        if (this.state.deref().get("connected")) {
+        if (util.getConnectedState()) {
             const toplevelSelection = select.getFormSelection(document, position, true),
                 toplevel = document.getText(toplevelSelection),
                 toplevelStartOffset = document.offsetAt(toplevelSelection.start),
@@ -51,12 +61,19 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     }
 
     async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
-        let client = util.getSession(util.getFileType(window.activeTextEditor.document));
 
-        if(this.state.deref().get("connected")) {
-            let result = await client.info(item.insertText["ns"], item.label)
-            if(result.doc)
-                item.documentation = result.doc;
+        if (util.getConnectedState()) {
+            let client = util.getSession(util.getFileType(window.activeTextEditor.document));
+            if (client) {
+                await util.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
+                let result = await client.info(item.insertText["ns"], item.label)
+                if (result.doc) {
+                    item.documentation = this.formatDocString(result.doc);
+                }
+                if (result['arglists-str']) {
+                    item.detail = result['arglists-str'];
+                }
+            }
         }
         return item;
     }

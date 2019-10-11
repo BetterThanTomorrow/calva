@@ -6,31 +6,29 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
-Latest build on `master`:
-
-[![CircleCI](https://circleci.com/gh/BetterThanTomorrow/calva.svg?style=svg)](https://circleci.com/gh/BetterThanTomorrow/calva)
-
 ## Raison d´être
 
 Calva's main reason for existance is to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
 ## How to Connect Calva to your project
 
-Let Calva start your project (_a.k.a. **Jack-in**_).
+Let Calva start your project _a.k.a. **Jack-in**_. (Assuming you have a single project workspace. See [Workspace Layout](https://github.com/BetterThanTomorrow/calva/wiki/Workspace-Layouts) on the wiki for other setups)
 
-1. Open your project in VS Code, and a file in the project. From the command line it could be something like: `code path/to/myproject README.md`.
+1. Open your project folder in VS Code.
 1. Issue the command **Start a Project REPL and Connect (aka Jack-In)**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the prompts where Calva asks you a few things about your project.
 
-When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
+When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking.
 
-Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/Connect-Calva-to-Your-Project). (Please help keep that wiki page updated.)
+Troubles connecting? See [Connect Calva to Your Project](https://github.com/BetterThanTomorrow/calva/wiki/Connect-Calva-to-Your-Project) on the wiki. (Please help keep that page updated.)
 
 ## Something to try first
 
-You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate Current Form Inline** command: `ctrl+alt+c e`.
+You might want to start with evaluating some code. Calva has this notion about the ”current” form. Issue the **Evaluate Current Form Inline** command, `ctrl+alt+c e` with the cursor placed in different locations to get a feeling for how the current form is determined.
 
-There is also a command for evaluating the current top level form, which aösp works inside `(comment)` forms supporting code experimentation.  It looks something like so:
+There is also a command for evaluating the current top level form. Good for evaluating  various `def`s `defn`, `defthis`, `defthat`. With your cursor placed anywhere inside such a form, issue the **Evaluate Current Top Level Form (defun)** command (`ctrl+alt+c space`).
+
+The Top Level command also works inside `(comment ...)` forms, treating the `comment` as creating a new top level context. It is good for in-file code experimentation.  To use it place the cursor inside a form contained inside a `(comment...)` and issue the command from there. It looks something like so:
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
@@ -40,37 +38,22 @@ See also [Calva Top 10 Commands](https://github.com/BetterThanTomorrow/calva/wik
 
 When something doesn't work and you think there might be a workaround for it, please see the [wiki](https://github.com/BetterThanTomorrow/calva/wiki/). Anyone can author the wiki so if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page).
 
-
 ## Features
-
-### At a glance
 - Syntax highlighting, plus:
   - Rainbow parens
   - Highlights misplaced brackets
   - LISP friendly bracket matching
   - Ignore form (`#_`) dimming and `(comment)` form highlighting
-- Clojure code formatting
-- Quickly and easily get your REPL connected
-- Evaluate code inline
-- Run tests
-- Integrated REPL windows
+- Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
+- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
+- Your [Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences), including fully customized CLJS REPLs.
+- Switch the CLJS REPL connection between your different CLJS builds at will.
 - Intellisense
 - Go to / Peek at definition
 - View docstrings on hover
 - View function signatures on hover
-- Supports all Clojure filetypes: `clj`, `cljc`, and `cljs`
-- Easy toggle between `clj` and `cljs` repl for `cljc` files
-- Autoindent according to https://github.com/bbatsov/clojure-style-guide
-- Enables `clj` evaluation of Clojure code in all files (e.g. Markdown, etcetera).
-- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, no Jack-in yet.)
-- Your [Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences), including fully customized CLJS REPLs.
-- Switch the CLJS REPL connection between your different CLJS builds at will.
 
-Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
-
-![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
-
-### More in depth (and some usage info)
+### More features (and some usage info)
 - Running tests through the REPL connection, and mark them in the Problems tab
   - Run namespace tests: `ctrl+alt+c t`
   - Run all tests: `ctrl+alt+c shift+t`
@@ -103,6 +86,10 @@ Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
+Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
+
+![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
+
 ### Test features not available with ClojureScript
 
 Currently [`cider-nrepl` does not provide its test functionality for ClojureScript](https://github.com/clojure-emacs/cider-nrepl/issues/555) code. Please consider contributing to fixing that.
@@ -112,6 +99,10 @@ Currently [`cider-nrepl` does not provide its test functionality for ClojureScri
 With Calva you also get structural editing using [Paredit](/src/paredit/README.md) and [formatting](/src/calva-fmt/README.md).
 
 You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format Current Form** command to `tab`. Good to know, right?
+
+### Using with Parinfer
+
+Calva defaults to formatting as you type. If you use Parinfer this creates a conflict, since it auto-indents your code. If you want to use Parinfer you'll have to tell Calva not to do auto-formatting by disabling `calva.fmt.formatAsYouType`.
 
 ### Slurp and Barf keyboard shortcuts
 
