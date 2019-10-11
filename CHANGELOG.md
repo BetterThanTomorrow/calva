@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [calva.evalCurrentTopLevelFormInREPLWindow fails in specific condition](https://github.com/BetterThanTomorrow/calva/issues/374)
 
 ## [2.0.47] - 10.10.2019
 - [Support Jack-in without file open for single-rooted workspace](https://github.com/BetterThanTomorrow/calva/issues/366)
