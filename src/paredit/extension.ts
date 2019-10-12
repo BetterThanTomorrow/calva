@@ -1,10 +1,7 @@
 'use strict';
-import * as vscode from "vscode";
-import { StatusBar } from './status_bar';
 import * as utils from './utils';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
-import * as state from "../state";
 
 let paredit = require('paredit.js');
 
@@ -57,7 +54,7 @@ function indent({ textEditor, selection }) {
 
     utils
         .edit(textEditor, utils.commands(res))
-        .then((applied?) => utils.undoStop(textEditor));
+        .then((applied?) => utils.undoStop(textEditor)).catch(() => {});
 }
 
 const wrapAround = (ast, src, start, { opening, closing }) => paredit.editor.wrapAround(ast, src, start, opening, closing);
@@ -85,7 +82,7 @@ const edit = (fn, opts = {}) =>
                                 selection: sel
                             });
                         }
-                    });
+                    }).catch(() => {});
             }
             else
                 utils.select(textEditor, res.newIndex);
@@ -247,13 +244,8 @@ const toConsoleCommand = {
 */
 export function activate(context: ExtensionContext) {
 
-    let statusBar = new StatusBar();
-
     context.subscriptions.push(
-
-        statusBar,
-        commands.registerCommand('paredit.toggle', () => { enabled = !enabled; statusBar.enabled = enabled; }),
-        window.onDidChangeActiveTextEditor((e) => statusBar.visible = e && e.document && languages.has(e.document.languageId)),
+        window.onDidChangeActiveTextEditor((e) => e.document && languages.has(e.document.languageId)),
         workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
             if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
                 setKeyMapConf();
