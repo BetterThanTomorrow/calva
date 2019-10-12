@@ -2,8 +2,12 @@
 import * as utils from './utils';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
+import { Event, EventEmitter } from 'vscode';
 
 let paredit = require('paredit.js');
+
+
+let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
 const languages = new Set(["clojure", "lisp", "scheme"]);
 let enabled = true,
@@ -164,9 +168,15 @@ function wrapPareditCommand(command: string, fn) {
     }
 }
 
+export function getKeyMapConf() :String {
+    let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+    return(String(keyMap));
+}
+
 function setKeyMapConf() {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
+    onPareditKeyMapChangedEmitter.fire(String(keyMap));
 }
 setKeyMapConf();
 
@@ -261,3 +271,5 @@ export function activate(context: ExtensionContext) {
 
 export function deactivate() {
 }
+
+export const onPareditKeyMapChanged: Event<String> = onPareditKeyMapChangedEmitter.event;
