@@ -403,6 +403,10 @@ window.onmessage = (msg) => {
         con.requestPrompt(ns + "=> ")
     }
 
+    if (msg.data.type == "paredit-keymap") {
+        console.log(msg.data.keymap);
+    }
+
     if (msg.data.type == "ui-command") {
         if (con.commands[msg.data.value])
             con.commands[msg.data.value]();
