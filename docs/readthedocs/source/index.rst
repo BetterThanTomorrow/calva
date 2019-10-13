@@ -11,11 +11,11 @@ Welcome to the Calva documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   readme
    connect
    finding-commands
    eval-tips
    commands-top10
+   paredit
    customizing
    connect-sequences
    custom-commands
