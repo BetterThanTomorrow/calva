@@ -26,10 +26,6 @@ release = '2.0.49'
 
 
 # -- General configuration ---------------------------------------------------
-python:
-  version: 3.7
-  install:
-    - requirements: docs/readthedocs/source/requirements.txt
 
 import sphinx_rtd_theme
 
