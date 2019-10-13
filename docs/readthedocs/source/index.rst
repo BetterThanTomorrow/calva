@@ -1,6 +1,9 @@
 Calva
 =====
 
+Welcome to the Calva documentation!
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -12,11 +15,15 @@ Calva
    custom-commands
 
 
+..
+    Indices and tables
+    ==================
+
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
 
 
-Indices and tables
-==================
+Happy coding! ❤️
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. image:: https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png

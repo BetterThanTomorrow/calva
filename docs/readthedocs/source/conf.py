@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Calva'
-copyright = '2019, Peter Strömberg & Others'
+copyright = '2019, Better Than Tomorrow'
 author = 'The Calva Team & Contributors'
 
 # The full version, including alpha/beta/rc tags
