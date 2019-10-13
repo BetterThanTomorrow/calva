@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Overly aggressive paredit in REPL window](https://github.com/BetterThanTomorrow/calva/issues/255)
+- [Completion in REPL window should work like in the editor](https://github.com/BetterThanTomorrow/calva/issues/394)
 
 ## [2.0.49] - 10.11.2019
 - [Fix bugs in comment form selection](https://github.com/BetterThanTomorrow/calva/issues/374)
