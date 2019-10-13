@@ -744,6 +744,13 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.toggle",
+                "title": "Toggle Keymap",
+                "when": "paredit:keyMap =~ /original|strict/",
+                "enablement": "paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.forwardSexp",
                 "title": "Forward Sexp"
             },
