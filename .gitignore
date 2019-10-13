@@ -62,4 +62,4 @@ tsconfig.tsbuildinfo
 html/main.js.map
 
 ## Read The Docs
-readthedocs/build
+docs/readthedocs/build
