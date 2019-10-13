@@ -226,7 +226,7 @@ window.addEventListener("keydown", e => {
             e.stopImmediatePropagation()
             e.preventDefault();
         }
-        if (e.keyCode == 9) { // tab
+        if (e.keyCode == 9 || e.keyCode == 13) { // tab or enter
             let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
             if (tk.withinWhitespace())
                 tk.previous();
@@ -236,7 +236,12 @@ window.addEventListener("keydown", e => {
                 con.readline.model.changeRange(start, end, completions[selectedCompletion]);
             });
             con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
+            docDiv.style.visibility = "hidden";
+            completionDiv.style.visibility = "hidden";
+            completions = [];
             con.readline.repaint();
+            e.stopImmediatePropagation();
+            e.preventDefault();
         }
     } else {
         if (e.keyCode == 0x20 && e.ctrlKey) {
@@ -404,7 +409,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "paredit-keymap") {
-        console.log(msg.data.keymap);
+        con.setPareditKeyMap(msg.data.keymap);
     }
 
     if (msg.data.type == "ui-command") {
