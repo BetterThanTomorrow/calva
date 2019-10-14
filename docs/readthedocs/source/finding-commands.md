@@ -1,6 +1,6 @@
 # Finding Calva Commands
 
-NB: There is a [complete list of Calva settings and commands](index.html#all-the-settings-and-commands) in VS Code.
+**NB:** There is a [complete list of Calva commands](index.html#all-the-settings-and-commands) in VS Code.
 
 Calva relies a lot on that VS Code makes it really easy to find commands by opening the command palette: `ctrl+shift+p` (Windows/Linux), `cmd+shift+p` (Mac), and then start typing some words (or part of words) that you think might be in the command.
 
