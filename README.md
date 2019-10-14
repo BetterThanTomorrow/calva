@@ -27,7 +27,7 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
 - View docstrings on hover
 - View function signatures on hover
 - Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
-- Your [Custom Connect Sequences](https://calva.readthedocs.io/en/stable/connect-sequences.html), including fully customized CLJS REPLs.
+- Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
 - Switch the CLJS REPL connection between your different CLJS builds at will.
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - And more
