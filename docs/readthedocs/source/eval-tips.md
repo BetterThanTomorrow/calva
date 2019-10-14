@@ -2,7 +2,7 @@
 
 Calva tries to make it easy to evaluate code, supporting interactive development.
 
-NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts](finding-commands.html)._
+NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts](finding-commands.md)._
 
 There are some different ”flavors” to the evaluation. And it depends on if you are evaluating in a file editor or a in a REPL window.
 

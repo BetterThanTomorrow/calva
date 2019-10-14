@@ -1,10 +1,10 @@
 # Customizing Calva
 
-Don't like the defaults? On this page we can collect some of the customisations that people have done, and maybe write a thing or two about it some day.
+Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.
 
 ## Calva Highlight
 
-Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras inclode rainbow parens, sane bracket matching, and comment form dimming/highlighting.
+Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.
 
 You are in charge of how brackets and comments are highlighted:
 
@@ -47,7 +47,7 @@ Please update this with the settings you find you like for your theme.
 ## Key bindings
 * These key binds replace the default Calva ”prefix”, `ctrl+alt+v` to just `alt+v`: [WebWItch's keybindings.json](https://gist.github.com/conan/aa38688d7daa50804c8a433215dc6dc9) (Please note, that `alt+v` does not work for some locales, but for when it works it is much less clunky than the default prefix).
 * Here the Calva key is switched for `ctrl+,`: [manas_marthi's keybindings](https://gist.github.com/pikeview/317f639091f57c3055681b06f0dc791a)
-* [Keybindings for Emacs users](emacs-keybindings.html)
+* [Keybindings for Emacs users](emacs-keybindings.md)
 
 Are you a vim extension user? See: [[Using with VIM extension]].
 
