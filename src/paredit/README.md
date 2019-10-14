@@ -1,10 +1,14 @@
-# Calva Paredit
+# Paredit
 
 Structural editing and navigation for Clojure.
 
-## Part of Calva
+## What is it?
 
-Calva Paredit is a part of [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), a Clojure and ClojureScript extension for bringing the REPL power into VS Code.
+Paredit is a helper to edit your Clojure code in a structural way. LISP isn't line oriented, it is oriented around sexpressions: forms enclosed in some types of brackets. We strongly recommend you use it.
+
+If you are new to Paredit, start with learning the **Slurp Forward** (pull in the next form into this sexpression) and **Barf Forward** (push the last form out of this sexpression).
+
+Also consider enabling the **strict mode** keybindings. It will help you keep the structure of the code, by ”refusing” to delete brackets that would unbalance things. When you want to delete something that strict mode hinders, use `alt+backspace`.
 
 ## Commands
 
@@ -83,16 +87,3 @@ ctrl+alt+x ctrl+down          | Cut Forward Down Sexp
 ctrl+alt+x ctrl+up            | Cut Backward Up Sexp
 ctrl+alt+x ctrl+alt+right     | Cut Close List
 
-## Maintained by Better Than Tomorrow
-
-* Peter Strömberg
-* Kevin Stehn
-* You?
-
-## Happy Coding
-
-PRs welcome, as are Issues. Or chat @pez or @kstehn up in the [`#calva-dev` channel](https://clojurians.slack.com/messages/calva-dev/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
-
-[![#calva-dev in Clojurians Slack](https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack)](https://clojurians.slack.com/messages/calva-dev/)
-
-❤️

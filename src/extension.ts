@@ -74,16 +74,16 @@ function activate(context: vscode.ExtensionContext) {
         cwConfig = vscode.workspace.getConfiguration('clojureWarrior'),
         customCljsRepl = state.config().customCljsRepl,
         replConnectSequences = state.config().replConnectSequences,
-        BUTTON_GOTO_WIKI = "Open the Wiki",
+        BUTTON_GOTO_DOC = "Open the docs",
         BUTTON_OK = "Got it",
-        WIKI_URL = "https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences";
+        DOC_URL = "https://calva.readthedocs.io/en/stable/connect-sequences.html";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
-        vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specifiy it using the new calva.customConnectSequence setting. See the Calva wiki for instructions.", ...[BUTTON_GOTO_WIKI, BUTTON_OK])
+        vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
             .then(v => {
-                if (v == BUTTON_GOTO_WIKI) {
-                    open(WIKI_URL);
+                if (v == BUTTON_GOTO_DOC) {
+                    open(DOC_URL);
                 }
             })
     }
