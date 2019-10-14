@@ -12,7 +12,7 @@ Calva's main reason for existance is to _provide Visual Studio Code users with a
 
 ## How to Connect Calva to your project
 
-Let Calva start your project _a.k.a. **Jack-in**_. (Assuming you have a single project workspace. See [Workspace Layout](https://calva.readthedocs.io/en/latest/workspace-layouts.html) for other setups)
+Let Calva start your project _a.k.a. **Jack-in**_. (Assuming you have a single project workspace. See [Workspace Layout](https://calva.readthedocs.io/en/stable/workspace-layouts.html) for other setups)
 
 1. Open your project folder in VS Code.
 1. Issue the command **Start a Project REPL and Connect (aka Jack-In)**: `ctrl+alt+c ctrl+alt+j`.
@@ -20,7 +20,7 @@ Let Calva start your project _a.k.a. **Jack-in**_. (Assuming you have a single p
 
 When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking.
 
-Troubles connecting? See [Connect Calva to Your Project](https://calva.readthedocs.io/en/latest/connect.html). (Please help keep that page updated.)
+Troubles connecting? See [Connect Calva to Your Project](https://calva.readthedocs.io/en/stable/connect.html). (Please help keep that page updated.)
 
 ## Something to try first
 
@@ -32,7 +32,7 @@ The Top Level command also works inside `(comment ...)` forms, treating the `com
 
 ![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
 
-See also [Calva Top 10 Commands](https://calva.readthedocs.io/en/latest/commands-top10.html).
+See also [Calva Top 10 Commands](https://calva.readthedocs.io/en/stable/commands-top10.html).
 
 ## There is More Documentation
 
@@ -46,7 +46,7 @@ When something doesn't work and you think there might be a workaround for it, pl
   - Ignore form (`#_`) dimming and `(comment)` form highlighting
 - Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
 - Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
-- Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
+- Your [Custom Connect Sequences](https://calva.readthedocs.io/en/stable/connect-sequences.html), including fully customized CLJS REPLs.
 - Switch the CLJS REPL connection between your different CLJS builds at will.
 - Intellisense
 - Go to / Peek at definition
@@ -64,7 +64,7 @@ When something doesn't work and you think there might be a workaround for it, pl
   - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
 - Code evaluation
   - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e` (`ctrl+alt+c v` on Windows)
-    - Dismiss the display of results by pressing `escape` (VIM Extension users should read [Using Calva with the VIM Extension](https://calva.readthedocs.io/en/latest/vim.html)).
+    - Dismiss the display of results by pressing `escape` (VIM Extension users should read [Using Calva with the VIM Extension](https://calva.readthedocs.io/en/stable/vim.html)).
   - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
   - Evaluate code and add as comment: `ctrl+alt+c c` (current form), `ctrl+alt+c ctrl space` (current _top level_ form)
   - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
