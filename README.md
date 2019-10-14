@@ -21,7 +21,7 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
   - LISP friendly bracket matching
   - Ignore form (`#_`) dimming and `(comment)` form highlighting
 - Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
-- Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit))
+- Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit.html))
 - Intellisense
 - Go to / Peek at definition
 - View docstrings on hover
