@@ -214,7 +214,7 @@ export function activate(context: ExtensionContext) {
 
     context.subscriptions.push(
         statusBar,
-        commands.registerCommand('paredit.toggle', () => { 
+        commands.registerCommand('paredit.togglemode', () => { 
             let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
             keyMap = String(keyMap).trim().toLowerCase();
             if(keyMap == 'original') {
