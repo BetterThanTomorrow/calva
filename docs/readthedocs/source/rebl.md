@@ -37,7 +37,7 @@ Check out the [REBL github page](https://github.com/cognitect-labs/REBL-distro) 
 
 2. Create a Calva custom connect sequence for your VSCode editor
 
-* Read [Custom REPL Connect Sequences](https://calva.readthedocs.io/en/stable/connect-sequences.html) if you haven't
+* Read [Custom REPL Connect Sequences](connect-sequences.md) if you haven't
 * Add the following to your vscode settings.json
 ```json
 {

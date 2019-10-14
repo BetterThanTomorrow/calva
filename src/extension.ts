@@ -76,7 +76,7 @@ function activate(context: vscode.ExtensionContext) {
         replConnectSequences = state.config().replConnectSequences,
         BUTTON_GOTO_DOC = "Open the docs",
         BUTTON_OK = "Got it",
-        DOC_URL = "https://calva.readthedocs.io/en/stable/connect-sequences.html";
+        DOC_URL = "https://calva.readthedocs.io/en/latest/connect-sequences.html";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
