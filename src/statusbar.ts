@@ -6,7 +6,7 @@ import * as util from './utilities';
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 const color = {
     active: "white",
     inactive: "#b3b3b3"

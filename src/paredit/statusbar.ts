@@ -12,8 +12,8 @@ export class StatusBar {
     private _toggleBarItem: StatusBarItem;
 
     constructor(keymap: String) {
-        this._toggleBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
-        this._toggleBarItem.text = "λ";
+        this._toggleBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
+        this._toggleBarItem.text = "(λ)";
         this._toggleBarItem.tooltip = "";
         this._toggleBarItem.command = 'paredit.togglemode';
         this._enabled = false;
@@ -36,14 +36,14 @@ export class StatusBar {
                 this._keyMap = 'original';
                 this.enabled = true;
                 this.visible = true;
-                this._toggleBarItem.text = "λ";
+                this._toggleBarItem.text = "(λ)";
                 this._toggleBarItem.tooltip = "Toggle to strict Mode"
                 break;
             case 'strict':
                 this._keyMap = 'strict';
                 this.enabled = true;
                 this.visible = true;
-                this._toggleBarItem.text = "(λ)";
+                this._toggleBarItem.text = "[λ]";
                 this._toggleBarItem.tooltip = "Toggle to original Mode"
                 break;
             default:
