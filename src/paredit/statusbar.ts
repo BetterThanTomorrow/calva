@@ -12,9 +12,10 @@ export class StatusBar {
     private _toggleBarItem: StatusBarItem;
 
     constructor(keymap: String) {
-        this._toggleBarItem = window.createStatusBarItem(StatusBarAlignment.Right);
-        this._toggleBarItem.text = "(λ)";
-        this._toggleBarItem.command = 'paredit.toggle';
+        this._toggleBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
+        this._toggleBarItem.text = "λ";
+        this._toggleBarItem.tooltip = "";
+        this._toggleBarItem.command = 'paredit.togglemode';
         this._enabled = false;
         this._visible = false;
         this.keyMap = keymap;
@@ -35,19 +36,22 @@ export class StatusBar {
                 this._keyMap = 'original';
                 this.enabled = true;
                 this.visible = true;
-                this._toggleBarItem.tooltip = "Toggle to Strict Mode"
+                this._toggleBarItem.text = "λ";
+                this._toggleBarItem.tooltip = "Toggle to strict Mode"
                 break;
             case 'strict':
                 this._keyMap = 'strict';
                 this.enabled = true;
                 this.visible = true;
-                this._toggleBarItem.tooltip = "Toggle to Original Mode"
+                this._toggleBarItem.text = "(λ)";
+                this._toggleBarItem.tooltip = "Toggle to original Mode"
                 break;
             default:
                 this._keyMap = 'none';
                 this.enabled = false;
                 this.visible = true;
-                this._toggleBarItem.tooltip = "Calva Paredit is Disabled"
+                this._toggleBarItem.text = "λ";
+                this._toggleBarItem.tooltip = "Calva Paredit Keymap is set to none, Toggle to Strict Mode is Disabled"
         }
     }
 
