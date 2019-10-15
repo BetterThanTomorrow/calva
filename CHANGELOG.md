@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Toggle the "Use WSL" setting requires extension restart to effect definition provider](https://github.com/BetterThanTomorrow/calva/issues/397)
 
 ## [2.0.49] - 10.11.2019
 - [Fix bugs in comment form selection](https://github.com/BetterThanTomorrow/calva/issues/374)
