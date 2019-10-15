@@ -1,5 +1,5 @@
 # Change Log
-Changes to Calva.
+Changes to Calva. 
 
 ## [Unreleased]
 - [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
