@@ -92,19 +92,19 @@ export class ReplConsole {
         }
     }
 
-    private isKeyMay(values: ReplPareditKeyMap[]) :boolean {
+    private isKeyMap(values: ReplPareditKeyMap[]): boolean {
 
-        if(this.pareditKeyMap == ReplPareditKeyMap.NONE) {
+        if (this.pareditKeyMap == ReplPareditKeyMap.NONE) {
             return false;
         }
-        if(values.includes(this.pareditKeyMap)) {
+        if (values.includes(this.pareditKeyMap)) {
             return true;
         }
         return false;
     }
 
-    getPareditKeyMap() :ReplPareditKeyMap  {
-        return this.pareditKeyMap; 
+    getPareditKeyMap(): ReplPareditKeyMap {
+        return this.pareditKeyMap;
     }
 
     setPareditKeyMap(value: String) {
@@ -118,7 +118,7 @@ export class ReplConsole {
             default:
                 this.pareditKeyMap = ReplPareditKeyMap.NONE;
         }
-    }  
+    }
 
     addHistoryListener(c: (line: string) => void) {
         if (this._historyListeners.indexOf(c) == -1)
@@ -359,20 +359,17 @@ export class ReplConsole {
 
     commands = {
         "raise-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.raiseSexp(this.readline);
-                    this.readline.repaint();
-                });
-            }
+            this.readline.withUndo(() => {
+                paredit.raiseSexp(this.readline);
+                this.readline.repaint();
+            });
+
         },
         "convolute-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.convolute(this.readline);
-                    this.readline.repaint();
-                });
-            }
+            this.readline.withUndo(() => {
+                paredit.convolute(this.readline);
+                this.readline.repaint();
+            });
         },
         "force-backspace": () => {
             this.readline.withUndo(() => {
@@ -387,20 +384,16 @@ export class ReplConsole {
             });
         },
         "grow-selection": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.growSelection(this.readline)
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.growSelection(this.readline)
+                this.readline.repaint();
+            })
         },
         "shrink-selection": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.shrinkSelection(this.readline)
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.shrinkSelection(this.readline)
+                this.readline.repaint();
+            })
         },
         "backward-sexp": () => {
             let cursor = this.readline.getTokenCursor();
@@ -451,28 +444,22 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "join-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.joinSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.joinSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "backward-slurp-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.backwardSlurpSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.backwardSlurpSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "forward-barf-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.forwardBarfSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.forwardBarfSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "cursor-left": () => {
             this.readline.caretLeft(true);
@@ -483,20 +470,16 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "forward-slurp-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.forwardSlurpSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.forwardSlurpSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "backward-barf-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.backwardBarfSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.backwardBarfSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "cursor-right": () => {
             this.readline.caretRight(true)
@@ -507,12 +490,10 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "splice-sexp-killing-backwards": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.spliceSexpKillingBackward(this.readline)
-                    this.readline.repaint();
-                });
-            }
+            this.readline.withUndo(() => {
+                paredit.spliceSexpKillingBackward(this.readline)
+                this.readline.repaint();
+            });
         },
         "cursor-up": () => {
             this.readline.caretUp(true);
@@ -523,12 +504,10 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "splice-sexp-killing-forwards": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.spliceSexpKillingForward(this.readline)
-                    this.readline.repaint();
-                });
-            }
+            this.readline.withUndo(() => {
+                paredit.spliceSexpKillingForward(this.readline)
+                this.readline.repaint();
+            });
         },
         "cursor-down": () => {
             this.readline.caretDown(true);
@@ -539,14 +518,16 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "backspace": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.STRICT])) {
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
                 this.readline.withUndo(() => {
                     paredit.backspace(this.readline);
                     this.readline.repaint()
                 })
             } else {
-                this.readline.backspace();
-                this.readline.repaint()
+                this.readline.withUndo(() => {
+                    this.readline.backspace();
+                    this.readline.repaint()
+                })
             }
         },
         "cursor-home": () => {
@@ -582,55 +563,47 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "delete": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
                 this.readline.withUndo(() => {
                     paredit.deleteForward(this.readline);
                     this.readline.repaint()
                 })
             } else {
-                this.readline.delete();
-                this.readline.repaint()
+                this.readline.withUndo(() => {
+                    this.readline.delete();
+                    this.readline.repaint()
+                })
             }
         },
         "wrap-round": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.wrapSexpr(this.readline, "(", ")");
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.wrapSexpr(this.readline, "(", ")");
+                this.readline.repaint();
+            })
         },
         "wrap-square": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.wrapSexpr(this.readline, "[", "]");
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.wrapSexpr(this.readline, "[", "]");
+                this.readline.repaint();
+            })
         },
         "wrap-curly": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.wrapSexpr(this.readline, "{", "}");
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.wrapSexpr(this.readline, "{", "}");
+                this.readline.repaint();
+            })
         },
         "split-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.splitSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.splitSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "splice-sexp": () => {
-            if (this.isKeyMay([ReplPareditKeyMap.ORIGINAL, ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.spliceSexp(this.readline);
-                    this.readline.repaint();
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.spliceSexp(this.readline);
+                this.readline.repaint();
+            })
         },
         "history-up": () => {
             if (this.historyIndex == 0)
