@@ -8,7 +8,7 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 ## Raison d´être
 
-Calva's main reason for existance is to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
+Calva's is here to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
 ## Getting Started with Calva
 
