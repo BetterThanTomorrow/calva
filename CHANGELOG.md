@@ -1,5 +1,5 @@
-# Change Log 
-Changes to Calva.
+# Change Log
+Changes to Calva. 
 
 ## [Unreleased]
 - [Undefined namespace when starting a shadow-cljs cljs REPL Window ](https://github.com/BetterThanTomorrow/calva/issues/115)
