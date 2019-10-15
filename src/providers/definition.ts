@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
 import * as projectTypes from '../nrepl/project-types';
-import { wslToWindows } from 'wsl-path';
+import { wslToWindowsSync } from 'wsl-path';
 
 export class DefinitionProvider implements vscode.DefinitionProvider {
   state: any;
@@ -23,14 +23,18 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
           return;
         }
         if (projectTypes.isWin && useWSL) {
-          if (location.uri.scheme === 'jar') {
-            const path = vscode.Uri.parse(location.uri.path).path;
-            const windowsFilePath = await wslToWindows(path);
-            const windowsFileUri = vscode.Uri.file(windowsFilePath);
-            return new vscode.Location(location.uri.with({ path: `file:${windowsFileUri.path}` }), location.range);
+          try {
+            if (location.uri.scheme === 'jar') {
+              const path = vscode.Uri.parse(location.uri.path).path;
+              const windowsFilePath = wslToWindowsSync(path);
+              const windowsFileUri = vscode.Uri.file(windowsFilePath);
+              return new vscode.Location(location.uri.with({ path: `file:${windowsFileUri.path}` }), location.range);
+            }
+            const windowsFilePath = wslToWindowsSync(location.uri.path);
+            return new vscode.Location(vscode.Uri.file(windowsFilePath), location.range);
+          } catch (e) {
+            return location;
           }
-          const windowsFilePath = await wslToWindows(location.uri.path);
-          return new vscode.Location(vscode.Uri.file(windowsFilePath), location.range);
         } else {
           return location;
         }
