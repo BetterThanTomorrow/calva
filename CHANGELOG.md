@@ -1,8 +1,11 @@
-# Change Log
+# Change Log 
 Changes to Calva.
 
 ## [Unreleased]
 - [Hightlight extension settings are uninitialized if no closure editor active on activation ](https://github.com/BetterThanTomorrow/calva/issues/401)
+- [Overly aggressive paredit in REPL window](https://github.com/BetterThanTomorrow/calva/issues/255)
+- [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
+- [Completion in REPL window should work like in the editor](https://github.com/BetterThanTomorrow/calva/issues/394)
 
 ## [2.0.50] - 10.11.2019
 - Move user documentation from the wiki to: https://calva.readthedocs.io/
