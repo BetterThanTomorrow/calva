@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
 
 ## [2.0.50] - 10.11.2019
 - Move user documentation from the wiki to: https://calva.readthedocs.io/
