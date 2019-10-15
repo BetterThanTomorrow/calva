@@ -5,6 +5,7 @@ import * as state from "./state";
 import status from "./status"
 import * as fs from "fs";
 import * as _ from "lodash";
+import * as paredit from './paredit/extension';
 import { NReplEvaluation, NReplSession } from "./nrepl";
 
 import annotations from './providers/annotations';
@@ -24,7 +25,8 @@ export function activeReplWindow() {
 }
 
 export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
-    // If we find `mode` in ythe `replWindows` dictionary, then it is open.
+    // If we find `mode` in the `replWindows` 
+    // dictionary, then it is open.
     if (!replWindows[mode]) {
         return (false);
     }
@@ -48,7 +50,9 @@ class REPLWindow {
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
+                    let keymap = paredit.getKeyMapConf();
                     this.postMessage({ type: "init", ns: this.ns, history: state.extensionContext.workspaceState.get(this.type + "-history") || [] });
+                    this.postMessage({ type: "paredit-keymap", keymap: keymap });
                     resolve();
                 }
 
@@ -63,11 +67,12 @@ class REPLWindow {
                     this.postMessage({ type: "complete", data: result })
                 }
 
-                if (msg.type == "interrupt" && this.evaluation)
-                    this.evaluation.interrupt();
+                if (msg.type == "interrupt" && this.evaluation) {
+                    this.evaluation.interrupt().catch(() => {});
+                }
 
                 if (msg.type == "read-line") {
-                    this.replEval(msg.line, this.ns, state.config().pprint);
+                    this.replEval(msg.line, this.ns, state.config().pprint).catch(() => {});
                 }
 
                 if (msg.type == "goto-file") {
@@ -93,9 +98,13 @@ class REPLWindow {
             })
         })
 
+        paredit.onPareditKeyMapChanged((keymap) => {
+            this.postMessage({ type: "paredit-keymap", keymap: keymap });
+        })
+
         this.panel.onDidDispose((e) => {
             if (this.evaluation)
-                this.evaluation.interrupt();
+                this.evaluation.interrupt().catch(() => {});
             delete replWindows[this.type]
             this.session.close();
             session.removeOnCloseHandler(this.onClose);
@@ -177,7 +186,7 @@ class REPLWindow {
             this.postMessage({ type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns });
             if (this.evaluation.ns && this.ns != this.evaluation.ns) {
                 // the evaluation changed the namespace so set the new namespace.
-                this.setNamespace(this.evaluation.ns);
+                this.setNamespace(this.evaluation.ns).catch(() => {});
             }
         } catch (e) {
             this.postMessage({ type: "repl-error", ex: e });
@@ -233,7 +242,7 @@ export async function reconnectReplWindow(mode: "clj" | "cljs") {
 export async function openClojureReplWindows() {
     if (state.deref().get('connected')) {
         if (util.getSession("clj")) {
-            openReplWindow("clj", true);
+            openReplWindow("clj", true).catch(() => {});
             return;
         }
     }
@@ -243,7 +252,7 @@ export async function openClojureReplWindows() {
 export async function openClojureScriptReplWindows() {
     if (state.deref().get('connected')) {
         if (util.getSession("cljs")) {
-            openReplWindow("cljs", true);
+            openReplWindow("cljs", true).catch(() => {});
             return;
         }
     }
@@ -316,7 +325,7 @@ export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: st
                 const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
                 await inNSEvaluation.value;
                 if (inNSEvaluation) {
-                    wnd.setNamespace(inNSEvaluation.ns);
+                    wnd.setNamespace(inNSEvaluation.ns).catch(() => {});
                 }
             } catch (e) {
                 vscode.window.showErrorMessage(`Error loading namespcace "${ns}" for command snippet: ${e}`, ...["OK"]);
@@ -340,7 +349,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
     let wnd = replWindows[util.getREPLSessionType()];
     if (wnd) {
         await wnd.session.eval("(in-ns '" + ns + ")").value;
-        wnd.setNamespace(ns);
+        wnd.setNamespace(ns).catch(() => {});
     }
 }
 
@@ -361,7 +370,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint)
+        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint).catch(() => {});
     }
 }
 
@@ -409,9 +418,9 @@ function sendCustomCommandSnippetToREPLCommand() {
                 const command = snippetsDict[pick].snippet,
                     ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false);
+                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false).catch(() => {});
             }
-        });
+        }).catch(() => {});
     } else {
         vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
     }

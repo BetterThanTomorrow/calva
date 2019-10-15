@@ -9,7 +9,7 @@ Home
 Getting Started
 ---------------
 
-First thing you need to do is to get `Calva connected to the REPL of your project <connect>`_. Then we suggest you check out `Something to Try First <try-first>`_.
+First thing you need to do is to get `Calva connected to the REPL of your project <connect.html>`_. Then we suggest you check out `Something to Try First <try-first.html>`_.
 
 The below list of contents is sorted in what we think is a good **Getting Started** order.
 
