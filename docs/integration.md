@@ -40,7 +40,7 @@ Smaller changes:
 When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
 1. Checkout `dev`
-1. Tag with `v<VERSION>`
+1. Tag with `v<VERSION>` (must provide tag message)
 1. Push `dev` (Using `--follow-tags`).
    * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace.
    * You'll get an e-mail when it is published.
