@@ -6,6 +6,9 @@ Changes to Calva.
 - [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
 - [Completion in REPL window should work like in the editor](https://github.com/BetterThanTomorrow/calva/issues/394)
 
+## [2.0.50] - 10.11.2019
+- Move user documentation from the wiki to: https://calva.readthedocs.io/
+
 ## [2.0.49] - 10.11.2019
 - [Fix bugs in comment form selection](https://github.com/BetterThanTomorrow/calva/issues/374)
 - [Use of undeclared var in REPL window resets the namespace](https://github.com/BetterThanTomorrow/calva/issues/257)
