@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
 
 ## [2.0.51] - 10.15.2019
 - [Toggle the "Use WSL" setting requires extension restart to effect definition provider](https://github.com/BetterThanTomorrow/calva/issues/397)
