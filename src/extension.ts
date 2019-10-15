@@ -10,7 +10,7 @@ import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
-import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
+import { DefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './evaluate';
 import LintMiddleWare from './lint';
 import TestRunnerMiddleWare from './testRunner';
@@ -108,10 +108,7 @@ function activate(context: vscode.ExtensionContext) {
     replWindow.activate(context);
 
     chan.appendLine("Calva activated.");
-    let {
-        lint,
-        useWSL
-    } = state.config();
+    let { lint } = state.config();
 
     status.update();
 
@@ -168,7 +165,7 @@ function activate(context: vscode.ExtensionContext) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
