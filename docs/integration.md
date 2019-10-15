@@ -1,7 +1,7 @@
 
 Description of the Calva development and release process.
 
-_This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feeback and tips on how to improve this process is very welcome._
+_This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feedback and tips on how to improve this process is very welcome._
 
 ## 1. Introducing Changes
 
@@ -43,9 +43,9 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
   1. `git merge --no-ff dev`
 1. Tag with `v<VERSION>`
 1. Push `master` (Using `--follow-tags`).
-   * This will build the release VSIX, push a relase to GitHub, and publish it on the extension Marketplace.
+   * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace.
    * You'll get an e-mail when it is published.
-1. When the new version is live, immediatelly install it and see that it works.
+1. When the new version is live, immediately install it and see that it works.
    * If the Marketplace version works:
      1. On `dev`: `$ npm run bump-version`
      1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
