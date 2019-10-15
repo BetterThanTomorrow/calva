@@ -3,6 +3,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.50] - 10.11.2019
+- Move user documentation from the wiki to: https://calva.readthedocs.io/
+
 ## [2.0.49] - 10.11.2019
 - [Fix bugs in comment form selection](https://github.com/BetterThanTomorrow/calva/issues/374)
 - [Use of undeclared var in REPL window resets the namespace](https://github.com/BetterThanTomorrow/calva/issues/257)
