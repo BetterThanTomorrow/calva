@@ -67,8 +67,9 @@ class REPLWindow {
                     this.postMessage({ type: "complete", data: result })
                 }
 
-                if (msg.type == "interrupt" && this.evaluation)
+                if (msg.type == "interrupt" && this.evaluation) {
                     this.evaluation.interrupt().catch(() => {});
+                }
 
                 if (msg.type == "read-line") {
                     this.replEval(msg.line, this.ns, state.config().pprint).catch(() => {});
