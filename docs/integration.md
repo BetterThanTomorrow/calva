@@ -39,15 +39,16 @@ Smaller changes:
 
 When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
-1. With `dev` checked out: `git checkout master`.
-  1. `git merge --no-ff dev`
+1. Checkout `dev`
 1. Tag with `v<VERSION>`
-1. Push `master` (Using `--follow-tags`).
+1. Push `dev` (Using `--follow-tags`).
    * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace.
    * You'll get an e-mail when it is published.
 1. When the new version is live, immediately install it and see that it works.
    * If the Marketplace version works:
-     1. On `dev`: `$ npm run bump-version`
+     1. Merge `dev` onto `master` (`--no-ff`)
+     1. Push
+     1. Checkout `dev` and `$ npm run bump-version`
      1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
      1. Push.
    * If the Marketplace version does not work:

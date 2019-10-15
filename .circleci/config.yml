@@ -97,7 +97,7 @@ jobs:
           name: "Create artifacts workspace"
           command: mkdir /tmp/artifacts
       - run:
-          name: Tamper Calva version if not master
+          name: Tamper Calva version if not release versioned
           command: |
             VERSION=$(node -p 'require("./package.json").version')
             TAG_VERSION=NO-TAG
@@ -153,7 +153,6 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             EXTRA_RELEASE_OPTIONS=""
-
             if [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]
             then
               echo "Publishing GitHub Release: ${CIRCLE_TAG}"
@@ -186,17 +185,7 @@ jobs:
       - run:
           name: Publish to the marketplace
           command: |
-            TAGGED_BRANCH=$(git branch --contains tags/${CIRCLE_TAG})
-            if [[ "${TAGGED_BRANCH/\*/}" =~ master ]]
-            then
-              echo "Tag is on master. Proceeding with publish."
-            else
-              echo >&2 "FATAL! Tag is not on master. Aborting."
-              exit 1
-            fi
-
             VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
-
             if [ "${IS_LOCAL}" = YES ]
             then
               echo "Dry npx ${VSCE_CMD}"
@@ -255,9 +244,18 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-      - github-release:
+      - approve:
+          type: approval
           requires:
             - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - github-release:
+          requires:
+            - approve
           filters:
             branches:
               ignore: /.*/
