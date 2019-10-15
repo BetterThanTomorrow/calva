@@ -744,8 +744,10 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.toggle",
-                "title": "Toggle"
+                "command": "paredit.togglemode",
+                "title": "Toggle Paredit Mode",
+                "when": "paredit:keyMap =~ /original|strict/",
+                "enablement": "paredit:keyMap =~ /original|strict/"
             },
             {
                 "category": "Calva Paredit",
@@ -1075,6 +1077,11 @@
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+c ."
+            },
+            {
+                "command": "paredit.togglemode",
+                "key": "ctrl+alt+c -",
+                "when": "paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardSexp",
