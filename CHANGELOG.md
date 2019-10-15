@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Hightlight extension settings are uninitialized if no closure editor active on activation ](https://github.com/BetterThanTomorrow/calva/issues/401)
 
 ## [2.0.50] - 10.11.2019
 - Move user documentation from the wiki to: https://calva.readthedocs.io/
