@@ -38,10 +38,11 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         })
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
-        await openReplWindow("clj", true);
-        await reconnectReplWindow("clj").catch(reason => {
-            console.error("Failed reconnecting REPL window: ", reason);
-        });
+        openReplWindow("clj", true).then( window => {
+            reconnectReplWindow("clj").catch(reason => {
+                console.error("Failed reconnecting REPL window: ", reason);
+            });
+        }).catch(e => {});
 
         util.setConnectingState(false);
         util.setConnectedState(true);
@@ -93,8 +94,11 @@ async function setUpCljsRepl(cljsSession, chan, build) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
     await createReplWindow(cljsSession, "cljs");
-    await openReplWindow("cljs", true);
-    await reconnectReplWindow("cljs");
+    openReplWindow("cljs", true).then( window => {
+        reconnectReplWindow("cljs").catch(reason => {
+            console.error("Failed reconnecting REPL window: ", reason);
+        });
+    }).catch(e => {});
     status.update();
 }
 
