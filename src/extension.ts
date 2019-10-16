@@ -10,7 +10,7 @@ import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
-import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
+import { DefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './evaluate';
 import LintMiddleWare from './lint';
 import TestRunnerMiddleWare from './testRunner';
@@ -71,19 +71,22 @@ function activate(context: vscode.ExtensionContext) {
         fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
         pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
         cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior'),
+        vimExtension = vscode.extensions.getExtension('vscodevim.vim'),
         cwConfig = vscode.workspace.getConfiguration('clojureWarrior'),
         customCljsRepl = state.config().customCljsRepl,
         replConnectSequences = state.config().replConnectSequences,
         BUTTON_GOTO_DOC = "Open the docs",
         BUTTON_OK = "Got it",
-        DOC_URL = "https://calva.readthedocs.io/en/latest/connect-sequences.html";
+        VIM_DOC_URL = "https://calva.readthedocs.io/en/latest/vim.html",
+        VIEWED_VIM_DOCS = "viewedVimDocs",
+        CONNECT_SEQUENCES_DOC_URL = "https://calva.readthedocs.io/en/latest/connect-sequences.html"
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
         vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
             .then(v => {
                 if (v == BUTTON_GOTO_DOC) {
-                    open(DOC_URL);
+                    open(CONNECT_SEQUENCES_DOC_URL);
                 }
             })
     }
@@ -108,10 +111,7 @@ function activate(context: vscode.ExtensionContext) {
     replWindow.activate(context);
 
     chan.appendLine("Calva activated.");
-    let {
-        lint,
-        useWSL
-    } = state.config();
+    let { lint } = state.config();
 
     status.update();
 
@@ -168,7 +168,7 @@ function activate(context: vscode.ExtensionContext) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
@@ -217,6 +217,18 @@ function activate(context: vscode.ExtensionContext) {
 
     greetings.activationGreetings(chan, lint);
 
+    if (vimExtension) {
+        chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
+        if (!context.globalState.get(VIEWED_VIM_DOCS)) {
+            vscode.window.showErrorMessage("VIM Extension detected. There be dragons. Please view the docs for tips (and to stop this info box from appearing).", ...[BUTTON_GOTO_DOC])
+                .then(v => {
+                    if (v == BUTTON_GOTO_DOC) {
+                        context.globalState.update(VIEWED_VIM_DOCS, true);
+                        open(VIM_DOC_URL);
+                    }
+                })
+        }
+    }
 
     chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.")
     chan.appendLine("Default keybinding for Jack-in: ctrl+alt+c ctrl+alt+j");
@@ -225,7 +237,7 @@ function activate(context: vscode.ExtensionContext) {
     if (!cwExtension) {
         highlight.activate(context);
     } else {
-        vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.","Will do!"]);
+        vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.", "Will do!"]);
     }
 
     for (const config of ["enableBracketColors", "bracketColors", "cycleBracketColors", "misplacedBracketStyle", "matchedBracketStyle", "commentFormStyle", "ignoredFormStyle"]) {

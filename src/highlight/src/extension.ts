@@ -44,8 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
       rainbowTimer = undefined,
       dirty = false;
 
-  if (is_clojure(activeEditor))
-    reloadConfig();
+  reloadConfig();
 
   vscode.window.onDidChangeActiveTextEditor(editor => {
     activeEditor = editor;

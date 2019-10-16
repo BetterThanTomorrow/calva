@@ -1,10 +1,19 @@
-# Change Log
-Changes to Calva. 
+# Change Log 
+Changes to Calva.
 
 ## [Unreleased]
 - [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
+- [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
 
-## [2.0.50] - 10.11.2019
+## [2.0.51] - 10.15.2019
+- [Toggle the "Use WSL" setting requires extension restart to effect definition provider](https://github.com/BetterThanTomorrow/calva/issues/397)
+- [Go to Definition and Peek Definition not working on Windows 10 when using WSL](https://github.com/BetterThanTomorrow/calva/issues/132)
+- [Hightlight extension settings are uninitialized if no closure editor active on activation ](https://github.com/BetterThanTomorrow/calva/issues/401)
+- [Overly aggressive paredit in REPL window](https://github.com/BetterThanTomorrow/calva/issues/255)
+- [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
+- [Completion in REPL window should work like in the editor](https://github.com/BetterThanTomorrow/calva/issues/394)
+
+## [2.0.50] - 10.15.2019
 - Move user documentation from the wiki to: https://calva.readthedocs.io/
 
 ## [2.0.49] - 10.11.2019
