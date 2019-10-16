@@ -163,7 +163,9 @@ class REPLWindow {
     async connect() {
         let res = this.session.eval("nil");
         await res.value;
-        this.ns = res.ns;
+        if(res.ns) {
+            this.ns = res.ns;
+        }
         this.session.addOnCloseHandler(this.onClose);
     }
 
