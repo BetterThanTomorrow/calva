@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
 
 ## [2.0.51] - 10.15.2019
