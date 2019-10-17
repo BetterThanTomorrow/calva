@@ -4,6 +4,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Undefined namespace when starting a shadow-cljs cljs REPL Window ](https://github.com/BetterThanTomorrow/calva/issues/115)
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
+- [Fix shadow-cljs menuSelections for Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/404)
 
 ## [2.0.51] - 10.15.2019
 - [Toggle the "Use WSL" setting requires extension restart to effect definition provider](https://github.com/BetterThanTomorrow/calva/issues/397)
