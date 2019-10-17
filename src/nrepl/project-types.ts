@@ -116,7 +116,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 if (aliasesIndex > -1) {
                     try {
                         const menuSelections = connectSequence.menuSelections,
-                        leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
+                            leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
                         if (leinAlias) {
                             alias = _unKeywordize(leinAlias);
                         } else if (leinAlias === null) {
@@ -312,14 +312,12 @@ const projectTypes: { [id: string]: ProjectType } = {
 
             const foundBuilds = await shadowBuilds(),
                 menuSelections = connectSequence.menuSelections,
-                launchAliases = menuSelections ? menuSelections.cljAliases : undefined,
-                selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
-
-            let aliases: string[] = [];
-
-            if (launchAliases) {
-                aliases = launchAliases.map(_keywordize);
-            } // TODO do the same as clj to prompt the user with a list of aliases
+                selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
+                    values: foundBuilds.filter(x => x[0] == ":"),
+                    placeHolder: "Select builds to start", saveAs: `
+                    ${state.getProjectRoot()}/shadowcljs-jack-in`
+                }),
+                aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(_keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
 
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             if (aliasesOption && aliasesOption.length) {
