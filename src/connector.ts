@@ -177,10 +177,10 @@ function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
 
 function updateInitCode(build: string, initCode): string {
     if (build && typeof initCode === 'object') {
-        if (build.charAt(0) == ":") {
-            return initCode.build.replace("%BUILD%", build);
-        } else {
+        if (["node-repl", "browser-repl"].includes(build)) {
             return initCode.repl.replace("%REPL%", build);
+        } else {
+            return initCode.build.replace("%BUILD%", projectTypes.keywordize(build));
         }
     } else if (build && typeof initCode === 'string') {
         return initCode.replace("%BUILD%", `"${build}"`);
@@ -387,11 +387,11 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
         } else {
             let build = state.deref().get('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
-            let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}` : "");
-            chan.appendLine(`${failed}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`);
+            let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.` : "");
+            chan.appendLine(`${failed}`);
             state.cursor.set('cljsBuild', null);
             vscode.window.showInformationMessage(
-                failed + "Is the build running and connected?\nOpen the Output channel \"Calva Connection Log\" for more information?",
+                failed,
                 { modal: true },
                 ...["Ok"]).then((value) => {
                     if (value == 'Ok') {
@@ -490,7 +490,7 @@ export default {
     },
     connectCommand: async () => {
         const chan = state.outputChannel();
-        // TODO: Figure out a better way to have an initializwd project directory.
+        // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();
         } catch {
