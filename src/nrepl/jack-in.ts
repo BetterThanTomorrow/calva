@@ -182,7 +182,7 @@ export async function calvaDisconnect() {
     } else if (utilities.getConnectingState() ||
         utilities.getLaunchingState()) {
         vscode.window.showInformationMessage(
-            "Do you want to interupt the connection process?",
+            "Do you want to interrupt the connection process?",
             { modal: true },
             ...["Ok"]).then((value) => {
                 if (value == 'Ok') {

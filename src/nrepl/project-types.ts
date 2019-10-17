@@ -116,9 +116,9 @@ const projectTypes: { [id: string]: ProjectType } = {
                 if (aliasesIndex > -1) {
                     try {
                         const menuSelections = connectSequence.menuSelections,
-                        leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
+                            leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
                         if (leinAlias) {
-                            alias = _unKeywordize(leinAlias);
+                            alias = unKeywordize(leinAlias);
                         } else if (leinAlias === null) {
                             alias = undefined;
                         } else {
@@ -147,7 +147,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                     menuSelections = connectSequence.menuSelections,
                     launchProfiles = menuSelections ? menuSelections.leinProfiles : undefined;
                 if (launchProfiles) {
-                    profiles = [...profiles, ...launchProfiles.map(_keywordize)];
+                    profiles = [...profiles, ...launchProfiles.map(keywordize)];
                 } else {
                     let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
                     const myProfiles = state.config().myLeinProfiles;
@@ -155,7 +155,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                         projectProfiles = [...projectProfiles, ...myProfiles];
                     }
                     if (projectProfiles.length) {
-                        profiles = [...profiles, ...projectProfiles.map(_keywordize)];
+                        profiles = [...profiles, ...projectProfiles.map(keywordize)];
                         if (profiles.length) {
                             profiles = await utilities.quickPickMulti({
                                 values: profiles,
@@ -191,7 +191,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             }
 
             if (profiles.length) {
-                out.push("with-profile", profiles.map(x => `+${_unKeywordize(x)}`).join(','));
+                out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));
             }
 
             if (alias) {
@@ -246,7 +246,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
             let aliases: string[] = [];
             if (launchAliases) {
-                aliases = launchAliases.map(_keywordize);
+                aliases = launchAliases.map(keywordize);
             } else {
                 let projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
                 const myAliases = state.config().myCljAliases;
@@ -255,7 +255,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 }
                 if (projectAliases.length) {
                     aliases = await utilities.quickPickMulti({
-                        values: projectAliases.map(_keywordize),
+                        values: projectAliases.map(keywordize),
                         saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
                         placeHolder: "Pick any aliases to launch with"
                     });
@@ -267,7 +267,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
-                const aliasKey = _unKeywordize(aliases[ali]);
+                const aliasKey = unKeywordize(aliases[ali]);
                 if (parsed.aliases) {
                     let alias = parsed.aliases[aliasKey];
                     aliasHasMain = alias && alias["main-opts"] != undefined;
@@ -312,14 +312,12 @@ const projectTypes: { [id: string]: ProjectType } = {
 
             const foundBuilds = await shadowBuilds(),
                 menuSelections = connectSequence.menuSelections,
-                launchAliases = menuSelections ? menuSelections.cljAliases : undefined,
-                selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
-
-            let aliases: string[] = [];
-
-            if (launchAliases) {
-                aliases = launchAliases.map(_keywordize);
-            } // TODO do the same as clj to prompt the user with a list of aliases
+                selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
+                    values: foundBuilds.filter(x => x[0] == ":"),
+                    placeHolder: "Select builds to start", saveAs: `
+                    ${state.getProjectRoot()}/shadowcljs-jack-in`
+                }),
+                aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
 
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             if (aliasesOption && aliasesOption.length) {
@@ -343,7 +341,7 @@ const projectTypes: { [id: string]: ProjectType } = {
  * @param  {string} s the string to be keywordized
  * @return {string} keywordized string
  */
-function _keywordize(s: string): string {
+export function keywordize(s: string): string {
     return s.replace(/^[\s,:]*/, ":");
 }
 
@@ -353,7 +351,7 @@ function _keywordize(s: string): string {
  * @param  {string} kw
  * @return {string} kw without the first character
  */
-function _unKeywordize(kw: string): string {
+export function unKeywordize(kw: string): string {
     return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
