@@ -267,7 +267,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
-                const aliasKey = _unKeywordize(aliases[ali]);
+                const aliasKey = unKeywordize(aliases[ali]);
                 if (parsed.aliases) {
                     let alias = parsed.aliases[aliasKey];
                     aliasHasMain = alias && alias["main-opts"] != undefined;
