@@ -289,7 +289,8 @@
                             "type": "object",
                             "required": [
                                 "name",
-                                "projectType"
+                                "projectType",
+                                "cljsType"
                             ],
                             "properties": {
                                 "name": {
@@ -355,7 +356,7 @@
                                         },
                                         "cljsDefaultBuild": {
                                             "type": "string",
-                                            "description": "Which cljs build to acttach to at the initial connect."
+                                            "description": "Which cljs build to attach to at the initial connect."
                                         }
                                     }
                                 },
@@ -387,7 +388,7 @@
                                                         "Nashorn",
                                                         "User provided"
                                                     ],
-                                                    "description": "The CLojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that privides the dependencies needed."
+                                                    "description": "The ClojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed."
                                                 },
                                                 "buildsRequired": {
                                                     "type": "boolean",
@@ -403,7 +404,7 @@
                                                 },
                                                 "isReadyToStartRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
+                                                    "description": "A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
                                                 },
                                                 "openUrlRegExp": {
                                                     "type": "string",
@@ -420,12 +421,12 @@
                                                 },
                                                 "isConnectedRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout of the connectCode evaluation, will tell Calva that the application is connected.",
+                                                    "description": "A regular expression which, when matched in the stdout of the connectCode evaluation, will tell Calva that the application is connected.",
                                                     "default": "To quit, type: :cljs/quit"
                                                 },
                                                 "printThisLineRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
+                                                    "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
                                                 }
                                             }
                                         }
