@@ -369,7 +369,8 @@
                                                 "Figwheel Main",
                                                 "lein-figwheel",
                                                 "shadow-cljs",
-                                                "Nashorn"
+                                                "Nashorn",
+                                                "none"
                                             ]
                                         },
                                         {

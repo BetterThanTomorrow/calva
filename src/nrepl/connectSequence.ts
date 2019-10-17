@@ -238,7 +238,6 @@ async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabe
 
 export {
     askForConnectSequence,
-    getConnectSequences,
     getDefaultCljsType,
     CljsTypes,
     ReplConnectSequence,

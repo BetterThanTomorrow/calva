@@ -62,7 +62,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         let cljsSession = null,
             cljsBuild = null;
         try {
-            if (connectSequence.cljsType != undefined) {
+            if (connectSequence.cljsType && connectSequence.cljsType != "none") {
                 const isBuiltinType: boolean = typeof connectSequence.cljsType == "string";
                 let cljsType: CljsTypeConfig = isBuiltinType ? getDefaultCljsType(connectSequence.cljsType as string) : connectSequence.cljsType as CljsTypeConfig;
                 translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence), connectSequence);
