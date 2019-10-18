@@ -1,12 +1,15 @@
 'use strict';
-import * as vscode from "vscode";
-import { StatusBar } from './status_bar';
 import * as utils from './utils';
+import { StatusBar } from './statusbar';
+import * as vscode from 'vscode';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
-import * as state from "../state";
+import { Event, EventEmitter } from 'vscode';
 
 let paredit = require('paredit.js');
+
+
+let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
 const languages = new Set(["clojure", "lisp", "scheme"]);
 let enabled = true,
@@ -57,7 +60,7 @@ function indent({ textEditor, selection }) {
 
     utils
         .edit(textEditor, utils.commands(res))
-        .then((applied?) => utils.undoStop(textEditor));
+        .then((applied?) => utils.undoStop(textEditor)).catch(() => {});
 }
 
 const wrapAround = (ast, src, start, { opening, closing }) => paredit.editor.wrapAround(ast, src, start, opening, closing);
@@ -85,7 +88,7 @@ const edit = (fn, opts = {}) =>
                                 selection: sel
                             });
                         }
-                    });
+                    }).catch(() => {});
             }
             else
                 utils.select(textEditor, res.newIndex);
@@ -167,22 +170,17 @@ function wrapPareditCommand(command: string, fn) {
     }
 }
 
+export function getKeyMapConf() :String {
+    let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+    return(String(keyMap));
+}
+
 function setKeyMapConf() {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
+    onPareditKeyMapChangedEmitter.fire(String(keyMap));
 }
 setKeyMapConf();
-
-/*
-    ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
-    ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
-    ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
-    ['paredit.spliceSexpKillBackward', edit(paredit.editor.spliceSexpKill, { 'backward': true })],
-    ['paredit.deleteForward', edit(paredit.editor.delete, { 'backward': false, '_skipIndent': true })],
-    ['paredit.deleteBackward', edit(paredit.editor.delete, { 'backward': true, '_skipIndent': true })],
-    ['paredit.indentRange', indent],
-    ['paredit.transpose', edit(paredit.editor.transpose)]];
-*/
 
 /*
     'rangeForDefun': paredit.navigator.rangeForDefun,
@@ -210,50 +208,22 @@ const toConsoleCommand = {
     'paredit.deleteForward': "delete",
 }
 
-/*
-"raise-sexp": () => void;
-"convolute-sexp": () => void;
-"force-backspace": () => void;
-"force-delete": () => void;
-"grow-selection": () => void;
-"shrink-selection": () => void;
-"up-list": () => void;
-"select-all": () => void;
-"undo": () => void;
-"redo": () => void;
-"join-sexp": () => void;
-"cursor-left": () => void;
-"cursor-select-left": () => void;
-"cursor-right": () => void;
-"cursor-select-right": () => void;
-"splice-sexp-killing-backwards": () => void;
-"cursor-up": () => void;
-"cursor-select-up": () => void;
-"splice-sexp-killing-forwards": () => void;
-"cursor-down": () => void;
-"cursor-select-down": () => void;
-"backspace": () => void;
-"cursor-home": () => void;
-"cursor-select-home": () => void;
-"cursor-home-all": () => void;
-"cursor-select-home-all": () => void;
-"cursor-end": () => void;
-"cursor-select-end": () => void;
-"cursor-end-all": () => void;
-"cursor-select-end-all": () => void;
-"delete": () => void;
-"history-up": () => void;
-"history-down": () => void;
-*/
 export function activate(context: ExtensionContext) {
 
-    let statusBar = new StatusBar();
+    let statusBar = new StatusBar(getKeyMapConf());
 
     context.subscriptions.push(
-
         statusBar,
-        commands.registerCommand('paredit.toggle', () => { enabled = !enabled; statusBar.enabled = enabled; }),
-        window.onDidChangeActiveTextEditor((e) => statusBar.visible = e && e.document && languages.has(e.document.languageId)),
+        commands.registerCommand('paredit.togglemode', () => { 
+            let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+            keyMap = String(keyMap).trim().toLowerCase();
+            if(keyMap == 'original') {
+                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'strict', vscode.ConfigurationTarget.Global); 
+            } else if(keyMap == 'strict') {
+                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global); 
+            }
+        }),
+        window.onDidChangeActiveTextEditor((e) => e.document && languages.has(e.document.languageId)),
         workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
             if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
                 setKeyMapConf();
@@ -269,3 +239,5 @@ export function activate(context: ExtensionContext) {
 
 export function deactivate() {
 }
+
+export const onPareditKeyMapChanged: Event<String> = onPareditKeyMapChangedEmitter.event;

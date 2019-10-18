@@ -10,7 +10,7 @@ import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
-import { DefinitionProvider, WslDefinitionProvider } from './providers/definition';
+import { DefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './evaluate';
 import LintMiddleWare from './lint';
 import TestRunnerMiddleWare from './testRunner';
@@ -74,16 +74,16 @@ function activate(context: vscode.ExtensionContext) {
         cwConfig = vscode.workspace.getConfiguration('clojureWarrior'),
         customCljsRepl = state.config().customCljsRepl,
         replConnectSequences = state.config().replConnectSequences,
-        BUTTON_GOTO_WIKI = "Open the Wiki",
+        BUTTON_GOTO_DOC = "Open the docs",
         BUTTON_OK = "Got it",
-        WIKI_URL = "https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences";
+        DOC_URL = "https://calva.readthedocs.io/en/latest/connect-sequences.html";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
-        vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specifiy it using the new calva.customConnectSequence setting. See the Calva wiki for instructions.", ...[BUTTON_GOTO_WIKI, BUTTON_OK])
+        vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
             .then(v => {
-                if (v == BUTTON_GOTO_WIKI) {
-                    open(WIKI_URL);
+                if (v == BUTTON_GOTO_DOC) {
+                    open(DOC_URL);
                 }
             })
     }
@@ -108,10 +108,7 @@ function activate(context: vscode.ExtensionContext) {
     replWindow.activate(context);
 
     chan.appendLine("Calva activated.");
-    let {
-        lint,
-        useWSL
-    } = state.config();
+    let { lint } = state.config();
 
     status.update();
 
@@ -168,7 +165,7 @@ function activate(context: vscode.ExtensionContext) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, useWSL ? new WslDefinitionProvider() : new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 

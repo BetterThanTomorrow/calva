@@ -34,6 +34,7 @@
     #?@()
     #_())
 
+(if comment :a :b)
 
 (comment
   (comment (foo bar)))
