@@ -8,7 +8,7 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 ## Why Calva?
 
-From [The Tao of Calva]():
+From [The Tao of Calva](https://github.com/BetterThanTomorrow/calva/wiki):
 
 > Calva's _raison d´être_ is to provide Visual Studio Code users with an easy to use and productive environment for [Clojure](https://www.clojure.org) and [ClojureScript](https://clojurescript.org) development.
 
