@@ -2,12 +2,14 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
+- [Fix shadow-cljs menuSelections for Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/404)
 
 ## [2.0.51] - 10.15.2019
 - [Toggle the "Use WSL" setting requires extension restart to effect definition provider](https://github.com/BetterThanTomorrow/calva/issues/397)
 - [Go to Definition and Peek Definition not working on Windows 10 when using WSL](https://github.com/BetterThanTomorrow/calva/issues/132)
-- [Hightlight extension settings are uninitialized if no closure editor active on activation ](https://github.com/BetterThanTomorrow/calva/issues/401)
+- [Highlight extension settings are uninitialized if no closure editor active on activation ](https://github.com/BetterThanTomorrow/calva/issues/401)
 - [Overly aggressive paredit in REPL window](https://github.com/BetterThanTomorrow/calva/issues/255)
 - [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
 - [Completion in REPL window should work like in the editor](https://github.com/BetterThanTomorrow/calva/issues/394)
@@ -113,7 +115,7 @@ Changes to Calva.
 - Add support for [shadow-cljs](http://shadow-cljs.org). Please contact me with any information on how this is working for you out there.
 
 ## [1.2.14] - 06.04.2018
-- Change all keyboard shortcuts to use prefix `ctrl+alt+v`, due to old prefix not working on some alterate keybpard layouts. See [Issue #9](https://github.com/PEZ/clojure4vscode/issues/9).
+- Change all keyboard shortcuts to use prefix `ctrl+alt+v`, due to old prefix not working on some alternate keyboard layouts. See [Issue #9](https://github.com/PEZ/clojure4vscode/issues/9).
 
 ## [1.2.12] - 06.04.2018
 - Add command for re-running previously failing tests (`ctrl+alt+v ctrl+t`). 
@@ -134,7 +136,7 @@ Changes to Calva.
   - Conecting the editor REPLs was a bit unstable. Now more stable (but there are still some quirks).
 
 ## [1.1.20] - 25.03.2018
-- Auto detection of forms to evaluate now condiders reader macro characters prepending the forms. E.g. before if you tried to evaluate say `#{:a :b :c}` with the cursor placed directly adjacent to the starting or ending curly braces only `{:a :b :c}` would be autodetected and evaluated.
+- Auto detection of forms to evaluate now considers reader macro characters prepending the forms. E.g. before if you tried to evaluate say `#{:a :b :c}` with the cursor placed directly adjacent to the starting or ending curly braces only `{:a :b :c}` would be auto detected and evaluated.
 - Highlighting of auto detected forms being evaluated.
 - Rendering evaluation errors in the editor the same way as successful (but in red to quickly indicate that the evaluation errored).
 
