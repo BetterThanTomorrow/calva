@@ -1,14 +1,23 @@
-# Calva: Clojure & ClojureScript support for VS Code
+# Calva: Clojure & ClojureScript with Visual Studio Code
 
 ![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in Visual Studio Code. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
-## Raison d´être
+## Why Calva?
 
-Calva's is here to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
+From [The Tao of Calva]():
+
+> Calva's _raison d´être_ is to provide Visual Studio Code users with an easy to use and productive environment for [Clojure](https://www.clojure.org) and [ClojureScript](https://clojurescript.org) development.
+
+
+From the same page you can also learn that we want Calva to be a good choice for VS Code users asking:
+
+> _How do I use my favorite code editor for Clojure development?_
+
+We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
 ## Getting Started with Calva
 
