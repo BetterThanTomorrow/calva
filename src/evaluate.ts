@@ -117,23 +117,28 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 async function loadFile(document = {}, callback = () => { }) {
