@@ -2,6 +2,7 @@ import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as replWindow from './../repl-window';
+const { prettyPrint } = require('../../out/cljs-lib/cljs-lib');
 
 /** An nRREPL client */
 export class NReplClient {
@@ -229,15 +230,7 @@ export class NReplSession {
 
     eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean } = {}) {
         const id = this.client.nextId,
-            pprintOpts = opts.pprint ? {
-                // "nrepl.middleware.print/print": "clojure.pprint/pprint", // boring
-                // "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint", // Error printing return value at clojure.lang.Util/runtimeException (Util.java:221). Unable to convert: class datomic.btset.BTSet to Object[]
-                // "nrepl.middleware.print/print": "cider.nrepl.pprint/fipp-pprint", //
-                "nrepl.middleware.print/print": "cider.nrepl.pprint/zprint-pprint", // dumps the whole database, schema and all
-                "nrepl.middleware.print/options": {
-                    "width": 120,
-                }
-            } : {};
+            pprintOpts = {};
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             let ex;
@@ -255,8 +248,17 @@ export class NReplSession {
                         reject(ex);
                     }, 1000);
                 }
-                if (msg.value != undefined)
-                    value = msg.value
+                if (msg.value != undefined) {
+                    if (opts.pprint) {
+                        const pretty = prettyPrint(msg.value, 120);
+                        if (pretty.error) {
+                            evaluation.err(pretty.error)
+                        }
+                        value = pretty.value;
+                    } else {
+                        value = msg.value;
+                    }
+                }
                 if (msg["pprint-out"])
                     evaluation.pprintOut = msg["pprint-out"];
                 if (msg.status && msg.status == "done") {
