@@ -2,8 +2,9 @@
 Changes to Calva.
 
 ## [Unreleased]
-- [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
+- [Undefined namespace when starting a shadow-cljs cljs REPL Window ](https://github.com/BetterThanTomorrow/calva/issues/115)
+- [Make opening the REPL window on connect async](https://github.com/BetterThanTomorrow/calva/issues/399)
 - [Fix shadow-cljs menuSelections for Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/issues/404)
 
 ## [2.0.51] - 10.15.2019
