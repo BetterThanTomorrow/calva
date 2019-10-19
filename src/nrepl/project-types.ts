@@ -47,7 +47,7 @@ export function shadowBuilds(): string[] {
 
 const cliDependencies = {
     "nrepl": "0.6.0",
-    "cider/cider-nrepl": "0.22.1",
+    "cider/cider-nrepl": "0.22.4",
 }
 
 const cljsCommonDependencies = {
@@ -62,7 +62,7 @@ const cljsDependencies: { [id: string]: Object } = {
         "com.bhauman/figwheel-main": "0.2.3"
     },
     "shadow-cljs": {
-        "cider/cider-nrepl": "0.22.1",
+        "cider/cider-nrepl": "0.22.4",
     },
     "Nashorn": {
     },
@@ -71,7 +71,7 @@ const cljsDependencies: { [id: string]: Object } = {
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.22.1"
+    "cider/cider-nrepl": "0.22.4"
 }
 const leinDependencies = {
     "nrepl": "0.6.0",
