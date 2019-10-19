@@ -4,7 +4,7 @@ First thing first. Calva isn't working all that well together with the [VIM Exte
 
 ## No Vim mode for the REPL Window
 
-If you use the REPL window a lot, you will lack VIM mode there. This is not likely to be fixed anytime soon.
+This is not likely to be fixed anytime soon. (Because, a **lot** of work.)
 
 ## Selection commands
 
