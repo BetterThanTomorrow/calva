@@ -40,7 +40,7 @@ Changes to Calva.
 - [Support for custom project/workflow commands](https://github.com/BetterThanTomorrow/calva/issues/281)
 
 ## [2.0.43] - 03.10.2019
-- [Insourcing @tonsky's Clojue Warrior, now named Calva Highlight](https://github.com/BetterThanTomorrow/calva/pull/362)
+- [Insourcing @tonsky's Clojure Warrior, now named Calva Highlight](https://github.com/BetterThanTomorrow/calva/pull/362)
 - [Update status bar when configuration changed](https://github.com/BetterThanTomorrow/calva/issues/358)
 
 ## [2.0.42] - 29.09.2019
@@ -136,7 +136,7 @@ Changes to Calva.
 - Terminal REPLs
   - Integrates REPL sessions from the Terminal tab and lets you do stuff like load current namespace ad evaluate code from the editor in the REPL.
 - Connection and reconnection stabilization
-  - Conecting the editor REPLs was a bit unstable. Now more stable (but there are still some quirks).
+  - Connecting the editor REPLs was a bit unstable. Now more stable (but there are still some quirks).
 
 ## [1.1.20] - 25.03.2018
 - Auto detection of forms to evaluate now considers reader macro characters prepending the forms. E.g. before if you tried to evaluate say `#{:a :b :c}` with the cursor placed directly adjacent to the starting or ending curly braces only `{:a :b :c}` would be auto detected and evaluated.
@@ -163,12 +163,12 @@ Changes to Calva.
 - User setting to evaluate namespace on save/open file (defaults to **on**)
 
 ## [1.1.1] - 16.03.2018
-- Relase of v1, based on **visual:clojure** v2.0, adding:
+- Release of v1, based on **visual:clojure** v2.0, adding:
     - Running tests through the REPL connection, and mark them in the Problems tab
         - Run namespace tests: `ctrl+alt+v t`
         - Run all tests: `ctrl+alt+v a`
     - Evaluate code and replace it in the editor, inline: `ctrl+alt+v e`
     - Error message when evaluation fails
-    - Pretty printing evaluation resuls: `ctrl+alt+v p`
+    - Pretty printing evaluation results: `ctrl+alt+v p`
     - Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
 
