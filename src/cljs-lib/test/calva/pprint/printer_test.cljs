@@ -7,7 +7,7 @@
     (is (= (sut/pretty-print :foo) (sut/pretty-print ":foo"))))
   
   (testing "Pretty prints"
-    (let [result (sut/pretty-print (repeat 2 (repeat 2 {:foo :bar})) 15)]
+    (let [result (sut/pretty-print (repeat 5 (repeat 5 {:foo :bar})) 15)]
       (is (re-find #"\n" (:value result)))
       (is (nil? (:error result)))))
   
