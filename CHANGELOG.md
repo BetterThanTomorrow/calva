@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix Pretty printing Datomic transaction results, dumps the whole database, twice](https://github.com/BetterThanTomorrow/calva/issues/415)
+- [Fix pretty printing in repl doesn't emit reader literals](https://github.com/BetterThanTomorrow/calva/issues/378)
 
 ## [2.0.52] - 10.19.2019
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
