@@ -238,17 +238,9 @@ export class NReplSession {
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (evaluation.parse(msg)) {
-                    if(evaluation.exception) {
-                        reject(evaluation.exception);
-                    } else if (evaluation.pprintOut) {
-                        resolve(evaluation.pprintOut)
-                    } else {
-                        resolve(evaluation.msgValue);
-                    }
+                if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
                 }
-                return false;
             }
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
             this.client.write(opMsg);
@@ -277,17 +269,9 @@ export class NReplSession {
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (evaluation.parse(msg)) {
-                    if(evaluation.exception) {
-                        reject(evaluation.exception);
-                    } else if (evaluation.pprintOut) {
-                        resolve(evaluation.pprintOut)
-                    } else {
-                        resolve(evaluation.msgValue);
-                    }
+                if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
                 }
-                return false;
             }
             this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": opts.fileName, "file-path": opts.filePath })
         }))
@@ -470,6 +454,8 @@ export class NReplEvaluation {
 
     _exception: String;
 
+    _stacktrace: any;
+
     _msgs: any[] = [];
 
     constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x: string) => void, public value: Promise<any>) {
@@ -499,6 +485,10 @@ export class NReplEvaluation {
 
     get exception() {
         return(this._exception);
+    }
+
+    get stacktrace() {
+        return(this._stacktrace);
     }
 
     get msgs() {
@@ -543,7 +533,7 @@ export class NReplEvaluation {
         return this.session.interrupt(this.id);
     }
 
-    parse(msg: any): boolean {
+    onMessage(msg: any, resolve: (reason?: any) => void, reject: (reason?: any) => void): boolean {
         if(msg) {
             this._msgs.push(msg);
             if (msg.out) {
@@ -565,6 +555,16 @@ export class NReplEvaluation {
                 this._pprintOut = msg["pprint-out"];
             }
             if (msg.status && msg.status == "done") {
+                if (this.exception) {
+                    this.session.stacktrace().then((stacktrace) => {
+                        this._stacktrace = stacktrace;
+                        reject(this.exception);
+                    }).catch(() => { });
+                } else if (this.pprintOut) {
+                    resolve(this.pprintOut)
+                } else {
+                    resolve(this.msgValue);
+                }
                 return true;
             }
         }
