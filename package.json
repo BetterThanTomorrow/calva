@@ -599,8 +599,14 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.clearREPLWindowHistory",
-                "title": "Clear history of active REPL window (mainly in case it has been borked)",
+                "command": "calva.clearClojureREPLWindow",
+                "title": "Clear Clojure REPL Window",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.clearClojureScriptREPLWindow",
+                "title": "Clear ClojureScript REPL Window",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },

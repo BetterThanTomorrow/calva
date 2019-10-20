@@ -137,9 +137,21 @@ class REPLWindow {
         html = html.replace("{{cljs-logo}}", panel.webview.asWebviewUri(getImageUrl(`cljs.svg`)).toString());
         panel.webview.html = html;
 
-        this.connect().catch(reason => {
-            console.error("Problems when connecting: ", reason);
-        });
+        // set the on close handler.
+        this.session.addOnCloseHandler(this.onClose);
+    }
+
+    async reconnect() {
+        let res = this.session.eval("nil");
+        await res.value.catch(() => { });
+        if (res.ns) {
+            this.ns = res.ns;
+        } else {
+            if (res.errorOutput) {
+                this.postMessage({ type: "stderr", value: res.errorOutput });
+            }
+        }
+        this.postMessage({ type: "reconnected", ns: this.ns });
     }
 
     postMessage(msg: any) {
@@ -154,20 +166,6 @@ class REPLWindow {
     }
 
     ns: string = "user";
-
-    /**
-     * Connects this repl window to the given session.
-     *
-     * @param session the session to connect to this repl window
-     */
-    async connect() {
-        let res = this.session.eval("nil");
-        await res.value;
-        if(res.ns) {
-            this.ns = res.ns;
-        }
-        this.session.addOnCloseHandler(this.onClose);
-    }
 
     evaluate(ns: string, text: string) {
         this.postMessage({ type: "do-eval", value: text, ns })
@@ -184,17 +182,20 @@ class REPLWindow {
             stdout: m => this.postMessage({ type: "stdout", value: m }),
             pprint: pprint
         })
-        try {
-            this.postMessage({ type: "repl-response", value: await this.evaluation.value, ns: this.ns = ns || this.evaluation.ns || this.ns });
+
+        await this.evaluation.value.then( (value) => {
+            this.postMessage({ type: "repl-response", value: value, ns: this.ns = ns || this.evaluation.ns || this.ns });
             if (this.evaluation.ns && this.ns != this.evaluation.ns) {
                 // the evaluation changed the namespace so set the new namespace.
                 this.setNamespace(this.evaluation.ns).catch(() => {});
             }
-        } catch (e) {
-            this.postMessage({ type: "repl-error", ex: e });
-            let stacktrace = await this.session.stacktrace();
-            this.postMessage({ type: "repl-ex", ex: JSON.stringify(stacktrace) });
-        }
+        }).catch( (exception) => {
+            this.postMessage({ type: "repl-error", ex: exception });  
+            this.session.stacktrace().then((stacktrace) => {
+                this.postMessage({ type: "repl-ex", ex: JSON.stringify(stacktrace) });
+            }).catch(() => {});   
+        })
+
         this.evaluation = null;
     }
 
@@ -236,29 +237,44 @@ function getImageUrl(name: string) {
 
 export async function reconnectReplWindow(mode: "clj" | "cljs") {
     if (replWindows[mode]) {
-        await replWindows[mode].connect()
-        replWindows[mode].postMessage({ type: "reconnected", ns: replWindows[mode].ns });
+        replWindows[mode].reconnect().catch( () => { } )
     }
 }
 
 export async function openClojureReplWindows() {
+    showReplWindows("clj").catch( (e) =>  {
+        console.error(`Failed to show clj REPL window: `, e);
+    });
+}
+
+export async function openClojureScriptReplWindows() {
+    showReplWindows("cljs").catch( (e) =>  {
+        console.error(`Failed to show cljs REPL window: `, e);
+    });
+}
+
+async function showReplWindows(mode: "clj" | "cljs") {
+
     if (state.deref().get('connected')) {
-        if (util.getSession("clj")) {
-            openReplWindow("clj", true).catch(() => {});
+        if (util.getSession(mode)) {
+            if (!isReplWindowOpen(mode)) {
+                openReplWindow(mode, true).then(() => {
+                    reconnectReplWindow(mode).then(() => {
+                    }).catch(e => {
+                        console.error(`Failed reconnecting ${mode} REPL window: `, e);
+                    });
+                }).catch(e => {
+                    console.error(`Failed to open ${mode} REPL window: `, e);
+                });
+            } else {
+                if(replWindows[mode]) {
+                    replWindows[mode].panel.reveal();
+                }
+            }
             return;
         }
     }
     vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
-}
-
-export async function openClojureScriptReplWindows() {
-    if (state.deref().get('connected')) {
-        if (util.getSession("cljs")) {
-            openReplWindow("cljs", true).catch(() => {});
-            return;
-        }
-    }
-    vscode.window.showInformationMessage("Not connected to a ClojureScript REPL server");
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
@@ -439,17 +455,54 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
 }
 
-export function clearHistory() {
-    vscode.window.showWarningMessage("Are you sure you want to clear the REPL window history?", ...["No", "Yes"])
+export function clearClojureREPLWindow() {
+    clearREPLWindow("clj")
+}
+
+export function clearClojureScriptREPLWindow() {
+    clearREPLWindow("cljs")
+}
+
+export function clearREPLWindow(mode: "clj" | "cljs") {
+    
+    if(isReplWindowOpen(mode)) {
+        vscode.window.showWarningMessage(
+            `Are you sure you want to clear the ${mode} REPL window?`, 
+            { modal: true },
+            ...["Ok"])
         .then(answer => {
-            if (answer == "Yes") {
-                let wnd = activeReplWindow();
-                if (wnd) {
+            if (answer == "Ok") {
+                if (replWindows[mode]) {
+                    let wnd = replWindows[mode];
+                    let ns = wnd.ns;
+                    let column = wnd.panel.viewColumn;
                     wnd.clearHistory();
-                    state.outputChannel().appendLine("REPL window history cleared.\nNow close the window and open it again.");
-                } else {
-                    state.outputChannel().appendLine("No active REPL window found.");
+                    wnd.panel.dispose();
+                    replViewColum[mode] = column;
+                    openReplWindow(mode, true).then(() => {
+                        if (replWindows[mode]) {
+                            let newWnd = replWindows[mode];
+                            newWnd.reconnect().then(() => {
+                                newWnd.session.eval("(in-ns '" + ns + ")").value.then(() => {
+                                    newWnd.setNamespace(ns).then(() => {
+                                        state.outputChannel().appendLine(`${mode} REPL Window cleared.`);
+                                    }).catch((e) => {
+                                        console.error(`Failed to set namespace for ${mode} REPL window: `, e);
+                                    });
+                                }).catch((e) => {
+                                    console.error(`Failed to set evaluate 'in-ns' for ${mode} REPL window: `, e);
+                                });
+                            }).catch((e) => {
+                                console.error(`Failed to reconnect for ${mode} REPL window: `, e);
+                            }) 
+                        }
+                    }).catch((e) => {
+                        console.error(`Failed to open ${mode} REPL window: `, e);
+                    });
                 }
             }
         });
+    } else {
+        vscode.window.showInformationMessage(`No ${mode} REPL Window found.`);
+    } 
 }

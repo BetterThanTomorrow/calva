@@ -8,7 +8,7 @@ import {nClient, cljSession, cljsSession} from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import { isReplWindowOpen, openReplWindow } from "../repl-window";
+import { isReplWindowOpen} from "../repl-window";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -189,6 +189,9 @@ export async function calvaDisconnect() {
                     const outputChannel = state.outputChannel();
                     calvaJackout();
                     connector.default.disconnect();
+                    utilities.setLaunchingState(null);
+                    utilities.setConnectingState(false);
+                    statusbar.update();
                     outputChannel.appendLine("Interrupting Jack-in process.");
                     outputChannel.show();
                 }
@@ -212,11 +215,20 @@ export async function calvaJackInOrConnect() {
         // if connected add the disconnect command and the 
         // REPL window open commands if needed.
         commands["Disconnect from the REPL server"] = "calva.disconnect";
-        if(utilities.getSession("clj") && !isReplWindowOpen("clj")) {
-            commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
+        if(utilities.getSession("clj")) {
+            if(!isReplWindowOpen("clj")) {
+                commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
+            }else {
+                commands["Clear Clojure REPL Window"] = "calva.clearClojureREPLWindow";
+            }
+            
         }
-        if(utilities.getSession("cljs") && !isReplWindowOpen("cljs"))  {
-            commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
+        if(utilities.getSession("cljs"))  {
+            if(!isReplWindowOpen("cljs")) {
+                commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
+            } else {
+                commands["Clear ClojureScript REPL Window"] = "calva.clearClojureScriptREPLWindow";
+            }
         }
     }
 
