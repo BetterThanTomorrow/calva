@@ -142,16 +142,18 @@ class REPLWindow {
     }
 
     async reconnect() {
-        let res = this.session.eval("nil");
+        // evaluate something that really test 
+        // the ability of the connected repl.
+        let res = this.session.eval("(+ 1 1)");
         await res.value.catch(() => { });
         if (res.ns) {
             this.ns = res.ns;
-        } else {
-            if (res.errorOutput) {
-                this.postMessage({ type: "stderr", value: res.errorOutput });
-            }
         }
-        this.postMessage({ type: "reconnected", ns: this.ns });
+        if (res.errorOutput) {
+            this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
+        } else {
+            this.postMessage({ type: "reconnected", ns: this.ns })
+        }
     }
 
     postMessage(msg: any) {

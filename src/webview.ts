@@ -460,6 +460,12 @@ window.onmessage = (msg) => {
         div.className = "winnage";
         div.textContent = "REPL connected."
         con.printElement(div);
+        if(msg.data.value) {
+            div = document.createElement("div")
+            div.className = "error"
+            div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+            con.printElement(div); 
+        }
         restorePrompt();
     }
 
