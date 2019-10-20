@@ -117,23 +117,23 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint })).catch(() => {});
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint })).catch(() => {});
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint })).catch(() => {});
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint })).catch(() => {});
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint })).catch(() => {});
 }
 
 async function loadFile(document = {}, callback = () => { }) {
@@ -150,17 +150,19 @@ async function loadFile(document = {}, callback = () => { }) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
 
-        let value = await client.loadFile(doc.getText(), {
+        let res = client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
             stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)
-        }).value;
-
-        if (value !== null)
-            chan.appendLine("=> " + value);
-        else
-            chan.appendLine("No results from file evaluation.");
+        })
+        await res.value.then((value) => {
+            if(value) {
+               chan.appendLine("=> " + value); 
+            } else {
+               chan.appendLine("No results from file evaluation."); 
+            }
+        }).catch(() => {});
     }
     callback();
 }

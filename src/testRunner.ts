@@ -82,7 +82,7 @@ async function runAllTests(document = {}) {
 
 function runAllTestsCommand() {
     state.outputChannel().show(true);
-    runAllTests();
+    runAllTests().catch(() => {});
 }
 
 async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
@@ -99,7 +99,7 @@ async function considerTestNS(ns: string, client: any, nss: string[]): Promise<s
     return nss;
 }
 
-async function runNamespaceTests(document = {}) {
+function runNamespaceTests(document = {}) {
     let client = util.getSession(util.getFileType(document)),
         doc = util.getDocument(document),
         ns = util.getNamespace(doc),
@@ -113,7 +113,7 @@ async function runNamespaceTests(document = {}) {
             resultPromises.push(client.testNs(nss[1]));
         let results = await Promise.all(resultPromises);
         reportTests(results, "Running tests");
-    });
+    }).catch(() => {});
 }
 
 async function runTestUnderCursor() {
@@ -126,12 +126,12 @@ async function runTestUnderCursor() {
         state.outputChannel().appendLine(`Running test: ${test}…`);
         const results = [await client.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
-    });
+    }).catch(() => {});
 }
 
 function runTestUnderCursorCommand() {
     state.outputChannel().show(true);
-    runTestUnderCursor();
+    runTestUnderCursor().catch(() => {});
 }
 
 function runNamespaceTestsCommand() {
@@ -144,7 +144,7 @@ function rerunTests(document = {}) {
     evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
-    });
+    }).catch(() => {});
 }
 
 function rerunTestsCommand() {
