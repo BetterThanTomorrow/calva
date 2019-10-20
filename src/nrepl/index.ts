@@ -237,36 +237,18 @@ export class NReplSession {
             } : {};
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
-            let ex;
-            let value;
             this.messageHandlers[id] = (msg) => {
-                if (msg.out)
-                    evaluation.out(msg.out)
-                if (msg.err)
-                    evaluation.err(msg.err)
-                if (msg.ns)
-                    evaluation.ns = msg.ns;
-                if (msg.ex) {
-                    ex = msg.ex;
-                    setTimeout(() => {
-                        reject(ex);
-                    }, 1000);
-                }
-                if (msg.value != undefined)
-                    value = msg.value
-                if (msg["pprint-out"])
-                    evaluation.pprintOut = msg["pprint-out"];
-                if (msg.status && msg.status == "done") {
-                    if (ex)
-                        reject(ex);
-                    else if (value)
-                        resolve(value);
-                    else if (evaluation.pprintOut)
+                if (evaluation.parse(msg)) {
+                    if(evaluation.exception) {
+                        reject(evaluation.exception);
+                    } else if (evaluation.pprintOut) {
                         resolve(evaluation.pprintOut)
-                    else
-                        resolve("");
+                    } else {
+                        resolve(evaluation.msgValue);
+                    }
                     return true;
                 }
+                return false;
             }
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
             this.client.write(opMsg);
@@ -295,19 +277,17 @@ export class NReplSession {
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (msg.value)
-                    resolve(msg.value);
-                if (msg.out)
-                    evaluation.out(msg.out)
-                if (msg.err)
-                    evaluation.out(msg.err)
-                if (msg.ex) {
-                    this.stacktrace().then(ex => reject(ex)).catch(reason => {
-                        console.error("Problems processing the stack trace: ", reason);
-                    });
-                }
-                if (msg.status && msg.status.indexOf("done") != -1)
+                if (evaluation.parse(msg)) {
+                    if(evaluation.exception) {
+                        reject(evaluation.exception);
+                    } else if (evaluation.pprintOut) {
+                        resolve(evaluation.pprintOut)
+                    } else {
+                        resolve(evaluation.msgValue);
+                    }
                     return true;
+                }
+                return false;
             }
             this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": opts.fileName, "file-path": opts.filePath })
         }))
@@ -477,21 +457,82 @@ export class NReplSession {
  * A running nREPL eval call.
  */
 export class NReplEvaluation {
+    
+    _ns: string;
+
+    _msgValue: any;
+
+    _pprintOut: string;
+
+    _outPut: String;
+
+    _errorOutput: String;
+
+    _exception: String;
+
+    _msgs: any[] = [];
+
     constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x: string) => void, public value: Promise<any>) {
     }
 
-    ns: string;
+    get ns() {
+        return(this._ns);
+    }
 
-    pprintOut: string;
+    get msgValue() {
+        if(this._msgValue) {
+            return(this._msgValue);
+        }
+        return("");
+    }
+
+    get pprintOut() {
+        return(this._pprintOut);
+    }
+
+    get hasException() {
+        if(this._exception) {
+            return(true)
+        }
+        return(false);
+    }
+
+    get exception() {
+        return(this._exception);
+    }
+
+    get msgs() {
+        return(this._msgs);
+    }
+
+    get outPut() {
+        return(this._outPut);
+    }
 
     out(message: string) {
-        if (this.stdout)
+        if(!this._outPut) {
+            this._outPut = message;
+        } else {
+            this._outPut += message;
+        }
+        if (this.stdout) {
             this.stdout(message);
+        }
+    }
+
+    get errorOutput() {
+        return(this._errorOutput);
     }
 
     err(message: string) {
-        if (this.stderr)
+        if(!this.errorOutput) {
+            this._errorOutput = message;
+        } else {
+            this._errorOutput += message;
+        }
+        if (this.stderr) {
             this.stderr(message);
+        }
     }
 
     in(message: string) {
@@ -500,5 +541,33 @@ export class NReplEvaluation {
 
     interrupt() {
         return this.session.interrupt(this.id);
+    }
+
+    parse(msg: any): boolean {
+        if(msg) {
+            this._msgs.push(msg);
+            if (msg.out) {
+                this.out(msg.out)
+            }
+            if (msg.err) {
+                this.err(msg.err)
+            }
+            if (msg.ns) {
+                this._ns = msg.ns;
+            }
+            if (msg.ex) {
+                this._exception = msg.ex;
+            }
+            if (msg.value != undefined) {
+                this._msgValue = msg.value
+            }
+            if (msg["pprint-out"]) {
+                this._pprintOut = msg["pprint-out"];
+            }
+            if (msg.status && msg.status == "done") {
+                return true;
+            }
+        }
+        return false;
     }
 }
