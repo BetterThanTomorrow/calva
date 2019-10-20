@@ -192,10 +192,8 @@ class REPLWindow {
                 this.setNamespace(this.evaluation.ns).catch(() => {});
             }
         }).catch( (exception) => {
-            this.postMessage({ type: "repl-error", ex: exception });  
-            this.session.stacktrace().then((stacktrace) => {
-                this.postMessage({ type: "repl-ex", ex: JSON.stringify(stacktrace) });
-            }).catch(() => {});   
+            this.postMessage({ type: "repl-error", ex: exception }); 
+            this.postMessage({ type: "repl-ex", ex: JSON.stringify(this.evaluation.stacktrace) });   
         })
 
         this.evaluation = null;
