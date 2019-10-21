@@ -241,11 +241,6 @@ export class NReplSession {
                 if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
                 }
-                if (msg.status && msg.status == "need-input") {
-                    resolve("user input is not yet supported in Calva");
-                    this.stdin("\n");
-                    return true;
-                }
             }
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
             this.client.write(opMsg);
@@ -558,6 +553,9 @@ export class NReplEvaluation {
             }
             if (msg["pprint-out"]) {
                 this._pprintOut = msg["pprint-out"];
+            }
+            if (msg.status && msg.status == "need-input") {
+                this.session.stdin("\n");
             }
             if (msg.status && msg.status == "done") {
                 if (this.exception) {
