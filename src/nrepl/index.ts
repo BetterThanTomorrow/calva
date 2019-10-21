@@ -241,6 +241,11 @@ export class NReplSession {
                 if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
                 }
+                if (msg.status && msg.status == "need-input") {
+                    resolve("user input is not yet supported in Calva");
+                    this.stdin("\n");
+                    return true;
+                }
             }
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
             this.client.write(opMsg);
