@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix hang when user input is requested](https://github.com/BetterThanTomorrow/calva/issues/377)
 
 ## [2.0.52] - 2019-10-19
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
