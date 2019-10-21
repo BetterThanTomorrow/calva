@@ -51,15 +51,13 @@ class REPLWindow {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
                     let keymap = paredit.getKeyMapConf();
-                    this.postMessage({ type: "init", ns: this.ns, history: state.extensionContext.workspaceState.get(this.type + "-history") || [] });
+                    this.postMessage({ type: "init", ns: this.ns, history: this.getHistory() });
                     this.postMessage({ type: "paredit-keymap", keymap: keymap });
                     resolve();
                 }
 
                 if (msg.type == "history") {
-                    let history = (state.extensionContext.workspaceState.get(this.type + "-history") || []) as Array<string>;
-                    history.push(msg.line);
-                    state.extensionContext.workspaceState.update(this.type + "-history", history);
+                    this.addToHistory(String(msg.line));
                 }
 
                 if (msg.type == "complete") {
@@ -201,6 +199,22 @@ class REPLWindow {
 
     executeCommand(command: string) {
         this.panel.webview.postMessage({ type: "ui-command", value: command });
+    }
+
+    getHistory(): Array<string> {
+        let history = (state.extensionContext.workspaceState.get(this.type + "-history") || []) as Array<string>;
+        return (history)
+    }
+
+    addToHistory(line: string) {
+        let entry = line.trim();
+        if(line != "") {
+            let history = (state.extensionContext.workspaceState.get(this.type + "-history") || []) as Array<string>;
+            if(!history.includes(entry)) {
+                history.push(entry);
+                state.extensionContext.workspaceState.update(this.type + "-history", history);
+            }
+        }
     }
 
     clearHistory() {
