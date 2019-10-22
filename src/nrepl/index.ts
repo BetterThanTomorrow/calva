@@ -536,6 +536,8 @@ export class NReplEvaluation {
     }
 
     interrupt() {
+        this._exception = "Evaluation was interrupted";
+        this._stacktrace = {};
         return this.session.interrupt(this.id);
     }
 
