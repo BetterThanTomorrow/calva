@@ -86,7 +86,7 @@ class REPLWindow {
                 }
 
                 if (msg.type == "interrupt" && this.evaluation) {
-                    this.evaluation.interrupt().catch(() => {});
+                    this.interrupt();
                 }
 
                 if (msg.type == "read-line") {
@@ -199,22 +199,26 @@ class REPLWindow {
     }
 
     async replEval(line: string, ns: string, pprint: boolean) {
-        this.evaluation = this.session.eval(line, {
+
+        this.interrupt();
+
+        let evaluation = this.session.eval(line, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
             stdout: m => this.postMessage({ type: "stdout", value: m }),
             stdin: () => this.getUserInput(),
             pprint: pprint
         })
+        this.evaluation = evaluation;
 
-        await this.evaluation.value.then( (value) => {
-            this.postMessage({ type: "repl-response", value: value, ns: this.ns = ns || this.evaluation.ns || this.ns });
-            if (this.evaluation.ns && this.ns != this.evaluation.ns) {
+        await evaluation.value.then( (value) => {
+            this.postMessage({ type: "repl-response", value: value, ns: this.ns = ns || evaluation.ns || this.ns });
+            if (evaluation.ns && this.ns != evaluation.ns) {
                 // the evaluation changed the namespace so set the new namespace.
-                this.setNamespace(this.evaluation.ns).catch(() => {});
+                this.setNamespace(evaluation.ns).catch(() => {});
             }
         }).catch( (exception) => {
             this.postMessage({ type: "repl-error", ex: exception }); 
-            this.postMessage({ type: "repl-ex", ex: JSON.stringify(this.evaluation.stacktrace) });   
+            this.postMessage({ type: "repl-ex", ex: JSON.stringify(evaluation.stacktrace) });   
         })
 
         this.evaluation = null;
@@ -252,9 +256,20 @@ class REPLWindow {
                     res.dispose();
                 }
             }, this);
+            this.panel.reveal();
             this.postMessage({ type: "need-input"});
         });
         return(input); 
+    }
+
+    interrupt() {
+        if(this.evaluation) {
+            onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, "\n"));
+            this.evaluation.interrupt().catch(() => {});
+            this.postMessage({ type: "repl-error", ex: "Evaluation interrupted."});
+            this.postMessage({ type: "repl-response", value: "",  ns: this.ns});
+            this.evaluation = null;
+        }
     }
 }
 
@@ -401,6 +416,7 @@ export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: st
             }
         }
         try {
+            wnd.interrupt();
             wnd.evaluate(inNs, text);
             await wnd.replEval(text, inNs, pprint);
         } catch (e) {
