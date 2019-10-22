@@ -227,7 +227,7 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => string,  pprint?: boolean } = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>,  pprint?: boolean } = {}) {
         const id = this.client.nextId,
             pprintOpts = opts.pprint ? {
                 "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
@@ -236,7 +236,7 @@ export class NReplSession {
                 }
             } : {};
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, () => {return "\n"} ,new Promise((resolve, reject) => {
+        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin ,new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
@@ -267,7 +267,7 @@ export class NReplSession {
     loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
         
         let id = this.client.nextId;
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, () => {return "\n"}, new Promise((resolve, reject) => {
+        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
@@ -458,7 +458,13 @@ export class NReplEvaluation {
 
     private _msgs: any[] = [];
 
-    constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x: string) => void, public stdin: () => string, public value: Promise<any>) {
+    constructor(
+        public id: string, 
+        public session: NReplSession, 
+        public stderr: (x: string) => void, 
+        public stdout: (x: string) => void, 
+        public stdin: () => Promise<string>, 
+        public value: Promise<any>) {
     }
 
     get ns() {
@@ -555,11 +561,17 @@ export class NReplEvaluation {
                 this._pprintOut = msg["pprint-out"];
             }
             if (msg.status && msg.status == "need-input") {
-                this.err("User input is not yet supported in Calva.");
                 if(this.stdin) {
-                    this.session.stdin(this.stdin());
+                    this.stdin().then((line) => {
+                        let input = String(line).trim()
+                        this.session.stdin(input + '\n');
+                    }).catch((reason) => {
+                        this.err("Failed to retrieve input: " + reason);
+                        this.session.stdin('\n');
+                    })
                 } else {
-                    this.session.stdin("\n");
+                    this.err("User input is not supported for this evaluation.");
+                    this.session.stdin('\n');
                 }     
             }
             if (msg.status && msg.status == "done") {
