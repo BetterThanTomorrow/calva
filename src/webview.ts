@@ -422,10 +422,10 @@ function showUserInput() {
     removeUserInput();
     let div = document.createElement("div");
     div.id = "repl-user-input";
-    div.className = "content"
+    //div.className = "content"
     let input = document.createElement("input");
     input.style.width = "100%";
-    input.className = "content"
+    input.className = "userinput"
     input.addEventListener("keydown", e => {
         switch (e.keyCode) {
             case 13: // return
