@@ -6,7 +6,7 @@ The recommended way is to:
 
 This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as **Jack in** (because that is what it is called in CIDER).
 
-Jack-in supports both CLJ and for CLJS, and has built-in configurations for **Leiningen**, **Clojure CLI**, and **shadow-cljs** projects, as well as for the CLJS repl types: **Figwheel Main**, **lein-fiwgheel** (legacy Figwheel), **shadow-cljs**, and Nashorn. 
+Jack-in supports both CLJ and for CLJS, and has built-in configurations for **Leiningen**, **Clojure CLI**, and **shadow-cljs** projects, as well as for the CLJS repl types: **Figwheel Main**, **lein-fiwgheel** (legacy Figwheel), **shadow-cljs**, and Nashorn. Using jack-in provides your development environment everything you need for Calva to work, namely [CIDER nREPL](https://github.com/clojure-emacs/cider-nrepl).
 
 It works like so:
 
@@ -38,7 +38,7 @@ I'm sure there are troubles we should mention here...
 
 ## Connecting w/o Jack-in
 
-If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned **Connect to a running REPL** is still there for you.
+If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned **Connect to a running REPL** is still there for you. For all features to work in Calva while connecting a running REPL, you need to have [CIDER nREPL](https://github.com/clojure-emacs/cider-nrepl) either in your project dependencies or in your global configuration for your build tool of choice.
 
 However, just as before it can be tricky to get the dependencies right. Consider using **Jack in** to inform yourself on how to start your REPL to Calva's satisfaction. When you use Jack in, Calva starts a VS Code task for it and the command line used is displayed in the terminal pane used to handle the task. Reading that command line tells you what dependencies are needed for your project.
 
