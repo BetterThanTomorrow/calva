@@ -401,7 +401,45 @@ function updateDoc(msg: any) {
     }
 }
 
+function hasUserInput() {
+    let element = document.getElementById("repl-user-input");
+    if(element) {
+       return(true);
+    } 
+    return(false); 
+}
+
+function removeUserInput() {
+    let element = document.getElementById("repl-user-input");
+    if(element) {
+        message.postMessage({ type: "user-input", line: "" });
+        element.remove();
+    }  
+}
+
+function showUserInput() {
+
+    removeUserInput();
+    let div = document.createElement("div");
+    div.id = "repl-user-input";
+    div.className = "content"
+    let input = document.createElement("input");
+    input.style.width = "100%";
+    input.className = "content"
+    input.addEventListener("keydown", e => {
+        switch (e.keyCode) {
+            case 13: // return
+                message.postMessage({ type: "user-input", line: input.value });
+                removeUserInput()
+        }
+    });
+    div.appendChild(input);
+    con.printElement(div);
+    input.focus();
+}
+
 window.onmessage = (msg) => {
+
     if (msg.data.type == "init") {
         ns = msg.data.ns;
         con.setHistory(msg.data.history);
@@ -409,7 +447,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "need-input") {
-        message.postMessage({ type: "user-input", line: "input from the repl window." }); 
+        showUserInput();
     }
 
     if (msg.data.type == "paredit-keymap") {
@@ -422,11 +460,13 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "repl-response") {
+        removeUserInput();
         renderReplResponse(msg.data.ns, msg.data.value);
         restorePrompt();
     }
 
     if (msg.data.type == "do-eval") {
+        removeUserInput();
         if (con.readline) {
             con.readline.promptElem.textContent = msg.data.ns + "=> ";
             originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
@@ -437,11 +477,13 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "set-ns!") {
+        removeUserInput();
         ns = msg.data.ns;
         con.readline.promptElem.textContent = msg.data.ns + "=> ";
     }
 
     if (msg.data.type == "repl-error") {
+        removeUserInput();
         let div = document.createElement("div")
         div.className = "error"
         div.innerHTML = ansi.toHtml(msg.data.ex);
@@ -450,6 +492,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "disconnected") {
+        removeUserInput();
         let div = document.createElement("div");
         div.className = "error";
         div.textContent = "REPL disconnected."
@@ -459,6 +502,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "reconnected") {
+        removeUserInput();
         let div = document.createElement("div");
         ns = msg.data.ns;
         div.className = "winnage";
@@ -474,6 +518,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "repl-ex") {
+        removeUserInput();
         let exception = JSON.parse(msg.data.ex);
         let stackView = createStackTrace(exception);
         con.printElement(stackView);
@@ -481,10 +526,12 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "info") {
+        removeUserInput();
         updateDoc(msg.data);
     }
 
     if (msg.data.type == "stdout") {
+        removeUserInput();
         let el = document.createElement("div");
         el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
         el.className = "output";
@@ -492,10 +539,12 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "complete") {
+        removeUserInput();
         updateCompletion(msg);
     }
 
     if (msg.data.type == "stderr") {
+        removeUserInput();
         let div = document.createElement("div")
         div.className = "error"
         div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
