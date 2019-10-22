@@ -408,6 +408,10 @@ window.onmessage = (msg) => {
         con.requestPrompt(ns + "=> ")
     }
 
+    if (msg.data.type == "need-input") {
+        message.postMessage({ type: "user-input", line: "input from the repl window." }); 
+    }
+
     if (msg.data.type == "paredit-keymap") {
         con.setPareditKeyMap(msg.data.keymap);
     }
