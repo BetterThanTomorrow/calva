@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { Event, EventEmitter } from 'vscode';
 import { cljSession, cljsSession } from "./connector"
 import * as path from "path";
 import * as state from "./state";
@@ -12,6 +13,21 @@ import annotations from './providers/annotations';
 import * as util from './utilities';
 import evaluate from './evaluate';
 import select from './select';
+
+/**
+ * Event fired when user input is retrieved from the REPL Window.
+ */
+class ReplOnUserInputEvent {
+    readonly replMode: "clj" | "cljs";
+    readonly line: string;
+    constructor(replMode: "clj" | "cljs", line: string) {
+        this.replMode = replMode;
+        this.line = line;
+    }
+}
+
+let onUserInputEmitter = new EventEmitter<ReplOnUserInputEvent>();
+const onUserInput: Event<ReplOnUserInputEvent> = onUserInputEmitter.event;
 
 // REPL
 
@@ -54,6 +70,10 @@ class REPLWindow {
                     this.postMessage({ type: "init", ns: this.ns, history: this.getHistory() });
                     this.postMessage({ type: "paredit-keymap", keymap: keymap });
                     resolve();
+                }
+
+                if (msg.type == "user-input") {
+                    onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, msg.line));
                 }
 
                 if (msg.type == "history") {
@@ -101,6 +121,7 @@ class REPLWindow {
         })
 
         this.panel.onDidDispose((e) => {
+            onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, "\n"));
             if (this.evaluation)
                 this.evaluation.interrupt().catch(() => {});
             delete replWindows[this.type]
@@ -162,6 +183,7 @@ class REPLWindow {
     }
 
     onClose = () => {
+        onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, "\n"));
         this.postMessage({ type: "disconnected" });
     }
 
@@ -180,6 +202,7 @@ class REPLWindow {
         this.evaluation = this.session.eval(line, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
             stdout: m => this.postMessage({ type: "stdout", value: m }),
+            stdin: () => this.getUserInput(),
             pprint: pprint
         })
 
@@ -219,6 +242,19 @@ class REPLWindow {
 
     clearHistory() {
         state.extensionContext.workspaceState.update(this.type + "-history", []);
+    }
+
+    getUserInput(): Promise<string> {
+        let input = new Promise<string>((resolve, reject) => {
+            let res = onUserInput((event) => {
+                if(event.replMode == this.type) {
+                    resolve(String(event.line).trim())
+                    res.dispose();
+                }
+            }, this);
+            this.postMessage({ type: "need-input"});
+        });
+        return(input); 
     }
 }
 
