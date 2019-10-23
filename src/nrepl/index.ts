@@ -458,6 +458,8 @@ export class NReplEvaluation {
 
     private _msgs: any[] = [];
 
+    private _interruped: boolean = false;
+
     constructor(
         public id: string, 
         public session: NReplSession, 
@@ -465,6 +467,10 @@ export class NReplEvaluation {
         public stdout: (x: string) => void, 
         public stdin: () => Promise<string>, 
         public value: Promise<any>) {
+    }
+
+    get interrupted() {
+        return(this._interruped);
     }
 
     get ns() {
@@ -511,7 +517,7 @@ export class NReplEvaluation {
         } else {
             this._outPut += message;
         }
-        if (this.stdout) {
+        if (this.stdout && !this.interrupted) {
             this.stdout(message);
         }
     }
@@ -526,7 +532,7 @@ export class NReplEvaluation {
         } else {
             this._errorOutput += message;
         }
-        if (this.stderr) {
+        if (this.stderr && !this.interrupted) {
             this.stderr(message);
         }
     }
@@ -536,6 +542,7 @@ export class NReplEvaluation {
     }
 
     interrupt() {
+        this._interruped = true;
         this._exception = "Evaluation was interrupted";
         this._stacktrace = {};
         return this.session.interrupt(this.id);
