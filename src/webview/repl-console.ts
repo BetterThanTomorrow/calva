@@ -355,6 +355,16 @@ export class ReplConsole {
         this.readline.mainElem.scrollIntoView({ block: "end" })
     }
 
+    clear() {
+        this.readline.clearCompletion();
+        while(this.elem.firstChild) {
+            this.elem.removeChild(this.elem.firstChild);
+        }
+        this.setText("");
+        this.readline.freeze();
+        this.readline.repaint();
+    }
+
     onRepaint = () => { };
 
     commands = {

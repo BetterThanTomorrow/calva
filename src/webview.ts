@@ -446,6 +446,14 @@ window.onmessage = (msg) => {
         con.requestPrompt(ns + "=> ")
     }
 
+    if (msg.data.type == "clear") {
+        removeUserInput();
+        ns = msg.data.ns;
+        con.setHistory(msg.data.history);
+        con.clear();
+        con.requestPrompt(ns + "=> ")
+    }
+
     if (msg.data.type == "need-input") {
         showUserInput();
     }

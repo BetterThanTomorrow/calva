@@ -113,6 +113,7 @@ class REPLWindow {
                 if (msg.type == "blur") {
                     vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
                 }
+
             })
         })
 
@@ -121,12 +122,15 @@ class REPLWindow {
         })
 
         this.panel.onDidDispose((e) => {
+            delete replWindows[this.type];
             onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, "\n"));
-            if (this.evaluation)
+            if(this.evaluation) {
                 this.evaluation.interrupt().catch(() => {});
-            delete replWindows[this.type]
-            this.session.close();
+            }
+            // first remove the close handler to avoid
+            // sending any messages to the disposed webview.
             session.removeOnCloseHandler(this.onClose);
+            this.session.close();
         })
 
         panel.onDidChangeViewState(e => {
@@ -270,6 +274,10 @@ class REPLWindow {
             this.postMessage({ type: "repl-response", value: "",  ns: this.ns});
             this.evaluation = null;
         }
+    }
+
+    clear() {
+        this.postMessage({type: "clear", history: this.getHistory(), ns: this.ns});
     }
 }
 
@@ -540,31 +548,13 @@ export function clearREPLWindow(mode: "clj" | "cljs") {
             if (answer == "Ok") {
                 if (replWindows[mode]) {
                     let wnd = replWindows[mode];
-                    let ns = wnd.ns;
-                    let column = wnd.panel.viewColumn;
+                    wnd.interrupt();
                     wnd.clearHistory();
-                    wnd.panel.dispose();
-                    replViewColum[mode] = column;
-                    openReplWindow(mode, true).then(() => {
-                        if (replWindows[mode]) {
-                            let newWnd = replWindows[mode];
-                            newWnd.reconnect().then(() => {
-                                newWnd.session.eval("(in-ns '" + ns + ")").value.then(() => {
-                                    newWnd.setNamespace(ns).then(() => {
-                                        state.outputChannel().appendLine(`${mode} REPL Window cleared.`);
-                                    }).catch((e) => {
-                                        console.error(`Failed to set namespace for ${mode} REPL window: `, e);
-                                    });
-                                }).catch((e) => {
-                                    console.error(`Failed to set evaluate 'in-ns' for ${mode} REPL window: `, e);
-                                });
-                            }).catch((e) => {
-                                console.error(`Failed to reconnect for ${mode} REPL window: `, e);
-                            }) 
-                        }
-                    }).catch((e) => {
-                        console.error(`Failed to open ${mode} REPL window: `, e);
-                    });
+                    wnd.panel.reveal();
+                    wnd.clear();
+                    wnd.reconnect().catch((e) => {
+                        console.error(`Failed to reconnect for ${mode} REPL window: `, e);
+                    }) ;
                 }
             }
         });
