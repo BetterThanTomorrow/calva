@@ -44,25 +44,30 @@ export function shadowBuilds(): string[] {
     return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 
+const NREPL_VERSION = "0.6.0",
+    CIDER_NREPL_VERSION = "0.22.4",
+    PIGGIEBACK_VERSION = "0.4.1",
+    SIDECAR_VERSION = "0.5.18",
+    FIGWHEEL_MAIN_VERSION = "0.2.3";
 
 const cliDependencies = {
     "nrepl": "0.6.0",
-    "cider/cider-nrepl": "0.22.1",
+    "cider/cider-nrepl": CIDER_NREPL_VERSION,
 }
 
 const cljsCommonDependencies = {
-    "cider/piggieback": "0.4.1"
+    "cider/piggieback": PIGGIEBACK_VERSION
 }
 
 const cljsDependencies: { [id: string]: Object } = {
     "lein-figwheel": {
-        "figwheel-sidecar": "0.5.18"
+        "figwheel-sidecar": SIDECAR_VERSION
     },
     "Figwheel Main": {
-        "com.bhauman/figwheel-main": "0.2.3"
+        "com.bhauman/figwheel-main": FIGWHEEL_MAIN_VERSION
     },
     "shadow-cljs": {
-        "cider/cider-nrepl": "0.22.1",
+        "cider/cider-nrepl": CIDER_NREPL_VERSION,
     },
     "Nashorn": {
     },
@@ -71,10 +76,10 @@ const cljsDependencies: { [id: string]: Object } = {
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.22.1"
+    "cider/cider-nrepl": CIDER_NREPL_VERSION
 }
 const leinDependencies = {
-    "nrepl": "0.6.0",
+    "nrepl": NREPL_VERSION,
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
