@@ -430,7 +430,11 @@ function showUserInput() {
         switch (e.keyCode) {
             case 13: // return
                 message.postMessage({ type: "user-input", line: input.value });
-                removeUserInput()
+                let el = document.createElement("div");
+                el.innerHTML = ansi.toHtml(escapeHTML(input.value));
+                el.className = "output";
+                con.printElement(el);
+                removeUserInput();
         }
     });
     div.appendChild(input);
@@ -447,6 +451,7 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "clear") {
+        message.postMessage({ type: "interrupt" });
         removeUserInput();
         ns = msg.data.ns;
         con.setHistory(msg.data.history);
