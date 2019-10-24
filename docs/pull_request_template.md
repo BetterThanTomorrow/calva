@@ -11,7 +11,7 @@
 Fixes #
 
 ## My Calva PR Checklist
-<!-- Remove the checkboxes that do not apply, as Github reports how many are not ticked. If you want to add checkboxes, please do. And if you think the general checklist should be updated, file a separate PR on the `docs/pull_request_template.md` file. -->
+<!-- Remove the checkboxes that do not apply, as Github reports how many are not ticked. If you want to add checkboxes, please do. -->
 
 I have:
 
@@ -28,7 +28,7 @@ I have:
 - [ ] Created the issue I am fixing/addressing, if it was not present.
 - [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
 
-## The Calva TEAM PR Checklist:
+## The Calva Team PR Checklist:
 <!-- Please read the list, since you'll get a better idea about what to expect by doing so. 😄 -->
 
 Before merging we (at least one of us) have:

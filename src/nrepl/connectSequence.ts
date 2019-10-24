@@ -15,7 +15,8 @@ enum CljsTypes {
     "lein-figwheel" = "lein-figwheel",
     "shadow-cljs" = "shadow-cljs",
     "Nashorn" = "Nashorn",
-    "User provided" = "User provided"
+    "User provided" = "User provided",
+    "none" = "none"
 }
 
 interface CljsTypeConfig {
@@ -32,7 +33,7 @@ interface CljsTypeConfig {
     printThisLineRegExp?: string | RegExp
 }
 
-interface MenuSelecions {
+interface MenuSelections {
     leinProfiles?: string[],
     leinAlias?: string,
     cljAliases?: string[],
@@ -44,15 +45,16 @@ interface ReplConnectSequence {
     name: string,
     projectType: ProjectTypes,
     afterCLJReplJackInCode?: string,
-    cljsType?: CljsTypes | CljsTypeConfig,
-    menuSelections?: MenuSelecions,
+    cljsType: CljsTypes | CljsTypeConfig,
+    menuSelections?: MenuSelections,
     nReplPortFile?: string[]
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
     [{
         name: "Leiningen",
-        projectType: ProjectTypes.Leiningen
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes.none
     },
     {
         name: "Leiningen + Figwheel Main",
@@ -79,7 +81,8 @@ const leiningenDefaults: ReplConnectSequence[] =
 const cljDefaults: ReplConnectSequence[] =
     [{
         name: "Clojure CLI",
-        projectType: ProjectTypes["Clojure CLI"]
+        projectType: ProjectTypes["Clojure CLI"],
+        cljsType: CljsTypes.none
     },
     {
         name: "Clojure CLI + Figwheel Main",
@@ -164,11 +167,10 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
 
     for (let sequence of sequences) {
         if (sequence.name == undefined ||
-            sequence.projectType == undefined) {
+            sequence.projectType == undefined ||
+            sequence.cljsType == undefined) {
 
-            vscode.window.showWarningMessage("Check your calva.replConnectSequences. " +
-                "You need to supply name and projectType for every sequence. " +
-                "After fixing the customSequences can be used.");
+            vscode.window.showWarningMessage("Check your calva.replConnectSequences. You need to supply `name`, `projectType`, and `cljsType` for every sequence.", ...["Roger That!"]);
 
             return [];
         }
@@ -236,7 +238,6 @@ async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabe
 
 export {
     askForConnectSequence,
-    getConnectSequences,
     getDefaultCljsType,
     CljsTypes,
     ReplConnectSequence,

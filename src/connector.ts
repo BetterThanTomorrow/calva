@@ -38,10 +38,11 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         })
         cljSession = nClient.session;
         chan.appendLine("Connected session: clj");
-        await openReplWindow("clj", true);
-        await reconnectReplWindow("clj").catch(reason => {
-            console.error("Failed reconnecting REPL window: ", reason);
-        });
+        openReplWindow("clj", true).then( window => {
+            reconnectReplWindow("clj").catch(reason => {
+                console.error("Failed reconnecting REPL window: ", reason);
+            });
+        }).catch(e => {});
 
         util.setConnectingState(false);
         util.setConnectedState(true);
@@ -61,7 +62,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         let cljsSession = null,
             cljsBuild = null;
         try {
-            if (connectSequence.cljsType != undefined) {
+            if (connectSequence.cljsType && connectSequence.cljsType != "none") {
                 const isBuiltinType: boolean = typeof connectSequence.cljsType == "string";
                 let cljsType: CljsTypeConfig = isBuiltinType ? getDefaultCljsType(connectSequence.cljsType as string) : connectSequence.cljsType as CljsTypeConfig;
                 translatedReplType = createCLJSReplType(cljsType, projectTypes.getCljsTypeName(connectSequence), connectSequence);
@@ -93,8 +94,11 @@ async function setUpCljsRepl(cljsSession, chan, build) {
     state.cursor.set("cljs", cljsSession);
     chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
     await createReplWindow(cljsSession, "cljs");
-    await openReplWindow("cljs", true);
-    await reconnectReplWindow("cljs");
+    openReplWindow("cljs", true).then( window => {
+        reconnectReplWindow("cljs").catch(reason => {
+            console.error("Failed reconnecting REPL window: ", reason);
+        });
+    }).catch(e => {});
     status.update();
 }
 
@@ -173,10 +177,10 @@ function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
 
 function updateInitCode(build: string, initCode): string {
     if (build && typeof initCode === 'object') {
-        if (build.charAt(0) == ":") {
-            return initCode.build.replace("%BUILD%", build);
-        } else {
+        if (["node-repl", "browser-repl"].includes(build)) {
             return initCode.repl.replace("%REPL%", build);
+        } else {
+            return initCode.build.replace("%BUILD%", projectTypes.keywordize(build));
         }
     } else if (build && typeof initCode === 'string') {
         return initCode.replace("%BUILD%", `"${build}"`);
@@ -383,11 +387,11 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
         } else {
             let build = state.deref().get('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
-            let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}` : "");
-            chan.appendLine(`${failed}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.`);
+            let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.` : "");
+            chan.appendLine(`${failed}`);
             state.cursor.set('cljsBuild', null);
             vscode.window.showInformationMessage(
-                failed + "Is the build running and connected?\nOpen the Output channel \"Calva Connection Log\" for more information?",
+                failed,
                 { modal: true },
                 ...["Ok"]).then((value) => {
                     if (value == 'Ok') {
@@ -486,7 +490,7 @@ export default {
     },
     connectCommand: async () => {
         const chan = state.outputChannel();
-        // TODO: Figure out a better way to have an initializwd project directory.
+        // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();
         } catch {

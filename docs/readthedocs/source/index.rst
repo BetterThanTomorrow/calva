@@ -19,7 +19,7 @@ One thing to note about Calva's code formatter is that it sets the default keybi
 How to Contribute to Calva?
 ----------------------------
 
-I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/BetterThanTomorrow/calva/wiki>`_.
+I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/BetterThanTomorrow/calva/wiki>`_. (There, in a section labeled **The Tao of Calva**, we also try to make clear *why* you would want to contribute.)
 
 
 .. toctree::

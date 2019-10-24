@@ -158,9 +158,9 @@ export async function calvaJackIn() {
     const projectTypeName: string = projectConnectSequence.projectType;
     let selectedCljsType: CljsTypes;
 
-    if (typeof projectConnectSequence.cljsType == "string") {
+    if (typeof projectConnectSequence.cljsType == "string" && projectConnectSequence.cljsType != CljsTypes.none) {
         selectedCljsType = projectConnectSequence.cljsType;
-    } else if (projectConnectSequence.cljsType) {
+    } else if (projectConnectSequence.cljsType && typeof projectConnectSequence.cljsType == "object") {
         selectedCljsType = projectConnectSequence.cljsType.dependsOn;
     }
 
@@ -182,7 +182,7 @@ export async function calvaDisconnect() {
     } else if (utilities.getConnectingState() ||
         utilities.getLaunchingState()) {
         vscode.window.showInformationMessage(
-            "Do you want to interupt the connection process?",
+            "Do you want to interrupt the connection process?",
             { modal: true },
             ...["Ok"]).then((value) => {
                 if (value == 'Ok') {
