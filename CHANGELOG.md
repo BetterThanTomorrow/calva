@@ -2,7 +2,10 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.53] - 2019-10-24
 - [Fix hang when user input is requested](https://github.com/BetterThanTomorrow/calva/issues/377)
+- Upgrade to `cider-nrepl 0.22.4`
 
 ## [2.0.52] - 2019-10-19
 - [Add info box for VIM Extension users](https://github.com/BetterThanTomorrow/calva/issues/396)
