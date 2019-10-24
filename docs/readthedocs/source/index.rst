@@ -36,6 +36,7 @@ I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/B
    connect-sequences
    custom-commands
    workspace-layouts
+   linting
    rebl
    vim
    wsl

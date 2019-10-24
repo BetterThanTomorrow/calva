@@ -57,6 +57,9 @@
         "workspaceContains:**/deps.edn"
     ],
     "main": "./out/extension",
+    "extensionPack": [
+        "borkdude.clj-kondo"
+    ],
     "contributes": {
         "languages": [
             {
@@ -115,11 +118,6 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Run load-file when opening a new file and on file save"
-                    },
-                    "calva.lintOnSave": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Run joker-linting when opening a new file and on file save"
                     },
                     "calva.testOnSave": {
                         "type": "boolean",
@@ -198,15 +196,10 @@
                             "connectedRegExp"
                         ]
                     },
-                    "calva.jokerPath": {
-                        "type": "string",
-                        "default": "joker",
-                        "description": "Sets the path in which the Joker executable can be found. If useWSL has been set to true, this should be a valid WSL path."
-                    },
                     "calva.useWSL": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Specifies if the nREPL and Joker are running within WSL."
+                        "description": "Specifies if the nREPL is running within WSL."
                     },
                     "calva.jackInEnv": {
                         "type": "object",
@@ -668,11 +661,6 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.lintFile",
-                "title": "Lint Current File",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.runNamespaceTests",
                 "title": "Run Tests for Current Namespace",
                 "enablement": "calva:connected",
@@ -1038,10 +1026,6 @@
             {
                 "command": "calva.requireREPLUtilities",
                 "key": "ctrl+alt+c ctrl+u"
-            },
-            {
-                "command": "calva.lintFile",
-                "key": "ctrl+alt+c l"
             },
             {
                 "command": "calva.runNamespaceTests",

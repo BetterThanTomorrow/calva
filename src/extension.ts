@@ -12,7 +12,6 @@ import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider } from './providers/definition';
 import EvaluateMiddleWare from './evaluate';
-import LintMiddleWare from './lint';
 import TestRunnerMiddleWare from './testRunner';
 import annotations from './providers/annotations';
 import select from './select';
@@ -27,7 +26,6 @@ import statusbar from './statusbar';
 function onDidSave(document) {
     let {
         evaluate,
-        lint,
         test
     } = state.config();
 
@@ -44,19 +42,11 @@ function onDidSave(document) {
         EvaluateMiddleWare.loadFile(document);
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
-    if (lint) {
-        LintMiddleWare.lintDocument(document);
-        state.analytics().logEvent("Calva", "OnSaveLint").send();
-    }
 }
 
 function onDidOpen(document) {
     if (document.languageId !== 'clojure') {
         return;
-    }
-
-    if (state.config().lint) {
-        LintMiddleWare.lintDocument(document);
     }
 }
 
@@ -111,7 +101,6 @@ function activate(context: vscode.ExtensionContext) {
     replWindow.activate(context);
 
     chan.appendLine("Calva activated.");
-    let { lint } = state.config();
 
     status.update();
 
@@ -137,7 +126,6 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', EvaluateMiddleWare.evaluateSelectionAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', EvaluateMiddleWare.evaluateTopLevelFormAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', EvaluateMiddleWare.togglePrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.lintFile', LintMiddleWare.lintDocument));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', TestRunnerMiddleWare.runTestUnderCursorCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
@@ -199,7 +187,7 @@ function activate(context: vscode.ExtensionContext) {
             const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
             if (fileExtIfClj && fileExtIfClj.length && state.config().syncReplNamespaceToCurrentFile) {
                 replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
-                    .catch(reasons => { console.warn(`Namespace sync failed, becauase: ${reasons}`) });
+                    .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
             }
         }
     }));
@@ -215,7 +203,7 @@ function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
-    greetings.activationGreetings(chan, lint);
+    greetings.activationGreetings(chan);
 
     if (vimExtension) {
         chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
