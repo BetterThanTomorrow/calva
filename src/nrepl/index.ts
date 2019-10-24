@@ -2,6 +2,7 @@ import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as replWindow from './../repl-window';
+import * as util from '../utilities';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -162,7 +163,7 @@ export class NReplSession {
         }
 
         const msgValue: string = msgData.out || msgData.err;
-        const msgType: string = msgData.out? "stdout" : "stderr";
+        const msgType: string = msgData.out ? "stdout" : "stderr";
 
         if (msgValue && this.replType) {
             const window = replWindow.getReplWindow(this.replType);
@@ -190,7 +191,7 @@ export class NReplSession {
             if (res)
                 delete this.messageHandlers[data.id];
         } else {
-            this._defaultMessageHandler(data).then(() => {}, () => {});
+            this._defaultMessageHandler(data).then(() => { }, () => { });
         }
     }
 
@@ -227,7 +228,7 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>,  pprint?: boolean } = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprint?: boolean } = {}) {
         const id = this.client.nextId,
             pprintOpts = opts.pprint ? {
                 "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
@@ -236,7 +237,7 @@ export class NReplSession {
                 }
             } : {};
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin ,new Promise((resolve, reject) => {
+        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 if (evaluation.onMessage(msg, resolve, reject)) {
                     return true;
@@ -265,7 +266,7 @@ export class NReplSession {
     }
 
     loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
-        
+
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
@@ -441,7 +442,7 @@ export class NReplSession {
  * A running nREPL eval call.
  */
 export class NReplEvaluation {
-    
+
     private _ns: string;
 
     private _msgValue: any;
@@ -461,58 +462,58 @@ export class NReplEvaluation {
     private _interruped: boolean = false;
 
     constructor(
-        public id: string, 
-        public session: NReplSession, 
-        public stderr: (x: string) => void, 
-        public stdout: (x: string) => void, 
-        public stdin: () => Promise<string>, 
+        public id: string,
+        public session: NReplSession,
+        public stderr: (x: string) => void,
+        public stdout: (x: string) => void,
+        public stdin: () => Promise<string>,
         public value: Promise<any>) {
     }
 
     get interrupted() {
-        return(this._interruped);
+        return (this._interruped);
     }
 
     get ns() {
-        return(this._ns);
+        return (this._ns);
     }
 
     get msgValue() {
-        if(this._msgValue) {
-            return(this._msgValue);
+        if (this._msgValue) {
+            return (this._msgValue);
         }
-        return("");
+        return ("");
     }
 
     get pprintOut() {
-        return(this._pprintOut);
+        return (this._pprintOut);
     }
 
     get hasException() {
-        if(this._exception) {
-            return(true)
+        if (this._exception) {
+            return (true)
         }
-        return(false);
+        return (false);
     }
 
     get exception() {
-        return(this._exception);
+        return (this._exception);
     }
 
     get stacktrace() {
-        return(this._stacktrace);
+        return (this._stacktrace);
     }
 
     get msgs() {
-        return(this._msgs);
+        return (this._msgs);
     }
 
     get outPut() {
-        return(this._outPut);
+        return (this._outPut);
     }
 
     out(message: string) {
-        if(!this._outPut) {
+        if (!this._outPut) {
             this._outPut = message;
         } else {
             this._outPut += message;
@@ -523,11 +524,11 @@ export class NReplEvaluation {
     }
 
     get errorOutput() {
-        return(this._errorOutput);
+        return (this._errorOutput);
     }
 
     err(message: string) {
-        if(!this.errorOutput) {
+        if (!this.errorOutput) {
             this._errorOutput = message;
         } else {
             this._errorOutput += message;
@@ -549,7 +550,7 @@ export class NReplEvaluation {
     }
 
     onMessage(msg: any, resolve: (reason?: any) => void, reject: (reason?: any) => void): boolean {
-        if(msg) {
+        if (msg) {
             this._msgs.push(msg);
             if (msg.out) {
                 this.out(msg.out)
@@ -570,18 +571,24 @@ export class NReplEvaluation {
                 this._pprintOut = msg["pprint-out"];
             }
             if (msg.status && msg.status == "need-input") {
-                if(this.stdin) {
+                if (this.stdin) {
                     this.stdin().then((line) => {
-                        let input = String(line).trim()
+                        let input = String(line).trim();
                         this.session.stdin(input + '\n');
                     }).catch((reason) => {
                         this.err("Failed to retrieve input: " + reason);
                         this.session.stdin('\n');
                     })
                 } else {
-                    this.err("User input is not supported for this evaluation.");
-                    this.session.stdin('\n');
-                }     
+                    util.promptForUserInputString("REPL Input:").then(input => {
+                        if (input !== undefined) {
+                            this.session.stdin(`${input}\n`);
+                        } else {
+                            this.out("No input provided.");
+                            this.session.stdin('\n');
+                        }
+                    });
+                }
             }
             if (msg.status && msg.status == "done") {
                 if (this.exception) {

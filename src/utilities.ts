@@ -419,6 +419,13 @@ function getREPLSessionType() {
     return current.get('current-session-type');
 }
 
+async function promptForUserInputString(prompt: string): Promise<string> {
+    return vscode.window.showInputBox({ 
+        prompt: prompt,
+        ignoreFocusOut: true,
+    });
+}
+
 export {
     getNamespace,
     getStartExpression,
@@ -450,4 +457,5 @@ export {
     quickPickSingle,
     quickPickMulti,
     getTestUnderCursor,
+    promptForUserInputString,
 };
