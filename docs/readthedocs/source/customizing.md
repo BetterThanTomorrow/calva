@@ -77,10 +77,3 @@ The change would look like this in your `keybindings.json`:
         "when": "editorHasSelection && editorTextFocus && !editorReadOnly && editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap =~ /original|strict/"
     }
 ```
-
-## Autolinting
-
-The extension comes with autolinting disabled. This is because you will need to have [Joker](https://github.com/candid82/joker) installed in order for it to work. You will probably want to have Joker installed regardless so, just do it and then enable autolinting by setting:
-```json
-"calva.lintOnSave": true
-```

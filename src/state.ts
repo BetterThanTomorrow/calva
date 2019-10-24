@@ -99,9 +99,7 @@ function config() {
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
-        lint: configOptions.get("lintOnSave"),
         test: configOptions.get("testOnSave"),
-        jokerPath: configOptions.get("jokerPath"),
         useWSL: configOptions.get("useWSL"),
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
