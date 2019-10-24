@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Stop linting, start bundling clj-kondo](https://github.com/BetterThanTomorrow/calva/issues/423)
 
 ## [2.0.53] - 2019-10-24
 - [Fix hang when user input is requested](https://github.com/BetterThanTomorrow/calva/issues/377)
