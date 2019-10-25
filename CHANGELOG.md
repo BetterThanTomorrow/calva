@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.54] - 2019-10-25
 - [Stop linting, start bundling clj-kondo](https://github.com/BetterThanTomorrow/calva/issues/423)
 
 ## [2.0.53] - 2019-10-24
