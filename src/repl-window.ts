@@ -257,7 +257,11 @@ class REPLWindow {
         let entry = line.trim();
         if(line != "") {
             let history = (state.extensionContext.workspaceState.get(this.type + "-history") || []) as Array<string>;
-            if(!history.includes(entry)) {
+            let last = "";
+            if(history.length > 0) {
+               last = history[history.length - 1];
+            }
+            if(last != line) {
                 history.push(entry);
                 state.extensionContext.workspaceState.update(this.type + "-history", history);
             }

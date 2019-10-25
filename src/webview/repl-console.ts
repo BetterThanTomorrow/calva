@@ -336,8 +336,14 @@ export class ReplConsole {
             this.requestPrompt(this.readline.promptElem.textContent);
             return;
         }
-        this.history.push(line);
-        this._historyListeners.forEach(x => x(line));
+        let last = "";
+        if(this.history.length > 0) {
+           last = this.history[this.history.length - 1];
+        }
+        if(last != line.trim()) {
+            this.history.push(line.trim());
+            this._historyListeners.forEach(x => x(line));
+        }
         this.historyIndex = -1;
         this.readline.freeze();
         if (trigger)
