@@ -2,7 +2,6 @@ import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as replWindow from './../repl-window';
-import * as util from '../utilities';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -163,7 +162,7 @@ export class NReplSession {
         }
 
         const msgValue: string = msgData.out || msgData.err;
-        const msgType: string = msgData.out ? "stdout" : "stderr";
+        const msgType: string = msgData.out? "stdout" : "stderr";
 
         if (msgValue && this.replType) {
             const window = replWindow.getReplWindow(this.replType);
@@ -191,7 +190,7 @@ export class NReplSession {
             if (res)
                 delete this.messageHandlers[data.id];
         } else {
-            this._defaultMessageHandler(data).then(() => { }, () => { });
+            this._defaultMessageHandler(data).then(() => {}, () => {});
         }
     }
 
@@ -267,7 +266,7 @@ export class NReplSession {
     }
 
     loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
-
+        
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
@@ -472,90 +471,90 @@ export class NReplEvaluation {
     private __reject: (reason?: any) => void;
 
     constructor(
-        public id: string,
-        public session: NReplSession,
-        public stderr: (x: string) => void,
-        public stdout: (x: string) => void,
+        public id: string, 
+        public session: NReplSession, 
+        public stderr: (x: string) => void, 
+        public stdout: (x: string) => void, 
         public stdin: () => Promise<string>,
         public value: Promise<any>) {
         this.add();
     }
 
     private add(): void {
-        if (!NReplEvaluation.Instances.includes(this)) {
-            NReplEvaluation.Instances.push(this);
+        if(!NReplEvaluation.Instances.includes(this)) {
+            NReplEvaluation.Instances.push(this); 
         }
-    }
+    } 
 
     private remove(): void {
         let index = NReplEvaluation.Instances.indexOf(this, 0);
-        if (index > -1) {
-            NReplEvaluation.Instances.splice(index, 1);
+        if(index > -1) {
+            NReplEvaluation.Instances.splice(index, 1);  
         }
     }
 
     private doResolve(reason?: any) {
-        if (this._resolve && !this.finished) {
+        if(this._resolve && !this.finished) {
             this._resolve(reason);
         }
         this._finished = true;
     }
 
     private doReject(reason?: any) {
-        if (this.__reject && !this.finished) {
+        if(this.__reject && !this.finished) {
             this.__reject(reason);
-        }
+        }   
         this._finished = true;
     }
 
     get interrupted() {
-        return (this._interruped);
+        return(this._interruped);
     }
 
     get finished() {
-        return (this._finished);
+        return(this._finished);
     }
 
     get ns() {
-        return (this._ns);
+        return(this._ns);
     }
 
     get msgValue() {
-        if (this._msgValue) {
-            return (this._msgValue);
+        if(this._msgValue) {
+            return(this._msgValue);
         }
-        return ("");
+        return("");
     }
 
     get pprintOut() {
-        return (this._pprintOut);
+        return(this._pprintOut);
     }
 
     get hasException() {
-        if (this._exception) {
-            return (true)
+        if(this._exception) {
+            return(true)
         }
-        return (false);
+        return(false);
     }
 
     get exception() {
-        return (this._exception);
+        return(this._exception);
     }
 
     get stacktrace() {
-        return (this._stacktrace);
+        return(this._stacktrace);
     }
 
     get msgs() {
-        return (this._msgs);
+        return(this._msgs);
     }
 
     get outPut() {
-        return (this._outPut);
+        return(this._outPut);
     }
 
     out(message: string) {
-        if (!this._outPut) {
+        if(!this._outPut) {
             this._outPut = message;
         } else {
             this._outPut += message;
@@ -566,11 +565,11 @@ export class NReplEvaluation {
     }
 
     get errorOutput() {
-        return (this._errorOutput);
+        return(this._errorOutput);
     }
 
     err(message: string) {
-        if (!this.errorOutput) {
+        if(!this.errorOutput) {
             this._errorOutput = message;
         } else {
             this._errorOutput += message;
@@ -585,12 +584,12 @@ export class NReplEvaluation {
     }
 
     interrupt() {
-        if (!this.interrupted && !this.finished) {
+        if(!this.interrupted && !this.finished) {
             this.remove();
             this._interruped = true;
             this._exception = "Evaluation was interrupted";
             this._stacktrace = {};
-            this.session.interrupt(this.id).catch(() => { });
+            this.session.interrupt(this.id).catch(() => {});
             this.doReject(this.exception);
             // make sure the message handler is removed.
             delete this.session.messageHandlers[this.id];
@@ -603,7 +602,7 @@ export class NReplEvaluation {
     }
 
     onMessage(msg: any): boolean {
-        if (msg) {
+        if(msg) {
             this._msgs.push(msg);
             if (msg.out) {
                 this.out(msg.out)
@@ -624,27 +623,18 @@ export class NReplEvaluation {
                 this._pprintOut = msg["pprint-out"];
             }
             if (msg.status && msg.status == "need-input") {
-                if (this.stdin) {
+                if(this.stdin) {
                     this.stdin().then((line) => {
-                        let input = String(line).trim();
-                        this.session.stdin(`${input}\n`);
+                        let input = String(line).trim()
+                        this.session.stdin(input + '\n');
                     }).catch((reason) => {
                         this.err("Failed to retrieve input: " + reason);
                         this.session.stdin('\n');
                     })
                 } else {
-                    util.promptForUserInputString("REPL Input:")
-                        .then(input => {
-                            if (input !== undefined) {
-                                this.session.stdin(`${input}\n`);
-                            } else {
-                                this.out("No input provided.");
-                                this.session.stdin('\n');
-                            }
-                        }).catch((e) => {
-                            this.session.stdin('\n');
-                        });
-                }
+                    this.err("User input is not supported for this evaluation.");
+                    this.session.stdin('\n');
+                }     
             }
             if (msg.status && msg.status == "done") {
                 this.remove();
@@ -671,17 +661,17 @@ export class NReplEvaluation {
             items.push(item);
         });
         items.forEach((item, index) => {
-            if (!item.interrupted && !item.finished) {
+            if(!item.interrupted && !item.finished) {
                 num++;
                 try {
                     item.interrupt();
-                } catch (e) {
-                    if (stderr) {
-                        stderr("Error interrupting evaluation: " + e);
+                } catch(e) {
+                    if(stderr) {
+                        stderr("Error interrupting evaluation: " + e);  
                     }
                 }
             }
         });
-        return (num);
+        return(num);
     }
 }
