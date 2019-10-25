@@ -131,6 +131,7 @@ function activate(context: vscode.ExtensionContext) {
             chan.show(true);
         });
     }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', EvaluateMiddleWare.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', EvaluateMiddleWare.evaluateTopLevelForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));

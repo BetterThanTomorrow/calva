@@ -6,8 +6,27 @@ import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
-import { NReplSession } from './nrepl';
+import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar'
+
+function interruptAllEvaluations() {
+    
+    if(util.getConnectedState()) {
+        let chan = state.outputChannel();
+        let msgs: string[] = [];
+        let nums = NReplEvaluation.interruptAll((msg) => {
+            msgs.push(msg);
+        })
+        chan.appendLine(normalizeNewLines(msgs));
+        if(nums < 1) {
+            vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
+        } else {
+            vscode.window.showInformationMessage(`Interupted ${nums} running evaluation(s).`);
+        }
+        return;
+    }    
+    vscode.window.showInformationMessage("Not connected to a REPL server");
+}
 
 function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
     const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
@@ -201,6 +220,7 @@ async function togglePrettyPrint() {
 };
 
 export default {
+    interruptAllEvaluations,
     loadFile,
     evaluateCurrentForm,
     evaluateTopLevelForm,

@@ -627,6 +627,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.interruptAllEvaluations",
+                "title": "Interrupt running Evaluations",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate Current Form",
                 "enablement": "calva:connected",
@@ -1014,6 +1020,10 @@
                 "win": "ctrl+alt+c v"
             },
             {
+                "command": "calva.interruptAllEvaluations",
+                "key": "ctrl+alt+c ctrl+alt+d"
+            }, 
+            {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "ctrl+alt+c space"
             },
@@ -1323,6 +1333,11 @@
                 }
             ],
             "editor/context": [
+                {
+                    "when": "editorLangId == clojure && calva:connected",
+                    "command": "calva.interruptAllEvaluations",
+                    "group": "calva/z-interrupt"
+                },
                 {
                     "when": "editorLangId == clojure && !calva:connected",
                     "command": "calva.jackInOrConnect",
