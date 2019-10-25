@@ -628,22 +628,28 @@ export class ReplConsole {
                 this.historyIndex = this.history.length;
             this.historyIndex--;
             let line = this.history[this.historyIndex] || "";
-            this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                this.readline.selectionStart = this.readline.selectionEnd = line.length;
-            })
+             // this is a hack because there is a bug in the repaint method.
+            // 1. Clear the model and repaint.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, "");
             this.readline.repaint();
+            // 2. Set the new line and set the selection at the end of the line.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+            this.readline.selectionStart = this.readline.selectionEnd = line.length;
+            this.readline.repaint();       
         },
         "history-down": () => {
             if (this.historyIndex == this.history.length || this.historyIndex == -1)
                 return;
             this.historyIndex++;
             let line = this.history[this.historyIndex] || "";
-            this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                this.readline.selectionStart = this.readline.selectionEnd = line.length;
-            })
+            // this is a hack because there is a bug in the repaint method.
+            // 1. Clear the model and repaint.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, "");
             this.readline.repaint();
+            // 2. Set the new line and set the selection at the end of the line.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+            this.readline.selectionStart = this.readline.selectionEnd = line.length;
+            this.readline.repaint(); 
         },
         "submit": () => {
             this.submitLine(true, false)
