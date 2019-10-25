@@ -9,8 +9,12 @@ const message = acquireVsCodeApi();
 
 const ansi = new Ansi();
 
+let evaluationForm = "";
+let evaluationNS = "";
+let inEvaluation = false;
 let ns = "user";
 let con = new ReplConsole(document.querySelector(".repl"), (line, pprint) => {
+    inEvaluation = true;
     message.postMessage({ type: "read-line", line: line, pprint: pprint })
 });
 
@@ -442,6 +446,31 @@ function showUserInput() {
     input.focus();
 }
 
+function storeEvaluation(ns: string, form: string) {
+    evaluationNS = String(ns).trim();
+    evaluationForm = String(form).trim();
+}
+
+function runEvaluation(ns: string, form: string) {
+    if (con.readline && ns && form) {
+        con.readline.promptElem.textContent = ns + "=> ";
+        originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
+        [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
+        con.setText(form);
+        con.submitLine(true);
+    }    
+}
+
+function runStoredEvaluation() {
+    if (evaluationNS && evaluationForm) {
+        runEvaluation(evaluationNS, evaluationForm);
+    }
+    evaluationNS = "";
+    evaluationForm = "";
+}
+
+
+
 window.onmessage = (msg) => {
 
     if (msg.data.type == "init") {
@@ -473,35 +502,59 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "repl-response") {
+        inEvaluation = false;
         removeUserInput();
         renderReplResponse(msg.data.ns, msg.data.value);
         restorePrompt();
+        runStoredEvaluation();
+    }
+
+    if (msg.data.type == "repl-error") {
+        inEvaluation = false;
+        removeUserInput();
+        let div = document.createElement("div")
+        div.className = "error"
+        div.innerHTML = ansi.toHtml(msg.data.ex);
+        con.printElement(div);
+        let exception = JSON.parse(msg.data.stacktrace);
+        if(exception && exception.stacktrace) {
+            let stackView = createStackTrace(exception);
+            con.printElement(stackView);
+        }
+        restorePrompt();
+        runStoredEvaluation();
+    }
+
+    if (msg.data.type == "stdout") {
+        removeUserInput();
+        let el = document.createElement("div");
+        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+        el.className = "output";
+        con.printElement(el);
+    }
+
+    if (msg.data.type == "stderr") {
+        removeUserInput();
+        let div = document.createElement("div")
+        div.className = "error"
+        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+        con.printElement(div);
     }
 
     if (msg.data.type == "do-eval") {
-        removeUserInput();
-        if (con.readline) {
-            con.readline.promptElem.textContent = msg.data.ns + "=> ";
-            originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
-            [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
-            con.setText(msg.data.value);
-            con.submitLine(false);
+        if(hasUserInput() || inEvaluation) {
+           removeUserInput();
+           message.postMessage({ type: "interrupt" });
+           storeEvaluation(msg.data.ns, msg.data.value);
+           return; 
         }
+        runEvaluation(msg.data.ns, msg.data.value);
     }
 
     if (msg.data.type == "set-ns!") {
         removeUserInput();
         ns = msg.data.ns;
         con.readline.promptElem.textContent = msg.data.ns + "=> ";
-    }
-
-    if (msg.data.type == "repl-error") {
-        removeUserInput();
-        let div = document.createElement("div")
-        div.className = "error"
-        div.innerHTML = ansi.toHtml(msg.data.ex);
-        con.printElement(div);
-        restorePrompt();
     }
 
     if (msg.data.type == "disconnected") {
@@ -530,25 +583,9 @@ window.onmessage = (msg) => {
         restorePrompt();
     }
 
-    if (msg.data.type == "repl-ex") {
-        removeUserInput();
-        let exception = JSON.parse(msg.data.ex);
-        let stackView = createStackTrace(exception);
-        con.printElement(stackView);
-        restorePrompt();
-    }
-
     if (msg.data.type == "info") {
         removeUserInput();
         updateDoc(msg.data);
-    }
-
-    if (msg.data.type == "stdout") {
-        removeUserInput();
-        let el = document.createElement("div");
-        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-        el.className = "output";
-        con.printElement(el);
     }
 
     if (msg.data.type == "complete") {
@@ -556,12 +593,6 @@ window.onmessage = (msg) => {
         updateCompletion(msg);
     }
 
-    if (msg.data.type == "stderr") {
-        removeUserInput();
-        let div = document.createElement("div")
-        div.className = "error"
-        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-        con.printElement(div);
-    }
+    
 }
 message.postMessage({ type: "init" });
