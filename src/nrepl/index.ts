@@ -227,7 +227,7 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>,  pprint?: boolean } = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprint?: boolean } = {}) {
         const id = this.client.nextId,
             pprintOpts = opts.pprint ? {
                 "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
@@ -236,9 +236,10 @@ export class NReplSession {
                 }
             } : {};
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin ,new Promise((resolve, reject) => {
+        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (evaluation.onMessage(msg, resolve, reject)) {
+                evaluation.setHandlers(resolve, reject);
+                if (evaluation.onMessage(msg)) {
                     return true;
                 }
             }
@@ -269,7 +270,8 @@ export class NReplSession {
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (evaluation.onMessage(msg, resolve, reject)) {
+                evaluation.setHandlers(resolve, reject);
+                if (evaluation.onMessage(msg)) {
                     return true;
                 }
             }
@@ -437,11 +439,18 @@ export class NReplSession {
     }
 }
 
+export interface NReplEvaluationRegistry {
+    add(instance: NReplEvaluation): void; 
+    remove(instance: NReplEvaluation): void; 
+}
+
 /**
  * A running nREPL eval call.
  */
 export class NReplEvaluation {
-    
+
+    private static Instances: Array<NReplEvaluation> = [];
+
     private _ns: string;
 
     private _msgValue: any;
@@ -460,17 +469,55 @@ export class NReplEvaluation {
 
     private _interruped: boolean = false;
 
+    private _finished: boolean = false;
+
+    private _resolve: (reason?: any) => void;
+
+    private __reject: (reason?: any) => void;
+
     constructor(
         public id: string, 
         public session: NReplSession, 
         public stderr: (x: string) => void, 
         public stdout: (x: string) => void, 
-        public stdin: () => Promise<string>, 
+        public stdin: () => Promise<string>,
         public value: Promise<any>) {
+        this.add();
+    }
+
+    private add(): void {
+        if(!NReplEvaluation.Instances.includes(this)) {
+            NReplEvaluation.Instances.push(this); 
+        }
+    } 
+
+    private remove(): void {
+        let index = NReplEvaluation.Instances.indexOf(this, 0);
+        if(index > -1) {
+            NReplEvaluation.Instances.splice(index, 1);  
+        }
+    }
+
+    private doResolve(reason?: any) {
+        if(this._resolve && !this.finished) {
+            this._resolve(reason);
+        }
+        this._finished = true;
+    }
+
+    private doReject(reason?: any) {
+        if(this.__reject && !this.finished) {
+            this.__reject(reason);
+        }   
+        this._finished = true;
     }
 
     get interrupted() {
         return(this._interruped);
+    }
+
+    get finished() {
+        return(this._finished);
     }
 
     get ns() {
@@ -542,13 +589,24 @@ export class NReplEvaluation {
     }
 
     interrupt() {
-        this._interruped = true;
-        this._exception = "Evaluation was interrupted";
-        this._stacktrace = {};
-        return this.session.interrupt(this.id);
+        if(!this.interrupted && !this.finished) {
+            this.remove();
+            this._interruped = true;
+            this._exception = "Evaluation was interrupted";
+            this._stacktrace = {};
+            this.session.interrupt(this.id).catch(() => {});
+            this.doReject(this.exception);
+            // make sure the message handler is removed.
+            delete this.session.messageHandlers[this.id];
+        }
     }
 
-    onMessage(msg: any, resolve: (reason?: any) => void, reject: (reason?: any) => void): boolean {
+    setHandlers(resolve: (reason?: any) => void, reject: (reason?: any) => void) {
+        this._resolve = resolve;
+        this.__reject = reject;
+    }
+
+    onMessage(msg: any): boolean {
         if(msg) {
             this._msgs.push(msg);
             if (msg.out) {
@@ -584,19 +642,41 @@ export class NReplEvaluation {
                 }     
             }
             if (msg.status && msg.status == "done") {
+                this.remove();
                 if (this.exception) {
                     this.session.stacktrace().then((stacktrace) => {
                         this._stacktrace = stacktrace;
-                        reject(this.exception);
+                        this.doReject(this.exception);
                     }).catch(() => { });
                 } else if (this.pprintOut) {
-                    resolve(this.pprintOut)
+                    this.doResolve(this.pprintOut)
                 } else {
-                    resolve(this.msgValue);
+                    this.doResolve(this.msgValue);
                 }
                 return true;
             }
         }
         return false;
+    }
+
+    static interruptAll(stderr: (x: string) => void): number {
+        let num = 0;
+        let items: Array<NReplEvaluation> = [];
+        NReplEvaluation.Instances.forEach((item, index) => {
+            items.push(item);
+        });
+        items.forEach((item, index) => {
+            if(!item.interrupted && !item.finished) {
+                num++;
+                try {
+                    item.interrupt();
+                } catch(e) {
+                    if(stderr) {
+                        stderr("Error interrupting evaluation: " + e);  
+                    }
+                }
+            }
+        });
+        return(num);
     }
 }

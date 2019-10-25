@@ -50,12 +50,16 @@ export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
 }
 
 class REPLWindow {
+
     evaluation: NReplEvaluation;
 
     initialized: Promise<void>;
 
     useBuffer = false;
+
     buffer = [];
+
+    private disposed = false;
 
     constructor(public panel: vscode.WebviewPanel,
         public session: NReplSession,
@@ -90,7 +94,7 @@ class REPLWindow {
                 }
 
                 if (msg.type == "read-line") {
-                    this.replEval(msg.line, this.ns, state.config().pprint).catch(() => {});
+                    this.replEval(msg.line, this.ns, state.config().pprint);
                 }
 
                 if (msg.type == "goto-file") {
@@ -122,10 +126,11 @@ class REPLWindow {
         })
 
         this.panel.onDidDispose((e) => {
+            this.disposed = true;
             delete replWindows[this.type];
             onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, "\n"));
             if(this.evaluation) {
-                this.evaluation.interrupt().catch(() => {});
+                this.evaluation.interrupt();
             }
             // first remove the close handler to avoid
             // sending any messages to the disposed webview.
@@ -180,10 +185,12 @@ class REPLWindow {
     }
 
     postMessage(msg: any) {
-        if (this.useBuffer)
+        if(!this.disposed) {
+            if (this.useBuffer)
             this.buffer.push(msg);
         else
             this.panel.webview.postMessage(msg)
+        }
     }
 
     onClose = () => {
@@ -202,7 +209,7 @@ class REPLWindow {
         this.ns = ns;
     }
 
-    async replEval(line: string, ns: string, pprint: boolean) {
+    replEval(line: string, ns: string, pprint: boolean) {
 
         this.interrupt();
 
@@ -214,18 +221,19 @@ class REPLWindow {
         })
         this.evaluation = evaluation;
 
-        await evaluation.value.then( (value) => {
+        evaluation.value.then( (value) => {
+            this.evaluation = null;
             this.postMessage({ type: "repl-response", value: value, ns: this.ns = ns || evaluation.ns || this.ns });
             if (evaluation.ns && this.ns != evaluation.ns) {
                 // the evaluation changed the namespace so set the new namespace.
                 this.setNamespace(evaluation.ns).catch(() => {});
             }
         }).catch( (exception) => {
-            this.postMessage({ type: "repl-error", ex: exception }); 
-            this.postMessage({ type: "repl-ex", ex: JSON.stringify(evaluation.stacktrace) });   
+            this.evaluation = null;
+            this.postMessage({ type: "repl-error", ex: exception, stacktrace: JSON.stringify(evaluation.stacktrace)}); 
         })
 
-        this.evaluation = null;
+        
     }
 
     executeCommand(command: string) {
@@ -269,9 +277,7 @@ class REPLWindow {
     interrupt() {
         if(this.evaluation) {
             onUserInputEmitter.fire(new ReplOnUserInputEvent(this.type, "\n"));
-            this.evaluation.interrupt().catch(() => {});
-            this.postMessage({ type: "repl-error", ex: "Evaluation interrupted."});
-            this.postMessage({ type: "repl-response", value: "",  ns: this.ns});
+            this.evaluation.interrupt();
             this.evaluation = null;
         }
     }
@@ -426,7 +432,6 @@ export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: st
         try {
             wnd.interrupt();
             wnd.evaluate(inNs, text);
-            await wnd.replEval(text, inNs, pprint);
         } catch (e) {
             vscode.window.showErrorMessage("Error running command snippet: " + e, ...["OK"]);
         }
