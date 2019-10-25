@@ -64,7 +64,7 @@ ctrl+alt+backspace                | Force Delete Backward
 ctrl+alt+delete                   | Force Delete Forward
 alt+shift+backspace (on Mac)      | Force Delete Forward
 
-NB: **Strict mode is disabled by default.** If you ensable it, the backspace and delete keys won't let you remove parentheses or brackets so they become unbalanced. To force a delete anyway, use the supplied commands for that. Strict mode can be switched on by by configuring `calva.paredit.defaultKeyMap` to `strict`.
+NB: **Strict mode is disabled by default.** If you enable it, the backspace and delete keys won't let you remove parentheses or brackets so they become unbalanced. To force a delete anyway, use the supplied commands for that. Strict mode can be switched on by by configuring `calva.paredit.defaultKeyMap` to `strict`.
 
 
 ### Copying/Yanking
