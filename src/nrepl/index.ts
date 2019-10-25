@@ -439,11 +439,6 @@ export class NReplSession {
     }
 }
 
-export interface NReplEvaluationRegistry {
-    add(instance: NReplEvaluation): void; 
-    remove(instance: NReplEvaluation): void; 
-}
-
 /**
  * A running nREPL eval call.
  */
