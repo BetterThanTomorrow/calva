@@ -85,8 +85,10 @@ class REPLWindow {
                 }
 
                 if (msg.type == "complete") {
-                    let result = await this.session.complete(this.ns, msg.symbol, msg.context);
-                    this.postMessage({ type: "complete", data: result })
+                    this.session.complete(this.ns, msg.symbol, msg.context)
+                    .then((value) => {
+                        this.postMessage({ type: "complete", data: value })
+                    }).catch((e) => {});
                 }
 
                 if (msg.type == "interrupt" && this.evaluation) {
@@ -105,8 +107,10 @@ class REPLWindow {
                 }
 
                 if (msg.type == "info") {
-                    let result = await this.session.info(msg.ns, msg.symbol);
-                    this.postMessage({ type: "info", data: result });
+                    this.session.info(msg.ns, msg.symbol)
+                    .then((value) => {
+                        this.postMessage({ type: "info", data: value });
+                    }).catch((e) => {});
                 }
 
                 if (msg.type == "focus") {
@@ -169,19 +173,23 @@ class REPLWindow {
         this.session.addOnCloseHandler(this.onClose);
     }
 
-    async reconnect() {
+    reconnect() {
         // evaluate something that really test 
         // the ability of the connected repl.
         let res = this.session.eval("(+ 1 1)");
-        await res.value.catch(() => { });
-        if (res.ns) {
-            this.ns = res.ns;
-        }
-        if (res.errorOutput) {
-            this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
-        } else {
+        res.value.then((v) => {
+            if (res.ns) {
+                this.ns = res.ns;
+            }
+            if (res.errorOutput) {
+                this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
+            } else {
+                this.postMessage({ type: "reconnected", ns: this.ns })
+            }
+        }).catch(() => { 
             this.postMessage({ type: "reconnected", ns: this.ns })
-        }
+        });
+        
     }
 
     postMessage(msg: any) {
@@ -316,7 +324,7 @@ function getImageUrl(name: string) {
 
 export async function reconnectReplWindow(mode: "clj" | "cljs") {
     if (replWindows[mode]) {
-        replWindows[mode].reconnect().catch( () => { } )
+        replWindows[mode].reconnect();
     }
 }
 
@@ -410,32 +418,40 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
-    const chan = state.outputChannel(),
-        wnd = await openReplWindow(sessionType, true);
-    if (wnd) {
-        const inNs = ns ? ns : wnd.ns;
-        if (ns && ns !== wnd.ns) {
-            try {
-                const requireEvaluation = wnd.session.eval(`(require '${ns})`)
-                await requireEvaluation.value;
-                const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
-                await inNSEvaluation.value;
-                if (inNSEvaluation) {
-                    wnd.setNamespace(inNSEvaluation.ns).catch(() => {});
+export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
+
+    openReplWindow(sessionType, true)
+        .then((v) => {
+            let wnd = replWindows[sessionType];
+            if (wnd) {
+                let inNs = ns ? ns : wnd.ns;
+                if (ns && ns !== wnd.ns) {
+                    const requireEvaluation = wnd.session.eval(`(require '${ns})`);
+                    requireEvaluation.value
+                        .then((v) => {
+                            const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
+                            inNSEvaluation.value
+                                .then((v) => {
+                                    wnd.setNamespace(inNSEvaluation.ns).then((v) => {
+                                        wnd.interrupt();
+                                        wnd.evaluate(inNs, text);
+                                    }).catch((e) => {
+                                        vscode.window.showErrorMessage("Error setting namespace: " + e);
+                                    });
+                                }).catch((e) => {
+                                    vscode.window.showErrorMessage("Error evaluation in namespace form: " + e);
+                                })
+                        }).catch((e) => {
+                            vscode.window.showErrorMessage("Error evaluation require form: " + e);
+                        })
+                } else {
+                    wnd.interrupt();
+                    wnd.evaluate(inNs, text);
                 }
-            } catch (e) {
-                vscode.window.showErrorMessage(`Error loading namespcace "${ns}" for command snippet: ${e}`, ...["OK"]);
-                return;
             }
-        }
-        try {
-            wnd.interrupt();
-            wnd.evaluate(inNs, text);
-        } catch (e) {
-            vscode.window.showErrorMessage("Error running command snippet: " + e, ...["OK"]);
-        }
-    }
+        }).catch((e) => {
+            vscode.window.showErrorMessage("Unable to open REPL window: " + e);
+        })
 }
 
 export async function setREPLNamespace(ns: string, reload = false) {
@@ -467,7 +483,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint).catch(() => {});
+        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint);
     }
 }
 
@@ -515,7 +531,7 @@ function sendCustomCommandSnippetToREPLCommand() {
                 const command = snippetsDict[pick].snippet,
                     ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false).catch(() => {});
+                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false);
             }
         }).catch(() => {});
     } else {
@@ -557,9 +573,7 @@ export function clearREPLWindow(mode: "clj" | "cljs") {
                     wnd.clearHistory();
                     wnd.panel.reveal();
                     wnd.clear();
-                    wnd.reconnect().catch((e) => {
-                        console.error(`Failed to reconnect for ${mode} REPL window: `, e);
-                    }) ;
+                    wnd.reconnect();
                 }
             }
         });
