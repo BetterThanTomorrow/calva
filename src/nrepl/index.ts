@@ -72,6 +72,9 @@ export class NReplClient {
     }
 
     close() {
+        for (let id in this.sessions) {
+            this.sessions[id].close();
+        }
         this.socket.destroy();
     }
 
@@ -115,6 +118,11 @@ export class NReplClient {
 }
 
 export class NReplSession {
+
+    private static Instances: Array<NReplSession> = [];
+
+    private _runningIds: Array<string> = [];
+
     public _onCloseHandlers: ((c: NReplSession) => void)[] = [];
 
     addOnCloseHandler(fn: (c: NReplSession) => void) {
@@ -130,6 +138,19 @@ export class NReplSession {
 
     constructor(public sessionId: string, public client: NReplClient) {
         client.sessions[sessionId] = this;
+        NReplSession.Instances.push(this);
+    }
+
+    static getInstances() {
+        return (NReplSession.Instances);
+    }
+
+    private addRunningID(id: string) {
+        if(id) {
+            if(!this._runningIds.includes(id)) {
+                this._runningIds.push(id); 
+            }
+        }
     }
 
     messageHandlers: { [id: string]: (msg: any) => boolean } = {};
@@ -137,7 +158,12 @@ export class NReplSession {
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })
+        this._runningIds = [];
         delete this.client.sessions[this.sessionId]
+        let index = NReplSession.Instances.indexOf(this);
+        if (index > -1) {
+            NReplSession.Instances.splice(index, 1);
+        }
         this._onCloseHandlers.forEach(x => x(this));
     }
 
@@ -161,6 +187,10 @@ export class NReplSession {
         if (msgData.out && !this.replType) {
             this.replType = "clj";
         }
+
+        if (!(msgData.status && msgData.status == "done")) {
+            this.addRunningID(msgData.id);
+        } 
 
         const msgValue: string = msgData.out || msgData.err;
         const msgType: string = msgData.out ? "stdout" : "stderr";
@@ -245,6 +275,7 @@ export class NReplSession {
                 }
             }
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
+            this.addRunningID(id);
             this.client.write(opMsg);
         }))
 
@@ -252,7 +283,12 @@ export class NReplSession {
     }
 
     interrupt(interruptId: string) {
-        let id = this.client.nextId;
+             
+        let index = this._runningIds.indexOf(interruptId);
+        if (index > -1) {
+            this._runningIds.splice(index, 1);
+        }
+        let id = this.client.nextId;   
         return new Promise<void>((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 resolve();
@@ -276,6 +312,7 @@ export class NReplSession {
                     return true;
                 }
             }
+            this.addRunningID(id);
             this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": opts.fileName, "file-path": opts.filePath })
         }))
 
@@ -438,6 +475,24 @@ export class NReplSession {
         })
 
     }
+
+    interruptAll(): number {
+        if(this._runningIds.length > 0) {
+            let ids: Array<string> = [];
+            this._runningIds.forEach((id, index) => {
+                ids.push(id);
+            });
+            this._runningIds = [];
+            ids.forEach((id, index) => {
+                this.interrupt(id)
+                .catch((e) => {
+    
+                });
+            });
+            return (ids.length);
+        }
+        return (0);
+    }
 }
 
 /**
@@ -467,6 +522,8 @@ export class NReplEvaluation {
 
     private _finished: boolean = false;
 
+    private _running: boolean = false;
+
     private _resolve: (reason?: any) => void;
 
     private __reject: (reason?: any) => void;
@@ -478,7 +535,6 @@ export class NReplEvaluation {
         public stdout: (x: string) => void,
         public stdin: () => Promise<string>,
         public value: Promise<any>) {
-        this.add();
     }
 
     private add(): void {
@@ -498,6 +554,7 @@ export class NReplEvaluation {
         if (this._resolve && !this.finished) {
             this._resolve(reason);
         }
+        this._running = false;
         this._finished = true;
     }
 
@@ -505,11 +562,16 @@ export class NReplEvaluation {
         if (this.__reject && !this.finished) {
             this.__reject(reason);
         }
+        this._running = false;
         this._finished = true;
     }
 
     get interrupted() {
         return (this._interruped);
+    }
+
+    get running() {
+        return (this._running);
     }
 
     get finished() {
@@ -585,7 +647,7 @@ export class NReplEvaluation {
     }
 
     interrupt() {
-        if (!this.interrupted && !this.finished) {
+        if (!this.interrupted && this.running) {
             this.remove();
             this._interruped = true;
             this._exception = "Evaluation was interrupted";
@@ -603,6 +665,8 @@ export class NReplEvaluation {
     }
 
     onMessage(msg: any): boolean {
+        this._running = true;
+        this.add();
         if (msg) {
             this._msgs.push(msg);
             if (msg.out) {
