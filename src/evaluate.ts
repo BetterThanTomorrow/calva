@@ -14,10 +14,17 @@ function interruptAllEvaluations() {
     if(util.getConnectedState()) {
         let chan = state.outputChannel();
         let msgs: string[] = [];
+
+
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
         chan.appendLine(normalizeNewLines(msgs));
+
+        NReplSession.getInstances().forEach((session, index) => {
+            session.interruptAll();
+        });
+
         if(nums < 1) {
             vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
         } else {
