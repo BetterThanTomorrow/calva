@@ -1332,12 +1332,19 @@
                     "when": "false"
                 }
             ],
-            "editor/context": [
+            "editor/title": [
                 {
-                    "when": "editorLangId == clojure && calva:connected",
-                    "command": "calva.interruptAllEvaluations",
-                    "group": "calva/z-interrupt"
+                    "enablement": "editorLangId == clojure  && calva:connected",
+                    "command": "calva.loadFile",
+                    "group": "calva/b-eval"
                 },
+                {
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "command": "calva.loadNamespace",
+                    "group": "calva/b-eval"
+                }
+            ],
+            "editor/context": [
                 {
                     "when": "editorLangId == clojure && !calva:connected",
                     "command": "calva.jackInOrConnect",
@@ -1346,12 +1353,7 @@
                 {
                     "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.disconnect",
-                    "group": "calva/x-disconnect"
-                },
-                {
-                    "when": "editorLangId == clojure",
-                    "command": "calva.togglePrettyPrint",
-                    "group": "calva/y-toggle"
+                    "group": "calva/x-connect"
                 },
                 {
                     "when": "editorLangId == clojure",
@@ -1359,52 +1361,62 @@
                     "group": "calva/a-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure  && calva:connected",
+                    "command": "calva.loadFile",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "command": "calva.loadNamespace",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateSelection",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateCurrentTopLevelForm",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateSelectionAsComment",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateTopLevelFormAsComment",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure  && calva:connected",
-                    "command": "calva.loadFile",
-                    "group": "calva/c-load"
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "command": "calva.interruptAllEvaluations",
+                    "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
-                    "command": "calva.loadNamespace",
-                    "group": "calva/c-load"
+                    "when": "editorLangId == clojure",
+                    "command": "calva.togglePrettyPrint",
+                    "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.runAllTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.runNamespaceTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.rerunTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.runTestUnderCursor",
                     "group": "calva/d-test"
                 }
