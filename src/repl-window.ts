@@ -552,27 +552,30 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentFormInREPLWindow', evalCurrentFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evalCurrentTopLevelFormInREPLWindow', evalCurrentTopLevelFormInREPLWindowCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
+
 }
 
-export function clearClojureREPLWindow() {
-    clearREPLWindow("clj")
+function clearClojureREPLWindowAndHistory() {
+    clearREPLWindowAndHistory("clj")
 }
 
-export function clearClojureScriptREPLWindow() {
-    clearREPLWindow("cljs")
+function clearClojureScriptREPLWindowAndHistory() {
+    clearREPLWindowAndHistory("cljs")
 }
 
-export function clearREPLWindow(mode: "clj" | "cljs") {
+function clearREPLWindowAndHistory(mode: "clj" | "cljs") {
     
     if(isReplWindowOpen(mode)) {
         vscode.window.showWarningMessage(
-            `Are you sure you want to clear the ${mode} REPL window?`, 
+            `Are you sure you want to clear the ${mode} REPL window and its history?`, 
             { modal: true },
             ...["Ok"])
         .then(answer => {
             if (answer == "Ok") {
                 if (replWindows[mode]) {
-                    let wnd = replWindows[mode];
+                    const wnd = replWindows[mode];
                     wnd.interrupt();
                     wnd.clearHistory();
                     wnd.panel.reveal();

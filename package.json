@@ -593,13 +593,13 @@
             },
             {
                 "command": "calva.clearClojureREPLWindow",
-                "title": "Clear Clojure REPL Window",
+                "title": "Clear Clojure REPL Window + History",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.clearClojureScriptREPLWindow",
-                "title": "Clear ClojureScript REPL Window",
+                "title": "Clear ClojureScript REPL Window + History",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },

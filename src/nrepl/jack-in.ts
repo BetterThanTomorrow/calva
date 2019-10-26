@@ -216,18 +216,18 @@ export async function calvaJackInOrConnect() {
         // REPL window open commands if needed.
         commands["Disconnect from the REPL server"] = "calva.disconnect";
         if(utilities.getSession("clj")) {
-            if(!isReplWindowOpen("clj")) {
+            if (!isReplWindowOpen("clj")) {
                 commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
-            }else {
-                commands["Clear Clojure REPL Window"] = "calva.clearClojureREPLWindow";
+            } else {
+                commands["Clear Clojure REPL Window + History"] = "calva.clearClojureREPLWindow";
             }
             
         }
         if(utilities.getSession("cljs"))  {
-            if(!isReplWindowOpen("cljs")) {
+            if (!isReplWindowOpen("cljs")) {
                 commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
             } else {
-                commands["Clear ClojureScript REPL Window"] = "calva.clearClojureScriptREPLWindow";
+                commands["Clear ClojureScript REPL Window + History"] = "calva.clearClojureScriptREPLWindow";
             }
         }
     }
