@@ -1,11 +1,7 @@
-export function activationGreetings(chan, lintEnabled) {
+export function activationGreetings(chan) {
     chan.appendLine("Happy Clojure(script) coding! ❤️");
+    chan.appendLine("The Calva Team welcome you to the #calva-dev channel of the Clojurians Slack: https://clojurians.slack.com/messages/calva-dev/");
     chan.appendLine("Please file any feature requests or bug reports here: https://github.com/BetterThanTomorrow/calva/issues");
-    chan.appendLine("I will also respond to any @pez mentions in the #calva-dev channel of the Clojurians Slack: https://clojurians.slack.com/messages/calva-dev/");
-    chan.appendLine("");
-    if (!lintEnabled) {
-        chan.appendLine("")
-        chan.appendLine("NOTE: Autolinting is disabled. You need to enable \"calva.lintOnSave\" in your editor settings to use it. But first install Joker: https://github.com/candid82/joker");
-    }
+    chan.appendLine("NOTE: Calva bundles the clj-kondo extension for your linting needs. Please see: https://calva.readthedocs.io/en/latest/linting.html");
     chan.appendLine("--");
 }

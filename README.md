@@ -31,6 +31,7 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
   - Ignore form (`#_`) dimming and `(comment)` form highlighting
 - Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
 - Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit.html))
+- [Linting](https://calva.readthedocs.io/en/latest/linting.html)
 - Intellisense
 - Go to / Peek at definition
 - View docstrings on hover

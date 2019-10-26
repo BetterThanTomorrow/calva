@@ -6,7 +6,7 @@ The recommended way is to:
 
 This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as **Jack in** (because that is what it is called in CIDER).
 
-Jack-in supports both CLJ and for CLJS, and has built-in configurations for **Leiningen**, **Clojure CLI**, and **shadow-cljs** projects, as well as for the CLJS repl types: **Figwheel Main**, **lein-fiwgheel** (legacy Figwheel), **shadow-cljs**, and Nashorn. Using jack-in provides your development environment with all the dependencies you need for Calva to work.
+Jack-in supports both CLJ and for CLJS, and has built-in configurations for **Leiningen**, **Clojure CLI**, and **shadow-cljs** projects, as well as for the CLJS repl types: **Figwheel Main**, **lein-figwheel** (legacy Figwheel), **shadow-cljs**, and Nashorn. Using jack-in provides your development environment with all the dependencies you need for Calva to work.
 
 It works like so:
 
