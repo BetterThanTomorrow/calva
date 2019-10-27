@@ -19,4 +19,4 @@ Now might be a good time to see [Calva Top 10 Commands](commands-top10.md)
 
 Did you know? There is a complete list of Calva settings and commands in the *Contributions* tab of the Calva entry in the *Extensions* pane in VS Code. 
 
-![The Clava Contributions Tab](https://user-images.githubusercontent.com/30010/66733740-c754b800-ee60-11e9-877b-962f6b920cd7.png)
+![The Calva Contributions Tab](https://user-images.githubusercontent.com/30010/66733740-c754b800-ee60-11e9-877b-962f6b920cd7.png)

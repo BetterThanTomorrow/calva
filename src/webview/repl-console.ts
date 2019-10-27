@@ -312,6 +312,16 @@ export class ReplConsole {
         }
     }
 
+    printElementBeforeReadline(element: HTMLElement) {
+        if (!this.readline) {
+            this.elem.appendChild(element);
+            element.scrollIntoView({ block: "nearest" });
+        } else {
+            this.elem.insertBefore(element, this.readline.elem);
+            this.readline.elem.scrollIntoView({ block: "nearest" });
+        }
+    }
+
     print(text: string) {
         let el = document.createElement("div");
         el.textContent = text;
@@ -336,8 +346,14 @@ export class ReplConsole {
             this.requestPrompt(this.readline.promptElem.textContent);
             return;
         }
-        this.history.push(line);
-        this._historyListeners.forEach(x => x(line));
+        let last = "";
+        if(this.history.length > 0) {
+           last = this.history[this.history.length - 1];
+        }
+        if(last != line.trim()) {
+            this.history.push(line.trim());
+            this._historyListeners.forEach(x => x(line));
+        }
         this.historyIndex = -1;
         this.readline.freeze();
         if (trigger)
@@ -353,6 +369,16 @@ export class ReplConsole {
         this.input.disabled = false;
         this.input.focus();
         this.readline.mainElem.scrollIntoView({ block: "end" })
+    }
+
+    clear() {
+        this.readline.clearCompletion();
+        while(this.elem.firstChild) {
+            this.elem.removeChild(this.elem.firstChild);
+        }
+        this.setText("");
+        this.readline.freeze();
+        this.readline.repaint();
     }
 
     onRepaint = () => { };
@@ -612,22 +638,28 @@ export class ReplConsole {
                 this.historyIndex = this.history.length;
             this.historyIndex--;
             let line = this.history[this.historyIndex] || "";
-            this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                this.readline.selectionStart = this.readline.selectionEnd = line.length;
-            })
+             // this is a hack because there is a bug in the repaint method.
+            // 1. Clear the model and repaint.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, "");
             this.readline.repaint();
+            // 2. Set the new line and set the selection at the end of the line.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+            this.readline.selectionStart = this.readline.selectionEnd = line.length;
+            this.readline.repaint();       
         },
         "history-down": () => {
             if (this.historyIndex == this.history.length || this.historyIndex == -1)
                 return;
             this.historyIndex++;
             let line = this.history[this.historyIndex] || "";
-            this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                this.readline.selectionStart = this.readline.selectionEnd = line.length;
-            })
+            // this is a hack because there is a bug in the repaint method.
+            // 1. Clear the model and repaint.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, "");
             this.readline.repaint();
+            // 2. Set the new line and set the selection at the end of the line.
+            this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+            this.readline.selectionStart = this.readline.selectionEnd = line.length;
+            this.readline.repaint(); 
         },
         "submit": () => {
             this.submitLine(true, false)

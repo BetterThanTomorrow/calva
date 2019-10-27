@@ -39,7 +39,7 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        EvaluateMiddleWare.loadFile(document);
+        EvaluateMiddleWare.loadFile(document).catch(() => {});
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
 }
@@ -76,7 +76,7 @@ function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
             .then(v => {
                 if (v == BUTTON_GOTO_DOC) {
-                    open(CONNECT_SEQUENCES_DOC_URL);
+                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => {});
                 }
             })
     }
@@ -120,6 +120,7 @@ function activate(context: vscode.ExtensionContext) {
             chan.show(true);
         });
     }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', EvaluateMiddleWare.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', EvaluateMiddleWare.evaluateTopLevelForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
@@ -138,8 +139,6 @@ function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.clearREPLWindowHistory', replWindow.clearHistory));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
@@ -212,7 +211,7 @@ function activate(context: vscode.ExtensionContext) {
                 .then(v => {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
-                        open(VIM_DOC_URL);
+                        open(VIM_DOC_URL).catch(() => {});
                     }
                 })
         }
