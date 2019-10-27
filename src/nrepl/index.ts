@@ -193,24 +193,20 @@ export class NReplSession {
         } 
 
         const msgValue: string = msgData.out || msgData.err;
-        const msgType: string = msgData.out ? "stdout" : "stderr";
+        const isError: boolean = msgData.out ? false : true;
+        const msdId: string = msgData.id ? msgData.id : 'unknown';
 
         if (msgValue && this.replType) {
-            const window = replWindow.getReplWindow(this.replType);
-            const windowMsg = {
-                type: msgType,
-                value: msgValue
-            };
-
             const outputChan = state.config().asyncOutputDestination;
+            let msgText = `<repl#${msdId}>` + msgValue.replace(/\n\r?$/, "");
 
             if (outputChan == "REPL Window") {
-                window.postMessage(windowMsg);
+                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
             } else if (outputChan == "Calva says") {
-                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+                state.outputChannel().appendLine(msgText);
             } else if (outputChan == "Both") {
-                window.postMessage(windowMsg);
-                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
+                state.outputChannel().appendLine(msgText);
             }
         }
     }

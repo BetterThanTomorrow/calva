@@ -312,6 +312,16 @@ export class ReplConsole {
         }
     }
 
+    printElementBeforeReadline(element: HTMLElement) {
+        if (!this.readline) {
+            this.elem.appendChild(element);
+            element.scrollIntoView({ block: "nearest" });
+        } else {
+            this.elem.insertBefore(element, this.readline.elem);
+            this.readline.elem.scrollIntoView({ block: "nearest" });
+        }
+    }
+
     print(text: string) {
         let el = document.createElement("div");
         el.textContent = text;

@@ -408,7 +408,7 @@ function updateDoc(msg: any) {
 function hasUserInput() {
     let element = document.getElementById("repl-user-input");
     if(element) {
-       return(true);
+       return(element);
     } 
     return(false); 
 }
@@ -469,7 +469,17 @@ function runStoredEvaluation() {
     evaluationForm = "";
 }
 
-
+function showAsyncOutput(classname: string, id: string, text: string) {
+    text = `<repl#${id}>`+ text;
+    let el = document.createElement("div");
+    el.innerHTML = ansi.toHtml(escapeHTML(text));
+    el.className = classname;
+    con.printElementBeforeReadline(el);
+    let userinput = hasUserInput();
+    if(userinput) {
+        userinput.scrollIntoView({ block: "end" });
+    }
+}
 
 window.onmessage = (msg) => {
 
@@ -593,6 +603,12 @@ window.onmessage = (msg) => {
         updateCompletion(msg);
     }
 
-    
+    if (msg.data.type == "async-stdout") {
+        showAsyncOutput("output", msg.data.id, msg.data.value);
+    }
+
+    if (msg.data.type == "async-stderr") {
+        showAsyncOutput("error", msg.data.id, msg.data.value);
+    } 
 }
 message.postMessage({ type: "init" });

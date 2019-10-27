@@ -173,6 +173,14 @@ class REPLWindow {
         this.session.addOnCloseHandler(this.onClose);
     }
 
+    sendAsyncOutput(id: string, text: string) {
+        this.postMessage({type: 'async-stdout', id: id, value: text});
+    }
+
+    sendAsyncErrorOutput(id: string, text: string) {
+        this.postMessage({type: 'async-stderr', id: id, value: text});
+    }
+
     reconnect() {
         // evaluate something that really test 
         // the ability of the connected repl.
@@ -324,6 +332,16 @@ function getImageUrl(name: string) {
         imagepath = path.join(ctx.extensionPath, "assets/images/empty.svg");
     }
     return vscode.Uri.file(imagepath);
+}
+
+export function showAsyncOutput(mode: "clj" | "cljs", id: string, text: string, isError: boolean) {
+    if (replWindows[mode] && text.trim() != '') {
+        if(isError) {
+            replWindows[mode].sendAsyncErrorOutput(id, text);
+        } else {
+            replWindows[mode].sendAsyncOutput(id, text);
+        }  
+    }
 }
 
 export async function reconnectReplWindow(mode: "clj" | "cljs") {
