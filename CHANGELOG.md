@@ -7,6 +7,7 @@ Changes to Calva.
 - Command for clearing the REPL history reworked and now also ”restarts” the REPL window.
 - Commands are now added to REPL window history only if they are not identical to the previous command on the history stack.
 - [Fix floating promises in evelauation module](https://github.com/BetterThanTomorrow/calva/issues/411)
+- REPL Window Evaluation errors now initially hide the stack trace. The user can show it with a click.
 
 ## [2.0.54] - 2019-10-25
 - [Stop linting, start bundling clj-kondo](https://github.com/BetterThanTomorrow/calva/issues/423)
