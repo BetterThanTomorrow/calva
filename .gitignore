@@ -48,11 +48,14 @@ jspm_packages
 lib/
 cljs-out/
 test-out/
+
+# This and that
 .nrepl-port
 dist/
 pom.xml
 .idea
 *.iml
+*.bak
 
 
 ## TS

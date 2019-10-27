@@ -9,8 +9,12 @@ const message = acquireVsCodeApi();
 
 const ansi = new Ansi();
 
+let evaluationForm = "";
+let evaluationNS = "";
+let inEvaluation = false;
 let ns = "user";
 let con = new ReplConsole(document.querySelector(".repl"), (line, pprint) => {
+    inEvaluation = true;
     message.postMessage({ type: "read-line", line: line, pprint: pprint })
 });
 
@@ -107,6 +111,9 @@ function createStackTrace(exception: any) {
     control.appendChild(java)
     control.appendChild(tool)
     control.appendChild(dup)
+
+    // make the 'none' view the default.
+    all.click();
 
     let stack = [];
     for (let x of exception.stacktrace) {
@@ -401,11 +408,101 @@ function updateDoc(msg: any) {
     }
 }
 
+function hasUserInput() {
+    let element = document.getElementById("repl-user-input");
+    if(element) {
+       return(element);
+    } 
+    return(false); 
+}
+
+function removeUserInput() {
+    let element = document.getElementById("repl-user-input");
+    if(element) {
+        message.postMessage({ type: "user-input", line: "" });
+        element.remove();
+    }  
+}
+
+function showUserInput() {
+
+    removeUserInput();
+    let div = document.createElement("div");
+    div.id = "repl-user-input";
+    //div.className = "content"
+    let input = document.createElement("input");
+    input.style.width = "100%";
+    input.className = "userinput"
+    input.addEventListener("keydown", e => {
+        switch (e.keyCode) {
+            case 13: // return
+                message.postMessage({ type: "user-input", line: input.value });
+                let el = document.createElement("div");
+                el.innerHTML = ansi.toHtml(escapeHTML(input.value));
+                el.className = "output";
+                con.printElement(el);
+                removeUserInput();
+        }
+    });
+    div.appendChild(input);
+    con.printElement(div);
+    input.focus();
+}
+
+function storeEvaluation(ns: string, form: string) {
+    evaluationNS = String(ns).trim();
+    evaluationForm = String(form).trim();
+}
+
+function runEvaluation(ns: string, form: string) {
+    if (con.readline && ns && form) {
+        con.readline.promptElem.textContent = ns + "=> ";
+        originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
+        [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
+        con.setText(form);
+        con.submitLine(true);
+    }    
+}
+
+function runStoredEvaluation() {
+    if (evaluationNS && evaluationForm) {
+        runEvaluation(evaluationNS, evaluationForm);
+    }
+    evaluationNS = "";
+    evaluationForm = "";
+}
+
+function showAsyncOutput(classname: string, id: string, text: string) {
+    text = `<repl#${id}>`+ text;
+    let el = document.createElement("div");
+    el.innerHTML = ansi.toHtml(escapeHTML(text));
+    el.className = classname;
+    con.printElementBeforeReadline(el);
+    let userinput = hasUserInput();
+    if(userinput) {
+        userinput.scrollIntoView({ block: "end" });
+    }
+}
+
 window.onmessage = (msg) => {
+
     if (msg.data.type == "init") {
         ns = msg.data.ns;
         con.setHistory(msg.data.history);
         con.requestPrompt(ns + "=> ")
+    }
+
+    if (msg.data.type == "clear") {
+        message.postMessage({ type: "interrupt" });
+        removeUserInput();
+        ns = msg.data.ns;
+        con.setHistory(msg.data.history);
+        con.clear();
+        con.requestPrompt(ns + "=> ")
+    }
+
+    if (msg.data.type == "need-input") {
+        showUserInput();
     }
 
     if (msg.data.type == "paredit-keymap") {
@@ -418,34 +515,63 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "repl-response") {
+        inEvaluation = false;
+        removeUserInput();
         renderReplResponse(msg.data.ns, msg.data.value);
         restorePrompt();
-    }
-
-    if (msg.data.type == "do-eval") {
-        if (con.readline) {
-            con.readline.promptElem.textContent = msg.data.ns + "=> ";
-            originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
-            [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
-            con.setText(msg.data.value);
-            con.submitLine(false);
-        }
-    }
-
-    if (msg.data.type == "set-ns!") {
-        ns = msg.data.ns;
-        con.readline.promptElem.textContent = msg.data.ns + "=> ";
+        runStoredEvaluation();
     }
 
     if (msg.data.type == "repl-error") {
+        inEvaluation = false;
+        removeUserInput();
         let div = document.createElement("div")
         div.className = "error"
         div.innerHTML = ansi.toHtml(msg.data.ex);
         con.printElement(div);
+        let exception = JSON.parse(msg.data.stacktrace);
+        if(exception && exception.stacktrace) {
+            let stackView = createStackTrace(exception);
+            con.printElement(stackView);
+        }
         restorePrompt();
+        runStoredEvaluation();
+    }
+
+    if (msg.data.type == "stdout") {
+        removeUserInput();
+        let el = document.createElement("div");
+        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+        el.className = "output";
+        con.printElement(el);
+    }
+
+    if (msg.data.type == "stderr") {
+        removeUserInput();
+        let div = document.createElement("div")
+        div.className = "error"
+        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+        con.printElement(div);
+    }
+
+    if (msg.data.type == "do-eval") {
+        if(hasUserInput() || inEvaluation) {
+           removeUserInput();
+           message.postMessage({ type: "interrupt" });
+           storeEvaluation(msg.data.ns, msg.data.value);
+           return; 
+        }
+        runEvaluation(msg.data.ns, msg.data.value);
+    }
+
+    if (msg.data.type == "set-ns!") {
+        removeUserInput();
+        ns = msg.data.ns;
+        con.readline.promptElem.textContent = msg.data.ns + "=> ";
     }
 
     if (msg.data.type == "disconnected") {
+        removeUserInput();
         let div = document.createElement("div");
         div.className = "error";
         div.textContent = "REPL disconnected."
@@ -455,41 +581,37 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "reconnected") {
+        removeUserInput();
         let div = document.createElement("div");
         ns = msg.data.ns;
         div.className = "winnage";
         div.textContent = "REPL connected."
         con.printElement(div);
-        restorePrompt();
-    }
-
-    if (msg.data.type == "repl-ex") {
-        let exception = JSON.parse(msg.data.ex);
-        let stackView = createStackTrace(exception);
-        con.printElement(stackView);
+        if(msg.data.value) {
+            div = document.createElement("div")
+            div.className = "error"
+            div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+            con.printElement(div); 
+        }
         restorePrompt();
     }
 
     if (msg.data.type == "info") {
+        removeUserInput();
         updateDoc(msg.data);
     }
 
-    if (msg.data.type == "stdout") {
-        let el = document.createElement("div");
-        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-        el.className = "output";
-        con.printElement(el);
-    }
-
     if (msg.data.type == "complete") {
+        removeUserInput();
         updateCompletion(msg);
     }
 
-    if (msg.data.type == "stderr") {
-        let div = document.createElement("div")
-        div.className = "error"
-        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-        con.printElement(div);
+    if (msg.data.type == "async-stdout") {
+        showAsyncOutput("output", msg.data.id, msg.data.value);
     }
+
+    if (msg.data.type == "async-stderr") {
+        showAsyncOutput("error", msg.data.id, msg.data.value);
+    } 
 }
 message.postMessage({ type: "init" });

@@ -6,8 +6,34 @@ import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
 import { activeReplWindow } from './repl-window';
-import { NReplSession } from './nrepl';
+import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar'
+
+function interruptAllEvaluations() {
+    
+    if(util.getConnectedState()) {
+        let chan = state.outputChannel();
+        let msgs: string[] = [];
+
+
+        let nums = NReplEvaluation.interruptAll((msg) => {
+            msgs.push(msg);
+        })
+        chan.appendLine(normalizeNewLines(msgs));
+
+        NReplSession.getInstances().forEach((session, index) => {
+            session.interruptAll();
+        });
+
+        if(nums < 1) {
+            vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
+        } else {
+            vscode.window.showInformationMessage(`Interupted ${nums} running evaluation(s).`);
+        }
+        return;
+    }    
+    vscode.window.showInformationMessage("Not connected to a REPL server");
+}
 
 function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
     const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
@@ -117,23 +143,28 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 async function loadFile(document = {}, callback = () => { }) {
@@ -150,17 +181,19 @@ async function loadFile(document = {}, callback = () => { }) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
 
-        let value = await client.loadFile(doc.getText(), {
+        let res = client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
             stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)
-        }).value;
-
-        if (value !== null)
-            chan.appendLine("=> " + value);
-        else
-            chan.appendLine("No results from file evaluation.");
+        })
+        await res.value.then((value) => {
+            if(value) {
+               chan.appendLine("=> " + value); 
+            } else {
+               chan.appendLine("No results from file evaluation."); 
+            }
+        }).catch(() => {});
     }
     callback();
 }
@@ -199,6 +232,7 @@ async function togglePrettyPrint() {
 };
 
 export default {
+    interruptAllEvaluations,
     loadFile,
     evaluateCurrentForm,
     evaluateTopLevelForm,

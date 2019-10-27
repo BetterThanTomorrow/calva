@@ -61,6 +61,20 @@ img {
   }
 }
 
+.userinput {
+  color: var(--vscode-editor-foreground);
+  background-color: var(--vscode-editor-background);
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  font-weight: var(--vscode-editor-font-weight);
+  border: none;
+  padding-top: 5px;
+}
+
+input[class*="userinput"]:focus {
+    outline: none;
+}
+
 .output {
   white-space: pre;
   color: var(--vscode-editorWarning-foreground);

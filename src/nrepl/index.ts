@@ -2,6 +2,7 @@ import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as replWindow from './../repl-window';
+import * as util from '../utilities';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -71,6 +72,9 @@ export class NReplClient {
     }
 
     close() {
+        for (let id in this.sessions) {
+            this.sessions[id].close();
+        }
         this.socket.destroy();
     }
 
@@ -114,6 +118,11 @@ export class NReplClient {
 }
 
 export class NReplSession {
+
+    private static Instances: Array<NReplSession> = [];
+
+    private _runningIds: Array<string> = [];
+
     public _onCloseHandlers: ((c: NReplSession) => void)[] = [];
 
     addOnCloseHandler(fn: (c: NReplSession) => void) {
@@ -129,6 +138,19 @@ export class NReplSession {
 
     constructor(public sessionId: string, public client: NReplClient) {
         client.sessions[sessionId] = this;
+        NReplSession.Instances.push(this);
+    }
+
+    static getInstances() {
+        return (NReplSession.Instances);
+    }
+
+    private addRunningID(id: string) {
+        if(id) {
+            if(!this._runningIds.includes(id)) {
+                this._runningIds.push(id); 
+            }
+        }
     }
 
     messageHandlers: { [id: string]: (msg: any) => boolean } = {};
@@ -136,7 +158,12 @@ export class NReplSession {
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })
+        this._runningIds = [];
         delete this.client.sessions[this.sessionId]
+        let index = NReplSession.Instances.indexOf(this);
+        if (index > -1) {
+            NReplSession.Instances.splice(index, 1);
+        }
         this._onCloseHandlers.forEach(x => x(this));
     }
 
@@ -161,25 +188,25 @@ export class NReplSession {
             this.replType = "clj";
         }
 
+        if (!(msgData.status && msgData.status == "done")) {
+            this.addRunningID(msgData.id);
+        } 
+
         const msgValue: string = msgData.out || msgData.err;
-        const msgType: string = msgData.out? "stdout" : "stderr";
+        const isError: boolean = msgData.out ? false : true;
+        const msdId: string = msgData.id ? msgData.id : 'unknown';
 
         if (msgValue && this.replType) {
-            const window = replWindow.getReplWindow(this.replType);
-            const windowMsg = {
-                type: msgType,
-                value: msgValue
-            };
-
             const outputChan = state.config().asyncOutputDestination;
+            let msgText = `<${this.replType}-repl#${msdId}>` + msgValue.replace(/\n\r?$/, "");
 
             if (outputChan == "REPL Window") {
-                window.postMessage(windowMsg);
+                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
             } else if (outputChan == "Calva says") {
-                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+                state.outputChannel().appendLine(msgText);
             } else if (outputChan == "Both") {
-                window.postMessage(windowMsg);
-                state.outputChannel().appendLine(msgValue.replace(/\n\r?$/, ""));
+                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
+                state.outputChannel().appendLine(msgText);
             }
         }
     }
@@ -190,7 +217,7 @@ export class NReplSession {
             if (res)
                 delete this.messageHandlers[data.id];
         } else {
-            this._defaultMessageHandler(data).then(() => {}, () => {});
+            this._defaultMessageHandler(data).then(() => { }, () => { });
         }
     }
 
@@ -227,7 +254,7 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, pprint?: boolean } = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprint?: boolean } = {}) {
         const id = this.client.nextId,
             pprintOpts = opts.pprint ? {
                 "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
@@ -236,44 +263,15 @@ export class NReplSession {
                 }
             } : {};
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
-            let ex;
-            let value;
+        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (msg.out)
-                    evaluation.out(msg.out)
-                if (msg.err)
-                    evaluation.err(msg.err)
-                if (msg.ns)
-                    evaluation.ns = msg.ns;
-                if (msg.ex) {
-                    ex = msg.ex;
-                    setTimeout(() => {
-                        reject(ex);
-                    }, 1000);
-                }
-                if (msg.value != undefined)
-                    value = msg.value
-                if (msg["pprint-out"])
-                    evaluation.pprintOut = msg["pprint-out"];
-                if (msg.status && msg.status == "done") {
-                    if (ex)
-                        reject(ex);
-                    else if (value)
-                        resolve(value);
-                    else if (evaluation.pprintOut)
-                        resolve(evaluation.pprintOut)
-                    else
-                        resolve("");
-                    return true;
-                }
-                if (msg.status && msg.status == "need-input") {
-                    resolve("user input is not yet supported in Calva");
-                    this.stdin("\n");
+                evaluation.setHandlers(resolve, reject);
+                if (evaluation.onMessage(msg)) {
                     return true;
                 }
             }
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
+            this.addRunningID(id);
             this.client.write(opMsg);
         }))
 
@@ -281,7 +279,12 @@ export class NReplSession {
     }
 
     interrupt(interruptId: string) {
-        let id = this.client.nextId;
+             
+        let index = this._runningIds.indexOf(interruptId);
+        if (index > -1) {
+            this._runningIds.splice(index, 1);
+        }
+        let id = this.client.nextId;   
         return new Promise<void>((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 resolve();
@@ -296,24 +299,16 @@ export class NReplSession {
     }
 
     loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
-        
+
         let id = this.client.nextId;
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, new Promise((resolve, reject) => {
+        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
-                if (msg.value)
-                    resolve(msg.value);
-                if (msg.out)
-                    evaluation.out(msg.out)
-                if (msg.err)
-                    evaluation.out(msg.err)
-                if (msg.ex) {
-                    this.stacktrace().then(ex => reject(ex)).catch(reason => {
-                        console.error("Problems processing the stack trace: ", reason);
-                    });
-                }
-                if (msg.status && msg.status.indexOf("done") != -1)
+                evaluation.setHandlers(resolve, reject);
+                if (evaluation.onMessage(msg)) {
                     return true;
+                }
             }
+            this.addRunningID(id);
             this.client.write({ op: "load-file", session: this.sessionId, file, id, "file-name": opts.fileName, "file-path": opts.filePath })
         }))
 
@@ -476,27 +471,171 @@ export class NReplSession {
         })
 
     }
+
+    interruptAll(): number {
+        if(this._runningIds.length > 0) {
+            let ids: Array<string> = [];
+            this._runningIds.forEach((id, index) => {
+                ids.push(id);
+            });
+            this._runningIds = [];
+            ids.forEach((id, index) => {
+                this.interrupt(id)
+                .catch((e) => {
+    
+                });
+            });
+            return (ids.length);
+        }
+        return (0);
+    }
 }
 
 /**
  * A running nREPL eval call.
  */
 export class NReplEvaluation {
-    constructor(public id: string, public session: NReplSession, public stderr: (x: string) => void, public stdout: (x: string) => void, public value: Promise<any>) {
+
+    private static Instances: Array<NReplEvaluation> = [];
+
+    private _ns: string;
+
+    private _msgValue: any;
+
+    private _pprintOut: string;
+
+    private _outPut: String;
+
+    private _errorOutput: String;
+
+    private _exception: String;
+
+    private _stacktrace: any;
+
+    private _msgs: any[] = [];
+
+    private _interruped: boolean = false;
+
+    private _finished: boolean = false;
+
+    private _running: boolean = false;
+
+    private _resolve: (reason?: any) => void;
+
+    private __reject: (reason?: any) => void;
+
+    constructor(
+        public id: string,
+        public session: NReplSession,
+        public stderr: (x: string) => void,
+        public stdout: (x: string) => void,
+        public stdin: () => Promise<string>,
+        public value: Promise<any>) {
     }
 
-    ns: string;
+    private add(): void {
+        if (!NReplEvaluation.Instances.includes(this)) {
+            NReplEvaluation.Instances.push(this);
+        }
+    }
 
-    pprintOut: string;
+    private remove(): void {
+        let index = NReplEvaluation.Instances.indexOf(this, 0);
+        if (index > -1) {
+            NReplEvaluation.Instances.splice(index, 1);
+        }
+    }
+
+    private doResolve(reason?: any) {
+        if (this._resolve && !this.finished) {
+            this._resolve(reason);
+        }
+        this._running = false;
+        this._finished = true;
+    }
+
+    private doReject(reason?: any) {
+        if (this.__reject && !this.finished) {
+            this.__reject(reason);
+        }
+        this._running = false;
+        this._finished = true;
+    }
+
+    get interrupted() {
+        return (this._interruped);
+    }
+
+    get running() {
+        return (this._running);
+    }
+
+    get finished() {
+        return (this._finished);
+    }
+
+    get ns() {
+        return (this._ns);
+    }
+
+    get msgValue() {
+        if (this._msgValue) {
+            return (this._msgValue);
+        }
+        return ("");
+    }
+
+    get pprintOut() {
+        return (this._pprintOut);
+    }
+
+    get hasException() {
+        if (this._exception) {
+            return (true)
+        }
+        return (false);
+    }
+
+    get exception() {
+        return (this._exception);
+    }
+
+    get stacktrace() {
+        return (this._stacktrace);
+    }
+
+    get msgs() {
+        return (this._msgs);
+    }
+
+    get outPut() {
+        return (this._outPut);
+    }
 
     out(message: string) {
-        if (this.stdout)
+        if (!this._outPut) {
+            this._outPut = message;
+        } else {
+            this._outPut += message;
+        }
+        if (this.stdout && !this.interrupted) {
             this.stdout(message);
+        }
+    }
+
+    get errorOutput() {
+        return (this._errorOutput);
     }
 
     err(message: string) {
-        if (this.stderr)
+        if (!this.errorOutput) {
+            this._errorOutput = message;
+        } else {
+            this._errorOutput += message;
+        }
+        if (this.stderr && !this.interrupted) {
             this.stderr(message);
+        }
     }
 
     in(message: string) {
@@ -504,6 +643,105 @@ export class NReplEvaluation {
     }
 
     interrupt() {
-        return this.session.interrupt(this.id);
+        if (!this.interrupted && this.running) {
+            this.remove();
+            this._interruped = true;
+            this._exception = "Evaluation was interrupted";
+            this._stacktrace = {};
+            this.session.interrupt(this.id).catch(() => { });
+            this.doReject(this.exception);
+            // make sure the message handler is removed.
+            delete this.session.messageHandlers[this.id];
+        }
+    }
+
+    setHandlers(resolve: (reason?: any) => void, reject: (reason?: any) => void) {
+        this._resolve = resolve;
+        this.__reject = reject;
+    }
+
+    onMessage(msg: any): boolean {
+        this._running = true;
+        this.add();
+        if (msg) {
+            this._msgs.push(msg);
+            if (msg.out) {
+                this.out(msg.out)
+            }
+            if (msg.err) {
+                this.err(msg.err)
+            }
+            if (msg.ns) {
+                this._ns = msg.ns;
+            }
+            if (msg.ex) {
+                this._exception = msg.ex;
+            }
+            if (msg.value != undefined) {
+                this._msgValue = msg.value
+            }
+            if (msg["pprint-out"]) {
+                this._pprintOut = msg["pprint-out"];
+            }
+            if (msg.status && msg.status == "need-input") {
+                if (this.stdin) {
+                    this.stdin().then((line) => {
+                        let input = String(line).trim();
+                        this.session.stdin(`${input}\n`);
+                    }).catch((reason) => {
+                        this.err("Failed to retrieve input: " + reason);
+                        this.session.stdin('\n');
+                    })
+                } else {
+                    util.promptForUserInputString("REPL Input:")
+                        .then(input => {
+                            if (input !== undefined) {
+                                this.session.stdin(`${input}\n`);
+                            } else {
+                                this.out("No input provided.");
+                                this.session.stdin('\n');
+                            }
+                        }).catch((e) => {
+                            this.session.stdin('\n');
+                        });
+                }
+            }
+            if (msg.status && msg.status == "done") {
+                this.remove();
+                if (this.exception) {
+                    this.session.stacktrace().then((stacktrace) => {
+                        this._stacktrace = stacktrace;
+                        this.doReject(this.exception);
+                    }).catch(() => { });
+                } else if (this.pprintOut) {
+                    this.doResolve(this.pprintOut)
+                } else {
+                    this.doResolve(this.msgValue);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static interruptAll(stderr: (x: string) => void): number {
+        let num = 0;
+        let items: Array<NReplEvaluation> = [];
+        NReplEvaluation.Instances.forEach((item, index) => {
+            items.push(item);
+        });
+        items.forEach((item, index) => {
+            if (!item.interrupted && !item.finished) {
+                num++;
+                try {
+                    item.interrupt();
+                } catch (e) {
+                    if (stderr) {
+                        stderr("Error interrupting evaluation: " + e);
+                    }
+                }
+            }
+        });
+        return (num);
     }
 }
