@@ -1,6 +1,6 @@
 {
     "name": "calva",
-    "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
+    "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
     "version": "2.0.55",
