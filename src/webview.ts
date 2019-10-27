@@ -112,6 +112,9 @@ function createStackTrace(exception: any) {
     control.appendChild(tool)
     control.appendChild(dup)
 
+    // make the 'none' view the default.
+    all.click();
+
     let stack = [];
     for (let x of exception.stacktrace) {
         let line = document.createElement("tr");
