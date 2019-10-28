@@ -497,7 +497,7 @@ window.onmessage = (msg) => {
         removeUserInput();
         ns = msg.data.ns;
         con.setHistory(msg.data.history);
-        con.clear();
+        con.commands["clear-window"]
         con.requestPrompt(ns + "=> ")
     }
 
