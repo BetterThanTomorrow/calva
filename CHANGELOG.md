@@ -1,7 +1,7 @@
 # Change Log 
 Changes to Calva.
 
-## [Unreleased]
+## [Unreleased] 
 - [REPL colours and logo get too much attention](https://github.com/BetterThanTomorrow/calva/issues/303)
 
 ## [2.0.55] - 2019-10-27
