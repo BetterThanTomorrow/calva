@@ -3,6 +3,7 @@ import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as replWindow from './../repl-window';
 import * as util from '../utilities';
+import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -257,16 +258,16 @@ export class NReplSession {
     eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprint?: boolean } = {}) {
         const id = this.client.nextId,
             pprintOpts = opts.pprint ? {
-                "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
-                "nrepl.middleware.print/options": {
-                    "width": 120,
-                }
+                // "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
+                // "nrepl.middleware.print/options": {
+                //     "width": 120,
+                // }
             } : {};
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
-                if (evaluation.onMessage(msg)) {
+                if (evaluation.onMessage(msg, opts.pprint)) {
                     return true;
                 }
             }
@@ -660,7 +661,7 @@ export class NReplEvaluation {
         this.__reject = reject;
     }
 
-    onMessage(msg: any): boolean {
+    onMessage(msg: any, pprint = false): boolean {
         this._running = true;
         this.add();
         if (msg) {
@@ -716,7 +717,16 @@ export class NReplEvaluation {
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
                 } else {
-                    this.doResolve(this.msgValue);
+                    let printValue = this.msgValue;
+                    if (pprint) {
+                        const pretty = prettyPrint(this.msgValue);
+                        if (!pretty.error) {
+                            printValue = pretty.value;
+                        } else {
+                            this.err(pretty.error);
+                        }
+                    }
+                    this.doResolve(printValue);
                 }
                 return true;
             }
