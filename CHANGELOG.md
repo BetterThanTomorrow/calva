@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [REPL window freezes when the evaluation takes a long time](https://github.com/BetterThanTomorrow/calva/issues/128) 
+- [REPL window gets sluggish with large data structures](https://github.com/BetterThanTomorrow/calva/issues/228)
 - [REPL colours and logo get too much attention](https://github.com/BetterThanTomorrow/calva/issues/303)
 
 ## [2.0.55] - 2019-10-27
