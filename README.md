@@ -61,15 +61,15 @@ I'm glad you are reading this section! There are many ways and you are welcome t
 * Fix typos. In the UI and in the docs. It might seem like a small enough thing to not bother about it, but really, typos get in the way of comprehension. Typos are bad, uhm?
 * Become a GitHub sponsor. Read on.
 
+## Calva Sponsors ❤️
+
 A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
 
-* [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
+[![](https://avatars3.githubusercontent.com/u/30010?s=30) Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
 
 Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
 
-## Calva Sponsors ❤️
-
-A huge thank you to these generous people! You are much encouraging Calva development.
+A huge thank you to the following generous people! You are much encouraging Calva development.
 
 ### Calva Fans
 
