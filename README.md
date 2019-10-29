@@ -53,9 +53,29 @@ Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
 ## How to contribute
 
-I'm glad you are reading this section!
+I'm glad you are reading this section! There are many ways and you are welcome to combine them at will. Be creative 😄:
+* Give us feedback.
+  * Via [#calva-dev](https://clojurians.slack.com/messages/calva-dev/) at the Clojurians Slack.
+  * Via filing issues.
+* Fix issues. PRs welcome! Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva. TL;DR _It is super easy to get started!_
+* Fix typos. In the UI and in the docs. It might seem like a small enough thing to not bother about it, but really, typos get in the way of comprehension. Typos are bad, uhm?
+* Become a GitHub sponsor. Read on.
 
-Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
+
+* [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
+
+Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
+
+## Calva Sponsors ❤️
+
+A huge thank you to these generous people! You are much encouraging Calva development.
+
+### Calva Fans
+
+[![Bozhidar Batsov](https://avatars0.githubusercontent.com/u/103882?s=32)](https://github.com/bbatsov)
+[![Adam Feldman](https://avatars0.githubusercontent.com/u/133385?s=32)](https://github.com/adamfeldman)
+[![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
 
 ## The Calva Team
 
@@ -74,4 +94,4 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 
 ## Happy coding ❤️
 
-We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.
+We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [#calva-dev](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.
