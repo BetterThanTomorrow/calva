@@ -312,8 +312,8 @@ let ctx: vscode.ExtensionContext
 
 let replWindows: { [id: string]: REPLWindow } = {};
 let replViewColum: { [id: string]: vscode.ViewColumn } = {
-    "clj": vscode.ViewColumn.Two,
-    "cljs": vscode.ViewColumn.Two
+    "clj": state.config().initialREPLWindowViewColum,
+    "cljs": state.config().initialREPLWindowViewColum
 };
 
 export function getReplWindow(mode: "clj" | "cljs") {

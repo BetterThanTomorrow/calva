@@ -1,7 +1,8 @@
 # Change Log 
 Changes to Calva.
 
-## [Unreleased] 
+## [Unreleased]
+- [Provide option to select the initial view colum for REPL window](https://github.com/BetterThanTomorrow/calva/issues/300)
 - [REPL colours and logo get too much attention](https://github.com/BetterThanTomorrow/calva/issues/303)
 
 ## [2.0.55] - 2019-10-27
