@@ -196,11 +196,6 @@
                             "connectedRegExp"
                         ]
                     },
-                    "calva.useWSL": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Specifies if the nREPL is running within WSL."
-                    },
                     "calva.jackInEnv": {
                         "type": "object",
                         "default": {},
@@ -1440,8 +1435,7 @@
         "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
-        "vscode-extension-telemetry": "0.0.15",
-        "wsl-path": "^1.1.0"
+        "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
         "concurrently": "^4.1.0",
