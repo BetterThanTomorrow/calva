@@ -3,6 +3,9 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Provide option to select the initial view colum for REPL window](https://github.com/BetterThanTomorrow/calva/issues/300)
+- Removed `useWSL`configuration option because the the use of Calva is fully supported through the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension.
+- [REPL window freezes when the evaluation takes a long time](https://github.com/BetterThanTomorrow/calva/issues/128) 
+- [REPL window gets sluggish with large data structures](https://github.com/BetterThanTomorrow/calva/issues/228)
 - [REPL colours and logo get too much attention](https://github.com/BetterThanTomorrow/calva/issues/303)
 
 ## [2.0.55] - 2019-10-27

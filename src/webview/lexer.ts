@@ -30,12 +30,68 @@ export interface Rule {
  * @param rules the rules of this lexer.
  */
 export class Lexer {
+
     position: number = 0;
+
+    private positions: Map<number, any[]> = new Map<number, any[]>();
+
     constructor(public source: string, public rules: Rule[]) {
+
+        this.rules.forEach(rule => {
+            rule.r.lastIndex = 0
+            let x = rule.r.exec(source);
+            while(x) {
+                if(x && x[0]) {
+                    x.input = undefined;
+                    x["rule"] = rule;
+                    let position =  rule.r.lastIndex - x[0].length;
+                    let values = this.positions.get(position);
+                    if(values) {
+                        values.push(x);
+                        this.positions.set(position,values);
+                    } else {
+                        this.positions.set(position, [x]);
+                    }
+                }
+                x = rule.r.exec(source);
+            }
+        })
     }
 
     /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
     scan(): Token {
+        let [token, length] = this.lookup();
+        if (token == null) {
+            if (this.position == this.source.length) {
+                return null;
+            }
+            [token, length] = this.retrieve();
+            if (token == null) {
+                throw new Error("Unexpected character at " + this.position + ": " + JSON.stringify(this.source));
+            }
+        }
+        this.position += length;
+        return token;
+    }
+
+    private lookup(): [Token, number] {
+        var token = null;
+        var length = 0;
+        let values = this.positions.get(this.position);
+        if(values) {
+            values.forEach( x => {
+                if (x && x[0].length > length) {
+                    token = x["rule"].fn(this, x);
+                    token.offset = this.position;
+                    token.raw = x[0];
+                    length = x[0].length;
+                }
+            }) 
+        }
+        return ([token, length]);
+    }
+
+     private retrieve(): [Token, number] {
         var token = null;
         var length = 0;
         this.rules.forEach(rule => {
@@ -48,13 +104,7 @@ export class Lexer {
                 length = x[0].length;
             }
         })
-        this.position += length;
-        if (token == null) {
-            if (this.position == this.source.length)
-                return null;
-            throw new Error("Unexpected character at " + this.position + ": " + JSON.stringify(this.source));
-        }
-        return token;
+        return ([token, length]);
     }
 }
 
