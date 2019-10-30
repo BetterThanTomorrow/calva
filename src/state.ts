@@ -109,7 +109,6 @@ function config() {
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
         pprint: configOptions.get("prettyPrint") as boolean,
         openREPLWindowOnConnect: configOptions.get("openREPLWindowOnConnect") as boolean,
-        initialREPLWindowViewColum: getViewColumnFromString(configOptions.get("initialREPLWindowViewColum")) as vscode.ViewColumn,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[]
     };
