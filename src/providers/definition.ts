@@ -9,14 +9,13 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
   }
 
   async provideDefinition(document, position, token) {
-    let text = util.getWordAtPosition(document, position);
-    let client = util.getSession(util.getFileType(document));
     if (util.getConnectedState()) {
-      let info = await client.info(util.getNamespace(document), text);
+      const text = util.getWordAtPosition(document, position),
+         client = util.getSession(util.getFileType(document)),
+         info = await client.info(util.getNamespace(document), text);
       if (info.file && info.file.length > 0) {
-        let pos = new vscode.Position(info.line - 1, info.column);
-        let location = new vscode.Location(vscode.Uri.parse(info.file), pos);
-        return location;
+        const pos = new vscode.Position(info.line - 1, info.column);
+        return new vscode.Location(vscode.Uri.parse(info.file), pos);
       }
     }
   }
