@@ -65,7 +65,7 @@ I'm glad you are reading this section! There are many ways and you are welcome t
 
 A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
 
-[![](https://avatars3.githubusercontent.com/u/30010?s=30) Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
+* [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
 
 Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
 
@@ -76,6 +76,9 @@ A huge thank you to the following generous people! You are much encouraging Calv
 [![Bozhidar Batsov](https://avatars0.githubusercontent.com/u/103882?s=32)](https://github.com/bbatsov)
 [![Adam Feldman](https://avatars0.githubusercontent.com/u/133385?s=32)](https://github.com/adamfeldman)
 [![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
+[![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
+[![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
+
 
 ## The Calva Team
 
