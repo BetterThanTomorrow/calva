@@ -1,32 +1,32 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities';
 import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 
-const { parseEdn } = require('../out/cljs-lib/cljs-lib');
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 
 function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
-    createReplWindow(session, mode).then(() => {
-        openReplWindow(mode, true).then(() => {
-            reconnectReplWindow(mode).then(() => {
+    if(state.config().openREPLWindowOnConnect) {
+        createReplWindow(session, mode, state.config().initialREPLWindowViewColum).then(() => {
+            openReplWindow(mode, true, state.config().initialREPLWindowViewColum).then(() => {
+                reconnectReplWindow(mode).then(() => {
+                }).catch(e => {
+                    console.error(`Failed reconnecting ${mode} REPL window: `, e);
+                });
             }).catch(e => {
-                console.error(`Failed reconnecting ${mode} REPL window: `, e);
-            });
-        }).catch(e => {
-            console.error(`Failed to open ${mode} REPL window: `, e);
-        })
-    }).catch((e) => {
-        console.error(`Failed to create ${mode} REPL window: `, e);
-    });
+                console.error(`Failed to open ${mode} REPL window: `, e);
+            })
+        }).catch((e) => {
+            console.error(`Failed to create ${mode} REPL window: `, e);
+        });
+    }
 }
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {

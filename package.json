@@ -260,6 +260,42 @@
                             "type": "string"
                         }
                     },
+                    "calva.openREPLWindowOnConnect": {
+                        "type": "boolean",
+                        "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
+                        "default": true
+                    },
+                    "calva.initialREPLWindowViewColum": {
+                        "type": "string",
+                        "description": "The initial view column to open the REPL windows in when the connection to a REPL server is established.",
+                        "enum": [
+                            "Active",
+                            "Beside",
+                            "One",
+                            "Two",
+                            "Three",
+                            "Four",
+                            "Five",
+                            "Six",
+                            "Seven",
+                            "Eight",
+                            "Nine"
+                        ],
+                        "enumDescriptions": [
+                            "The currently active view column.",
+                            "The view column to the side of the active one.",
+                            "The first editor column.",
+                            "The second editor column.",
+                            "The third editor column.",
+                            "The fourth editor column.",
+                            "The fifth editor column.",
+                            "The sixth editor column.",
+                            "The seventh editor column.",
+                            "The eighth editor column.",
+                            "The ninth editor column."
+                        ],
+                        "default": "Two"
+                    },
                     "calva.sendAsyncOutputTo": {
                         "type": "string",
                         "description": "The destination for output outside of an evaluation.",
