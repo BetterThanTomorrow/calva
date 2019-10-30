@@ -262,7 +262,7 @@
                     },
                     "calva.openREPLWindowOnConnect": {
                         "type": "boolean",
-                        "description": "Open the REPL windows when the connection to a REPL server is established.",
+                        "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
                         "default": true
                     },
                     "calva.initialREPLWindowViewColum": {
