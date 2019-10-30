@@ -14,8 +14,8 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
     if(state.config().openREPLWindowOnConnect) {
-        createReplWindow(session, mode).then(() => {
-            openReplWindow(mode, true).then(() => {
+        createReplWindow(session, mode, state.config().initialREPLWindowViewColum).then(() => {
+            openReplWindow(mode, true, state.config().initialREPLWindowViewColum).then(() => {
                 reconnectReplWindow(mode).then(() => {
                 }).catch(e => {
                     console.error(`Failed reconnecting ${mode} REPL window: `, e);
