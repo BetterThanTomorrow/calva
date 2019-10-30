@@ -76,9 +76,12 @@ A huge thank you to the following generous people! You are much encouraging Calv
 [![Bozhidar Batsov](https://avatars0.githubusercontent.com/u/103882?s=32)](https://github.com/bbatsov)
 [![Adam Feldman](https://avatars0.githubusercontent.com/u/133385?s=32)](https://github.com/adamfeldman)
 [![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
-[![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
 [![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
 
+
+### Calva Friends
+
+[![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
 
 ## The Calva Team
 
