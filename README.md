@@ -78,6 +78,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
 [![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
 [![Matthew Lyon](https://avatars2.githubusercontent.com/u/891?s=30)](https://github.com/mattly)
+[![Brian Scaturro](https://avatars0.githubusercontent.com/u/636651?s=30)](https://github.com/brianium)
 
 
 ### Calva Friends
@@ -94,6 +95,7 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
 * [Christian Fehse](https://github.com/cfehse)
+* [Brandon Ringe](https://github.com/bpringe)
 
 ### Alumni
 * [Matt Seddon](https://github.com/mseddon)
