@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
+- Add setting for wether to open REPL Window on connect or not
 - Removed `useWSL`configuration option because the the use of Calva is fully supported through the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension.
 - [REPL window freezes when the evaluation takes a long time](https://github.com/BetterThanTomorrow/calva/issues/128) 
 - [REPL window gets sluggish with large data structures](https://github.com/BetterThanTomorrow/calva/issues/228)
