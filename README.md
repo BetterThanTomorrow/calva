@@ -69,7 +69,7 @@ A considerable amount of time, creativity, energy, worries, sweat, and tears (we
 
 Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
 
-A huge thank you to the following generous people! You are much encouraging Calva development.
+These people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
 ### Calva Fans
 
@@ -77,11 +77,13 @@ A huge thank you to the following generous people! You are much encouraging Calv
 [![Adam Feldman](https://avatars0.githubusercontent.com/u/133385?s=32)](https://github.com/adamfeldman)
 [![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
 [![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
+[![Matthew Lyon](https://avatars2.githubusercontent.com/u/891?s=30)](https://github.com/mattly)
 
 
 ### Calva Friends
 
 [![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
+[![Byron Miller](https://avatars1.githubusercontent.com/u/1461719?s=30)](https://github.com/supernovae)
 
 ## The Calva Team
 
