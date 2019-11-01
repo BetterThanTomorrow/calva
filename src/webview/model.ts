@@ -264,9 +264,9 @@ export class LineInputModel {
         this.lines.splice(startLine, endLine-startLine+1, ...items);
 
         // set the changed and dirty marker
-        for(let i=0; i<items.length; i++) {
-            this.changedLines.add(startLine+i);
-            this.markDirty(startLine+1);
+        for (let i = 0; i < items.length; i++) {
+            this.changedLines.add(startLine + i);
+            this.markDirty(startLine + i);
         }
     
         if(this.recordingUndo) {
