@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Support special forms in editor hover/completion](https://github.com/BetterThanTomorrow/calva/issues/441)
 - [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
 - Add setting for wether to open REPL Window on connect or not
 - Removed `useWSL`configuration option because the the use of Calva is fully supported through the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension.
