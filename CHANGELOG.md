@@ -3,12 +3,19 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.56] - 2019-11-03
+- Add setting for wether to open REPL Window on connect or not
+- [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
+- Lexer performance considerably improved. Fixes [this](https://github.com/BetterThanTomorrow/calva/issues/228) and [this](https://github.com/BetterThanTomorrow/calva/issues/128))
+- [REPL colours and logo a bit toned down](https://github.com/BetterThanTomorrow/calva/issues/303)
+- Removed `useWSL`configuration option because the the use of Calva is fully supported through the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension.
+
 ## [2.0.55] - 2019-10-27
 - [Add commands for interrupting the current evaluation as well as all running evaluations](https://github.com/BetterThanTomorrow/calva/issues/237)
 - [Calva asks for user input when `stdin` needs it (e.g. `read-line`)](https://github.com/BetterThanTomorrow/calva/issues/377)
 - Command for clearing the REPL history reworked and now also ”restarts” the REPL window.
 - Commands are now added to REPL window history only if they are not identical to the previous command on the history stack.
-- [Fix floating promises in evelauation module](https://github.com/BetterThanTomorrow/calva/issues/411)
+- [Fix floating promises in evaluation module](https://github.com/BetterThanTomorrow/calva/issues/411)
 - REPL Window Evaluation errors now initially hide the stack trace. The user can show it with a click.
 
 ## [2.0.54] - 2019-10-25

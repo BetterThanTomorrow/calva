@@ -100,7 +100,6 @@ function config() {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
         test: configOptions.get("testOnSave"),
-        useWSL: configOptions.get("useWSL"),
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
@@ -109,9 +108,39 @@ function config() {
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
         pprint: configOptions.get("prettyPrint") as boolean,
+        openREPLWindowOnConnect: configOptions.get("openREPLWindowOnConnect") as boolean,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[]
     };
+}
+
+function getViewColumnFromString(value: string): vscode.ViewColumn {
+    switch (value.trim().toLowerCase()) {
+        case 'active':
+            return (vscode.ViewColumn.Active);
+        case 'beside':
+            return (vscode.ViewColumn.Beside);
+        case 'one':
+            return (vscode.ViewColumn.One);
+        case 'two':
+            return (vscode.ViewColumn.Two);
+        case 'three':
+            return (vscode.ViewColumn.Three);
+        case 'four':
+            return (vscode.ViewColumn.Four);
+        case 'five':
+            return (vscode.ViewColumn.Five);
+        case 'six':
+            return (vscode.ViewColumn.Six);
+        case 'seven':
+            return (vscode.ViewColumn.Seven);
+        case 'eight':
+            return (vscode.ViewColumn.Eight);
+        case 'nine':
+            return (vscode.ViewColumn.Nine);
+        default:
+            return (vscode.ViewColumn.Two);
+    }
 }
 
 const PROJECT_DIR_KEY = "connect.projectDir";

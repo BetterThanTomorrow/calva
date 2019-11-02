@@ -62,7 +62,7 @@ let multstring = new LexicalGrammar()
 // end a multiline string
 multstring.terminal(/([^"\\]|\\.)*"/, (l, m) => ({ type: "str-end" }))
 // still within a multiline string
-multstring.terminal(/([^"\\]|\\.)*/, (l, m) => ({ type: "str-inside" }))
+multstring.terminal(/([^"\\]|\\.)+/, (l, m) => ({ type: "str-inside" }))
 
 /**
  * The state of the scanner.
