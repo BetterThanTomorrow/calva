@@ -17,8 +17,8 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
         const pos = new vscode.Position(info.line - 1, info.column);
         try {
           return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
-        } catch(e) { // ignore.}
+        } catch(e) { /* ignore */ }
       }
     }
   }
-};
+}
