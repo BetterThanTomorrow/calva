@@ -1,7 +1,6 @@
 import { SignatureInformation } from 'vscode';
 
 export class REPLInfoParser {
-
     private _name: string = undefined;
 
     private _arglist: string = undefined;
@@ -13,24 +12,23 @@ export class REPLInfoParser {
     private _specialForm: boolean = false;
 
     constructor(msg: any) {
-
         if (msg) {
             this._name = '';
-            if(msg.name) {
+            if (msg.name) {
                 this._name = msg.name;
-                if(msg.ns) {
-                    if(msg.ns !== msg.name) {
-                       this._name = msg.ns + '/' + this._name;
+                if (msg.ns) {
+                    if (msg.ns !== msg.name) {
+                        this._name = msg.ns + '/' + this._name;
                     }
                 }
-            } 
-            if(msg.class) {
-                this._name = msg.class; 
-                if(msg.member) {
+            }
+            if (msg.class) {
+                this._name = msg.class;
+                if (msg.member) {
                     this._name += '/' + msg.member;
                 }
             }
-            if(msg["special-form"]) {
+            if (msg["special-form"]) {
                 this._specialForm = true;
                 this._arglist = undefined;
                 this._formsString = msg["forms-str"];
@@ -39,20 +37,19 @@ export class REPLInfoParser {
                 this._arglist = msg["arglists-str"];
                 this._formsString = undefined;
             }
-            if(msg.doc) {
+            if (msg.doc) {
                 this._docString = msg.doc;
             }
         }
     }
 
     private formatName(value: string) {
-
         if (value && value != "") {
             let result = '';
             // Format the name.
             result += '**' + value + '**  ';
-            if(this._specialForm) {
-                result += '(special form)'; 
+            if (this._specialForm) {
+                result += '(special form)';
             }
             return result;
         }
@@ -60,7 +57,6 @@ export class REPLInfoParser {
     }
 
     private formatFormsString(value: string) {
-
         if (value && value != "") {
             let result = '';
             // Format the different signatures for the fn
@@ -73,7 +69,6 @@ export class REPLInfoParser {
     }
 
     private formatArgList(value: string) {
-
         if (value && value != "") {
             let result = '';
             // Format the different signatures for the fn
@@ -86,7 +81,6 @@ export class REPLInfoParser {
     }
 
     private formatDocString(value: string) {
-
         if (value && value != "") {
             let result = '';
             // Format the actual docstring
@@ -97,55 +91,53 @@ export class REPLInfoParser {
     }
 
     getHover(): string {
-
         let result = '';
-        if(this._name !== '') {
+        if (this._name !== '') {
             result += this.formatName(this._name);
             result += '\n';
-            if(this._specialForm) {
-                if(this._formsString) {
-                    result += this.formatFormsString(this._formsString); 
+            if (this._specialForm) {
+                if (this._formsString) {
+                    result += this.formatFormsString(this._formsString);
                     result += '\n\n';
                     result += '\n\n';
                 }
             } else {
-                if(this._arglist) {
-                    result += this.formatArgList(this._arglist); 
+                if (this._arglist) {
+                    result += this.formatArgList(this._arglist);
                     result += '\n\n';
                     result += '\n\n';
-                } 
+                }
             }
             let docString = this.formatDocString(this._docString);
             if (docString == '') {
-                docString ="No documentation available"
+                docString = "No documentation available"
             }
             result += docString;
-            result += '  '; 
+            result += '  ';
         }
         return result;
     }
 
     getHoverNotAvailable() {
         let result = '';
-        if(this._name !== '') {
+        if (this._name !== '') {
             result += this.formatName(this._name);
             result += '\n';
             result += 'No information available';
         }
-        return result;   
+        return result;
     }
 
     getCompletion(): [string, string] {
-
-        if(this._name !== '') {
+        if (this._name !== '') {
             let docString = this.formatDocString(this._docString);
-            if(docString == '') {
+            if (docString == '') {
                 docString = undefined;
             }
-            if(this._specialForm) {
+            if (this._specialForm) {
                 return [docString, this._formsString];
             } else {
-               return [docString, this._arglist];
+                return [docString, this._arglist];
             }
         }
         return [undefined, undefined];
@@ -153,22 +145,15 @@ export class REPLInfoParser {
 
     getSignature(): SignatureInformation[] {
         if (this._name !== '') {
-            let str = undefined;
-            if (this._specialForm) {
-                str = this._formsString;
-            } else {
-                str = this._arglist;
-            }
-            if (str) {
-                let list: SignatureInformation[] = [];
-                let values = str.split('\n');
-                values.forEach(value => {
-                    value = value.trim();
-                    if (value !== '') {
-                        list.push(new SignatureInformation(value));
-                    }
-                });
-                return list;
+            const args = this._specialForm ? this._formsString : this._arglist;
+            if (args) {
+                return args.split('\n')
+                    .map(arg => arg.trim())
+                    .map(arg => {
+                        if (arg !== '') {
+                            return new SignatureInformation(arg);
+                        }
+                    });
             }
         }
         return undefined;
@@ -180,13 +165,13 @@ export function getHover(msg: any): string {
 }
 
 export function getHoverNotAvailable(text: string): string {
-    return new REPLInfoParser({name: text}).getHoverNotAvailable();
+    return new REPLInfoParser({ name: text }).getHoverNotAvailable();
 }
 
 export function getCompletion(msg: any): [string, string] {
-    return new REPLInfoParser(msg).getCompletion(); 
+    return new REPLInfoParser(msg).getCompletion();
 }
 
 export function getSignature(msg: any): SignatureInformation[] {
-    return new REPLInfoParser(msg).getSignature(); 
+    return new REPLInfoParser(msg).getSignature();
 }
