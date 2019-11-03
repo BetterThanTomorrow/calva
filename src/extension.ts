@@ -11,6 +11,7 @@ import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider } from './providers/definition';
+import { CalvaSignatureHelpProvider } from './providers/signature';
 import EvaluateMiddleWare from './evaluate';
 import TestRunnerMiddleWare from './testRunner';
 import annotations from './providers/annotations';
@@ -156,6 +157,8 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
+        
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 

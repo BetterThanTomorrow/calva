@@ -3,6 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import select from '../select';
 import * as docMirror from '../calva-fmt/src/docmirror';
+import * as infoparser from './infoparser';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -22,16 +23,6 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
         };
     }
 
-    formatDocString(documentation: string) {
-        let result = '';
-        // Format the actual docstring
-        if (documentation && documentation != "") {
-            result += documentation.replace(/\s\s+/g, ' ');
-            result += '  ';
-        }
-        return result.length > 0 ? result : "";
-    }
-
     async provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext) {
         let text = util.getWordAtPosition(document, position);
 
@@ -47,9 +38,19 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 contextEnd = toplevel.substring(wordEndLocalOffset),
                 context = `${contextStart}__prefix__${contextEnd}`,
                 toplevelIsValidForm = toplevelStartCursor.withinValidList() && context != '__prefix__',
+                ns = util.getNamespace(document),
                 client = util.getSession(util.getFileType(document)),
                 res = await client.complete(util.getNamespace(document), text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];
+                if(results) {
+                    results.forEach(element => {
+                        if(!element['ns']) {
+                            // make sure every entry has a namespace 
+                            // for the 'info' call.
+                            element['ns'] = ns; 
+                        }
+                    });
+                }
             return new CompletionList(
                 results.map(item => ({
                     label: item.candidate,
@@ -67,12 +68,9 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
             if (client) {
                 await util.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
                 let result = await client.info(item.insertText["ns"], item.label)
-                if (result.doc) {
-                    item.documentation = this.formatDocString(result.doc);
-                }
-                if (result['arglists-str']) {
-                    item.detail = result['arglists-str'];
-                }
+                let [doc, details] = infoparser.getCompletion(result);
+                item.documentation = doc;
+                item.detail = details;
             }
         }
         return item;
