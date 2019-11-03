@@ -1,5 +1,3 @@
-
-
 export class REPLInfoParser {
 
     private _name: string = undefined;
