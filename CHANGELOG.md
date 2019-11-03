@@ -2,10 +2,12 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.57] - 2019-11-03
 - [Provide argument list help as you type the function's arguments](https://github.com/BetterThanTomorrow/calva/issues/361)
 - [Support special forms in editor hover/completion](https://github.com/BetterThanTomorrow/calva/issues/441)
 
-## [2.0.56] - 2019-11-03
+## [2.0.56] - 2019-11-02
 - Add setting for wether to open REPL Window on connect or not
 - [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
 - Lexer performance considerably improved. Fixes [this](https://github.com/BetterThanTomorrow/calva/issues/228) and [this](https://github.com/BetterThanTomorrow/calva/issues/128))
