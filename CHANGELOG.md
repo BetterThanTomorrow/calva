@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Support special forms in editor hover/completion](https://github.com/BetterThanTomorrow/calva/issues/441)
+- [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
 
 ## [2.0.56] - 2019-11-03
 - Add setting for wether to open REPL Window on connect or not
