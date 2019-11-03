@@ -1,3 +1,5 @@
+import { SignatureInformation } from 'vscode';
+
 export class REPLInfoParser {
 
     private _name: string = undefined;
@@ -148,6 +150,29 @@ export class REPLInfoParser {
         }
         return [undefined, undefined];
     }
+
+    getSignature(): SignatureInformation[] {
+        if (this._name !== '') {
+            let str = undefined;
+            if (this._specialForm) {
+                str = this._formsString;
+            } else {
+                str = this._arglist;
+            }
+            if (str) {
+                let list: SignatureInformation[] = [];
+                let values = str.split('\n');
+                values.forEach(value => {
+                    value = value.trim();
+                    if (value !== '') {
+                        list.push(new SignatureInformation(value));
+                    }
+                });
+                return list;
+            }
+        }
+        return undefined;
+    }
 }
 
 export function getHover(msg: any): string {
@@ -160,4 +185,8 @@ export function getHoverNotAvailable(text: string): string {
 
 export function getCompletion(msg: any): [string, string] {
     return new REPLInfoParser(msg).getCompletion(); 
+}
+
+export function getSignature(msg: any): SignatureInformation[] {
+    return new REPLInfoParser(msg).getSignature(); 
 }

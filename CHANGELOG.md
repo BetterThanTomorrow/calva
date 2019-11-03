@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Provide argument list help as you type the function's arguments](https://github.com/BetterThanTomorrow/calva/issues/361)
 - [Support special forms in editor hover/completion](https://github.com/BetterThanTomorrow/calva/issues/441)
 - [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
 
