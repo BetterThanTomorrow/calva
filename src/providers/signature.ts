@@ -2,6 +2,7 @@ import { TextDocument, Position, CancellationToken, SignatureHelp, SignatureHelp
 import select from '../select';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
+const paredit = require('paredit.js');
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
 
@@ -11,9 +12,11 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
         if (util.getConnectedState()) {
             const ns = util.getNamespace(document),
                 currentFormSelection = select.getFormSelection(document, position, false),
-                currentForm = document.getText(currentFormSelection);
+                toplevelFormSelection = select.getFormSelection(document, position, true),
+                currentFormIdx = document.offsetAt(currentFormSelection.start) - document.offsetAt(toplevelFormSelection.start),
+                toplevelForm = document.getText(toplevelFormSelection);
 
-            let symbol = this.getSymbol(currentForm);
+            let symbol = this.getSymbol(toplevelForm, currentFormIdx);
             if (symbol && symbol !== '') {
                 let client = util.getSession(util.getFileType(document));
                 if (client) {
@@ -32,11 +35,27 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
         return undefined;
     }
 
-    private getSymbol(str: string): string {
-        let pos = str.indexOf(' ');
-        if (pos === -1) {
-            return undefined;
+    private getSymbol(str: string, idx: number): string {
+
+        let toplevelAst = paredit.parse(str);
+        if (toplevelAst) {
+            let sexps = paredit.walk.containingSexpsAt(toplevelAst, idx);
+            if (sexps && sexps.length > 0) {
+                for (let i = sexps.length - 1; i >= 0; i--) {
+                    let sexp = sexps[i];
+                    if (sexp.type === 'list' &&
+                        sexp.open === "(") {
+                        if (sexp.children[0] &&
+                            sexp.children[0].type &&
+                            sexp.children[0].source &&
+                            sexp.children[0].type === "symbol" &&
+                            sexp.children[0].source !== "") {
+                            return sexp.children[0].source;
+                        }
+                    }
+                }
+            }
         }
-        return str.substr(0, pos).trim();
+        return undefined;
     }
 }
