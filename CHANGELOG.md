@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Incorrect red highlights around brackets/paren in specific case](https://github.com/BetterThanTomorrow/calva/issues/410)
 
 ## [2.0.57] - 2019-11-03
 - [Provide argument list help as you type the function's arguments](https://github.com/BetterThanTomorrow/calva/issues/361)

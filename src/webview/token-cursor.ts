@@ -195,6 +195,8 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
+                case 'punc':
+                case 'junk':
                 case 'str':
                 case 'str-end':
                     this.next();
@@ -247,6 +249,8 @@ export class LispTokenCursor extends TokenCursor {
             switch(tk.type) {
                 case 'id':
                 case 'lit':
+                case 'punc':
+                case 'junk':
                 case 'kw':
                 case 'comment':
                 case 'str':
