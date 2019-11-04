@@ -38,36 +38,36 @@ In order to cook the right command for your project, Calva looks for project fil
 
 (I know enough about this particular project to know that I should choose the `shadow-cljs` project type.)
 
-But Calva isn't ready to cook the command-line just yet, depending on the project type, and contents of your project files, Calva needs some more info. In the case of shadow-cljs projects, Calva needs to know what builds to start.
+But Calva isn't ready to cook the command-line just yet, depending on the project type, and contents of your project files, more info is needed. E.g. in the case of shadow-cljs projects, Calva needs to know what builds to start.
 
 ![shadow-cljs Builds to start](https://user-images.githubusercontent.com/30010/68088914-18eed200-fe64-11e9-842b-e3f0d1ed6b9f.png)
 
-Here you can select several builds and Calva will cook a command line that starts them all.
+Here you can select any combination of builds defined in the project, and Calva will cook a command line that starts them.
 
-You might get more prompts from Calva, before it issues the command, but for this example project, Calva goes ahead, cooks the command line, and issues it. On my Mac, it looks like so:
+You might get more prompts from Calva before it issues the command, but for this example project, Calva goes ahead, cooks the command line, and issues it. On my Mac, it looks like so:
 
 ```sh
 npx shadow-cljs -d cider/piggieback:0.4.1 -d cider/cider-nrepl:0.22.4 watch :app
 ```
 
-(shadow-cljs is aware of CIDER dependencies, so doesn't need as many dependencies specified as some other project types do.)
+(Much shorter than the one with lein-figwheel, right? It is because shadow-cljs is aware of CIDER dependencies, so doesn't need as many dependencies specified as some other project types do.)
 
 ## Connecting
 
 When the command is issued Calva needs to wait until the REPL Server is started, before connecting to it, and possibly continuing with starting a ClojureScript REPL and connect to that as well. It also needs to know which port to connect to.
 
-Because reasons, Calva can't yet read the `stdout` of the shell command, so to know when the REPL server is started, and on which port, Calva monitors the filesystem for the `.nrepl-port` file. (This file is not always named like that. shadow-cljs creates the file `.shadow-cljs/nrepl.port`, for instance.)
+Because reasons, Calva can't yet read the `stdout` of the shell command it has issued, so to know when the REPL server is started, and on which port, Calva monitors the filesystem for the `.nrepl-port` file. (This file is not always named like that. shadow-cljs, for instance, creates the file `.shadow-cljs/nrepl.port`.)
 
 When the port file is created, Calva picks up the port number from it and connects to the nREPL server. At this point you have a Clojure REPL backing your Calva session, providing all sorts of nice IDE help for you.
 
 
 ## Starting Your Clojure App
 
-Once you have the Clojure REPL connected you can start your Clojure app/server. See [Custom Connect Sequences](connect-sequences) for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-in process. It can be brought down to a single **Jack-In** command for a full stack Clojure and ClojureScript application.
+Once you have the Clojure REPL connected you can start your Clojure app/server. See [Custom Connect Sequences](connect-sequences) for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-in process. It can be brought down to a single **Jack-In** command, even for a full stack Clojure and ClojureScript application.
 
 ## ClojureScript
 
-For ClojureScript, things are not done yet, though, far from it. It turns out cooking that command line was the easy part.
+For ClojureScript, things are not done yet, though, far from it. It turns out that cooking the command line was the easy part.
 
 In order for Calva to provide REPL power for ClojureScript projects, several things need to happen:
 
@@ -87,12 +87,11 @@ Depending on ClojureScript project type, Calva uses different methods to start t
 
 This results in a bit of difference in the user interaction. Mainly that for shadow-cljs, the user needs to check the Jack-In Terminal tab to follow what's going on.
 
-
 ### Starting the App
 
 Number **1.2** above, _the app needs to be started_, might seem obvious, but it actually trips many people up. Because of this, Calva goes to quite some lengths to provide assistance. Many projects are configured not to spawn a browser session automatically, requesting the app once it has been compiled, so we can't rely on that.
 
-What Calva does instead is to monitor the output of the commands it uses for starting the compilation, looking for information that the app is ready to be requested/started. It then tells the user this, providing a uRL in case it is a browser app. (There are also settings where you can ask Calva to open the URL automatically for you, regardless what the project settings are.)
+What Calva does instead is to monitor the output of the commands it uses for starting the compilation, looking for information that the app is ready to be requested/started. It then tells the user this, providing a URL, in case it is a browser app. (There are also settings where you can ask Calva to open the URL automatically for you, regardless what the project settings are.)
 
 ### Connecting
 
@@ -105,7 +104,7 @@ This whole connection sequence is quite configurable, using [Custom Connect Sequ
 
 ### Hack Away
 
-So, there are things going on when you start Jack-In, and even more things for ClojureScript projects, but Calva tries to keep it together, so as a users it is just a matter of paying attention and responding to a few prompts, menus with populated options. (Prompts which can be configured away, even.)
+So, there are things going on when you start Jack-In, and even more things for ClojureScript projects, but Calva tries to keep it together, so as a user it is a matter of paying attention and responding to a few prompts/menus with pre-populated options. (Prompts which can be configured away, even.)
 
 ### Switch ClojureScript Builds
 
@@ -131,11 +130,11 @@ It is the piggieback middleware there telling you that you can unpromote the REP
 
 Because Calva uses the Clojure REPL connection to spawn the ClojureScript REPL, and because Calva only handles one Clojure REPL per VS Code window, some projects need special handling by the user.
 
-If your full stack project is using shadow-cljs for the frontend, like [this Fulcro template project](https://github.com/fulcrologic/fulcro-template) does, you might try to first Jack-In to your to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session.
+If your full stack project is using shadow-cljs for the frontend, like [this Fulcro template project](https://github.com/fulcrologic/fulcro-template) does, maybe you first try Jack-In to your backend Clojure REPL, and then to your shadow-cljs frontend. This works if you do it in separate VS Code windows, but if you do it in the same window, the second Jack-In will kill the backend session!
 
 See also about [Workspace Layouts](workspace-layouts.md) for tips about how to actually open the same project folder in two separate VS Code windows.
 
-## Grab your Calva Jack-In Certificate
+## Please Grab your Calva Jack-In Certificate
 
 There, you now know all there is to know about Calva Jack-in.
 
