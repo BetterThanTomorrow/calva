@@ -42,12 +42,26 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - And more
 
+### Demo: Syntax highlighting, dimming ignored forms:
 
-Demo: Peek at definitions, etcetera:
+![Dimming ignored forms](/assets/howto/dimming-ignores.gif)
+
+### Demo: Evaluate top level forms inside `(comment...)`:
+
+![Top level comment eval](/assets/howto/top-level-comment-eval.gif)
+
+The gif demos several more features, apart from the in-comment evaluation, like:
+
+* signature help while typing function calls
+* evaluation result display is a bit sticky (so you can examine several evaluations at once)
+* there is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
+* some [structural editing](https://calva.readthedocs.io/en/latest/paredit.html)
+
+### Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
-Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
+### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
@@ -102,6 +116,6 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
 
-## Happy coding ❤️
+## Happy coding
 
 We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [#calva-dev](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.
