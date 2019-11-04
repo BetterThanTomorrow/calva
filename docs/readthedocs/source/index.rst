@@ -42,6 +42,7 @@ I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/B
    wsl
    remote-development
    quirks
+   jack-in-guide
 
 
 Have Questions and Feedback? Need Help?
