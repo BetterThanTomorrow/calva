@@ -90,13 +90,14 @@ export class REPLInfoParser {
         return "";
     }
 
-    private getParameters(argList: string): ParameterInformation[] {
+    private getParameters(symbol: string, argList: string): ParameterInformation[] {
         const matcher = new RegExp(/& \S+|\S+/g),
             trimmed = argList.replace(/^\[|\]$/g, '');
         let match = matcher.exec(trimmed),
             parameters: ParameterInformation[] = [];
         while (match) {
-            parameters.push(new ParameterInformation([match.index +1, match.index + 1 + match[0].length]));
+            const symbolOffset = symbol.length + 3;
+            parameters.push(new ParameterInformation([match.index + symbolOffset, match.index + symbolOffset + match[0].length]));
             match = matcher.exec(trimmed);
         }
         return parameters;
@@ -155,7 +156,7 @@ export class REPLInfoParser {
         return [undefined, undefined];
     }
 
-    getSignatures(): SignatureInformation[] {
+    getSignatures(symbol: string): SignatureInformation[] {
         if (this._name !== '') {
             const argLists = this._specialForm ? this._formsString : this._arglist;
             if (argLists) {
@@ -163,9 +164,9 @@ export class REPLInfoParser {
                     .map(argList => argList.trim())
                     .map(argList => {
                         if (argList !== '') {
-                            const signature = new SignatureInformation(argList);
+                            const signature = new SignatureInformation(this._specialForm ? argList : `(${symbol} ${argList})`);
                             if (!this._specialForm) {
-                                signature.parameters = this.getParameters(argList);
+                                signature.parameters = this.getParameters(symbol, argList);
                             }
                             return signature;
                         }
@@ -188,6 +189,6 @@ export function getCompletion(msg: any): [string, string] {
     return new REPLInfoParser(msg).getCompletion();
 }
 
-export function getSignatures(msg: any): SignatureInformation[] {
-    return new REPLInfoParser(msg).getSignatures();
+export function getSignatures(msg: any, symbol: string): SignatureInformation[] {
+    return new REPLInfoParser(msg).getSignatures(symbol);
 }

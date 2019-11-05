@@ -15,7 +15,7 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
                 if (client) {
                     await util.createNamespaceFromDocumentIfNotExists(document);
                     const res = await client.info(ns, symbol),
-                        signatures = infoparser.getSignatures(res);
+                        signatures = infoparser.getSignatures(res, symbol);
                     if (signatures) {
                         const help = new SignatureHelp(),
                             currentArgsRanges = this.getCurrentArgsRanges(document, idx);
