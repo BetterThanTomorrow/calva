@@ -15,17 +15,17 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
                 if (client) {
                     await util.createNamespaceFromDocumentIfNotExists(document);
                     const res = await client.info(ns, symbol),
-                        currentArgsRanges = this.getCurrentArgsRanges(document, idx),
-                        currentArgIdx = currentArgsRanges.findIndex(range => range.contains(position)),
                         signatures = infoparser.getSignatures(res);
                     if (signatures) {
-                        const help = new SignatureHelp();
+                        const help = new SignatureHelp(),
+                            currentArgsRanges = this.getCurrentArgsRanges(document, idx);
                         help.signatures = signatures;
-                        const activeSignatureIdx = signatures.findIndex(signature => signature.parameters && signature.parameters.length >= currentArgsRanges.length);
-                        help.activeSignature = activeSignatureIdx !== -1 ? activeSignatureIdx : signatures.length - 1;
+                        help.activeSignature = this.getActiveSignatureIdx(signatures, currentArgsRanges.length);
                         if (signatures[help.activeSignature].parameters !== undefined) {
-                            help.activeParameter = signatures[help.activeSignature].label.match(/&/) !== null ?
-                                Math.min(currentArgIdx, signatures[help.activeSignature].parameters.length - 1) : 
+                            const currentArgIdx = currentArgsRanges.findIndex(range => range.contains(position)),
+                                activeSignature = signatures[help.activeSignature];
+                            help.activeParameter = activeSignature.label.match(/&/) !== null ?
+                                Math.min(currentArgIdx, activeSignature.parameters.length - 1) :
                                 currentArgIdx;
                         }
                         return (help);
@@ -33,6 +33,11 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
                 }
             }
         }
+    }
+
+    private getActiveSignatureIdx(signatures: SignatureInformation[], currentArgsCount): number {
+        const activeSignatureIdx = signatures.findIndex(signature => signature.parameters && signature.parameters.length >= currentArgsCount);
+        return activeSignatureIdx !== -1 ? activeSignatureIdx : signatures.length - 1;
     }
 
     private getSymbol(document: TextDocument, idx: number): string {
@@ -56,9 +61,5 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
                     return new Range(new Position(...r[0]), new Position(...r[1]));
                 })
         }
-    }
-
-    private findMatchingSignature(signatures: SignatureInformation[], currentArgsCound: number): SignatureInformation {
-        return signatures[0];
     }
 }
