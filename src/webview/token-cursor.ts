@@ -309,6 +309,22 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
+     * Moves this cursor backwards to the opening `openingBracket` of the containing sexpr, or until the start of the document.
+     */
+    backwardListOfType(openingBracket: string): boolean {
+        let cursor = this.clone();
+        while(cursor.backwardList()) {
+            if (cursor.getPrevToken().raw === openingBracket) {
+                this.set(cursor);
+                return true;
+            }
+            if (!cursor.backwardUpList()) {
+                return false;
+            }
+        }
+    }
+
+    /**
      * If possible, moves this cursor forwards past any whitespace, and then past the immediately following open-paren and returns true.
      * If the source does not match this, returns false and does not move the cursor.
      */

@@ -9,7 +9,7 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
         if (util.getConnectedState()) {
             const ns = util.getNamespace(document),
                 symbol = this.getSymbol(document, document.offsetAt(position));
-            if (symbol && symbol !== '') {
+            if (symbol) {
                 const client = util.getSession(util.getFileType(document));
                 if (client) {
                     await util.createNamespaceFromDocumentIfNotExists(document);
@@ -28,9 +28,7 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
 
     private getSymbol(document: TextDocument, idx: number): string {
         const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
-        cursor.backwardList();
-        const open = cursor.getPrevToken();
-        if (open.type === 'open' && open.raw === '(') {
+        if (cursor.backwardListOfType('(')) {
             cursor.forwardWhitespace();
             const symbol = cursor.getToken();
             if (symbol.type === 'id') {
