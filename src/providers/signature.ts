@@ -1,16 +1,11 @@
 import { TextDocument, Position, CancellationToken, SignatureHelp, SignatureHelpProvider, SignatureInformation } from 'vscode';
-import select from '../select';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import { LispTokenCursor } from '../webview/token-cursor';
-const paredit = require('paredit.js');
 import * as docMirror from '../calva-fmt/src/docmirror';
-import { SSL_OP_NETSCAPE_CA_DN_BUG } from 'constants';
-
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
-
-    async provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken): Promise<SignatureHelp> {
+    async provideSignatureHelp(document: TextDocument, position: Position, _token: CancellationToken): Promise<SignatureHelp> {
         if (util.getConnectedState()) {
             const ns = util.getNamespace(document),
                 symbol = this.getSymbol(document, document.offsetAt(position));
