@@ -109,7 +109,7 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token past the inside of a multiline string
      */
-    fowardString() {
+    forwardString() {
         while (!this.atEnd()) {
             switch (this.getToken().type) {
                 case "eol":
