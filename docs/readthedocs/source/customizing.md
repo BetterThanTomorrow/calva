@@ -2,6 +2,15 @@
 
 Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.
 
+## REPL Window
+
+If you don't want the REPL window to open automatically on jack-in/connect, set `calva.openREPLWindowOnConnect` to `false`. Please note, that if the [Connect Sequence](connect-sequences.md) you are using has `afterCLJReplJackInCode`, then the CLJ REPL window will open anyway in order to evaluate that code for you in a visible way.
+
+## Jack-in and Connect Sequences
+
+Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
+
+
 ## Calva Highlight
 
 Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.

@@ -1,8 +1,18 @@
 # Change Log 
 Changes to Calva.
 
-## [Unreleased] 
-- [REPL colours and logo get too much attention](https://github.com/BetterThanTomorrow/calva/issues/303)
+## [Unreleased]
+
+## [2.0.57] - 2019-11-03
+- [Provide argument list help as you type the function's arguments](https://github.com/BetterThanTomorrow/calva/issues/361)
+- [Support special forms in editor hover/completion](https://github.com/BetterThanTomorrow/calva/issues/441)
+
+## [2.0.56] - 2019-11-02
+- Add setting for wether to open REPL Window on connect or not
+- [Re-open REPL windows where they were last closed](https://github.com/BetterThanTomorrow/calva/issues/300)
+- Lexer performance considerably improved. Fixes [this](https://github.com/BetterThanTomorrow/calva/issues/228) and [this](https://github.com/BetterThanTomorrow/calva/issues/128))
+- [REPL colours and logo a bit toned down](https://github.com/BetterThanTomorrow/calva/issues/303)
+- Removed `useWSL`configuration option because the the use of Calva is fully supported through the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension.
 
 ## [2.0.55] - 2019-10-27
 - [Add commands for interrupting the current evaluation as well as all running evaluations](https://github.com/BetterThanTomorrow/calva/issues/237)

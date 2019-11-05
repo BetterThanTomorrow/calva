@@ -10,9 +10,11 @@ Jack-in supports both CLJ and for CLJS, and has built-in configurations for **Le
 
 It works like so:
 
-1. Open a file somewhere in your project directory in VS Code.
+1. Open your project root directory in VS Code.
 1. Issue the command **Start a REPL project and connect**: `ctrl+alt+c ctrl+alt+j`.
 1. Answer the quick-pick prompts telling Calva about project types and what profiles to start.
+
+See also: [Workspace Layouts](workspace-layouts.md)
 
 ### Aliases, profiles, builds
 
@@ -22,9 +24,9 @@ You will need some basic knowledge about the project and the project type termin
 
 There are ways to tell Calva the answers to these prompts beforehand, so that Jack-in can be a zero-prompting command. Read on.
 
-### Customising Jack-in
+### Customizing Jack-in
 
-The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is [[Custom Connect Sequences]].
+The main mechanism for customizing your Jack-in, including automating menu selections, and custom CLJS REPL types is [Custom Connect Sequences](connect-sequences.md).
 
 There are also these settings:
 * `calva.jackInEnv`: An object with environment variables that will be added to the environment of the Jack-in process.

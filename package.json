@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.56",
+    "version": "2.0.58",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -196,11 +196,6 @@
                             "connectedRegExp"
                         ]
                     },
-                    "calva.useWSL": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Specifies if the nREPL is running within WSL."
-                    },
                     "calva.jackInEnv": {
                         "type": "object",
                         "default": {},
@@ -264,6 +259,11 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "calva.openREPLWindowOnConnect": {
+                        "type": "boolean",
+                        "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
+                        "default": true
                     },
                     "calva.sendAsyncOutputTo": {
                         "type": "string",
@@ -1408,6 +1408,7 @@
         }
     },
     "scripts": {
+        "build-docs": "cd docs/readthedocs; make html && open build/html/index.html",
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
@@ -1440,8 +1441,7 @@
         "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
-        "vscode-extension-telemetry": "0.0.15",
-        "wsl-path": "^1.1.0"
+        "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
         "concurrently": "^4.1.0",
