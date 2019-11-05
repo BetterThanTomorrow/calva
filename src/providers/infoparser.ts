@@ -1,4 +1,4 @@
-import { SignatureInformation } from 'vscode';
+import { SignatureInformation, ParameterInformation } from 'vscode';
 
 export class REPLInfoParser {
     private _name: string = undefined;
@@ -90,6 +90,18 @@ export class REPLInfoParser {
         return "";
     }
 
+    private getParameters(argList: string): ParameterInformation[] {
+        const matcher = new RegExp(/& \S+|\S+/g),
+            trimmed = argList.replace(/^\[|\]$/g, '');
+        let match = matcher.exec(trimmed),
+            parameters: ParameterInformation[] = [];
+        while (match) {
+            parameters.push(new ParameterInformation([match.index +1, match.index + 1 + match[0].length]));
+            match = matcher.exec(trimmed);
+        }
+        return parameters;
+    }
+
     getHover(): string {
         let result = '';
         if (this._name !== '') {
@@ -143,15 +155,19 @@ export class REPLInfoParser {
         return [undefined, undefined];
     }
 
-    getSignature(): SignatureInformation[] {
+    getSignatures(): SignatureInformation[] {
         if (this._name !== '') {
-            const args = this._specialForm ? this._formsString : this._arglist;
-            if (args) {
-                return args.split('\n')
-                    .map(arg => arg.trim())
-                    .map(arg => {
-                        if (arg !== '') {
-                            return new SignatureInformation(arg);
+            const argLists = this._specialForm ? this._formsString : this._arglist;
+            if (argLists) {
+                return argLists.split('\n')
+                    .map(argList => argList.trim())
+                    .map(argList => {
+                        if (argList !== '') {
+                            const signature = new SignatureInformation(argList);
+                            if (!this._specialForm) {
+                                signature.parameters = this.getParameters(argList);
+                            }
+                            return signature;
                         }
                     });
             }
@@ -172,6 +188,6 @@ export function getCompletion(msg: any): [string, string] {
     return new REPLInfoParser(msg).getCompletion();
 }
 
-export function getSignature(msg: any): SignatureInformation[] {
-    return new REPLInfoParser(msg).getSignature();
+export function getSignatures(msg: any): SignatureInformation[] {
+    return new REPLInfoParser(msg).getSignatures();
 }

@@ -1,4 +1,4 @@
-import { TextDocument, Position, CancellationToken, SignatureHelp, SignatureHelpProvider, SignatureInformation } from 'vscode';
+import { TextDocument, Position, Range, CancellationToken, SignatureHelp, SignatureHelpProvider, SignatureInformation } from 'vscode';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import { LispTokenCursor } from '../webview/token-cursor';
@@ -8,20 +8,29 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
     async provideSignatureHelp(document: TextDocument, position: Position, _token: CancellationToken): Promise<SignatureHelp> {
         if (util.getConnectedState()) {
             const ns = util.getNamespace(document),
-                symbol = this.getSymbol(document, document.offsetAt(position));
+                idx = document.offsetAt(position),
+                symbol = this.getSymbol(document, idx);
             if (symbol) {
                 const client = util.getSession(util.getFileType(document));
                 if (client) {
                     await util.createNamespaceFromDocumentIfNotExists(document);
                     const res = await client.info(ns, symbol),
-                        signatures = infoparser.getSignature(res);
-                    if(signatures) {
+                        currentArgsRanges = this.getCurrentArgsRanges(document, idx),
+                        currentArgIdx = currentArgsRanges.findIndex(range => range.contains(position)),
+                        signatures = infoparser.getSignatures(res);
+                    if (signatures) {
                         const help = new SignatureHelp();
                         help.signatures = signatures;
-                        return(help);
+                        const activeSignatureIdx = signatures.findIndex(signature => signature.parameters && signature.parameters.length >= currentArgsRanges.length);
+                        help.activeSignature = activeSignatureIdx !== -1 ? activeSignatureIdx : signatures.length - 1;
+                        if (signatures[help.activeSignature].parameters !== undefined) {
+                            help.activeParameter = signatures[help.activeSignature].label.match(/&/) !== null ?
+                                Math.min(currentArgIdx, signatures[help.activeSignature].parameters.length - 1) : 
+                                currentArgIdx;
+                        }
+                        return (help);
                     }
                 }
-
             }
         }
     }
@@ -35,5 +44,21 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
                 return symbol.raw;
             }
         }
+    }
+
+    private getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
+        const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx),
+            allRanges = cursor.rangesForSexpsInList('(');
+        if (allRanges !== undefined) {
+            return allRanges
+                .slice(1)
+                .map(r => {
+                    return new Range(new Position(...r[0]), new Position(...r[1]));
+                })
+        }
+    }
+
+    private findMatchingSignature(signatures: SignatureInformation[], currentArgsCound: number): SignatureInformation {
+        return signatures[0];
     }
 }
