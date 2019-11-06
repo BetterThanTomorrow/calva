@@ -7,7 +7,7 @@ import select from './select';
 import * as util from './utilities';
 import { activeReplWindow, getReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
-import statusbar from './statusbar'
+import statusbar from './statusbar';
 
 function interruptAllEvaluations() {
     
@@ -209,10 +209,14 @@ async function requireREPLUtilitiesCommand() {
         editorSession = util.getSession(fileType);
 
     if (editorSession) {
+        let replType :"clj" | "cljs" = fileType == "clj" ? "clj" : "cljs"
+        if(editorSession.replType) {
+            replType = editorSession.replType;
+        }
         util.createNamespaceFromDocumentIfNotExists(ns).then( v => {
             let editorresult = editorSession.eval(form);
             editorresult.value.then( v => {
-                let replWindow = getReplWindow(editorSession.replType);
+                let replWindow = getReplWindow(replType);
                 if (replWindow && replWindow.session) {
                     replWindow.setNamespace(ns).then( v => {
                         let replResult = replWindow.session.eval(form);
