@@ -427,3 +427,12 @@ export class LispTokenCursor extends TokenCursor {
         return ranges;
     }
 }
+
+/**
+ * Creates a `LispTokenCursor` for walking and manipulating the string `s`.
+ */
+export function createStringCursor(s: string): LispTokenCursor {
+    const model = new LineInputModel();
+    model.insertString(0, s);
+    return model.getTokenCursor(0);
+} 

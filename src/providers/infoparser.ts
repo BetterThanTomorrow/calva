@@ -1,4 +1,5 @@
 import { SignatureInformation, ParameterInformation } from 'vscode';
+import * as tokenCursor from '../webview/token-cursor';
 
 export class REPLInfoParser {
     private _name: string = undefined;
@@ -91,16 +92,42 @@ export class REPLInfoParser {
     }
 
     private getParameters(symbol: string, argList: string): ParameterInformation[] {
-        const matcher = new RegExp(/& \S+|\S+/g),
-            trimmed = argList.replace(/^\[|\]$/g, '');
-        let match = matcher.exec(trimmed),
-            parameters: ParameterInformation[] = [];
-        while (match) {
-            const symbolOffset = symbol.length + 3;
-            parameters.push(new ParameterInformation([match.index + symbolOffset, match.index + symbolOffset + match[0].length]));
-            match = matcher.exec(trimmed);
+        const offsets = this.getParameterOffsets(symbol, argList);
+        if (offsets !== undefined) {
+            return offsets.map(o => {
+                return new ParameterInformation(o);
+            })
         }
-        return parameters;
+    }
+
+    private getParameterOffsets(symbol: string, argList: string): [number, number][] {
+        const cursor: tokenCursor.LispTokenCursor = tokenCursor.createStringCursor(argList);
+        if (cursor.downList()) {
+            const ranges = cursor.rangesForSexpsInList('[');
+            if (ranges !== undefined) {
+                const symbolOffset = symbol.length + 2;
+                // We need to keep track of special `& args` and treat it as one argument
+                let previousArg: [string, [number, number]];
+                return ranges
+                    .map(r => {
+                        const columnOffset: [number, number] = [r[0][1], r[1][1]];
+                        const arg = argList.slice(...columnOffset);
+                        const argOffset = [
+                            arg,
+                            [
+                                previousArg !== undefined && previousArg[0] === '&' ? previousArg[1][0]: columnOffset[0] + symbolOffset,
+                                columnOffset[1] + symbolOffset
+                            ]
+                        ] as [string, [number, number]];
+                        previousArg = argOffset;
+                        return argOffset;
+                    }).filter(argOffset => {
+                        return argOffset[0] !== '&';
+                    }).map(argOffset => {
+                        return argOffset[1];
+                    });
+            }
+        }
     }
 
     getHover(): string {
