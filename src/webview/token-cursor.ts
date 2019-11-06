@@ -414,12 +414,23 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         let ranges = [];
+        // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
+        let ignoreCounter = 0;
         while (true) {
             cursor.forwardWhitespace();
             const start = cursor.rowCol;
+            if (cursor.getToken().raw === '#_') {
+                ignoreCounter++;
+                cursor.forwardSexp();
+                continue;
+            }
             if (cursor.forwardSexp()) {
-                const end = cursor.rowCol;
-                ranges.push([start, end]);
+                if (ignoreCounter === 0) {
+                    const end = cursor.rowCol;
+                    ranges.push([start, end]);
+                } else {
+                    ignoreCounter--;
+                }
             } else {
                 break;
             }
