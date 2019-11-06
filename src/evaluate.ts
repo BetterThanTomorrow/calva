@@ -209,28 +209,10 @@ async function requireREPLUtilitiesCommand() {
         editorSession = util.getSession(fileType);
 
     if (editorSession) {
-        let replType :"clj" | "cljs" = fileType == "clj" ? "clj" : "cljs"
-        if(editorSession.replType) {
-            replType = editorSession.replType;
-        }
-        util.createNamespaceFromDocumentIfNotExists(ns).then( v => {
+        util.createNamespaceFromDocumentIfNotExists(util.getDocument({})).then( v => {
             let editorresult = editorSession.eval(form);
             editorresult.value.then( v => {
-                let replWindow = getReplWindow(replType);
-                if (replWindow && replWindow.session) {
-                    replWindow.setNamespace(ns).then( v => {
-                        let replResult = replWindow.session.eval(form);
-                        replResult.value.then(v => {
-                            chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
-                        }).catch(e => {
-                            chan.appendLine(`REPL utilities could not be aquired for namespace ${ns}: ${e}`);
-                        })
-                    }).catch( e => {
-                        chan.appendLine(`REPL utilities could not be aquired for namespace ${ns}: ${e}`);
-                    }) 
-                } else {
                     chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
-                }
             }).catch( e => {
                 chan.appendLine(`REPL utilities could not be aquired for namespace ${ns}: ${e}`);
             })
