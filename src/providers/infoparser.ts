@@ -115,6 +115,7 @@ export class REPLInfoParser {
                         const argOffset = [
                             arg,
                             [
+                                // If the previous arg was a `&` use its start offset instead
                                 previousArg !== undefined && previousArg[0] === '&' ? previousArg[1][0]: columnOffset[0] + symbolOffset,
                                 columnOffset[1] + symbolOffset
                             ]
@@ -122,9 +123,9 @@ export class REPLInfoParser {
                         previousArg = argOffset;
                         return argOffset;
                     }).filter(argOffset => {
-                        return argOffset[0] !== '&';
+                        return argOffset[0] !== '&'; // Discard, because its start offset is used for the next arg
                     }).map(argOffset => {
-                        return argOffset[1];
+                        return argOffset[1]; // Only return the offset part
                     });
             }
         }
@@ -192,7 +193,8 @@ export class REPLInfoParser {
                     .map(argList => {
                         if (argList !== '') {
                             const signature = new SignatureInformation(this._specialForm ? argList : `(${symbol} ${argList})`);
-                            if (!this._specialForm) {
+                            // Skip parameter help on special forms and forms with optional arguments, for now
+                            if (!this._specialForm && !argList.match(/\?/)) {
                                 signature.parameters = this.getParameters(symbol, argList);
                             }
                             return signature;
