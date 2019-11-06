@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- ["Require REPL Utilities" command is broken](https://github.com/BetterThanTomorrow/calva/issues/451)
 
 ## [2.0.57] - 2019-11-03
 - [Provide argument list help as you type the function's arguments](https://github.com/BetterThanTomorrow/calva/issues/361)
