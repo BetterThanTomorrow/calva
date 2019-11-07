@@ -232,28 +232,28 @@ export class ReplConsole {
                 e.preventDefault();
             } else if (this.input.value == "(") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "()");
+                    paredit.open(this.readline, "(", ")");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
                 e.preventDefault();
             } else if (this.input.value == "[") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "[]");
+                    paredit.open(this.readline, "[", "]");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
                 e.preventDefault();
             } else if (this.input.value == "{") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "{}");
+                    paredit.open(this.readline, "{", "}");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
                 e.preventDefault();
             } else if (this.input.value == "{") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "{}");
+                    paredit.open(this.readline, "{", "}");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();

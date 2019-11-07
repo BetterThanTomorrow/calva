@@ -180,8 +180,8 @@ export function backwardBarfSexp(doc: ReplReadline, start: number = doc.selectio
     }
 }
 
-export function open(doc: ReplReadline, pair: string, start: number = doc.selectionEnd) {
-    doc.insertString(pair);
+export function open(doc: ReplReadline, open: string, close: string, start: number = doc.selectionEnd) {
+    doc.insertString(open + doc.getSelection() + close);
     doc.selectionStart = doc.selectionEnd = start+1;
 }
 
