@@ -2,6 +2,13 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Enable inforamtion providers in jar files e.g. opened with the "Go to Definition" command.
+
+## [2.0.58] - 2019-11-07
+- [Incorrect red highlights around brackets/paren in specific case](https://github.com/BetterThanTomorrow/calva/issues/410)
+- ["Require REPL Utilities" command is broken](https://github.com/BetterThanTomorrow/calva/issues/451)
+- [Fix hover definition for symbols derefed with `@` and quoted symbols](https://github.com/BetterThanTomorrow/calva/issues/106)
+- [Improve signature help-while-typing hover, with active arg markup](https://github.com/BetterThanTomorrow/calva/pull/450)
 
 ## [2.0.57] - 2019-11-03
 - [Provide argument list help as you type the function's arguments](https://github.com/BetterThanTomorrow/calva/issues/361)

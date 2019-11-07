@@ -21,6 +21,7 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
 // not known and therefore not supported.
 const documentSelector = [
     { scheme: 'file', language: 'clojure' },
+    { scheme: 'jar', language: 'clojure' },
     { scheme: 'untitled', language: 'clojure' }
 ];
 

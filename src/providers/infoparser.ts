@@ -1,4 +1,5 @@
-import { SignatureInformation } from 'vscode';
+import { SignatureInformation, ParameterInformation } from 'vscode';
+import * as tokenCursor from '../webview/token-cursor';
 
 export class REPLInfoParser {
     private _name: string = undefined;
@@ -90,6 +91,46 @@ export class REPLInfoParser {
         return "";
     }
 
+    private getParameters(symbol: string, argList: string): ParameterInformation[] {
+        const offsets = this.getParameterOffsets(symbol, argList);
+        if (offsets !== undefined) {
+            return offsets.map(o => {
+                return new ParameterInformation(o);
+            })
+        }
+    }
+
+    private getParameterOffsets(symbol: string, argList: string): [number, number][] {
+        const cursor: tokenCursor.LispTokenCursor = tokenCursor.createStringCursor(argList);
+        if (cursor.downList()) {
+            const ranges = cursor.rangesForSexpsInList('[');
+            if (ranges !== undefined) {
+                const symbolOffset = symbol.length + 2;
+                // We need to keep track of special `& args` and treat it as one argument
+                let previousArg: [string, [number, number]];
+                return ranges
+                    .map(r => {
+                        const columnOffset: [number, number] = [r[0][1], r[1][1]];
+                        const arg = argList.slice(...columnOffset);
+                        const argOffset = [
+                            arg,
+                            [
+                                // If the previous arg was a `&` use its start offset instead
+                                previousArg !== undefined && previousArg[0] === '&' ? previousArg[1][0]: columnOffset[0] + symbolOffset,
+                                columnOffset[1] + symbolOffset
+                            ]
+                        ] as [string, [number, number]];
+                        previousArg = argOffset;
+                        return argOffset;
+                    }).filter(argOffset => {
+                        return argOffset[0] !== '&'; // Discard, because its start offset is used for the next arg
+                    }).map(argOffset => {
+                        return argOffset[1]; // Only return the offset part
+                    });
+            }
+        }
+    }
+
     getHover(): string {
         let result = '';
         if (this._name !== '') {
@@ -143,15 +184,20 @@ export class REPLInfoParser {
         return [undefined, undefined];
     }
 
-    getSignature(): SignatureInformation[] {
+    getSignatures(symbol: string): SignatureInformation[] {
         if (this._name !== '') {
-            const args = this._specialForm ? this._formsString : this._arglist;
-            if (args) {
-                return args.split('\n')
-                    .map(arg => arg.trim())
-                    .map(arg => {
-                        if (arg !== '') {
-                            return new SignatureInformation(arg);
+            const argLists = this._specialForm ? this._formsString : this._arglist;
+            if (argLists) {
+                return argLists.split('\n')
+                    .map(argList => argList.trim())
+                    .map(argList => {
+                        if (argList !== '') {
+                            const signature = new SignatureInformation(this._specialForm ? argList : `(${symbol} ${argList})`);
+                            // Skip parameter help on special forms and forms with optional arguments, for now
+                            if (!this._specialForm && !argList.match(/\?/)) {
+                                signature.parameters = this.getParameters(symbol, argList);
+                            }
+                            return signature;
                         }
                     });
             }
@@ -172,6 +218,6 @@ export function getCompletion(msg: any): [string, string] {
     return new REPLInfoParser(msg).getCompletion();
 }
 
-export function getSignature(msg: any): SignatureInformation[] {
-    return new REPLInfoParser(msg).getSignature();
+export function getSignatures(msg: any, symbol: string): SignatureInformation[] {
+    return new REPLInfoParser(msg).getSignatures(symbol);
 }
