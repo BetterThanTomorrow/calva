@@ -4,7 +4,7 @@ import * as state from './../state';
 import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
-import { PrettyPrintingOptions, disabledPrettyPrinter } from "../printer";
+import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 
 /** An nRREPL client */
 export class NReplClient {
@@ -261,12 +261,7 @@ export class NReplSession {
         opts["pprint"] = pprintOptions.enabled;
         delete opts.pprintOptions;
         const id = this.client.nextId,
-            extraOpts = pprintOptions.enabled && pprintOptions.clientOrServer === 'server' ? {
-                "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
-                "nrepl.middleware.print/options": {
-                    "width": pprintOptions.width,
-                }
-            } : {};
+            extraOpts = getServerSidePrinter(pprintOptions);
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {

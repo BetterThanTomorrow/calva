@@ -123,12 +123,23 @@
                             "width":  {
                                 "type": "number",
                                 "description": "The width of the printing. Or line length... Hmmm, you get it, I hope."
+                            },
+                            "serverPrinter": {
+                                "type": "string",
+                                "description": "Which server side printer to use (when `clientOrServer` is set to `server`). NB: As of this writing you need to supply zprint dependencies to your project yourself, b/c cider-nrepl doesn't.",
+                                "enum": [
+                                    "pprint",
+                                    "fipp",
+                                    "puget",
+                                    "zprint"
+                                ]
                             }
                         },
                         "default": {
                             "enabled": true,
                             "clientOrServer": "client",
-                            "width": 120
+                            "width": 120,
+                            "serverPrinter": "puget"
                         }
                     },
                     "clojure.format.enable": {
