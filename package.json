@@ -110,8 +110,7 @@
                         "properties": {
                             "enabled": {
                                 "type": "boolean",
-                                "description": "Should evaluations be pretty printed?",
-                                "default": true
+                                "description": "Should evaluations be pretty printed?"
                             },
                             "clientOrServer": {
                                 "type": "string",
@@ -119,13 +118,17 @@
                                 "enum": [
                                     "client",
                                     "server"
-                                ],
-                                "default": "client"
+                                ]
+                            },
+                            "width":  {
+                                "type": "number",
+                                "description": "The width of the printing. Or line length... Hmmm, you get it, I hope."
                             }
                         },
                         "default": {
                             "enabled": true,
-                            "clientOrServer": "client"
+                            "clientOrServer": "client",
+                            "width": 120
                         }
                     },
                     "clojure.format.enable": {

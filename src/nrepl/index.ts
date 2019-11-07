@@ -264,7 +264,7 @@ export class NReplSession {
             extraOpts = pprintOptions.enabled && pprintOptions.clientOrServer === 'server' ? {
                 "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
                 "nrepl.middleware.print/options": {
-                    "width": 120,
+                    "width": pprintOptions.width,
                 }
             } : {};
 
@@ -732,7 +732,7 @@ export class NReplEvaluation {
                 } else {
                     let printValue = this.msgValue;
                     if (pprintOptions.enabled && pprintOptions.clientOrServer === 'client') {
-                        const pretty = prettyPrint(this.msgValue);
+                        const pretty = prettyPrint(this.msgValue, pprintOptions.width);
                         if (!pretty.error) {
                             printValue = pretty.value;
                         } else {
