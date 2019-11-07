@@ -14,8 +14,9 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
         //       I have opted to clear it here.
         doc.selectionStart = doc.selectionEnd = en;
     }
-    doc.model.insertString(en, close);
-    doc.model.insertString(st, open);
+    doc.insertString(open + doc.getSelection() + close);
+    doc.selectionStart = (st + open.length) 
+    doc.selectionEnd = (en + open.length) 
 }
 
 export function splitSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
