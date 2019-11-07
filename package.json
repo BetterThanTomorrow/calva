@@ -104,10 +104,29 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
-                    "calva.prettyPrint": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Pretty print evaluations"
+                    "calva.prettyPrintingOptions": {
+                        "type": "object",
+                        "description": "Settings for Calva's pretty printing",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Should evaluations be pretty printed?",
+                                "default": true
+                            },
+                            "clientOrServer": {
+                                "type": "string",
+                                "description": "Where to perform the pretty printing. Either client side or server (nREPL) side. Client side avoids some evaluation of the results that often happen server side. But client side also involves to first parsing the result from a string to EDN, which doesn't always work, and will result in plain printing in those cases.",
+                                "enum": [
+                                    "client",
+                                    "server"
+                                ],
+                                "default": "client"
+                            }
+                        },
+                        "default": {
+                            "enabled": true,
+                            "clientOrServer": "client"
+                        }
                     },
                     "clojure.format.enable": {
                         "type": "boolean",

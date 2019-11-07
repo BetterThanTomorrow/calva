@@ -10,6 +10,7 @@ import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
+import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
 
 function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
@@ -64,7 +65,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         createAndConnectReplWindow(cljSession, "clj");
         if (connectSequence.afterCLJReplJackInCode) {
             state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");
-            await sendTextToREPLWindow("clj", connectSequence.afterCLJReplJackInCode, null, false);
+            await sendTextToREPLWindow("clj", connectSequence.afterCLJReplJackInCode, null);
         }
 
         let cljsSession = null,
@@ -128,8 +129,7 @@ type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
 type processOutputFn = (output: string) => void;
 type connectFn = (session: NReplSession, name: string, checkSuccess: checkConnectedFn) => Promise<boolean>;
 
-async function evalConnectCode(newCljsSession: NReplSession, code: string,
-    name: string, checkSuccess: checkConnectedFn, outputProcessors: processOutputFn[] = [], errorProcessors: processOutputFn[] = []): Promise<boolean> {
+async function evalConnectCode(newCljsSession: NReplSession, code: string, name: string, checkSuccess: checkConnectedFn, outputProcessors: processOutputFn[] = [], errorProcessors: processOutputFn[] = []): Promise<boolean> {
     let chan = state.connectionLogChannel();
     let err = [], out = [], result = await newCljsSession.eval(code, {
         stdout: x => {
@@ -144,7 +144,8 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string,
             for (const p of errorProcessors) {
                 p(util.stripAnsi(x));
             }
-        }
+        },
+        pprintOptions: disabledPrettyPrinter
     });
     let valueResult = await result.value
         .catch(reason => {
@@ -440,7 +441,7 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-export async function connect(connectSequence: ReplConnectSequence, isAutoConnect = false, isJackIn = false) {
+export async function connect(connectSequence: ReplConnectSequence, isAutoConnect, isJackIn) {
     const chan = state.outputChannel(),
         cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 

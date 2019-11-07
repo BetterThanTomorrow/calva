@@ -218,3 +218,9 @@
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
 
+(comment 
+ {:remove-surrounding-whitespace? false
+  :remove-trailing-whitespace? false
+  :remove-consecutive-blank-lines? false
+  :insert-missing-whitespace? true
+  :align-associative? true})

@@ -8,7 +8,7 @@
    Accepts that s is an EDN form already, and skips the parsing, if so.
    Formats the result to fit the width `w`."
   ([s]
-   (pretty-print s 0))
+   (pretty-print s 120))
   ([s w]
    (let [result
          (try

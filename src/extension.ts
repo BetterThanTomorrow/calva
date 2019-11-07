@@ -27,7 +27,8 @@ import statusbar from './statusbar';
 function onDidSave(document) {
     let {
         evaluate,
-        test
+        test,
+        prettyPrintingOptions
     } = state.config();
 
     if (document.languageId !== 'clojure') {
@@ -40,7 +41,7 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        EvaluateMiddleWare.loadFile(document).catch(() => {});
+        EvaluateMiddleWare.loadFile(document, undefined, prettyPrintingOptions).catch(() => {});
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
 }
@@ -115,7 +116,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        EvaluateMiddleWare.loadFile().then((resolved) => {
+        EvaluateMiddleWare.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
             chan.show(true);
         }).catch((reason) => {
             chan.show(true);

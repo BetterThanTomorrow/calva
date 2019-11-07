@@ -9,6 +9,7 @@ import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
 import { isReplWindowOpen} from "../repl-window";
+import { disabledPrettyPrinter } from "../printer";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
