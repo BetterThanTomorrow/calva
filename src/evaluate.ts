@@ -5,9 +5,9 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
-import { activeReplWindow } from './repl-window';
+import { activeReplWindow, getReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
-import statusbar from './statusbar'
+import statusbar from './statusbar';
 
 function interruptAllEvaluations() {
     
@@ -199,14 +199,30 @@ async function loadFile(document = {}, callback = () => { }) {
 }
 
 async function requireREPLUtilitiesCommand() {
-    const chan = state.outputChannel(),
-        replWindow = activeReplWindow(),
-        session: NReplSession = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({}))),
-        CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
-        CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
-        form = util.getREPLSessionType() == "cljs" ? CLJS_FORM : CLJ_FORM;
-    await session.eval(form);
-    chan.appendLine("REPL utilities (like apropos, dir, doc, find-doc, pst, and source) are now available.");
+
+    if (util.getConnectedState()) {
+        const chan = state.outputChannel(),
+            ns = util.getDocumentNamespace(util.getDocument({})),
+            CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
+            CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
+            sessionType = util.getREPLSessionType(),
+            form = sessionType == "cljs" ? CLJS_FORM : CLJ_FORM,
+            fileType = util.getFileType(util.getDocument({})),
+            session = util.getSession(fileType);
+
+        if(session) {
+            try {
+                await util.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
+                await session.eval("(in-ns '" + ns + ")").value;
+                await session.eval(form).value;
+                chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
+            } catch(e) {
+                chan.appendLine(`REPL utilities could not be aquired for namespace ${ns}: ${e}`);
+            }
+        }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a REPL server");
+    }
 }
 
 async function copyLastResultCommand() {
