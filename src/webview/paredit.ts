@@ -181,8 +181,15 @@ export function backwardBarfSexp(doc: ReplReadline, start: number = doc.selectio
 }
 
 export function open(doc: ReplReadline, open: string, close: string, start: number = doc.selectionEnd) {
+    let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
     doc.insertString(open + doc.getSelection() + close);
     doc.selectionStart = doc.selectionEnd = start+1;
+    if(cs != ce) {
+        doc.selectionStart = (cs + open.length) 
+        doc.selectionEnd = (ce + open.length) 
+    } else {
+        doc.selectionStart = doc.selectionEnd = start+1;
+    }
 }
 
 export function close(doc: ReplReadline, close: string, start: number = doc.selectionEnd) {
