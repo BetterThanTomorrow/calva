@@ -47,6 +47,9 @@ export class TextLine {
 
 /** The underlying model for the REPL readline. */
 export class LineInputModel {
+    /** How many characters in the line endings of the text of this model? */
+    constructor(private lineEndingLength: number = 1) { }
+
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
 
@@ -156,7 +159,7 @@ export class LineInputModel {
     getOffsetForLine(line: number) {
         let max = 0;
         for(let i=0; i<line; i++)
-            max += this.lines[i].text.length + 1;
+            max += this.lines[i].text.length + this.lineEndingLength;
         return max;
     }
 
@@ -193,7 +196,7 @@ export class LineInputModel {
     getRowCol(offset: number): [number, number] {
         for(let i=0; i<this.lines.length; i++) {
             if(offset > this.lines[i].text.length)
-                offset -= this.lines[i].text.length+1;
+                offset -= this.lines[i].text.length + this.lineEndingLength;
             else
                 return [i, offset];
         }
@@ -306,7 +309,7 @@ export class LineInputModel {
     get maxOffset() {
         let max = 0;
         for(let i=0; i<this.lines.length; i++)
-            max += this.lines[i].text.length + 1;
+            max += this.lines[i].text.length + this.lineEndingLength;
         return max-1;
     }
 
