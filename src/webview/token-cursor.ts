@@ -437,6 +437,60 @@ export class LispTokenCursor extends TokenCursor {
         }
         return ranges;
     }
+
+    /**
+     * Tries to move this cursor backwards to the open paren of the function, `level` functions up.
+     * If there aren't that many functions bahind the cursor, the cursor is not moved at all.
+     * @param levels how many functions up to go before placing the cursor at the start of it.
+     * @returns `true` if the cursor was moved, otherwise `false`
+     */
+    backwardFunction(levels: number = 0): boolean {
+        const cursor = this.clone();
+        if (!cursor.backwardListOfType('(')) {
+            return false;
+        }
+        for (let i = 0; i < levels; i++) {
+            if (!cursor.backwardUpList()) {
+                return false;
+            }
+            if (!cursor.backwardListOfType('(')) {
+                return false;
+            }
+        }
+        this.set(cursor);
+        return true;
+    }
+
+    /**
+     * Get the name of the current function, optionally digging `levels` functions up.
+     * @param levels how many levels of functions to dig up.
+     * @returns the function name, or undefined if there is no function there.
+     */
+    getFunction(levels: number = 0): string {
+        const cursor = this.clone();
+        if (cursor.backwardFunction(levels)) {
+            cursor.forwardWhitespace();
+            const symbol = cursor.getToken();
+            if (symbol.type === 'id') {
+                return symbol.raw;
+            }
+        }
+    }
+
+    /**
+     * Gets the enclosing function from the current cursor position.
+     * If it can't find a function, returns `undefined`.
+     */
+    // getFunction(): string {
+    //     const cursor = this.clone();
+    //     if (cursor.backwardListOfType('(')) {
+    //         cursor.forwardWhitespace();
+    //         const symbol = cursor.getToken();
+    //         if (symbol.type === 'id') {
+    //             return symbol.raw;
+    //         }
+    //     }
+    // }
 }
 
 /**

@@ -42,24 +42,36 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
 
     private getSymbol(document: TextDocument, idx: number): string {
         const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
-        if (cursor.backwardListOfType('(')) {
-            cursor.forwardWhitespace();
-            const symbol = cursor.getToken();
-            if (symbol.type === 'id') {
-                return symbol.raw;
-            }
-        }
+        return cursor.getFunction();
+    }
+
+    private coordsToRange(coords: [[number, number], [number, number]]): Range {
+        return new Range(new Position(...coords[0]), new Position(...coords[1]));
+    }
+
+    private getPreviousRangeIndexAndFunction(document: TextDocument, idx: number) {
+        const peekBehindCursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
+        peekBehindCursor.backwardFunction(1);
+        const previousFunction = peekBehindCursor.getFunction(0),
+            previousRanges = peekBehindCursor.rangesForSexpsInList('(').map(this.coordsToRange),
+            previousRangeIndex = previousRanges.findIndex(range => range.contains(document.positionAt(idx)));
+        return { previousRangeIndex, previousFunction };
     }
 
     private getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
         const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx),
             allRanges = cursor.rangesForSexpsInList('(');
+
+        // Are we in a function that gets a threaded first parameter?
+        const { previousRangeIndex, previousFunction } = this.getPreviousRangeIndexAndFunction(document, idx);
+        const isInThreadFirst: boolean =
+            previousRangeIndex > 1 && ['->', 'some->'].includes(previousFunction) ||
+            previousRangeIndex > 1 && previousRangeIndex % 2 && previousFunction === 'cond->';
+
         if (allRanges !== undefined) {
             return allRanges
-                .slice(1)
-                .map(r => {
-                    return new Range(new Position(...r[0]), new Position(...r[1]));
-                })
+                .slice(1 - (isInThreadFirst ? 1 : 0))
+                .map(this.coordsToRange)
         }
     }
 }
