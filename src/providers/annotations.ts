@@ -28,7 +28,6 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
         textDecoration: 'none',
         fontWeight: 'normal',
         fontStyle: 'normal',
-        width: "250px",
     },
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });

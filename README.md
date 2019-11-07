@@ -35,19 +35,40 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
 - Intellisense
 - Go to / Peek at definition
 - View docstrings on hover
-- View function signatures on hover
+- View function signatures on hover, including help with knowing which argument you are typing
 - Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
 - Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
 - Switch the CLJS REPL connection between your different CLJS builds at will.
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 - And more
 
+### Demo: Evaluate top level forms inside `(comment...)`:
 
-Demo: Peek at definitions, etcetera:
+![Top level comment eval](/assets/howto/top-level-comment-eval.gif)
+
+The gif demos several more features, apart from the in-comment evaluation, like:
+
+* signature help while typing function calls
+* evaluation result display is a bit sticky (so you can examine several evaluations at once)
+* there is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
+* some [structural editing](https://calva.readthedocs.io/en/latest/paredit.html)
+
+### Demo: Signature Help, while Typing
+
+It is pretty educational using the signature help hover to see which argument you are typing when the argument list is using destructuring, or when an argument is threaded in first before the arguments you provide inside the form.
+
+![Signature Help](assets/howto/signature-help.gif)
+
+
+### Demo: Syntax highlighting, dimming ignored forms:
+
+![Dimming ignored forms](/assets/howto/dimming-ignores.gif)
+
+### Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
-Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
+### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
@@ -102,6 +123,6 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
 
-## Happy coding ❤️
+## Happy coding
 
 We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [#calva-dev](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.

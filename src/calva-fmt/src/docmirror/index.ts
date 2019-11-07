@@ -32,10 +32,10 @@ export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Pos
     return model.getOffsetForLine(position.line)+position.character;
 }
 
-function addDocument(doc): boolean {
+function addDocument(doc: vscode.TextDocument): boolean {
     if (doc && doc.languageId == "clojure") {
         if (!documents.has(doc)) {
-            let mdl = new model.LineInputModel();
+            let mdl = new model.LineInputModel(doc.eol === vscode.EndOfLine.CRLF ? 2 : 1);
             mdl.insertString(0, doc.getText())
             documents.set(doc, mdl);
             return false;

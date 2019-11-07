@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.57",
+    "version": "2.0.58",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -1000,7 +1000,7 @@
             {
                 "command": "calva.clearInlineResults",
                 "key": "escape",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
             },
             {
                 "command": "calva.evaluateSelection",
