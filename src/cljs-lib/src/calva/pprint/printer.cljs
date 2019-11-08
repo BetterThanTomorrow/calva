@@ -67,11 +67,11 @@
   ;; => {:value "[##]"}
   (pretty-print [[[[[[[[:deeper]]]]]]]] {:max-depth 4})
   ;; => {:value "[[[[##]]]]"}
-
+  
   (def ignores [#_#_#_#_#_:span "This" "is" "How" "it" "Works"])
   (:value (pretty-print ignores nil))
   ;; => "[(quote \"Works\")]"
-
+  
   (def str-ignores "[  #_  #_  #_#_#_:span \"This\" \"is\" \"How\" \"it\" \"Works\"   ]")
   (:value (pretty-print str-ignores nil))
   ;; => "[#_#_#_#_#_:span \"This\" \"is\" \"How\" \"it\" \"Works\"]"
