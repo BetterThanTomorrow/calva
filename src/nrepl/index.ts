@@ -727,7 +727,7 @@ export class NReplEvaluation {
                 } else {
                     let printValue = this.msgValue;
                     if (pprintOptions.enabled && pprintOptions.clientOrServer === 'client') {
-                        const pretty = prettyPrint(this.msgValue, pprintOptions.width);
+                        const pretty = prettyPrint(this.msgValue, pprintOptions);
                         if (!pretty.error) {
                             printValue = pretty.value;
                         } else {

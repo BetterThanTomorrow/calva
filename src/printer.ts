@@ -22,10 +22,10 @@ function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, wid
     printer[OPTIONS] = {};
     printer[PRINTER_FN] = printerFn;
     printer[OPTIONS][widthSlug] = pprintOptions.width;
-    if (pprintOptions.maxLength) {
+    if (pprintOptions.maxLength && lengthSlug !== undefined) {
         printer[OPTIONS][lengthSlug] = pprintOptions.maxLength;
     }
-    if (pprintOptions.maxDepth) {
+    if (pprintOptions.maxDepth && depthsSlug !== undefined) {
         printer[OPTIONS][depthsSlug] = pprintOptions.maxDepth;
     }
     return printer;
@@ -39,7 +39,7 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
             case "fipp":
                 return getPrinter(pprintOptions, 'cider.nrepl.pprint/fipp-pprint', 'width', 'print-length', 'print-level');
             case "puget":
-                return getPrinter(pprintOptions, 'cider.nrepl.pprint/puget-pprint', 'width', 'seq-limit', 'does-not-exist');
+                return getPrinter(pprintOptions, 'cider.nrepl.pprint/puget-pprint', 'width', 'seq-limit', undefined);
             case "zprint":
                 return getPrinter(pprintOptions, 'cider.nrepl.pprint/zprint-pprint', 'width', 'max-length', 'print-depth');
             default:

@@ -136,11 +136,11 @@
                                     "number",
                                     "null"
                                 ],
-                                "description": "The maximum number of levels deep the printing will go in nested objects. For no limit, do not include this in your setting. See https://clojuredocs.org/clojure.core/*print-level*"
+                                "description": "The maximum number of levels deep the printing will go in nested objects. For no limit, do not include this in your setting. Does not exist for `puget`. See also https://clojuredocs.org/clojure.core/*print-level*"
                             },
                             "serverPrinter": {
                                 "type": "string",
-                                "description": "Which server side printer to use (when `clientOrServer` is set to `server`). NB: As of this writing you need to supply zprint dependencies to your project yourself, b/c cider-nrepl doesn't.",
+                                "description": "Which server side printer to use when `clientOrServer` is set to `server`. NB: As of this writing you need to supply zprint dependencies to your project yourself, b/c cider-nrepl doesn't.",
                                 "enum": [
                                     "pprint",
                                     "fipp",
@@ -151,8 +151,7 @@
                         },
                         "required": [
                             "enabled",
-                            "clientOrServer",
-                            "width"
+                            "clientOrServer"
                         ],
                         "default": {
                             "enabled": true,
@@ -1496,6 +1495,7 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
+        "@types/vscode": "^1.30.0",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.1",
         "css-loader": "^2.1.1",
@@ -1512,7 +1512,7 @@
         "nodemon": "^1.19.1",
         "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.66",
+        "shadow-cljs": "^2.8.69",
         "source-map-support": "^0.5.13",
         "style-loader": "^0.23.1",
         "tar": "^4.4.10",
@@ -1521,7 +1521,6 @@
         "typescript": "^3.5.1",
         "url-loader": "^1.1.2",
         "vsce": "^1.67.1",
-        "@types/vscode": "^1.30.0",
         "webpack": "^4.33.0",
         "webpack-cli": "^3.3.5"
     }
