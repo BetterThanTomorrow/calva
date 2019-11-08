@@ -369,6 +369,21 @@ export class LispTokenCursor extends TokenCursor {
         return false;
     }
 
+    /**
+     * If possible, moves this cursor backwards past any whitespace, and then backwards past the immediately following close-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
+    backwardDownList(): boolean {
+        let cursor = this.clone();
+        cursor.backwardWhitespace();
+        if (cursor.getPrevToken().type == "close") {
+            cursor.previous();
+            this.set(cursor);
+            return true;
+        }
+        return false;
+    }
+
     withinWhitespace() {
         let tk = this.getToken().type;
         if (tk == "eol" || tk == "ws") {

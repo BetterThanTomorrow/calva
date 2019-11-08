@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Expand selection fails at the start and end of the input of the REPL window](https://github.com/BetterThanTomorrow/calva/issues/417)
 - [Removed paredit inconsistencies](https://github.com/BetterThanTomorrow/calva/issues/170)
 - Enable information providers in jar files e.g. opened with the "Go to Definition" command.
 
