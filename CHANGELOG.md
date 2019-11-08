@@ -1,7 +1,7 @@
 # Change Log 
 Changes to Calva.
 
-## [Unreleased]
+## [Unreleased] 
 - [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
 - Enable information providers in jar files e.g. opened with the "Go to Definition" command.
 
