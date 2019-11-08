@@ -2,7 +2,7 @@
   (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             ["paredit.js" :as paredit]
-            [calva.js-utils :refer [cljify jsify]]
+            [calva.js-utils :refer [cljify]]
             [calva.fmt.util :as util]
             [clojure.string]))
 
@@ -68,7 +68,7 @@
                                        (cljify range)))
                                    (cljify range))))
                              [idx idx])
-                           (catch js/Error e
+                           (catch js/Error _e
                              ((.. paredit -navigator -rangeForDefun) ast idx)))]
            (loop [enclosing enclosing]
              (let [expanded-range ((.. paredit -navigator -sexpRangeExpansion) ast (first enclosing) (last enclosing))]

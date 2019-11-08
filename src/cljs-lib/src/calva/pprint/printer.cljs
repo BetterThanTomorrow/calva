@@ -44,7 +44,7 @@
                   (zprint-str s (assoc opts :parse-string? (string? s)))}
                  (catch js/Error e
                    {:value s
-                    :error (str "Plain printing, b/c pprint failed. (" e.message ")")}))]
+                    :error (str "Plain printing, b/c pprint failed. (" (.-message e) ")")}))]
     result))
 
 
