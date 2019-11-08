@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
+import { disabledPrettyPrinter } from './printer';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -113,7 +114,7 @@ function runNamespaceTests(document = {}) {
             resultPromises.push(client.testNs(nss[1]));
         let results = await Promise.all(resultPromises);
         reportTests(results, "Running tests");
-    }).catch(() => {});
+    }, disabledPrettyPrinter).catch(() => {});
 }
 
 async function runTestUnderCursor() {
@@ -126,7 +127,7 @@ async function runTestUnderCursor() {
         state.outputChannel().appendLine(`Running test: ${test}…`);
         const results = [await client.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
-    }).catch(() => {});
+    }, disabledPrettyPrinter).catch(() => {});
 }
 
 function runTestUnderCursorCommand() {
@@ -144,7 +145,7 @@ function rerunTests(document = {}) {
     evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
-    }).catch(() => {});
+    }, disabledPrettyPrinter).catch(() => {});
 }
 
 function rerunTestsCommand() {

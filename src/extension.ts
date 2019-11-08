@@ -41,7 +41,7 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        EvaluateMiddleWare.loadFile(document, undefined, prettyPrintingOptions).catch(() => {});
+        EvaluateMiddleWare.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
 }

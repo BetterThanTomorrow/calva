@@ -120,9 +120,23 @@
                                     "server"
                                 ]
                             },
-                            "width":  {
+                            "width": {
                                 "type": "number",
                                 "description": "The width of the printing. Or line length... Hmmm, you get it, I hope."
+                            },
+                            "maxLength": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The maximum number of forms to print of each collection. For no limit, do not include this in your setting. See https://clojuredocs.org/clojure.core/*print-length*"
+                            },
+                            "maxDepth": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The maximum number of levels deep the printing will go in nested objects. For no limit, do not include this in your setting. See https://clojuredocs.org/clojure.core/*print-level*"
                             },
                             "serverPrinter": {
                                 "type": "string",
@@ -135,6 +149,11 @@
                                 ]
                             }
                         },
+                        "required": [
+                            "enabled",
+                            "clientOrServer",
+                            "width"
+                        ],
                         "default": {
                             "enabled": true,
                             "clientOrServer": "client",
