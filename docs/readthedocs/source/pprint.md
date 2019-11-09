@@ -21,6 +21,8 @@ Setting          | Type    | Effect
 `maxLength`      | number  |  the maximum number of elements printed in nested nodes, [good for evaluating something like `(iterate inc 0)`](https://clojuredocs.org/clojure.core/*print-length*#example-542692cac026201cdc326b12), which you shouldn't do without setting `maxLength`. Most printers will indicate truncated lists with `...` at the end.
 `maxDepth`       | number  | the maximum number of levels deep that will get printed. Different printers mark a stop different ways. `puget` doesn't support it at all.
 
+See [Customizing Calva](customizing.md) for some tips on adding settings like these.
+
 Here's an example of how the default pretty printer in Calva, `zprint`, handles `maxDepth` (from the [Calva implementation](https://github.com/BetterThanTomorrow/calva/blob/dev/src/cljs-lib/src/calva/pprint/printer.cljs) of it's client side pretty printing.).
 
 ```clojure
