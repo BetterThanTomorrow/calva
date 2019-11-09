@@ -81,7 +81,9 @@ const edit = (fn, opts = {}) =>
                 utils
                     .edit(textEditor, cmd)
                     .then((applied?) => {
-                        utils.select(textEditor, res.newIndex);
+                        if(!opts["_skipSelect"]) {
+                            utils.select(textEditor, res.newIndex);
+                        }
                         if (!opts["_skipIndent"]) {
                             indent({
                                 textEditor: textEditor,
@@ -137,7 +139,7 @@ const pareditCommands: [string, Function][] = [
     ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
     ['paredit.spliceSexpKillBackward', edit(paredit.editor.spliceSexpKill, { 'backward': true })],
     ['paredit.deleteForward', edit(paredit.editor.delete, { 'backward': false, '_skipIndent': true })],
-    ['paredit.deleteBackward', edit(paredit.editor.delete, { 'backward': true, '_skipIndent': true })],
+    ['paredit.deleteBackward', edit(paredit.editor.delete, { 'backward': true, '_skipIndent': true, '_skipSelect': true })],
     ['paredit.wrapAroundParens', edit(wrapAround, { opening: '(', closing: ')' })],
     ['paredit.wrapAroundSquare', edit(wrapAround, { opening: '[', closing: ']' })],
     ['paredit.wrapAroundCurly', edit(wrapAround, { opening: '{', closing: '}' })],
