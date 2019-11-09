@@ -30,8 +30,9 @@ I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/B
    try-first
    finding-commands
    eval-tips
-   paredit
    commands-top10
+   paredit
+   pprint
    customizing
    connect-sequences
    custom-commands
