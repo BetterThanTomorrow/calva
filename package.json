@@ -155,7 +155,7 @@
                         ],
                         "default": {
                             "enabled": true,
-                            "clientOrServer": "client",
+                            "clientOrServer": "server",
                             "width": 120,
                             "serverPrinter": "puget"
                         }

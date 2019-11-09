@@ -1,3 +1,5 @@
+import * as state from './state';
+
 export type PrettyPrintingOptions = {
     enabled: boolean,
     clientOrServer: 'client' | 'server',
@@ -15,11 +17,11 @@ export const disabledPrettyPrinter: PrettyPrintingOptions = {
     maxDepth: 0
 };
 
-function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, widthSlug: string, lengthSlug: string, depthsSlug: string) {
+function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, widthSlug: string, lengthSlug: string, depthsSlug: string, moreOptions = {}) {
     const PRINTER_FN = 'nrepl.middleware.print/print',
         OPTIONS = 'nrepl.middleware.print/options';
     let printer = {};
-    printer[OPTIONS] = {};
+    printer[OPTIONS] = moreOptions;
     printer[PRINTER_FN] = printerFn;
     printer[OPTIONS][widthSlug] = pprintOptions.width;
     if (pprintOptions.maxLength && lengthSlug !== undefined) {
@@ -29,6 +31,13 @@ function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, wid
         printer[OPTIONS][depthsSlug] = pprintOptions.maxDepth;
     }
     return printer;
+}
+
+const zprintExtraOptions = {
+    // Can't do this, because `bencode` translates `false` to 0, and `zprint` does not approve
+    // "record": { 
+    //     "to-string?": false
+    // }
 }
 
 export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
@@ -41,10 +50,18 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
             case "puget":
                 return getPrinter(pprintOptions, 'cider.nrepl.pprint/puget-pprint', 'width', 'seq-limit', undefined);
             case "zprint":
-                return getPrinter(pprintOptions, 'cider.nrepl.pprint/zprint-pprint', 'width', 'max-length', 'print-depth');
+                return getPrinter(pprintOptions, 'cider.nrepl.pprint/zprint-pprint', 'width', 'max-length', 'print-depth', zprintExtraOptions);
             default:
-                return {};
+                return undefined;
         }
     }
-    return {};
+    return undefined;
+}
+
+export function prettyPrintingOptions(): PrettyPrintingOptions {
+    return state.config().prettyPrintingOptions;
+}
+
+export const zprintDependencies = {
+    "zprint": "0.4.16"
 }
