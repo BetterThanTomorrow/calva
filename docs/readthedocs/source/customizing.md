@@ -9,7 +9,7 @@ Tip For VS Code newcomers: The search box in **Settings** is your friend. Also, 
         "enabled": true,
         "clientOrServer": "client",
         "width": 120,
-        "serverPrinter": "zprint"
+        "serverPrinter": "puget"
     }
 ```
 
