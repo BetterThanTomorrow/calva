@@ -157,7 +157,7 @@
                             "enabled": true,
                             "clientOrServer": "client",
                             "width": 120,
-                            "serverPrinter": "puget"
+                            "serverPrinter": "zprint"
                         }
                     },
                     "clojure.format.enable": {

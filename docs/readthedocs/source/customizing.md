@@ -2,6 +2,17 @@
 
 Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.
 
+Tip For VS Code newcomers: The search box in **Settings** is your friend. Also, some Calva settings are more complex than the Settings UI can handle. VS Code will then show you a link to `settings.json`. And VS Code's built-in `json` extension is awesome. To add settings for, say Calva's Pretty Printing, search for ”prettyprint” in VS Code Settings and follow the link to `settings.json`. Start typing ”calvapretty” until auto-complete suggests `calva.prettyPrintingOptions`. Press ENTER and VS Code will fill in these defaults:
+
+```json
+    "calva.prettyPrintingOptions": {
+        "enabled": true,
+        "clientOrServer": "client",
+        "width": 120,
+        "serverPrinter": "zprint"
+    }
+```
+
 ## Jack-in and Connect Sequences
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
