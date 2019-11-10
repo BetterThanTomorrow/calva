@@ -33,13 +33,13 @@ Here's an example of how `zprint` handles `maxDepth` (from the [Calva implementa
 
 Pretty printing can happen on the _server_ (i.e. in the JVM, via nREPL), or on the _client_ (i.e. in node, via VS Code/Calva). Client side always uses `zprint`. Server side you can choose from these printers:
 
-Print Function/Engine | Client or server side | Comments
+Print Engine | Client or Server Side | Comments
 --------------------- | --------------------- | --------
-[`calva`]             | client                | i.e. the nREPL server will plain print the results, and then Calva will pretty it.
+`calva`             | client                | i.e. the nREPL server will plain print the results, and then Calva will pretty it.
 [`pprint`](https://clojure.github.io/clojure/clojure.pprint-api.html) | server | `clojure.core/pprint`
-* [`fipp`](https://github.com/brandonbloom/fipp) | server |
-* [`puget`](https://github.com/greglook/puget) | server | default function
-* [`zprint`](https://github.com/kkinnear/zprint) | server | Recommended. Will need to be configured before [Jack-in](connect.md) if you want Calva's help to inject its dependencies
+[`fipp`](https://github.com/brandonbloom/fipp) | server |
+[`puget`](https://github.com/greglook/puget) | server | default function
+[`zprint`](https://github.com/kkinnear/zprint) | server | Recommended. Will need to be configured before [Jack-in](connect.md) if you want Calva's help to inject its dependencies
 
 It is this particular selection of server side functions, because they have pre-configured print-functions in [`cider-nrepl`](https://docs.cider.mx/cider-nrepl/).
 
