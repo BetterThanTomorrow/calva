@@ -174,7 +174,6 @@
                     },
                     "calva.statusColor": {
                         "type": "object",
-                        "default": {},
                         "description": "Configuration for custom coloring of the statusbar.",
                         "properties": {
                             "disconnectedColor": {
@@ -201,6 +200,12 @@
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
                                 "description": "Foreground color for the type status"
                             }
+                        },
+                        "default": {
+                            "disconnectedColor": "#c0c0c0",
+                            "launchingColor": "#fdd023",
+                            "connectedSatusColor": "#fdd023",
+                            "typeStatusColor": "#91dc47"
                         }
                     },
                     "calva.customCljsRepl": {
