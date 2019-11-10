@@ -2,14 +2,28 @@
 
 Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.
 
-## REPL Window
+Tip For VS Code newcomers: The search box in **Settings** is your friend. Also, some Calva settings are more complex than the Settings UI can handle. VS Code will then show you a link to `settings.json`. And VS Code's built-in `json` extension is awesome. To add settings for, say Calva's Pretty Printing, search for ”prettyprint” in VS Code Settings and follow the link to `settings.json`. Start typing ”calvapretty” until auto-complete suggests `calva.prettyPrintingOptions`. Press ENTER and VS Code will fill in these defaults:
 
-If you don't want the REPL window to open automatically on jack-in/connect, set `calva.openREPLWindowOnConnect` to `false`. Please note, that if the [Connect Sequence](connect-sequences.md) you are using has `afterCLJReplJackInCode`, then the CLJ REPL window will open anyway in order to evaluate that code for you in a visible way.
+```json
+    "calva.prettyPrintingOptions": {
+        "enabled": true,
+        "clientOrServer": "client",
+        "width": 120,
+        "serverPrinter": "puget"
+    }
+```
 
 ## Jack-in and Connect Sequences
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
 
+## REPL Window
+
+If you don't want the REPL window to open automatically on jack-in/connect, set `calva.openREPLWindowOnConnect` to `false`. Please note, that if the [Connect Sequence](connect-sequences.md) you are using has `afterCLJReplJackInCode`, then the CLJ REPL window will open anyway in order to evaluate that code for you in a visible way.
+
+## Pretty Printing
+
+Calva's pretty printing mode can be configured a bit. See [Pretty Printing](pprint.md).
 
 ## Calva Highlight
 

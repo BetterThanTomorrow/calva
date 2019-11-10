@@ -1,4 +1,5 @@
-{:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]]
+{:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]
+                [zprint "0.4.16"]]
 
  :source-paths ["src/cljs-lib/src"
                 "src/cljs-lib/test"]
@@ -13,12 +14,13 @@
                              :inferParens calva.fmt.inferer/infer-parens
                              :jsify calva.js-utils/jsify
                              :cljify calva.js-utils/cljify
-                             :parseEdn calva.js-utils/parse-edn-js
-                             :parseForms calva.js-utils/parse-forms-js}
+                             :prettyPrint calva.pprint.printer/pretty-print-js
+                             :parseEdn calva.parse/parse-edn-js
+                             :parseForms calva.parse/parse-forms-js}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
-                 :ns-regexp "-test$"
+                 :ns-regexp ".*"
                  :autorun   true}}}
 

@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.58",
+    "version": "2.0.59",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -104,10 +104,53 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
-                    "calva.prettyPrint": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Pretty print evaluations"
+                    "calva.prettyPrintingOptions": {
+                        "type": "object",
+                        "description": "Settings for Calva's pretty printing",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Should evaluations be pretty printed?"
+                            },
+                            "printEngine": {
+                                "type": "string",
+                                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it.",
+                                "enum": [
+                                    "calva",
+                                    "pprint",
+                                    "fipp",
+                                    "puget",
+                                    "zprint"
+                                ]
+                            },
+                            "width": {
+                                "type": "number",
+                                "description": "The width of the printing. Or line length... Hmmm, you get it, I hope."
+                            },
+                            "maxLength": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The maximum number of forms to print of each collection. For no limit, do not include this in your setting. See https://clojuredocs.org/clojure.core/*print-length*"
+                            },
+                            "maxDepth": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The maximum number of levels deep the printing will go in nested objects. For no limit, do not include this in your setting. Does not exist for `puget`. See also https://clojuredocs.org/clojure.core/*print-level*"
+                            }
+                        },
+                        "required": [
+                            "enabled",
+                            "printEngine"
+                        ],
+                        "default": {
+                            "enabled": true,
+                            "printEngine": "calva",
+                            "width": 120
+                        }
                     },
                     "clojure.format.enable": {
                         "type": "boolean",
@@ -1444,6 +1487,7 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
+        "@types/vscode": "^1.30.0",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.1",
         "css-loader": "^2.1.1",
@@ -1460,7 +1504,7 @@
         "nodemon": "^1.19.1",
         "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.66",
+        "shadow-cljs": "^2.8.69",
         "source-map-support": "^0.5.13",
         "style-loader": "^0.23.1",
         "tar": "^4.4.10",
@@ -1469,7 +1513,6 @@
         "typescript": "^3.5.1",
         "url-loader": "^1.1.2",
         "vsce": "^1.67.1",
-        "@types/vscode": "^1.30.0",
         "webpack": "^4.33.0",
         "webpack-cli": "^3.3.5"
     }

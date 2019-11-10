@@ -8,10 +8,11 @@ import * as util from './utilities';
 import { activeReplWindow, getReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
+import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
 
 function interruptAllEvaluations() {
-    
-    if(util.getConnectedState()) {
+
+    if (util.getConnectedState()) {
         let chan = state.outputChannel();
         let msgs: string[] = [];
 
@@ -25,13 +26,13 @@ function interruptAllEvaluations() {
             session.interruptAll();
         });
 
-        if(nums < 1) {
+        if (nums < 1) {
             vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
         } else {
             vscode.window.showInformationMessage(`Interupted ${nums} running evaluation(s).`);
         }
         return;
-    }    
+    }
     vscode.window.showInformationMessage("Not connected to a REPL server");
 }
 
@@ -43,14 +44,14 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
     });
 }
 
-async function evaluateSelection(document = {}, options = {}) {
+async function evaluateSelection(document, options) {
     let current = state.deref(),
         chan = state.outputChannel(),
         doc = util.getDocument(document),
-        pprint = options["pprint"] || false,
-        replace = options["replace"] || false,
-        topLevel = options["topLevel"] || false,
-        asComment = options["comment"] || false;
+        pprintOptions = options.pprintOptions,
+        replace = options.replace || false,
+        topLevel = options.topLevel || false,
+        asComment = options.comment || false;
     if (current.get('connected')) {
         let client = util.getSession(util.getFileType(doc));
         let editor = vscode.window.activeTextEditor,
@@ -86,7 +87,7 @@ async function evaluateSelection(document = {}, options = {}) {
                         column: column + 1,
                         stdout: m => out.push(m),
                         stderr: m => err.push(m),
-                        pprint: !!pprint
+                        pprintOptions: pprintOptions
                     });
                 let value = await context.value;
                 value = util.stripAnsi(context.pprintOut || value);
@@ -143,31 +144,31 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }))
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
         .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }))
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
         .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }))
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
         .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }))
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
         .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }))
+    evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
         .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
-async function loadFile(document = {}, callback = () => { }) {
+async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
     let current = state.deref(),
         doc = util.getDocument(document),
         fileName = util.getFileName(doc),
@@ -185,15 +186,16 @@ async function loadFile(document = {}, callback = () => { }) {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
-            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)
+            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
+            pprintOptions: pprintOptions
         })
         await res.value.then((value) => {
-            if(value) {
-               chan.appendLine("=> " + value); 
+            if (value) {
+                chan.appendLine("=> " + value);
             } else {
-               chan.appendLine("No results from file evaluation."); 
+                chan.appendLine("No results from file evaluation.");
             }
-        }).catch(() => {});
+        }).catch(() => { });
     }
     callback();
 }
@@ -210,14 +212,14 @@ async function requireREPLUtilitiesCommand() {
             fileType = util.getFileType(util.getDocument({})),
             session = util.getSession(fileType);
 
-        if(session) {
+        if (session) {
             try {
                 await util.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
                 await session.eval("(in-ns '" + ns + ")").value;
                 await session.eval(form).value;
                 chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
-            } catch(e) {
-                chan.appendLine(`REPL utilities could not be aquired for namespace ${ns}: ${e}`);
+            } catch (e) {
+                chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
             }
         }
     } else {
@@ -240,10 +242,11 @@ async function copyLastResultCommand() {
 }
 
 async function togglePrettyPrint() {
-    const config = vscode.workspace.getConfiguration('calva');
-    const pprintConfigKey = 'prettyPrint';
-    const pprint = config.get(pprintConfigKey);
-    await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+    const config = vscode.workspace.getConfiguration('calva'),
+        pprintConfigKey = 'prettyPrintingOptions',
+        pprintOptions = config.get(pprintConfigKey) as PrettyPrintingOptions;
+        pprintOptions.enabled = !pprintOptions.enabled;
+    await config.update(pprintConfigKey, pprintOptions, vscode.ConfigurationTarget.Global);
     statusbar.update();
 };
 

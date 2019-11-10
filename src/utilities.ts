@@ -12,6 +12,7 @@ import * as docMirror from './calva-fmt/src/docmirror';
 import { TokenCursor, LispTokenCursor } from './webview/token-cursor';
 import { Token } from './webview/clojure-lexer';
 import select from './select';
+import { disabledPrettyPrinter } from './printer';
 
 
 export function stripAnsi(str: string) {
