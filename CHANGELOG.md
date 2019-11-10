@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.59] - 2019-11-10
 - [Enable information providers in jar files e.g. opened with the "Go to Definition" command](https://github.com/BetterThanTomorrow/calva/pull/455)
 - [Make Pretty Printing more Configurable](https://github.com/BetterThanTomorrow/calva/pull/436)
 
