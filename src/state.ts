@@ -7,6 +7,7 @@ import * as util from './utilities';
 import * as path from 'path';
 import * as fs from 'fs';
 import { customREPLCommandSnippet } from './repl-window';
+import { PrettyPrintingOptions } from './printer';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -108,13 +109,14 @@ function config() {
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
-        pprint: configOptions.get("prettyPrint") as boolean,
         openREPLWindowOnConnect: configOptions.get("openREPLWindowOnConnect") as boolean,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
-        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[]
+        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
+        prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions
     };
 }
 
+// TODO: Remove this, no longer used
 function getViewColumnFromString(value: string): vscode.ViewColumn {
     switch (value.trim().toLowerCase()) {
         case 'active':

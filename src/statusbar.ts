@@ -29,7 +29,7 @@ function update() {
 
     //let disconnectedColor = "rgb(192,192,192)";
 
-    const pprint = state.config().pprint;
+    const pprint = state.config().prettyPrintingOptions.enabled;
     prettyPrintToggle.text = "pprint";
     prettyPrintToggle.color = pprint ? color.active : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`

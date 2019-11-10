@@ -9,7 +9,7 @@ import { Buffer } from "buffer";
 /** Bencode the given JSON object */
 const bencode = (value) => {
     if(value === null || value === undefined)
-        value = 0;
+         value = 0;
     if(typeof value == "boolean")
         value = value ? 1 : 0;
     if(typeof value == "number")
