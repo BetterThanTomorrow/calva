@@ -97,6 +97,7 @@ export class TokenCursor {
 }
 
 export class LispTokenCursor extends TokenCursor {
+
     constructor(public doc: LineInputModel, public line: number, public token: number) {
         super(doc, line, token);
     }
@@ -104,6 +105,26 @@ export class LispTokenCursor extends TokenCursor {
     /** Create a copy of this cursor. */
     clone() {
         return new LispTokenCursor(this.doc, this.line, this.token);
+    }
+
+    /**
+     * Indicates if the current token is inside a string (e.g. a documentation string)
+     */
+    isInString() {
+
+        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
+              token = this.getToken();
+        if (token.type == 'eol') {
+            let next = this.clone().next()
+            let previous = this.clone().previous();
+            if (next && strTypes.includes(next.getToken().type) && 
+                previous && strTypes.includes(previous.getToken().type)) {
+                return (true);
+            }
+        } else if (strTypes.includes(token.type)) {
+            return (true);
+        }
+        return false;
     }
 
     /**
