@@ -34,9 +34,9 @@ function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, wid
 }
 
 const zprintExtraOptions = {
-    // Can't do this, because `bencode` translates `false` to 0, and `zprint` does not approve
+    // Can't do this, because `bencode` translates `false` to 0, and `zprint` does not approve (yet, Kim is looking into relaxing this)
     // "record": { 
-    //     "to-string?": false
+    //     "to-string?": true
     // }
 }
 
