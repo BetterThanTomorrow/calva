@@ -173,12 +173,26 @@ window.addEventListener("mouseup", e => {
     }
 })
 
-window.addEventListener('dblclick', function(){ 
+window.addEventListener('dblclick', function(e: MouseEvent) { 
+
     if (con.readline && !inEvaluation) {
-        con.readline.withUndo(() => {
-            paredit.growSelection(con.readline)
-            con.readline.repaint();
-        })
+        let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
+        if (pageOffset > 0) {
+            let cursor = con.readline.model.getTokenCursor(pageOffset);
+            if (cursor.isInString()) {
+                let [selectionStart, selectionEnd] = con.readline.model.getWordSelection(pageOffset);
+                con.readline.withUndo(() => {
+                    con.readline.selectionStart = selectionStart;
+                    con.readline.selectionEnd = selectionEnd;
+                    con.readline.repaint();
+                })
+            } else {
+                con.readline.withUndo(() => {
+                    paredit.growSelection(con.readline)
+                    con.readline.repaint();
+                })
+            }
+        }
     }
   });
 
