@@ -2,19 +2,18 @@ import * as state from './state';
 
 export type PrettyPrintingOptions = {
     enabled: boolean,
-    clientOrServer: 'client' | 'server',
+    printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint',
     width: number,
     maxLength?: number,
-    maxDepth?: number,
-    serverPrinter?: 'pprint' | 'fipp' | 'puget' | 'zprint'
+    maxDepth?: number
 };
 
 export const disabledPrettyPrinter: PrettyPrintingOptions = {
     enabled: false,
-    clientOrServer: 'client',
-    width: 0,
-    maxLength: 0,
-    maxDepth: 0
+    printEngine: undefined,
+    width: undefined,
+    maxLength: undefined,
+    maxDepth: undefined
 };
 
 function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, widthSlug: string, lengthSlug: string, depthsSlug: string, moreOptions = {}) {
@@ -41,8 +40,8 @@ const zprintExtraOptions = {
 }
 
 export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
-    if (pprintOptions.clientOrServer === 'server' && pprintOptions.enabled && pprintOptions.serverPrinter != undefined) {
-        switch (pprintOptions.serverPrinter) {
+    if (pprintOptions.enabled && pprintOptions.printEngine !== 'calva') {
+        switch (pprintOptions.printEngine) {
             case "pprint":
                 return getPrinter(pprintOptions, 'cider.nrepl.pprint/pprint', 'right-margin', 'length', 'level');
             case "fipp":
@@ -64,4 +63,12 @@ export function prettyPrintingOptions(): PrettyPrintingOptions {
 
 export const zprintDependencies = {
     "zprint": "0.4.16"
+}
+
+export function getServerSidePrinterDependencies() {
+    if (prettyPrintingOptions().printEngine === 'zprint') {
+        return zprintDependencies;
+    } else {
+        return {}
+    }
 }

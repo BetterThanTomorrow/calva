@@ -85,7 +85,7 @@ const leinDependencies = {
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
-const serverPrinter = pprint.getServerSidePrinter(pprint.prettyPrintingOptions());
+const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
 
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
@@ -107,7 +107,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             let out: string[] = [];
             const dependencies = { ...leinDependencies,
                 ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
-                ...(serverPrinter ? { ...pprint.zprintDependencies } : {})
+                ...serverPrinterDependencies
             };
             let keys = Object.keys(dependencies);
             let data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
@@ -276,7 +276,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             const dependencies = { 
                 ...cliDependencies, 
                 ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
-                ...(serverPrinter ? { ...pprint.zprintDependencies } : {})
+                ...serverPrinterDependencies
             },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
@@ -322,7 +322,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             const chan = state.outputChannel(),
                 dependencies = {
                     ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
-                    ...(serverPrinter ? { ...pprint.zprintDependencies } : {})
+                    ...serverPrinterDependencies
                 };
             let args: string[] = [];
             for (let dep in dependencies)

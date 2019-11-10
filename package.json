@@ -112,12 +112,15 @@
                                 "type": "boolean",
                                 "description": "Should evaluations be pretty printed?"
                             },
-                            "clientOrServer": {
+                            "printEngine": {
                                 "type": "string",
-                                "description": "Where to perform the pretty printing. Either client side or server (nREPL) side. Client side avoids some evaluation of the results that often happen server side. But client side also involves to first parsing the result from a string to EDN, which doesn't always work, and will result in plain printing in those cases.",
+                                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it.",
                                 "enum": [
-                                    "client",
-                                    "server"
+                                    "calva",
+                                    "pprint",
+                                    "fipp",
+                                    "puget",
+                                    "zprint"
                                 ]
                             },
                             "width": {
@@ -137,27 +140,16 @@
                                     "null"
                                 ],
                                 "description": "The maximum number of levels deep the printing will go in nested objects. For no limit, do not include this in your setting. Does not exist for `puget`. See also https://clojuredocs.org/clojure.core/*print-level*"
-                            },
-                            "serverPrinter": {
-                                "type": "string",
-                                "description": "Which server side printer to use when `clientOrServer` is set to `server`. NB: As of this writing you need to supply zprint dependencies to your project yourself, b/c cider-nrepl doesn't.",
-                                "enum": [
-                                    "pprint",
-                                    "fipp",
-                                    "puget",
-                                    "zprint"
-                                ]
                             }
                         },
                         "required": [
                             "enabled",
-                            "clientOrServer"
+                            "printEngine"
                         ],
                         "default": {
                             "enabled": true,
-                            "clientOrServer": "server",
-                            "width": 120,
-                            "serverPrinter": "puget"
+                            "printEngine": "calva",
+                            "width": 120
                         }
                     },
                     "clojure.format.enable": {

@@ -15,10 +15,9 @@ For most people the defaults will probably work, but Calva pretty printing comes
 Setting          | Type    | Effect
 -------          | ----    | ------
 `enabled`        | boolean | so this is a third way you can change this mode 😄
-`clientOrServer` | `client` or `server` | defaults to `server`
-`serverPrinter`  | enum    | when `clientOrServer` is set to `server`, this setting chooses which printer function that will be used. Default is `puget`, more about this setting below
+`printEngine`    | enum    | which printer function that will be used. Default is `puget`, more about this setting below
 `width`          | number  | the maximum line length of printed output (or at least the printers will try)
-`maxLength`      | number  |  the maximum number of elements printed in nested nodes, [good for evaluating something like `(iterate inc 0)`](https://clojuredocs.org/clojure.core/*print-length*#example-542692cac026201cdc326b12), which you shouldn't do without setting `maxLength`. Most printers will indicate truncated lists with `...` at the end.
+`maxLength`      | number  | the maximum number of elements printed in nested nodes, [good for evaluating something like `(iterate inc 0)`](https://clojuredocs.org/clojure.core/*print-length*#example-542692cac026201cdc326b12), which you shouldn't do without setting `maxLength`. Most printers will indicate truncated lists with `...` at the end.
 `maxDepth`       | number  | the maximum number of levels deep that will get printed. Different printers mark a stop different ways. `puget` doesn't support it at all.
 
 See [Customizing Calva](customizing.md) for some tips on adding settings like these.
@@ -30,22 +29,25 @@ Here's an example of how `zprint` handles `maxDepth` (from the [Calva implementa
   ;; => {:value "[[[[##]]]]"}
 ```
 
-### Client or Server Prettifiers
+### Your Selection of Prettifiers
 
 Pretty printing can happen on the _server_ (i.e. in the JVM, via nREPL), or on the _client_ (i.e. in node, via VS Code/Calva). Client side always uses `zprint`. Server side you can choose from these printers:
 
-* [`pprint`](https://clojure.github.io/clojure/clojure.pprint-api.html), that is `clojure.core/pprint`
-* [`fipp`](https://github.com/brandonbloom/fipp)
-* [`puget`](https://github.com/greglook/puget) (default)
-* [`zprint`](https://github.com/kkinnear/zprint)
+Print Function/Engine | Client or server side | Comments
+--------------------- | --------------------- | --------
+[`calva`]             | client                | i.e. the nREPL server will plain print the results, and then Calva will pretty it.
+[`pprint`](https://clojure.github.io/clojure/clojure.pprint-api.html) | server | `clojure.core/pprint`
+* [`fipp`](https://github.com/brandonbloom/fipp) | server |
+* [`puget`](https://github.com/greglook/puget) | server | default function
+* [`zprint`](https://github.com/kkinnear/zprint) | server | Recommended. Will need to be configured before [Jack-in](connect.md) if you want Calva's help to inject its dependencies
 
-It is this particular selection because they all have pre-configured print-functions in [`cider-nrepl`](https://docs.cider.mx/cider-nrepl/).
+It is this particular selection of server side functions, because they have pre-configured print-functions in [`cider-nrepl`](https://docs.cider.mx/cider-nrepl/).
 
 ### Why does Server or Client Side Matter?
 
-This matters because on the server all pretty printers, except `pprint` does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. With `puget` and [Datomic](https://www.datomic.com) transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, instead you will soon have a very hot computer.
+This matters because on the server all pretty printers, except `pprint` does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. E.g. for [Datomic](https://www.datomic.com) transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, instead you will soon have a very hot computer.
 
-> Note: With the help of zprint creator, [Kim Kinnear](https://github.com/kkinnear), we have [found ways](https://github.com/kkinnear/zprint/issues/111) to compensate for this problems. Ways that we will implement be implemented when our development time allows, stay tuned.
+> Note: With the help of zprint creator, [Kim Kinnear](https://github.com/kkinnear), we have [found ways](https://github.com/kkinnear/zprint/issues/111) to compensate for this problems. Ways that are not yet implemented, but please stay tuned.
 
 Then, why not always do it client side? It turns out that on the client side there are also things going on. Calva gets the results back as a string and therefore it needs to first be parsed back to [EDN](https://github.com/edn-format/edn), before it can be pretty printed by `zprint`. And – here's the catch – all results are not valid EDN and therefore can't be pretty printed by `zprint`. Datomic transaction results are one example.
 

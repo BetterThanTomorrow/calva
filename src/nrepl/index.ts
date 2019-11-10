@@ -726,7 +726,7 @@ export class NReplEvaluation {
                     this.doResolve(this.pprintOut)
                 } else {
                     let printValue = this.msgValue;
-                    if (pprintOptions.enabled && pprintOptions.clientOrServer === 'client') {
+                    if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
                         const pretty = prettyPrint(this.msgValue, pprintOptions);
                         if (!pretty.error) {
                             printValue = pretty.value;
