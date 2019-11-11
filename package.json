@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.59",
+    "version": "2.0.60",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -148,7 +148,7 @@
                         ],
                         "default": {
                             "enabled": true,
-                            "printEngine": "calva",
+                            "printEngine": "pprint",
                             "width": 120
                         }
                     },
@@ -174,7 +174,6 @@
                     },
                     "calva.statusColor": {
                         "type": "object",
-                        "default": {},
                         "description": "Configuration for custom coloring of the statusbar.",
                         "properties": {
                             "disconnectedColor": {
@@ -201,6 +200,12 @@
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
                                 "description": "Foreground color for the type status"
                             }
+                        },
+                        "default": {
+                            "disconnectedColor": "#c0c0c0",
+                            "launchingColor": "#fdd023",
+                            "connectedSatusColor": "#fdd023",
+                            "typeStatusColor": "#91dc47"
                         }
                     },
                     "calva.customCljsRepl": {
