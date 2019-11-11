@@ -7,12 +7,14 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
     let cursor = doc.getTokenCursor(en);
     if(cursor.withinString())
         throw new Error("Invalid context for paredit.wrapSexp");
-    if(st == end) {
-        cursor.forwardSexp()
-        en = cursor.offsetStart;
-        // NOTE: emacs leaves the selection as is, but it has no relation to what was selected after the transform.
-        //       I have opted to clear it here.
-        doc.selectionStart = doc.selectionEnd = en;
+    if(st == en) {
+        if(!cursor.withinWhitespace()) {
+            cursor.forwardSexp();
+            // NOTE: emacs leaves the selection as is, but it has no relation to what was selected after the transform.
+            //       I have opted to clear it here.
+            st = en = cursor.offsetStart;
+            doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
+        }
     }
     doc.insertString(open + doc.getSelection() + close);
     doc.selectionStart = (st + open.length) 
@@ -184,12 +186,12 @@ export function backwardBarfSexp(doc: ReplReadline, start: number = doc.selectio
 export function open(doc: ReplReadline, open: string, close: string, start: number = doc.selectionEnd) {
     let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
     doc.insertString(open + doc.getSelection() + close);
-    doc.selectionStart = doc.selectionEnd = start+1;
+    doc.selectionStart = doc.selectionEnd = start + open.length;
     if(cs != ce) {
         doc.selectionStart = (cs + open.length) 
         doc.selectionEnd = (ce + open.length) 
     } else {
-        doc.selectionStart = doc.selectionEnd = start+1;
+        doc.selectionStart = doc.selectionEnd = start + open.length;
     }
 }
 
@@ -198,7 +200,7 @@ export function close(doc: ReplReadline, close: string, start: number = doc.sele
     cursor.forwardWhitespace(false);
     if(cursor.getToken().raw == close) {
         doc.model.changeRange(start, cursor.offsetStart, "");
-        doc.selectionStart = doc.selectionEnd = start+1;
+        doc.selectionStart = doc.selectionEnd = start + close.length;
     } else {
         // one of two things are possible:
         if(cursor.forwardList()) {
@@ -207,7 +209,7 @@ export function close(doc: ReplReadline, close: string, start: number = doc.sele
         } else {
             while(cursor.forwardSexp()) {}
             doc.model.changeRange(cursor.offsetEnd, cursor.offsetEnd, close)
-            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd+1;
+            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd + close.length;
         }
     }
 }
