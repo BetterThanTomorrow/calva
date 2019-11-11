@@ -262,9 +262,11 @@ export class LineInputModel {
      * @param newSelection the new selection
      */
     changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        let deletedText = this.recordingUndo ? this.getText(start, end) : "";
-        let [startLine, startCol] = this.getRowCol(start);
-        let [endLine, endCol] = this.getRowCol(end);
+        let startPos = Math.min(start, end);
+        let endPos = Math.max(start, end);
+        let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
+        let [startLine, startCol] = this.getRowCol(startPos);
+        let [endLine, endCol] = this.getRowCol(endPos);
         // extract the lines we will replace
         let replaceLines = text.split(/\r\n|\n/);
 
@@ -310,7 +312,7 @@ export class LineInputModel {
         }
     
         if(this.recordingUndo) {
-            this.undoManager.addUndoStep(new EditorUndoStep("Edit", start, text, deletedText, oldSelection, newSelection))
+            this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
         }
     }
 
