@@ -8,17 +8,18 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
     if(cursor.withinString())
         throw new Error("Invalid context for paredit.wrapSexp");
     if(st == en) {
-        if(!cursor.withinWhitespace()) {
-            cursor.forwardSexp();
-            // NOTE: emacs leaves the selection as is, but it has no relation to what was selected after the transform.
-            //       I have opted to clear it here.
-            st = en = cursor.offsetStart;
-            doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
-        }
+        cursor.forwardSexp();
+        en = cursor.offsetStart;
+        doc.model.insertString(en, close);
+        doc.model.insertString(st, open);
+        // NOTE: emacs leaves the selection as is, but it has no relation to what was selected after the transform.
+        //       I have opted to clear it here.
+        doc.selectionStart = doc.selectionEnd = en + open.length;
+    } else {
+        doc.insertString(open + doc.getSelection() + close);
+        doc.selectionStart = (st + open.length) 
+        doc.selectionEnd = (en + open.length) 
     }
-    doc.insertString(open + doc.getSelection() + close);
-    doc.selectionStart = (st + open.length) 
-    doc.selectionEnd = (en + open.length) 
 }
 
 export function splitSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
