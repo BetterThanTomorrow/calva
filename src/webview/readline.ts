@@ -584,6 +584,7 @@ export class ReplReadline {
     pageToOffset(pageX: number, pageY: number) {
         let rect = this.mainElem.getBoundingClientRect();
         let y = pageY-(rect.top + window.scrollY);
+        let x = pageX-(rect.left + window.scrollX);
         let i: number;
 
         // NOTE: assuming every line is a fixed size, this could be O(1).
@@ -599,8 +600,22 @@ export class ReplReadline {
             return 0;
         let offset = this.model.getOffsetForLine(i);
         
-        offset += Math.min(Math.floor((pageX-rect.left) / measureText("M")), this.model.lines[i].text.length)
+        offset += Math.min(Math.floor(x / measureText("M")), this.model.lines[i].text.length)
         return offset;
+    }
+
+    /** Given a (pageX, pageY) pixel coordinate, returns if the point is in the bounding rectangle of the main element. */
+    withinBoundingClientRect(pageX: number, pageY: number) {
+        let rect = this.mainElem.getBoundingClientRect();
+        let rectY = (rect.top + window.scrollY);
+        let rectX = (rect.left + window.scrollX);
+        if(pageX >= rectX && 
+           pageX <= rectX + rect.width && 
+           pageY >= rectY && 
+           pageY <= rectY + rect.height){
+            return true;
+          }
+          return false;
     }
 
     private mouseDrag = (e: MouseEvent) => {
