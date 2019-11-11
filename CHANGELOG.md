@@ -3,7 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
-## [2.0.59] - 2019-11-11
+## [2.0.60] - 2019-11-11
 - Re-enable default stylings for nREPL status bar items.
 - Make `pprint` the default Pretty Printer.
 
