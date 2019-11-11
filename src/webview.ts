@@ -297,6 +297,9 @@ function renderReplResponse(newNs: string, text: string) {
     let div = document.createElement("div"),
         line = null,
         content = null;
+        // the code cannot handle '\n\r' line endings
+        // so ensure we remove the '\r'.
+        text = text.replace(/\r/g, "")
     div.className = "repl-response";
     for (let tk of scanner.processLine(text)) {
         if (!line || tk.raw == "\n") {

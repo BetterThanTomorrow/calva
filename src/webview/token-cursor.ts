@@ -317,6 +317,22 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
+     * Moves this cursor forwards to the `closingBracket` of the containing sexpr, or until the end of the document.
+     */
+    forwardListOfType(closingBracket: string): boolean {
+        let cursor = this.clone();
+        while (cursor.forwardList()) {
+            if (cursor.getPrevToken().raw === closingBracket) {
+                this.set(cursor);
+                return true;
+            }
+            if (!cursor.upList()) {
+                return false;
+            }
+        }
+    }
+
+    /**
      * Moves this cursor backwards to the open paren of the containing sexpr, or until the start of the document.
      */
     backwardList(): boolean {
@@ -330,7 +346,7 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Moves this cursor backwards to the opening `openingBracket` of the containing sexpr, or until the start of the document.
+     * Moves this cursor backwards to the `openingBracket` of the containing sexpr, or until the start of the document.
      */
     backwardListOfType(openingBracket: string): boolean {
         let cursor = this.clone();
@@ -343,6 +359,29 @@ export class LispTokenCursor extends TokenCursor {
                 return false;
             }
         }
+    }
+
+    /**
+     * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
+     * @param openingBracket 
+     */
+    rangeForList(openingBracket?: string): [[number, number], [number, number]] {
+        const cursor = this.clone();
+        if (openingBracket === undefined) {
+            if (!(cursor.backwardList() && cursor.backwardUpList())) {
+                return undefined;
+            }
+        } else {
+            if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
+                return undefined;
+            }
+        }
+        const start = cursor.rowCol as [number, number];
+        if (!cursor.forwardSexp()) {
+            return undefined;
+        }
+        const end = cursor.rowCol as [number, number];
+        return [start, end]
     }
 
     /**
@@ -512,21 +551,6 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
     }
-
-    /**
-     * Gets the enclosing function from the current cursor position.
-     * If it can't find a function, returns `undefined`.
-     */
-    // getFunction(): string {
-    //     const cursor = this.clone();
-    //     if (cursor.backwardListOfType('(')) {
-    //         cursor.forwardWhitespace();
-    //         const symbol = cursor.getToken();
-    //         if (symbol.type === 'id') {
-    //             return symbol.raw;
-    //         }
-    //     }
-    // }
 }
 
 /**

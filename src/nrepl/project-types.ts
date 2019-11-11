@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as utilities from '../utilities';
+import * as pprint from '../printer';
 
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
@@ -51,7 +52,7 @@ const NREPL_VERSION = "0.6.0",
     FIGWHEEL_MAIN_VERSION = "0.2.3";
 
 const cliDependencies = {
-    "nrepl": "0.6.0",
+    "nrepl": NREPL_VERSION,
     "cider/cider-nrepl": CIDER_NREPL_VERSION,
 }
 
@@ -84,6 +85,8 @@ const leinDependencies = {
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
 
+const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
+
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
         name: "Leiningen",
@@ -102,7 +105,10 @@ const projectTypes: { [id: string]: ProjectType } = {
         */
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
             let out: string[] = [];
-            let dependencies = { ...leinDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
+            const dependencies = { ...leinDependencies,
+                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                ...serverPrinterDependencies
+            };
             let keys = Object.keys(dependencies);
             let data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
@@ -267,7 +273,11 @@ const projectTypes: { [id: string]: ProjectType } = {
                 }
             }
 
-            const dependencies = { ...cliDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) },
+            const dependencies = { 
+                ...cliDependencies, 
+                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                ...serverPrinterDependencies
+            },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
@@ -310,7 +320,10 @@ const projectTypes: { [id: string]: ProjectType } = {
          */
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
-                dependencies = { ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
+                dependencies = {
+                    ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                    ...serverPrinterDependencies
+                };
             let args: string[] = [];
             for (let dep in dependencies)
                 args.push("-d", dep + ":" + dependencies[dep]);
