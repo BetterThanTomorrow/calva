@@ -48,6 +48,9 @@ export class ReplReadline {
 
     /** Returns the offset of the start of the selection. */
     get selectionStart() {
+        if(this._selectionEnd > this._selectionStart) {
+            return(this._selectionEnd);
+        }
         return this._selectionStart
     };
     
@@ -61,6 +64,9 @@ export class ReplReadline {
 
     /** Returns the offset of the end of the selection. */
     get selectionEnd() {
+        if(this._selectionStart < this._selectionEnd) {
+            return(this._selectionStart);
+        }
         return this._selectionEnd
     };
 
