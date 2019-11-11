@@ -48,9 +48,6 @@ export class ReplReadline {
 
     /** Returns the offset of the start of the selection. */
     get selectionStart() {
-        if(this._selectionEnd > this._selectionStart) {
-            return(this._selectionEnd);
-        }
         return this._selectionStart
     };
     
@@ -64,9 +61,6 @@ export class ReplReadline {
 
     /** Returns the offset of the end of the selection. */
     get selectionEnd() {
-        if(this._selectionStart < this._selectionEnd) {
-            return(this._selectionStart);
-        }
         return this._selectionEnd
     };
 
@@ -140,9 +134,10 @@ export class ReplReadline {
      */
     insertString(text: string) {
         this.withUndo(() => {
-            let [cs, ce] = [this.selectionStart, this.selectionEnd];
-            this.model.changeRange(this.selectionStart, this.selectionEnd, text, [cs, ce], [cs+text.length, cs+text.length])
-            this.selectionStart = this.selectionEnd = cs+text.length;
+            let cs = Math.min(this.selectionStart, this.selectionEnd);
+            let ce = Math.max(this.selectionStart, this.selectionEnd);
+            this.model.changeRange(cs, ce, text, [cs, ce], [cs+text.length, cs+text.length])
+            this.selectionStart = this.selectionEnd = cs + text.length;
             this.repaint();
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
