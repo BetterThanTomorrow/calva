@@ -108,26 +108,6 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Indicates if the current token is inside a string (e.g. a documentation string)
-     */
-    isInString() {
-
-        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
-              token = this.getToken();
-        if (token.type == 'eol') {
-            let next = this.clone().next()
-            let previous = this.clone().previous();
-            if (next && strTypes.includes(next.getToken().type) && 
-                previous && strTypes.includes(previous.getToken().type)) {
-                return (true);
-            }
-        } else if (strTypes.includes(token.type)) {
-            return (true);
-        }
-        return false;
-    }
-
-    /**
      * Moves this token past the inside of a multiline string
      */
     forwardString() {
@@ -450,15 +430,23 @@ export class LispTokenCursor extends TokenCursor {
             return true;
         }
     }
+
+    /**
+     * Indicates if the current token is inside a string (e.g. a documentation string)
+     */
     withinString() {
-        let tk = this.getToken().type;
-        if (tk == "str" || tk == "str-start" || tk == "str-end" || tk == "str-inside") {
-            return true;
-        }
-        if (tk == "eol") {
-            tk = this.getPrevToken().type;
-            if (tk == "str-inside" || tk == "str-start")
-                return true;
+
+        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
+              token = this.getToken();
+        if (token.type == 'eol') {
+            let next = this.clone().next()
+            let previous = this.clone().previous();
+            if (next && strTypes.includes(next.getToken().type) && 
+                previous && strTypes.includes(previous.getToken().type)) {
+                return (true);
+            }
+        } else if (strTypes.includes(token.type)) {
+            return (true);
         }
         return false;
     }
