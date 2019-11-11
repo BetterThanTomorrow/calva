@@ -13,6 +13,7 @@ import annotations from './providers/annotations';
 import * as util from './utilities';
 import evaluate from './evaluate';
 import select from './select';
+import { PrettyPrintingOptions, disabledPrettyPrinter } from "./printer";
 
 /**
  * Event fired when user input is retrieved from the REPL Window.
@@ -96,7 +97,7 @@ class REPLWindow {
                 }
 
                 if (msg.type == "read-line") {
-                    this.replEval(msg.line, this.ns, state.config().pprint);
+                    this.replEval(msg.line, this.ns, state.config().prettyPrintingOptions);
                 }
 
                 if (msg.type == "goto-file") {
@@ -226,7 +227,7 @@ class REPLWindow {
         this.ns = ns;
     }
 
-    replEval(line: string, ns: string, pprint: boolean) {
+    replEval(line: string, ns: string, pprintOptions: PrettyPrintingOptions) {
 
         this.interrupt();
 
@@ -234,7 +235,7 @@ class REPLWindow {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
             stdout: m => this.postMessage({ type: "stdout", value: m }),
             stdin: () => this.getUserInput(),
-            pprint: pprint
+            pprintOptions: pprintOptions
         })
         this.evaluation = evaluation;
 
@@ -453,8 +454,7 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string, pprint: boolean) {
-
+export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
     openReplWindow(sessionType, true)
         .then((v) => {
             let wnd = replWindows[sessionType];
@@ -492,7 +492,7 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
 export async function setREPLNamespace(ns: string, reload = false) {
 
     if (reload) {
-        await evaluate.loadFile();
+        await evaluate.loadFile({}, undefined, state.config().prettyPrintingOptions);
     }
     let wnd = replWindows[util.getREPLSessionType()];
     if (wnd) {
@@ -502,7 +502,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
 }
 
 
-function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
+function evalCurrentFormInREPLWindow(topLevel: boolean) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument({}),
         selection = editor.selection,
@@ -518,16 +518,16 @@ function evalCurrentFormInREPLWindow(topLevel: boolean, pprint: boolean) {
         code = doc.getText(selection);
     }
     if (code !== "") {
-        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc), pprint);
+        sendTextToREPLWindow(util.getREPLSessionType(), code, util.getNamespace(doc));
     }
 }
 
 function evalCurrentFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(false, state.config().pprint);
+    evalCurrentFormInREPLWindow(false,);
 }
 
 function evalCurrentTopLevelFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(true, state.config().pprint);
+    evalCurrentFormInREPLWindow(true);
 }
 
 export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
@@ -566,7 +566,7 @@ function sendCustomCommandSnippetToREPLCommand() {
                 const command = snippetsDict[pick].snippet,
                     ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                sendTextToREPLWindow(repl ? repl : "clj", command, ns, false);
+                sendTextToREPLWindow(repl ? repl : "clj", command, ns);
             }
         }).catch(() => { });
     } else {

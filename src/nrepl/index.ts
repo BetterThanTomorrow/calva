@@ -3,6 +3,8 @@ import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as replWindow from './../repl-window';
 import * as util from '../utilities';
+import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 
 /** An nRREPL client */
 export class NReplClient {
@@ -146,9 +148,9 @@ export class NReplSession {
     }
 
     private addRunningID(id: string) {
-        if(id) {
-            if(!this._runningIds.includes(id)) {
-                this._runningIds.push(id); 
+        if (id) {
+            if (!this._runningIds.includes(id)) {
+                this._runningIds.push(id);
             }
         }
     }
@@ -190,7 +192,7 @@ export class NReplSession {
 
         if (!(msgData.status && msgData.status == "done")) {
             this.addRunningID(msgData.id);
-        } 
+        }
 
         const msgValue: string = msgData.out || msgData.err;
         const isError: boolean = msgData.out ? false : true;
@@ -254,23 +256,21 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprint?: boolean } = {}) {
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
+        const pprintOptions = opts.pprintOptions;
+        opts["pprint"] = pprintOptions.enabled;
+        delete opts.pprintOptions;
         const id = this.client.nextId,
-            pprintOpts = opts.pprint ? {
-                "nrepl.middleware.print/print": "cider.nrepl.pprint/puget-pprint",
-                "nrepl.middleware.print/options": {
-                    "width": 120,
-                }
-            } : {};
+            extraOpts = getServerSidePrinter(pprintOptions);
 
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
-                if (evaluation.onMessage(msg)) {
+                if (evaluation.onMessage(msg, pprintOptions)) {
                     return true;
                 }
             }
-            const opMsg = { op: "eval", session: this.sessionId, code, id, ...pprintOpts, ...opts };
+            const opMsg = { op: "eval", session: this.sessionId, code, id, ...extraOpts, ...opts };
             this.addRunningID(id);
             this.client.write(opMsg);
         }))
@@ -279,12 +279,12 @@ export class NReplSession {
     }
 
     interrupt(interruptId: string) {
-             
+
         let index = this._runningIds.indexOf(interruptId);
         if (index > -1) {
             this._runningIds.splice(index, 1);
         }
-        let id = this.client.nextId;   
+        let id = this.client.nextId;
         return new Promise<void>((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 resolve();
@@ -298,13 +298,22 @@ export class NReplSession {
         this.client.write({ op: "stdin", stdin: message, session: this.sessionId });
     }
 
-    loadFile(file: string, opts: { fileName?: string, filePath?: string, stderr?: (x: string) => void, stdout?: (x: string) => void } = {}) {
+    loadFile(file: string,
+        opts: {
+            fileName?: string,
+            filePath?: string,
+            stderr?: (x: string) => void,
+            stdout?: (x: string) => void,
+            pprintOptions: PrettyPrintingOptions
+        } = { 
+            pprintOptions: disabledPrettyPrinter
+        }) {
 
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
-                if (evaluation.onMessage(msg)) {
+                if (evaluation.onMessage(msg, opts.pprintOptions)) {
                     return true;
                 }
             }
@@ -473,7 +482,7 @@ export class NReplSession {
     }
 
     interruptAll(): number {
-        if(this._runningIds.length > 0) {
+        if (this._runningIds.length > 0) {
             let ids: Array<string> = [];
             this._runningIds.forEach((id, index) => {
                 ids.push(id);
@@ -481,9 +490,9 @@ export class NReplSession {
             this._runningIds = [];
             ids.forEach((id, index) => {
                 this.interrupt(id)
-                .catch((e) => {
-    
-                });
+                    .catch((e) => {
+
+                    });
             });
             return (ids.length);
         }
@@ -660,7 +669,7 @@ export class NReplEvaluation {
         this.__reject = reject;
     }
 
-    onMessage(msg: any): boolean {
+    onMessage(msg: any, pprintOptions: PrettyPrintingOptions): boolean {
         this._running = true;
         this.add();
         if (msg) {
@@ -716,7 +725,16 @@ export class NReplEvaluation {
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
                 } else {
-                    this.doResolve(this.msgValue);
+                    let printValue = this.msgValue;
+                    if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
+                        const pretty = prettyPrint(this.msgValue, pprintOptions);
+                        if (!pretty.error) {
+                            printValue = pretty.value;
+                        } else {
+                            this.err(pretty.error);
+                        }
+                    }
+                    this.doResolve(printValue);
                 }
                 return true;
             }
