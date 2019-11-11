@@ -15,7 +15,7 @@ For most people the defaults will probably work, but Calva pretty printing comes
 Setting          | Type    | Effect
 -------          | ----    | ------
 `enabled`        | boolean | so this is a third way you can change this mode 😄
-`printEngine`    | enum    | which printer function that will be used. Default is `puget`, more about this setting below
+`printEngine`    | enum    | which printer function that will be used. Default is `pprint`, more about this setting below
 `width`          | number  | the maximum line length of printed output (or at least the printers will try)
 `maxLength`      | number  | the maximum number of elements printed in nested nodes, [good for evaluating something like `(iterate inc 0)`](https://clojuredocs.org/clojure.core/*print-length*#example-542692cac026201cdc326b12), which you shouldn't do without setting `maxLength`. Most printers will indicate truncated lists with `...` at the end.
 `maxDepth`       | number  | the maximum number of levels deep that will get printed. Different printers mark a stop different ways. `puget` doesn't support it at all.
@@ -36,9 +36,9 @@ Pretty printing can happen on the _server_ (i.e. in the JVM, via nREPL), or on t
 Print Engine | Client or Server Side | Comments
 --------------------- | --------------------- | --------
 `calva`             | client                | i.e. the nREPL server will plain print the results, and then Calva will pretty it.
-[`pprint`](https://clojure.github.io/clojure/clojure.pprint-api.html) | server | `clojure.core/pprint`
+[`pprint`](https://clojure.github.io/clojure/clojure.pprint-api.html) | server | current Calva default (`clojure.core/pprint` is a bit basic, but it's tried and tested, and has none of the server side printing issues mentioned below.
 [`fipp`](https://github.com/brandonbloom/fipp) | server |
-[`puget`](https://github.com/greglook/puget) | server | default function
+[`puget`](https://github.com/greglook/puget) | server | Lacks `maxDepth` option.
 [`zprint`](https://github.com/kkinnear/zprint) | server | Recommended. Will need to be configured before [Jack-in](connect.md) if you want Calva's help to inject its dependencies
 
 It is this particular selection of server side functions, because they have pre-configured print-functions in [`cider-nrepl`](https://docs.cider.mx/cider-nrepl/).
