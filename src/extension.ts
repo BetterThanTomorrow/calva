@@ -12,8 +12,8 @@ import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider } from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
-import EvaluateMiddleWare from './evaluate';
-import TestRunnerMiddleWare from './testRunner';
+import evaluator from './evaluate';
+import testRunner from './testRunner';
 import annotations from './providers/annotations';
 import select from './select';
 import evaluate from "./evaluate"
@@ -37,11 +37,11 @@ function onDidSave(document) {
 
     if (test) {
         if (test) {
-            TestRunnerMiddleWare.runNamespaceTests(document);
+            testRunner.runNamespaceTests(document);
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        EvaluateMiddleWare.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+        evaluator.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
 }
@@ -116,23 +116,23 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        EvaluateMiddleWare.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
+        evaluator.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
             chan.show(true);
         }).catch((reason) => {
             chan.show(true);
         });
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', EvaluateMiddleWare.interruptAllEvaluations));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', EvaluateMiddleWare.evaluateCurrentForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', EvaluateMiddleWare.evaluateTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', EvaluateMiddleWare.evaluateSelectionReplace));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', EvaluateMiddleWare.evaluateSelectionAsComment));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', EvaluateMiddleWare.evaluateTopLevelFormAsComment));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', EvaluateMiddleWare.togglePrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', TestRunnerMiddleWare.runTestUnderCursorCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', TestRunnerMiddleWare.runNamespaceTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', TestRunnerMiddleWare.runAllTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', TestRunnerMiddleWare.rerunTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', evaluator.interruptAllEvaluations));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', evaluator.evaluateCurrentForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', evaluator.evaluateTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', evaluator.evaluateSelectionReplace));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', evaluator.evaluateSelectionAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', evaluator.evaluateTopLevelFormAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', evaluator.togglePrettyPrint));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', testRunner.runTestUnderCursorCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', testRunner.runNamespaceTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
