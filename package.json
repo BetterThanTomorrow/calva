@@ -148,7 +148,7 @@
                         ],
                         "default": {
                             "enabled": true,
-                            "printEngine": "calva",
+                            "printEngine": "pprint",
                             "width": 120
                         }
                     },
