@@ -212,7 +212,7 @@ export class LineInputModel {
      */
     getWordSelection(offset: number): [number, number] {
 
-        const stopChars = [' ', '"', ';', '\t', '\n', '\r'],
+        const stopChars = [' ', '"', ';', '.', '(', ')', '[', ']', '{', '}', '\t', '\n', '\r'],
               [row, column] = this.getRowCol(offset),
               text = this.lines[row].text;
 
