@@ -176,10 +176,10 @@ window.addEventListener("mouseup", e => {
 window.addEventListener('dblclick', function(e: MouseEvent) { 
 
     if (con.readline && !inEvaluation) {
-        let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
-        if (pageOffset > 0) {
+        if (con.readline.withinBoundingClientRect(e.pageX, e.pageY)) {
+            let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
             let cursor = con.readline.model.getTokenCursor(pageOffset);
-            if (cursor.isInString()) {
+            if (cursor.withinString()) {
                 let [selectionStart, selectionEnd] = con.readline.model.getWordSelection(pageOffset);
                 con.readline.withUndo(() => {
                     con.readline.selectionStart = selectionStart;
