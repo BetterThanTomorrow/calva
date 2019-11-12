@@ -9,10 +9,17 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
         throw new Error("Invalid context for paredit.wrapSexp");
     if(st == en) {
         cursor.forwardSexp();
+        // reset the end position
         en = cursor.offsetStart;
+        // ensure that start is before end.
+        st = Math.min(st, en);
+        en = Math.max(st, en);
+        // ensure to first insert the closing element.
         doc.model.insertString(en, close);
         doc.model.insertString(st, open);
-        // NOTE: emacs leaves the selection as is, but it has no relation to what was selected after the transform.
+        // NOTE: emacs leaves the selection as is, 
+        //       but it has no relation to what was 
+        //       selected after the transform.
         //       I have opted to clear it here.
         doc.selectionStart = doc.selectionEnd = en + open.length;
     } else {
