@@ -21,7 +21,7 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
         //       but it has no relation to what was 
         //       selected after the transform.
         //       I have opted to clear it here.
-        doc.selectionStart = doc.selectionEnd = en + open.length;
+        doc.selectionStart = doc.selectionEnd = st;
     } else {
         doc.insertString(open + doc.getSelection() + close);
         doc.selectionStart = (st + open.length) 
