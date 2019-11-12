@@ -51,7 +51,8 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
     "Alt+Return": "submit",
-    "Ctrl+L": "clear-window"
+    "Ctrl+L": "clear-window",
+    "Ctrl+N": "clear-line"
 })
 
 
@@ -191,6 +192,7 @@ export class ReplConsole {
         this.input.addEventListener("keydown", e => {
             if (this.hotkeys.execute(this, e)) {
                 e.preventDefault();
+                e.cancelBubble = true;
                 this.ensureCaretInView();
                 return;
             }
@@ -656,6 +658,14 @@ export class ReplConsole {
             replElement.textContent = "";
             this.readline = null;
             this.requestPrompt(prompt);
+        },
+        "clear-line": () => {
+            this.readline.clearCompletion();
+            this.readline.withUndo(() => {
+                this.readline.model.changeRange(0, this.readline.model.maxOffset, "");
+                this.readline.selectionStart = this.readline.selectionEnd = 0;
+            })
+            this.readline.repaint();
         }
     }
 }

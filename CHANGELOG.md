@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add command in repl window to abort editing the current line](https://github.com/BetterThanTomorrow/calva/issues/461)
 
 ## [2.0.60] - 2019-11-11
 - Re-enable default stylings for nREPL status bar items.
