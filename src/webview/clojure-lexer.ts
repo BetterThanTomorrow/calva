@@ -5,21 +5,46 @@ import { LexicalGrammar, Token as LexerToken } from "./lexer"
  */
 let toplevel = new LexicalGrammar()
 
+/** https://codereview.stackexchange.com/a/7042 */
+function combinations(chars) {
+    var result = [];
+    var f = function (prefix, chars) {
+        for (var i = 0; i < chars.length; i++) {
+            result.push(prefix + chars[i]);
+            f(prefix + chars[i], chars.slice(i + 1));
+        }
+    }
+    f('', chars);
+    return result;
+}
+
+/**
+ * Create some quoted and unquoted variations of list opening with `open` and map to the `listClass`
+ * @param open the opening bracket
+ * @param listClass the class of the list, e.g. "()" for list
+ */
+function canonicalOpens(open: string, listClass: string): { [id: string]: string } {
+    return combinations(['', '\'', '`', '~', '@']).map(quote => {
+        return [`${quote}${open}`, listClass]
+    }).reduce((o, [k, v]) => (o[k] = v, o), {});
+}
 
 /** Maps open and close parentheses to their class. */
 export const canonicalParens = {
-    '#?(': '()',
-    '#?@(': '()',
-    '#(': '()',
-    '(': '()',
+    ...canonicalOpens('(', '()'),
+    ...canonicalOpens('@(', '()'),
+    ...canonicalOpens('#?(', '()'),
+    ...canonicalOpens('#?@(', '()'),
+    ...canonicalOpens('#(', '()'),
+    ...canonicalOpens('#{', '{}'),
+    ...canonicalOpens('[', '[]'),
+    ...canonicalOpens('{', '{}'),
     ')': '()',
-    '#{': '{}',
-    '{': '{}',
-    '}': '{}',
-    '[': '[]',
-    ']': '[]'
+    ']': '[]',
+    '}': '{}'
 }
 
+console.log(canonicalParens);
 
 /** Returns true if open and close are compatible parentheses */
 export function validPair(open: string, close: string) {
@@ -37,24 +62,25 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 // open parens
-toplevel.terminal(/\(|\[|\{|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
+//toplevel.terminal(/\(|\[|\{|@\(|['`]\(|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/[`'#@]*[\(\[\{]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
 toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
-toplevel.terminal(/true|false|nil/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/[0-9]+[rR][0-9a-zA-Z]+/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/[-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/['`~@]*(true|false|nil)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/['`~@]([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/['`~@]([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/:[^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/['`~@](:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
 toplevel.terminal(/[^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "id" }))
 
 // complete string on a single line
-toplevel.terminal(/#?"([^"\\]|\\.)*"/, (l, m) => ({ type: "str" }))
-toplevel.terminal(/#?"([^"\\]|\\.)*/, (l, m) => ({ type: "str-start" }))
+toplevel.terminal(/['`~@](#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
+toplevel.terminal(/['`~@](#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */
