@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add test message to test runner](https://github.com/BetterThanTomorrow/calva/issues/425)
 - [Fix: Lexing regex literal tokenisation](https://github.com/BetterThanTomorrow/calva/issues/463)
 
 ## [2.0.60] - 2019-11-11
