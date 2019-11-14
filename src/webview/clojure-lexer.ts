@@ -1,3 +1,10 @@
+/**
+ * Calva Clojure Lexer
+ * 
+ * NB: The lexer tokenizes any combination of clojure quotes, `~`, and `@` prepending a list, symbol, or a literal
+ *     as one token, together with said list, symbol, or literal.
+ */
+
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
 /** The 'toplevel' lexical grammar. This grammar contains all normal tokens. Multi-line strings are identified as
@@ -5,7 +12,12 @@ import { LexicalGrammar, Token as LexerToken } from "./lexer"
  */
 let toplevel = new LexicalGrammar()
 
-/** Returns true if open and close are compatible parentheses */
+
+/**
+ * Returns `true` if open and close are compatible parentheses
+ * @param open 
+ * @param close 
+ */
 export function validPair(open: string, close: string): boolean {
     let valid = false;
     switch (close) {
@@ -41,16 +53,16 @@ toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
 toplevel.terminal(/['`~@]*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/['`~@]([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/['`~@]([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/['`~@]*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/['`~@]*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/['`~@](:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/['`~@]*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
 toplevel.terminal(/[^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "id" }))
 
 // complete string on a single line
-toplevel.terminal(/['`~@](#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
-toplevel.terminal(/['`~@](#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
+toplevel.terminal(/['`~@]*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
+toplevel.terminal(/['`~@]*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */
