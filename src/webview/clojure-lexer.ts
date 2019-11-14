@@ -5,50 +5,20 @@ import { LexicalGrammar, Token as LexerToken } from "./lexer"
  */
 let toplevel = new LexicalGrammar()
 
-/** https://codereview.stackexchange.com/a/7042 */
-function combinations(chars) {
-    var result = [];
-    var f = function (prefix, chars) {
-        for (var i = 0; i < chars.length; i++) {
-            result.push(prefix + chars[i]);
-            f(prefix + chars[i], chars.slice(i + 1));
-        }
-    }
-    f('', chars);
-    return result;
-}
-
-/**
- * Create some quoted and unquoted variations of list opening with `open` and map to the `listClass`
- * @param open the opening bracket
- * @param listClass the class of the list, e.g. "()" for list
- */
-function canonicalOpens(open: string, listClass: string): { [id: string]: string } {
-    return combinations(['', '\'', '`', '~', '@']).map(quote => {
-        return [`${quote}${open}`, listClass]
-    }).reduce((o, [k, v]) => (o[k] = v, o), {});
-}
-
-/** Maps open and close parentheses to their class. */
-export const canonicalParens = {
-    ...canonicalOpens('(', '()'),
-    ...canonicalOpens('@(', '()'),
-    ...canonicalOpens('#?(', '()'),
-    ...canonicalOpens('#?@(', '()'),
-    ...canonicalOpens('#(', '()'),
-    ...canonicalOpens('#{', '{}'),
-    ...canonicalOpens('[', '[]'),
-    ...canonicalOpens('{', '{}'),
-    ')': '()',
-    ']': '[]',
-    '}': '{}'
-}
-
-console.log(canonicalParens);
-
 /** Returns true if open and close are compatible parentheses */
-export function validPair(open: string, close: string) {
-    return canonicalParens[open] == canonicalParens[close];
+export function validPair(open: string, close: string): boolean {
+    let valid = false;
+    switch (close) {
+        case `)`:
+            return open.endsWith("(");
+        case `]`:
+            return open.endsWith("[");
+        case `}`:
+            return open.endsWith("{");
+        default:
+            break;
+    };
+    return valid;
 }
 
 export interface Token extends LexerToken {
