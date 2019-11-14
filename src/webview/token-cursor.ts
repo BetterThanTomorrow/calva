@@ -97,6 +97,7 @@ export class TokenCursor {
 }
 
 export class LispTokenCursor extends TokenCursor {
+
     constructor(public doc: LineInputModel, public line: number, public token: number) {
         super(doc, line, token);
     }
@@ -408,21 +409,44 @@ export class LispTokenCursor extends TokenCursor {
         return false;
     }
 
+    /**
+     * If possible, moves this cursor backwards past any whitespace, and then backwards past the immediately following close-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
+    backwardDownList(): boolean {
+        let cursor = this.clone();
+        cursor.backwardWhitespace();
+        if (cursor.getPrevToken().type == "close") {
+            cursor.previous();
+            this.set(cursor);
+            return true;
+        }
+        return false;
+    }
+
     withinWhitespace() {
         let tk = this.getToken().type;
         if (tk == "eol" || tk == "ws") {
             return true;
         }
     }
+
+    /**
+     * Indicates if the current token is inside a string (e.g. a documentation string)
+     */
     withinString() {
-        let tk = this.getToken().type;
-        if (tk == "str" || tk == "str-start" || tk == "str-end" || tk == "str-inside") {
-            return true;
-        }
-        if (tk == "eol") {
-            tk = this.getPrevToken().type;
-            if (tk == "str-inside" || tk == "str-start")
-                return true;
+
+        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
+              token = this.getToken();
+        if (token.type == 'eol') {
+            let next = this.clone().next()
+            let previous = this.clone().previous();
+            if (next && strTypes.includes(next.getToken().type) && 
+                previous && strTypes.includes(previous.getToken().type)) {
+                return (true);
+            }
+        } else if (strTypes.includes(token.type)) {
+            return (true);
         }
         return false;
     }

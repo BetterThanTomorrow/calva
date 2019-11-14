@@ -130,20 +130,15 @@ export class ReplReadline {
     /**
      * Inserts a string at the current cursor location.
      * 
-     * FIXME: this should just be `changeRange`.
      * @param text the text to insert
      */
     insertString(text: string) {
         this.withUndo(() => {
-            if(this.selectionStart != this.selectionEnd) {
-                this.deleteSelection();
-            }
-            let [cs, ce] = [this.selectionStart, this.selectionEnd]
-            this.selectionEnd += this.model.insertString(this.selectionEnd, text, [cs, ce], [cs+text.length, cs+text.length]);
-            this.selectionStart = this.selectionEnd;
-
+            let cs = Math.min(this.selectionStart, this.selectionEnd);
+            let ce = Math.max(this.selectionStart, this.selectionEnd);
+            this.model.changeRange(cs, ce, text, [cs, ce], [cs+text.length, cs+text.length])
+            this.selectionStart = this.selectionEnd = cs + text.length;
             this.repaint();
-            
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
     }
@@ -311,6 +306,17 @@ export class ReplReadline {
                 this.selectionStart = this.selectionEnd = Math.min(this.selectionStart, this.selectionEnd);
             }
         })
+    }
+
+    /**
+     * Retrieve the current selection as text.
+     * 
+     */
+    getSelection() {
+        if(this.selectionStart != this.selectionEnd) {
+            return this.model.getText(Math.min(this.selectionStart, this.selectionEnd),  Math.max(this.selectionStart, this.selectionEnd))
+        }
+        return "";
     }
 
     /**
@@ -579,6 +585,7 @@ export class ReplReadline {
     pageToOffset(pageX: number, pageY: number) {
         let rect = this.mainElem.getBoundingClientRect();
         let y = pageY-(rect.top + window.scrollY);
+        let x = pageX-(rect.left + window.scrollX);
         let i: number;
 
         // NOTE: assuming every line is a fixed size, this could be O(1).
@@ -594,8 +601,22 @@ export class ReplReadline {
             return 0;
         let offset = this.model.getOffsetForLine(i);
         
-        offset += Math.min(Math.floor((pageX-rect.left) / measureText("M")), this.model.lines[i].text.length)
+        offset += Math.min(Math.floor(x / measureText("M")), this.model.lines[i].text.length)
         return offset;
+    }
+
+    /** Given a (pageX, pageY) pixel coordinate, returns if the point is in the bounding rectangle of the main element. */
+    withinBoundingClientRect(pageX: number, pageY: number) {
+        let rect = this.mainElem.getBoundingClientRect();
+        let rectY = (rect.top + window.scrollY);
+        let rectX = (rect.left + window.scrollX);
+        if(pageX >= rectX && 
+           pageX <= rectX + rect.width && 
+           pageY >= rectY && 
+           pageY <= rectY + rect.height){
+            return true;
+          }
+          return false;
     }
 
     private mouseDrag = (e: MouseEvent) => {

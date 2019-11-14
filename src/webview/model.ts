@@ -204,6 +204,43 @@ export class LineInputModel {
     }
 
     /**
+     * Returns the start and end offset of the word found for the given offset in
+     * the model.
+     * 
+     * @param offset The offset in the line model.
+     * @returns [number, number] The start and the index of the word in the model.
+     */
+    getWordSelection(offset: number): [number, number] {
+
+        const stopChars = [' ', '"', ';', '.', '(', ')', '[', ']', '{', '}', '\t', '\n', '\r'],
+              [row, column] = this.getRowCol(offset),
+              text = this.lines[row].text;
+
+        if (text && text.length > 1 && column < text.length && column >= 0) {
+    
+            if (stopChars.includes(text[column])) {
+                return [offset, offset];
+            }
+            let stopIdx = column;
+            let startIdx = column;
+            for(let i = column; i >= 0; i--) {
+                if (stopChars.includes(text[i])) {
+                    break;
+                }
+                startIdx = i;
+            }
+            for(let j = column; j < text.length; j++) {
+                if (stopChars.includes(text[j])) {
+                    break;
+                }
+                stopIdx = j; 
+            }
+            return [offset - (column - startIdx), offset + (stopIdx - column) + 1];
+        }
+        return [offset, offset];
+    }
+
+    /**
      * Returns the initial lexer state for a given line.
      * Line 0 is always { inString: false }, all lines below are equivalent to their previous line's startState.
      * 
@@ -225,9 +262,11 @@ export class LineInputModel {
      * @param newSelection the new selection
      */
     changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        let deletedText = this.recordingUndo ? this.getText(start, end) : "";
-        let [startLine, startCol] = this.getRowCol(start);
-        let [endLine, endCol] = this.getRowCol(end);
+        let startPos = Math.min(start, end);
+        let endPos = Math.max(start, end);
+        let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
+        let [startLine, startCol] = this.getRowCol(startPos);
+        let [endLine, endCol] = this.getRowCol(endPos);
         // extract the lines we will replace
         let replaceLines = text.split(/\r\n|\n/);
 
@@ -273,7 +312,7 @@ export class LineInputModel {
         }
     
         if(this.recordingUndo) {
-            this.undoManager.addUndoStep(new EditorUndoStep("Edit", start, text, deletedText, oldSelection, newSelection))
+            this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
         }
     }
 

@@ -3,6 +3,7 @@ import * as lexer from "./webview/clojure-lexer";
 var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html") ;
+import * as paredit from "./webview/paredit";
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
@@ -171,6 +172,29 @@ window.addEventListener("mouseup", e => {
         con.input.focus();
     }
 })
+
+window.addEventListener('dblclick', function(e: MouseEvent) { 
+
+    if (con.readline && !inEvaluation) {
+        if (con.readline.withinBoundingClientRect(e.pageX, e.pageY)) {
+            let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
+            let cursor = con.readline.model.getTokenCursor(pageOffset);
+            if (cursor.withinString()) {
+                let [selectionStart, selectionEnd] = con.readline.model.getWordSelection(pageOffset);
+                con.readline.withUndo(() => {
+                    con.readline.selectionStart = selectionStart;
+                    con.readline.selectionEnd = selectionEnd;
+                    con.readline.repaint();
+                })
+            } else {
+                con.readline.withUndo(() => {
+                    paredit.growSelection(con.readline)
+                    con.readline.repaint();
+                })
+            }
+        }
+    }
+  });
 
 window.addEventListener("focus", e => {
     message.postMessage({ type: "focus" });
