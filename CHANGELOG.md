@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add test message to test runner](https://github.com/BetterThanTomorrow/calva/issues/425)
 - [Fix: Lexing regex literal tokenisation](https://github.com/BetterThanTomorrow/calva/issues/463)
 - [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
 - [Calva Highlight sometimes incorrectly recognises form as a `comment` form](https://github.com/BetterThanTomorrow/calva/issues/403)
