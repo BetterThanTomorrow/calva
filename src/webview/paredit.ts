@@ -7,15 +7,26 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
     let cursor = doc.getTokenCursor(en);
     if(cursor.withinString())
         throw new Error("Invalid context for paredit.wrapSexp");
-    if(st == end) {
-        cursor.forwardSexp()
+    if(st == en) {
+        cursor.forwardSexp();
+        // reset the end position
         en = cursor.offsetStart;
-        // NOTE: emacs leaves the selection as is, but it has no relation to what was selected after the transform.
+        // ensure that start is before end.
+        st = Math.min(st, en);
+        en = Math.max(st, en);
+        // ensure to first insert the closing element.
+        doc.model.insertString(en, close);
+        doc.model.insertString(st, open);
+        // NOTE: emacs leaves the selection as is, 
+        //       but it has no relation to what was 
+        //       selected after the transform.
         //       I have opted to clear it here.
-        doc.selectionStart = doc.selectionEnd = en;
+        doc.selectionStart = doc.selectionEnd = st;
+    } else {
+        doc.insertString(open + doc.getSelection() + close);
+        doc.selectionStart = (st + open.length) 
+        doc.selectionEnd = (en + open.length) 
     }
-    doc.model.insertString(en, close);
-    doc.model.insertString(st, open);
 }
 
 export function splitSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
@@ -180,9 +191,16 @@ export function backwardBarfSexp(doc: ReplReadline, start: number = doc.selectio
     }
 }
 
-export function open(doc: ReplReadline, pair: string, start: number = doc.selectionEnd) {
-    doc.insertString(pair);
-    doc.selectionStart = doc.selectionEnd = start+1;
+export function open(doc: ReplReadline, open: string, close: string, start: number = doc.selectionEnd) {
+    let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
+    doc.insertString(open + doc.getSelection() + close);
+    doc.selectionStart = doc.selectionEnd = start + open.length;
+    if(cs != ce) {
+        doc.selectionStart = (cs + open.length) 
+        doc.selectionEnd = (ce + open.length) 
+    } else {
+        doc.selectionStart = doc.selectionEnd = start + open.length;
+    }
 }
 
 export function close(doc: ReplReadline, close: string, start: number = doc.selectionEnd) {
@@ -190,7 +208,7 @@ export function close(doc: ReplReadline, close: string, start: number = doc.sele
     cursor.forwardWhitespace(false);
     if(cursor.getToken().raw == close) {
         doc.model.changeRange(start, cursor.offsetStart, "");
-        doc.selectionStart = doc.selectionEnd = start+1;
+        doc.selectionStart = doc.selectionEnd = start + close.length;
     } else {
         // one of two things are possible:
         if(cursor.forwardList()) {
@@ -199,7 +217,7 @@ export function close(doc: ReplReadline, close: string, start: number = doc.sele
         } else {
             while(cursor.forwardSexp()) {}
             doc.model.changeRange(cursor.offsetEnd, cursor.offsetEnd, close)
-            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd+1;
+            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd + close.length;
         }
     }
 }
@@ -269,7 +287,8 @@ export function stringQuote(doc: ReplReadline, start: number = doc.selectionStar
 export function growSelection(doc: ReplReadline, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     let startC = doc.getTokenCursor(start);
     let endC = doc.getTokenCursor(end);
-    if(startC.equals(endC) && !startC.withinWhitespace()) {
+    let emptySelection = startC.equals(endC);
+    if(emptySelection && !startC.withinWhitespace()) {
         if(startC.getToken().type == "close") {
             if(startC.getPrevToken().type == "close") {
                 startC.backwardList();
@@ -279,21 +298,44 @@ export function growSelection(doc: ReplReadline, start: number = doc.selectionSt
                 doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
             }
         } else if(startC.getToken().type == "open") {
-            endC.forwardList();
+            if(!endC.forwardList()) {
+                endC.downList();
+                endC.forwardList();
+                endC.next();
+            }
             doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetStart]);
         } else {
             doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = startC.offsetEnd]);
         }
     } else {
-        if(startC.getPrevToken().type == "open" && endC.getToken().type == "close") {
+        if (startC.getPrevToken().type == "open" && endC.getToken().type == "close") {
             startC.backwardList();
             startC.backwardUpList();
             endC.forwardList();
             doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
         } else {
-            startC.backwardList();
-            endC.forwardList();
-            endC.previous();
+            if(startC.backwardList()) {
+                // we are in an sexpr.
+                endC.forwardList();
+                endC.previous();
+            } else {
+                if(startC.backwardDownList()) {
+                    startC.backwardList();
+                    if(emptySelection) {
+                        endC.set(startC);
+                        endC.forwardList();
+                        endC.next();
+                    }
+                    startC.previous();
+                } else if(startC.downList()) {
+                    if(emptySelection) {
+                        endC.set(startC);
+                        endC.forwardList();
+                        endC.next();
+                    }
+                    startC.previous();
+                }
+            }
             doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
         }
     }

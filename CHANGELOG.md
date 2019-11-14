@@ -3,6 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Fix: Lexing regex literal tokenisation](https://github.com/BetterThanTomorrow/calva/issues/463)
+- [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
+- [Calva Highlight sometimes incorrectly recognises form as a `comment` form](https://github.com/BetterThanTomorrow/calva/issues/403)
+- [Expand selection fails at the start and end of the input of the REPL window](https://github.com/BetterThanTomorrow/calva/issues/417)
+- [Removed paredit inconsistencies](https://github.com/BetterThanTomorrow/calva/issues/170)
 
 ## [2.0.60] - 2019-11-11
 - Re-enable default stylings for nREPL status bar items.
