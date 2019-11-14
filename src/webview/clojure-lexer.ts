@@ -53,8 +53,8 @@ toplevel.terminal(/:[^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "kw" }))
 toplevel.terminal(/[^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "id" }))
 
 // complete string on a single line
-toplevel.terminal(/"([^"\\]|\\.)*"/, (l, m) => ({ type: "str" }))
-toplevel.terminal(/"([^"\\]|\\.)*/, (l, m) => ({ type: "str-start" }))
+toplevel.terminal(/#?"([^"\\]|\\.)*"/, (l, m) => ({ type: "str" }))
+toplevel.terminal(/#?"([^"\\]|\\.)*/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */

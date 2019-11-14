@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix: Lexing regex literal tokenisation](https://github.com/BetterThanTomorrow/calva/issues/463)
 
 ## [2.0.60] - 2019-11-11
 - Re-enable default stylings for nREPL status bar items.
