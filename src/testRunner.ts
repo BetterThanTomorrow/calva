@@ -23,8 +23,16 @@ function reportTests(results, errorStr, log = true) {
                 let resultSet = result.results[ns];
                 for (const test in resultSet) {
                     for (const a of resultSet[test]) {
+                        const resultMessage = (resultItem) => {
+                          let msg = [];
+                          if(!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+                            msg.push(resultItem.context);
+                          if(resultItem.message)
+                            msg.push(resultItem.message);
+                          return `${msg.join(": ")}${(msg.length > 0 ? "\n" : "")}`;
+                        }
                         if (a.type == "error" && log)
-                            chan.appendLine(`ERROR in: ${ns}: ${a.file}, line ${a.line}: ${test}: ${(a.context || "")}:\n  error: ${a.error} + "\n  expected: ${a.expected}`);
+                          chan.appendLine(`ERROR in ${ns}/${test} (line ${a.line}):\n${resultMessage(a)}   error: ${a.error} (${a.file})\nexpected: ${a.expected}`);
                         if (a.type == "fail") {
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
@@ -32,7 +40,7 @@ function reportTests(results, errorStr, log = true) {
                                 diagnostics[a.file] = [];
                             diagnostics[a.file].push(err);
                             if (log)
-                                chan.appendLine(`FAIL in: ${a.file}: ${a.line}: ${test}: ${(a.context || "")}:\n  expected: ${a.expected}\n  actual: ${a.actual}`);
+                              chan.appendLine(`FAIL in ${ns}/${test} (${a.file}:${a.line}):\n${resultMessage(a)}expected: ${a.expected}  actual: ${a.actual}`);
                         }
                     }
                 }

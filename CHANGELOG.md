@@ -3,10 +3,11 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
-- Fix: [Calva Highlight sometimes incorrectly recognises form as a `comment` form](https://github.com/BetterThanTomorrow/calva/issues/403)
+- Fix: [Calva Highlight sometimes incorrectly recognizes form as a `comment` form](https://github.com/BetterThanTomorrow/calva/issues/403)
 - Fix: [Expand selection fails at the start and end of the input of the REPL window](https://github.com/BetterThanTomorrow/calva/issues/417)
-- [Removed paredit inconsistencies](https://github.com/BetterThanTomorrow/calva/issues/170)
-- Fix: [Lexing regex literal tokenisation](https://github.com/BetterThanTomorrow/calva/issues/463)
+- [Add test message to test runner](https://github.com/BetterThanTomorrow/calva/issues/425)
+- [Remove some paredit inconsistencies](https://github.com/BetterThanTomorrow/calva/issues/170)
+- Fix: [Lexing regex literal tokenization](https://github.com/BetterThanTomorrow/calva/issues/463)
 - Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
 
 
