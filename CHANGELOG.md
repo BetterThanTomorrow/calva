@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.61] - 2019-11-15
 - [Add test message to test runner](https://github.com/BetterThanTomorrow/calva/issues/425)
 - [Fix: Lexing regex literal tokenisation](https://github.com/BetterThanTomorrow/calva/issues/463)
 - [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
