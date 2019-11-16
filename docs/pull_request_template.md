@@ -42,6 +42,6 @@ Before merging we (at least one of us) have:
      - [ ] Smoke tested the extension as such.
 - [ ] If need be, had a chat within the team about particular changes.
 
-Ping @pez, @kstehn, @cfehse
+Ping @pez, @kstehn, @cfehse, @bpringe
 
 <!-- This is a nice book to read about the power of checklists: https://www.samuelthomasdavies.com/book-summaries/health-fitness/the-checklist-manifesto/ -->
