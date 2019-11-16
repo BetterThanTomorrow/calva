@@ -149,7 +149,7 @@ export class ReplReadline {
     }
 
     maybeShowCompletion() {
-        if (this.getTokenCursor().offsetStart == this.selectionEnd && !this.getTokenCursor().previous().withinWhitespace()) {
+        if (this.getTokenCursor().offsetStart == this.selectionEnd && !this.getTokenCursor().previous().isWhiteSpace()) {
             let evt: CompletionEvent = { type: "show", position: this.selectionEnd, toplevel: this.model.getText(0, this.model.maxOffset) }
             this._completionListeners.forEach(x => x(evt));
         } else

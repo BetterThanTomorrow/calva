@@ -33,7 +33,7 @@ con.addCompletionListener(e => {
         if (con.readline) {
             let context = con.readline.model.getText(0, con.readline.model.maxOffset);
             let pos = con.readline.getTokenCursor().previous();
-            if (pos.withinWhitespace()) {
+            if (pos.isWhiteSpace()) {
                 if (pos.backwardList()) {
                     message.postMessage({ type: "info", ns: ns, symbol: pos.getToken().raw });
                 }
@@ -259,7 +259,7 @@ window.addEventListener("keydown", e => {
         }
         if (e.keyCode == 9 || e.keyCode == 13) { // tab or enter
             let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
-            if (tk.withinWhitespace())
+            if (tk.isWhiteSpace())
                 tk.previous();
             let start = tk.offsetStart
             let end = tk.offsetEnd;

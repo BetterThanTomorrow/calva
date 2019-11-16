@@ -1,6 +1,11 @@
 import { LineInputModel } from "./model";
 import { Token } from "./clojure-lexer";
 
+
+function tokenIsWhiteSpace(token: Token) {
+    return token.type === 'eol' || token.type == 'ws';
+}
+
 /**
  * A mutable cursor into the token stream.
  */
@@ -424,24 +429,56 @@ export class LispTokenCursor extends TokenCursor {
         return false;
     }
 
-    withinWhitespace() {
-        let tk = this.getToken().type;
-        if (tk == "eol" || tk == "ws") {
+    /**
+     * Moves the cursor to the current form according to this priority:
+     * 1. If not within whitespace, don't move, return `true`.
+     * 2. Move adjacent to the form to the left, return `true`.
+     * 3. Move adjacent to the form to the right, return `true`.
+     * Otherwise, don't move, return `false`.
+    */
+    moveToCurrentForm(): boolean {
+        let cursor = this.clone();
+        const prevToken = cursor.getPrevToken();
+        if (!cursor.withinWhiteSpace()) {
             return true;
         }
+        if (cursor.isWhiteSpace()) {
+            cursor.backwardWhitespace();
+            if (!cursor.atStart()) {
+                this.set(cursor);
+                return true;
+            }
+        }
+        cursor.forwardWhitespace();
+        if (!cursor.atEnd()) {
+            this.set(cursor);
+            return true;
+        }
+        return false;
+    }
+
+    isWhiteSpace(): boolean {
+        return tokenIsWhiteSpace(this.getToken());
+    }
+
+    previousIsWhiteSpace(): boolean {
+        return tokenIsWhiteSpace(this.getPrevToken());
+    }
+
+    withinWhiteSpace(): boolean {
+        return this.isWhiteSpace() && this.previousIsWhiteSpace();
     }
 
     /**
      * Indicates if the current token is inside a string (e.g. a documentation string)
      */
     withinString() {
-
         const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
-              token = this.getToken();
+            token = this.getToken();
         if (token.type == 'eol') {
             let next = this.clone().next()
             let previous = this.clone().previous();
-            if (next && strTypes.includes(next.getToken().type) && 
+            if (next && strTypes.includes(next.getToken().type) &&
                 previous && strTypes.includes(previous.getToken().type)) {
                 return (true);
             }
