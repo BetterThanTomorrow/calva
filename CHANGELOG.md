@@ -2,13 +2,15 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
+
+## [2.0.61] - 2019-11-15
 - Fix: [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
 - Fix: [Calva Highlight sometimes incorrectly recognizes form as a `comment` form](https://github.com/BetterThanTomorrow/calva/issues/403)
 - Fix: [Expand selection fails at the start and end of the input of the REPL window](https://github.com/BetterThanTomorrow/calva/issues/417)
 - [Add test message to test runner](https://github.com/BetterThanTomorrow/calva/issues/425)
 - [Remove some paredit inconsistencies](https://github.com/BetterThanTomorrow/calva/issues/170)
 - Fix: [Lexing regex literal tokenization](https://github.com/BetterThanTomorrow/calva/issues/463)
-- Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
 
 
 ## [2.0.60] - 2019-11-11
