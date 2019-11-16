@@ -167,6 +167,11 @@
                         "default": false,
                         "description": "Run namespace tests when opening a new file and on file save"
                     },
+                    "calva.outputStackTraceOnTest": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Prints exception stacktraces in the test runner output"
+                    },
                     "calva.syncReplNamespaceToCurrentFile": {
                         "type": "boolean",
                         "default": false,

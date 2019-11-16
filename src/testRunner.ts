@@ -7,7 +7,7 @@ import { disabledPrettyPrinter } from './printer';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-function reportTests(results, errorStr, log = true) {
+async function reportTests(results, errorStr, client, log = true) {
     let chan = state.outputChannel(),
         diagnostics = {},
         total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
@@ -31,8 +31,13 @@ function reportTests(results, errorStr, log = true) {
                             msg.push(resultItem.message);
                           return `${msg.join(": ")}${(msg.length > 0 ? "\n" : "")}`;
                         }
-                        if (a.type == "error" && log)
-                          chan.appendLine(`ERROR in ${ns}/${test} (line ${a.line}):\n${resultMessage(a)}   error: ${a.error} (${a.file})\nexpected: ${a.expected}`);
+                        if (a.type == "error" && log) {
+                          chan.appendLine(`ERROR in ${ns}/${test} (line ${a.line}):\n${resultMessage(a)}expected: ${a.expected}   error: ${a.error} (${a.file})`);
+                          if(state.config().outputStackTraceOnTest) {
+                            const exception = await client.testStacktrace(ns, test, a.index);
+                            chan.appendLine(formatException(exception));
+                          }
+                        }
                         if (a.type == "fail") {
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
@@ -82,11 +87,26 @@ function reportTests(results, errorStr, log = true) {
     }
 }
 
+function formatException(ex) {
+  const basePad = 10;
+  const padStart = (s, n) => {
+    const l = s.toString().length;
+    return `${" ".repeat(n - l)}${s}`;
+  }
+  const maxLine = Math.max(...ex.stacktrace.map(s => s.line.toString().length));
+  const fileLine = (s) => `${s.file}:${padStart(s.line, maxLine)}`;
+  const maxPad = Math.max(...ex.stacktrace.map(s => fileLine(s).length));
+  return ex
+    .stacktrace
+    .map(s => `${padStart(fileLine(s), maxPad + basePad)} ${s.name}`)
+    .join("\n");
+}
+
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
     let client = util.getSession(util.getFileType(document));
     state.outputChannel().appendLine("Running all project tests…");
-    reportTests([await client.testAll()], "Running all tests");
+    await reportTests([await client.testAll()], "Running all tests", client);
 }
 
 function runAllTestsCommand() {
@@ -121,7 +141,7 @@ function runNamespaceTests(document = {}) {
         if (nss.length > 1)
             resultPromises.push(client.testNs(nss[1]));
         let results = await Promise.all(resultPromises);
-        reportTests(results, "Running tests");
+        await reportTests(results, "Running tests", client);
     }, disabledPrettyPrinter).catch(() => {});
 }
 
@@ -134,7 +154,7 @@ async function runTestUnderCursor() {
     evaluate.loadFile(doc, async () => {
         state.outputChannel().appendLine(`Running test: ${test}…`);
         const results = [await client.test(ns, [test])];
-        reportTests(results, `Running test: ${test}`);
+        await reportTests(results, `Running test: ${test}`, client);
     }, disabledPrettyPrinter).catch(() => {});
 }
 
@@ -152,7 +172,7 @@ function rerunTests(document = {}) {
     let client = util.getSession(util.getFileType(document))
     evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running previously failed tests…");
-        reportTests([await client.retest()], "Retesting");
+        reportTests([await client.retest()], "Retesting", client);
     }, disabledPrettyPrinter).catch(() => {});
 }
 

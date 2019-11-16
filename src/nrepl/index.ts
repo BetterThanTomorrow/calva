@@ -359,6 +359,19 @@ export class NReplSession {
         })
     }
 
+    testStacktrace(ns: string, test: string, index: number) {
+      return new Promise<any>((resolve, reject) => {
+          let id = this.client.nextId;
+          this.messageHandlers[id] = (msg) => {
+              resolve(msg);
+              return true;
+          }
+          this.client.write({
+            op: "test-stacktrace", id, session: this.sessionId, ns, "var": test, "index": index
+          });
+      });
+    }
+
     testNs(ns: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
