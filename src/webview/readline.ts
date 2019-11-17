@@ -717,6 +717,21 @@ export class ReplReadline implements ModelDocument {
     }
 
     growSelectionStack: [number, number][] = [];
+
+    growPareditSelection(range: [number, number]) {
+        this.growSelectionStack.push(range);
+    }
+
+    shrinkPareditSelection() {
+        if (this.growSelectionStack.length) {
+            let [start, end] = this.growSelectionStack.pop();
+            if (start == this.selectionStart && end == this.selectionEnd && this.growSelectionStack.length) {
+                [this.selectionStart, this.selectionEnd] = this.growSelectionStack[this.growSelectionStack.length - 1];
+            } else {
+                this.growSelectionStack = [];
+            }
+        }
+    }
 }
 
 /**

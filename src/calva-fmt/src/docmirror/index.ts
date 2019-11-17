@@ -31,7 +31,30 @@ class MirroredDocument implements ModelDocument {
     
     model = new DocumentModel(this.document);
 
-    growSelectionStack: [number, number][];
+    growSelectionStack: [number, number][] = [];
+
+    growPareditSelection(range: [number, number]) {
+        const editor = vscode.window.activeTextEditor,
+            start = this.document.positionAt(range[0]),
+            end = this.document.positionAt(range[1]);
+        this.growSelectionStack.push(range);
+        editor.selection = new vscode.Selection(start, end);
+    }
+
+    shrinkPareditSelection() {
+        const editor = vscode.window.activeTextEditor,
+            document = editor.document,
+            selection = editor.selection,
+            prevRange = this.growSelectionStack.pop();
+        if (prevRange && this.growSelectionStack.length > 0 && prevRange[0] === document.offsetAt(selection.start) && prevRange[1] === document.offsetAt(selection.end)) {
+            const newRange = this.growSelectionStack[this.growSelectionStack.length - 1] ,
+                start = this.document.positionAt(newRange[0]),
+                end = this.document.positionAt(newRange[1]);
+            editor.selection = new vscode.Selection(start, end);
+        } else {
+            this.growSelectionStack = [];
+        }
+    }
 
     public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);

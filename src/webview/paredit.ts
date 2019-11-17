@@ -295,20 +295,20 @@ export function growSelection(doc: ModelDocument, start: number = doc.selectionS
             if (!currentFormC.previousIsWhiteSpace() && currentFormC.getPrevToken().type != 'open') { // current form to the left
                 const leftOfCurrentForm = currentFormC.clone();
                 leftOfCurrentForm.backwardSexp();
-                doc.growSelectionStack.push([doc.selectionStart = leftOfCurrentForm.offsetStart, doc.selectionEnd = currentFormC.offsetStart]);
+                doc.growPareditSelection([doc.selectionStart = leftOfCurrentForm.offsetStart, doc.selectionEnd = currentFormC.offsetStart]);
             } else {
                 const prevCurrentFormC = currentFormC.clone();
                 prevCurrentFormC.previous();
                 if (prevCurrentFormC.isWhiteSpace() || prevCurrentFormC.getToken().type == 'open') { // current form to the right
                     const rightOfCurrentForm = currentFormC.clone();
                     rightOfCurrentForm.forwardSexp();
-                    doc.growSelectionStack.push([doc.selectionStart = currentFormC.offsetStart, doc.selectionEnd = rightOfCurrentForm.offsetStart]);
+                    doc.growPareditSelection([doc.selectionStart = currentFormC.offsetStart, doc.selectionEnd = rightOfCurrentForm.offsetStart]);
                 } else { // cursor withing current ”solid” form
                     const leftOfCurrentForm = currentFormC.clone(),
                         rightOfCurrentForm = currentFormC.clone();
                     leftOfCurrentForm.backwardSexp();
                     rightOfCurrentForm.forwardSexp();
-                    doc.growSelectionStack.push([doc.selectionStart = prevCurrentFormC.offsetStart, doc.selectionEnd = rightOfCurrentForm.offsetStart]);
+                    doc.growPareditSelection([doc.selectionStart = prevCurrentFormC.offsetStart, doc.selectionEnd = rightOfCurrentForm.offsetStart]);
                 }
             }
         } else console.log("no move")
@@ -317,7 +317,7 @@ export function growSelection(doc: ModelDocument, start: number = doc.selectionS
             startC.backwardList();
             startC.backwardUpList();
             endC.forwardList();
-            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
+            doc.growPareditSelection([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
         } else {
             if (startC.backwardList()) {
                 // we are in an sexpr.
@@ -341,20 +341,13 @@ export function growSelection(doc: ModelDocument, start: number = doc.selectionS
                     startC.previous();
                 }
             }
-            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
+            doc.growPareditSelection([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
         }
     }
 }
 
 export function shrinkSelection(doc: ModelDocument) {
-    if(doc.growSelectionStack.length) {
-        let [start, end] = doc.growSelectionStack.pop();
-        if(start == doc.selectionStart && end == doc.selectionEnd && doc.growSelectionStack.length) {
-            [doc.selectionStart, doc.selectionEnd] = doc.growSelectionStack[doc.growSelectionStack.length-1];
-        } else {
-            doc.growSelectionStack = [];
-        }
-    }
+    doc.shrinkPareditSelection();
 }
 
 export function raiseSexp(doc: ModelDocument, start = doc.selectionStart, end = doc.selectionEnd) {

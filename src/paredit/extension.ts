@@ -124,7 +124,7 @@ const pareditCommands: [string, Function][] = [
 
     // SELECTING
     //['paredit.sexpRangeExpansion', navigateExpandSelecion(paredit.navigator.sexpRangeExpansion)],
-    ['paredit.sexpRangeContraction', navigateContractSelecion],
+    // ['paredit.sexpRangeContraction', navigateContractSelecion],
 
     // NAVIGATION, COPY, CUT
     // (Happens in createNavigationCopyCutCommands())
@@ -177,6 +177,7 @@ function wrapPareditCommand(command: string, fn) {
 
 const newPareditCommands: [string, Function][] = [
     ['paredit.sexpRangeExpansion', newParedit.growSelection],
+    ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
     ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
     ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
     ['paredit.splitSexp', newParedit.splitSexp]
@@ -233,7 +234,7 @@ const toConsoleCommand = {
     'paredit.wrapAroundSquare': "wrap-square",
     'paredit.wrapAroundCurly': "wrap-curly",
     'paredit.forwardSexp': "forward-sexp",
-    'paredit.backwarddSexp': "backward-sexp",
+    'paredit.backwardSexp': "backward-sexp",
     'paredit.forwardDownSexp': "down-list",
     'paredit.backwardUpSexp': "backward-up-list",
     'paredit.forwardUpSexp': "forward-up-list",
@@ -256,7 +257,7 @@ export function activate(context: ExtensionContext) {
                 workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global); 
             }
         }),
-        window.onDidChangeActiveTextEditor((e) => e.document && languages.has(e.document.languageId)),
+        window.onDidChangeActiveTextEditor((e) => e && e.document && languages.has(e.document.languageId)),
         workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
             if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
                 setKeyMapConf();
