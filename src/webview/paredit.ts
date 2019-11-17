@@ -285,28 +285,34 @@ export function stringQuote(doc: ReplReadline, start: number = doc.selectionStar
 }
 
 export function growSelection(doc: ReplReadline, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
-    let startC = doc.getTokenCursor(start);
-    let endC = doc.getTokenCursor(end);
-    let emptySelection = startC.equals(endC);
-    if(emptySelection && !startC.withinWhitespace()) {
-        if(startC.getToken().type == "close") {
-            if(startC.getPrevToken().type == "close") {
-                startC.backwardList();
-                doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetStart]);
+    const startC = doc.getTokenCursor(start),
+        endC = doc.getTokenCursor(end),
+        emptySelection = startC.equals(endC);
+
+    if (emptySelection) {
+        const currentFormC = startC.clone();
+        if (currentFormC.moveToCurrentForm()) {
+            console.log(currentFormC);
+            if (!currentFormC.previousIsWhiteSpace() && currentFormC.getPrevToken().type != 'open') { // current form to the left
+                const leftOfCurrentForm = currentFormC.clone();
+                leftOfCurrentForm.backwardSexp();
+                doc.growSelectionStack.push([doc.selectionStart = leftOfCurrentForm.offsetStart, doc.selectionEnd = currentFormC.offsetStart]);
             } else {
-                endC = startC.previous();
-                doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
+                const prevCurrentFormC = currentFormC.clone();
+                prevCurrentFormC.previous();
+                if (prevCurrentFormC.isWhiteSpace() || prevCurrentFormC.getToken().type == 'open') { // current form to the right
+                    const rightOfCurrentForm = currentFormC.clone();
+                    rightOfCurrentForm.forwardSexp();
+                    doc.growSelectionStack.push([doc.selectionStart = currentFormC.offsetStart, doc.selectionEnd = rightOfCurrentForm.offsetStart]);
+                } else { // cursor withing current ”solid” form
+                    const leftOfCurrentForm = currentFormC.clone(),
+                        rightOfCurrentForm = currentFormC.clone();
+                    leftOfCurrentForm.backwardSexp();
+                    rightOfCurrentForm.forwardSexp();
+                    doc.growSelectionStack.push([doc.selectionStart = prevCurrentFormC.offsetStart, doc.selectionEnd = rightOfCurrentForm.offsetStart]);
+                }
             }
-        } else if(startC.getToken().type == "open") {
-            if(!endC.forwardList()) {
-                endC.downList();
-                endC.forwardList();
-                endC.next();
-            }
-            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetStart]);
-        } else {
-            doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = startC.offsetEnd]);
-        }
+        } else console.log("no move")
     } else {
         if (startC.getPrevToken().type == "open" && endC.getToken().type == "close") {
             startC.backwardList();
@@ -314,21 +320,21 @@ export function growSelection(doc: ReplReadline, start: number = doc.selectionSt
             endC.forwardList();
             doc.growSelectionStack.push([doc.selectionStart = startC.offsetStart, doc.selectionEnd = endC.offsetEnd]);
         } else {
-            if(startC.backwardList()) {
+            if (startC.backwardList()) {
                 // we are in an sexpr.
                 endC.forwardList();
                 endC.previous();
             } else {
-                if(startC.backwardDownList()) {
+                if (startC.backwardDownList()) {
                     startC.backwardList();
-                    if(emptySelection) {
+                    if (emptySelection) {
                         endC.set(startC);
                         endC.forwardList();
                         endC.next();
                     }
                     startC.previous();
-                } else if(startC.downList()) {
-                    if(emptySelection) {
+                } else if (startC.downList()) {
+                    if (emptySelection) {
                         endC.set(startC);
                         endC.forwardList();
                         endC.next();

@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
+- Fix: [Wrong current form in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)
 
 ## [2.0.61] - 2019-11-15
 - Fix: [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)
