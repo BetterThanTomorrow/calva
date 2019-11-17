@@ -1,6 +1,7 @@
 import { LineInputModel } from "./model";
 import { Token, validPair } from "./clojure-lexer";
 import { TokenCursor, LispTokenCursor } from "./token-cursor";
+import { ModelDocument } from "./model-document";
 
 /** A cheesy utility canvas, used to measure the length of text. */
 const canvas = document.createElement("canvas");
@@ -28,7 +29,7 @@ export type CompletionListener = (c: CompletionEvent) => void;
 /**
  * A syntax-highlighting text editor.
  */
-export class ReplReadline {
+export class ReplReadline implements ModelDocument {
     /** Event listeners for completion */
     private _completionListeners: CompletionListener[] = [];
 
@@ -537,7 +538,7 @@ export class ReplReadline {
         for (let line = startLine[0]; line <= endLine[0]; line++) {
             let ln = this.inputLines[line].querySelector(".selection");
             if (line < cs[0] || line > ce[0]) {
-                // definitely outside the selection, nuke all the selectiond divs.
+                // definitely outside the selection, nuke all the selection divs.
                 while (ln.firstChild)
                     ln.removeChild(ln.firstChild);
             } else if (line == cs[0] && line == ce[0]) {

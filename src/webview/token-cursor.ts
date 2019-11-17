@@ -540,7 +540,7 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Tries to move this cursor backwards to the open paren of the function, `level` functions up.
-     * If there aren't that many functions bahind the cursor, the cursor is not moved at all.
+     * If there aren't that many functions behind the cursor, the cursor is not moved at all.
      * @param levels how many functions up to go before placing the cursor at the start of it.
      * @returns `true` if the cursor was moved, otherwise `false`
      */

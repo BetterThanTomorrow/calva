@@ -1,7 +1,7 @@
-import { ReplReadline } from "./readline";
 import { validPair } from "./clojure-lexer";
+import { ModelDocument } from "./model-document";
 
-export function wrapSexpr(doc: ReplReadline, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function wrapSexpr(doc: ModelDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     let st = Math.min(start, end);
     let en = Math.max(start, end);
     let cursor = doc.getTokenCursor(en);
@@ -29,7 +29,7 @@ export function wrapSexpr(doc: ReplReadline, open: string, close: string, start:
     }
 }
 
-export function splitSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function splitSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     if(cursor.withinString()) {
         if(doc.model.getText(start-1, start+1, true) == '\\"') {
@@ -56,7 +56,7 @@ export function splitSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
     }
 }
 
-export function joinSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function joinSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardWhitespace();
     let open = cursor.getPrevToken();
@@ -83,7 +83,7 @@ export function joinSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
     }
 }
 
-export function spliceSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function spliceSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     // NOTE: this should unwrap the string, not throw.
     if(cursor.withinString())
@@ -104,7 +104,7 @@ export function spliceSexp(doc: ReplReadline, start: number = doc.selectionEnd) 
     }
 }
 
-export function killBackwardList(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function killBackwardList(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     // NOTE: this should unwrap the string, not throw.
     if(cursor.withinString())
@@ -114,7 +114,7 @@ export function killBackwardList(doc: ReplReadline, start: number = doc.selectio
     return doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
 }
 
-export function killForwardList(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function killForwardList(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     // NOTE: this should unwrap the string, not throw.
@@ -125,15 +125,15 @@ export function killForwardList(doc: ReplReadline, start: number = doc.selection
     return doc.selectionStart = doc.selectionEnd = start;
 }
 
-export function spliceSexpKillingBackward(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function spliceSexpKillingBackward(doc: ModelDocument, start: number = doc.selectionEnd) {
     spliceSexp(doc, killBackwardList(doc, start));
 }
 
-export function spliceSexpKillingForward(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function spliceSexpKillingForward(doc: ModelDocument, start: number = doc.selectionEnd) {
     spliceSexp(doc, killForwardList(doc, start));
 }
 
-export function forwardSlurpSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function forwardSlurpSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if(cursor.getToken().type == "close") {
@@ -147,7 +147,7 @@ export function forwardSlurpSexp(doc: ReplReadline, start: number = doc.selectio
     }
 }
 
-export function backwardSlurpSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function backwardSlurpSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
@@ -162,7 +162,7 @@ export function backwardSlurpSexp(doc: ReplReadline, start: number = doc.selecti
     }
 }
 
-export function forwardBarfSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function forwardBarfSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if(cursor.getToken().type == "close") {
@@ -175,7 +175,7 @@ export function forwardBarfSexp(doc: ReplReadline, start: number = doc.selection
     }
 }
 
-export function backwardBarfSexp(doc: ReplReadline, start: number = doc.selectionEnd) {
+export function backwardBarfSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
@@ -191,7 +191,7 @@ export function backwardBarfSexp(doc: ReplReadline, start: number = doc.selectio
     }
 }
 
-export function open(doc: ReplReadline, open: string, close: string, start: number = doc.selectionEnd) {
+export function open(doc: ModelDocument, open: string, close: string, start: number = doc.selectionEnd) {
     let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
     doc.insertString(open + doc.getSelection() + close);
     doc.selectionStart = doc.selectionEnd = start + open.length;
@@ -203,7 +203,7 @@ export function open(doc: ReplReadline, open: string, close: string, start: numb
     }
 }
 
-export function close(doc: ReplReadline, close: string, start: number = doc.selectionEnd) {
+export function close(doc: ModelDocument, close: string, start: number = doc.selectionEnd) {
     let cursor = doc.getTokenCursor();
     cursor.forwardWhitespace(false);
     if(cursor.getToken().raw == close) {
@@ -226,7 +226,7 @@ const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
-export function backspace(doc: ReplReadline, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function backspace(doc: ModelDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.backspace();
     } else {
@@ -248,7 +248,7 @@ export function backspace(doc: ReplReadline, start: number = doc.selectionStart,
     }
 }
 
-export function deleteForward(doc: ReplReadline, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function deleteForward(doc: ModelDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.delete();
     } else {
@@ -264,7 +264,7 @@ export function deleteForward(doc: ReplReadline, start: number = doc.selectionSt
     }
 }
 
-export function stringQuote(doc: ReplReadline, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function stringQuote(doc: ModelDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     if(start != end) {
         doc.insertString('"');
     } else {
@@ -284,7 +284,7 @@ export function stringQuote(doc: ReplReadline, start: number = doc.selectionStar
     }
 }
 
-export function growSelection(doc: ReplReadline, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function growSelection(doc: ModelDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     const startC = doc.getTokenCursor(start),
         endC = doc.getTokenCursor(end),
         emptySelection = startC.equals(endC);
@@ -347,7 +347,7 @@ export function growSelection(doc: ReplReadline, start: number = doc.selectionSt
     }
 }
 
-export function shrinkSelection(doc: ReplReadline) {
+export function shrinkSelection(doc: ModelDocument) {
     if(doc.growSelectionStack.length) {
         let [start, end] = doc.growSelectionStack.pop();
         if(start == doc.selectionStart && end == doc.selectionEnd && doc.growSelectionStack.length) {
@@ -358,7 +358,7 @@ export function shrinkSelection(doc: ReplReadline) {
     }
 }
 
-export function raiseSexp(doc: ReplReadline, start = doc.selectionStart, end = doc.selectionEnd) {
+export function raiseSexp(doc: ModelDocument, start = doc.selectionStart, end = doc.selectionEnd) {
     if(start == end) {
         let cursor = doc.getTokenCursor(end);
         cursor.forwardWhitespace();
@@ -378,7 +378,7 @@ export function raiseSexp(doc: ReplReadline, start = doc.selectionStart, end = d
     }
 }
 
-export function convolute(doc: ReplReadline, start = doc.selectionStart, end = doc.selectionEnd) {
+export function convolute(doc: ModelDocument, start = doc.selectionStart, end = doc.selectionEnd) {
     if(start == end) {
         let cursorStart = doc.getTokenCursor(end);
         let cursorEnd = cursorStart.clone();
