@@ -292,7 +292,6 @@ export function growSelection(doc: ReplReadline, start: number = doc.selectionSt
     if (emptySelection) {
         const currentFormC = startC.clone();
         if (currentFormC.moveToCurrentForm()) {
-            console.log(currentFormC);
             if (!currentFormC.previousIsWhiteSpace() && currentFormC.getPrevToken().type != 'open') { // current form to the left
                 const leftOfCurrentForm = currentFormC.clone();
                 leftOfCurrentForm.backwardSexp();
