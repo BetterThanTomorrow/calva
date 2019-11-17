@@ -2,17 +2,64 @@ import * as model from "../../../webview/model"
 export { getIndent } from "../../../webview/indent"
 import * as vscode from "vscode"
 import * as utilities from '../../../utilities';
+import { ModelDocument } from "../../../webview/model-document";
+import { LispTokenCursor } from "../../../webview/token-cursor";
 
-let documents = new Map<vscode.TextDocument, model.LineInputModel>();
+let documents = new Map<vscode.TextDocument, MirroredDocument>();
+
+class MirroredDocument implements ModelDocument {
+    constructor(private document: vscode.TextDocument) { }
+
+    get selectionStart(): number {
+        return this.document.offsetAt(vscode.window.activeTextEditor.selection.start);
+    }
+    
+    get selectionEnd(): number {
+        return this.document.offsetAt(vscode.window.activeTextEditor.selection.end);
+    }
+
+    model = new model.LineInputModel(this.document.eol === vscode.EndOfLine.CRLF ? 2 : 1);
+
+    growSelectionStack: [number, number][];
+
+    public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
+        return this.model.getTokenCursor(offset, previous);
+    }
+
+    public insertString(text: string) {
+        const editor = vscode.window.activeTextEditor,
+            selection = editor.selection,
+            wsEdit = new vscode.WorkspaceEdit(),
+            edit = vscode.TextEdit.insert(this.document.positionAt(this.selectionStart), text);
+        wsEdit.set(this.document.uri, [edit]);
+        vscode.workspace.applyEdit(wsEdit).then((_v) => {
+            editor.selection = selection;
+        });
+    }
+
+    public getSelection() {
+        const editor = vscode.window.activeTextEditor,
+            selection = editor.selection;
+        return this.document.getText(selection);
+    }
+
+    public delete() {
+        vscode.commands.executeCommand('deleteRight');
+    }
+    
+    public backspace() {
+        vscode.commands.executeCommand('deleteLeft');
+    }
+}
 
 let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
-    let model = documents.get(event.document)
+    const model = documents.get(event.document).model;
     for(let change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
-        let myStartOffset = model.getOffsetForLine(change.range.start.line)+change.range.start.character
-        let myEndOffset = model.getOffsetForLine(change.range.end.line)+change.range.end.character
+        const myStartOffset = model.getOffsetForLine(change.range.start.line)+change.range.start.character
+        const myEndOffset = model.getOffsetForLine(change.range.end.line)+change.range.end.character
         model.changeRange(myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n'))
     }
     model.flushChanges()
@@ -28,16 +75,16 @@ export function getDocument(doc: vscode.TextDocument) {
 }
 
 export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Position) {
-    let model = getDocument(doc);
+    let model = getDocument(doc).model;
     return model.getOffsetForLine(position.line)+position.character;
 }
 
 function addDocument(doc: vscode.TextDocument): boolean {
     if (doc && doc.languageId == "clojure") {
         if (!documents.has(doc)) {
-            let mdl = new model.LineInputModel(doc.eol === vscode.EndOfLine.CRLF ? 2 : 1);
-            mdl.insertString(0, doc.getText())
-            documents.set(doc, mdl);
+            const document = new MirroredDocument(doc);
+            document.model.insertString(0, doc.getText())
+            documents.set(doc, document);
             return false;
         } else {
             return true;

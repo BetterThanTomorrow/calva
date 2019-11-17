@@ -5,6 +5,11 @@ import * as vscode from 'vscode';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
 import { Event, EventEmitter } from 'vscode';
+import * as newParedit from '../webview/paredit';
+import * as docMirror from '../calva-fmt/src/docmirror';
+import { ReplReadline } from '../webview/readline';
+import { LineInputModel } from '../webview/model';
+import { ModelDocument } from '../webview/model-document';
 
 let paredit = require('paredit.js');
 
@@ -121,16 +126,16 @@ const navCopyCutcommands = {
 const pareditCommands: [string, Function][] = [
 
     // SELECTING
-    ['paredit.sexpRangeExpansion', navigateExpandSelecion(paredit.navigator.sexpRangeExpansion)],
+    //['paredit.sexpRangeExpansion', navigateExpandSelecion(paredit.navigator.sexpRangeExpansion)],
     ['paredit.sexpRangeContraction', navigateContractSelecion],
 
     // NAVIGATION, COPY, CUT
     // (Happens in createNavigationCopyCutCommands())
 
     // EDITING
-    ['paredit.slurpSexpForward', edit(paredit.editor.slurpSexp, { 'backward': false })],
+    //['paredit.slurpSexpForward', edit(paredit.editor.slurpSexp, { 'backward': false })],
     ['paredit.slurpSexpBackward', edit(paredit.editor.slurpSexp, { 'backward': true })],
-    ['paredit.barfSexpForward', edit(paredit.editor.barfSexp, { 'backward': false })],
+    //['paredit.barfSexpForward', edit(paredit.editor.barfSexp, { 'backward': false })],
     ['paredit.barfSexpBackward', edit(paredit.editor.barfSexp, { 'backward': true })],
     ['paredit.spliceSexp', edit(paredit.editor.spliceSexp)],
     ['paredit.splitSexp', edit(paredit.editor.splitSexp)],
@@ -144,7 +149,8 @@ const pareditCommands: [string, Function][] = [
     ['paredit.wrapAroundSquare', edit(wrapAround, { opening: '[', closing: ']' })],
     ['paredit.wrapAroundCurly', edit(wrapAround, { opening: '{', closing: '}' })],
     ['paredit.indentRange', indent],
-    ['paredit.transpose', edit(paredit.editor.transpose)]];
+    ['paredit.transpose', edit(paredit.editor.transpose)]
+];
 
 function wrapPareditCommand(command: string, fn) {
     return () => {
@@ -171,6 +177,33 @@ function wrapPareditCommand(command: string, fn) {
         }
     }
 }
+
+const newPareditCommands: [string, Function][] = [
+    ['paredit.sexpRangeExpansion', newParedit.growSelection],
+    ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
+    ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
+];
+
+
+function wrapNewPareditCommand(command: string, fn) {
+    return () => {
+        try {
+            let repl = activeReplWindow();
+
+            if (repl) {
+                repl.executeCommand(toConsoleCommand[command])
+            } else {
+                const textEditor = window.activeTextEditor,
+                    mDoc = docMirror.getDocument(textEditor.document);
+                if (!enabled || !languages.has(textEditor.document.languageId)) return;
+                fn(mDoc);
+            }
+        } catch (e) {
+            console.error(e.message)
+         }
+    }
+}
+
 
 export function getKeyMapConf() :String {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
@@ -235,7 +268,9 @@ export function activate(context: ExtensionContext) {
         ...createNavigationCopyCutCommands(navCopyCutcommands)
             .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
         ...pareditCommands
-            .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))));
+            .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
+        ...newPareditCommands
+            .map(([command, fn]) => commands.registerCommand(command, wrapNewPareditCommand(command, fn))));
     commands.executeCommand("setContext", "calva:pareditValid", true);
 }
 
