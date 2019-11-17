@@ -2,7 +2,7 @@ import * as model from "../../../webview/model"
 export { getIndent } from "../../../webview/indent"
 import * as vscode from "vscode"
 import * as utilities from '../../../utilities';
-import { ModelDocument } from "../../../webview/model-document";
+import { ModelDocument, DocumentModel } from "../../../webview/model-document";
 import { LispTokenCursor } from "../../../webview/token-cursor";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
@@ -18,7 +18,7 @@ class MirroredDocument implements ModelDocument {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.end);
     }
 
-    model = new model.LineInputModel(this.document.eol === vscode.EndOfLine.CRLF ? 2 : 1);
+    model = new DocumentModel(this.document);
 
     growSelectionStack: [number, number][];
 
@@ -58,16 +58,16 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     const model = documents.get(event.document).model;
     for(let change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
-        const myStartOffset = model.getOffsetForLine(change.range.start.line)+change.range.start.character
-        const myEndOffset = model.getOffsetForLine(change.range.end.line)+change.range.end.character
-        model.changeRange(myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n'))
+        const myStartOffset = model.getOffsetForLine(change.range.start.line)+change.range.start.character,
+            myEndOffset = model.getOffsetForLine(change.range.end.line)+change.range.end.character;
+        model.lineInputModel.changeRange(myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n'))
     }
-    model.flushChanges()
+    model.lineInputModel.flushChanges()
 
     // we must clear out the repaint cache data, since we don't use it.
-    model.dirtyLines = []
-    model.insertedLines.clear()
-    model.deletedLines.clear();
+    model.lineInputModel.dirtyLines = []
+    model.lineInputModel.insertedLines.clear()
+    model.lineInputModel.deletedLines.clear();
 }
 
 export function getDocument(doc: vscode.TextDocument) {
@@ -83,7 +83,7 @@ function addDocument(doc: vscode.TextDocument): boolean {
     if (doc && doc.languageId == "clojure") {
         if (!documents.has(doc)) {
             const document = new MirroredDocument(doc);
-            document.model.insertString(0, doc.getText())
+            document.model.lineInputModel.insertString(0, doc.getText())
             documents.set(doc, document);
             return false;
         } else {

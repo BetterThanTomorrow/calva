@@ -45,8 +45,17 @@ export class TextLine {
     }
 }
 
+export interface EditableModel {
+    changeRange: (start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) => void;
+    deleteRange: (offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) => void;
+    getText: (start: number, end: number, mustBeWithin?: boolean) => string;
+    getOffsetForLine: (line: number) => number;
+    getTokenCursor: (offset: number, previous?: boolean) => LispTokenCursor;
+    insertString: (offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) => void;
+}
+
 /** The underlying model for the REPL readline. */
-export class LineInputModel {
+export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
     constructor(private lineEndingLength: number = 1) { }
 

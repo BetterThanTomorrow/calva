@@ -143,7 +143,7 @@ export function forwardSlurpSexp(doc: ModelDocument, start: number = doc.selecti
         cursor.forwardSexp(true);
         cursor.backwardWhitespace(false);
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
-        doc.model.changeRange(offset, offset+1, "");
+        doc.model.deleteRange(offset, 1);
     }
 }
 
@@ -157,7 +157,7 @@ export function backwardSlurpSexp(doc: ModelDocument, start: number = doc.select
         cursor.previous();
         cursor.backwardSexp(true);
         cursor.forwardWhitespace(false);
-        doc.model.changeRange(offset, offset+tk.raw.length, "");
+        doc.model.deleteRange(offset, tk.raw.length);
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
     }
 }
@@ -170,7 +170,7 @@ export function forwardBarfSexp(doc: ModelDocument, start: number = doc.selectio
         let close = cursor.getToken().raw;
         cursor.backwardSexp(true);
         cursor.backwardWhitespace();
-        doc.model.changeRange(offset, offset+1, "");
+        doc.model.deleteRange(offset, 1);
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
     }
 }
@@ -187,7 +187,7 @@ export function backwardBarfSexp(doc: ModelDocument, start: number = doc.selecti
         cursor.forwardSexp(true);
         cursor.forwardWhitespace(false);
         doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
-        doc.model.changeRange(offset, offset+tk.raw.length, "");
+        doc.model.deleteRange(offset, tk.raw.length);
     }
 }
 
