@@ -22,8 +22,7 @@ export class DocumentModel implements EditableModel {
 
     insertString(offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         const editor = vscode.window.activeTextEditor,
-            document = editor.document,
-            selection = editor.selection;
+            document = editor.document;
         editor.edit(edits => {
             edits.insert(document.positionAt(offset), text);
         });

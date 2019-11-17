@@ -7,9 +7,6 @@ import { activeReplWindow } from '../repl-window';
 import { Event, EventEmitter } from 'vscode';
 import * as newParedit from '../webview/paredit';
 import * as docMirror from '../calva-fmt/src/docmirror';
-import { ReplReadline } from '../webview/readline';
-import { LineInputModel } from '../webview/model';
-import { ModelDocument } from '../webview/model-document';
 
 let paredit = require('paredit.js');
 
@@ -138,7 +135,7 @@ const pareditCommands: [string, Function][] = [
     //['paredit.barfSexpForward', edit(paredit.editor.barfSexp, { 'backward': false })],
     ['paredit.barfSexpBackward', edit(paredit.editor.barfSexp, { 'backward': true })],
     ['paredit.spliceSexp', edit(paredit.editor.spliceSexp)],
-    ['paredit.splitSexp', edit(paredit.editor.splitSexp)],
+    // ['paredit.splitSexp', edit(paredit.editor.splitSexp)],
     ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
     ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
@@ -156,14 +153,14 @@ function wrapPareditCommand(command: string, fn) {
     return () => {
         try {
             let repl = activeReplWindow();
-
+            
             if (repl) {
                 repl.executeCommand(toConsoleCommand[command])
             } else {
                 let textEditor = window.activeTextEditor;
                 let doc = textEditor.document;
                 if (!enabled || !languages.has(doc.languageId)) return;
-
+                
                 let src = textEditor.document.getText();
                 fn({
                     textEditor: textEditor,
@@ -173,7 +170,7 @@ function wrapPareditCommand(command: string, fn) {
                 });
             }
         } catch (e) {
-
+            
         }
     }
 }
@@ -182,6 +179,7 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.sexpRangeExpansion', newParedit.growSelection],
     ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
     ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
+    ['paredit.splitSexp', newParedit.splitSexp]
 ];
 
 

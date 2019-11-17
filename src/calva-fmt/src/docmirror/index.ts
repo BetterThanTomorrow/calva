@@ -1,4 +1,3 @@
-import * as model from "../../../webview/model"
 export { getIndent } from "../../../webview/indent"
 import * as vscode from "vscode"
 import * as utilities from '../../../utilities';
@@ -13,11 +12,23 @@ class MirroredDocument implements ModelDocument {
     get selectionStart(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.start);
     }
+
+    set selectionStart(offset: number) {
+        const editor = vscode.window.activeTextEditor,
+            position = this.document.positionAt(offset);
+        editor.selection = new vscode.Selection(position, editor.selection.end);
+    }
     
     get selectionEnd(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.end);
     }
 
+    set selectionEnd(offset: number) {
+        const editor = vscode.window.activeTextEditor,
+            position = this.document.positionAt(offset);
+        editor.selection = new vscode.Selection(editor.selection.start, position);
+    }
+    
     model = new DocumentModel(this.document);
 
     growSelectionStack: [number, number][];
