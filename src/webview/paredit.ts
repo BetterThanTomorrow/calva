@@ -284,17 +284,6 @@ export function stringQuote(doc: ModelDocument, start: number = doc.selectionSta
     }
 }
 
-function growSelectionStack(doc: ModelDocument, range: [number, number]) {
-    const [prevStart, prevEnd] = [doc.selectionStart, doc.selectionEnd],
-        [start, end] = range;
-
-    if (!(start == prevStart && end == prevEnd)) {
-        doc.growSelectionStack = [[prevStart, prevEnd]];
-    }
-    doc.growSelectionStack.push(range);
-    [doc.selectionStart, doc.selectionEnd] = [start, end];
-}
-
 export function growSelection(doc: ModelDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     const startC = doc.getTokenCursor(start),
         endC = doc.getTokenCursor(end),
@@ -357,13 +346,25 @@ export function growSelection(doc: ModelDocument, start: number = doc.selectionS
     }
 }
 
+function growSelectionStack(doc: ModelDocument, range: [number, number]) {
+    const [start, end] = range;
+    if (doc.growSelectionStack.length > 0) {
+        const [prevStart, prevEnd] = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+        if (!(doc.selectionStart == prevStart && doc.selectionEnd == prevEnd)) {
+            doc.growSelectionStack = [[doc.selectionStart, doc.selectionEnd]];
+        }
+    } else {
+        doc.growSelectionStack = [[doc.selectionStart, doc.selectionEnd]];
+    }
+    doc.growSelectionStack.push(range);
+    [doc.selectionStart, doc.selectionEnd] = [start, end];
+}
+
 export function shrinkSelection(doc: ModelDocument) {
     if (doc.growSelectionStack.length) {
-        let [start, end] = doc.growSelectionStack.pop();
-        if (start == doc.selectionStart && end == doc.selectionEnd && doc.growSelectionStack.length) {
+        let [stackStart, stackEnd] = doc.growSelectionStack.pop();
+        if (doc.growSelectionStack.length && stackStart == doc.selectionStart && stackEnd == doc.selectionEnd) {
             [doc.selectionStart, doc.selectionEnd] = doc.growSelectionStack[doc.growSelectionStack.length - 1];
-        } else {
-            doc.growSelectionStack = [];
         }
     }
 }
