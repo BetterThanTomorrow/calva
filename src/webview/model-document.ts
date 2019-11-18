@@ -13,8 +13,6 @@ export interface ModelDocument {
     getSelection: () => string,
     delete: () => void,
     backspace: () => void;
-    growPareditSelection: (range: [number, number]) => void;
-    shrinkPareditSelection: () => void;
 }
 
 export class DocumentModel implements EditableModel {

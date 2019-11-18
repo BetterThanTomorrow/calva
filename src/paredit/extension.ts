@@ -130,9 +130,9 @@ const pareditCommands: [string, Function][] = [
     // (Happens in createNavigationCopyCutCommands())
 
     // EDITING
-    //['paredit.slurpSexpForward', edit(paredit.editor.slurpSexp, { 'backward': false })],
+    ['paredit.slurpSexpForward', edit(paredit.editor.slurpSexp, { 'backward': false })],
     ['paredit.slurpSexpBackward', edit(paredit.editor.slurpSexp, { 'backward': true })],
-    //['paredit.barfSexpForward', edit(paredit.editor.barfSexp, { 'backward': false })],
+    ['paredit.barfSexpForward', edit(paredit.editor.barfSexp, { 'backward': false })],
     ['paredit.barfSexpBackward', edit(paredit.editor.barfSexp, { 'backward': true })],
     ['paredit.spliceSexp', edit(paredit.editor.spliceSexp)],
     // ['paredit.splitSexp', edit(paredit.editor.splitSexp)],
@@ -178,8 +178,8 @@ function wrapPareditCommand(command: string, fn) {
 const newPareditCommands: [string, Function][] = [
     ['paredit.sexpRangeExpansion', newParedit.growSelection],
     ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
-    ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
-    ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
+    // ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
+    // ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
     ['paredit.splitSexp', newParedit.splitSexp]
 ];
 

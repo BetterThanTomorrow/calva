@@ -18,7 +18,7 @@ class MirroredDocument implements ModelDocument {
             position = this.document.positionAt(offset);
         editor.selection = new vscode.Selection(position, editor.selection.end);
     }
-    
+
     get selectionEnd(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.end);
     }
@@ -28,33 +28,10 @@ class MirroredDocument implements ModelDocument {
             position = this.document.positionAt(offset);
         editor.selection = new vscode.Selection(editor.selection.start, position);
     }
-    
+
     model = new DocumentModel(this.document);
 
     growSelectionStack: [number, number][] = [];
-
-    growPareditSelection(range: [number, number]) {
-        const editor = vscode.window.activeTextEditor,
-            start = this.document.positionAt(range[0]),
-            end = this.document.positionAt(range[1]);
-        this.growSelectionStack.push(range);
-        editor.selection = new vscode.Selection(start, end);
-    }
-
-    shrinkPareditSelection() {
-        const editor = vscode.window.activeTextEditor,
-            document = editor.document,
-            selection = editor.selection,
-            prevRange = this.growSelectionStack.pop();
-        if (prevRange && this.growSelectionStack.length > 0 && prevRange[0] === document.offsetAt(selection.start) && prevRange[1] === document.offsetAt(selection.end)) {
-            const newRange = this.growSelectionStack[this.growSelectionStack.length - 1] ,
-                start = this.document.positionAt(newRange[0]),
-                end = this.document.positionAt(newRange[1]);
-            editor.selection = new vscode.Selection(start, end);
-        } else {
-            this.growSelectionStack = [];
-        }
-    }
 
     public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);
@@ -80,7 +57,7 @@ class MirroredDocument implements ModelDocument {
     public delete() {
         vscode.commands.executeCommand('deleteRight');
     }
-    
+
     public backspace() {
         vscode.commands.executeCommand('deleteLeft');
     }
@@ -90,10 +67,10 @@ let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const model = documents.get(event.document).model;
-    for(let change of event.contentChanges) {
+    for (let change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
-        const myStartOffset = model.getOffsetForLine(change.range.start.line)+change.range.start.character,
-            myEndOffset = model.getOffsetForLine(change.range.end.line)+change.range.end.character;
+        const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character,
+            myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
         model.lineInputModel.changeRange(myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n'))
     }
     model.lineInputModel.flushChanges()
@@ -110,7 +87,7 @@ export function getDocument(doc: vscode.TextDocument) {
 
 export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Position) {
     let model = getDocument(doc).model;
-    return model.getOffsetForLine(position.line)+position.character;
+    return model.getOffsetForLine(position.line) + position.character;
 }
 
 function addDocument(doc: vscode.TextDocument): boolean {
@@ -129,24 +106,24 @@ function addDocument(doc: vscode.TextDocument): boolean {
 
 export function activate() {
     // the last thing we want is to register twice and receive double events...
-    if(registered)
+    if (registered)
         return;
     registered = true;
-    
+
     addDocument(utilities.getDocument({}));
 
     vscode.workspace.onDidCloseTextDocument(e => {
-        if(e.languageId == "clojure") {
+        if (e.languageId == "clojure") {
             documents.delete(e);
         }
     })
-    
+
     vscode.window.onDidChangeActiveTextEditor(e => {
-        if(e && e.document && e.document.languageId == "clojure") {
+        if (e && e.document && e.document.languageId == "clojure") {
             addDocument(e.document);
         }
     });
-    
+
     vscode.workspace.onDidOpenTextDocument(doc => {
         addDocument(doc);
     });
