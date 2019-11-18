@@ -45,7 +45,20 @@ export class TextLine {
     }
 }
 
+export type ModelEditFunction = 'insertString' | 'changeRange' | 'deleteRange';
+
+export class ModelEdit {
+    constructor(public editFn: ModelEditFunction, public args: any[]) { }
+}
+
 export interface EditableModel {
+    /**
+     * Performs a model edit batch.
+     * For some EditableModel's these are performed as one atomic set of edits.
+     * @param edits 
+     */
+    edit: (edits: ModelEdit[]) => void;
+
     insertString: (offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) => void;
     changeRange: (start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) => void;
     deleteRange: (offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) => void;
@@ -257,6 +270,29 @@ export class LineInputModel implements EditableModel {
      */
     private getStateForLine(line: number): ScannerState {
         return line == 0 ? { inString: false, } : { ... this.lines[line-1].endState };
+    }
+
+    /**
+     * Performs a model edit batch.
+     * Doesn't need to be atomic in the LineInputModel.
+     * @param edits 
+     */
+    edit(edits: ModelEdit[]) {
+        for (const edit of edits) {
+            switch (edit.editFn) {
+                case 'insertString':
+                    this.insertString.apply(this, edit.args);
+                    break;
+                case 'changeRange':
+                    this.changeRange.apply(this, edit.args);
+                    break;
+                case 'deleteRange':
+                    this.deleteRange.apply(this, edit.args);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     /**

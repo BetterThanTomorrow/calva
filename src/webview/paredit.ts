@@ -1,5 +1,6 @@
 import { validPair } from "./clojure-lexer";
 import { ModelDocument } from "./model-document";
+import { ModelEdit } from "./model";
 
 export function wrapSexpr(doc: ModelDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     let st = Math.min(start, end);
@@ -142,8 +143,10 @@ export function forwardSlurpSexp(doc: ModelDocument, start: number = doc.selecti
         cursor.next();
         cursor.forwardSexp(true);
         cursor.backwardWhitespace(false);
-        doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
-        doc.model.deleteRange(offset, 1);
+        doc.model.edit([
+            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
+            new ModelEdit('deleteRange', [offset, 1])
+        ]);
     }
 }
 
@@ -170,8 +173,10 @@ export function forwardBarfSexp(doc: ModelDocument, start: number = doc.selectio
         let close = cursor.getToken().raw;
         cursor.backwardSexp(true);
         cursor.backwardWhitespace();
-        doc.model.deleteRange(offset, 1);
-        doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
+        doc.model.edit([
+            new ModelEdit('deleteRange', [offset, 1]),
+            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close])
+        ]);
     }
 }
 
