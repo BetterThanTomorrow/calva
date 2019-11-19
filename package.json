@@ -1169,13 +1169,18 @@
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.backwardUpSexp",
-                "key": "ctrl+up",
+                "command": "paredit.backwardDownSexp",
+                "key": "ctrl+alt+up",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardUpSexp",
-                "key": "ctrl+alt+up",
+                "key": "ctrl+alt+down",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.backwardUpSexp",
+                "key": "ctrl+up",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1280,7 +1285,7 @@
             },
             {
                 "command": "paredit.spliceSexp",
-                "key": "ctrl+alt+s",
+                "key": "ctrl+alt+s s",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1325,12 +1330,12 @@
             },
             {
                 "command": "paredit.spliceSexpKillForward",
-                "key": "ctrl+alt+down",
+                "key": "ctrl+alt+s delete",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillBackward",
-                "key": "ctrl+alt+up",
+                "key": "ctrl+alt+s backspace",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {

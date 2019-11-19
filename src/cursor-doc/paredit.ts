@@ -59,6 +59,26 @@ export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.
     }
 }
 
+export function rangeToForwardUpList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+    const cursor = doc.getTokenCursor(offset);
+    cursor.forwardList();
+    if (cursor.upList()) {
+        return [offset, cursor.offsetStart];
+    } else {
+        return [offset, offset];
+    }
+}
+
+export function rangeToBackwardUpList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+    const cursor = doc.getTokenCursor(offset);
+    cursor.backwardList();
+    if (cursor.backwardUpList()) {
+        return [cursor.offsetStart, offset];
+    } else {
+        return [offset, offset];
+    }
+}
+
 export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     let st = Math.min(start, end);
     let en = Math.max(start, end);

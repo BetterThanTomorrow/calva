@@ -21,6 +21,7 @@ Default keybinding      | Action
 ctrl+alt+right          | Forward Sexp
 ctrl+alt+left           | Backward Sexp
 ctrl+down               | Forward Down Sexp
+ctrl+alt+down           | Forward Up Sexp
 ctrl+up                 | Backward Up Sexp
 ctrl+alt+shift+right    | Close List
 
@@ -40,7 +41,7 @@ ctrl+right                        | Slurp Forward
 ctrl+shift+left                   | Slurp Backward
 ctrl+left                         | Barf Forward
 ctrl+shift+right                  | Barf Backward
-ctrl+alt+s                        | Splice
+ctrl+alt+s s                      | Splice
 ctrl+alt+shift+s                  | Split Sexp
 ctrl+alt+r                        | Raise Sexp
 ctrl+alt+t                        | Transpose
@@ -49,8 +50,8 @@ ctrl+alt+delete                   | Kill Sexp Forward
 ctrl+alt+backspace                | Kill Sexp Backward
 ctrl+delete                       | Kill Forward to End of List
 ctrl+backspace                    | Kill Backward to Start of List
-ctrl+alt+down                     | Splice & Kill Forward
-ctrl+alt+up                       | Splice & Kill Backward
+ctrl+alt+s delete                 | Splice & Kill Forward
+ctrl+alt+s backspace              | Splice & Kill Backward
 ctrl+alt+(                        | Wrap Around ()
 ctrl+alt+[                        | Wrap Around []
 ctrl+alt+{                        | Wrap Around {}
