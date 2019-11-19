@@ -7,6 +7,7 @@ import { activeReplWindow } from '../repl-window';
 import { Event, EventEmitter } from 'vscode';
 import * as newParedit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror';
+import { EditableDocument } from '../cursor-doc/model';
 
 let paredit = require('paredit.js');
 
@@ -36,24 +37,6 @@ const cut = (fn, ...args) =>
             positions = typeof (res) === "number" ? [selection.cursor, res] : res;
         utils.cut(textEditor, positions);
     }
-
-const navigateExpandSelecion = (fn, ...args) =>
-    ({ textEditor, ast, selection }) => {
-        let range = textEditor.selection,
-            res = fn(ast, selection.start, selection.end, ...args);
-        if (expandState.prev == null || !range.contains(expandState.prev.range)) {
-            expandState = { range: range, prev: null };
-        }
-        expandState = { range: utils.select(textEditor, res), prev: expandState };
-    }
-
-function navigateContractSelecion({ textEditor, selection }) {
-    let range = textEditor.selection;
-    if (expandState.prev && expandState.prev.range && range.contains(expandState.prev.range)) {
-        textEditor.selection = expandState.prev.range;
-        expandState = expandState.prev;
-    }
-}
 
 function indent({ textEditor, selection }) {
     let src = textEditor.document.getText(),
@@ -121,32 +104,14 @@ const navCopyCutcommands = {
 };
 
 const pareditCommands: [string, Function][] = [
-
-    // SELECTING
-    //['paredit.sexpRangeExpansion', navigateExpandSelecion(paredit.navigator.sexpRangeExpansion)],
-    // ['paredit.sexpRangeContraction', navigateContractSelecion],
-
     // NAVIGATION, COPY, CUT
     // (Happens in createNavigationCopyCutCommands())
 
-    // EDITING
-    //['paredit.slurpSexpForward', edit(paredit.editor.slurpSexp, { 'backward': false })],
-    ['paredit.slurpSexpBackward', edit(paredit.editor.slurpSexp, { 'backward': true })],
-    //['paredit.barfSexpForward', edit(paredit.editor.barfSexp, { 'backward': false })],
-    ['paredit.barfSexpBackward', edit(paredit.editor.barfSexp, { 'backward': true })],
-    ['paredit.spliceSexp', edit(paredit.editor.spliceSexp)],
-    // ['paredit.splitSexp', edit(paredit.editor.splitSexp)],
     ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
-    ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
-    ['paredit.spliceSexpKillBackward', edit(paredit.editor.spliceSexpKill, { 'backward': true })],
-    ['paredit.deleteForward', edit(paredit.editor.delete, { 'backward': false, '_skipIndent': true })],
-    ['paredit.deleteBackward', edit(paredit.editor.delete, { 'backward': true, '_skipIndent': true, '_skipSelect': true })],
-    ['paredit.wrapAroundParens', edit(wrapAround, { opening: '(', closing: ')' })],
-    ['paredit.wrapAroundSquare', edit(wrapAround, { opening: '[', closing: ']' })],
-    ['paredit.wrapAroundCurly', edit(wrapAround, { opening: '{', closing: '}' })],
-    ['paredit.indentRange', indent],
-    ['paredit.transpose', edit(paredit.editor.transpose)]
+    ['paredit.transpose', edit(paredit.editor.transpose)],
+
+    ['paredit.indentRange', indent]
 ];
 
 function wrapPareditCommand(command: string, fn) {
@@ -176,15 +141,37 @@ function wrapPareditCommand(command: string, fn) {
 }
 
 const newPareditCommands: [string, Function][] = [
-    ['paredit.sexpRangeExpansion', newParedit.growSelection],
+    // NAVIGATE
+    // TODO
+
+    // SELECTING
+    ['paredit.sexpRangeExpansion', newParedit.growSelection], // TODO: Inside string should first select contents
     ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
+
+    // EDITING
     ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
     ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
-    ['paredit.splitSexp', newParedit.splitSexp]
+    ['paredit.slurpSexpBackward', newParedit.backwardSlurpSexp],
+    ['paredit.barfSexpBackward', newParedit.backwardBarfSexp],
+    ['paredit.splitSexp', newParedit.splitSexp],
+    ['paredit.spliceSexp', newParedit.spliceSexp],
+    ['paredit.raiseSexp', newParedit.raiseSexp], // TODO: Not yet registered
+    ['paredit.convolute', newParedit.convolute], // TODO: Not yet registered
+    // ['paredit.killSexpForward', newParedit.killForwardSexp], // TODO: Not yet implemented
+    ['paredit.killListForward', newParedit.killForwardList], // TODO: Not yet registered
+    // ['paredit.killSexpBackward', newParedit.killBackwardSexp], // TODO: Not yet implemented
+    ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward], // TODO: Doesn't splice?
+    ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward], // TODO: Doesn't splice?
+    ['paredit.deleteForward', newParedit.deleteForward], // TODO: Strict mode not working
+    ['paredit.deleteBackward', newParedit.backspace],
+    ['paredit.wrapAroundParens', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '(', ')') }],
+    ['paredit.wrapAroundSquare', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '[', ']') }],
+    ['paredit.wrapAroundCurly', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '{', '}') }],
+
 ];
 
 
-function wrapNewPareditCommand(command: string, fn) {
+function wrapNewPareditCommand(command: string, fn: Function) {
     return () => {
         try {
             let repl = activeReplWindow();
@@ -193,7 +180,7 @@ function wrapNewPareditCommand(command: string, fn) {
                 repl.executeCommand(toConsoleCommand[command])
             } else {
                 const textEditor = window.activeTextEditor,
-                    mDoc = docMirror.getDocument(textEditor.document);
+                    mDoc: EditableDocument = docMirror.getDocument(textEditor.document);
                 if (!enabled || !languages.has(textEditor.document.languageId)) return;
                 fn(mDoc);
             }
