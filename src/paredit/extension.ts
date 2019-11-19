@@ -94,7 +94,6 @@ const createNavigationCopyCutCommands = (commands) => {
 }
 
 const navCopyCutcommands = {
-    'rangeForDefun': paredit.navigator.rangeForDefun,
     'forwardSexp': paredit.navigator.forwardSexp,
     'backwardSexp': paredit.navigator.backwardSexp,
     'forwardDownSexp': paredit.navigator.forwardDownSexp,
@@ -106,16 +105,14 @@ const navCopyCutcommands = {
 const pareditCommands: [string, Function][] = [
     // NAVIGATION, COPY, CUT
     // (Happens in createNavigationCopyCutCommands())
-
-    // ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
-    // ['paredit.spliceSexpKillBackward', edit(paredit.editor.spliceSexpKill, { 'backward': true })],
-
+    
     ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
     ['paredit.transpose', edit(paredit.editor.transpose)],
-
+    
     ['paredit.indentRange', indent]
 ];
+
 
 function wrapPareditCommand(command: string, fn) {
     return () => {
@@ -143,9 +140,12 @@ function wrapPareditCommand(command: string, fn) {
     }
 }
 
+const newNavSelectCommands = {
+}
+
 const newPareditCommands: [string, Function][] = [
     // NAVIGATE
-    // TODO
+    ['paredit.rangeForDefun', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeForDefun(doc)) }],
 
     // SELECTING
     ['paredit.sexpRangeExpansion', newParedit.growSelection], // TODO: Inside string should first select contents

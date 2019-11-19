@@ -1,6 +1,21 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument } from "./model";
 
+export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionStart, start: number = 0): [number, number] {
+    const cursor = doc.getTokenCursor(start);
+    while (cursor.forwardSexp()) {  
+        if (cursor.offsetEnd >= offset) {
+            const end = cursor.offsetStart;
+            cursor.backwardSexp();
+            return [cursor.offsetStart, end];
+        }
+    }
+}
+
+export function selectRange(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = range;
+}
+
 export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
     let st = Math.min(start, end);
     let en = Math.max(start, end);

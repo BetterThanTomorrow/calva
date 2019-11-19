@@ -1,5 +1,5 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
-import { UndoManager, UndoStep } from "../webview/undo";
+import { UndoManager, UndoStep } from "./undo";
 import { ReplReadline } from "../webview/readline";
 import { LispTokenCursor } from "./token-cursor";
 
