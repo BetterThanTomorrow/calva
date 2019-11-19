@@ -21,49 +21,49 @@ export class DocumentModel implements EditableModel {
 
     lineInputModel = new LineInputModel(this.document.eol == EndOfLine.CRLF ? 2 : 1);
 
-    edit(edits: ModelEdit[]) {
-        const editor = vscode.window.activeTextEditor,
-            document = editor.document,
-            editorEdits = edits.map(edit => {
-                switch (edit.editFn) {
+    edit(modelEdits: ModelEdit[]) {
+        const editor = vscode.window.activeTextEditor;
+        editor.edit(builder => {
+            for (const modelEdit of modelEdits) {
+                switch (modelEdit.editFn) {
                     case 'insertString':
-                        return this.insertEdit.apply(this, edit.args);
+                        this.insertEdit.apply(this, [builder, ...modelEdit.args]);
+                        break;
                     case 'changeRange':
-                        return this.replaceEdit.apply(this, edit.args);
+                        this.replaceEdit.apply(this, [builder, ...modelEdit.args]);
+                        break;
                     case 'deleteRange':
-                        return this.deleteEdit.apply(this, edit.args);
+                        this.deleteEdit.apply(this, [builder, ...modelEdit.args]);
+                        break;
                     default:
                         break;
                 }
-            }),
-            wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
-        wsEdit.set(document.uri, editorEdits);
-        return vscode.workspace.applyEdit(wsEdit).then(isFulfilled => {
+            }
+        }, { undoStopBefore: true, undoStopAfter: false }).then(isFulfilled => {
             if (isFulfilled) {
                 formatter.formatPosition(editor);
             }
         });
     }
 
-    private insertEdit(offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]): vscode.TextEdit {
+    private insertEdit(builder: vscode.TextEditorEdit, offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document;
-        return vscode.TextEdit.insert(document.positionAt(offset), text);
+        builder.insert(document.positionAt(offset), text);
     }
 
     insertString(offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        const editor = vscode.window.activeTextEditor,
-            insertEdit = this.insertEdit(offset, text, oldSelection, newSelection);
-        editor.edit(_edits => {
-            insertEdit;
+        const editor = vscode.window.activeTextEditor;
+        editor.edit(edits => {
+            this.insertEdit(edits, offset, text, oldSelection, newSelection);
         });
     }
 
-    private replaceEdit(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]): vscode.TextEdit {
+    private replaceEdit(builder: vscode.TextEditorEdit, start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document,
             range = new vscode.Range(document.positionAt(start), document.positionAt(end));
-        return vscode.TextEdit.replace(range, text);
+        builder.replace(range, text);
 
     }
 
@@ -76,11 +76,11 @@ export class DocumentModel implements EditableModel {
         });
     }
 
-    private deleteEdit(offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]): vscode.TextEdit {
+    private deleteEdit(builder: vscode.TextEditorEdit, offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document,
             range = new vscode.Range(document.positionAt(offset), document.positionAt(offset + count));
-        return vscode.TextEdit.delete(range);
+        builder.delete(range);
     }
 
     deleteRange(offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) {
