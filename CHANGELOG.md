@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: ["Load current Namespace in REPL Window" command not working](https://github.com/BetterThanTomorrow/calva/issues/477)
 - Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
 - Fix: [Wrong current form in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)
 
