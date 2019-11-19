@@ -195,9 +195,17 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             } else {
                 chan.appendLine("No results from file evaluation.");
             }
-        }).catch(() => { });
+        }).catch((e) => { 
+            chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
+        });
     }
-    callback();
+    if (callback) {
+        try {
+            callback();
+        } catch (e) { 
+            chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
+        };
+    }
 }
 
 async function requireREPLUtilitiesCommand() {
