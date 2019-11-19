@@ -1,6 +1,6 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
-import { UndoManager, UndoStep } from "./undo";
-import { ReplReadline } from "./readline";
+import { UndoManager, UndoStep } from "../webview/undo";
+import { ReplReadline } from "../webview/readline";
 import { LispTokenCursor } from "./token-cursor";
 
 const scanner = new Scanner();
@@ -62,6 +62,18 @@ export interface EditableModel {
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getOffsetForLine: (line: number) => number;
     getTokenCursor: (offset: number, previous?: boolean) => LispTokenCursor;
+}
+
+export interface EditableDocument {
+    selectionStart: number,
+    selectionEnd: number,
+    model: EditableModel,
+    growSelectionStack: [number, number][],
+    getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
+    insertString: (text: string) => void,
+    getSelection: () => string,
+    delete: () => void,
+    backspace: () => void;
 }
 
 /** The underlying model for the REPL readline. */

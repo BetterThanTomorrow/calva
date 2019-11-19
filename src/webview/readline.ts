@@ -1,7 +1,6 @@
-import { LineInputModel, ModelEdit } from "./model";
-import { Token, validPair } from "./clojure-lexer";
-import { TokenCursor, LispTokenCursor } from "./token-cursor";
-import { ModelDocument } from "./model-document";
+import { LineInputModel, ModelEdit, EditableDocument } from "../cursor-doc/model";
+import { Token, validPair } from "../cursor-doc/clojure-lexer";
+import { TokenCursor, LispTokenCursor } from "../cursor-doc/token-cursor";
 
 /** A cheesy utility canvas, used to measure the length of text. */
 const canvas = document.createElement("canvas");
@@ -29,7 +28,7 @@ export type CompletionListener = (c: CompletionEvent) => void;
 /**
  * A syntax-highlighting text editor.
  */
-export class ReplReadline implements ModelDocument {
+export class ReplReadline implements EditableDocument {
     /** Event listeners for completion */
     private _completionListeners: CompletionListener[] = [];
 

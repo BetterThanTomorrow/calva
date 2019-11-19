@@ -1,9 +1,9 @@
 import { ReplConsole } from "./webview/repl-console";
-import * as lexer from "./webview/clojure-lexer";
+import * as lexer from "./cursor-doc/clojure-lexer";
 var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html") ;
-import * as paredit from "./webview/paredit";
+import * as paredit from "./cursor-doc/paredit";
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();

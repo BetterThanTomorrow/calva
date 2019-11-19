@@ -8,12 +8,10 @@ import { NReplSession } from './nrepl';
 import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
-import * as docMirror from './calva-fmt/src/docmirror';
-import { TokenCursor, LispTokenCursor } from './webview/token-cursor';
-import { Token } from './webview/clojure-lexer';
+import * as docMirror from './doc-mirror';
+import { LispTokenCursor } from './cursor-doc/token-cursor';
+import { Token } from './cursor-doc/clojure-lexer';
 import select from './select';
-import { disabledPrettyPrinter } from './printer';
-
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")

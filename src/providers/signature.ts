@@ -1,8 +1,8 @@
 import { TextDocument, Position, Range, CancellationToken, SignatureHelp, SignatureHelpProvider, SignatureInformation } from 'vscode';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
-import { LispTokenCursor } from '../webview/token-cursor';
-import * as docMirror from '../calva-fmt/src/docmirror';
+import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import * as docMirror from '../doc-mirror';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
     async provideSignatureHelp(document: TextDocument, position: Position, _token: CancellationToken): Promise<SignatureHelp> {

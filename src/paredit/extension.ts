@@ -5,8 +5,8 @@ import * as vscode from 'vscode';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
 import { Event, EventEmitter } from 'vscode';
-import * as newParedit from '../webview/paredit';
-import * as docMirror from '../calva-fmt/src/docmirror';
+import * as newParedit from '../cursor-doc/paredit';
+import * as docMirror from '../doc-mirror';
 
 let paredit = require('paredit.js');
 

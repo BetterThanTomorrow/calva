@@ -1,7 +1,8 @@
 import { ReplReadline, CompletionListener } from "./readline";
-import * as paredit from "./paredit";
-import { getIndent } from "./indent";
+import * as paredit from "../cursor-doc/paredit";
+import { getIndent } from "../cursor-doc/indent";
 import { HotKeyTable } from "./hotkeys";
+import { ModelEdit } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+R": "raise-sexp",
@@ -330,7 +331,7 @@ export class ReplConsole {
     }
 
     setText(text: string) {
-        this.readline.model.changeRange(0, this.readline.model.maxOffset, text)
+        this.readline.model.edit([new ModelEdit('changeRange', [0, this.readline.model.maxOffset, text])]);
         this.readline.repaint();
     }
 
@@ -629,7 +630,7 @@ export class ReplConsole {
             this.historyIndex--;
             let line = this.history[this.historyIndex] || "";
             this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+                this.readline.model.edit([new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])]);
                 this.readline.selectionStart = this.readline.selectionEnd = line.length;
             })
             this.readline.repaint();   
@@ -640,7 +641,7 @@ export class ReplConsole {
             this.historyIndex++;
             let line = this.history[this.historyIndex] || "";
             this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
+                this.readline.model.edit([new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])]);
                 this.readline.selectionStart = this.readline.selectionEnd = line.length;
             })
             this.readline.repaint();
