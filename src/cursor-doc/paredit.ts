@@ -1,6 +1,18 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument } from "./model";
 
+export function selectRange(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = range;
+}
+
+export function moveToRangeStart(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = [range[0], range[0]];
+}
+
+export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = [range[1], range[1]];
+}
+
 /**
  * Gets the range for the ”current” top level form
  * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
@@ -27,8 +39,24 @@ export function rangeForDefun(doc: EditableDocument, offset: number = doc.select
     }
 }
 
-export function selectRange(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = range;
+export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+    const cursor = doc.getTokenCursor(offset);
+    cursor.forwardWhitespace();
+    if (cursor.forwardSexp()) {
+        return [offset, cursor.offsetStart];
+    } else {
+        return [offset, offset];
+    }
+}
+
+export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionEnd): [number, number] {
+    const cursor = doc.getTokenCursor(offset);
+    cursor.backwardWhitespace();
+    if (cursor.backwardSexp()) {
+        return [cursor.offsetStart, offset];
+    } else {
+        return [offset, offset];
+    }
 }
 
 export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {

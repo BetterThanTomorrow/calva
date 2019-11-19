@@ -94,8 +94,8 @@ const createNavigationCopyCutCommands = (commands) => {
 }
 
 const navCopyCutcommands = {
-    'forwardSexp': paredit.navigator.forwardSexp,
-    'backwardSexp': paredit.navigator.backwardSexp,
+    // 'forwardSexp': paredit.navigator.forwardSexp,
+    // 'backwardSexp': paredit.navigator.backwardSexp,
     'forwardDownSexp': paredit.navigator.forwardDownSexp,
     'backwardUpSexp': paredit.navigator.backwardUpSexp,
     'forwardUpSexp': paredit.navigator.forwardUpSexp,
@@ -144,10 +144,16 @@ const newNavSelectCommands = {
 }
 
 const newPareditCommands: [string, Function][] = [
-    // NAVIGATE
-    ['paredit.rangeForDefun', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeForDefun(doc)) }],
-
+    // NAVIGATING
+    ['paredit.forwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardSexp(doc)) }],
+    ['paredit.backwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardSexp(doc)) }],
+    // ['paredit.forwardDownSexp', paredit.navigator.forwardDownSexp],
+    // ['paredit.backwardUpSexp', paredit.navigator.backwardUpSexp],
+    // ['paredit.forwardUpSexp', paredit.navigator.forwardUpSexp],
+    // ['paredit.closeList', paredit.navigator.closeList],
+    
     // SELECTING
+    ['paredit.rangeForDefun', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeForDefun(doc)) }],
     ['paredit.sexpRangeExpansion', newParedit.growSelection], // TODO: Inside string should first select contents
     ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
 
@@ -158,19 +164,19 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.barfSexpBackward', newParedit.backwardBarfSexp],
     ['paredit.splitSexp', newParedit.splitSexp],
     ['paredit.spliceSexp', newParedit.spliceSexp],
-    ['paredit.raiseSexp', newParedit.raiseSexp], // TODO: Not yet registered
-    ['paredit.convolute', newParedit.convolute], // TODO: Not yet registered
+    ['paredit.raiseSexp', newParedit.raiseSexp], 
+    ['paredit.convolute', newParedit.convolute], 
     // ['paredit.killSexpForward', newParedit.killForwardSexp], // TODO: Not yet implemented
     // ['paredit.killSexpBackward', newParedit.killBackwardSexp], // TODO: Not yet implemented
     ['paredit.killListForward', newParedit.killForwardList], // TODO: Not yet registered
     ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Not yet registered
     ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward], // TODO: Doesn't splice?
     ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward], // TODO: Doesn't splice?
-    ['paredit.deleteForward', newParedit.deleteForward], // TODO: Strict mode not working
-    ['paredit.deleteBackward', newParedit.backspace],
     ['paredit.wrapAroundParens', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '(', ')') }],
     ['paredit.wrapAroundSquare', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '[', ']') }],
     ['paredit.wrapAroundCurly', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '{', '}') }],
+    ['paredit.deleteForward', newParedit.deleteForward], // TODO: Strict mode not working
+    ['paredit.deleteBackward', newParedit.backspace],
 
 ];
 
