@@ -85,7 +85,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
     }
 }
 
-export function spliceSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function spliceSexp(doc: EditableDocument, start: number = doc.selectionEnd, undoStopBefore = true) {
     let cursor = doc.getTokenCursor(start);
     // NOTE: this should unwrap the string, not throw.
     if (cursor.withinString())
@@ -102,39 +102,45 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionE
             doc.model.edit([
                 new ModelEdit('changeRange', [end, end + 1, ""]),
                 new ModelEdit('changeRange', [beginning - 1, beginning, ""])
-            ]);
+            ], undoStopBefore);
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
     }
 }
 
-export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<void> {
     let cursor = doc.getTokenCursor(start);
     // NOTE: this should unwrap the string, not throw.
     if (cursor.withinString())
         throw new Error("Invalid context for paredit.killBackwardList");
     cursor.backwardList();
-    doc.model.edit([new ModelEdit('changeRange', [cursor.offsetStart, start, ""])]);
-    return doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
+    return doc.model.edit([new ModelEdit('changeRange', [cursor.offsetStart, start, ""])]);
 }
 
-export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<void> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     // NOTE: this should unwrap the string, not throw.
     if (cursor.withinString())
         throw new Error("Invalid context for paredit.killForwardList");
     cursor.forwardList();
-    doc.model.edit([new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : ""])]);
-    return doc.selectionStart = doc.selectionEnd = start;
+    return doc.model.edit([new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : ""])]);
 }
 
 export function spliceSexpKillingBackward(doc: EditableDocument, start: number = doc.selectionEnd) {
-    spliceSexp(doc, killBackwardList(doc, start));
+    killBackwardList(doc).then(() => {
+        setTimeout(() => { // OMG. But it seems we need a slight pause when chaining edits
+            spliceSexp(doc, doc.selectionEnd, false);
+        }, 50);
+    });
 }
 
 export function spliceSexpKillingForward(doc: EditableDocument, start: number = doc.selectionEnd) {
-    spliceSexp(doc, killForwardList(doc, start));
+    killForwardList(doc).then(() => {
+        setTimeout(() => { // OMG. But it seems we need a slight pause when chaining edits
+            spliceSexp(doc, doc.selectionEnd, false);
+        }, 50);
+    });
 }
 
 export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {

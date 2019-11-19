@@ -107,6 +107,9 @@ const pareditCommands: [string, Function][] = [
     // NAVIGATION, COPY, CUT
     // (Happens in createNavigationCopyCutCommands())
 
+    // ['paredit.spliceSexpKillForward', edit(paredit.editor.spliceSexpKill, { 'backward': false })],
+    // ['paredit.spliceSexpKillBackward', edit(paredit.editor.spliceSexpKill, { 'backward': true })],
+
     ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
     ['paredit.transpose', edit(paredit.editor.transpose)],

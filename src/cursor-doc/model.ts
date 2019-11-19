@@ -57,7 +57,7 @@ export interface EditableModel {
      * For some EditableModel's these are performed as one atomic set of edits.
      * @param edits 
      */
-    edit: (edits: ModelEdit[]) => void;
+    edit: (edits: ModelEdit[], undoStopBefore?: boolean) => Thenable<void>;
 
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getOffsetForLine: (line: number) => number;
@@ -286,22 +286,25 @@ export class LineInputModel implements EditableModel {
      * Doesn't need to be atomic in the LineInputModel.
      * @param edits 
      */
-    edit(edits: ModelEdit[]) {
-        for (const edit of edits) {
-            switch (edit.editFn) {
-                case 'insertString':
-                    this.insertString.apply(this, edit.args);
-                    break;
-                case 'changeRange':
-                    this.changeRange.apply(this, edit.args);
-                    break;
-                case 'deleteRange':
-                    this.deleteRange.apply(this, edit.args);
-                    break;
-                default:
-                    break;
+    edit(edits: ModelEdit[]): Thenable<void> {
+        return new Promise((resolve, reject) => {
+            for (const edit of edits) {
+                switch (edit.editFn) {
+                    case 'insertString':
+                        this.insertString.apply(this, edit.args);
+                        break;
+                    case 'changeRange':
+                        this.changeRange.apply(this, edit.args);
+                        break;
+                    case 'deleteRange':
+                        this.deleteRange.apply(this, edit.args);
+                        break;
+                    default:
+                        break;
+                }
             }
-        }
+            resolve();
+        })
     }
 
     /**

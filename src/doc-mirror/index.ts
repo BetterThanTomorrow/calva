@@ -12,9 +12,9 @@ export class DocumentModel implements EditableModel {
 
     lineInputModel = new LineInputModel(this.document.eol == vscode.EndOfLine.CRLF ? 2 : 1);
 
-    edit(modelEdits: ModelEdit[]) {
+    edit(modelEdits: ModelEdit[], undoStopBefore = true): Thenable<void> {
         const editor = vscode.window.activeTextEditor;
-        editor.edit(builder => {
+        return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
                 switch (modelEdit.editFn) {
                     case 'insertString':
@@ -30,7 +30,7 @@ export class DocumentModel implements EditableModel {
                         break;
                 }
             }
-        }, { undoStopBefore: true, undoStopAfter: false }).then(isFulfilled => {
+        }, { undoStopBefore: undoStopBefore, undoStopAfter: false }).then(isFulfilled => {
             if (isFulfilled) {
                 formatter.formatPosition(editor);
             }
