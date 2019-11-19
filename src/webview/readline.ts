@@ -1,4 +1,4 @@
-import { LineInputModel } from "./model";
+import { LineInputModel, ModelEdit } from "./model";
 import { Token, validPair } from "./clojure-lexer";
 import { TokenCursor, LispTokenCursor } from "./token-cursor";
 import { ModelDocument } from "./model-document";
@@ -137,7 +137,7 @@ export class ReplReadline implements ModelDocument {
         this.withUndo(() => {
             let cs = Math.min(this.selectionStart, this.selectionEnd);
             let ce = Math.max(this.selectionStart, this.selectionEnd);
-            this.model.changeRange(cs, ce, text, [cs, ce], [cs + text.length, cs + text.length])
+            this.model.edit([new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])]);
             this.selectionStart = this.selectionEnd = cs + text.length;
             this.repaint();
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];

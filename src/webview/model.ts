@@ -59,9 +59,6 @@ export interface EditableModel {
      */
     edit: (edits: ModelEdit[]) => void;
 
-    insertString: (offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) => void;
-    changeRange: (start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) => void;
-    deleteRange: (offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) => void;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getOffsetForLine: (line: number) => number;
     getTokenCursor: (offset: number, previous?: boolean) => LispTokenCursor;
@@ -306,7 +303,7 @@ export class LineInputModel implements EditableModel {
      * @param oldSelection the old selection
      * @param newSelection the new selection
      */
-    changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+    private changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         let startPos = Math.min(start, end);
         let endPos = Math.max(start, end);
         let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
@@ -424,13 +421,13 @@ class EditorUndoStep extends UndoStep<ReplReadline> {
     }
 
     undo(c: ReplReadline) {
-        c.model.changeRange(this.start, this.start+this.insertedText.length, this.deletedText);
+        c.model.edit([new ModelEdit('changeRange', [this.start, this.start+this.insertedText.length, this.deletedText])]);
         if(this.oldSelection)
             [c.selectionStart, c.selectionEnd] = this.oldSelection;
     }
 
     redo(c: ReplReadline) {
-        c.model.changeRange(this.start, this.start+this.deletedText.length, this.insertedText);
+        c.model.edit([new ModelEdit('changeRange', [this.start, this.start+this.deletedText.length, this.insertedText])]);
         if(this.newSelection)
             [c.selectionStart, c.selectionEnd] = this.newSelection;
     }

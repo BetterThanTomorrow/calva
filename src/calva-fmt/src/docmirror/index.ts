@@ -3,6 +3,7 @@ import * as vscode from "vscode"
 import * as utilities from '../../../utilities';
 import { ModelDocument, DocumentModel } from "../../../webview/model-document";
 import { LispTokenCursor } from "../../../webview/token-cursor";
+import { ModelEdit } from "../../../webview/model";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -71,7 +72,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character,
             myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        model.lineInputModel.changeRange(myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n'))
+        model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])]);
     }
     model.lineInputModel.flushChanges()
 

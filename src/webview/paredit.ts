@@ -16,8 +16,10 @@ export function wrapSexpr(doc: ModelDocument, open: string, close: string, start
         st = Math.min(st, en);
         en = Math.max(st, en);
         // ensure to first insert the closing element.
-        doc.model.insertString(en, close);
-        doc.model.insertString(st, open);
+        doc.model.edit([
+            new ModelEdit('insertString', [en, close]),
+            new ModelEdit('insertString', [st, open])
+        ]);
         // NOTE: emacs leaves the selection as is, 
         //       but it has no relation to what was 
         //       selected after the transform.
@@ -34,10 +36,10 @@ export function splitSexp(doc: ModelDocument, start: number = doc.selectionEnd) 
     let cursor = doc.getTokenCursor(start);
     if (cursor.withinString()) {
         if (doc.model.getText(start - 1, start + 1, true) == '\\"') {
-            doc.model.changeRange(start + 1, start + 1, "\" \"")
+            doc.model.edit([new ModelEdit('changeRange', [start + 1, start + 1, "\" \""])]);
             doc.selectionStart = doc.selectionEnd = start + 2;
         } else {
-            doc.model.changeRange(start, start, "\" \"")
+            doc.model.edit([new ModelEdit('changeRange', [start, start, "\" \""])]);
             doc.selectionStart = doc.selectionEnd = start + 1;
         }
         return;
@@ -51,7 +53,7 @@ export function splitSexp(doc: ModelDocument, start: number = doc.selectionEnd) 
 
         if (cursor.forwardList()) {
             let close = cursor.getToken().raw;
-            doc.model.changeRange(start, ws.offsetStart, close + " " + open);
+            doc.model.edit([new ModelEdit('changeRange', [start, ws.offsetStart, close + " " + open])]);
             doc.selectionStart = doc.selectionEnd = start + 1;
         }
     }
@@ -69,7 +71,7 @@ export function joinSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
         let close = cursor.getToken();
         let end = cursor.offsetStart;
         if ((close.type == "str" || close.type == "str-start")) {
-            doc.model.changeRange(beginning - 1, end + 1, "");
+            doc.model.edit([new ModelEdit('changeRange', [beginning - 1, end + 1, ""])]);
             doc.selectionStart = doc.selectionEnd = beginning - 1;
         }
 
@@ -78,7 +80,7 @@ export function joinSexp(doc: ModelDocument, start: number = doc.selectionEnd) {
         let close = cursor.getToken();
         let end = cursor.offsetStart;
         if (close.type == "open" && validPair(open.raw, close.raw)) {
-            doc.model.changeRange(beginning - 1, end + 1, " ");
+            doc.model.edit([new ModelEdit('changeRange', [beginning - 1, end + 1, " "])]);
             doc.selectionStart = doc.selectionEnd = beginning;
         }
     }
@@ -98,8 +100,10 @@ export function spliceSexp(doc: ModelDocument, start: number = doc.selectionEnd)
         let close = cursor.getToken();
         let end = cursor.offsetStart;
         if (close.type == "close" && validPair(open.raw, close.raw)) {
-            doc.model.changeRange(end, end + 1, "");
-            doc.model.changeRange(beginning - 1, beginning, "");
+            doc.model.edit([
+                new ModelEdit('changeRange', [end, end + 1, ""]),
+                new ModelEdit('changeRange', [beginning - 1, beginning, ""])
+            ]);
             doc.selectionStart = doc.selectionEnd = start - 1;
         }
     }
@@ -111,7 +115,7 @@ export function killBackwardList(doc: ModelDocument, start: number = doc.selecti
     if (cursor.withinString())
         throw new Error("Invalid context for paredit.killBackwardList");
     cursor.backwardList();
-    doc.model.changeRange(cursor.offsetStart, start, "");
+    doc.model.edit([new ModelEdit('changeRange', [cursor.offsetStart, start, ""])]);
     return doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
 }
 
@@ -122,7 +126,7 @@ export function killForwardList(doc: ModelDocument, start: number = doc.selectio
     if (cursor.withinString())
         throw new Error("Invalid context for paredit.killForwardList");
     cursor.forwardList();
-    doc.model.changeRange(start, cursor.offsetStart, inComment ? "\n" : "");
+    doc.model.edit([new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : ""])]);
     return doc.selectionStart = doc.selectionEnd = start;
 }
 
@@ -160,8 +164,10 @@ export function backwardSlurpSexp(doc: ModelDocument, start: number = doc.select
         cursor.previous();
         cursor.backwardSexp(true);
         cursor.forwardWhitespace(false);
-        doc.model.deleteRange(offset, tk.raw.length);
-        doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
+        doc.model.edit([
+            new ModelEdit('deleteRange', [offset, tk.raw.length]),
+            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close])
+        ]);
     }
 }
 
@@ -191,8 +197,10 @@ export function backwardBarfSexp(doc: ModelDocument, start: number = doc.selecti
         cursor.next();
         cursor.forwardSexp(true);
         cursor.forwardWhitespace(false);
-        doc.model.changeRange(cursor.offsetStart, cursor.offsetStart, close);
-        doc.model.deleteRange(offset, tk.raw.length);
+        doc.model.edit([
+            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
+            new ModelEdit('deleteRange', [offset, tk.raw.length])
+        ]);
     }
 }
 
@@ -212,7 +220,7 @@ export function close(doc: ModelDocument, close: string, start: number = doc.sel
     let cursor = doc.getTokenCursor();
     cursor.forwardWhitespace(false);
     if (cursor.getToken().raw == close) {
-        doc.model.changeRange(start, cursor.offsetStart, "");
+        doc.model.edit([new ModelEdit('changeRange', [start, cursor.offsetStart, ""])]);
         doc.selectionStart = doc.selectionEnd = start + close.length;
     } else {
         // one of two things are possible:
@@ -221,7 +229,7 @@ export function close(doc: ModelDocument, close: string, start: number = doc.sel
             doc.selectionStart = doc.selectionEnd = cursor.offsetEnd;
         } else {
             while (cursor.forwardSexp()) { }
-            doc.model.changeRange(cursor.offsetEnd, cursor.offsetEnd, close)
+            doc.model.edit([new ModelEdit('changeRange', [cursor.offsetEnd, cursor.offsetEnd, close])]);
             doc.selectionStart = doc.selectionEnd = cursor.offsetEnd + close.length;
         }
     }
@@ -238,15 +246,15 @@ export function backspace(doc: ModelDocument, start: number = doc.selectionStart
         if (doc.model.getText(start - 3, start, true) == '\\""') {
             doc.selectionStart = doc.selectionEnd = start - 1;
         } else if (doc.model.getText(start - 2, start - 1, true) == '\\') {
-            doc.model.deleteRange(start - 2, 2);
+            doc.model.edit([new ModelEdit('deleteRange', [start - 2, 2])]);
             doc.selectionStart = doc.selectionEnd = start - 2;
         } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
-            doc.model.deleteRange(start - 1, 2);
+            doc.model.edit([new ModelEdit('deleteRange', [start - 1, 2])]);
             doc.selectionStart = doc.selectionEnd = start - 1;
         } else if (closeParen.has(doc.model.getText(start - 1, start, true)) || openParen.has(doc.model.getText(start - 1, start, true))) {
             doc.selectionStart = doc.selectionEnd = start - 1;
         } else if (openParen.has(doc.model.getText(start - 1, start + 1, true)) || closeParen.has(doc.model.getText(start - 1, start, true))) {
-            doc.model.deleteRange(start - 1, 2);
+            doc.model.edit([new ModelEdit('deleteRange', [start - 1, 2])]);
             doc.selectionStart = doc.selectionEnd = start - 1;
         } else
             doc.backspace();
@@ -258,9 +266,9 @@ export function deleteForward(doc: ModelDocument, start: number = doc.selectionS
         doc.delete();
     } else {
         if (parenPair.has(doc.model.getText(start, start + 2, true))) {
-            doc.model.deleteRange(start, 2);
+            doc.model.edit([new ModelEdit('deleteRange', [start, 2])]);
         } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
-            doc.model.deleteRange(start - 1, 2);
+            doc.model.edit([new ModelEdit('deleteRange', [start - 1, 2])]);
             doc.selectionStart = doc.selectionEnd = start - 1;
         } else if (openParen.has(doc.model.getText(start, start + 1, true)) || closeParen.has(doc.model.getText(start, start + 1, true))) {
             doc.selectionStart = doc.selectionEnd = start + 1;
@@ -279,11 +287,11 @@ export function stringQuote(doc: ModelDocument, start: number = doc.selectionSta
             if (cursor.offsetEnd - 1 == start && cursor.getToken().type == "str" || cursor.getToken().type == "str-end") {
                 doc.selectionStart = doc.selectionEnd = start + 1;
             } else {
-                doc.model.changeRange(start, start, '"');
+                doc.model.edit([new ModelEdit('changeRange', [start, start, '"'])]);
                 doc.selectionStart = doc.selectionEnd = start + 1;
             }
         } else {
-            doc.model.changeRange(start, start, '""');
+            doc.model.edit([new ModelEdit('changeRange', [start, start, '""'])]);
             doc.selectionStart = doc.selectionEnd = start + 1;
         }
     }
@@ -386,7 +394,7 @@ export function raiseSexp(doc: ModelDocument, start = doc.selectionStart, end = 
             if (cursor.getPrevToken().type == "open") {
                 cursor.previous();
                 if (endCursor.getToken().type == "close") {
-                    doc.model.changeRange(cursor.offsetStart, endCursor.offsetEnd, raised);
+                    doc.model.edit([new ModelEdit('changeRange', [cursor.offsetStart, endCursor.offsetEnd, raised])]);
                     doc.selectionStart = doc.selectionEnd = cursor.offsetStart;
                 }
             }
@@ -409,10 +417,12 @@ export function convolute(doc: ModelDocument, start = doc.selectionStart, end = 
                     if (headStart.backwardList() && headStart.backwardUpList()) {
                         let headEnd = cursorStart.clone();
                         if (headEnd.forwardList() && cursorEnd.getToken().type == "close") {
-                            doc.model.changeRange(headEnd.offsetEnd, headEnd.offsetEnd, ")");
-                            doc.model.changeRange(cursorEnd.offsetStart, cursorEnd.offsetEnd, "");
-                            doc.model.changeRange(cursorStart.offsetStart, end, "");
-                            doc.model.changeRange(headStart.offsetStart, headStart.offsetStart, "(" + head);
+                            doc.model.edit([
+                                new ModelEdit('changeRange', [headEnd.offsetEnd, headEnd.offsetEnd, ")"]),
+                                new ModelEdit('changeRange', [cursorEnd.offsetStart, cursorEnd.offsetEnd, ""]),
+                                new ModelEdit('changeRange', [cursorStart.offsetStart, end, ""]),
+                                new ModelEdit('changeRange', [headStart.offsetStart, headStart.offsetStart, "(" + head])
+                            ]);
                         }
                     }
                 }

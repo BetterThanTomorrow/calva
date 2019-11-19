@@ -52,13 +52,6 @@ export class DocumentModel implements EditableModel {
         builder.insert(document.positionAt(offset), text);
     }
 
-    insertString(offset: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        const editor = vscode.window.activeTextEditor;
-        editor.edit(edits => {
-            this.insertEdit(edits, offset, text, oldSelection, newSelection);
-        });
-    }
-
     private replaceEdit(builder: vscode.TextEditorEdit, start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document,
@@ -67,29 +60,11 @@ export class DocumentModel implements EditableModel {
 
     }
 
-    changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        const editor = vscode.window.activeTextEditor,
-            document = editor.document,
-            range = new vscode.Range(document.positionAt(start), document.positionAt(end));
-        editor.edit(edits => {
-            edits.replace(range, text);
-        });
-    }
-
     private deleteEdit(builder: vscode.TextEditorEdit, offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document,
             range = new vscode.Range(document.positionAt(offset), document.positionAt(offset + count));
         builder.delete(range);
-    }
-
-    deleteRange(offset: number, count: number, oldSelection?: [number, number], newSelection?: [number, number]) {
-        const editor = vscode.window.activeTextEditor,
-            document = editor.document,
-            range = new vscode.Range(document.positionAt(offset), document.positionAt(offset + count));
-        editor.edit(edits => {
-            edits.delete(range);
-        });
     }
 
     getText(start: number, end: number, mustBeWithin = false) {
