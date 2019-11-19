@@ -16,14 +16,12 @@ Note: You can choose to disable all default key bindings by configuring `calva.p
 
 ### Navigation
 
-Default keybinding | Action
------------------- | ------
-ctrl+alt+right     | Forward Sexp
-ctrl+cmd+right (on Mac) | Forward Sexp
-ctrl+alt+left      | Backward Sexp
-ctrl+cmd+left  (on Mac) | Backward Sexp
-ctrl+down          | Forward Down Sexp
-ctrl+up            | Backward Up Sexp
+Default keybinding      | Action
+------------------      | ------
+ctrl+alt+right          | Forward Sexp
+ctrl+alt+left           | Backward Sexp
+ctrl+down               | Forward Down Sexp
+ctrl+up                 | Backward Up Sexp
 ctrl+alt+shift+right    | Close List
 
 ### Selecting
@@ -44,25 +42,25 @@ ctrl+left                         | Barf Forward
 ctrl+shift+right                  | Barf Backward
 ctrl+alt+s                        | Splice
 ctrl+alt+shift+s                  | Split Sexp
-ctrl+delete                       | Kill Sexp Forward
-ctrl+shift+backspace (on Mac)     | Kill Sexp Forward
-ctrl+backspace                    | Kill Sexp Backward
+ctrl+alt+r                        | Raise Sexp
+ctrl+alt+t                        | Transpose
+ctrl+shift+c                      | Convolute ¯\\\_(ツ)_/¯
+ctrl+alt+delete                   | Kill Sexp Forward
+ctrl+alt+backspace                | Kill Sexp Backward
+ctrl+delete                       | Kill Forward to End of List
+ctrl+backspace                    | Kill Backward to Start of List
 ctrl+alt+down                     | Splice & Kill Forward
 ctrl+alt+up                       | Splice & Kill Backward
 ctrl+alt+(                        | Wrap Around ()
 ctrl+alt+[                        | Wrap Around []
 ctrl+alt+{                        | Wrap Around {}
-ctrl+alt+i                        | Indent
----                               | Transpose
 
 Strict mode keybinding            | Action
 ----------------------            | ------
 backspace                         | Delete Backward, unless it will unbalance a form
 delete                            | Delete Forward, unless it will unbalance a form
-shift+backspace (on Mac)          | Delete Forward, unless it will unbalance a form
-ctrl+alt+backspace                | Force Delete Backward
-ctrl+alt+delete                   | Force Delete Forward
-alt+shift+backspace (on Mac)      | Force Delete Forward
+alt+backspace                     | Force Delete Backward
+alt+delete                        | Force Delete Forward
 
 NB: **Strict mode is disabled by default.** If you enable it, the backspace and delete keys won't let you remove parentheses or brackets so they become unbalanced. To force a delete anyway, use the supplied commands for that. Strict mode can be switched on by by configuring `calva.paredit.defaultKeyMap` to `strict`.
 

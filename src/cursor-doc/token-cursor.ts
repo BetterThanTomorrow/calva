@@ -470,7 +470,8 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Indicates if the current token is inside a string (e.g. a documentation string)
+     * Indicates if the current token is inside a string
+     * TODO: Fix this by a proper tokenization of strings
      */
     withinString() {
         const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],

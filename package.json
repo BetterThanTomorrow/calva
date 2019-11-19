@@ -936,6 +936,16 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.raiseSexp",
+                "title": "Raise Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.convolute",
+                "title": "Convolute Sexp ¯\\_(ツ)_/¯"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
                 "title": "Kill Sexp Forward"
             },
@@ -943,6 +953,16 @@
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpBackward",
                 "title": "Kill Sexp Backward"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.killListForward",
+                "title": "Kill Forward to End of List"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.killListBackward",
+                "title": "Kill Backward to Start of List"
             },
             {
                 "category": "Calva Paredit",
@@ -1269,13 +1289,37 @@
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
+                "command": "paredit.raiseSexp",
+                "key": "ctrl+alt+r",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.transpose",
+                "key": "ctrl+alt+t",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.convolute",
+                "key": "ctrl+shift+c",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
                 "command": "paredit.killSexpForward",
-                "key": "ctrl+delete",
-                "mac": "ctrl+shift+backspace",
+                "key": "ctrl+alt+delete",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpBackward",
+                "key": "ctrl+alt+backspace",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.killListForward",
+                "key": "ctrl+delete",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.killListBackward",
                 "key": "ctrl+backspace",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
@@ -1312,7 +1356,6 @@
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
-                "mac": "shift+backspace",
                 "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
@@ -1322,14 +1365,13 @@
             },
             {
                 "command": "deleteRight",
-                "key": "ctrl+alt+delete",
-                "mac": "alt+shift+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "key": "alt+delete",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict"
             },
             {
                 "command": "deleteLeft",
-                "key": "ctrl+alt+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "key": "alt+backspace",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap ==strict"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",

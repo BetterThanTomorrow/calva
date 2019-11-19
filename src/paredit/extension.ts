@@ -158,8 +158,9 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.raiseSexp', newParedit.raiseSexp], // TODO: Not yet registered
     ['paredit.convolute', newParedit.convolute], // TODO: Not yet registered
     // ['paredit.killSexpForward', newParedit.killForwardSexp], // TODO: Not yet implemented
-    ['paredit.killListForward', newParedit.killForwardList], // TODO: Not yet registered
     // ['paredit.killSexpBackward', newParedit.killBackwardSexp], // TODO: Not yet implemented
+    ['paredit.killListForward', newParedit.killForwardList], // TODO: Not yet registered
+    ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Not yet registered
     ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward], // TODO: Doesn't splice?
     ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward], // TODO: Doesn't splice?
     ['paredit.deleteForward', newParedit.deleteForward], // TODO: Strict mode not working
