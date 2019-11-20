@@ -94,7 +94,6 @@ const createNavigationCopyCutCommands = (commands) => {
 }
 
 const navCopyCutcommands = {
-    'closeList': paredit.navigator.closeList
 };
 
 const pareditCommands: [string, Function][] = [
@@ -105,7 +104,6 @@ const pareditCommands: [string, Function][] = [
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
     ['paredit.transpose', edit(paredit.editor.transpose)],
     
-    ['paredit.indentRange', indent]
 ];
 
 
@@ -135,9 +133,6 @@ function wrapPareditCommand(command: string, fn) {
     }
 }
 
-const newNavSelectCommands = {
-}
-
 const newPareditCommands: [string, Function][] = [
     // NAVIGATING
     ['paredit.forwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardSexp(doc)) }],
@@ -146,7 +141,8 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.backwardDownSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardDownList(doc)) }],
     ['paredit.forwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardUpList(doc)) }],
     ['paredit.backwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardUpList(doc)) }],
-    // ['paredit.closeList', paredit.navigator.closeList],
+    ['paredit.closeList', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardList(doc)) }],
+    ['paredit.openList', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardList(doc)) }],
     
     // SELECTING
     ['paredit.rangeForDefun', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeForDefun(doc)) }],
