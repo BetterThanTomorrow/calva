@@ -17,6 +17,10 @@
     (catch js/Error e
       (assoc m :error (.-message e)))))
 
+(defn format-text-bridge 
+  [m]
+  (format-text m))
+
 (comment
   {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6}
   (def s "[:foo\n\n(foo)(bar)]")
@@ -161,6 +165,10 @@
         (assoc :range-tail tail)
         (index-for-tail-in-range))))
 
+(defn format-text-at-range-bridge
+  [m]
+  (format-text-at-range m))
+
 (comment
   (format-text-at-range {:all-text "  '([]\n[])"
                          :idx 7
@@ -195,7 +203,7 @@
 
 (defn format-text-at-idx
   "Formats the enclosing range of text surrounding idx"
-  [{:keys [all-text idx] :as m}]
+  [m]
   (-> m
       (add-head-and-tail)
       (add-current-line)
@@ -204,6 +212,9 @@
       (format-text-at-range)
       (remove-indent-token-if-empty-current-line)))
 
+(defn format-text-at-idx-bridge
+  [m]
+  (format-text-at-idx m))
 
 (defn format-text-at-idx-on-type
   "Relax formating some when used as an on-type handler"
@@ -214,6 +225,10 @@
       (assoc-in [:config :remove-trailing-whitespace?] false)
       (assoc-in [:config :remove-consecutive-blank-lines?] false)
       (format-text-at-idx)))
+
+(defn format-text-at-idx-on-type-bridge
+  [m]
+  (format-text-at-idx-on-type m))
 
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
