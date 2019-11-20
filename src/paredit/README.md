@@ -21,6 +21,7 @@ Default keybinding      | Action
 ctrl+alt+right          | Forward Sexp
 ctrl+alt+left           | Backward Sexp
 ctrl+down               | Forward Down Sexp
+ctrl+alt+up             | Backward Down Sexp
 ctrl+alt+down           | Forward Up Sexp
 ctrl+up                 | Backward Up Sexp
 ctrl+alt+shift+right    | Close List

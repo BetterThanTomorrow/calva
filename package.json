@@ -812,7 +812,12 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardDownSexp",
-                "title": "Down Sexp"
+                "title": "Forward Down Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.backwardDownSexp",
+                "title": "Backward Down Sexp"
             },
             {
                 "category": "Calva Paredit",
@@ -843,66 +848,6 @@
                 "category": "Calva Paredit",
                 "command": "paredit.sexpRangeContraction",
                 "title": "Shrink Selection"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.yankForwardSexp",
-                "title": "Copy Forward Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.yankBackwardSexp",
-                "title": "Copy Backward Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.yankForwardDownSexp",
-                "title": "Copy Down Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.yankBackwardUpSexp",
-                "title": "Copy Up Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.yankCloseList",
-                "title": "Copy Close List"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.yankRangeForDefun",
-                "title": "Copy Current Top Level (aka defun) Form"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.cutForwardSexp",
-                "title": "Cut Forward Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.cutBackwardSexp",
-                "title": "Cut Backward Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.cutForwardDownSexp",
-                "title": "Cut Down Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.cutBackwardUpSexp",
-                "title": "Cut Up Sexp"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.cutCloseList",
-                "title": "Cut Close List"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.cutRangeForDefun",
-                "title": "Cut Select Current Top Level (aka defun) Form"
             },
             {
                 "category": "Calva Paredit",
@@ -1201,66 +1146,6 @@
             {
                 "command": "paredit.sexpRangeContraction",
                 "key": "ctrl+shift+w",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.yankForwardSexp",
-                "key": "ctrl+shift+c ctrl+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.yankBackwardSexp",
-                "key": "ctrl+shift+c ctrl+left",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.yankForwardDownSexp",
-                "key": "ctrl+shift+c ctrl+down",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.yankBackwardUpSexp",
-                "key": "ctrl+shift+c ctrl+up",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.yankCloseList",
-                "key": "ctrl+shift+c ctrl+alt+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.yankRangeForDefun",
-                "key": "ctrl+shift+c space",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.cutForwardSexp",
-                "key": "ctrl+shift+x right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.cutBackwardSexp",
-                "key": "ctrl+shift+x left",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.cutForwardDownSexp",
-                "key": "ctrl+shift+x down",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.cutBackwardUpSexp",
-                "key": "ctrl+shift+x up",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.cutCloseList",
-                "key": "ctrl+shift+x ctrl+alt+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.cutRangeForDefun",
-                "key": "ctrl+shift+x space",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {

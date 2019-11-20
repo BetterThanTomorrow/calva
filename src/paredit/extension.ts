@@ -94,7 +94,6 @@ const createNavigationCopyCutCommands = (commands) => {
 }
 
 const navCopyCutcommands = {
-    'forwardDownSexp': paredit.navigator.forwardDownSexp,
     'closeList': paredit.navigator.closeList
 };
 
@@ -143,7 +142,8 @@ const newPareditCommands: [string, Function][] = [
     // NAVIGATING
     ['paredit.forwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardSexp(doc)) }],
     ['paredit.backwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardSexp(doc)) }],
-    // ['paredit.forwardDownSexp', paredit.navigator.forwardDownSexp],
+    ['paredit.forwardDownSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardDownList(doc)) }],
+    ['paredit.backwardDownSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardDownList(doc)) }],
     ['paredit.forwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardUpList(doc)) }],
     ['paredit.backwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardUpList(doc)) }],
     // ['paredit.closeList', paredit.navigator.closeList],
