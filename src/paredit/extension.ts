@@ -81,29 +81,10 @@ const edit = (fn, opts = {}) =>
                 utils.select(textEditor, res.newIndex);
     }
 
-const createNavigationCopyCutCommands = (commands) => {
-    const capitalizeFirstLetter = (s) => { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-    let result: [string, Function][] = new Array<[string, Function]>();
-    Object.keys(commands).forEach((c) => {
-        result.push([`paredit.${c}`, navigate(commands[c])]);
-        result.push([`paredit.yank${capitalizeFirstLetter(c)}`, yank(commands[c])]);
-        result.push([`paredit.cut${capitalizeFirstLetter(c)}`, cut(commands[c])]);
-    });
-    return result;
-}
-
-const navCopyCutcommands = {
-};
-
 const pareditCommands: [string, Function][] = [
-    // NAVIGATION, COPY, CUT
-    // (Happens in createNavigationCopyCutCommands())
-    
     ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
     ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
-    ['paredit.transpose', edit(paredit.editor.transpose)],
-    
+    ['paredit.transpose', edit(paredit.editor.transpose)],    
 ];
 
 
@@ -156,14 +137,15 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.barfSexpBackward', newParedit.backwardBarfSexp],
     ['paredit.splitSexp', newParedit.splitSexp],
     ['paredit.spliceSexp', newParedit.spliceSexp],
-    ['paredit.raiseSexp', newParedit.raiseSexp], 
-    ['paredit.convolute', newParedit.convolute], 
+    // ['paredit.transpose', ], // TODO: Not yet implemented
+    ['paredit.raiseSexp', newParedit.raiseSexp],
+    ['paredit.convolute', newParedit.convolute],
     // ['paredit.killSexpForward', newParedit.killForwardSexp], // TODO: Not yet implemented
     // ['paredit.killSexpBackward', newParedit.killBackwardSexp], // TODO: Not yet implemented
-    ['paredit.killListForward', newParedit.killForwardList], // TODO: Not yet registered
-    ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Not yet registered
-    ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward], // TODO: Doesn't splice?
-    ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward], // TODO: Doesn't splice?
+    ['paredit.killListForward', newParedit.killForwardList], // TODO: Not working?
+    ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Not working?
+    ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward],
+    ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward],
     ['paredit.wrapAroundParens', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '(', ')') }],
     ['paredit.wrapAroundSquare', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '[', ']') }],
     ['paredit.wrapAroundCurly', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '{', '}') }],
@@ -253,8 +235,6 @@ export function activate(context: ExtensionContext) {
             }
         }),
 
-        ...createNavigationCopyCutCommands(navCopyCutcommands)
-            .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
         ...pareditCommands
             .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
         ...newPareditCommands

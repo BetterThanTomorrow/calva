@@ -897,32 +897,32 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
-                "title": "Kill Sexp Forward"
+                "title": "Kill/Delete Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpBackward",
-                "title": "Kill Sexp Backward"
+                "title": "Kill/Delete Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killListForward",
-                "title": "Kill Forward to End of List"
+                "title": "Kill/Delete Forward to End of List"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killListBackward",
-                "title": "Kill Backward to Start of List"
+                "title": "Kill/Delete Backward to Start of List"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexpKillForward",
-                "title": "Splice & Kill Forward"
+                "title": "Splice & Kill/Delete Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexpKillBackward",
-                "title": "Splice & Kill Backward"
+                "title": "Splice & Kill/Delete Backward"
             },
             {
                 "category": "Calva Paredit",
