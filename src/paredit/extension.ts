@@ -82,8 +82,6 @@ const edit = (fn, opts = {}) =>
     }
 
 const pareditCommands: [string, Function][] = [
-    ['paredit.killSexpForward', edit(paredit.editor.killSexp, { 'backward': false })],
-    ['paredit.killSexpBackward', edit(paredit.editor.killSexp, { 'backward': true })],
     ['paredit.transpose', edit(paredit.editor.transpose)],    
 ];
 
@@ -140,10 +138,10 @@ const newPareditCommands: [string, Function][] = [
     // ['paredit.transpose', ], // TODO: Not yet implemented
     ['paredit.raiseSexp', newParedit.raiseSexp],
     ['paredit.convolute', newParedit.convolute],
-    // ['paredit.killSexpForward', newParedit.killForwardSexp], // TODO: Not yet implemented
-    // ['paredit.killSexpBackward', newParedit.killBackwardSexp], // TODO: Not yet implemented
-    ['paredit.killListForward', newParedit.killForwardList], // TODO: Not working?
-    ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Not working?
+    ['paredit.killSexpForward', (doc: EditableDocument) => { newParedit.killRange(doc, newParedit.rangeToForwardSexp(doc)) }],
+    ['paredit.killSexpBackward', (doc: EditableDocument) => { newParedit.killRange(doc, newParedit.rangeToBackwardSexp(doc)) }],
+    ['paredit.killListForward', newParedit.killForwardList], // TODO: Implement with killRange
+    ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Implement with killRange
     ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward],
     ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward],
     ['paredit.wrapAroundParens', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '(', ')') }],

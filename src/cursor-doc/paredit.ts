@@ -5,6 +5,13 @@ export function selectRange(doc: EditableDocument, range: [number, number]) {
     [doc.selectionStart, doc.selectionEnd] = range;
 }
 
+export function killRange(doc: EditableDocument, range: [number, number]) {
+    doc.model.edit([
+        new ModelEdit('deleteRange', [range[0], range[1] - range[0]])
+    ]);
+    [doc.selectionStart, doc.selectionEnd] = [range[0], range[0]];
+}
+
 export function moveToRangeStart(doc: EditableDocument, range: [number, number]) {
     [doc.selectionStart, doc.selectionEnd] = [range[0], range[0]];
 }
