@@ -25,20 +25,36 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.backwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardUpList(doc)) }],
     ['paredit.closeList', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardList(doc)) }],
     ['paredit.openList', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardList(doc)) }],
-    
+
     // SELECTING
     ['paredit.rangeForDefun', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeForDefun(doc)) }],
     ['paredit.sexpRangeExpansion', newParedit.growSelection], // TODO: Inside string should first select contents
     ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
 
-    ['paredit.selectForwardSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardSexp(doc)) }],
-    ['paredit.selectBackwardSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardSexp(doc)) }],
-    ['paredit.selectForwardDownSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardDownList(doc)) }],
-    ['paredit.selectBackwardDownSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardDownList(doc)) }],
-    ['paredit.selectForwardUpSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardUpList(doc)) }],
-    ['paredit.selectBackwardUpSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardUpList(doc)) }],
-    ['paredit.selectCloseList', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardList(doc)) }],
-    ['paredit.selectOpenList', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardList(doc)) }],
+    ['paredit.selectForwardSexp', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardSexp(doc, doc.selectionEnd))
+    }],
+    ['paredit.selectBackwardSexp', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardSexp(doc))
+    }],
+    ['paredit.selectForwardDownSexp', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardDownList(doc, doc.selectionEnd))
+    }],
+    ['paredit.selectBackwardDownSexp', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardDownList(doc))
+    }],
+    ['paredit.selectForwardUpSexp', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardUpList(doc, doc.selectionEnd))
+    }],
+    ['paredit.selectBackwardUpSexp', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardUpList(doc))
+    }],
+    ['paredit.selectCloseList', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardList(doc, doc.selectionEnd))
+    }],
+    ['paredit.selectOpenList', (doc: EditableDocument) => {
+        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardList(doc))
+    }],
 
     // EDITING
     ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
@@ -79,13 +95,13 @@ function wrapNewPareditCommand(command: string, fn: Function) {
             }
         } catch (e) {
             console.error(e.message)
-         }
+        }
     }
 }
 
-export function getKeyMapConf() :String {
+export function getKeyMapConf(): String {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
-    return(String(keyMap));
+    return (String(keyMap));
 }
 
 function setKeyMapConf() {
@@ -124,13 +140,13 @@ export function activate(context: ExtensionContext) {
 
     context.subscriptions.push(
         statusBar,
-        commands.registerCommand('paredit.togglemode', () => { 
+        commands.registerCommand('paredit.togglemode', () => {
             let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
             keyMap = String(keyMap).trim().toLowerCase();
-            if(keyMap == 'original') {
-                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'strict', vscode.ConfigurationTarget.Global); 
-            } else if(keyMap == 'strict') {
-                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global); 
+            if (keyMap == 'original') {
+                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'strict', vscode.ConfigurationTarget.Global);
+            } else if (keyMap == 'strict') {
+                workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global);
             }
         }),
         window.onDidChangeActiveTextEditor((e) => e && e.document && languages.has(e.document.languageId)),

@@ -1,10 +1,6 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument } from "./model";
 
-export function selectRange(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = range;
-}
-
 export function killRange(doc: EditableDocument, range: [number, number]) {
     doc.model.edit([
         new ModelEdit('deleteRange', [range[0], range[1] - range[0]])
@@ -19,6 +15,19 @@ export function moveToRangeStart(doc: EditableDocument, range: [number, number])
 export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
     [doc.selectionStart, doc.selectionEnd] = [range[1], range[1]];
 }
+
+export function selectRange(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = range;
+}
+
+export function selectRangeFromSelectionStart(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = [doc.selectionStart, range[1]];
+}
+
+export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
+    [doc.selectionStart, doc.selectionEnd] = [range[0], doc.selectionEnd];
+}
+
 
 /**
  * Gets the range for the ”current” top level form
