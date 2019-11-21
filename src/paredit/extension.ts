@@ -4,83 +4,81 @@ import * as vscode from 'vscode';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { activeReplWindow } from '../repl-window';
 import { Event, EventEmitter } from 'vscode';
-import * as newParedit from '../cursor-doc/paredit';
+import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror';
 import { EditableDocument } from '../cursor-doc/model';
-
-let paredit = require('paredit.js');
 
 let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
 const languages = new Set(["clojure", "lisp", "scheme"]);
 let enabled = true;
 
-const newPareditCommands: [string, Function][] = [
+const pareditCommands: [string, Function][] = [
     // NAVIGATING
-    ['paredit.forwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardSexp(doc)) }],
-    ['paredit.backwardSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardSexp(doc)) }],
-    ['paredit.forwardDownSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardDownList(doc)) }],
-    ['paredit.backwardDownSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardDownList(doc)) }],
-    ['paredit.forwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardUpList(doc)) }],
-    ['paredit.backwardUpSexp', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardUpList(doc)) }],
-    ['paredit.closeList', (doc: EditableDocument) => { newParedit.moveToRangeEnd(doc, newParedit.rangeToForwardList(doc)) }],
-    ['paredit.openList', (doc: EditableDocument) => { newParedit.moveToRangeStart(doc, newParedit.rangeToBackwardList(doc)) }],
+    ['paredit.forwardSexp', (doc: EditableDocument) => { paredit.moveToRangeEnd(doc, paredit.rangeToForwardSexp(doc)) }],
+    ['paredit.backwardSexp', (doc: EditableDocument) => { paredit.moveToRangeStart(doc, paredit.rangeToBackwardSexp(doc)) }],
+    ['paredit.forwardDownSexp', (doc: EditableDocument) => { paredit.moveToRangeEnd(doc, paredit.rangeToForwardDownList(doc)) }],
+    ['paredit.backwardDownSexp', (doc: EditableDocument) => { paredit.moveToRangeStart(doc, paredit.rangeToBackwardDownList(doc)) }],
+    ['paredit.forwardUpSexp', (doc: EditableDocument) => { paredit.moveToRangeEnd(doc, paredit.rangeToForwardUpList(doc)) }],
+    ['paredit.backwardUpSexp', (doc: EditableDocument) => { paredit.moveToRangeStart(doc, paredit.rangeToBackwardUpList(doc)) }],
+    ['paredit.closeList', (doc: EditableDocument) => { paredit.moveToRangeEnd(doc, paredit.rangeToForwardList(doc)) }],
+    ['paredit.openList', (doc: EditableDocument) => { paredit.moveToRangeStart(doc, paredit.rangeToBackwardList(doc)) }],
 
     // SELECTING
-    ['paredit.rangeForDefun', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeForDefun(doc)) }],
-    ['paredit.sexpRangeExpansion', newParedit.growSelection], // TODO: Inside string should first select contents
-    ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
+    ['paredit.rangeForDefun', (doc: EditableDocument) => { paredit.selectRange(doc, paredit.rangeForDefun(doc)) }],
+    ['paredit.sexpRangeExpansion', paredit.growSelection], // TODO: Inside string should first select contents
+    ['paredit.sexpRangeContraction', paredit.shrinkSelection],
 
     ['paredit.selectForwardSexp', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardSexp(doc, doc.selectionEnd))
+        paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardSexp(doc, doc.selectionEnd))
     }],
     ['paredit.selectBackwardSexp', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardSexp(doc))
+        paredit.selectRange(doc, paredit.rangeToBackwardSexp(doc))
     }],
     ['paredit.selectForwardDownSexp', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardDownList(doc, doc.selectionEnd))
+        paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardDownList(doc, doc.selectionEnd))
     }],
     ['paredit.selectBackwardDownSexp', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardDownList(doc))
+        paredit.selectRange(doc, paredit.rangeToBackwardDownList(doc))
     }],
     ['paredit.selectForwardUpSexp', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardUpList(doc, doc.selectionEnd))
+        paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardUpList(doc, doc.selectionEnd))
     }],
     ['paredit.selectBackwardUpSexp', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardUpList(doc))
+        paredit.selectRange(doc, paredit.rangeToBackwardUpList(doc))
     }],
     ['paredit.selectCloseList', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionStart(doc, newParedit.rangeToForwardList(doc, doc.selectionEnd))
+        paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardList(doc, doc.selectionEnd))
     }],
     ['paredit.selectOpenList', (doc: EditableDocument) => {
-        newParedit.selectRangeFromSelectionEnd(doc, newParedit.rangeToBackwardList(doc))
+        paredit.selectRange(doc, paredit.rangeToBackwardList(doc))
     }],
 
     // EDITING
-    ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
-    ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
-    ['paredit.slurpSexpBackward', newParedit.backwardSlurpSexp],
-    ['paredit.barfSexpBackward', newParedit.backwardBarfSexp],
-    ['paredit.splitSexp', newParedit.splitSexp],
-    ['paredit.spliceSexp', newParedit.spliceSexp],
+    ['paredit.slurpSexpForward', paredit.forwardSlurpSexp],
+    ['paredit.barfSexpForward', paredit.forwardBarfSexp],
+    ['paredit.slurpSexpBackward', paredit.backwardSlurpSexp],
+    ['paredit.barfSexpBackward', paredit.backwardBarfSexp],
+    ['paredit.splitSexp', paredit.splitSexp],
+    ['paredit.spliceSexp', paredit.spliceSexp],
     // ['paredit.transpose', ], // TODO: Not yet implemented
-    ['paredit.raiseSexp', newParedit.raiseSexp],
-    ['paredit.convolute', newParedit.convolute],
-    ['paredit.killSexpForward', (doc: EditableDocument) => { newParedit.killRange(doc, newParedit.rangeToForwardSexp(doc)) }],
-    ['paredit.killSexpBackward', (doc: EditableDocument) => { newParedit.killRange(doc, newParedit.rangeToBackwardSexp(doc)) }],
-    ['paredit.killListForward', newParedit.killForwardList], // TODO: Implement with killRange
-    ['paredit.killListBackward', newParedit.killBackwardList], // TODO: Implement with killRange
-    ['paredit.spliceSexpKillForward', newParedit.spliceSexpKillingForward],
-    ['paredit.spliceSexpKillBackward', newParedit.spliceSexpKillingBackward],
-    ['paredit.wrapAroundParens', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '(', ')') }],
-    ['paredit.wrapAroundSquare', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '[', ']') }],
-    ['paredit.wrapAroundCurly', (doc: EditableDocument) => { newParedit.wrapSexpr(doc, '{', '}') }],
-    ['paredit.deleteForward', newParedit.deleteForward], // TODO: Strict mode not working
-    ['paredit.deleteBackward', newParedit.backspace],
+    ['paredit.raiseSexp', paredit.raiseSexp],
+    ['paredit.convolute', paredit.convolute],
+    ['paredit.killSexpForward', (doc: EditableDocument) => { paredit.killRange(doc, paredit.rangeToForwardSexp(doc)) }],
+    ['paredit.killSexpBackward', (doc: EditableDocument) => { paredit.killRange(doc, paredit.rangeToBackwardSexp(doc)) }],
+    ['paredit.killListForward', paredit.killForwardList], // TODO: Implement with killRange
+    ['paredit.killListBackward', paredit.killBackwardList], // TODO: Implement with killRange
+    ['paredit.spliceSexpKillForward', paredit.spliceSexpKillingForward],
+    ['paredit.spliceSexpKillBackward', paredit.spliceSexpKillingBackward],
+    ['paredit.wrapAroundParens', (doc: EditableDocument) => { paredit.wrapSexpr(doc, '(', ')') }],
+    ['paredit.wrapAroundSquare', (doc: EditableDocument) => { paredit.wrapSexpr(doc, '[', ']') }],
+    ['paredit.wrapAroundCurly', (doc: EditableDocument) => { paredit.wrapSexpr(doc, '{', '}') }],
+    ['paredit.deleteForward', paredit.deleteForward], // TODO: Strict mode not working
+    ['paredit.deleteBackward', paredit.backspace],
 
 ];
 
-function wrapNewPareditCommand(command: string, fn: Function) {
+function wrapPareditCommand(command: string, fn: Function) {
     return () => {
         try {
             let repl = activeReplWindow();
@@ -155,8 +153,8 @@ export function activate(context: ExtensionContext) {
                 setKeyMapConf();
             }
         }),
-        ...newPareditCommands
-            .map(([command, fn]) => commands.registerCommand(command, wrapNewPareditCommand(command, fn))));
+        ...pareditCommands
+            .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))));
     commands.executeCommand("setContext", "calva:pareditValid", true);
 }
 
