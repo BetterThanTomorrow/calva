@@ -27,13 +27,23 @@ ctrl+up                 | Backward Up Sexp
 ctrl+end                | Forward to List End/Close
 ctrl+home               | Backward to List Start/Open
 
+(Modify these with `shift` to select rather than move.)
+
 ### Selecting
 
-Default keybinding | Action
------------------- | ------
-ctrl+w             | Expand Selection
-ctrl+shift+w       | Shrink Selection
-ctrl+alt+w space   | Select Current Top Level Form
+Default keybinding    | Action
+------------------    | ------
+ctrl+w                | Expand Selection
+ctrl+shift+w          | Shrink Selection
+ctrl+alt+w space      | Select Current Top Level Form
+ctrl+shift+alt+right  | Select Forward Sexp
+ctrl+shift+alt+left   | Select Backward Sexp
+ctrl+shift+down       | Select Forward Down Sexp
+ctrl+shift+alt+up     | Select Backward Down Sexp
+ctrl+shift+alt+down   | Select Forward Up Sexp
+ctrl+shift+up         | Select Backward Up Sexp
+ctrl+shift+end        | Select Forward to List End/Close
+ctrl+shift+home       | Select Backward to List Start/Open
 
 ### Editing
 

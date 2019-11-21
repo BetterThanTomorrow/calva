@@ -836,7 +836,47 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.openList",
+                "command": "paredit.selectOpenList",
+                "title": "Backward to List Start/Open"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectForwardSexp",
+                "title": "Forward Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectBackwardSexp",
+                "title": "Backward Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectForwardDownSexp",
+                "title": "Forward Down Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectBackwardDownSexp",
+                "title": "Backward Down Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectBackwardUpSexp",
+                "title": "Backward Up Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectForwardUpSexp",
+                "title": "Forward Up Sexp"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectCloseList",
+                "title": "Forward to List End/Close"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.selectOpenList",
                 "title": "Backward to List Start/Open"
             },
             {
@@ -1141,6 +1181,46 @@
             {
                 "command": "paredit.openList",
                 "key": "ctrl+home",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectForwardSexp",
+                "key": "ctrl+shift+alt+right",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectBackwardSexp",
+                "key": "ctrl+shift+alt+left",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectForwardDownSexp",
+                "key": "ctrl+shift+down",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectBackwardDownSexp",
+                "key": "ctrl+shift+alt+up",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectForwardUpSexp",
+                "key": "ctrl+shift+alt+down",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectBackwardUpSexp",
+                "key": "ctrl+shift+up",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectCloseList",
+                "key": "ctrl+shift+end",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectOpenList",
+                "key": "ctrl+shift+home",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {

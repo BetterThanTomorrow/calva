@@ -31,6 +31,15 @@ const newPareditCommands: [string, Function][] = [
     ['paredit.sexpRangeExpansion', newParedit.growSelection], // TODO: Inside string should first select contents
     ['paredit.sexpRangeContraction', newParedit.shrinkSelection],
 
+    ['paredit.selectForwardSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardSexp(doc)) }],
+    ['paredit.selectBackwardSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardSexp(doc)) }],
+    ['paredit.selectForwardDownSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardDownList(doc)) }],
+    ['paredit.selectBackwardDownSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardDownList(doc)) }],
+    ['paredit.selectForwardUpSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardUpList(doc)) }],
+    ['paredit.selectBackwardUpSexp', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardUpList(doc)) }],
+    ['paredit.selectCloseList', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToForwardList(doc)) }],
+    ['paredit.selectOpenList', (doc: EditableDocument) => { newParedit.selectRange(doc, newParedit.rangeToBackwardList(doc)) }],
+
     // EDITING
     ['paredit.slurpSexpForward', newParedit.forwardSlurpSexp],
     ['paredit.barfSexpForward', newParedit.forwardBarfSexp],
