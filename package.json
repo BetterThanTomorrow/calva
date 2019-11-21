@@ -995,11 +995,6 @@
                 "title": "Indent"
             },
             {
-                "category": "Calva Paredit",
-                "command": "paredit.transpose",
-                "title": "Transpose"
-            },
-            {
                 "command": "calva-fmt.formatCurrentForm",
                 "title": "Format Current Form",
                 "category": "Calva Format"
@@ -1271,11 +1266,6 @@
             {
                 "command": "paredit.raiseSexp",
                 "key": "ctrl+alt+r",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.transpose",
-                "key": "ctrl+alt+t",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {

@@ -56,7 +56,6 @@ ctrl+shift+right                  | Barf Backward
 ctrl+alt+s s                      | Splice
 ctrl+alt+shift+s                  | Split Sexp
 ctrl+alt+r                        | Raise Sexp
-ctrl+alt+t                        | Transpose
 ctrl+shift+c                      | Convolute ¯\\\_(ツ)_/¯
 ctrl+alt+delete                   | Kill Sexp Forward
 ctrl+alt+backspace                | Kill Sexp Backward
