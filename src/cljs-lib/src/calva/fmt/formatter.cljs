@@ -54,37 +54,25 @@
 
 (defn enclosing-range
   "Expands the range from `idx` up to any enclosing list/vector/map/string"
-  [{:keys [all-text idx] :as m}]
+  [{:keys [all-text idx parent?] :as m}]
   (assoc m :range
          (let [ast (paredit/parse all-text)
-               range ((.. paredit -navigator -sexpRange) ast idx)
-               enclosing (try
-                           (if (some? range)
-                             (loop [range range]
-                               (let [text (apply subs all-text range)]
-                                 (if (and (some? range)
-                                          (or (= idx (first range))
-                                              (= idx (last range))
-                                              (not (util/enclosing? text))))
-                                   (let [expanded-range ((.. paredit -navigator -sexpRangeExpansion) ast (first range) (last range))]
-                                     (if (and (some? expanded-range) (not= expanded-range range))
-                                       (recur expanded-range)
-                                       (cljify range)))
-                                   (cljify range))))
-                             [idx idx])
-                           (catch js/Error _e
-                             ((.. paredit -navigator -rangeForDefun) ast idx)))]
-           (loop [enclosing enclosing]
-             (let [expanded-range ((.. paredit -navigator -sexpRangeExpansion) ast (first enclosing) (last enclosing))]
-               (if (some? expanded-range)
-                 (let [text (apply subs all-text expanded-range)]
-                   (if (and (not= expanded-range enclosing) (re-find #"^['`#?_]" text))
-                     (recur expanded-range)
-                     (cljify enclosing)))
-                 (cljify enclosing)))))))
+               up-idx ((.. paredit -navigator -backwardUpSexp) ast idx)
+               up-idx-parent ((.. paredit -navigator -backwardUpSexp) ast up-idx)
+               enclosing ((.. paredit -navigator -sexpRange) ast (if parent? up-idx-parent up-idx))
+               enclosing (loop [enclosing enclosing]
+                           (let [expanded-range ((.. paredit -navigator -sexpRangeExpansion) ast (first enclosing) (last enclosing))]
+                             (if (some? expanded-range)
+                               (let [text (apply subs all-text expanded-range)]
+                                 (if (and (not= expanded-range enclosing) (re-find #"^['`#?_@]" text))
+                                   (recur expanded-range)
+                                   enclosing))
+                               enclosing)))]
+           (cljify (or enclosing [idx idx])))))
 
 
 (comment
+  (remove nil? '(nil 1 2 nil 3))
   (enclosing-range {:all-text "  ([]\n[])"
                     :idx 6})
   (enclosing-range {:all-text "   (foo)"

@@ -231,7 +231,7 @@ bar))")
          (:range (sut/enclosing-range {:all-text "  []\n  \n[]" :idx 5}))))
   (is (= [1 7]
          (:range (sut/enclosing-range {:all-text " ([][])" :idx 4}))))
-  (is (= [1 6]
+  #_(is (= [1 6]
          (:range (sut/enclosing-range {:all-text " (\"[\")" :idx 4}))))
   (is (= [1 12]
          (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2}))))
