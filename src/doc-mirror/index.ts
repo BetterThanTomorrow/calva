@@ -32,7 +32,7 @@ export class DocumentModel implements EditableModel {
             }
         }, { undoStopBefore: undoStopBefore, undoStopAfter: false }).then(isFulfilled => {
             if (isFulfilled) {
-                formatter.formatPosition(editor);
+                formatter.formatPosition(editor, true, { "parent?": true });
             }
         });
     }

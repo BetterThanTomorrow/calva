@@ -54,9 +54,10 @@
 
 (defn enclosing-range
   "Expands the range from `idx` up to any enclosing list/vector/map/string"
-  [{:keys [all-text idx parent?] :as m}]
+  [{:keys [all-text idx config] :as m}]
   (assoc m :range
-         (let [ast (paredit/parse all-text)
+         (let [parent? (:parent? config)
+               ast (paredit/parse all-text)
                up-idx ((.. paredit -navigator -backwardUpSexp) ast idx)
                up-idx-parent ((.. paredit -navigator -backwardUpSexp) ast up-idx)
                enclosing ((.. paredit -navigator -sexpRange) ast (if parent? up-idx-parent up-idx))
