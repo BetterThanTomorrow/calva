@@ -1,5 +1,4 @@
 'use strict';
-import * as utils from './utils';
 import { StatusBar } from './statusbar';
 import * as vscode from 'vscode';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
@@ -11,106 +10,10 @@ import { EditableDocument } from '../cursor-doc/model';
 
 let paredit = require('paredit.js');
 
-
 let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
 const languages = new Set(["clojure", "lisp", "scheme"]);
-let enabled = true,
-    expandState = { range: null, prev: null };
-
-const navigate = (fn, ...args) =>
-    ({ textEditor, ast, selection }) => {
-        let res = fn(ast, selection.cursor, ...args);
-        utils.select(textEditor, res);
-    }
-
-const yank = (fn, ...args) =>
-    ({ textEditor, ast, selection }) => {
-        let res = fn(ast, selection.cursor, ...args),
-            positions = typeof (res) === "number" ? [selection.cursor, res] : res;
-        utils.copy(textEditor, positions);
-    }
-
-const cut = (fn, ...args) =>
-    ({ textEditor, ast, selection }) => {
-        let res = fn(ast, selection.cursor, ...args),
-            positions = typeof (res) === "number" ? [selection.cursor, res] : res;
-        utils.cut(textEditor, positions);
-    }
-
-function indent({ textEditor, selection }) {
-    let src = textEditor.document.getText(),
-        ast = paredit.parse(src),
-        res = paredit.editor.indentRange(ast, src, selection.start, selection.end);
-
-    utils
-        .edit(textEditor, utils.commands(res))
-        .then((applied?) => utils.undoStop(textEditor)).catch(() => {});
-}
-
-const wrapAround = (ast, src, start, { opening, closing }) => paredit.editor.wrapAround(ast, src, start, opening, closing);
-
-const edit = (fn, opts = {}) =>
-    ({ textEditor, src, ast, selection }) => {
-        let { start, end } = selection;
-        let res = fn(ast, src, selection.start, { ...opts, endIdx: start === end ? undefined : end });
-
-        if (res)
-            if (res.changes.length > 0) {
-                let cmd = utils.commands(res),
-                    sel = {
-                        start: Math.min(...cmd.map(c => c.start)),
-                        end: Math.max(...cmd.map(utils.end))
-                    };
-
-                utils
-                    .edit(textEditor, cmd)
-                    .then((applied?) => {
-                        if(!opts["_skipSelect"]) {
-                            utils.select(textEditor, res.newIndex);
-                        }
-                        if (!opts["_skipIndent"]) {
-                            indent({
-                                textEditor: textEditor,
-                                selection: sel
-                            });
-                        }
-                    }).catch(() => {});
-            }
-            else
-                utils.select(textEditor, res.newIndex);
-    }
-
-const pareditCommands: [string, Function][] = [
-    ['paredit.transpose', edit(paredit.editor.transpose)],    
-];
-
-
-function wrapPareditCommand(command: string, fn) {
-    return () => {
-        try {
-            let repl = activeReplWindow();
-            
-            if (repl) {
-                repl.executeCommand(toConsoleCommand[command])
-            } else {
-                let textEditor = window.activeTextEditor;
-                let doc = textEditor.document;
-                if (!enabled || !languages.has(doc.languageId)) return;
-                
-                let src = textEditor.document.getText();
-                fn({
-                    textEditor: textEditor,
-                    src: src,
-                    ast: paredit.parse(src),
-                    selection: utils.getSelection(textEditor)
-                });
-            }
-        } catch (e) {
-            
-        }
-    }
-}
+let enabled = true;
 
 const newPareditCommands: [string, Function][] = [
     // NAVIGATING
@@ -152,7 +55,6 @@ const newPareditCommands: [string, Function][] = [
 
 ];
 
-
 function wrapNewPareditCommand(command: string, fn: Function) {
     return () => {
         try {
@@ -172,7 +74,6 @@ function wrapNewPareditCommand(command: string, fn: Function) {
     }
 }
 
-
 export function getKeyMapConf() :String {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
     return(String(keyMap));
@@ -185,9 +86,6 @@ function setKeyMapConf() {
 }
 setKeyMapConf();
 
-/*
-    'rangeForDefun': paredit.navigator.rangeForDefun,
-*/
 const toConsoleCommand = {
     'paredit.sexpRangeExpansion': "grow-selection",
     'paredit.sexpRangeContraction': "shrink-selection",
@@ -232,9 +130,6 @@ export function activate(context: ExtensionContext) {
                 setKeyMapConf();
             }
         }),
-
-        ...pareditCommands
-            .map(([command, fn]) => commands.registerCommand(command, wrapPareditCommand(command, fn))),
         ...newPareditCommands
             .map(([command, fn]) => commands.registerCommand(command, wrapNewPareditCommand(command, fn))));
     commands.executeCommand("setContext", "calva:pareditValid", true);

@@ -66,25 +66,3 @@ alt+backspace                     | Force Delete Backward
 alt+delete                        | Force Delete Forward
 
 NB: **Strict mode is disabled by default.** If you enable it, the backspace and delete keys won't let you remove parentheses or brackets so they become unbalanced. To force a delete anyway, use the supplied commands for that. Strict mode can be switched on by by configuring `calva.paredit.defaultKeyMap` to `strict`.
-
-
-### Copying/Yanking
-
-Default keybinding | Action
------------------- | ------
-ctrl+alt+c ctrl+right         | Copy Forward Sexp
-ctrl+alt+c ctrl+left          | Copy Backward Sexp
-ctrl+alt+c ctrl+down          | Copy Forward Down Sexp
-ctrl+alt+c ctrl+up            | Copy Backward Up Sexp
-ctrl+alt+c ctrl+alt+right     | Copy Close List
-
-### Cutting
-
-Default keybinding | Action
------------------- | ------
-ctrl+alt+x ctrl+right         | Cut Forward Sexp
-ctrl+alt+x ctrl+left          | Cut Backward Sexp
-ctrl+alt+x ctrl+down          | Cut Forward Down Sexp
-ctrl+alt+x ctrl+up            | Cut Backward Up Sexp
-ctrl+alt+x ctrl+alt+right     | Cut Close List
-
