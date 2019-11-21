@@ -33,25 +33,25 @@ const pareditCommands: [string, Function][] = [
         paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardSexp(doc, doc.selectionEnd))
     }],
     ['paredit.selectBackwardSexp', (doc: EditableDocument) => {
-        paredit.selectRange(doc, paredit.rangeToBackwardSexp(doc))
+        paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardSexp(doc))
     }],
     ['paredit.selectForwardDownSexp', (doc: EditableDocument) => {
         paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardDownList(doc, doc.selectionEnd))
     }],
     ['paredit.selectBackwardDownSexp', (doc: EditableDocument) => {
-        paredit.selectRange(doc, paredit.rangeToBackwardDownList(doc))
+        paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardDownList(doc))
     }],
     ['paredit.selectForwardUpSexp', (doc: EditableDocument) => {
         paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardUpList(doc, doc.selectionEnd))
     }],
     ['paredit.selectBackwardUpSexp', (doc: EditableDocument) => {
-        paredit.selectRange(doc, paredit.rangeToBackwardUpList(doc))
+        paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardUpList(doc))
     }],
     ['paredit.selectCloseList', (doc: EditableDocument) => {
         paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardList(doc, doc.selectionEnd))
     }],
     ['paredit.selectOpenList', (doc: EditableDocument) => {
-        paredit.selectRange(doc, paredit.rangeToBackwardList(doc))
+        paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardList(doc))
     }],
 
     // EDITING

@@ -65,7 +65,7 @@ export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.s
     }
 }
 
-export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionEnd): [number, number] {
+export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.backwardWhitespace();
     if (cursor.backwardSexp()) {
