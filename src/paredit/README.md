@@ -73,6 +73,7 @@ ctrl+alt+[                        | Wrap Around [] | Wraps the current form, or 
 ctrl+alt+{                        | Wrap Around {}| Wraps the current form, or selection, with curlies.
 
 There is also a **strict** mode:
+
 Strict mode keybinding            | Action | Description
 ----------------------            | ------ | -----------
 backspace                         | Delete Backward | Unless it will unbalance a form
