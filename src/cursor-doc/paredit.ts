@@ -17,15 +17,15 @@ export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = range;
+    doc.selection = { anchor: range[0], active: range[1]};
 }
 
 export function selectRangeFromSelectionStart(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = [doc.selectionStart, range[1]];
+    doc.selection = { anchor: doc.selectionStart, active: range[1]};
 }
 
 export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = [range[0], doc.selectionEnd];
+    doc.selection = { anchor: doc.selectionEnd, active: range[0]};
 }
 
 
@@ -167,7 +167,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
         //       I have opted to clear it here.
         doc.selectionStart = doc.selectionEnd = st;
     } else {
-        doc.insertString(open + doc.getSelection() + close);
+        doc.insertString(open + doc.getSelectionText() + close);
         doc.selectionStart = (st + open.length)
         doc.selectionEnd = (en + open.length)
     }
@@ -353,7 +353,7 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
 
 export function open(doc: EditableDocument, open: string, close: string, start: number = doc.selectionEnd) {
     let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
-    doc.insertString(open + doc.getSelection() + close);
+    doc.insertString(open + doc.getSelectionText() + close);
     doc.selectionStart = doc.selectionEnd = start + open.length;
     if (cs != ce) {
         doc.selectionStart = (cs + open.length)

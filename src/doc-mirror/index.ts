@@ -114,7 +114,13 @@ class MirroredDocument implements EditableDocument {
         });
     }
 
-    public getSelection() {
+    set selection(selection: { anchor: number, active: number }) {
+        const editor = vscode.window.activeTextEditor,
+            document = editor.document;
+        editor.selection = new vscode.Selection(document.positionAt(selection.anchor), document.positionAt(selection.active));
+    }
+
+    public getSelectionText() {
         const editor = vscode.window.activeTextEditor,
             selection = editor.selection;
         return this.document.getText(selection);

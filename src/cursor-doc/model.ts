@@ -67,11 +67,12 @@ export interface EditableModel {
 export interface EditableDocument {
     selectionStart: number,
     selectionEnd: number,
+    selection: { anchor: number, active: number },
     model: EditableModel,
     growSelectionStack: [number, number][],
     getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
     insertString: (text: string) => void,
-    getSelection: () => string,
+    getSelectionText: () => string,
     delete: () => void,
     backspace: () => void;
 }

@@ -56,6 +56,11 @@ export class ReplReadline implements EditableDocument {
         this._selectionStart = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
+    set selection(selection: { anchor: number, active: number}) {
+        this.selectionStart = selection.anchor;
+        this.selectionEnd = selection.active;
+    }
+
     /** The offset of the end of the selection into the document. */
     private _selectionEnd: number = 0;
 
@@ -312,7 +317,7 @@ export class ReplReadline implements EditableDocument {
      * Retrieve the current selection as text.
      * 
      */
-    getSelection() {
+    getSelectionText() {
         if (this.selectionStart != this.selectionEnd) {
             return this.model.getText(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd))
         }
