@@ -136,11 +136,16 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atEnd()) {
             switch (this.getToken().type) {
                 case "comment":
-                    if (!includeComments)
+                    if (!includeComments) {
                         return;
+                    }
                 case "eol":
                 case "ws":
                     this.next();
+                    if (this.getToken().type == "comment" && !includeComments) {
+                        this.previous();
+                        return;
+                    }
                     continue;
                 default:
                     return;
@@ -155,17 +160,16 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atStart()) {
             switch (this.getPrevToken().type) {
                 case "comment":
-                    if (!includeComments)
+                    if (!includeComments) {
                         return;
+                    }
                 case "eol":
+                case "ws":
                     this.previous();
-                    if (this.getPrevToken().type == "comment") {
+                    if (this.getPrevToken().type == "comment" && !includeComments) {
                         this.next();
                         return;
                     }
-                    continue;
-                case "ws":
-                    this.previous();
                     continue;
                 default:
                     return;
@@ -235,7 +239,7 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Moves this token backward one s-expression at this level.
-     * If the previous non whitespace token is an close paren, skips past it's matching
+     * If the previous non whitespace token is a close paren, skips past it's matching
      * open paren.
      * 
      * If the previous token is a form of open paren, does not move.
@@ -245,9 +249,8 @@ export class LispTokenCursor extends TokenCursor {
     backwardSexp(skipComments = true) {
         let delta = 0;
         this.backwardWhitespace(!skipComments);
-        switch (this.getPrevToken().type) {
-            case "open":
-                return false;
+        if (this.getPrevToken().type === 'open') {
+            return false;
         }
         while (!this.atStart()) {
             this.backwardWhitespace(!skipComments);
@@ -255,6 +258,7 @@ export class LispTokenCursor extends TokenCursor {
             switch (tk.type) {
                 case 'id':
                 case 'lit':
+                case 'kw':
                 case 'punc':
                 case 'junk':
                 case 'kw':
@@ -284,6 +288,7 @@ export class LispTokenCursor extends TokenCursor {
                     break;
                 default:
                     this.previous();
+                    break;
             }
         }
     }
