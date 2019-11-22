@@ -244,6 +244,10 @@ export class LispTokenCursor extends TokenCursor {
      * 
      * If the previous token is a form of open paren, does not move.
      * 
+     * Note. The cursor won't move when ”on” the first sexp inside a list.
+     *       TODO: Fix this. (Probably the only way is to give the cursor knowledge
+     *             about the offset it was created from.)
+     * 
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {

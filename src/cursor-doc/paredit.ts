@@ -67,6 +67,11 @@ export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.s
 
 export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
     const cursor = doc.getTokenCursor(offset);
+    if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
+        // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
+        // TODO: Try to fix this in LispTokenCursor instead.
+        cursor.forwardSexp();
+    }
     cursor.backwardWhitespace();
     if (cursor.backwardSexp()) {
         return [cursor.offsetStart, offset];
