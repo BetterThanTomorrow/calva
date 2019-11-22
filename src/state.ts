@@ -17,6 +17,13 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
     }
 }
 
+enum EvaluationStatus {
+    none,
+    evaluating,
+    success,
+    error
+}
+
 // include the 'file' and 'untitled' to the 
 // document selector. All other schemes are 
 // not known and therefore not supported.
@@ -39,7 +46,8 @@ const initialData = {
     outputChannel: vscode.window.createOutputChannel("Calva says"),
     connectionLogChannel: vscode.window.createOutputChannel("Calva Connection Log"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
-    analytics: null
+    analytics: null,
+    evaluation: EvaluationStatus.none
 };
 
 reset();
@@ -240,5 +248,6 @@ export {
     extensionContext,
     outputChannel,
     connectionLogChannel,
-    analytics
+    analytics,
+    EvaluationStatus
 };

@@ -1,4 +1,9 @@
 import * as vscode from 'vscode';
+import {
+    Incrementor,
+    TextIncrementor,
+    StatusBarAnimator
+} from "./animation";
 import { activeReplWindow } from './repl-window';
 import * as state from './state';
 import * as util from './utilities';
@@ -6,6 +11,7 @@ import * as util from './utilities';
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+const evalStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 const color = {
     active: "white",
@@ -99,6 +105,49 @@ function update() {
         cljsBuildStatus.hide();
     }
     prettyPrintToggle.show();
+
+    updateEvalStatus(
+        evalStatus,
+        current.get("evaluation"),
+        current.get('connected')
+    );
+}
+
+class EvalIncrementor implements TextIncrementor {
+    constructor() {
+        this.incrementor = new Incrementor(1, 3);
+    }
+    incrementor: Incrementor;
+    next = () =>  "🔨".repeat(this.incrementor.next());
+    reset = () => this.incrementor.reset();
+}
+
+const evalAnimation = new StatusBarAnimator(new EvalIncrementor(), 500);
+
+function updateEvalStatus(
+    sbi: vscode.StatusBarItem,
+    evaluationStatus: state.EvaluationStatus,
+    visible: boolean
+    ) {
+    sbi.color = color.inactive;
+    evalAnimation.stop();
+    // TODO: Toggle calva says output
+    sbi.command = "workbench.action.output.toggleOutput";
+    switch(evaluationStatus) {
+        case state.EvaluationStatus.none:
+            sbi.text = "🔵";
+            break;
+        case state.EvaluationStatus.evaluating:
+            evalAnimation.start(sbi);
+            break;
+        case state.EvaluationStatus.success:
+            sbi.text = "✅";
+            break;
+        case state.EvaluationStatus.error:
+            sbi.text = "❌";
+            break;
+    }
+    visible ? sbi.show() : sbi.hide();
 }
 
 export default {

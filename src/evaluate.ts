@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from './state';
+import { EvaluationStatus } from "./state";
 import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
@@ -168,6 +169,11 @@ function evaluateCurrentForm(document = {}, options = {}) {
         .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
+function setEvalStatus(status: EvaluationStatus) {
+    state.cursor.set("evaluation", status);
+    statusbar.update();
+}
+
 async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
     let current = state.deref(),
         doc = util.getDocument(document),
@@ -181,7 +187,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
-
+        setEvalStatus(EvaluationStatus.evaluating);
         let res = client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
@@ -191,18 +197,21 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         })
         await res.value.then((value) => {
             if (value) {
+                setEvalStatus(EvaluationStatus.success);
                 chan.appendLine("=> " + value);
             } else {
+                setEvalStatus(EvaluationStatus.none);
                 chan.appendLine("No results from file evaluation.");
             }
         }).catch((e) => { 
             chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
+            setEvalStatus(EvaluationStatus.error);
         });
     }
     if (callback) {
         try {
             callback();
-        } catch (e) { 
+        } catch (e) {
             chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
         };
     }
