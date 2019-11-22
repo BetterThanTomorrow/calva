@@ -56,7 +56,7 @@
   "Expands the range from `idx` up to any enclosing list/vector/map/string"
   [{:keys [all-text idx config] :as m}]
   (assoc m :range
-         (let [parent? (:parent? config)
+         (let [parent? (:calva-fmt/use-enclosing-parent? config)
                ast (paredit/parse all-text)
                up-idx ((.. paredit -navigator -backwardUpSexp) ast idx)
                up-idx-parent ((.. paredit -navigator -backwardUpSexp) ast up-idx)

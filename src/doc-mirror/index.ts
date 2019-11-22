@@ -32,7 +32,7 @@ export class DocumentModel implements EditableModel {
             }
         }, { undoStopBefore: undoStopBefore, undoStopAfter: false }).then(isFulfilled => {
             if (isFulfilled) {
-                formatter.formatPosition(editor, true, { "parent?": true });
+                formatter.formatPosition(editor, true, { "calva-fmt/use-enclosing-parent?": true });
             }
         });
     }

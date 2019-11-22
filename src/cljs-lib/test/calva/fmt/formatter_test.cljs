@@ -239,3 +239,45 @@ bar))")
          (:range (sut/enclosing-range {:all-text " #{:foo :bar}" :idx 8}))))
   (is (= [1 12]
          (:range (sut/enclosing-range {:all-text " '(:foo bar)" :idx 8})))))
+
+
+(deftest enclosing-parent-range
+  (is (= [12 45] ;"[x]" => enclosing defn
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 23
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [12 45] ;"enclosing top level defn"
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 21
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [0 9] ; after top level def form => selects it
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 9
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [0 9] ; before top level def form => selects it
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 0
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [26 44] ; inside let [bar 1] => selects let
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 33
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [12 45] ; inside let form => selects enclosing defn
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 31
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [10 10] ; void (between top level forms)
+         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 10
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [5 5]
+         (:range (sut/enclosing-range {:all-text "  []\n  \n[]" :idx 5
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [1 7] ; between the [][] => selects the enclosing list
+         (:range (sut/enclosing-range {:all-text " ([][])" :idx 4
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [1 7] ; inside one of the [][] => selects the enclosing list
+         (:range (sut/enclosing-range {:all-text " ([][])" :idx 3
+                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [2 4] ; inside one of the [][], parent false => selects the []
+         (:range (sut/enclosing-range {:all-text " ([][])" :idx 3
+                                       :config {:calva-fmt/use-enclosing-parent? false}}))))
+  #_(is (= [1 6]
+           (:range (sut/enclosing-range {:all-text " (\"[\")" :idx 4
+                                         :config {:calva-fmt/use-enclosing-parent? true}}))))
+  (is (= [1 12]
+         (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2
+                                       :config {:calva-fmt/use-enclosing-parent? true}})))))
