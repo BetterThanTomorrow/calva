@@ -12,7 +12,7 @@ export class DocumentModel implements EditableModel {
 
     lineInputModel = new LineInputModel(this.document.eol == vscode.EndOfLine.CRLF ? 2 : 1);
 
-    edit(modelEdits: ModelEdit[], undoStopBefore = true): Thenable<void> {
+    edit(modelEdits: ModelEdit[], undoStopBefore = true): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor;
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
@@ -32,7 +32,7 @@ export class DocumentModel implements EditableModel {
             }
         }, { undoStopBefore: undoStopBefore, undoStopAfter: false }).then(isFulfilled => {
             if (isFulfilled) {
-                formatter.formatPosition(editor, true, { "calva-fmt/use-enclosing-parent?": true });
+                return formatter.formatPosition(editor, false, { "calva-fmt/use-enclosing-parent?": true });
             }
         });
     }

@@ -17,15 +17,15 @@ export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
-    doc.selection = { anchor: range[0], active: range[1]};
+    doc.selection = { anchor: range[0], active: range[1] };
 }
 
 export function selectRangeFromSelectionStart(doc: EditableDocument, range: [number, number]) {
-    doc.selection = { anchor: doc.selectionStart, active: range[1]};
+    doc.selection = { anchor: doc.selectionStart, active: range[1] };
 }
 
 export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
-    doc.selection = { anchor: doc.selectionEnd, active: range[0]};
+    doc.selection = { anchor: doc.selectionEnd, active: range[0] };
 }
 
 
@@ -38,7 +38,7 @@ export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [numbe
  */
 export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionStart, start: number = 0): [number, number] {
     const cursor = doc.getTokenCursor(start);
-    while (cursor.forwardSexp()) {  
+    while (cursor.forwardSexp()) {
         if (cursor.offsetEnd >= offset) {
             if (cursor.getPrevToken().type === 'close') {
                 const commentCursor = cursor.clone();
@@ -234,9 +234,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
 
 export function spliceSexp(doc: EditableDocument, start: number = doc.selectionEnd, undoStopBefore = true) {
     let cursor = doc.getTokenCursor(start);
-    // NOTE: this should unwrap the string, not throw.
-    if (cursor.withinString())
-        throw new Error("Invalid context for paredit.spliceSexp");
+    // TODO: this should unwrap the string, not the enclosing list.
 
     cursor.backwardList()
     let open = cursor.getPrevToken();
@@ -255,7 +253,7 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionE
     }
 }
 
-export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<void> {
+export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     // NOTE: this should unwrap the string, not throw.
     if (cursor.withinString())
@@ -264,7 +262,7 @@ export function killBackwardList(doc: EditableDocument, start: number = doc.sele
     return doc.model.edit([new ModelEdit('changeRange', [cursor.offsetStart, start, ""])]);
 }
 
-export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<void> {
+export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     // NOTE: this should unwrap the string, not throw.
@@ -276,17 +274,13 @@ export function killForwardList(doc: EditableDocument, start: number = doc.selec
 
 export function spliceSexpKillingBackward(doc: EditableDocument, start: number = doc.selectionEnd) {
     killBackwardList(doc).then(() => {
-        setTimeout(() => { // OMG. But it seems we need a slight pause when chaining edits
-            spliceSexp(doc, doc.selectionEnd, false);
-        }, 50);
+        spliceSexp(doc, doc.selectionEnd, false);
     });
 }
 
 export function spliceSexpKillingForward(doc: EditableDocument, start: number = doc.selectionEnd) {
     killForwardList(doc).then(() => {
-        setTimeout(() => { // OMG. But it seems we need a slight pause when chaining edits
-            spliceSexp(doc, doc.selectionEnd, false);
-        }, 50);
+        spliceSexp(doc, doc.selectionEnd, false);
     });
 }
 
@@ -324,17 +318,26 @@ export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.sel
 }
 
 export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
-    let cursor = doc.getTokenCursor(start);
+    const cursor = doc.getTokenCursor(start);
+    let caretWasAtInsertionPoint = false;
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
-        let offset = cursor.offsetStart;
-        let close = cursor.getToken().raw;
+        const offset = cursor.offsetStart,
+            close = cursor.getToken().raw;
         cursor.backwardSexp(true);
         cursor.backwardWhitespace();
+        if (doc.selectionEnd == cursor.offsetStart) {
+            caretWasAtInsertionPoint = true;
+        }
         doc.model.edit([
-            new ModelEdit('deleteRange', [offset, 1]),
-            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close])
-        ]);
+            new ModelEdit('deleteRange', [offset, close.length]),
+            new ModelEdit('insertString', [cursor.offsetStart, close])
+        ]).then((isFulfilled) => {
+            if (caretWasAtInsertionPoint && isFulfilled) {
+                doc.selectionEnd = doc.selectionEnd - close.length;
+                doc.selectionStart = doc.selectionStart - close.length;
+            }
+        });
     }
 }
 

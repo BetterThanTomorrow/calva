@@ -52,19 +52,23 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
     }
 }
 
-export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): void {
+export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
     const doc: vscode.TextDocument = editor.document,
         formattedInfo = formatPositionInfo(editor, onType, extraConfig);
     if (formattedInfo.previousText != formattedInfo.formattedText) {
-        editor.edit(textEditorEdit => {
+        return editor.edit(textEditorEdit => {
             textEditorEdit.replace(formattedInfo.range, formattedInfo.formattedText);
-        }, { undoStopAfter: false, undoStopBefore: false }).then((_onFulfilled: boolean) => {
-            editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
+        }, { undoStopAfter: false, undoStopBefore: false }).then((onFulfilled: boolean) => {
+            editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex))
+            return onFulfilled;
         });
     } else {
-        if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-            editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
-        }
+        return new Promise((resolve, _reject) => {
+            if (formattedInfo.newIndex != formattedInfo.previousIndex) {
+                editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
+            }
+            resolve(true);
+        });
     }
 }
 
