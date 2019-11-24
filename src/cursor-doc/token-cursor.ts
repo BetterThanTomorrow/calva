@@ -445,8 +445,9 @@ export class LispTokenCursor extends TokenCursor {
      * 3. Else, if the previous form is on the same line
      * 4. Else, if the next form is on the same line
      * 5. Else, the previous form, if any
-     * 6. Else, the current enclosing form, if any
-     * 7. Else, return `undefined`.
+     * 6. Else, the next form, if any
+     * 7. Else, the current enclosing form, if any
+     * 8. Else, return `undefined`.
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
@@ -483,9 +484,17 @@ export class LispTokenCursor extends TokenCursor {
             const peekPastForwards = peekForwards.clone();
             if (peekPastForwards.forwardSexp()) { // 6.
                 return [peekForwards.offsetStart, peekPastForwards.offsetStart];
-            }    
+            } else {
+                const peekUp = this.clone();
+                if (peekUp.upList()) {
+                    const peekBehindUp = peekUp.clone();
+                    if (peekBehindUp.backwardSexp()) {  // 7.
+                        return [peekBehindUp.offsetStart, peekUp.offsetStart];
+                    }
+                }
+            }
         }
-        return undefined;
+        return undefined; // 8.
     }
 
     isWhiteSpace(): boolean {
