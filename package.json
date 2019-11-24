@@ -1305,17 +1305,17 @@
             },
             {
                 "command": "paredit.wrapAroundParens",
-                "key": "ctrl+alt+(",
+                "key": "ctrl+alt+w p",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundSquare",
-                "key": "ctrl+alt+[",
+                "key": "ctrl+alt+w s",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundCurly",
-                "key": "ctrl+alt+{",
+                "key": "ctrl+alt+w c",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
