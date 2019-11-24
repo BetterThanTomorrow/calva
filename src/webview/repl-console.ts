@@ -5,27 +5,28 @@ import { HotKeyTable } from "./hotkeys";
 import { ModelEdit } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
-    "Alt+R": "raise-sexp",
-    "Alt+Shift+/": "convolute-sexp",
+    "Ctrl+Alt+R": "raise-sexp",
+    "Alt+Shift+C": "convolute-sexp",
     "Alt+Backspace": "force-backspace",
-    "Ctrl+Shift+Space": "grow-selection",
-    "Ctrl+Alt+Shift+Space": "shrink-selection",
+    "Ctrl+W": "grow-selection",
+    "Ctrl+Shift+W": "shrink-selection",
     "Alt+Delete": "force-delete",
-    "Alt+LeftArrow": "backward-sexp",
-    "Alt+RightArrow": "forward-sexp",
+    "Ctrl+Alt+LeftArrow": "backward-sexp",
+    "Ctrl+Alt+RightArrow": "forward-sexp",
     "Ctrl+DownArrow": "down-list",
-    "Ctrl+Shift+UpArrow": "up-list",
+    "Ctrl+Alt+UpArrow": "backward-down-list",
+    "Ctrl+Alt+DownArrow": "up-list",
     "Ctrl+UpArrow": "backward-up-list",
     "Cmd+A": "select-all",
     "Cmd+Z": "undo",
     "Cmd+Shift+Z": "redo",
     "Alt+Shift+J": "join-sexp",
-    "Alt+Shift+Cmd+LeftArrow": "backward-slurp-sexp",
-    "Alt+Cmd+LeftArrow": "forward-barf-sexp",
+    "Shift+Ctrl+LeftArrow": "backward-slurp-sexp",
+    "Ctrl+LeftArrow": "forward-barf-sexp",
     "LeftArrow": "cursor-left",
     "Shift+LeftArrow": "cursor-select-left",
-    "Alt+Shift+Cmd+RightArrow": "forward-slurp-sexp",
-    "Alt+Cmd+RightArrow": "backward-barf-sexp",
+    "Ctrl+RightArrow": "forward-slurp-sexp",
+    "Shift+Ctrl+RightArrow": "backward-barf-sexp",
     "RightArrow": "cursor-right",
     "Shift+RightArrow": "cursor-select-right",
     "Alt+Ctrl+Backspace": "splice-sexp-killing-backwards",
@@ -47,7 +48,7 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Alt+Shift+9": "wrap-round",
     "Alt+[": "wrap-square",
     "Alt+Shift+[": "wrap-curly",
-    "Alt+Shift+S": "split-sexp",
+    "Ctrl+Alt+Shift+S": "split-sexp",
     "Alt+S": "splice-sexp",
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
@@ -445,6 +446,10 @@ export class ReplConsole {
             cursor.backwardList();
             cursor.backwardUpList();
             this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            this.readline.repaint();
+        },
+        "backward-down-list": () => {
+            paredit.moveToRangeStart(this.readline, paredit.rangeToForwardDownList(this.readline))
             this.readline.repaint();
         },
         "select-all": () => {

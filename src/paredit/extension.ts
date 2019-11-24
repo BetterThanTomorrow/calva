@@ -39,12 +39,12 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.backwardDownSexp',
         handler: (doc: EditableDocument) => { paredit.moveToRangeStart(doc, paredit.rangeToBackwardDownList(doc)) },
-        replWindowCommand: ""
+        replWindowCommand: "backward-down-list"
     },
     {
         command: 'paredit.forwardUpSexp',
         handler: (doc: EditableDocument) => { paredit.moveToRangeEnd(doc, paredit.rangeToForwardUpList(doc)) },
-        replWindowCommand: "forward-up-list"
+        replWindowCommand: "up-list"
     },
     {
         command: 'paredit.backwardUpSexp',
@@ -171,12 +171,12 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.raiseSexp',
         handler: paredit.raiseSexp,
-        replWindowCommand: ""
+        replWindowCommand: "raise-sexp"
     },
     {
         command: 'paredit.convolute',
         handler: paredit.convolute,
-        replWindowCommand: ""
+        replWindowCommand: "convolute-sexp"
     },
     {
         command: 'paredit.killSexpForward',
@@ -201,12 +201,12 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.spliceSexpKillForward',
         handler: paredit.spliceSexpKillingForward,
-        replWindowCommand: "splice-sexp-killing-forward"
+        replWindowCommand: "splice-sexp-killing-forwards"
     },
     {
         command: 'paredit.spliceSexpKillBackward',
         handler: paredit.spliceSexpKillingBackward,
-        replWindowCommand: "splice-sexp-killing-backward"
+        replWindowCommand: "splice-sexp-killing-backwards"
     },
     {
         command: 'paredit.wrapAroundParens',
