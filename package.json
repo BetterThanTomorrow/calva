@@ -486,7 +486,7 @@
                     "calva.paredit.defaultKeyMap": {
                         "type": "string",
                         "description": "The default keymap to use for bindings when there is no custom binding.",
-                        "default": "original",
+                        "default": "strict",
                         "enum": [
                             "original",
                             "strict",
