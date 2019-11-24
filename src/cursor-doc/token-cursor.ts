@@ -439,31 +439,53 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Moves the cursor to the current form according to this priority:
-     * 1. If not within whitespace, don't move, return `true`.
-     * 2. Move adjacent to the form to the left, return `true`.
-     * 3. Move adjacent to the form to the right, return `true`.
-     * Otherwise, don't move, return `false`.
-    */
-    moveToCurrentForm(): boolean {
-        let cursor = this.clone();
-        const prevToken = cursor.getPrevToken();
-        if (!cursor.withinWhiteSpace()) {
-            return true;
-        }
-        if (cursor.isWhiteSpace()) {
-            cursor.backwardWhitespace();
-            if (!cursor.atStart()) {
-                this.set(cursor);
-                return true;
+     * Figures out the `range` for the current form according to this priority:
+     * 1. If `offset` is adjacent after form
+     * 2. Else, if `offset` is adjacent before a form
+     * 3. Else, if the previous form is on the same line
+     * 4. Else, if the next form is on the same line
+     * 5. Else, the previous form, if any
+     * 6. Else, the current enclosing form, if any
+     * 7. Else, return `undefined`.
+     * @param offset the current cursor (caret) offset in the document
+     */
+    rangeForCurrentForm(offset: number): [number, number] {
+        const peekBackwards = this.clone();
+        peekBackwards.backwardWhitespace(true);                
+        if (peekBackwards.offsetStart == offset) {
+            if (peekBackwards.backwardSexp()) { // 1.
+                return [peekBackwards.offsetStart, offset];
             }
         }
-        cursor.forwardWhitespace();
-        if (!cursor.atEnd()) {
-            this.set(cursor);
-            return true;
+        const peekForwards = this.clone();
+        peekForwards.forwardWhitespace(true);                
+        if (peekForwards.offsetStart == offset) {
+            if (peekForwards.forwardSexp()) { // 2.
+                return [offset, peekForwards.offsetStart];
+            }
         }
-        return false;
+        if (peekBackwards.rowCol[0] == this.rowCol[0]) {
+            const peekBehindBackwards = peekBackwards.clone();
+            if (peekBehindBackwards.backwardSexp()) { // 3.
+                return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+            }
+        }
+        if (peekForwards.rowCol[0] == this.rowCol[0]) {
+            const peekPastForwards = peekForwards.clone();
+            if (peekPastForwards.forwardSexp()) { // 4.
+                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+            }
+        }        
+        const peekBehindBackwards = peekBackwards.clone();
+        if (peekBehindBackwards.backwardSexp()) { // 5.
+            return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+        } else {
+            const peekPastForwards = peekForwards.clone();
+            if (peekPastForwards.forwardSexp()) { // 6.
+                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+            }    
+        }
+        return undefined;
     }
 
     isWhiteSpace(): boolean {

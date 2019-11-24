@@ -148,33 +148,34 @@ export function rangeToBackwardList(doc: EditableDocument, offset: number = doc.
     }
 }
 
-export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
-    let st = Math.min(start, end);
-    let en = Math.max(start, end);
-    let cursor = doc.getTokenCursor(en);
-    if (cursor.withinString())
-        throw new Error("Invalid context for paredit.wrapSexp");
-    if (st == en) {
-        cursor.forwardSexp();
-        // reset the end position
-        en = cursor.offsetStart;
-        // ensure that start is before end.
-        st = Math.min(st, en);
-        en = Math.max(st, en);
-        // ensure to first insert the closing element.
-        doc.model.edit([
-            new ModelEdit('insertString', [en, close]),
-            new ModelEdit('insertString', [st, open])
-        ]);
-        // NOTE: emacs leaves the selection as is, 
-        //       but it has no relation to what was 
-        //       selected after the transform.
-        //       I have opted to clear it here.
-        doc.selectionStart = doc.selectionEnd = st;
-    } else {
-        doc.insertString(open + doc.getSelectionText() + close);
-        doc.selectionStart = (st + open.length)
-        doc.selectionEnd = (en + open.length)
+export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd): Thenable<boolean> {
+    const cursor = doc.getTokenCursor(end);
+    if (start == end) { // No selection
+        const currentFormRange = cursor.rangeForCurrentForm(start);
+        if (currentFormRange) {
+            const range = currentFormRange;
+            return doc.model.edit([
+                new ModelEdit('insertString', [range[1], close]),
+                new ModelEdit('insertString', [range[0], open])
+            ]).then(isFulfilled => {
+                if (isFulfilled) {
+                    doc.selectionStart = doc.selectionEnd = start + open.length;
+                }
+                return isFulfilled;
+            });
+        }
+    } else { // there is a selection
+        const range = [Math.min(start, end), Math.max(start, end)];
+        return doc.model.edit([
+            new ModelEdit('insertString', [range[1], close]),
+            new ModelEdit('insertString', [range[0], open])
+        ]).then(isFulfilled => {
+            // TODO: We would want to keep the wrapped form selected, but that seems very tricky
+            if (isFulfilled) {
+                doc.selectionStart = doc.selectionEnd = range[0] + open.length;
+            }
+            return isFulfilled;
+        });
     }
 }
 
@@ -458,28 +459,12 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
         emptySelection = startC.equals(endC);
 
     if (emptySelection) {
-        const currentFormC = startC.clone();
-        if (currentFormC.moveToCurrentForm()) {
-            if (!currentFormC.previousIsWhiteSpace() && currentFormC.getPrevToken().type != 'open') { // current form to the left
-                const leftOfCurrentForm = currentFormC.clone();
-                leftOfCurrentForm.backwardSexp();
-                growSelectionStack(doc, [leftOfCurrentForm.offsetStart, currentFormC.offsetStart]);
-            } else {
-                const prevCurrentFormC = currentFormC.clone();
-                prevCurrentFormC.previous();
-                if (prevCurrentFormC.isWhiteSpace() || prevCurrentFormC.getToken().type == 'open') { // current form to the right
-                    const rightOfCurrentForm = currentFormC.clone();
-                    rightOfCurrentForm.forwardSexp();
-                    growSelectionStack(doc, [currentFormC.offsetStart, rightOfCurrentForm.offsetStart]);
-                } else { // cursor withing current ”solid” form
-                    const leftOfCurrentForm = currentFormC.clone(),
-                        rightOfCurrentForm = currentFormC.clone();
-                    leftOfCurrentForm.backwardSexp();
-                    rightOfCurrentForm.forwardSexp();
-                    growSelectionStack(doc, [prevCurrentFormC.offsetStart, rightOfCurrentForm.offsetStart]);
-                }
-            }
-        } else console.log("no move")
+        const currentFormRange = startC.rangeForCurrentForm(start);
+        if (currentFormRange) {
+            growSelectionStack(doc, currentFormRange);
+        } else {
+            console.log("no move");
+        }
     } else {
         if (startC.getPrevToken().type == "open" && endC.getToken().type == "close") {
             startC.backwardList();
