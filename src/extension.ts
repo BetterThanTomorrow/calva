@@ -107,7 +107,9 @@ function activate(context: vscode.ExtensionContext) {
 
     chan.appendLine("Calva activated.");
 
-    status.update();
+    const statusbars = statusbar.init();
+    context.subscriptions.push(...statusbars);
+    util.updateREPLSessionType();
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
@@ -162,7 +164,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
-        
+
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 

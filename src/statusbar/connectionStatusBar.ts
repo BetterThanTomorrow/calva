@@ -1,48 +1,46 @@
 import { window, StatusBarAlignment, StatusBarItem } from "vscode";
-import { activeReplWindow } from '../repl-window';
 import configReader from "../configReader";
 import * as state from '../state';
 import * as util from '../utilities';
 
 export class ConnectionStatusBar {
     private statusBarItem: StatusBarItem;
-    constructor() {
-        this.statusBarItem = this.createStatusBarItem();
-    }
 
-    private createStatusBarItem() {
-        let sbi = window.createStatusBarItem(StatusBarAlignment.Left);
-        sbi.command = null;
-        sbi.tooltip = "REPL connection status";
-        return sbi;
+    constructor(alignment: StatusBarAlignment) {
+        this.statusBarItem = window.createStatusBarItem(alignment);
     }
-
-    show = () => this.statusBarItem.show();
 
     update() {
         let current = state.deref();
-        const color = configReader.colors;
+        const colors = configReader.colors;
+
+        let text = "nREPL $(zap)";
+        let tooltip = "Click to jack-in or connect";
+        let command = "calva.jackInOrConnect";
+        let color = colors.disconnected;
 
         if (current.get('connected')) {
-            this.statusBarItem.text = "nREPL $(zap)";
-            this.statusBarItem.color = color.connected;
-            this.statusBarItem.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
-            this.statusBarItem.command = "calva.jackInOrConnect";
+            text = "nREPL $(zap)";
+            color = colors.connected;
+            tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         } else if (util.getLaunchingState()) {
-            this.statusBarItem.color = color.launching;
-            this.statusBarItem.text = "Launching REPL using " + util.getLaunchingState();
-            this.statusBarItem.tooltip = "Click to interrupt jack-in or Connect to REPL Server";
-            this.statusBarItem.command = "calva.disconnect";
+            color = colors.launching;
+            text = "Launching REPL using " + util.getLaunchingState();
+            tooltip = "Click to interrupt jack-in or Connect to REPL Server";
+            command = "calva.disconnect";
         } else if (util.getConnectingState()) {
-            this.statusBarItem.text = "nREPL - trying to connect";
-            this.statusBarItem.tooltip = "Click to interrupt jack-in or Connect to REPL Server";
-            this.statusBarItem.command = "calva.disconnect";
-        } else {
-            this.statusBarItem.text = "nREPL $(zap)";
-            this.statusBarItem.tooltip = "Click to jack-in or Connect to REPL Server";
-            this.statusBarItem.color = color.disconnected;
-            this.statusBarItem.command = "calva.jackInOrConnect";
+            color = colors.launching;
+            text = "nREPL - trying to connect";
+            tooltip = "Click to interrupt jack-in or Connect to REPL Server";
+            command = "calva.disconnect";
         }
+
+        this.statusBarItem.text = text;
+        this.statusBarItem.tooltip = tooltip;
+        this.statusBarItem.command = command;
+        this.statusBarItem.color = color;
+
+        this.statusBarItem.show();
     }
 
     dispose() {
