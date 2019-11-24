@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import configReader from "./configReader";
 import * as paredit from "./paredit/extension";
 import * as fmt from "./calva-fmt/src/extension";
 import * as highlight from "./highlight/src/extension";
@@ -54,6 +55,8 @@ function onDidOpen(document) {
 
 
 function activate(context: vscode.ExtensionContext) {
+    context.subscriptions.push(configReader);
+
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 

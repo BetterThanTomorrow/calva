@@ -95,6 +95,7 @@ function _trimAliasName(name: string): string {
     return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 
+// TODO: Refactor config reader to provide all config values
 // TODO find a way to validate the configs
 function config() {
     let configOptions = vscode.workspace.getConfiguration('calva');
