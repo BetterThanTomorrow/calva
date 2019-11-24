@@ -70,8 +70,8 @@ Default keybinding                | Action | Description
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>s</kbd>, <kbd>delete</kbd>                 | **Splice Killing Forward** | Delete forward to end of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-forward.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>s</kbd>, <kbd>backspace</kbd>              | **Splice Killing Backwards** | Delete backward to the start of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-backward.gif) 
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>(</kbd>                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](_static/images/paredit/wrap-around-parens.gif)
-<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>[</kbd>                        | **Wrap Around []** | Wraps the current form, or selection, with hard brackets. <br> ![](_static/images/paredit/wrap-brackets.gif)
-<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>{</kbd>                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-curlies.gif)
+<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>[</kbd>                        | **Wrap Around []** | Wraps the current form, or selection, with hard brackets. <br> ![](_static/images/paredit/wrap-around-brackets.gif)
+<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>{</kbd>                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-around-curlies.gif)
 
 There is also a **strict** mode:
 

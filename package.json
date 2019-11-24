@@ -1305,7 +1305,7 @@
             },
             {
                 "command": "paredit.wrapAroundParens",
-                "key": "ctrl+alt+shift+9",
+                "key": "ctrl+alt+(",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1315,7 +1315,7 @@
             },
             {
                 "command": "paredit.wrapAroundCurly",
-                "key": "ctrl+alt+shift+[",
+                "key": "ctrl+alt+{",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
