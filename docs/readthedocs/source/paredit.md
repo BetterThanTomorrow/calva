@@ -69,7 +69,7 @@ Default keybinding                | Action | Description
 <kbd>ctrl</kbd> <kbd>backspace</kbd>                    | **Kill/Delete Backward to Start of List** | <br> ![](_static/images/paredit/kill-open-list.gif) 
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>s</kbd>, <kbd>delete</kbd>                 | **Splice Killing Forward** | Delete forward to end of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-forward.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>s</kbd>, <kbd>backspace</kbd>              | **Splice Killing Backwards** | Delete backward to the start of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-backward.gif) 
-<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>(</kbd>                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](_static/images/paredit/wrap-parens.gif)
+<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>(</kbd>                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](_static/images/paredit/wrap-around-parens.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>[</kbd>                        | **Wrap Around []** | Wraps the current form, or selection, with hard brackets. <br> ![](_static/images/paredit/wrap-brackets.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>{</kbd>                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-curlies.gif)
 
@@ -78,7 +78,7 @@ There is also a **strict** mode:
 Strict mode keybinding              | Action | Description
 ----------------------              | ------ | -----------
 <kbd>backspace</kbd>                | **Delete Backward** | Deletes one character backwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. <br> ![](_static/images/paredit/strict-backspace.gif)
-<kbd>delete</kbd>                   | **Delete Forward** | Deletes one character forwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. <br> ![](_static/images/paredit/wrap-parens.gif) This is currently not working 😢.
+<kbd>delete</kbd>                   | **Delete Forward** | Deletes one character forwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. <br> ![](_static/images/paredit/strict-delete.gif) This is currently not working 😢.
 <kbd>alt</kbd> <kbd>backspace</kbd> | **Force Delete Backward** | Deletes one character backwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-backspace.gif)
 <kbd>alt</kbd> <kbd>delete</kbd>    | **Force Delete Forward** | Deletes one character forwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-delete.gif)
 
