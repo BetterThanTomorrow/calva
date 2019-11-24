@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { activeReplWindow } from './repl-window';
-import * as state from './state';
-import * as util from './utilities';
+import { activeReplWindow } from '../repl-window';
+import * as state from '../state';
+import * as util from '../utilities';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
