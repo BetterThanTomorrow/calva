@@ -27,12 +27,14 @@ let toplevel = new LexicalGrammar()
 export function validPair(open: string, close: string): boolean {
     let valid = false;
     switch (close) {
-        case `)`:
+        case ')':
             return open.endsWith("(");
-        case `]`:
+        case ']':
             return open.endsWith("[");
-        case `}`:
+        case '}':
             return open.endsWith("{");
+        case '"':
+            return open.endsWith('"');
         default:
             break;
     };

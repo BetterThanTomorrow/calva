@@ -206,29 +206,25 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
     }
 }
 
-export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+/**
+ * If `start` is between two strings or two lists of the same type: join them. Otherwise do nothing.
+ * @param doc 
+ * @param start 
+ */
+export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardWhitespace();
-    let open = cursor.getPrevToken();
-    let beginning = cursor.offsetStart;
-    if (cursor.withinString())
-        throw new Error("Invalid context for paredit.joinSexp");
-    if (open.type == "str-end" || open.type == "str") {
+    const prevToken = cursor.getPrevToken(),
+        prevEnd = cursor.offsetStart;
+    if (['close', 'str-end', 'str'].includes(prevToken.type)) {
         cursor.forwardWhitespace();
-        let close = cursor.getToken();
-        let end = cursor.offsetStart;
-        if ((close.type == "str" || close.type == "str-start")) {
-            doc.model.edit([new ModelEdit('changeRange', [beginning - 1, end + 1, ""])]);
-            doc.selectionStart = doc.selectionEnd = beginning - 1;
-        }
-
-    } else if (open.type == "close") {
-        cursor.forwardWhitespace();
-        let close = cursor.getToken();
-        let end = cursor.offsetStart;
-        if (close.type == "open" && validPair(open.raw, close.raw)) {
-            doc.model.edit([new ModelEdit('changeRange', [beginning - 1, end + 1, " "])]);
-            doc.selectionStart = doc.selectionEnd = beginning;
+        const nextToken = cursor.getToken(),
+            nextStart = cursor.offsetStart;
+        if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
+            doc.selectionStart = doc.selectionEnd = prevEnd - 1;
+            return doc.model.edit([
+                new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : ""])
+            ]);
         }
     }
 }

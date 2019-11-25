@@ -160,7 +160,12 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.splitSexp',
         handler: paredit.splitSexp,
-        replWindowCommand: "split"
+        replWindowCommand: "split-sexp"
+    },
+    {
+        command: 'paredit.joinSexp',
+        handler: paredit.joinSexp,
+        replWindowCommand: "join-sexp"
     },
     {
         command: 'paredit.spliceSexp',

@@ -926,6 +926,11 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.joinSexp",
+                "title": "Join Sexp/Form"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.raiseSexp",
                 "title": "Raise Sexp/Form"
             },
@@ -1261,6 +1266,11 @@
             {
                 "command": "paredit.splitSexp",
                 "key": "ctrl+alt+shift+s",
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.joinSexp",
+                "key": "ctrl+alt+shift+j",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
