@@ -4,7 +4,7 @@ import configReader from "../configReader";
 import * as state from '../state';
 import * as util from '../utilities';
 
-export class TypeStatusBar {
+export class FileTypeStatusBarItem {
     private statusBarItem: StatusBarItem;
     constructor(alignment: StatusBarAlignment) {
         this.statusBarItem = window.createStatusBarItem(alignment);

@@ -1,16 +1,16 @@
 import { StatusBarAlignment } from "vscode";
-import { TypeStatusBar } from "./typeStatusBar";
-import { PrettyPrintStatusBar } from "./prettyPrintStatusBar";
-import { CljsBuildStatusBar } from "./cljsBuildStatusBar";
-import { ConnectionStatusBar } from "./connectionStatusBar";
+import { FileTypeStatusBarItem } from "./file-type";
+import { PrettyPrintStatusBarItem } from "./pretty-print";
+import { CljsBuildStatusBarItem } from "./cljs-build";
+import { ConnectionStatusBarItem } from "./connection";
 
 const statusBarItems = [];
 
 function init(): any[] {
-    statusBarItems.push(new ConnectionStatusBar(StatusBarAlignment.Left));
-    statusBarItems.push(new TypeStatusBar(StatusBarAlignment.Left));
-    statusBarItems.push(new CljsBuildStatusBar(StatusBarAlignment.Left));
-    statusBarItems.push(new PrettyPrintStatusBar(StatusBarAlignment.Right));
+    statusBarItems.push(new ConnectionStatusBarItem(StatusBarAlignment.Left));
+    statusBarItems.push(new FileTypeStatusBarItem(StatusBarAlignment.Left));
+    statusBarItems.push(new CljsBuildStatusBarItem(StatusBarAlignment.Left));
+    statusBarItems.push(new PrettyPrintStatusBarItem(StatusBarAlignment.Right));
     update();
     return statusBarItems;
 }

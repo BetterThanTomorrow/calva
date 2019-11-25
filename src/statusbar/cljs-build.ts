@@ -2,7 +2,7 @@ import { window, StatusBarAlignment, StatusBarItem } from "vscode";
 import * as state from '../state';
 import * as util from '../utilities';
 
-export class CljsBuildStatusBar {
+export class CljsBuildStatusBarItem {
     private statusBarItem: StatusBarItem;
     constructor(alignment: StatusBarAlignment) {
         this.statusBarItem = window.createStatusBarItem(alignment);

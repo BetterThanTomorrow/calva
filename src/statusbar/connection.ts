@@ -3,7 +3,7 @@ import configReader from "../configReader";
 import * as state from '../state';
 import * as util from '../utilities';
 
-export class ConnectionStatusBar {
+export class ConnectionStatusBarItem {
     private statusBarItem: StatusBarItem;
 
     constructor(alignment: StatusBarAlignment) {

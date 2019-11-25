@@ -2,7 +2,7 @@ import { window, StatusBarAlignment, StatusBarItem } from "vscode";
 import configReader from "../configReader";
 import * as state from '../state';
 
-export class PrettyPrintStatusBar {
+export class PrettyPrintStatusBarItem {
     private statusBarItem: StatusBarItem;
     constructor(alignment: StatusBarAlignment) {
         this.statusBarItem = window.createStatusBarItem(alignment);
