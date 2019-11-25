@@ -1,6 +1,6 @@
 'use strict';
 import { window, StatusBarAlignment, StatusBarItem } from 'vscode';
-import statusbar from '../statusbar';
+import configReader from "../configReader";
 import * as paredit from './extension';
 
 export class StatusBar {
@@ -22,7 +22,7 @@ export class StatusBar {
 
         paredit.onPareditKeyMapChanged((keymap) => {
             this.keyMap = keymap;
-        }) 
+        })
     }
 
     get keyMap() {
@@ -30,7 +30,6 @@ export class StatusBar {
     }
 
     set keyMap(keymap: String) {
-        
         switch (keymap.trim().toLowerCase()) {
             case 'original':
                 this._keyMap = 'original';
@@ -62,10 +61,11 @@ export class StatusBar {
     set enabled(value: Boolean) {
         this._enabled = value;
 
+        // NOTE: Changes to color config are not picked up
         if (this._enabled) {
-            this._toggleBarItem.color = statusbar.color.active;
+            this._toggleBarItem.color = configReader.colors.active;
         } else {
-            this._toggleBarItem.color = statusbar.color.inactive;
+            this._toggleBarItem.color = configReader.colors.inactive;
         }
     }
 
