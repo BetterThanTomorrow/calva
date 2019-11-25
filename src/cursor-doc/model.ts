@@ -51,13 +51,18 @@ export class ModelEdit {
     constructor(public editFn: ModelEditFunction, public args: any[]) { }
 }
 
+export type ModelEditOptions = { 
+    undoStopBefore?: boolean, 
+    selection?: { anchor: number, active: number } 
+};
+
 export interface EditableModel {
     /**
      * Performs a model edit batch.
      * For some EditableModel's these are performed as one atomic set of edits.
      * @param edits 
      */
-    edit: (edits: ModelEdit[], undoStopBefore?: boolean) => Thenable<boolean>;
+    edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
 
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getOffsetForLine: (line: number) => number;
@@ -80,7 +85,7 @@ export interface EditableDocument {
 /** The underlying model for the REPL readline. */
 export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
-    constructor(private lineEndingLength: number = 1) { }
+    constructor(private lineEndingLength: number = 1, private document?: EditableDocument) { }
 
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
@@ -287,7 +292,7 @@ export class LineInputModel implements EditableModel {
      * Doesn't need to be atomic in the LineInputModel.
      * @param edits 
      */
-    edit(edits: ModelEdit[]): Thenable<boolean> {
+    edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         return new Promise((resolve, reject) => {
             for (const edit of edits) {
                 switch (edit.editFn) {
@@ -304,6 +309,9 @@ export class LineInputModel implements EditableModel {
                         break;
                 }
             }
+            if (this.document && options.selection) {
+                this.document.selection = options.selection;
+            } 
             resolve(true);
         })
     }
@@ -437,15 +445,15 @@ class EditorUndoStep extends UndoStep<ReplReadline> {
     }
 
     undo(c: ReplReadline) {
-        c.model.edit([new ModelEdit('changeRange', [this.start, this.start+this.insertedText.length, this.deletedText])]);
-        if(this.oldSelection)
-            [c.selectionStart, c.selectionEnd] = this.oldSelection;
+        c.model.edit(
+            [new ModelEdit('changeRange', [this.start, this.start+this.insertedText.length, this.deletedText])
+        ], this.oldSelection ? { selection: { anchor: this.oldSelection[0], active: this.oldSelection[1]}} : {});
     }
 
     redo(c: ReplReadline) {
-        c.model.edit([new ModelEdit('changeRange', [this.start, this.start+this.deletedText.length, this.insertedText])]);
-        if(this.newSelection)
-            [c.selectionStart, c.selectionEnd] = this.newSelection;
+        c.model.edit([
+            new ModelEdit('changeRange', [this.start, this.start+this.deletedText.length, this.insertedText])
+        ], this.newSelection ? { selection: { anchor: this.newSelection[0], active: this.newSelection[1]}} : {});
     }
 
     coalesce(step: EditorUndoStep) {

@@ -3,17 +3,18 @@ import * as vscode from "vscode"
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
-import { ModelEdit, EditableDocument, EditableModel, LineInputModel } from "../cursor-doc/model";
+import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel } from "../cursor-doc/model";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
 export class DocumentModel implements EditableModel {
-    constructor(private document: vscode.TextDocument) { }
+    constructor(private document: MirroredDocument) { }
 
-    lineInputModel = new LineInputModel(this.document.eol == vscode.EndOfLine.CRLF ? 2 : 1);
+    lineInputModel = new LineInputModel(this.document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1);
 
-    edit(modelEdits: ModelEdit[], undoStopBefore = true): Thenable<boolean> {
-        const editor = vscode.window.activeTextEditor;
+    edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+        const editor = vscode.window.activeTextEditor,
+            undoStopBefore = !!options.undoStopBefore;
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
                 switch (modelEdit.editFn) {
@@ -30,8 +31,11 @@ export class DocumentModel implements EditableModel {
                         break;
                 }
             }
-        }, { undoStopBefore: undoStopBefore, undoStopAfter: false }).then(isFulfilled => {
+        }, { undoStopBefore, undoStopAfter: false }).then(isFulfilled => {
             if (isFulfilled) {
+                if (options.selection) {
+                    this.document.selection = options.selection;
+                }
                 return formatter.formatPosition(editor, false, { "calva-fmt/use-enclosing-parent?": true });
             }
         });
@@ -71,7 +75,7 @@ export class DocumentModel implements EditableModel {
     }
 }
 class MirroredDocument implements EditableDocument {
-    constructor(private document: vscode.TextDocument) { }
+    constructor(public document: vscode.TextDocument) { }
 
     get selectionStart(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.start);
@@ -97,7 +101,7 @@ class MirroredDocument implements EditableDocument {
         editor.revealRange(editor.selection);
     }
 
-    model = new DocumentModel(this.document);
+    model = new DocumentModel(this);
 
     growSelectionStack: [number, number][] = [];
 
@@ -148,7 +152,8 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character,
             myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])]);
+        model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
+        ], {});
     }
     model.lineInputModel.flushChanges()
 

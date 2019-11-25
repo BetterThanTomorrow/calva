@@ -75,7 +75,7 @@ export class ReplReadline implements EditableDocument {
     }
 
     /** The underlying tokenized source. */
-    model = new LineInputModel();
+    model = new LineInputModel(1, this);
 
     /** The HTMLDivElements in the rendered view for each line. */
     inputLines: HTMLDivElement[] = [];
@@ -141,8 +141,9 @@ export class ReplReadline implements EditableDocument {
         this.withUndo(() => {
             let cs = Math.min(this.selectionStart, this.selectionEnd);
             let ce = Math.max(this.selectionStart, this.selectionEnd);
-            this.model.edit([new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])]);
-            this.selectionStart = this.selectionEnd = cs + text.length;
+            this.model.edit([
+                new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])
+            ], { selection: { anchor: cs + text.length, active: cs + text.length } });
             this.repaint();
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
