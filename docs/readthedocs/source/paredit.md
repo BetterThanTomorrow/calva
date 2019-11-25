@@ -1,18 +1,20 @@
-# Paredit
+# Paredit – a Visual Guide
 
 Structural editing and navigation for Clojure.
 
-## What is it?
+## What is Paredit?
 
-Paredit is a helper to edit your Clojure code in a structural way. LISP isn't line/character oriented, it is based around [S-expressions](https://en.wikipedia.org/wiki/S-expression), a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, by using Paredit.
+Paredit helps you edit your Clojure code in a structural way. LISP isn't line or character oriented, it is based around [S-expressions](https://en.wikipedia.org/wiki/S-expression), a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.
 
 If you are new to Paredit, start with learning the **Slurp Forward** (pull in the next form into this form) and **Barf Forward** (push the last form out of this form).
 
-Also consider enabling the **strict mode** keybindings. It will help you keep the structure of the code, by ”refusing” to delete brackets that would unbalance things. When you want to delete something that strict mode hinders, use **Force backspace/delete**.
+NB: **Strict mode** (see below) is enabled by default. _Disable it at your own peril._ Instead, when you want to delete something that strict mode hinders, use **Force backspace** and **Force delete** (which are the normal, brute, **backspace** and **delete** that you might be used to). Strict mode can be switched off by by configuring `calva.paredit.defaultKeyMap` to `original`.
 
 ## Commands
 
-Note: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+Paredit helps you navigate, select and edit code.
+
+Note: When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop. 
 
 ### Navigation
 
@@ -83,4 +85,8 @@ Strict mode keybinding              | Action | Description
 <kbd>alt</kbd> <kbd>backspace</kbd> | **Force Delete Backward** | Deletes one character backwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-backspace.gif)
 <kbd>alt</kbd> <kbd>delete</kbd>    | **Force Delete Forward** | Deletes one character forwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-delete.gif)
 
-NB: **Strict mode is enabled by default.** Disable it at your own peril. Strict mode can be switched off by by configuring `calva.paredit.defaultKeyMap` to `original`.
+## About the Keyboard Shortcuts
+
+Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
+
+Note: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
