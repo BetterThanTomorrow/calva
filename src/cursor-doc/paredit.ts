@@ -31,28 +31,11 @@ export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [numbe
 
 /**
  * Gets the range for the ”current” top level form
- * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
- * @param doc 
- * @param offset The ”current” position
- * @param start From where to start examine candidate forms, should be before `offset`
+ * @see ListTokenCursor.rangeForDefun 
  */
 export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionStart, start: number = 0): [number, number] {
     const cursor = doc.getTokenCursor(start);
-    while (cursor.forwardSexp()) {
-        if (cursor.offsetEnd >= offset) {
-            if (cursor.getPrevToken().type === 'close') {
-                const commentCursor = cursor.clone();
-                commentCursor.previous();
-                commentCursor.backwardList();
-                if (commentCursor.getFunction() === 'comment') {
-                    return rangeForDefun(doc, offset, commentCursor.offsetStart);
-                }
-            }
-            const end = cursor.offsetStart;
-            cursor.backwardSexp();
-            return [cursor.offsetStart, end];
-        }
-    }
+    return cursor.rangeForDefun(offset);
 }
 
 export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {

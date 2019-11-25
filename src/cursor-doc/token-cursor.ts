@@ -452,14 +452,14 @@ export class LispTokenCursor extends TokenCursor {
      */
     rangeForCurrentForm(offset: number): [number, number] {
         const peekBackwards = this.clone();
-        peekBackwards.backwardWhitespace(true);                
+        peekBackwards.backwardWhitespace(true);
         if (peekBackwards.offsetStart == offset) {
             if (peekBackwards.backwardSexp()) { // 1.
                 return [peekBackwards.offsetStart, offset];
             }
         }
         const peekForwards = this.clone();
-        peekForwards.forwardWhitespace(true);                
+        peekForwards.forwardWhitespace(true);
         if (peekForwards.offsetStart == offset) {
             if (peekForwards.forwardSexp()) { // 2.
                 return [offset, peekForwards.offsetStart];
@@ -476,7 +476,7 @@ export class LispTokenCursor extends TokenCursor {
             if (peekPastForwards.forwardSexp()) { // 4.
                 return [peekForwards.offsetStart, peekPastForwards.offsetStart];
             }
-        }        
+        }
         const peekBehindBackwards = peekBackwards.clone();
         if (peekBehindBackwards.backwardSexp()) { // 5.
             return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
@@ -495,6 +495,32 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         return undefined; // 8.
+    }
+
+    /**
+     * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
+     * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
+     * @param offset The ”current” position
+     * @param start From where to start examine candidate forms, should be before `offset`
+     */
+    rangeForDefun(offset: number): [number, number] {
+        const cursor = this.clone();
+        while (cursor.forwardSexp()) {
+            if (cursor.offsetEnd >= offset) {
+                if (cursor.getPrevToken().type === 'close') {
+                    const commentCursor = cursor.clone();
+                    commentCursor.previous();
+                    commentCursor.backwardList();
+                    if (commentCursor.getFunction() === 'comment') {
+                        return commentCursor.rangeForDefun(offset);
+                    }
+                }
+                const end = cursor.offsetStart;
+                cursor.backwardSexp();
+                return [cursor.offsetStart, end];
+            }
+        }
+        return [offset, offset]
     }
 
     isWhiteSpace(): boolean {
