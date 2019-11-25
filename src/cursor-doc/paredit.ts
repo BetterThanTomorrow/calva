@@ -271,7 +271,7 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
         cursor.next();
-        cursor.forwardSexp(true);
+        cursor.forwardSexp();
         cursor.backwardWhitespace(false);
         doc.model.edit([
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
@@ -330,7 +330,7 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
         cursor.next();
-        cursor.forwardSexp(true);
+        cursor.forwardSexp();
         cursor.forwardWhitespace(false);
         doc.model.edit([
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),

@@ -188,14 +188,14 @@ export class LispTokenCursor extends TokenCursor {
      * 
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = false): boolean {
+    forwardSexp(skipComments = true): boolean {
         let delta = 0;
-        this.forwardWhitespace(!skipComments);
+        this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
             return false;
         }
         while (!this.atEnd()) {
-            this.forwardWhitespace(!skipComments);
+            this.forwardWhitespace(skipComments);
             let tk = this.getToken();
             switch (tk.type) {
                 case 'comment':
@@ -252,12 +252,12 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardSexp(skipComments = true) {
         let delta = 0;
-        this.backwardWhitespace(!skipComments);
+        this.backwardWhitespace(skipComments);
         if (this.getPrevToken().type === 'open') {
             return false;
         }
         while (!this.atStart()) {
-            this.backwardWhitespace(!skipComments);
+            this.backwardWhitespace(skipComments);
             let tk = this.getPrevToken();
             switch (tk.type) {
                 case 'id':
