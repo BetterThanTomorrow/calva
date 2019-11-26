@@ -8,7 +8,7 @@ Paredit helps you edit your Clojure code in a structural way. LISP isn't line or
 
 If you are new to Paredit, start with learning the **Slurp Forward** (pull in the next form into this form) and **Barf Forward** (push the last form out of this form).
 
-NB: **Strict mode** (see below) is enabled by default. _Disable it at your own peril._ Instead, when you want to delete something that strict mode hinders, use **Force backspace** and **Force delete** (which are the normal, brute, **backspace** and **delete** that you might be used to). Strict mode can be switched off by by configuring `calva.paredit.defaultKeyMap` to `original`.
+NB: **Strict mode** (see below) is enabled by default. _Disable it at your own peril._ Instead, when you want to delete something that strict mode hinders, use **Force backspace** and **Force delete** (which are the normal, brute, **backspace** and **delete** that you might be used to). Strict mode can be switched off by configuring `calva.paredit.defaultKeyMap` to `original`.
 
 ## Commands
 
