@@ -66,7 +66,7 @@ Default keybinding                | Action | Description
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>j</kbd>                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](_static/images/paredit/join.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>r</kbd>                        | **Raise Current Sexp/Form** | Replaces the enclosing list with the current form. <br> ![](_static/images/paredit/raise.gif)
 <kbd>ctrl</kbd> <kbd>shift</kbd> <kbd>c</kbd>                      | **Convolute Current Sexp/Form** | ¯\\\_(ツ)_/¯ <br> ![](_static/images/paredit/convolute.gif)
-<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>delete</kbd>                   | **Kill/Delete One Sexp/Form Forward** |  <br> ![](_static/images/paredit/kill-forward-sexp.gif)
+<kbd>ctrl</kbd> <kbd>shift</kbd> <kbd>delete</kbd>                   | **Kill/Delete One Sexp/Form Forward** |  <br> ![](_static/images/paredit/kill-forward-sexp.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>backspace</kbd>                | **Kill/Delete One Sexp/Form Backward** | <br> ![](_static/images/paredit/kill-backward-sexp.gif)
 <kbd>ctrl</kbd> <kbd>delete</kbd>                       | **Kill/Delete Forward to End of List** | <br> ![](_static/images/paredit/kill-close-list.gif)
 <kbd>ctrl</kbd> <kbd>backspace</kbd>                    | **Kill/Delete Backward to Start of List** | <br> ![](_static/images/paredit/kill-open-list.gif) 

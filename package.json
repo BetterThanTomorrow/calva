@@ -1285,7 +1285,7 @@
             },
             {
                 "command": "paredit.killSexpForward",
-                "key": "ctrl+alt+delete",
+                "key": "ctrl+shift+delete",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
