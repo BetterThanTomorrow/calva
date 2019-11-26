@@ -324,6 +324,8 @@ export class LineInputModel implements EditableModel {
             }
             if (this.document && options.selection) {
                 this.document.selection = options.selection;
+                const document = this.document as ReplReadline;
+                document.caretX = this.getRowCol(options.selection.active)[1];
             } 
             resolve(true);
         })

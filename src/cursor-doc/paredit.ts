@@ -1,6 +1,11 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, emptySelectionOption } from "./model";
 
+// NB: doc.model.edit returns a Thenable, so that the vscode Editor can ccompose commands.
+// But don't put such chains in this module because that won't work in the repl-console.
+// In the repl-console, compose commands just by performing them in succession, making sure
+// you provide selecions, old and new.
+
 export function killRange(doc: EditableDocument, range: [number, number]) {
     doc.model.edit([
         new ModelEdit('deleteRange', [range[0], range[1] - range[0]])
@@ -230,8 +235,8 @@ export function killBackwardList(doc: EditableDocument, start: number = doc.sele
         throw new Error("Invalid context for paredit.killBackwardList");
     cursor.backwardList();
     return doc.model.edit([
-        new ModelEdit('changeRange', [cursor.offsetStart, start, ""])
-    ], {});
+        new ModelEdit('changeRange', [cursor.offsetStart, start, "", [start, start], [cursor.offsetStart, cursor.offsetStart]])
+    ], { selection: emptySelectionOption(cursor.offsetStart) });
 }
 
 export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
@@ -242,20 +247,8 @@ export function killForwardList(doc: EditableDocument, start: number = doc.selec
         throw new Error("Invalid context for paredit.killForwardList");
     cursor.forwardList();
     return doc.model.edit([
-        new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : ""])
-    ], {});
-}
-
-export function spliceSexpKillingBackward(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
-    return killBackwardList(doc).then((isFulfilled) => {
-        return spliceSexp(doc, doc.selectionEnd, false);
-    });
-}
-
-export function spliceSexpKillingForward(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
-    return killForwardList(doc).then((isFulfilled) => {
-        return spliceSexp(doc, doc.selectionEnd, false);
-    });
+        new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : "", [start, start], [start, start]])
+    ], { selection: emptySelectionOption(start)});
 }
 
 export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {

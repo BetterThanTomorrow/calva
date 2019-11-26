@@ -5,37 +5,22 @@ import { HotKeyTable } from "./hotkeys";
 import { ModelEdit, emptySelectionOption } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
-    "Ctrl+Alt+R": "raise-sexp",
-    "Alt+Shift+C": "convolute-sexp",
+    "Backspace": "backspace",
+    "Delete": "delete",
     "Alt+Backspace": "force-backspace",
-    "Ctrl+W": "grow-selection",
-    "Ctrl+Shift+W": "shrink-selection",
     "Alt+Delete": "force-delete",
-    "Ctrl+Alt+LeftArrow": "backward-sexp",
-    "Ctrl+Alt+RightArrow": "forward-sexp",
-    "Ctrl+DownArrow": "down-list",
-    "Ctrl+Alt+UpArrow": "backward-down-list",
-    "Ctrl+Alt+DownArrow": "up-list",
-    "Ctrl+UpArrow": "backward-up-list",
+
     "Cmd+A": "select-all",
     "Cmd+Z": "undo",
     "Cmd+Shift+Z": "redo",
-    "Alt+Shift+J": "join-sexp",
-    "Shift+Ctrl+LeftArrow": "backward-slurp-sexp",
-    "Ctrl+LeftArrow": "forward-barf-sexp",
     "LeftArrow": "cursor-left",
     "Shift+LeftArrow": "cursor-select-left",
-    "Ctrl+RightArrow": "forward-slurp-sexp",
-    "Shift+Ctrl+RightArrow": "backward-barf-sexp",
     "RightArrow": "cursor-right",
     "Shift+RightArrow": "cursor-select-right",
-    "Alt+Ctrl+Backspace": "splice-sexp-killing-backwards",
     "UpArrow": "cursor-up",
     "Shift+UpArrow": "cursor-select-up",
-    "Alt+Ctrl+Delete": "splice-sexp-killing-forwards",
     "DownArrow": "cursor-down",
     "Shift+DownArrow": "cursor-select-down",
-    "Backspace": "backspace",
     "Home": "cursor-home",
     "Shift+Home": "cursor-select-home",
     "Ctrl+Home": "cursor-home-all",
@@ -44,12 +29,6 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Shift+End": "cursor-select-end",
     "Ctrl+End": "cursor-end-all",
     "Shift+Ctrl+End": "cursor-select-end-all",
-    "Delete": "delete",
-    "Alt+Shift+9": "wrap-round",
-    "Alt+[": "wrap-square",
-    "Alt+Shift+[": "wrap-curly",
-    "Ctrl+Alt+Shift+S": "split-sexp",
-    "Alt+S": "splice-sexp",
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
     "Alt+Return": "submit",
@@ -391,18 +370,6 @@ export class ReplConsole {
                 this.readline.repaint();
             });
         },
-        "force-backspace": () => {
-            this.readline.withUndo(() => {
-                this.readline.backspace();
-                this.readline.repaint();
-            });
-        },
-        "force-delete": () => {
-            this.readline.withUndo(() => {
-                this.readline.delete();
-                this.readline.repaint();
-            });
-        },
         "grow-selection": () => {
             this.readline.withUndo(() => {
                 paredit.growSelection(this.readline)
@@ -515,7 +482,8 @@ export class ReplConsole {
         },
         "splice-sexp-killing-backwards": () => {
             this.readline.withUndo(() => {
-                paredit.spliceSexpKillingBackward(this.readline)
+                paredit.killBackwardList(this.readline);
+                paredit.spliceSexp(this.readline);
                 this.readline.repaint();
             });
         },
@@ -529,7 +497,8 @@ export class ReplConsole {
         },
         "splice-sexp-killing-forwards": () => {
             this.readline.withUndo(() => {
-                paredit.spliceSexpKillingForward(this.readline)
+                paredit.killForwardList(this.readline);
+                paredit.spliceSexp(this.readline);
                 this.readline.repaint();
             });
         },
@@ -550,6 +519,45 @@ export class ReplConsole {
             } else {
                 this.readline.withUndo(() => {
                     this.readline.backspace();
+                    this.readline.repaint()
+                })
+            }
+        },
+        "force-backspace": () => {
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
+                this.readline.withUndo(() => {
+                    this.readline.backspace();
+                    this.readline.repaint()
+                })
+            } else {
+                this.readline.withUndo(() => {
+                    paredit.backspace(this.readline);
+                    this.readline.repaint()
+                })
+            }
+        },
+        "delete": () => {
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
+                this.readline.withUndo(() => {
+                    paredit.deleteForward(this.readline);
+                    this.readline.repaint()
+                })
+            } else {
+                this.readline.withUndo(() => {
+                    this.readline.delete();
+                    this.readline.repaint()
+                })
+            }
+        },
+        "force-delete": () => {
+            if (this.isKeyMap[ReplPareditKeyMap.STRICT]) {
+                this.readline.withUndo(() => {
+                    this.readline.delete();
+                    this.readline.repaint();
+                });
+            } else {
+                this.readline.withUndo(() => {
+                    paredit.deleteForward(this.readline);
                     this.readline.repaint()
                 })
             }
@@ -585,19 +593,6 @@ export class ReplConsole {
         "cursor-select-end-all": () => {
             this.readline.caretEndAll(false);
             this.readline.repaint();
-        },
-        "delete": () => {
-            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.deleteForward(this.readline);
-                    this.readline.repaint()
-                })
-            } else {
-                this.readline.withUndo(() => {
-                    this.readline.delete();
-                    this.readline.repaint()
-                })
-            }
         },
         "wrap-round": () => {
             this.readline.withUndo(() => {

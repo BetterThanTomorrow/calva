@@ -1260,17 +1260,17 @@
             },
             {
                 "command": "paredit.spliceSexp",
-                "key": "ctrl+alt+s s",
+                "key": "ctrl+alt+s",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.splitSexp",
-                "key": "ctrl+alt+shift+s",
+                "key": "ctrl+shift+s",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.joinSexp",
-                "key": "ctrl+alt+shift+j",
+                "key": "ctrl+shift+j",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1305,27 +1305,27 @@
             },
             {
                 "command": "paredit.spliceSexpKillForward",
-                "key": "ctrl+alt+s delete",
+                "key": "ctrl+alt+shift+delete",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillBackward",
-                "key": "ctrl+alt+s backspace",
+                "key": "ctrl+alt+shift+backspace",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundParens",
-                "key": "ctrl+alt+w p",
+                "key": "ctrl+alt+shift+p",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundSquare",
-                "key": "ctrl+alt+w s",
+                "key": "ctrl+alt+shift+s",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundCurly",
-                "key": "ctrl+alt+w c",
+                "key": "ctrl+alt+shift+c",
                 "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1336,22 +1336,22 @@
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
-                "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
-                "when": "editorLangId =~ /clojure|scheme|lisp/ && paredit:keyMap == strict && editorTextFocus && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid  && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "deleteRight",
                 "key": "alt+delete",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict"
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "deleteLeft",
                 "key": "alt+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap ==strict"
+                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",

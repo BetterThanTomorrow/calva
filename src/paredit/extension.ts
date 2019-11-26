@@ -16,7 +16,7 @@ let enabled = true;
 type PareditCommand = {
     command: string,
     handler: (doc: EditableDocument) => void,
-    replWindowCommand: string
+    replWindowCommand?: string
 }
 
 const pareditCommands: PareditCommand[] = [
@@ -84,56 +84,56 @@ const pareditCommands: PareditCommand[] = [
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardSexp(doc, doc.selectionEnd))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-forward-sexp"
     },
     {
         command: 'paredit.selectBackwardSexp',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardSexp(doc))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-backward-sexp"
     },
     {
         command: 'paredit.selectForwardDownSexp',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardDownList(doc, doc.selectionEnd))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-forward-down-sexp"
     },
     {
         command: 'paredit.selectBackwardDownSexp',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardDownList(doc))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-backward-down-sexp"
     },
     {
         command: 'paredit.selectForwardUpSexp',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardUpList(doc, doc.selectionEnd))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-forward-up-sexp"
     },
     {
         command: 'paredit.selectBackwardUpSexp',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardUpList(doc))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-backward-up-sexp"
     },
     {
         command: 'paredit.selectCloseList',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionStart(doc, paredit.rangeToForwardList(doc, doc.selectionEnd))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-close-list"
     },
     {
         command: 'paredit.selectOpenList',
         handler: (doc: EditableDocument) => {
             paredit.selectRangeFromSelectionEnd(doc, paredit.rangeToBackwardList(doc))
         },
-        replWindowCommand: ""
+        replWindowCommand: "select-open-list"
     },
 
     // EDITING
@@ -186,31 +186,39 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.killSexpForward',
         handler: (doc: EditableDocument) => { paredit.killRange(doc, paredit.rangeToForwardSexp(doc)) },
-        replWindowCommand: ""
+        replWindowCommand: "kill-forward-sexp"
     },
     {
         command: 'paredit.killSexpBackward',
         handler: (doc: EditableDocument) => { paredit.killRange(doc, paredit.rangeToBackwardSexp(doc)) },
-        replWindowCommand: ""
+        replWindowCommand: "kill-backward-sexp"
     },
     {
         command: 'paredit.killListForward',
         handler: paredit.killForwardList,
-        replWindowCommand: ""
+        replWindowCommand: "kill-close-list"
     }, // TODO: Implement with killRange
     {
         command: 'paredit.killListBackward',
         handler: paredit.killBackwardList,
-        replWindowCommand: ""
+        replWindowCommand: "kill-open-list"
     }, // TODO: Implement with killRange
     {
         command: 'paredit.spliceSexpKillForward',
-        handler: paredit.spliceSexpKillingForward,
+        handler: (doc: EditableDocument) => {
+            paredit.killForwardList(doc).then((isFulfilled) => {
+                return paredit.spliceSexp(doc, doc.selectionEnd, false);
+            });
+        },
         replWindowCommand: "splice-sexp-killing-forwards"
     },
     {
         command: 'paredit.spliceSexpKillBackward',
-        handler: paredit.spliceSexpKillingBackward,
+        handler: (doc: EditableDocument) => {
+            paredit.killBackwardList(doc).then((isFulfilled) => {
+                return paredit.spliceSexp(doc, doc.selectionEnd, false);
+            })
+        },
         replWindowCommand: "splice-sexp-killing-backwards"
     },
     {
@@ -231,12 +239,12 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.deleteForward',
         handler: paredit.deleteForward,
-        replWindowCommand: "delete"
+        // do not bind replWindowCommand
     },
     {
         command: 'paredit.deleteBackward',
         handler: paredit.backspace,
-        replWindowCommand: "backspace"
+        // do not bind replWindowCommand
     },
 
 ];
@@ -246,7 +254,7 @@ function wrapPareditCommand(command: PareditCommand) {
         try {
             let repl = activeReplWindow();
 
-            if (repl) {
+            if (repl && command.replWindowCommand) {
                 repl.executeCommand(command.replWindowCommand)
             } else {
                 const textEditor = window.activeTextEditor,
