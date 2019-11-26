@@ -63,7 +63,7 @@ Default keybinding                | Action | Description
 <kbd>ctrl</kbd> <kbd>shift</kbd> <kbd>right</kbd>                  | **Barf Backward** | Moves the _opening_ bracket _forward_, _towards_ the cursor, past the following form. <br> ![](_static/images/paredit/barf-backward.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>s</kbd>, <kbd>s</kbd>                      | **Splice Current Sexp/Form** | Remove enclosing brackets. <br> ![](_static/images/paredit/splice.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>s</kbd>                  | **Split Current Sexp/Form** | Splits a string, or a list, into two strings, or lists of the same type as the current. <br> ![](_static/images/paredit/split.gif)
-<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>s</kbd>                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](_static/images/paredit/join.gif)
+<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>j</kbd>                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](_static/images/paredit/join.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>r</kbd>                        | **Raise Current Sexp/Form** | Replaces the enclosing list with the current form. <br> ![](_static/images/paredit/raise.gif)
 <kbd>ctrl</kbd> <kbd>shift</kbd> <kbd>c</kbd>                      | **Convolute Current Sexp/Form** | ¯\\\_(ツ)_/¯ <br> ![](_static/images/paredit/convolute.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>delete</kbd>                   | **Kill/Delete One Sexp/Form Forward** |  <br> ![](_static/images/paredit/kill-forward-sexp.gif)
