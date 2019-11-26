@@ -440,6 +440,7 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Figures out the `range` for the current form according to this priority:
+     * 0. If `offset` is within a symbol, literal or keyword
      * 1. If `offset` is adjacent after form
      * 2. Else, if `offset` is adjacent before a form
      * 3. Else, if the previous form is on the same line
@@ -451,6 +452,9 @@ export class LispTokenCursor extends TokenCursor {
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
+        if (['str', 'id', 'kw', 'lit'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
+            return [this.offsetStart, this.offsetEnd];
+        }
         const peekBackwards = this.clone();
         peekBackwards.backwardWhitespace(true);
         if (peekBackwards.offsetStart == offset) {
