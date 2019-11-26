@@ -25,7 +25,7 @@ Default keybinding      | Action | Description
 <kbd>ctrl</kbd> <kbd>down</kbd>               | **Forward Down Sexp/Form** | Moves the cursor into the following list.<br> ![](_static/images/paredit/forward-down-sexp.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>up</kbd>             | **Backward Down Sexp/Form** | Moves the cursor into the preceding list.<br> ![](_static/images/paredit/backward-down-sexp.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>down</kbd>           | **Forward Up Sexp/Form** | Moves the cursor forwards, out of the current list.<br> ![](_static/images/paredit/forward-up-sexp.gif)
-<kbd>ctrl</kbd> <kbd>up</kbd>                 | **Backward Up Sexp/Form** | Moves the cursor forwards, out of the current list.<br> ![](_static/images/paredit/backward-up-sexp.gif)
+<kbd>ctrl</kbd> <kbd>up</kbd>                 | **Backward Up Sexp/Form** | Moves the cursor backwards, out of the current list.<br> ![](_static/images/paredit/backward-up-sexp.gif)
 <kbd>ctrl</kbd> <kbd>end</kbd>                | **Forward to List End/Close** | Moves the cursor forwards, staying within the current list.<br> ![](_static/images/paredit/close-list.gif)
 <kbd>ctrl</kbd> <kbd>home</kbd>               | **Backward to List Start/Open** | Moves the cursor backwards, staying within the current list.<br> ![](_static/images/paredit/open-list.gif) 
 
