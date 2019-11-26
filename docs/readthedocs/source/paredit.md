@@ -90,3 +90,7 @@ Strict mode keybinding              | Action | Description
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
 
 Note: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+
+If you add your own key bindings, please be aware that chorded shortcuts will work badly in the the REPL window. Please avoid.
+
+Happy Editing! ❤️

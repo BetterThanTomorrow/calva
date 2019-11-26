@@ -74,6 +74,9 @@ Please update this with the settings you find you like for your theme.
 
 Are you a vim extension user? See: [[Using with VIM extension]].
 
+### Paredit
+
+Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing [Paredit](paredit.md) shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.
 
 ## Wrap using `(`, `[`, `{` (like Cursive)
 
