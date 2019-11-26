@@ -1,18 +1,18 @@
 import { validPair } from "./clojure-lexer";
-import { ModelEdit, EditableDocument } from "./model";
+import { ModelEdit, EditableDocument, emptySelectionOption } from "./model";
 
 export function killRange(doc: EditableDocument, range: [number, number]) {
     doc.model.edit([
         new ModelEdit('deleteRange', [range[0], range[1] - range[0]])
-    ], { selection: { anchor: range[0], active: range[0] } });
+    ], { selection: emptySelectionOption(range[0]) });
 }
 
 export function moveToRangeStart(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = [range[0], range[0]];
+    doc.selection = emptySelectionOption(range[0]);
 }
 
 export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
-    [doc.selectionStart, doc.selectionEnd] = [range[1], range[1]];
+    doc.selection = emptySelectionOption(range[1]);
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
@@ -139,7 +139,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             return doc.model.edit([
                 new ModelEdit('insertString', [range[1], close]),
                 new ModelEdit('insertString', [range[0], open])
-            ], { selection: { anchor: start + open.length, active: start + open.length } });
+            ], { selection: emptySelectionOption(start + open.length) });
         }
     } else { // there is a selection
         const range = [Math.min(start, end), Math.max(start, end)];
@@ -156,7 +156,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
         if (doc.model.getText(start - 1, start + 1, true) == '\\"') {
             doc.model.edit([
                 new ModelEdit('changeRange', [start + 1, start + 1, "\" \""])
-            ], { selection: { anchor: start + 2, active: start + 2 } });
+            ], { selection: emptySelectionOption(start + 2 ) });
         } else {
             doc.model.edit([
                 new ModelEdit('changeRange', [start, start, "\" \""])
@@ -175,7 +175,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
             let close = cursor.getToken().raw;
             doc.model.edit([
                 new ModelEdit('changeRange', [start, ws.offsetStart, close + " " + open])
-            ], { selection: { anchor: start + 2, active: start + 1 } });
+            ], { selection: emptySelectionOption(start + 1 ) });
         }
     }
 }
