@@ -265,7 +265,9 @@ window.addEventListener("keydown", e => {
             let start = tk.offsetStart
             let end = tk.offsetEnd;
             con.readline.withUndo(() => {
-                con.readline.model.edit([new ModelEdit('changeRange', [start, end, completions[selectedCompletion]])]);
+                con.readline.model.edit([
+                    new ModelEdit('changeRange', [start, end, completions[selectedCompletion]])
+                ], {});
             });
             con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
             docDiv.style.visibility = "hidden";

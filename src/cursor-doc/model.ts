@@ -51,10 +51,23 @@ export class ModelEdit {
     constructor(public editFn: ModelEditFunction, public args: any[]) { }
 }
 
+export type ModelEditSelection = {
+    anchor: number,
+    active: number
+};
+
 export type ModelEditOptions = { 
     undoStopBefore?: boolean, 
-    selection?: { anchor: number, active: number } 
+    selection?: ModelEditSelection 
 };
+
+/**
+ * Utility to create a selection object representing a caret w/o anything selected
+ * @param startEnd 
+ */
+export function emptySelectionOption(startEnd: number): ModelEditSelection {
+    return { anchor: startEnd, active: startEnd };
+}
 
 export interface EditableModel {
     /**
