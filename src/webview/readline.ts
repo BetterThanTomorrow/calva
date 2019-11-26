@@ -1,4 +1,4 @@
-import { LineInputModel, ModelEdit, EditableDocument } from "../cursor-doc/model";
+import { LineInputModel, ModelEdit, EditableDocument, emptySelectionOption } from "../cursor-doc/model";
 import { Token, validPair } from "../cursor-doc/clojure-lexer";
 import { TokenCursor, LispTokenCursor } from "../cursor-doc/token-cursor";
 
@@ -143,7 +143,7 @@ export class ReplReadline implements EditableDocument {
             let ce = Math.max(this.selectionStart, this.selectionEnd);
             this.model.edit([
                 new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])
-            ], { selection: { anchor: cs + text.length, active: cs + text.length } });
+            ], { selection: emptySelectionOption(cs + text.length) });
             this.repaint();
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
