@@ -67,7 +67,6 @@ class REPLWindow {
         public type: "clj" | "cljs",
         public cljType: string,
         public cljsType: string) {
-        vscode.commands.executeCommand("setContext", "calva:pareditValid", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
@@ -116,7 +115,6 @@ class REPLWindow {
 
                 if (msg.type == "focus") {
                     vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
-                    vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
                 }
 
                 if (msg.type == "blur") {

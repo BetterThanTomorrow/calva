@@ -303,7 +303,6 @@ export function activate(context: ExtensionContext) {
         }),
         ...pareditCommands
             .map((command) => commands.registerCommand(command.command, wrapPareditCommand(command))));
-    commands.executeCommand("setContext", "calva:pareditValid", true);
 }
 
 export function deactivate() {

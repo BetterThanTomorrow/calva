@@ -152,7 +152,6 @@ function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand("setContext", "calva:launching", false);
     vscode.commands.executeCommand("setContext", "calva:connected", false);
     vscode.commands.executeCommand("setContext", "calva:connecting", false);
-    vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
@@ -174,16 +173,8 @@ function activate(context: vscode.ExtensionContext) {
         const isClojureFile = editor && editor.document.languageId == 'clojure';
         if (isClojureFile) {
             vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
-            vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
-        } else if (editor) {
-            if (!replWindow.activeReplWindow()) {
-                vscode.commands.executeCommand("setContext", "calva:pareditValid", editor.document.languageId != "Log");
-            } else {
-                vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
-                vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
-            }
-        } else {
-            vscode.commands.executeCommand("setContext", "calva:pareditValid", false);
+        } else if (editor && replWindow.activeReplWindow()) {
+            vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
         }
         status.update();
         if (editor && editor.document && editor.document.fileName) {
