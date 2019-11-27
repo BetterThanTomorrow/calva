@@ -9,7 +9,7 @@
  *           Investigate!.
  */
 
- // Regex for the above mentioned behavior: /(['`~@][\s\r\n]*)*/
+ // Regex for the above mentioned behavior: /(['`~#@?]\s*)*/
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
@@ -53,24 +53,24 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 // open parens
 //toplevel.terminal(/\(|\[|\{|@\(|['`]\(|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*[\(\[\{]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/(['`~#@?]\s*)*[\(\[\{]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
 toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
-toplevel.terminal(/(['`~@][\s\r\n]*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#@?]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#@?]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#@?]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/(['`~@][\s\r\n]*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/(['`~#@?]\s*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal(/(['`~@][\s\r\n]*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(['`~#@?^]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 // complete string on a single line
-toplevel.terminal(/(['`~@][\s\r\n]*)*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
+toplevel.terminal(/(['`~#@?]\s*)*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
+toplevel.terminal(/(['`~#@?]\s*)*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */
