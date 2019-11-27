@@ -995,11 +995,6 @@
                 "title": "Wrap Around {}"
             },
             {
-                "category": "Calva Paredit",
-                "command": "paredit.indentRange",
-                "title": "Indent"
-            },
-            {
                 "command": "calva-fmt.formatCurrentForm",
                 "title": "Format Current Form",
                 "category": "Calva Format"
@@ -1146,212 +1141,207 @@
             {
                 "command": "paredit.forwardSexp",
                 "key": "ctrl+alt+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardSexp",
                 "key": "ctrl+alt+left",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardDownSexp",
                 "key": "ctrl+down",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardDownSexp",
                 "key": "ctrl+alt+up",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardUpSexp",
                 "key": "ctrl+alt+down",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardUpSexp",
                 "key": "ctrl+up",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.closeList",
                 "key": "ctrl+end",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.openList",
                 "key": "ctrl+home",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardSexp",
                 "key": "ctrl+shift+alt+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardSexp",
                 "key": "ctrl+shift+alt+left",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardDownSexp",
                 "key": "ctrl+shift+down",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardDownSexp",
                 "key": "ctrl+shift+alt+up",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardUpSexp",
                 "key": "ctrl+shift+alt+down",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardUpSexp",
                 "key": "ctrl+shift+up",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectCloseList",
                 "key": "ctrl+shift+end",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectOpenList",
                 "key": "ctrl+shift+home",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rangeForDefun",
                 "key": "ctrl+alt+w space",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeExpansion",
                 "key": "ctrl+w",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeContraction",
                 "key": "ctrl+shift+w",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpForward",
                 "key": "ctrl+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpBackward",
                 "key": "ctrl+shift+left",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpForward",
                 "key": "ctrl+left",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpBackward",
                 "key": "ctrl+shift+right",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexp",
                 "key": "ctrl+alt+s",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.splitSexp",
                 "key": "ctrl+shift+s",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.joinSexp",
                 "key": "ctrl+shift+j",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.raiseSexp",
                 "key": "ctrl+alt+r",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.convolute",
                 "key": "ctrl+shift+c",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpForward",
                 "key": "ctrl+shift+delete",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpBackward",
                 "key": "ctrl+alt+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killListForward",
                 "key": "ctrl+delete",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killListBackward",
                 "key": "ctrl+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillForward",
                 "key": "ctrl+alt+shift+delete",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillBackward",
                 "key": "ctrl+alt+shift+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundParens",
                 "key": "ctrl+alt+shift+p",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundSquare",
                 "key": "ctrl+alt+shift+s",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundCurly",
                 "key": "ctrl+alt+shift+c",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
-            },
-            {
-                "command": "paredit.indentRange",
-                "key": "ctrl+alt+i",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid  && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && calva:pareditValid  && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "deleteRight",
                 "key": "alt+delete",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "deleteLeft",
                 "key": "alt+backspace",
-                "when": "!sideBarFocus && !panelFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && calva:pareditValid && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",
