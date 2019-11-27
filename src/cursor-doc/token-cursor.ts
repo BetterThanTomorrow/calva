@@ -115,19 +115,19 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token past the inside of a multiline string
      */
-    forwardString() {
-        while (!this.atEnd()) {
-            switch (this.getToken().type) {
-                case "eol":
-                case "str-inside":
-                case "str-start":
-                    this.next();
-                    continue;
-                default:
-                    return;
-            }
-        }
-    }
+    // forwardString() {
+    //     while (!this.atEnd()) {
+    //         switch (this.getToken().type) {
+    //             case "eol":
+    //             case "str-inside":
+    //             case "str-start":
+    //                 this.next();
+    //                 continue;
+    //             default:
+    //                 return;
+    //         }
+    //     }
+    // }
 
     /**
      * Moves this token past any whitespace or comment.
@@ -207,19 +207,24 @@ export class LispTokenCursor extends TokenCursor {
                 case 'kw':
                 case 'punc':
                 case 'junk':
-                case 'str':
-                case 'str-end':
+                case 'str-inside':
                     this.next();
                     if (delta <= 0)
                         return true;
                     break;
-                case 'str-inside':
-                case 'str-start':
-                    do {
-                        this.next();
-                        tk = this.getToken();
-                    } while (!this.atEnd() && (tk.type == "str-inside" || tk.type == "eol"))
-                    continue;
+                // case 'str':
+                // case 'str-end':
+                //     this.next();
+                //     if (delta <= 0)
+                //         return true;
+                //     break;
+                // case 'str-inside':
+                // case 'str-start':
+                //     do {
+                //         this.next();
+                //         tk = this.getToken();
+                //     } while (!this.atEnd() && (tk.type == "str-inside" || tk.type == "eol"))
+                //     continue;
                 case 'close':
                     delta--;
                     this.next();
@@ -267,19 +272,24 @@ export class LispTokenCursor extends TokenCursor {
                 case 'junk':
                 case 'kw':
                 case 'comment':
-                case 'str':
-                case 'str-start':
+                case 'str-inside':
                     this.previous();
                     if (delta <= 0)
                         return true;
                     break;
-                case 'str-inside':
-                case 'str-end':
-                    do {
-                        this.previous();
-                        tk = this.getPrevToken();
-                    } while (!this.atStart() && tk.type == "str-inside")
-                    continue;
+                // case 'str':
+                // case 'str-start':
+                //     this.previous();
+                //     if (delta <= 0)
+                //         return true;
+                //     break;
+                // case 'str-inside':
+                // case 'str-end':
+                //     do {
+                //         this.previous();
+                //         tk = this.getPrevToken();
+                //     } while (!this.atStart() && tk.type == "str-inside")
+                //     continue;
                 case 'close':
                     delta++;
                     this.previous();
@@ -452,7 +462,7 @@ export class LispTokenCursor extends TokenCursor {
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
-        if (['str', 'id', 'kw', 'lit'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
+        if (['id', 'kw', 'lit'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
             return [this.offsetStart, this.offsetEnd];
         }
         const peekBackwards = this.clone();
@@ -543,22 +553,9 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Indicates if the current token is inside a string
-     * TODO: Fix this by a proper tokenization of strings
      */
     withinString() {
-        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
-            token = this.getToken();
-        if (token.type == 'eol') {
-            let next = this.clone().next()
-            let previous = this.clone().previous();
-            if (next && strTypes.includes(next.getToken().type) &&
-                previous && strTypes.includes(previous.getToken().type)) {
-                return (true);
-            }
-        } else if (strTypes.includes(token.type)) {
-            return (true);
-        }
-        return false;
+        return this.getToken().type == 'str-inside';
     }
 
     /**
