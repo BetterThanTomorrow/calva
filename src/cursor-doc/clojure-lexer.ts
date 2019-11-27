@@ -5,11 +5,9 @@
  *     as one token, together with said list, symbol, or literal, even if there is whitespace between the quoting characters.
  *     All such combos won't actually be accepted by the Clojure Reader, but, hey, we're not writing a Clojure Reader here. 😀
  *     See below for the regex used for this.
- *     TODO: The newline as whitespace matching doesn't work. We only get one line at a time...
- *           Investigate!.
  */
 
- // Regex for the above mentioned behavior: /(['`~#@?]\s*)*/
+ // Regex for the above mentioned behavior are variations of this: /(['`~#@?]\s*)*/
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
@@ -61,13 +59,13 @@ toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
 toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#@?]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#@?]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#@?]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/(['`~#@?]\s*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/(['`~#^]\s*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal(/(['`~#@?^]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(['`~#^]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 // complete string on a single line
 toplevel.terminal(/(['`~#@?]\s*)*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
