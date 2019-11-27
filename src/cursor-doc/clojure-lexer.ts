@@ -53,8 +53,7 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
 // open parens
-// TODO: Figure out why allowing `?` in prefix causes trouble with lexing: (foo? [])
-toplevel.terminal(/(['`~#@]\s*)*[\(\[\{]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/((?<!\w)['`~#@?]\s*)*[\(\[\{]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
