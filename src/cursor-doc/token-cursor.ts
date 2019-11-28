@@ -212,19 +212,6 @@ export class LispTokenCursor extends TokenCursor {
                     if (delta <= 0)
                         return true;
                     break;
-                // case 'str':
-                // case 'str-end':
-                //     this.next();
-                //     if (delta <= 0)
-                //         return true;
-                //     break;
-                // case 'str-inside':
-                // case 'str-start':
-                //     do {
-                //         this.next();
-                //         tk = this.getToken();
-                //     } while (!this.atEnd() && (tk.type == "str-inside" || tk.type == "eol"))
-                //     continue;
                 case 'close':
                     delta--;
                     this.next();
@@ -277,19 +264,6 @@ export class LispTokenCursor extends TokenCursor {
                     if (delta <= 0)
                         return true;
                     break;
-                // case 'str':
-                // case 'str-start':
-                //     this.previous();
-                //     if (delta <= 0)
-                //         return true;
-                //     break;
-                // case 'str-inside':
-                // case 'str-end':
-                //     do {
-                //         this.previous();
-                //         tk = this.getPrevToken();
-                //     } while (!this.atStart() && tk.type == "str-inside")
-                //     continue;
                 case 'close':
                     delta++;
                     this.previous();
