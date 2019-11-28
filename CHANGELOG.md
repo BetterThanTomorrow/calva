@@ -13,7 +13,7 @@ Changes to Calva.
 - Fix: [paredit `backspace` in strict mode](https://github.com/BetterThanTomorrow/calva/issues/379)
 - Fix: [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
 - Improvements for Commands using the **Current form** and **Current top level form**:
-  - Most often derefs and quotes, and other syntax chars, are selected with the form they belong to. (Still some glitches with this...)
+  - Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
   - Less precision needed for the right form to be selected.
   - All commands for this use the same implemengtion (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
 

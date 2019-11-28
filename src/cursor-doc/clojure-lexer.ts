@@ -7,7 +7,7 @@
  *     See below for the regex used for this.
  */
 
- // Regex for the above mentioned behavior are variations of this: /(['`~#@?]\s*)*/
+ // Regex for the above mentioned behavior are variations of this: /(['`~#@?^]\s*)*/
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
@@ -52,7 +52,7 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
 // open parens
-toplevel.terminal(/((?<!\w)['`~#@?]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
@@ -66,7 +66,7 @@ toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, 
 
 toplevel.terminal(/(['`~#^]\s*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal(/(['`~#^]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(['`~#^@]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
