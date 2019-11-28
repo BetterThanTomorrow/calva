@@ -72,13 +72,18 @@ toplevel.terminal(/(['`~#^]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s
 // toplevel.terminal(/(['`~#@?]\s*)*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
-/** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */
+/** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
+ * and 'str-inside' for the words in the string. */
 let inString = new LexicalGrammar()
 // end a string
-// inString.terminal(/([^"\\]|\\.)*"/, (l, m) => ({ type: "str-end" }))
 inString.terminal(/"/, (l, m) => ({ type: "close" }))
 // still within a multiline string
 inString.terminal(/([^"\\]|\\.)+/, (l, m) => ({ type: "str-inside" }))
+// whitespace, excluding newlines
+toplevel.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
+// newlines, we want each one as a token of its own
+toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
+
 
 /**
  * The state of the scanner.
