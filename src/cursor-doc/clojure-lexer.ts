@@ -77,12 +77,12 @@ toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 let inString = new LexicalGrammar()
 // end a string
 inString.terminal(/"/, (l, m) => ({ type: "close" }))
-// still within a multiline string
-inString.terminal(/([^"\\]|\\.)+/, (l, m) => ({ type: "str-inside" }))
+// still within a string
+inString.terminal(/(\\.|[^\\"\t ])+/, (l, m) => ({ type: "str-inside" }))
 // whitespace, excluding newlines
-toplevel.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
+inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
-toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
+inString.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 
 
 /**
