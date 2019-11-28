@@ -4,7 +4,7 @@ Structural editing and navigation for Clojure.
 
 ## What is Paredit?
 
-Paredit helps you edit your Clojure code in a structural way. LISP isn't line or character oriented, it is based around [S-expressions](https://en.wikipedia.org/wiki/S-expression), a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.
+Calva Paredit helps you navigate, select and edit Clojure code in a structural way. LISP isn't line or character oriented, it is based around [S-expressions](https://en.wikipedia.org/wiki/S-expression), a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.
 
 If you are new to Paredit, start with learning the **Slurp Forward** (pull in the next form into this form) and **Barf Forward** (push the last form out of this form).
 
@@ -12,11 +12,17 @@ NB: **Strict mode** (see below) is enabled by default. _Disable it at your own p
 
 ## Commands
 
-Paredit helps you navigate, select and edit code.
+Here you will find the Paredit commands sorted into **Navigating**, **Selecting**, and **Editing**. As mentioned, **slurp** and **barf** are real power commands. Learning to navigate structurally, saves time and adds precision to your editing, and it has the double effect that if you learn a shortcut for navigation, say **Forward/Backward Sexp/Form**, you have at the same time learnt how to select code using shortcuts, because that is the same, just adding the shift key.
 
-Note: When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop. 
+To make the command descriptions a bit clearer, each of them are also animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
 
-### Navigation
+### Strings are not Lists, but Anyway...
+
+In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Grow Selection**.
+
+![Stings are treated much like lists](_static/images/paredit/string-as-list.gif) 
+
+### Navigating
 
 Default keybinding      | Action | Description
 ------------------      | ------ | -----------
