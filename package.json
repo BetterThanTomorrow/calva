@@ -936,6 +936,11 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.transpose",
+                "title": "Transpose (Swap) the two Sexp/Forms Around the Cursor"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.convolute",
                 "title": "Convolute Sexp/Form ¯\\_(ツ)_/¯"
             },
@@ -1271,6 +1276,11 @@
             {
                 "command": "paredit.raiseSexp",
                 "key": "ctrl+alt+r",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.transpose",
+                "key": "ctrl+alt+t",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {

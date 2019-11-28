@@ -538,3 +538,36 @@ export function convolute(doc: EditableDocument, start = doc.selectionStart, end
         }
     }
 }
+
+export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+    if (start == end) {
+        const cursor = doc.getTokenCursor(end);
+        cursor.backwardWhitespace();
+        if (cursor.getPrevToken().type == 'open') {
+            cursor.forwardSexp();
+        }
+        cursor.forwardWhitespace();
+        if (cursor.getToken().type == 'close') {
+            cursor.backwardSexp();
+        }
+        if (cursor.getToken().type != 'close') {
+            const rightStart = cursor.offsetStart;
+            if (cursor.forwardSexp()) {
+                const rightEnd = cursor.offsetStart;
+                cursor.backwardSexp();
+                cursor.backwardWhitespace();
+                const leftEnd = cursor.offsetStart;
+                if (cursor.backwardSexp()) {
+                    const leftStart = cursor.offsetStart,
+                    leftText = doc.model.getText(leftStart, leftEnd),
+                    rightText = doc.model.getText(rightStart, rightEnd),
+                    newCursorPos = leftStart + rightText.length;
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
+                        new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
+                    ], { selection: emptySelectionOption(newCursorPos)});
+                }
+            }
+        }
+    }
+}

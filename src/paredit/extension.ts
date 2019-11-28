@@ -179,6 +179,11 @@ const pareditCommands: PareditCommand[] = [
         replWindowCommand: "raise-sexp"
     },
     {
+        command: 'paredit.transpose',
+        handler: paredit.transpose,
+        replWindowCommand: "transpose-sexps"
+    },
+    {
         command: 'paredit.convolute',
         handler: paredit.convolute,
         replWindowCommand: "convolute-sexp"

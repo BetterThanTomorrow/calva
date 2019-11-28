@@ -364,11 +364,19 @@ export class ReplConsole {
             });
 
         },
+        "transpose-sexps": () => {
+            console.warn("Transpose is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+            // this.readline.withUndo(() => {
+            //     paredit.transpose(this.readline);
+            //     this.readline.repaint();
+            // });
+        },
         "convolute-sexp": () => {
-            this.readline.withUndo(() => {
-                paredit.convolute(this.readline);
-                this.readline.repaint();
-            });
+            console.warn("Convolute is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+            // this.readline.withUndo(() => {
+            //     paredit.convolute(this.readline);
+            //     this.readline.repaint();
+            // });
         },
         "grow-selection": () => {
             this.readline.withUndo(() => {
