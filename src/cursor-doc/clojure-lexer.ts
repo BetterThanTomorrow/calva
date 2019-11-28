@@ -11,8 +11,9 @@
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
-/** The 'toplevel' lexical grammar. This grammar contains all normal tokens. Multi-line strings are identified as
- * "str-start", which trigger the lexer to switch to the 'inString' lexical grammar.
+/** 
+ * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
+ * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
 let toplevel = new LexicalGrammar()
 
@@ -67,9 +68,6 @@ toplevel.terminal(/(['`~#^]\s*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
 toplevel.terminal(/(['`~#^]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
-// complete string on a single line
-// toplevel.terminal(/(['`~#@?]\s*)*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
-// toplevel.terminal(/(['`~#@?]\s*)*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
