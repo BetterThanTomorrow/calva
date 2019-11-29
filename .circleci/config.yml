@@ -88,8 +88,6 @@ jobs:
           command: npm run test-compile
       - run:
           name: Run Extension Tests
-          environment:
-            MOCHA_FILE: ~/calva/junit/test-results.xml
           command: npm run test
       - store_test_results:
           path: ~/calva/junit

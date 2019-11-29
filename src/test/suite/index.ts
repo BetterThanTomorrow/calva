@@ -9,7 +9,10 @@ export function run(): Promise<void> {
     timeout: 60000,
     reporter: 'mocha-multi-reporters',
     reporterOptions: {
-      "reporterEnabled": "mocha-junit-reporter, spec"
+      "reporterEnabled": "mocha-junit-reporter, spec",
+      "mochaJunitReporterReporterOptions": {
+        "mochaFile": "../../junit/test-results.xml"
+    }
     }
   });
   mocha.useColors(true);
