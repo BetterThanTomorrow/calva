@@ -88,6 +88,8 @@ jobs:
           command: npm run test-compile
       - run:
           name: Run Extension Tests
+          environment:
+            MOCHA_FILE: ~/junit/test-results.xml
           command: npm run test
   build:
     docker:
