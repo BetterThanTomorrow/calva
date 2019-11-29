@@ -11,7 +11,7 @@ export function run(): Promise<void> {
     reporterOptions: {
       "reporterEnabled": "mocha-junit-reporter, spec",
       "mochaJunitReporterReporterOptions": {
-        "mochaFile": "../junit/test-results.xml"
+        "mochaFile": "junit/test-results.xml"
     }
     }
   });
