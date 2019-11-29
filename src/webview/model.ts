@@ -47,6 +47,9 @@ export class TextLine {
 
 /** The underlying model for the REPL readline. */
 export class LineInputModel {
+    /** How many characters in the line endings of the text of this model? */
+    constructor(private lineEndingLength: number = 1) { }
+
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
 
@@ -156,7 +159,7 @@ export class LineInputModel {
     getOffsetForLine(line: number) {
         let max = 0;
         for(let i=0; i<line; i++)
-            max += this.lines[i].text.length + 1;
+            max += this.lines[i].text.length + this.lineEndingLength;
         return max;
     }
 
@@ -193,11 +196,48 @@ export class LineInputModel {
     getRowCol(offset: number): [number, number] {
         for(let i=0; i<this.lines.length; i++) {
             if(offset > this.lines[i].text.length)
-                offset -= this.lines[i].text.length+1;
+                offset -= this.lines[i].text.length + this.lineEndingLength;
             else
                 return [i, offset];
         }
         return [this.lines.length-1, this.lines[this.lines.length-1].text.length]
+    }
+
+    /**
+     * Returns the start and end offset of the word found for the given offset in
+     * the model.
+     * 
+     * @param offset The offset in the line model.
+     * @returns [number, number] The start and the index of the word in the model.
+     */
+    getWordSelection(offset: number): [number, number] {
+
+        const stopChars = [' ', '"', ';', '.', '(', ')', '[', ']', '{', '}', '\t', '\n', '\r'],
+              [row, column] = this.getRowCol(offset),
+              text = this.lines[row].text;
+
+        if (text && text.length > 1 && column < text.length && column >= 0) {
+    
+            if (stopChars.includes(text[column])) {
+                return [offset, offset];
+            }
+            let stopIdx = column;
+            let startIdx = column;
+            for(let i = column; i >= 0; i--) {
+                if (stopChars.includes(text[i])) {
+                    break;
+                }
+                startIdx = i;
+            }
+            for(let j = column; j < text.length; j++) {
+                if (stopChars.includes(text[j])) {
+                    break;
+                }
+                stopIdx = j; 
+            }
+            return [offset - (column - startIdx), offset + (stopIdx - column) + 1];
+        }
+        return [offset, offset];
     }
 
     /**
@@ -222,9 +262,11 @@ export class LineInputModel {
      * @param newSelection the new selection
      */
     changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        let deletedText = this.recordingUndo ? this.getText(start, end) : "";
-        let [startLine, startCol] = this.getRowCol(start);
-        let [endLine, endCol] = this.getRowCol(end);
+        let startPos = Math.min(start, end);
+        let endPos = Math.max(start, end);
+        let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
+        let [startLine, startCol] = this.getRowCol(startPos);
+        let [endLine, endCol] = this.getRowCol(endPos);
         // extract the lines we will replace
         let replaceLines = text.split(/\r\n|\n/);
 
@@ -239,32 +281,38 @@ export class LineInputModel {
         // initialize the lexer state - the first line is definitely not in a string, otherwise copy the
         // end state of the previous line before the edit
         let state = this.getStateForLine(startLine)
-
-        if(startLine != endLine)
-            this.deleteLines(startLine+1, endLine-startLine - (replaceLines.length-1));
+        let currentLength = (endLine - startLine) + 1;
 
         if(replaceLines.length == 1) {
             // trivial single line edit
             items.push(new TextLine(left + replaceLines[0] + right, state));
-            this.changedLines.add(startLine);
         } else {
             // multi line edit.
             items.push(new TextLine(left + replaceLines[0], state));
             for(let i=1; i<replaceLines.length-1; i++)
                 items.push(new TextLine(replaceLines[i], scanner.state));
             items.push(new TextLine(replaceLines[replaceLines.length-1] + right, scanner.state))
-            this.insertLines(startLine+1, replaceLines.length-1 - (endLine-startLine))
-            for(let i=1; i<items.length; i++)
-                this.changedLines.add(startLine+i);
-            this.markDirty(startLine+1);
         }
+
+        if(currentLength > replaceLines.length) {
+            // shrink the lines 
+             this.deleteLines(startLine + replaceLines.length, currentLength - replaceLines.length);
+         } else if(currentLength < replaceLines.length) {
+             // extend the lines
+             this.insertLines(endLine, replaceLines.length - currentLength);
+         }
 
         // now splice in our edited lines
         this.lines.splice(startLine, endLine-startLine+1, ...items);
-        this.markDirty(startLine);
 
+        // set the changed and dirty marker
+        for (let i = 0; i < items.length; i++) {
+            this.changedLines.add(startLine + i);
+            this.markDirty(startLine + i);
+        }
+    
         if(this.recordingUndo) {
-            this.undoManager.addUndoStep(new EditorUndoStep("Edit", start, text, deletedText, oldSelection, newSelection))
+            this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
         }
     }
 
@@ -300,7 +348,7 @@ export class LineInputModel {
     get maxOffset() {
         let max = 0;
         for(let i=0; i<this.lines.length; i++)
-            max += this.lines[i].text.length + 1;
+            max += this.lines[i].text.length + this.lineEndingLength;
         return max-1;
     }
 

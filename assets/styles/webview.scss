@@ -15,7 +15,7 @@ img {
   .logo {
     img.logo {
       margin-right: 10px;
-      height: 64px;
+      height: 40px;
     }
   }
   .powered {
@@ -26,8 +26,8 @@ img {
     align-items: center;
     img {
       flex-shrink: 2;
-      max-height: 64px;
-      min-height: 40px;
+      max-height: 40px;
+      min-height: 20px;
       margin-right: 8px;
       margin-left: 8px;
     }
@@ -59,6 +59,46 @@ img {
       display: none;
     }
   }
+}
+
+p.hint {
+  width: 550px; 
+}
+
+ul.commands {
+  display: inline-block;
+  width: 400px;
+  margin: 0 0;
+}
+
+ul.commands li.left {
+  float: left;
+  list-style: circle none none;
+  width: 25%;
+}
+
+ul.commands li.right {
+  float: left;
+  list-style: outside none none;
+  width: 75%;
+}
+
+span.code {
+  color: var(--vscode-textPreformat-foreground);
+}
+
+.userinput {
+  color: var(--vscode-editor-foreground);
+  background-color: var(--vscode-editor-background);
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  font-weight: var(--vscode-editor-font-weight);
+  border: none;
+  padding-top: 5px;
+}
+
+input[class*="userinput"]:focus {
+    outline: none;
 }
 
 .output {

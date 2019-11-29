@@ -1,6 +1,11 @@
 import { LineInputModel } from "./model";
 import { Token } from "./clojure-lexer";
 
+
+function tokenIsWhiteSpace(token: Token) {
+    return token.type === 'eol' || token.type == 'ws';
+}
+
 /**
  * A mutable cursor into the token stream.
  */
@@ -30,7 +35,7 @@ export class TokenCursor {
 
     /** Return the offset at the start of the token */
     get offsetStart() {
-        return this.doc.getOffsetForLine(this.line) +  this.getToken().offset;
+        return this.doc.getOffsetForLine(this.line) + this.getToken().offset;
     }
 
     /** Return the offset at the end of the token */
@@ -46,27 +51,27 @@ export class TokenCursor {
 
     /** True if we are at the end of the document */
     atEnd() {
-        return this.line == this.doc.lines.length-1 && this.token == this.doc.lines[this.line].tokens.length-1;
+        return this.line == this.doc.lines.length - 1 && this.token == this.doc.lines[this.line].tokens.length - 1;
     }
 
     /** Move this cursor backwards one token */
     previous() {
-        if(this.token > 0) {
+        if (this.token > 0) {
             this.token--;
         } else {
-            if(this.line == 0) return;
+            if (this.line == 0) return;
             this.line--;
-            this.token = this.doc.lines[this.line].tokens.length-1;
+            this.token = this.doc.lines[this.line].tokens.length - 1;
         }
         return this;
     }
 
     /** Move this cursor forwards one token */
     next() {
-        if(this.token < this.doc.lines[this.line].tokens.length-1) {
+        if (this.token < this.doc.lines[this.line].tokens.length - 1) {
             this.token++;
         } else {
-            if(this.line == this.doc.lines.length-1) return;
+            if (this.line == this.doc.lines.length - 1) return;
             this.line++;
             this.token = 0;
         }
@@ -77,7 +82,7 @@ export class TokenCursor {
      * Return the token immediately preceding this cursor. At the start of the file, a token of type "eol" is returned.
      */
     getPrevToken(): Token {
-        if(this.line == 0 && this.token == 0)
+        if (this.line == 0 && this.token == 0)
             return { type: "eol", raw: "\n", offset: 0, state: null };
         let cursor = this.clone();
         cursor.previous();
@@ -97,6 +102,7 @@ export class TokenCursor {
 }
 
 export class LispTokenCursor extends TokenCursor {
+
     constructor(public doc: LineInputModel, public line: number, public token: number) {
         super(doc, line, token);
     }
@@ -105,13 +111,13 @@ export class LispTokenCursor extends TokenCursor {
     clone() {
         return new LispTokenCursor(this.doc, this.line, this.token);
     }
-    
+
     /**
      * Moves this token past the inside of a multiline string
      */
-    fowardString() {
-        while(!this.atEnd()) {
-            switch(this.getToken().type) {
+    forwardString() {
+        while (!this.atEnd()) {
+            switch (this.getToken().type) {
                 case "eol":
                 case "str-inside":
                 case "str-start":
@@ -127,10 +133,10 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this token past any whitespace or comment.
      */
     forwardWhitespace(includeComments = true) {
-        while(!this.atEnd()) {
-            switch(this.getToken().type) {
+        while (!this.atEnd()) {
+            switch (this.getToken().type) {
                 case "comment":
-                    if(!includeComments)
+                    if (!includeComments)
                         return;
                 case "eol":
                 case "ws":
@@ -146,14 +152,14 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this token back past any whitespace or comment.
      */
     backwardWhitespace(includeComments = true) {
-        while(!this.atStart()) {
-            switch(this.getPrevToken().type) {
+        while (!this.atStart()) {
+            switch (this.getPrevToken().type) {
                 case "comment":
-                    if(!includeComments)
+                    if (!includeComments)
                         return;
                 case "eol":
                     this.previous();
-                    if(this.getPrevToken().type == "comment") {
+                    if (this.getPrevToken().type == "comment") {
                         this.next();
                         return;
                     }
@@ -181,13 +187,13 @@ export class LispTokenCursor extends TokenCursor {
     forwardSexp(skipComments = false): boolean {
         let delta = 0;
         this.forwardWhitespace(!skipComments);
-        if(this.getToken().type == "close") {
+        if (this.getToken().type == "close") {
             return false;
         }
-        while(!this.atEnd()) {
+        while (!this.atEnd()) {
             this.forwardWhitespace(!skipComments);
             let tk = this.getToken();
-            switch(tk.type) {
+            switch (tk.type) {
                 case 'comment':
                     this.next(); // skip past comment
                     this.next(); // skip past EOL.
@@ -195,10 +201,12 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
+                case 'punc':
+                case 'junk':
                 case 'str':
                 case 'str-end':
                     this.next();
-                    if(delta <= 0)
+                    if (delta <= 0)
                         return true;
                     break;
                 case 'str-inside':
@@ -206,12 +214,12 @@ export class LispTokenCursor extends TokenCursor {
                     do {
                         this.next();
                         tk = this.getToken();
-                    } while(!this.atEnd() && (tk.type == "str-inside" || tk.type == "eol"))
+                    } while (!this.atEnd() && (tk.type == "str-inside" || tk.type == "eol"))
                     continue;
                 case 'close':
                     delta--;
                     this.next();
-                    if(delta <= 0)
+                    if (delta <= 0)
                         return true;
                     break;
                 case 'open':
@@ -237,22 +245,24 @@ export class LispTokenCursor extends TokenCursor {
     backwardSexp(skipComments = true) {
         let delta = 0;
         this.backwardWhitespace(!skipComments);
-        switch(this.getPrevToken().type) {
+        switch (this.getPrevToken().type) {
             case "open":
                 return false;
         }
-        while(!this.atStart()) {
+        while (!this.atStart()) {
             this.backwardWhitespace(!skipComments);
             let tk = this.getPrevToken();
-            switch(tk.type) {
+            switch (tk.type) {
                 case 'id':
                 case 'lit':
+                case 'punc':
+                case 'junk':
                 case 'kw':
                 case 'comment':
                 case 'str':
                 case 'str-start':
                     this.previous();
-                    if(delta <= 0)
+                    if (delta <= 0)
                         return true;
                     break;
                 case 'str-inside':
@@ -260,7 +270,7 @@ export class LispTokenCursor extends TokenCursor {
                     do {
                         this.previous();
                         tk = this.getPrevToken();
-                    } while(!this.atStart() && tk.type == "str-inside")
+                    } while (!this.atStart() && tk.type == "str-inside")
                     continue;
                 case 'close':
                     delta++;
@@ -269,7 +279,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'open':
                     delta--;
                     this.previous();
-                    if(delta <= 0)
+                    if (delta <= 0)
                         return true;
                     break;
                 default:
@@ -283,8 +293,8 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardList(): boolean {
         let cursor = this.clone();
-        while(cursor.forwardSexp()) { }
-        if(cursor.getToken().type == "close") {
+        while (cursor.forwardSexp()) { }
+        if (cursor.getToken().type == "close") {
             this.set(cursor);
             return true;
         }
@@ -292,16 +302,71 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
+     * Moves this cursor forwards to the `closingBracket` of the containing sexpr, or until the end of the document.
+     */
+    forwardListOfType(closingBracket: string): boolean {
+        let cursor = this.clone();
+        while (cursor.forwardList()) {
+            if (cursor.getPrevToken().raw === closingBracket) {
+                this.set(cursor);
+                return true;
+            }
+            if (!cursor.upList()) {
+                return false;
+            }
+        }
+    }
+
+    /**
      * Moves this cursor backwards to the open paren of the containing sexpr, or until the start of the document.
      */
     backwardList(): boolean {
         let cursor = this.clone();
-        while(cursor.backwardSexp()) { }
-        if(cursor.getPrevToken().type == "open") {
+        while (cursor.backwardSexp()) { }
+        if (cursor.getPrevToken().type == "open") {
             this.set(cursor);
             return true;
         }
         return false;
+    }
+
+    /**
+     * Moves this cursor backwards to the `openingBracket` of the containing sexpr, or until the start of the document.
+     */
+    backwardListOfType(openingBracket: string): boolean {
+        let cursor = this.clone();
+        while (cursor.backwardList()) {
+            if (cursor.getPrevToken().raw === openingBracket) {
+                this.set(cursor);
+                return true;
+            }
+            if (!cursor.backwardUpList()) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
+     * @param openingBracket 
+     */
+    rangeForList(openingBracket?: string): [[number, number], [number, number]] {
+        const cursor = this.clone();
+        if (openingBracket === undefined) {
+            if (!(cursor.backwardList() && cursor.backwardUpList())) {
+                return undefined;
+            }
+        } else {
+            if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
+                return undefined;
+            }
+        }
+        const start = cursor.rowCol as [number, number];
+        if (!cursor.forwardSexp()) {
+            return undefined;
+        }
+        const end = cursor.rowCol as [number, number];
+        return [start, end]
     }
 
     /**
@@ -311,7 +376,7 @@ export class LispTokenCursor extends TokenCursor {
     downList(): boolean {
         let cursor = this.clone();
         cursor.forwardWhitespace();
-        if(cursor.getToken().type == "open") {
+        if (cursor.getToken().type == "open") {
             cursor.next();
             this.set(cursor);
             return true;
@@ -326,7 +391,7 @@ export class LispTokenCursor extends TokenCursor {
     upList(): boolean {
         let cursor = this.clone();
         cursor.forwardWhitespace();
-        if(cursor.getToken().type == "close") {
+        if (cursor.getToken().type == "close") {
             cursor.next();
             this.set(cursor);
             return true;
@@ -341,7 +406,7 @@ export class LispTokenCursor extends TokenCursor {
     backwardUpList(): boolean {
         let cursor = this.clone();
         cursor.backwardWhitespace();
-        if(cursor.getPrevToken().type == "open") {
+        if (cursor.getPrevToken().type == "open") {
             cursor.previous();
             this.set(cursor);
             return true;
@@ -349,21 +414,76 @@ export class LispTokenCursor extends TokenCursor {
         return false;
     }
 
-    withinWhitespace() {
-        let tk = this.getToken().type;
-        if(tk == "eol" || tk == "ws") {
+    /**
+     * If possible, moves this cursor backwards past any whitespace, and then backwards past the immediately following close-paren and returns true.
+     * If the source does not match this, returns false and does not move the cursor.
+     */
+    backwardDownList(): boolean {
+        let cursor = this.clone();
+        cursor.backwardWhitespace();
+        if (cursor.getPrevToken().type == "close") {
+            cursor.previous();
+            this.set(cursor);
             return true;
         }
+        return false;
     }
-    withinString() {
-        let tk = this.getToken().type;
-        if(tk == "str" || tk == "str-start" || tk == "str-end" || tk == "str-inside") {
+
+    /**
+     * Moves the cursor to the current form according to this priority:
+     * 1. If not within whitespace, don't move, return `true`.
+     * 2. Move adjacent to the form to the left, return `true`.
+     * 3. Move adjacent to the form to the right, return `true`.
+     * Otherwise, don't move, return `false`.
+    */
+    moveToCurrentForm(): boolean {
+        let cursor = this.clone();
+        const prevToken = cursor.getPrevToken();
+        if (!cursor.withinWhiteSpace()) {
             return true;
         }
-        if(tk == "eol") {
-            tk = this.getPrevToken().type;
-            if(tk == "str-inside" || tk == "str-start")
+        if (cursor.isWhiteSpace()) {
+            cursor.backwardWhitespace();
+            if (!cursor.atStart()) {
+                this.set(cursor);
                 return true;
+            }
+        }
+        cursor.forwardWhitespace();
+        if (!cursor.atEnd()) {
+            this.set(cursor);
+            return true;
+        }
+        return false;
+    }
+
+    isWhiteSpace(): boolean {
+        return tokenIsWhiteSpace(this.getToken());
+    }
+
+    previousIsWhiteSpace(): boolean {
+        return tokenIsWhiteSpace(this.getPrevToken());
+    }
+
+    withinWhiteSpace(): boolean {
+        return this.isWhiteSpace() && this.previousIsWhiteSpace();
+    }
+
+    /**
+     * Indicates if the current token is inside a string (e.g. a documentation string)
+     */
+    withinString() {
+        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
+            token = this.getToken();
+        if (token.type == 'eol') {
+            let next = this.clone().next()
+            let previous = this.clone().previous();
+            if (next && strTypes.includes(next.getToken().type) &&
+                previous && strTypes.includes(previous.getToken().type)) {
+                return (true);
+            }
+        } else if (strTypes.includes(token.type)) {
+            return (true);
         }
         return false;
     }
@@ -373,7 +493,96 @@ export class LispTokenCursor extends TokenCursor {
      */
     withinValidList(): boolean {
         let cursor = this.clone();
-        while(cursor.forwardSexp()) { }
+        while (cursor.forwardSexp()) { }
         return cursor.getToken().type == "close";
     }
+
+    /**
+     * Returns the ranges for all forms in the current list.
+     * Returns undefined if the current cursor is not within a list.
+     * If you are particular about which list type that should be considered, supply an `openingBracket`.
+     */
+    rangesForSexpsInList(openingBracket?: string): [[number, number], [number, number]][] {
+        let cursor = this.clone();
+        if (openingBracket !== undefined) {
+            if (!cursor.backwardListOfType(openingBracket)) {
+                return undefined;
+            }
+        } else {
+            if (!cursor.backwardList()) {
+                return undefined;
+            }
+        }
+        let ranges = [];
+        // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
+        let ignoreCounter = 0;
+        while (true) {
+            cursor.forwardWhitespace();
+            const start = cursor.rowCol;
+            if (cursor.getToken().raw === '#_') {
+                ignoreCounter++;
+                cursor.forwardSexp();
+                continue;
+            }
+            if (cursor.forwardSexp()) {
+                if (ignoreCounter === 0) {
+                    const end = cursor.rowCol;
+                    ranges.push([start, end]);
+                } else {
+                    ignoreCounter--;
+                }
+            } else {
+                break;
+            }
+        }
+        return ranges;
+    }
+
+    /**
+     * Tries to move this cursor backwards to the open paren of the function, `level` functions up.
+     * If there aren't that many functions bahind the cursor, the cursor is not moved at all.
+     * @param levels how many functions up to go before placing the cursor at the start of it.
+     * @returns `true` if the cursor was moved, otherwise `false`
+     */
+    backwardFunction(levels: number = 0): boolean {
+        const cursor = this.clone();
+        if (!cursor.backwardListOfType('(')) {
+            return false;
+        }
+        for (let i = 0; i < levels; i++) {
+            if (!cursor.backwardUpList()) {
+                return false;
+            }
+            if (!cursor.backwardListOfType('(')) {
+                return false;
+            }
+        }
+        this.set(cursor);
+        return true;
+    }
+
+    /**
+     * Get the name of the current function, optionally digging `levels` functions up.
+     * @param levels how many levels of functions to dig up.
+     * @returns the function name, or undefined if there is no function there.
+     */
+    getFunction(levels: number = 0): string {
+        const cursor = this.clone();
+        if (cursor.backwardFunction(levels)) {
+            cursor.forwardWhitespace();
+            const symbol = cursor.getToken();
+            if (symbol.type === 'id') {
+                return symbol.raw;
+            }
+        }
+    }
 }
+
+/**
+ * Creates a `LispTokenCursor` for walking and manipulating the string `s`.
+ */
+export function createStringCursor(s: string): LispTokenCursor {
+    const model = new LineInputModel();
+    model.insertString(0, s);
+    return model.getTokenCursor(0);
+} 

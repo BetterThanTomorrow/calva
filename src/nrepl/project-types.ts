@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as utilities from '../utilities';
+import * as pprint from '../printer';
 
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
@@ -44,25 +45,30 @@ export function shadowBuilds(): string[] {
     return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 
+const NREPL_VERSION = "0.6.0",
+    CIDER_NREPL_VERSION = "0.22.4",
+    PIGGIEBACK_VERSION = "0.4.1",
+    SIDECAR_VERSION = "0.5.18",
+    FIGWHEEL_MAIN_VERSION = "0.2.3";
 
 const cliDependencies = {
-    "nrepl": "0.6.0",
-    "cider/cider-nrepl": "0.22.1",
+    "nrepl": NREPL_VERSION,
+    "cider/cider-nrepl": CIDER_NREPL_VERSION,
 }
 
 const cljsCommonDependencies = {
-    "cider/piggieback": "0.4.1"
+    "cider/piggieback": PIGGIEBACK_VERSION
 }
 
 const cljsDependencies: { [id: string]: Object } = {
     "lein-figwheel": {
-        "figwheel-sidecar": "0.5.18"
+        "figwheel-sidecar": SIDECAR_VERSION
     },
     "Figwheel Main": {
-        "com.bhauman/figwheel-main": "0.2.3"
+        "com.bhauman/figwheel-main": FIGWHEEL_MAIN_VERSION
     },
     "shadow-cljs": {
-        "cider/cider-nrepl": "0.22.1",
+        "cider/cider-nrepl": CIDER_NREPL_VERSION,
     },
     "Nashorn": {
     },
@@ -71,13 +77,15 @@ const cljsDependencies: { [id: string]: Object } = {
 }
 
 const leinPluginDependencies = {
-    "cider/cider-nrepl": "0.22.1"
+    "cider/cider-nrepl": CIDER_NREPL_VERSION
 }
 const leinDependencies = {
-    "nrepl": "0.6.0",
+    "nrepl": NREPL_VERSION,
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
+
+const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
 
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
@@ -97,7 +105,10 @@ const projectTypes: { [id: string]: ProjectType } = {
         */
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
             let out: string[] = [];
-            let dependencies = { ...leinDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
+            const dependencies = { ...leinDependencies,
+                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                ...serverPrinterDependencies
+            };
             let keys = Object.keys(dependencies);
             let data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
             let parsed;
@@ -116,9 +127,9 @@ const projectTypes: { [id: string]: ProjectType } = {
                 if (aliasesIndex > -1) {
                     try {
                         const menuSelections = connectSequence.menuSelections,
-                        leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
+                            leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
                         if (leinAlias) {
-                            alias = _unKeywordize(leinAlias);
+                            alias = unKeywordize(leinAlias);
                         } else if (leinAlias === null) {
                             alias = undefined;
                         } else {
@@ -147,7 +158,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                     menuSelections = connectSequence.menuSelections,
                     launchProfiles = menuSelections ? menuSelections.leinProfiles : undefined;
                 if (launchProfiles) {
-                    profiles = [...profiles, ...launchProfiles.map(_keywordize)];
+                    profiles = [...profiles, ...launchProfiles.map(keywordize)];
                 } else {
                     let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
                     const myProfiles = state.config().myLeinProfiles;
@@ -155,7 +166,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                         projectProfiles = [...projectProfiles, ...myProfiles];
                     }
                     if (projectProfiles.length) {
-                        profiles = [...profiles, ...projectProfiles.map(_keywordize)];
+                        profiles = [...profiles, ...projectProfiles.map(keywordize)];
                         if (profiles.length) {
                             profiles = await utilities.quickPickMulti({
                                 values: profiles,
@@ -191,7 +202,7 @@ const projectTypes: { [id: string]: ProjectType } = {
             }
 
             if (profiles.length) {
-                out.push("with-profile", profiles.map(x => `+${_unKeywordize(x)}`).join(','));
+                out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));
             }
 
             if (alias) {
@@ -246,7 +257,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
             let aliases: string[] = [];
             if (launchAliases) {
-                aliases = launchAliases.map(_keywordize);
+                aliases = launchAliases.map(keywordize);
             } else {
                 let projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
                 const myAliases = state.config().myCljAliases;
@@ -255,19 +266,23 @@ const projectTypes: { [id: string]: ProjectType } = {
                 }
                 if (projectAliases.length) {
                     aliases = await utilities.quickPickMulti({
-                        values: projectAliases.map(_keywordize),
+                        values: projectAliases.map(keywordize),
                         saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
                         placeHolder: "Pick any aliases to launch with"
                     });
                 }
             }
 
-            const dependencies = { ...cliDependencies, ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) },
+            const dependencies = { 
+                ...cliDependencies, 
+                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                ...serverPrinterDependencies
+            },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
-                const aliasKey = _unKeywordize(aliases[ali]);
+                const aliasKey = unKeywordize(aliases[ali]);
                 if (parsed.aliases) {
                     let alias = parsed.aliases[aliasKey];
                     aliasHasMain = alias && alias["main-opts"] != undefined;
@@ -305,21 +320,22 @@ const projectTypes: { [id: string]: ProjectType } = {
          */
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
-                dependencies = { ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}) };
+                dependencies = {
+                    ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                    ...serverPrinterDependencies
+                };
             let args: string[] = [];
             for (let dep in dependencies)
                 args.push("-d", dep + ":" + dependencies[dep]);
 
             const foundBuilds = await shadowBuilds(),
                 menuSelections = connectSequence.menuSelections,
-                launchAliases = menuSelections ? menuSelections.cljAliases : undefined,
-                selectedBuilds = await utilities.quickPickMulti({ values: foundBuilds.filter(x => x[0] == ":"), placeHolder: "Select builds to start", saveAs: `${state.getProjectRoot()}/shadowcljs-jack-in` });
-
-            let aliases: string[] = [];
-
-            if (launchAliases) {
-                aliases = launchAliases.map(_keywordize);
-            } // TODO do the same as clj to prompt the user with a list of aliases
+                selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
+                    values: foundBuilds.filter(x => x[0] == ":"),
+                    placeHolder: "Select builds to start", saveAs: `
+                    ${state.getProjectRoot()}/shadowcljs-jack-in`
+                }),
+                aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
 
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             if (aliasesOption && aliasesOption.length) {
@@ -343,7 +359,7 @@ const projectTypes: { [id: string]: ProjectType } = {
  * @param  {string} s the string to be keywordized
  * @return {string} keywordized string
  */
-function _keywordize(s: string): string {
+export function keywordize(s: string): string {
     return s.replace(/^[\s,:]*/, ":");
 }
 
@@ -353,7 +369,7 @@ function _keywordize(s: string): string {
  * @param  {string} kw
  * @return {string} kw without the first character
  */
-function _unKeywordize(kw: string): string {
+export function unKeywordize(kw: string): string {
     return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
 }
 

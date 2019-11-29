@@ -33,13 +33,13 @@ export class ReplReadline {
     private _completionListeners: CompletionListener[] = [];
 
     addCompletionListener(c: CompletionListener) {
-        if(this._completionListeners.indexOf(c) == -1)
+        if (this._completionListeners.indexOf(c) == -1)
             this._completionListeners.push(c);
     }
 
     removeCompletionListener(c: CompletionListener) {
         let idx = this._completionListeners.indexOf(c);
-        if(idx != -1)
+        if (idx != -1)
             this._completionListeners.splice(idx, 1);
     }
 
@@ -50,7 +50,7 @@ export class ReplReadline {
     get selectionStart() {
         return this._selectionStart
     };
-    
+
     /** Sets the start of the selection. */
     set selectionStart(val: number) {
         this._selectionStart = Math.min(this.model.maxOffset, Math.max(val, 0));
@@ -77,7 +77,7 @@ export class ReplReadline {
 
     /** The element representing the caret. */
     caret: HTMLDivElement;
-    
+
     /** The target column of the caret, for up/down movement. */
     caretX: number = 0;
 
@@ -98,14 +98,14 @@ export class ReplReadline {
         let [row, col] = this.model.getRowCol(offset);
         let line = this.model.lines[row]
         let lastIndex = 0;
-        if(line) {
-            for(let i=0; i<line.tokens.length; i++) {
+        if (line) {
+            for (let i = 0; i < line.tokens.length; i++) {
                 let tk = line.tokens[i];
-                if(previous ? tk.offset > col : tk.offset > col)
-                    return new LispTokenCursor(this.model, row, previous ? Math.max(0, lastIndex-1) : lastIndex);
+                if (previous ? tk.offset > col : tk.offset > col)
+                    return new LispTokenCursor(this.model, row, previous ? Math.max(0, lastIndex - 1) : lastIndex);
                 lastIndex = i;
             }
-            return new LispTokenCursor(this.model, row, line.tokens.length-1);
+            return new LispTokenCursor(this.model, row, line.tokens.length - 1);
         }
     }
 
@@ -130,20 +130,15 @@ export class ReplReadline {
     /**
      * Inserts a string at the current cursor location.
      * 
-     * FIXME: this should just be `changeRange`.
      * @param text the text to insert
      */
     insertString(text: string) {
         this.withUndo(() => {
-            if(this.selectionStart != this.selectionEnd) {
-                this.deleteSelection();
-            }
-            let [cs, ce] = [this.selectionStart, this.selectionEnd]
-            this.selectionEnd += this.model.insertString(this.selectionEnd, text, [cs, ce], [cs+text.length, cs+text.length]);
-            this.selectionStart = this.selectionEnd;
-
+            let cs = Math.min(this.selectionStart, this.selectionEnd);
+            let ce = Math.max(this.selectionStart, this.selectionEnd);
+            this.model.changeRange(cs, ce, text, [cs, ce], [cs + text.length, cs + text.length])
+            this.selectionStart = this.selectionEnd = cs + text.length;
             this.repaint();
-            
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
     }
@@ -154,7 +149,7 @@ export class ReplReadline {
     }
 
     maybeShowCompletion() {
-        if(this.getTokenCursor().offsetStart == this.selectionEnd && !this.getTokenCursor().previous().withinWhitespace()) {
+        if (this.getTokenCursor().offsetStart == this.selectionEnd && !this.getTokenCursor().previous().isWhiteSpace()) {
             let evt: CompletionEvent = { type: "show", position: this.selectionEnd, toplevel: this.model.getText(0, this.model.maxOffset) }
             this._completionListeners.forEach(x => x(evt));
         } else
@@ -168,14 +163,14 @@ export class ReplReadline {
      */
     caretLeft(clear: boolean = true) {
         this.clearCompletion();
-        if(clear && this.selectionStart != this.selectionEnd) {
-            if(this.selectionStart < this.selectionEnd)
+        if (clear && this.selectionStart != this.selectionEnd) {
+            if (this.selectionStart < this.selectionEnd)
                 this.selectionEnd = this.selectionStart;
             else
                 this.selectionStart = this.selectionEnd;
         } else {
             this.selectionEnd--;
-            if(clear)
+            if (clear)
                 this.selectionStart = this.selectionEnd;
         }
         this.repaint();
@@ -189,14 +184,14 @@ export class ReplReadline {
      */
     caretRight(clear: boolean = true) {
         this.clearCompletion();
-        if(clear && this.selectionStart != this.selectionEnd) {
-            if(this.selectionStart > this.selectionEnd)
+        if (clear && this.selectionStart != this.selectionEnd) {
+            if (this.selectionStart > this.selectionEnd)
                 this.selectionEnd = this.selectionStart;
             else
                 this.selectionStart = this.selectionEnd;
         } else {
             this.selectionEnd++
-            if(clear)
+            if (clear)
                 this.selectionStart = this.selectionEnd;
         }
         this.repaint();
@@ -211,7 +206,7 @@ export class ReplReadline {
     caretHomeAll(clear: boolean = true) {
         this.clearCompletion();
         this.selectionEnd = 0;
-        if(clear)
+        if (clear)
             this.selectionStart = this.selectionEnd;
         this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
@@ -225,7 +220,7 @@ export class ReplReadline {
     caretEndAll(clear: boolean = true) {
         this.clearCompletion();
         this.selectionEnd = this.model.maxOffset;
-        if(clear)
+        if (clear)
             this.selectionStart = this.selectionEnd;
         this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
@@ -239,8 +234,8 @@ export class ReplReadline {
     caretHome(clear: boolean = true) {
         this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
-        this.selectionEnd = this.selectionEnd-col;
-        if(clear)
+        this.selectionEnd = this.selectionEnd - col;
+        if (clear)
             this.selectionStart = this.selectionEnd;
         this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
@@ -254,8 +249,8 @@ export class ReplReadline {
     caretEnd(clear: boolean = true) {
         this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
-        this.selectionEnd = this.selectionEnd-col + this.model.lines[row].text.length;
-        if(clear)
+        this.selectionEnd = this.selectionEnd - col + this.model.lines[row].text.length;
+        if (clear)
             this.selectionStart = this.selectionEnd;
         this.repaint();
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
@@ -269,13 +264,13 @@ export class ReplReadline {
     caretUp(clear: boolean = true) {
         this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
-        if(row > 0) {
-            let len = this.model.lines[row-1].text.length;
-            this.selectionEnd = this.model.getOffsetForLine(row-1)+Math.min(this.caretX, len);
+        if (row > 0) {
+            let len = this.model.lines[row - 1].text.length;
+            this.selectionEnd = this.model.getOffsetForLine(row - 1) + Math.min(this.caretX, len);
         } else {
             this.selectionEnd = 0;
         }
-        if(clear)
+        if (clear)
             this.selectionStart = this.selectionEnd;
         this.repaint();
     }
@@ -288,17 +283,17 @@ export class ReplReadline {
     caretDown(clear: boolean = true) {
         this.clearCompletion();
         let [row, col] = this.model.getRowCol(this.selectionEnd);
-        if(row < this.model.lines.length-1) {
-            let len = this.model.lines[row+1].text.length;
-            this.selectionEnd = this.model.getOffsetForLine(row+1)+Math.min(this.caretX, len);
+        if (row < this.model.lines.length - 1) {
+            let len = this.model.lines[row + 1].text.length;
+            this.selectionEnd = this.model.getOffsetForLine(row + 1) + Math.min(this.caretX, len);
         } else {
             this.selectionEnd = this.model.maxOffset;
         }
-        if(clear)
+        if (clear)
             this.selectionStart = this.selectionEnd;
         this.repaint();
     }
-    
+
     /**
      * Deletes the current selection.
      * 
@@ -306,11 +301,22 @@ export class ReplReadline {
      */
     private deleteSelection() {
         this.withUndo(() => {
-            if(this.selectionStart != this.selectionEnd) {
-                this.model.deleteRange(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd)-Math.min(this.selectionStart, this.selectionEnd));
+            if (this.selectionStart != this.selectionEnd) {
+                this.model.deleteRange(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd) - Math.min(this.selectionStart, this.selectionEnd));
                 this.selectionStart = this.selectionEnd = Math.min(this.selectionStart, this.selectionEnd);
             }
         })
+    }
+
+    /**
+     * Retrieve the current selection as text.
+     * 
+     */
+    getSelection() {
+        if (this.selectionStart != this.selectionEnd) {
+            return this.model.getText(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd))
+        }
+        return "";
     }
 
     /**
@@ -320,11 +326,11 @@ export class ReplReadline {
      */
     backspace() {
         this.withUndo(() => {
-            if(this.selectionStart != this.selectionEnd) {
+            if (this.selectionStart != this.selectionEnd) {
                 this.deleteSelection();
             } else {
-                if(this.selectionEnd > 0) {
-                    this.model.deleteRange(this.selectionEnd-1, 1, [this.selectionStart, this.selectionEnd], [this.selectionEnd-1, this.selectionEnd-1]);
+                if (this.selectionEnd > 0) {
+                    this.model.deleteRange(this.selectionEnd - 1, 1, [this.selectionStart, this.selectionEnd], [this.selectionEnd - 1, this.selectionEnd - 1]);
                     this.selectionEnd--;
                 }
                 this.selectionStart = this.selectionEnd;
@@ -341,7 +347,7 @@ export class ReplReadline {
      */
     delete() {
         this.withUndo(() => {
-            if(this.selectionStart != this.selectionEnd) {
+            if (this.selectionStart != this.selectionEnd) {
                 this.deleteSelection();
             } else {
                 this.model.deleteRange(this.selectionEnd, 1);
@@ -386,13 +392,13 @@ export class ReplReadline {
      */
     private clearParenMatches() {
         let cp = this.getElementForToken(this.closeParen);
-        if(cp) {
+        if (cp) {
             cp.classList.remove("match");
             cp.classList.remove("match-fail");
         }
 
         let op = this.getElementForToken(this.openParen);
-        if(op) {
+        if (op) {
             op.classList.remove("match");
             op.classList.remove("match-fail");
         }
@@ -406,43 +412,49 @@ export class ReplReadline {
     updateParenMatches() {
         let cursor = this.getTokenCursor();
 
-        if(cursor.getToken().type == "close") {
-            this.closeParen = cursor.clone()
-            while(cursor.backwardSexp());
-            if(cursor.getPrevToken().type == "open") {
-                this.openParen = cursor.previous();
+        if (cursor.getPrevToken().type == "close") {
+            this.closeParen = cursor.clone().previous();
+            if (cursor.backwardSexp()) {
+                this.openParen = cursor;
+                this.matchingParen = true;
             }
-            if(this.closeParen && this.openParen)
+            if (this.closeParen && this.openParen)
                 this.matchingParen = validPair(this.openParen.getToken().raw, this.closeParen.getToken().raw);
-            else
+            else {
                 this.matchingParen = false;
-        } else if(cursor.getToken().type == "open") {
+            }
+
+        } else if (cursor.getToken().type == "open") {
             this.openParen = cursor.clone();
-            cursor.next();
-            while(cursor.forwardSexp());
-            if(cursor.getToken().type == "close") {
-                this.closeParen = cursor;
+            if (cursor.forwardSexp()) {
+                this.closeParen = cursor.previous();
+                this.matchingParen = true;
             }
-            if(this.closeParen && this.openParen)
+            if (this.closeParen && this.openParen)
                 this.matchingParen = validPair(this.openParen.getToken().raw, this.closeParen.getToken().raw);
-            else
+            else {
                 this.matchingParen = false;
+            }
         }
 
         let cp = this.getElementForToken(this.closeParen);
-        if(cp) {
-            if(this.matchingParen)
+        if (cp) {
+            if (this.matchingParen) {
                 cp.classList.add("match");
-            else
+            }
+            else {
                 cp.classList.add("fail-match")
+            }
         }
 
         let op = this.getElementForToken(this.openParen);
-        if(op) {
-            if(this.matchingParen)
+        if (op) {
+            if (this.matchingParen) {
                 op.classList.add("match");
-            else
+            }
+            else {
                 op.classList.add("fail-match")
+            }
         }
     }
 
@@ -451,7 +463,7 @@ export class ReplReadline {
      * @param cursor 
      */
     private getElementForToken(cursor: TokenCursor) {
-        if(cursor && this.inputLines[cursor.line])
+        if (cursor && this.inputLines[cursor.line])
             return this.inputLines[cursor.line].querySelector(".content").children.item(cursor.token) as HTMLElement
     }
 
@@ -468,38 +480,38 @@ export class ReplReadline {
         this.clearParenMatches();
         this.model.flushChanges()
         // remove any deleted lines
-        for(let [start, count] of this.model.deletedLines) {
-            for(let j=0; j<count; j++)
-                this.mainElem.removeChild(this.inputLines[start+j]);
+        for (let [start, count] of this.model.deletedLines) {
+            for (let j = 0; j < count; j++)
+                this.mainElem.removeChild(this.inputLines[start + j]);
             this.inputLines.splice(start, count);
         }
         this.model.deletedLines.clear();
 
         // insert any new lines
-        for(let [start, count] of this.model.insertedLines) {
-            for(let j=0; j<count; j++) {
+        for (let [start, count] of this.model.insertedLines) {
+            for (let j = 0; j < count; j++) {
                 let line = this.makeLine()
-                if(!this.inputLines[start+j])
+                if (!this.inputLines[start + j])
                     this.mainElem.append(line);
                 else
-                    this.mainElem.insertBefore(line, this.inputLines[start+j]);
-                
-                this.inputLines.splice(start+j, 0, line)
+                    this.mainElem.insertBefore(line, this.inputLines[start + j]);
+
+                this.inputLines.splice(start + j, 0, line)
             }
         }
         this.model.insertedLines.clear();
 
         // update changed lines
-        for(let line of this.model.changedLines) {
+        for (let line of this.model.changedLines) {
             let ln = this.inputLines[line].querySelector(".content");
-            while(ln.firstChild)
+            while (ln.firstChild)
                 ln.removeChild(ln.firstChild);
-            for(let tk of this.model.lines[line].tokens) {
-                if(!tk)
+            for (let tk of this.model.lines[line].tokens) {
+                if (!tk)
                     break;
                 ln.appendChild(makeToken(tk));
             }
-            if(!ln.firstChild)
+            if (!ln.firstChild)
                 ln.appendChild(document.createTextNode(" ")) // otherwise the line will collapse to height=0 due to html fun.
         }
         this.model.changedLines.clear();
@@ -508,7 +520,7 @@ export class ReplReadline {
         let [row, col] = this.model.getRowCol(this.selectionEnd);
         this.inputLines[row].appendChild(this.caret);
         let style = getComputedStyle(this.inputLines[row]);
-        ctx.font = style.fontStyle+" "+style.fontSize+" "+style.fontFamily;
+        ctx.font = style.fontStyle + " " + style.fontSize + " " + style.fontFamily;
 
         this.caret.style.left = measureText(this.model.lines[row].text.substr(0, col)) + "px";
 
@@ -522,42 +534,42 @@ export class ReplReadline {
         let lce = this.model.getRowCol(Math.max(this.lastSelectionStart, this.lastSelectionEnd));
 
         // update the selection
-        for(let line = startLine[0]; line<=endLine[0]; line++) {
+        for (let line = startLine[0]; line <= endLine[0]; line++) {
             let ln = this.inputLines[line].querySelector(".selection");
-            if(line < cs[0] || line > ce[0]) {
+            if (line < cs[0] || line > ce[0]) {
                 // definitely outside the selection, nuke all the selectiond divs.
-                while(ln.firstChild)
+                while (ln.firstChild)
                     ln.removeChild(ln.firstChild);
-            } else if(line == cs[0] && line == ce[0]) {
+            } else if (line == cs[0] && line == ce[0]) {
                 // this selection is exactly 1 line, and we're at it.
-                while(ln.firstChild)
+                while (ln.firstChild)
                     ln.removeChild(ln.firstChild);
-                let left = measureText("M")*cs[1];
-                ln.appendChild(this.makeSelection(left, measureText("M")*ce[1]-left));
-            } else if(line == cs[0]) {
+                let left = measureText("M") * cs[1];
+                ln.appendChild(this.makeSelection(left, measureText("M") * ce[1] - left));
+            } else if (line == cs[0]) {
                 // this is the first line of the selection
-                while(ln.firstChild)
+                while (ln.firstChild)
                     ln.removeChild(ln.firstChild);
-                let left = measureText("M")*cs[1];
-                ln.appendChild(this.makeSelection(left, measureText("M")*this.model.lines[line].text.length - left));
-            } else if(line == ce[0]) {
+                let left = measureText("M") * cs[1];
+                ln.appendChild(this.makeSelection(left, measureText("M") * this.model.lines[line].text.length - left));
+            } else if (line == ce[0]) {
                 // this is the last line of the selection
-                while(ln.firstChild)
+                while (ln.firstChild)
                     ln.removeChild(ln.firstChild);
-                ln.appendChild(this.makeSelection(0, measureText("M")*ce[1]));
-            } else if(line > cs[0] && line < ce[0]) {
+                ln.appendChild(this.makeSelection(0, measureText("M") * ce[1]));
+            } else if (line > cs[0] && line < ce[0]) {
                 // this line is within the selection, but is not the first or last.
-                if(line > lcs[0] && line < lce[0]) {
+                if (line > lcs[0] && line < lce[0]) {
                     // this line was within the selection previously, it is already highlighted,
                     // nothing to do.
-                } else if(line >= cs[0] && line <= ce[0]) {
+                } else if (line >= cs[0] && line <= ce[0]) {
                     // this line is newly within the selection
-                    while(ln.firstChild)
+                    while (ln.firstChild)
                         ln.removeChild(ln.firstChild);
-                    ln.appendChild(this.makeSelection(0, Math.max(measureText("M"), measureText("M")*this.model.lines[line].text.length)));
+                    ln.appendChild(this.makeSelection(0, Math.max(measureText("M"), measureText("M") * this.model.lines[line].text.length)));
                 } else {
                     // this line is no longer within the selection
-                    while(ln.firstChild)
+                    while (ln.firstChild)
                         ln.removeChild(ln.firstChild);
                 }
             }
@@ -569,33 +581,48 @@ export class ReplReadline {
         this.updateParenMatches()
         this._repaintListeners.forEach(x => x());
     }
-    
+
     getCaretOnScreen() {
         let rect = this.caret.getBoundingClientRect();
-        return { x: rect.left, y: rect.top+window.scrollY, width: rect.width, height: rect.height};
+        return { x: rect.left, y: rect.top + window.scrollY, width: rect.width, height: rect.height };
     }
 
     /** Given a (pageX, pageY) pixel coordinate, returns the character offset into this document. */
     pageToOffset(pageX: number, pageY: number) {
         let rect = this.mainElem.getBoundingClientRect();
-        let y = pageY-(rect.top + window.scrollY);
+        let y = pageY - (rect.top + window.scrollY);
+        let x = pageX - (rect.left + window.scrollX);
         let i: number;
 
         // NOTE: assuming every line is a fixed size, this could be O(1).
         // on the other hand, this seems quite fast for now.
-        for(i=0; i<this.mainElem.children.length; i++) {
+        for (i = 0; i < this.mainElem.children.length; i++) {
             let child = this.mainElem.children.item(i) as HTMLElement;
-            if(y < child.offsetTop)
+            if (y < child.offsetTop)
                 break;
         }
         i--;
 
-        if(i < 0)
+        if (i < 0)
             return 0;
         let offset = this.model.getOffsetForLine(i);
-        
-        offset += Math.min(Math.floor((pageX-rect.left) / measureText("M")), this.model.lines[i].text.length)
+
+        offset += Math.min(Math.floor(x / measureText("M")), this.model.lines[i].text.length)
         return offset;
+    }
+
+    /** Given a (pageX, pageY) pixel coordinate, returns if the point is in the bounding rectangle of the main element. */
+    withinBoundingClientRect(pageX: number, pageY: number) {
+        let rect = this.mainElem.getBoundingClientRect();
+        let rectY = (rect.top + window.scrollY);
+        let rectX = (rect.left + window.scrollX);
+        if (pageX >= rectX &&
+            pageX <= rectX + rect.width &&
+            pageY >= rectY &&
+            pageY <= rectY + rect.height) {
+            return true;
+        }
+        return false;
     }
 
     private mouseDrag = (e: MouseEvent) => {
@@ -611,7 +638,7 @@ export class ReplReadline {
 
     private mouseDown = (e: MouseEvent) => {
         e.preventDefault();
-        
+
         this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
         this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         this.repaint();
@@ -642,14 +669,14 @@ export class ReplReadline {
 
         parent.appendChild(this.wrap);
         this.mainElem.addEventListener("mousedown", this.mouseDown)
-        
+
         this.caret = document.createElement("div");
         this.caret.className = "caret";
         let line = this.makeLine();
         this.inputLines.push(line)
         this.mainElem.appendChild(line);
-        ctx.font = getComputedStyle(line).font+"";
-        this.caret.style.width = measureText("M")+"px";
+        ctx.font = getComputedStyle(line).font + "";
+        this.caret.style.width = measureText("M") + "px";
         line.appendChild(this.caret);
     }
 
@@ -704,10 +731,10 @@ const macros = new Set(["if", "let", "do", "while", "cond", "case"]);
 function makeToken(tk: Token) {
     let span = document.createElement("span");
     let className = tk.type;
-    if(tk.type == "id") {
-        if(tk.raw.startsWith("def"))
+    if (tk.type == "id") {
+        if (tk.raw.startsWith("def"))
             className = "decl";
-        else if(macros.has(tk.raw))
+        else if (macros.has(tk.raw))
             className = "macro";
     }
 

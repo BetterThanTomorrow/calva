@@ -29,7 +29,7 @@ function update() {
 
     //let disconnectedColor = "rgb(192,192,192)";
 
-    const pprint = state.config().pprint;
+    const pprint = state.config().prettyPrintingOptions.enabled;
     prettyPrintToggle.text = "pprint";
     prettyPrintToggle.color = pprint ? color.active : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`
@@ -75,11 +75,15 @@ function update() {
                 cljsBuildStatus.tooltip = "Click to connect to a CLJS build REPL";
             }
         }
-    } else if (current.get('launching')) {
+    } else if (util.getLaunchingState()) {
         connectionStatus.color = colorValue("launchingColor", currentConf);
-        connectionStatus.text = "Launching REPL using " + current.get('launching');
-    } else if (current.get('connecting')) {
+        connectionStatus.text = "Launching REPL using " + util.getLaunchingState();
+        connectionStatus.tooltip = "Click to interrupt jack-in or Connect to REPL Server";
+        connectionStatus.command = "calva.disconnect";
+    } else if (util.getConnectingState()) {
         connectionStatus.text = "nREPL - trying to connect";
+        connectionStatus.tooltip = "Click to interrupt jack-in or Connect to REPL Server";
+        connectionStatus.command = "calva.disconnect";
     } else {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.tooltip = "Click to jack-in or Connect to REPL Server";

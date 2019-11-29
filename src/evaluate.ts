@@ -5,9 +5,36 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
-import { activeReplWindow } from './repl-window';
-import { NReplSession } from './nrepl';
-import statusbar from './statusbar'
+import { activeReplWindow, getReplWindow } from './repl-window';
+import { NReplSession, NReplEvaluation } from './nrepl';
+import statusbar from './statusbar';
+import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
+
+function interruptAllEvaluations() {
+
+    if (util.getConnectedState()) {
+        let chan = state.outputChannel();
+        let msgs: string[] = [];
+
+
+        let nums = NReplEvaluation.interruptAll((msg) => {
+            msgs.push(msg);
+        })
+        chan.appendLine(normalizeNewLines(msgs));
+
+        NReplSession.getInstances().forEach((session, index) => {
+            session.interruptAll();
+        });
+
+        if (nums < 1) {
+            vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
+        } else {
+            vscode.window.showInformationMessage(`Interupted ${nums} running evaluation(s).`);
+        }
+        return;
+    }
+    vscode.window.showInformationMessage("Not connected to a REPL server");
+}
 
 function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
     const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
@@ -17,14 +44,14 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
     });
 }
 
-async function evaluateSelection(document = {}, options = {}) {
+async function evaluateSelection(document, options) {
     let current = state.deref(),
         chan = state.outputChannel(),
         doc = util.getDocument(document),
-        pprint = options["pprint"] || false,
-        replace = options["replace"] || false,
-        topLevel = options["topLevel"] || false,
-        asComment = options["comment"] || false;
+        pprintOptions = options.pprintOptions,
+        replace = options.replace || false,
+        topLevel = options.topLevel || false,
+        asComment = options.comment || false;
     if (current.get('connected')) {
         let client = util.getSession(util.getFileType(doc));
         let editor = vscode.window.activeTextEditor,
@@ -60,10 +87,10 @@ async function evaluateSelection(document = {}, options = {}) {
                         column: column + 1,
                         stdout: m => out.push(m),
                         stderr: m => err.push(m),
-                        pprint: !!pprint
+                        pprintOptions: pprintOptions
                     });
                 let value = await context.value;
-                value = context.pprintOut || value;
+                value = util.stripAnsi(context.pprintOut || value);
 
                 if (replace) {
                     const indent = `${' '.repeat(c)}`,
@@ -100,7 +127,7 @@ async function evaluateSelection(document = {}, options = {}) {
                     chan.appendLine(normalizeNewLines(err));
                 }
 
-                const message = err.join("\n");
+                const message = util.stripAnsi(err.join("\n"));
                 annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
                 annotations.decorateResults(message, true, codeSelection, editor);
                 if (asComment) {
@@ -117,26 +144,31 @@ function normalizeNewLines(strings: string[]): string {
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprint: state.config().pprint }));
+    evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
+        .catch(e => console.warn(`Unhandled error: ${e.message}`));
 }
 
-async function loadFile(document = {}, callback = () => { }) {
+async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
     let current = state.deref(),
         doc = util.getDocument(document),
         fileName = util.getFileName(doc),
@@ -150,30 +182,57 @@ async function loadFile(document = {}, callback = () => { }) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
 
-        let value = await client.loadFile(doc.getText(), {
+        let res = client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
-            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)
-        }).value;
-
-        if (value !== null)
-            chan.appendLine("=> " + value);
-        else
-            chan.appendLine("No results from file evaluation.");
+            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
+            pprintOptions: pprintOptions
+        })
+        await res.value.then((value) => {
+            if (value) {
+                chan.appendLine("=> " + value);
+            } else {
+                chan.appendLine("No results from file evaluation.");
+            }
+        }).catch((e) => { 
+            chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
+        });
     }
-    callback();
+    if (callback) {
+        try {
+            callback();
+        } catch (e) { 
+            chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
+        };
+    }
 }
 
 async function requireREPLUtilitiesCommand() {
-    const chan = state.outputChannel(),
-        replWindow = activeReplWindow(),
-        session: NReplSession = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({}))),
-        CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
-        CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
-        form = util.getREPLSessionType() == "cljs" ? CLJS_FORM : CLJ_FORM;
-    await session.eval(form);
-    chan.appendLine("REPL utilities (like apropos, dir, doc, find-doc, pst, and source) are now available.");
+
+    if (util.getConnectedState()) {
+        const chan = state.outputChannel(),
+            ns = util.getDocumentNamespace(util.getDocument({})),
+            CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
+            CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
+            sessionType = util.getREPLSessionType(),
+            form = sessionType == "cljs" ? CLJS_FORM : CLJ_FORM,
+            fileType = util.getFileType(util.getDocument({})),
+            session = util.getSession(fileType);
+
+        if (session) {
+            try {
+                await util.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
+                await session.eval("(in-ns '" + ns + ")").value;
+                await session.eval(form).value;
+                chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
+            } catch (e) {
+                chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
+            }
+        }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a REPL server");
+    }
 }
 
 async function copyLastResultCommand() {
@@ -191,14 +250,16 @@ async function copyLastResultCommand() {
 }
 
 async function togglePrettyPrint() {
-    const config = vscode.workspace.getConfiguration('calva');
-    const pprintConfigKey = 'prettyPrint';
-    const pprint = config.get(pprintConfigKey);
-    await config.update(pprintConfigKey, !pprint, vscode.ConfigurationTarget.Global);
+    const config = vscode.workspace.getConfiguration('calva'),
+        pprintConfigKey = 'prettyPrintingOptions',
+        pprintOptions = config.get(pprintConfigKey) as PrettyPrintingOptions;
+        pprintOptions.enabled = !pprintOptions.enabled;
+    await config.update(pprintConfigKey, pprintOptions, vscode.ConfigurationTarget.Global);
     statusbar.update();
 };
 
 export default {
+    interruptAllEvaluations,
     loadFile,
     evaluateCurrentForm,
     evaluateTopLevelForm,

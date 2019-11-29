@@ -55,11 +55,19 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
 })
 
 
+export enum ReplPareditKeyMap {
+    NONE,
+    ORIGINAL,
+    STRICT
+}
+
+
 
 export class ReplConsole {
     readline: ReplReadline;
     input: HTMLInputElement;
     hotkeys: HotKeyTable<ReplConsole>;
+    pareditKeyMap: ReplPareditKeyMap = ReplPareditKeyMap.ORIGINAL;
 
     historyIndex = -1;
     history: string[] = [];
@@ -81,6 +89,34 @@ export class ReplConsole {
         const el = this.readline.caret;
         if (!this.isElementInViewport(el)) {
             el.scrollIntoView({ block: "nearest" });
+        }
+    }
+
+    private isKeyMap(values: ReplPareditKeyMap[]): boolean {
+
+        if (this.pareditKeyMap == ReplPareditKeyMap.NONE) {
+            return false;
+        }
+        if (values.includes(this.pareditKeyMap)) {
+            return true;
+        }
+        return false;
+    }
+
+    getPareditKeyMap(): ReplPareditKeyMap {
+        return this.pareditKeyMap;
+    }
+
+    setPareditKeyMap(value: String) {
+        switch (value.trim().toLowerCase()) {
+            case 'original':
+                this.pareditKeyMap = ReplPareditKeyMap.ORIGINAL;
+                break;
+            case 'strict':
+                this.pareditKeyMap = ReplPareditKeyMap.STRICT;
+                break;
+            default:
+                this.pareditKeyMap = ReplPareditKeyMap.NONE;
         }
     }
 
@@ -196,28 +232,28 @@ export class ReplConsole {
                 e.preventDefault();
             } else if (this.input.value == "(") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "()");
+                    paredit.open(this.readline, "(", ")");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
                 e.preventDefault();
             } else if (this.input.value == "[") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "[]");
+                    paredit.open(this.readline, "[", "]");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
                 e.preventDefault();
             } else if (this.input.value == "{") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "{}");
+                    paredit.open(this.readline, "{", "}");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
                 e.preventDefault();
             } else if (this.input.value == "{") {
                 this.readline.withUndo(() => {
-                    paredit.open(this.readline, "{}");
+                    paredit.open(this.readline, "{", "}");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
@@ -276,6 +312,16 @@ export class ReplConsole {
         }
     }
 
+    printElementBeforeReadline(element: HTMLElement) {
+        if (!this.readline) {
+            this.elem.appendChild(element);
+            element.scrollIntoView({ block: "nearest" });
+        } else {
+            this.elem.insertBefore(element, this.readline.elem);
+            this.readline.elem.scrollIntoView({ block: "nearest" });
+        }
+    }
+
     print(text: string) {
         let el = document.createElement("div");
         el.textContent = text;
@@ -300,8 +346,14 @@ export class ReplConsole {
             this.requestPrompt(this.readline.promptElem.textContent);
             return;
         }
-        this.history.push(line);
-        this._historyListeners.forEach(x => x(line));
+        let last = "";
+        if(this.history.length > 0) {
+           last = this.history[this.history.length - 1];
+        }
+        if(last != line.trim()) {
+            this.history.push(line.trim());
+            this._historyListeners.forEach(x => x(line));
+        }
         this.historyIndex = -1;
         this.readline.freeze();
         if (trigger)
@@ -327,6 +379,7 @@ export class ReplConsole {
                 paredit.raiseSexp(this.readline);
                 this.readline.repaint();
             });
+
         },
         "convolute-sexp": () => {
             this.readline.withUndo(() => {
@@ -481,10 +534,17 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "backspace": () => {
-            this.readline.withUndo(() => {
-                paredit.backspace(this.readline);
-                this.readline.repaint()
-            })
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
+                this.readline.withUndo(() => {
+                    paredit.backspace(this.readline);
+                    this.readline.repaint()
+                })
+            } else {
+                this.readline.withUndo(() => {
+                    this.readline.backspace();
+                    this.readline.repaint()
+                })
+            }
         },
         "cursor-home": () => {
             this.readline.caretHome(true);
@@ -519,10 +579,17 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "delete": () => {
-            this.readline.withUndo(() => {
-                paredit.deleteForward(this.readline);
-                this.readline.repaint()
-            })
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
+                this.readline.withUndo(() => {
+                    paredit.deleteForward(this.readline);
+                    this.readline.repaint()
+                })
+            } else {
+                this.readline.withUndo(() => {
+                    this.readline.delete();
+                    this.readline.repaint()
+                })
+            }
         },
         "wrap-round": () => {
             this.readline.withUndo(() => {
@@ -565,7 +632,7 @@ export class ReplConsole {
                 this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
                 this.readline.selectionStart = this.readline.selectionEnd = line.length;
             })
-            this.readline.repaint();
+            this.readline.repaint();   
         },
         "history-down": () => {
             if (this.historyIndex == this.history.length || this.historyIndex == -1)

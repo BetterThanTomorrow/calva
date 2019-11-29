@@ -12,6 +12,7 @@ import * as docMirror from './calva-fmt/src/docmirror';
 import { TokenCursor, LispTokenCursor } from './webview/token-cursor';
 import { Token } from './webview/clojure-lexer';
 import select from './select';
+import { disabledPrettyPrinter } from './printer';
 
 
 export function stripAnsi(str: string) {
@@ -190,6 +191,24 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
+async function createNamespaceFromDocumentIfNotExists(doc) {
+
+    if (getConnectedState()) {
+        let document = getDocument(doc);
+        if (document) {
+            let ns = getNamespace(document);
+            let client = getSession(getFileType(document));
+            if (client) {
+                let nsList = await client.listNamespaces([]);
+                if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
+                    return;
+                }
+                await client.eval("(ns " + ns + ")").value;
+            }
+        }
+    }
+}
+
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
@@ -237,11 +256,20 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
-function getConnectedState() {
-    return state.cursor.get('connected');
+function getLaunchingState() { 
+    return state.deref().get('launching');
 }
 
-function setConnectedState(value) {
+function setLaunchingState(value: any) {
+    vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
+    state.cursor.set('launching', value);
+}
+
+function getConnectedState() { 
+    return state.deref().get('connected');
+}
+
+function setConnectedState(value: Boolean) {
     if(value) {
         vscode.commands.executeCommand("setContext", "calva:connected", true);
         state.cursor.set('connected', true);
@@ -252,10 +280,10 @@ function setConnectedState(value) {
 }
 
 function getConnectingState() {
-    return state.cursor.get('connecting');
+    return state.deref().get('connecting');
 }
 
-function setConnectingState(value) {
+function setConnectingState(value: Boolean) {
     if(value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
         state.cursor.set('connecting', true);
@@ -392,15 +420,25 @@ function getREPLSessionType() {
     return current.get('current-session-type');
 }
 
+async function promptForUserInputString(prompt: string): Promise<string> {
+    return vscode.window.showInputBox({ 
+        prompt: prompt,
+        ignoreFocusOut: true,
+    });
+}
+
 export {
     getNamespace,
     getStartExpression,
     getWordAtPosition,
+    createNamespaceFromDocumentIfNotExists,
     getDocument,
     getDocumentNamespace,
     getFileType,
     getFileName,
     getSession,
+    getLaunchingState,
+    setLaunchingState,
     getConnectedState,
     setConnectedState,
     getConnectingState,
@@ -420,4 +458,5 @@ export {
     quickPickSingle,
     quickPickMulti,
     getTestUnderCursor,
+    promptForUserInputString,
 };

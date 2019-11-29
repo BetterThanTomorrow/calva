@@ -1,9 +1,9 @@
 {
     "name": "calva",
-    "displayName": "Calva: Clojure & Clojurescript Interactive Programming",
+    "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.43",
+    "version": "2.0.62",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -25,7 +25,7 @@
     ],
     "keywords": [
         "Clojure",
-        "CLojureScript",
+        "ClojureScript",
         "Cider",
         "REPL",
         "Formatting",
@@ -51,9 +51,15 @@
         "onCommand:calva.jackIn",
         "onCommand:calva.jackInOrConnect",
         "onCommand:calva.connect",
-        "onCommand:calva.connectNonProjectREPL"
+        "onCommand:calva.connectNonProjectREPL",
+        "workspaceContains:**/project.clj",
+        "workspaceContains:**/shadow-cljs.edn",
+        "workspaceContains:**/deps.edn"
     ],
     "main": "./out/extension",
+    "extensionPack": [
+        "borkdude.clj-kondo"
+    ],
     "contributes": {
         "languages": [
             {
@@ -98,10 +104,53 @@
                 "type": "object",
                 "title": "Calva",
                 "properties": {
-                    "calva.prettyPrint": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Pretty print evaluations"
+                    "calva.prettyPrintingOptions": {
+                        "type": "object",
+                        "description": "Settings for Calva's pretty printing",
+                        "properties": {
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "Should evaluations be pretty printed?"
+                            },
+                            "printEngine": {
+                                "type": "string",
+                                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it.",
+                                "enum": [
+                                    "calva",
+                                    "pprint",
+                                    "fipp",
+                                    "puget",
+                                    "zprint"
+                                ]
+                            },
+                            "width": {
+                                "type": "number",
+                                "description": "The width of the printing. Or line length... Hmmm, you get it, I hope."
+                            },
+                            "maxLength": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The maximum number of forms to print of each collection. For no limit, do not include this in your setting. See https://clojuredocs.org/clojure.core/*print-length*"
+                            },
+                            "maxDepth": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ],
+                                "description": "The maximum number of levels deep the printing will go in nested objects. For no limit, do not include this in your setting. Does not exist for `puget`. See also https://clojuredocs.org/clojure.core/*print-level*"
+                            }
+                        },
+                        "required": [
+                            "enabled",
+                            "printEngine"
+                        ],
+                        "default": {
+                            "enabled": true,
+                            "printEngine": "pprint",
+                            "width": 120
+                        }
                     },
                     "clojure.format.enable": {
                         "type": "boolean",
@@ -112,11 +161,6 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Run load-file when opening a new file and on file save"
-                    },
-                    "calva.lintOnSave": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Run joker-linting when opening a new file and on file save"
                     },
                     "calva.testOnSave": {
                         "type": "boolean",
@@ -130,7 +174,6 @@
                     },
                     "calva.statusColor": {
                         "type": "object",
-                        "default": {},
                         "description": "Configuration for custom coloring of the statusbar.",
                         "properties": {
                             "disconnectedColor": {
@@ -157,6 +200,12 @@
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
                                 "description": "Foreground color for the type status"
                             }
+                        },
+                        "default": {
+                            "disconnectedColor": "#c0c0c0",
+                            "launchingColor": "#fdd023",
+                            "connectedSatusColor": "#fdd023",
+                            "typeStatusColor": "#91dc47"
                         }
                     },
                     "calva.customCljsRepl": {
@@ -195,16 +244,6 @@
                             "connectedRegExp"
                         ]
                     },
-                    "calva.jokerPath": {
-                        "type": "string",
-                        "default": "joker",
-                        "description": "Sets the path in which the Joker executable can be found. If useWSL has been set to true, this should be a valid WSL path."
-                    },
-                    "calva.useWSL": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Specifies if the nREPL and Joker are running within WSL."
-                    },
                     "calva.jackInEnv": {
                         "type": "object",
                         "default": {},
@@ -214,6 +253,46 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Should Calva open the Figwheel app for you when Figwheel has been started?"
+                    },
+                    "calva.customREPLCommandSnippets": {
+                        "type": "array",
+                        "default": [],
+                        "description": "Configuration for the command **Run Custom REPL Command**",
+                        "$schema": "http://json-schema.org/draft-06/schema#",
+                        "items": {
+                            "title": "replCommand",
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name this command so that it is easy to pick from the menu."
+                                },
+                                "snippet": {
+                                    "type": [
+                                        "string",
+                                        "array"
+                                    ],
+                                    "description": "Command to send to the REPL"
+                                },
+                                "ns": {
+                                    "type": "string",
+                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
+                                },
+                                "repl": {
+                                    "type": "string",
+                                    "description": "Choose which REPL should the code should be evaluated in.",
+                                    "enum": [
+                                        "clj",
+                                        "cljs"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "snippet",
+                                "repl"
+                            ]
+                        }
                     },
                     "calva.myLeinProfiles": {
                         "type": "array",
@@ -228,6 +307,11 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "calva.openREPLWindowOnConnect": {
+                        "type": "boolean",
+                        "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
+                        "default": true
                     },
                     "calva.sendAsyncOutputTo": {
                         "type": "string",
@@ -246,7 +330,8 @@
                             "type": "object",
                             "required": [
                                 "name",
-                                "projectType"
+                                "projectType",
+                                "cljsType"
                             ],
                             "properties": {
                                 "name": {
@@ -312,7 +397,7 @@
                                         },
                                         "cljsDefaultBuild": {
                                             "type": "string",
-                                            "description": "Which cljs build to acttach to at the initial connect."
+                                            "description": "Which cljs build to attach to at the initial connect."
                                         }
                                     }
                                 },
@@ -325,7 +410,8 @@
                                                 "Figwheel Main",
                                                 "lein-figwheel",
                                                 "shadow-cljs",
-                                                "Nashorn"
+                                                "Nashorn",
+                                                "none"
                                             ]
                                         },
                                         {
@@ -344,7 +430,7 @@
                                                         "Nashorn",
                                                         "User provided"
                                                     ],
-                                                    "description": "The CLojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that privides the dependencies needed."
+                                                    "description": "The ClojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed."
                                                 },
                                                 "buildsRequired": {
                                                     "type": "boolean",
@@ -360,7 +446,7 @@
                                                 },
                                                 "isReadyToStartRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
+                                                    "description": "A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated."
                                                 },
                                                 "openUrlRegExp": {
                                                     "type": "string",
@@ -377,12 +463,12 @@
                                                 },
                                                 "isConnectedRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout of the connectCode evaluation, will tell Calva that the application is connected.",
+                                                    "description": "A regular expression which, when matched in the stdout of the connectCode evaluation, will tell Calva that the application is connected.",
                                                     "default": "To quit, type: :cljs/quit"
                                                 },
                                                 "printThisLineRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular experession which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
+                                                    "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
                                                 }
                                             }
                                         }
@@ -531,8 +617,8 @@
             },
             {
                 "command": "calva.disconnect",
-                "title": "Disonnect from the REPL Server",
-                "enablement": "calva:connected || calva:connecting",
+                "title": "Disconnect from the REPL Server",
+                "enablement": "calva:connected || calva:connecting || calva:launching",
                 "category": "Calva"
             },
             {
@@ -554,8 +640,14 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.clearREPLWindowHistory",
-                "title": "Clear history of active REPL window (mainly in case it has been borked)",
+                "command": "calva.clearClojureREPLWindow",
+                "title": "Clear Clojure REPL Window + History",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.clearClojureScriptREPLWindow",
+                "title": "Clear ClojureScript REPL Window + History",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -573,6 +665,12 @@
             {
                 "command": "calva.clearInlineResults",
                 "title": "Clear Inline Evaluation Results",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.interruptAllEvaluations",
+                "title": "Interrupt running Evaluations",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
@@ -623,11 +721,6 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.lintFile",
-                "title": "Lint Current File",
-                "category": "Calva"
-            },
-            {
                 "command": "calva.runNamespaceTests",
                 "title": "Run Tests for Current Namespace",
                 "enablement": "calva:connected",
@@ -671,9 +764,15 @@
             },
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "title": "Evaluate Top Level Form in REPL Window (defun)",
+                "title": "Evaluate Top Level Form (defun) in REPL Window",
                 "enablement": "calva:connected",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "title": "Run Custom REPL Command",
+                "category": "Calva",
+                "enablement": "calva:connected"
             },
             {
                 "command": "calva.switchCljsBuild",
@@ -690,12 +789,15 @@
             {
                 "command": "calva.refreshAll",
                 "title": "Refresh All Namespaces",
+                "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.toggle",
-                "title": "Toggle"
+                "command": "paredit.togglemode",
+                "title": "Toggle Paredit Mode",
+                "when": "paredit:keyMap =~ /original|strict/",
+                "enablement": "paredit:keyMap =~ /original|strict/"
             },
             {
                 "category": "Calva Paredit",
@@ -946,12 +1048,16 @@
             {
                 "command": "calva.clearInlineResults",
                 "key": "escape",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
             },
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+alt+c e",
                 "win": "ctrl+alt+c v"
+            },
+            {
+                "command": "calva.interruptAllEvaluations",
+                "key": "ctrl+alt+c ctrl+alt+d"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
@@ -986,10 +1092,6 @@
                 "key": "ctrl+alt+c ctrl+u"
             },
             {
-                "command": "calva.lintFile",
-                "key": "ctrl+alt+c l"
-            },
-            {
                 "command": "calva.runNamespaceTests",
                 "key": "ctrl+alt+c t"
             },
@@ -1021,6 +1123,15 @@
             {
                 "command": "calva.evalCurrentTopLevelFormInREPLWindow",
                 "key": "ctrl+alt+c ctrl+alt+space"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+c ."
+            },
+            {
+                "command": "paredit.togglemode",
+                "key": "ctrl+alt+c -",
+                "when": "paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardSexp",
@@ -1253,6 +1364,18 @@
                     "when": "false"
                 }
             ],
+            "editor/title": [
+                {
+                    "enablement": "editorLangId == clojure  && calva:connected",
+                    "command": "calva.loadFile",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "command": "calva.loadNamespace",
+                    "group": "calva/b-eval"
+                }
+            ],
             "editor/context": [
                 {
                     "when": "editorLangId == clojure && !calva:connected",
@@ -1262,12 +1385,7 @@
                 {
                     "when": "editorLangId == clojure && calva:connected",
                     "command": "calva.disconnect",
-                    "group": "calva/x-disconnect"
-                },
-                {
-                    "when": "editorLangId == clojure",
-                    "command": "calva.togglePrettyPrint",
-                    "group": "calva/y-toggle"
+                    "group": "calva/x-connect"
                 },
                 {
                     "when": "editorLangId == clojure",
@@ -1275,52 +1393,62 @@
                     "group": "calva/a-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure  && calva:connected",
+                    "command": "calva.loadFile",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "command": "calva.loadNamespace",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateSelection",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateCurrentTopLevelForm",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateSelectionAsComment",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.evaluateTopLevelFormAsComment",
                     "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure  && calva:connected",
-                    "command": "calva.loadFile",
-                    "group": "calva/c-load"
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "command": "calva.interruptAllEvaluations",
+                    "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
-                    "command": "calva.loadNamespace",
-                    "group": "calva/c-load"
+                    "when": "editorLangId == clojure",
+                    "command": "calva.togglePrettyPrint",
+                    "group": "calva/b-eval"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.runAllTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.runNamespaceTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.rerunTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.runTestUnderCursor",
                     "group": "calva/d-test"
                 }
@@ -1328,6 +1456,7 @@
         }
     },
     "scripts": {
+        "build-docs": "cd docs/readthedocs; make html && open build/html/index.html",
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
@@ -1338,8 +1467,7 @@
         "test-compile": "npm i && npx shadow-cljs compile :calva-lib &&  tsc -p ./ && webpack --mode development",
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
-        "bump-version": "npm set git-tag-version false && npm version patch",
-        "postinstall": "node ./node_modules/vscode/bin/install"
+        "bump-version": "npm set git-tag-version false && npm version patch"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
@@ -1361,8 +1489,7 @@
         "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
-        "vscode-extension-telemetry": "0.0.15",
-        "wsl-path": "^1.1.0"
+        "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
@@ -1386,7 +1513,7 @@
         "mocha": "^6.1.4",
         "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.59",
+        "shadow-cljs": "^2.8.69",
         "source-map-support": "^0.5.13",
         "style-loader": "^0.23.1",
         "tar": "^4.4.10",
@@ -1394,8 +1521,7 @@
         "tslint": "^5.17.0",
         "typescript": "^3.5.1",
         "url-loader": "^1.1.2",
-        "vsce": "^1.66.0",
-        "vscode": "^1.1.34",
+        "vsce": "^1.67.1",
         "vscode-test": "^1.0.0",
         "webpack": "^4.33.0",
         "webpack-cli": "^3.3.5"

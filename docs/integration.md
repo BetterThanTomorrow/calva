@@ -1,7 +1,7 @@
 
 Description of the Calva development and release process.
 
-_This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feeback and tips on how to improve this process is very welcome._
+_This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feedback and tips on how to improve this process is very welcome._
 
 ## 1. Introducing Changes
 
@@ -21,28 +21,35 @@ Smaller changes:
 * Before committing on `dev` one has to ask: _should this be branched out to a `wip` branch?_
 
 ## 2. Prepare for Including the Change in the Next Published Calva
-1. When a PR looks good, we merge it onto `dev`.
+1. When a PR looks good
+   1. Make sure the PR is directed at `dev``
+   1. Merge the PR.
+   1. Click the **Delete branch** button that Github offers.
 1. Consider if `README.md` needs update.
-1. Make sure that `CHANGELOG.md` contains the right stuff.
-1. Commit with a message like: ”Add feature: **Short Release Description Title**"
-1. Tag the prerelease with `v<VERSION>-release-description-title` to push a prerelease to GitHub.
-1. Push. (Use `--follow-tags`)
-1. When `dev` is pushed, Circle CI runs our tests, and builds a VSIX.
-1. Download this VSIX and test it.
+   1. Commit with a message like: ”Add feature: **Short Release Description Title**"
+1. Consider if there should be a prerelease made of this. If so:
+   1. Tag the prerelease with `v<VERSION>-release-description-title`, _and make sure to make it a tag with a message_.
+   1. Push using `--follow-tags`
+1. Regardless if prerelease or not.
+   1. Circle CI runs our tests, and builds a VSIX.
+   1. Download this VSIX post on #calva-dev asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
 
 
 ## 3. Publishing a New Calva version
 
 When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
-1. With `dev` checked out: `git checkout -B master`. (This ”moves” `master` to where `dev`'s `HEAD` is pointing.)
-1. Tag with `v<VERSION>`
-1. Push `master` (Using `--follow-tags`).
-   * This will build the release VSIX, push a relase to GitHub, and publish it on the extension Marketplace.
+1. Checkout `dev`
+1. Add the CHANGELOG entries from `[Unreleased]`, **NB** No newline between the header and the entries.
+1. Tag with `v<VERSION>` (must provide tag message)
+1. Push `dev` (Using `--follow-tags`).
+   * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace.
    * You'll get an e-mail when it is published.
-1. When the new version is live, immediatelly install it and see that it works.
+1. When the new version is live, immediately install it and see that it works.
    * If the Marketplace version works:
-     1. On `dev`: `$ npm run bump-version`
+     1. Merge `dev` onto `master` (`--no-ff`)
+     1. Push
+     1. Checkout `dev` and `$ npm run bump-version`
      1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
      1. Push.
    * If the Marketplace version does not work:

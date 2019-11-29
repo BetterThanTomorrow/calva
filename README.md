@@ -1,150 +1,112 @@
-# Calva: Clojure & ClojureScript support for VS Code
+# Calva: Clojure & ClojureScript with Visual Studio Code
 
 ![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in Visual Studio Code. It includes inline code evaluation, Paredit (and some little Parinfer), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is provided by [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
 
 *Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
 
-Latest build on `master`:
+## Why Calva?
 
-[![CircleCI](https://circleci.com/gh/BetterThanTomorrow/calva.svg?style=svg)](https://circleci.com/gh/BetterThanTomorrow/calva)
+From [The Tao of Calva](https://github.com/BetterThanTomorrow/calva/wiki):
 
-## Raison d´être
+> Calva's _raison d´être_ is to provide Visual Studio Code users with an easy to use and productive environment for [Clojure](https://www.clojure.org) and [ClojureScript](https://clojurescript.org) development.
 
-Calva's main reason for existance is to _provide Visual Studio Code users with an easy to use and productive environment for Clojure and ClojureScript development_. We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
-## How to Connect Calva to your project
+From the same page you can also learn that we want Calva to be a good choice for VS Code users asking:
 
-Let Calva start your project (_a.k.a. **Jack-in**_).
+> _How do I use my favorite code editor for Clojure development?_
 
-1. Open your project in VS Code, and a file in the project. From the command line it could be something like: `code path/to/myproject README.md`.
-1. Issue the command **Start a Project REPL and Connect (aka Jack-In)**: `ctrl+alt+c ctrl+alt+j`.
-1. Answer the prompts where Calva asks you a few things about your project.
+We also hope that Calva will contribute to making it easier to pick up Clojure as a new language.
 
-When Calva has connected, it will open a REPL window giving you some getting started tips, and you can start hacking. The first thing you should always do to ”wake” Calva is to load/evaluate the current Clojure(Script) file: `ctrl+alt+c enter`.
+## Getting Started with Calva
 
-Troubles connecting? [Check here](https://github.com/BetterThanTomorrow/calva/wiki/About-Calva-Jack-in). (Please help keep that wiki page updated.)
-
-## Something to try first
-
-You might want to start with evaluating some code. Calva has this notion about the ”current” form (the symbol under the cursor or the paren enclosed s-expr immediately adjacent to the cursor). Issue the **Evaluate Current Form Inline** command: `ctrl+alt+c e`.
-
-There is also a command for evaluating the current top level form, which aösp works inside `(comment)` forms supporting code experimentation.  It looks something like so:
-
-![Annotate clojure code evaluation!](assets/howto/evaluate.gif)
-
-See also [Calva Top 10 Commands](https://github.com/BetterThanTomorrow/calva/wiki/Commands-the-Top-10).
-
-## The Calva Wiki
-
-When something doesn't work and you think there might be a workaround for it, please see the [wiki](https://github.com/BetterThanTomorrow/calva/wiki/). Anyone can author the wiki so if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page).
-
+Go to the [documentation](https://calva.readthedocs.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from the same repository as Calva. So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR.
 
 ## Features
-
-### At a glance
 - Syntax highlighting, plus:
   - Rainbow parens
   - Highlights misplaced brackets
   - LISP friendly bracket matching
   - Ignore form (`#_`) dimming and `(comment)` form highlighting
-- Clojure code formatting
-- Quickly and easily get your REPL connected
-- Evaluate code inline
-- Run tests
-- Integrated REPL windows
+- Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
+- Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit.html))
+- [Linting](https://calva.readthedocs.io/en/latest/linting.html)
 - Intellisense
 - Go to / Peek at definition
 - View docstrings on hover
-- View function signatures on hover
-- Supports all Clojure filetypes: `clj`, `cljc`, and `cljs`
-- Easy toggle between `clj` and `cljs` repl for `cljc` files
-- Autoindent according to https://github.com/bbatsov/clojure-style-guide
-- Enables `clj` evaluation of Clojure code in all files (e.g. Markdown, etcetera).
-- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, no Jack-in yet.)
-- Your [Custom Connect Sequences](https://github.com/BetterThanTomorrow/calva/wiki/Custom-Connect-Sequences), including fully customized CLJS REPLs.
+- View function signatures on hover, including help with knowing which argument you are typing
+- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
+- Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
 - Switch the CLJS REPL connection between your different CLJS builds at will.
-
-Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
-
-![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
-
-### More in depth (and some usage info)
-- Running tests through the REPL connection, and mark them in the Problems tab
-  - Run namespace tests: `ctrl+alt+c t`
-  - Run all tests: `ctrl+alt+c shift+t`
-  - Run current test: `ctrl+alt+c ctrl+alt+t`
-  - Rerun previously failing tests: `ctrl+alt+c ctrl+t`
-  - Marks test failures using the Problem tab
-  - User setting for running namespace tests on save (defaults to **on**)
-  - **Caveat**: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!
-- Code evaluation
-  - Evaluate code at cursor and show the results as annotation in the editor: `ctrl+alt+c e` (`ctrl+alt+c v` on Windows)
-    - Dismiss the display of results by pressing `escape` (there is info on the wiki for **vim** extension users).
-  - Evaluate code and replace it in the editor, inline: `ctrl+alt+c r`
-  - Evaluate code and add as comment: `ctrl+alt+c c` (current form), `ctrl+alt+c ctrl space` (current _top level_ form)
-  - Evaluate current top level form (based on where the cursor is) and show results inline: `ctrl+alt+c space`
-    - Send the current top level form to the REPL terminal: `ctrl+alt+c ctrl+alt+space`
-  - Toggle pretty printing of results on and off: `ctrl+alt+c p`. It's on by default. There is a status bar button showing the status and that also can be used to toggle the setting.
-  - Error information when evaluation fails (at least a hint)
-  - Support for `cljc` files and you can choose if they should be evaluated by the `clj` or the `cljc` repl session.
-  - Enables `clj` REPL for all files/editors. You now can evaluate those Clojure code snippets in Markdown files.
-  - The evaluation commands will auto-”detect” vectors and maps as well as list.
-  - User setting to evaluate namespace on save/open file (defaults to **on**)
-- Integrated REPLs
-  - Load current namespace in the REPL window: `ctrl+alt+c ctrl+alt+n`
-  - Evaluate code from the editor to the REPL window: `ctrl+alt+c ctrl+alt+e` (`ctrl+alt+c ctrl+alt+v` on Windows)
 - When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
-- Selection of current form: `ctrl+alt+c s`. Auto-detected the same way as for evaluation. Will select the form preceding or following the cursor first, otherwise the form the cursor is inside. (Only when the cursor is directly adjacent to any bracket so far.)
+- And more
 
-Demo: Peek at definitions, etcetera:
+### Demo: Evaluate top level forms inside `(comment...)`:
+
+![Top level comment eval](/assets/howto/top-level-comment-eval.gif)
+
+The gif demos several more features, apart from the in-comment evaluation, like:
+
+* signature help while typing function calls
+* evaluation result display is a bit sticky (so you can examine several evaluations at once)
+* there is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
+* some [structural editing](https://calva.readthedocs.io/en/latest/paredit.html)
+
+### Demo: Signature Help, while Typing
+
+It is pretty educational using the signature help hover to see which argument you are typing when the argument list is using destructuring, or when an argument is threaded in first before the arguments you provide inside the form.
+
+![Signature Help](assets/howto/signature-help.gif)
+
+
+### Demo: Syntax highlighting, dimming ignored forms:
+
+![Dimming ignored forms](/assets/howto/dimming-ignores.gif)
+
+### Demo: Peek at definitions, etcetera:
 
 ![Features](/assets/howto/features.gif)
 
-### Test features not available with ClojureScript
+### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
 
-Currently [`cider-nrepl` does not provide its test functionality for ClojureScript](https://github.com/clojure-emacs/cider-nrepl/issues/555) code. Please consider contributing to fixing that.
-
-## Calva Paredit and Calva Formatter included
-
-With Calva you also get structural editing using [Paredit](/src/paredit/README.md) and [formatting](/src/calva-fmt/README.md).
-
-You really should have a look at the READMEs for those as well. One thing to note about it is that Calva Formatter sets the default keybinding of the **Format Current Form** command to `tab`. Good to know, right?
-
-### Slurp and Barf keyboard shortcuts
-
-To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortcuts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
-
-![Disable Mission Control Shortcuts](/assets/mission-control-shortcuts.gif)
-
-## Calva Highlight
-
-Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras inclode rainbow parens, sane bracket matching, and comment form dimming/highlighting.
-
-You are in charge of how brackets and comments are highlighted:
-
-| Setting | Meaning | Example |
-| --- | ------- | ------- |
-| `"calva.highlight.enableBracketColors"` | Enable rainbow colors |  `true` |
-| `"calva.highlight.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
-| `"calva.highlight.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
-| `"calva.highlight.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
-| `"calva.highlight.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
-| `"calva.highlight.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
-| `"calva.highlight.commentFormStyle"` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
-
-Calva Highlight is built from **Clojure Warrior**, created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s.
-
-## Conflicting with Parinfer extension
-
-There have been reports of the Parinfer extension and Calva not working too well together. You might to some extent get away with switching off Calva's formatting as-you-type, but also you might not. With Calva it is probably better to learn to use Paredit **slurp** and **barf** and generally rely on Calva's automatic formatting.
+![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
 ## How to contribute
 
-I'm glad you are reading this section!
+I'm glad you are reading this section! There are many ways and you are welcome to combine them at will. Be creative 😄:
+* Give us feedback.
+  * Via [#calva-dev](https://clojurians.slack.com/messages/calva-dev/) at the Clojurians Slack.
+  * Via filing issues.
+* Fix issues. PRs welcome! Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva. TL;DR _It is super easy to get started!_
+* Fix typos. In the UI and in the docs. It might seem like a small enough thing to not bother about it, but really, typos get in the way of comprehension. Typos are bad, uhm?
+* Become a GitHub sponsor. Read on.
 
-Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva.
+## Calva Sponsors ❤️
+
+A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
+
+* [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
+
+Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
+
+These people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
+
+### Calva Fans
+
+[![Bozhidar Batsov](https://avatars0.githubusercontent.com/u/103882?s=32)](https://github.com/bbatsov)
+[![Adam Feldman](https://avatars0.githubusercontent.com/u/133385?s=32)](https://github.com/adamfeldman)
+[![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
+[![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
+[![Matthew Lyon](https://avatars2.githubusercontent.com/u/891?s=30)](https://github.com/mattly)
+[![Brian Scaturro](https://avatars0.githubusercontent.com/u/636651?s=30)](https://github.com/brianium)
+
+
+### Calva Friends
+
+[![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
+[![Byron Miller](https://avatars1.githubusercontent.com/u/1461719?s=30)](https://github.com/supernovae)
+[![Terje](https://avatars2.githubusercontent.com/u/6209?s=30)](https://github.com/terjesb)
 
 ## The Calva Team
 
@@ -155,12 +117,13 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
 * [Christian Fehse](https://github.com/cfehse)
+* [Brandon Ringe](https://github.com/bpringe)
 
 ### Alumni
 * [Matt Seddon](https://github.com/mseddon)
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
 
-## Happy coding ❤️
+## Happy coding
 
-We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [`#calva-dev`](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.
+We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [#calva-dev](https://clojurians.slack.com/messages/calva-dev/) channel in the Clojurians Slack.

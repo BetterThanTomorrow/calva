@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
+import { disabledPrettyPrinter } from './printer';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -22,8 +23,16 @@ function reportTests(results, errorStr, log = true) {
                 let resultSet = result.results[ns];
                 for (const test in resultSet) {
                     for (const a of resultSet[test]) {
+                        const resultMessage = (resultItem) => {
+                          let msg = [];
+                          if(!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+                            msg.push(resultItem.context);
+                          if(resultItem.message)
+                            msg.push(resultItem.message);
+                          return `${msg.join(": ")}${(msg.length > 0 ? "\n" : "")}`;
+                        }
                         if (a.type == "error" && log)
-                            chan.appendLine(`ERROR in: ${ns}: ${a.file}, line ${a.line}: ${test}: ${(a.context || "")}:\n  error: ${a.error} + "\n  expected: ${a.expected}`);
+                          chan.appendLine(`ERROR in ${ns}/${test} (line ${a.line}):\n${resultMessage(a)}   error: ${a.error} (${a.file})\nexpected: ${a.expected}`);
                         if (a.type == "fail") {
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
@@ -31,7 +40,7 @@ function reportTests(results, errorStr, log = true) {
                                 diagnostics[a.file] = [];
                             diagnostics[a.file].push(err);
                             if (log)
-                                chan.appendLine(`FAIL in: ${a.file}: ${a.line}: ${test}: ${(a.context || "")}:\n  expected: ${a.expected}\n  actual: ${a.actual}`);
+                              chan.appendLine(`FAIL in ${ns}/${test} (${a.file}:${a.line}):\n${resultMessage(a)}expected: ${a.expected}  actual: ${a.actual}`);
                         }
                     }
                 }
@@ -82,7 +91,7 @@ async function runAllTests(document = {}) {
 
 function runAllTestsCommand() {
     state.outputChannel().show(true);
-    runAllTests();
+    runAllTests().catch(() => {});
 }
 
 async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
@@ -99,7 +108,7 @@ async function considerTestNS(ns: string, client: any, nss: string[]): Promise<s
     return nss;
 }
 
-async function runNamespaceTests(document = {}) {
+function runNamespaceTests(document = {}) {
     let client = util.getSession(util.getFileType(document)),
         doc = util.getDocument(document),
         ns = util.getNamespace(doc),
@@ -113,7 +122,7 @@ async function runNamespaceTests(document = {}) {
             resultPromises.push(client.testNs(nss[1]));
         let results = await Promise.all(resultPromises);
         reportTests(results, "Running tests");
-    });
+    }, disabledPrettyPrinter).catch(() => {});
 }
 
 async function runTestUnderCursor() {
@@ -126,12 +135,12 @@ async function runTestUnderCursor() {
         state.outputChannel().appendLine(`Running test: ${test}…`);
         const results = [await client.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
-    });
+    }, disabledPrettyPrinter).catch(() => {});
 }
 
 function runTestUnderCursorCommand() {
     state.outputChannel().show(true);
-    runTestUnderCursor();
+    runTestUnderCursor().catch(() => {});
 }
 
 function runNamespaceTestsCommand() {
@@ -144,7 +153,7 @@ function rerunTests(document = {}) {
     evaluate.loadFile({}, async () => {
         state.outputChannel().appendLine("Running previously failed tests…");
         reportTests([await client.retest()], "Retesting");
-    });
+    }, disabledPrettyPrinter).catch(() => {});
 }
 
 function rerunTestsCommand() {

@@ -48,11 +48,14 @@ jspm_packages
 lib/
 cljs-out/
 test-out/
+
+# This and that
 .nrepl-port
 dist/
 pom.xml
 .idea
 *.iml
+*.bak
 
 
 ## TS
@@ -60,3 +63,6 @@ out/
 html/main.js
 tsconfig.tsbuildinfo
 html/main.js.map
+
+## Read The Docs
+docs/readthedocs/build

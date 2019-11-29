@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     pairings[o+c] = true;
     tokens.push(o, c);
   });
-  const regexp = new RegExp("(#_[\\s,~@'^`]*|(?<=[ ,(])comment(?=\\s)|[\\s,]+|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
+  const regexp = new RegExp("(#_[\\s,~@'^`]*|(?<=\\(\\s*)comment(?=\\s)|[\\s,]+|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -44,8 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
       rainbowTimer = undefined,
       dirty = false;
 
-  if (is_clojure(activeEditor))
-    reloadConfig();
+  reloadConfig();
 
   vscode.window.onDidChangeActiveTextEditor(editor => {
     activeEditor = editor;
@@ -174,10 +173,11 @@ export function activate(context: vscode.ExtensionContext) {
     let match,
         in_string = false,
         in_comment = false,
-        in_ignore = false,
+        ignore_counter = 0,
         ignore_start: Position,
         ignored_text_start: Position,
         ignored_list_opened = false,
+        ignore_pushed_by_closing = false,
         in_comment_form = false,
         stack = [],
         stack_depth = 0;
@@ -198,16 +198,22 @@ export function activate(context: vscode.ExtensionContext) {
       } else if (char === "\"") {
         in_string = true;
         continue;
-      } else if (char.startsWith("#_") && !in_ignore) {
-        in_ignore = true;
-        ignore_start = activeEditor.document.positionAt(match.index);
-        ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
-        continue;
-      } else if (char.match(/[\s,]+/)) {
-        if (in_ignore && !ignored_list_opened) {
-          in_ignore = false;
-          ignores.push(new Range(ignore_start, activeEditor.document.positionAt(match.index)));
+      } else if (char.startsWith("#_")) {
+        if (ignore_counter == 0) {
+          ignore_start = activeEditor.document.positionAt(match.index);
         }
+        ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
+        ignore_counter++
+        continue;
+      } else if (char.match(/^[\s,]+$/)) {
+        if (ignore_counter > 0 && !ignored_list_opened) {
+          ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
+          if (!ignore_pushed_by_closing) {
+            ignore_counter--;
+            ignores.push(new Range(ignore_start, activeEditor.document.positionAt(match.index)));
+          }
+        }
+        ignore_pushed_by_closing = false;
         continue;
       } else {
         if (!in_comment_form && char === "comment" && stack[stack.length - 1].char === "(") {
@@ -222,9 +228,10 @@ export function activate(context: vscode.ExtensionContext) {
             rainbow[colorIndex(stack_depth)].push(decoration);
           }
           ++stack_depth;
-          const opens_ignore = in_ignore && !ignored_list_opened && pos.isEqual(ignored_text_start);
-          if (opens_ignore)
-            ignored_list_opened = true;
+          const opens_ignore = ignore_counter > 0 && !ignored_list_opened && pos.isEqual(ignored_text_start);
+          if (opens_ignore) {
+            ignored_list_opened = opens_ignore;
+          }
           stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false, opens_ignore: opens_ignore });
           continue;
         } else if (closing[char]) {
@@ -244,11 +251,13 @@ export function activate(context: vscode.ExtensionContext) {
               comment_forms.push(new Range(pair.pos, pos.translate(0, char.length)));
               in_comment_form = false;
             }
-            if (in_ignore && (pair.opens_ignore || !ignored_list_opened)) {
+            if (ignore_counter > 0 && (pair.opens_ignore || !ignored_list_opened)) {
               const ignore_end = ignored_list_opened ? pos.translate(0, char.length) : pos;
+              ignore_counter--;
               ignores.push(new Range(ignore_start, ignore_end));
-              in_ignore = false;
               ignored_list_opened = false;
+              ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
+              ignore_pushed_by_closing = true;
             }
             stack.push({ char: char, pos: pos, pair_idx: pair_idx });
             for (let i = 0; i < char.length; ++i)

@@ -3,14 +3,19 @@ import * as lexer from "./webview/clojure-lexer";
 var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html") ;
+import * as paredit from "./webview/paredit";
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
 
 const ansi = new Ansi();
 
+let evaluationForm = "";
+let evaluationNS = "";
+let inEvaluation = false;
 let ns = "user";
 let con = new ReplConsole(document.querySelector(".repl"), (line, pprint) => {
+    inEvaluation = true;
     message.postMessage({ type: "read-line", line: line, pprint: pprint })
 });
 
@@ -28,7 +33,7 @@ con.addCompletionListener(e => {
         if (con.readline) {
             let context = con.readline.model.getText(0, con.readline.model.maxOffset);
             let pos = con.readline.getTokenCursor().previous();
-            if (pos.withinWhitespace()) {
+            if (pos.isWhiteSpace()) {
                 if (pos.backwardList()) {
                     message.postMessage({ type: "info", ns: ns, symbol: pos.getToken().raw });
                 }
@@ -48,21 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(completionDiv);
     document.body.appendChild(docDiv);
 })
-
-
-const motd = [
-    "Some said the world should be in Perl, \nSome said in Lisp.\nNow, having given both a whirl,\nI held with those who favored Perl.\nBut I fear we passed to men\nA disappointing founding myth.\nAnd should we write it all again,\nI'd end it with\nA close-paren. -Randall Munroe",
-    "I object to doing things that computers can do. -Olin Shivers",
-    "Will write code that writes code that writes code that writes code for money.",
-    "Anyone could learn Lisp in one day, except that if they already knew Fortran, it would take three days. -Marvin Minsky",
-    "Your Kitten of Death awaits. -Christopher Rhodes.",
-    "Syntactic sugar causes cancer of the semicolon. -Alan Perlis",
-    "If you have a procedure with ten parameters, you probably missed some. -Alan Perlis",
-    "Beware of the Turing tar-pit in which everything is possible but nothing of interest is easy. -Alan Perlis",
-    "If you give someone Fortran, he has Fortran. If you give someone Lisp, he has any language he pleases. -Guy L. Steele Jr",
-    "If you have more things than names, your design is broken- Stuart Halloway",
-    "Made with secret alien technology."
-]
 
 
 function makeTd(className: string, text: string) {
@@ -123,6 +113,9 @@ function createStackTrace(exception: any) {
     control.appendChild(tool)
     control.appendChild(dup)
 
+    // make the 'none' view the default.
+    all.click();
+
     let stack = [];
     for (let x of exception.stacktrace) {
         let line = document.createElement("tr");
@@ -179,6 +172,29 @@ window.addEventListener("mouseup", e => {
         con.input.focus();
     }
 })
+
+window.addEventListener('dblclick', function(e: MouseEvent) { 
+
+    if (con.readline && !inEvaluation) {
+        if (con.readline.withinBoundingClientRect(e.pageX, e.pageY)) {
+            let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
+            let cursor = con.readline.model.getTokenCursor(pageOffset);
+            if (cursor.withinString()) {
+                let [selectionStart, selectionEnd] = con.readline.model.getWordSelection(pageOffset);
+                con.readline.withUndo(() => {
+                    con.readline.selectionStart = selectionStart;
+                    con.readline.selectionEnd = selectionEnd;
+                    con.readline.repaint();
+                })
+            } else {
+                con.readline.withUndo(() => {
+                    paredit.growSelection(con.readline)
+                    con.readline.repaint();
+                })
+            }
+        }
+    }
+  });
 
 window.addEventListener("focus", e => {
     message.postMessage({ type: "focus" });
@@ -241,9 +257,9 @@ window.addEventListener("keydown", e => {
             e.stopImmediatePropagation()
             e.preventDefault();
         }
-        if (e.keyCode == 9) { // tab
+        if (e.keyCode == 9 || e.keyCode == 13) { // tab or enter
             let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
-            if (tk.withinWhitespace())
+            if (tk.isWhiteSpace())
                 tk.previous();
             let start = tk.offsetStart
             let end = tk.offsetEnd;
@@ -251,7 +267,12 @@ window.addEventListener("keydown", e => {
                 con.readline.model.changeRange(start, end, completions[selectedCompletion]);
             });
             con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
+            docDiv.style.visibility = "hidden";
+            completionDiv.style.visibility = "hidden";
+            completions = [];
             con.readline.repaint();
+            e.stopImmediatePropagation();
+            e.preventDefault();
         }
     } else {
         if (e.keyCode == 0x20 && e.ctrlKey) {
@@ -276,6 +297,9 @@ function renderReplResponse(newNs: string, text: string) {
     let div = document.createElement("div"),
         line = null,
         content = null;
+        // the code cannot handle '\n\r' line endings
+        // so ensure we remove the '\r'.
+        text = text.replace(/\r/g, "")
     div.className = "repl-response";
     for (let tk of scanner.processLine(text)) {
         if (!line || tk.raw == "\n") {
@@ -321,40 +345,42 @@ function updateCompletion(msg: any) {
     completions = [];
     selectedCompletion = 0;
 
-    msg.data.data.completions.sort((x, y) => {
-        if (x.candidate < y.candidate)
-            return -1;
-        if (x.candidate > y.candidate)
-            return 1;
-        return 0;
-    })
+    if (msg.data.data.completions) {
+        msg.data.data.completions.sort((x, y) => {
+            if (x.candidate < y.candidate)
+                return -1;
+            if (x.candidate > y.candidate)
+                return 1;
+            return 0;
+        })
 
-    for (let completion of msg.data.data.completions) {
-        let comp = document.createElement("div");
-        completions.push(completion.candidate);
-        let icon = document.createElement("span");
-        icon.className = "icon ic-" + completion.type; // nice to actually have icons but this is better than nothing.
-        comp.appendChild(icon);
-        comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
-        comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
-
-        completionDiv.appendChild(comp);
-    }
-
-    if (msg.data.data.completions.length) {
-        let box = con.readline.getCaretOnScreen();
-        if (box.x + completionDiv.offsetWidth > window.innerWidth) {
-            completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
-        } else {
-            completionDiv.style.left = box.x + "px";
+        for (let completion of msg.data.data.completions) {
+            let comp = document.createElement("div");
+            completions.push(completion.candidate);
+            let icon = document.createElement("span");
+            icon.className = "icon ic-" + completion.type; // nice to actually have icons but this is better than nothing.
+            comp.appendChild(icon);
+            comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
+            comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
+    
+            completionDiv.appendChild(comp);
         }
-        completionDiv.style.top = box.y - completionDiv.offsetHeight + "px";
-        completionDiv.style.visibility = "visible"
-        completionDiv.firstElementChild.classList.add("active");
-        message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
-    } else {
-        completionDiv.style.visibility = "hidden"
-        docDiv.style.visibility = "hidden"
+    
+        if (msg.data.data.completions.length) {
+            let box = con.readline.getCaretOnScreen();
+            if (box.x + completionDiv.offsetWidth > window.innerWidth) {
+                completionDiv.style.left = window.innerWidth - completionDiv.offsetWidth + "px";
+            } else {
+                completionDiv.style.left = box.x + "px";
+            }
+            completionDiv.style.top = box.y - completionDiv.offsetHeight + "px";
+            completionDiv.style.visibility = "visible"
+            completionDiv.firstElementChild.classList.add("active");
+            message.postMessage({ type: "info", ns: ns, symbol: completions[selectedCompletion] });
+        } else {
+            completionDiv.style.visibility = "hidden"
+            docDiv.style.visibility = "hidden"
+        }
     }
 }
 /**
@@ -409,11 +435,105 @@ function updateDoc(msg: any) {
     }
 }
 
+function hasUserInput() {
+    let element = document.getElementById("repl-user-input");
+    if(element) {
+       return(element);
+    } 
+    return(false); 
+}
+
+function removeUserInput() {
+    let element = document.getElementById("repl-user-input");
+    if(element) {
+        message.postMessage({ type: "user-input", line: "" });
+        element.remove();
+    }  
+}
+
+function showUserInput() {
+
+    removeUserInput();
+    let div = document.createElement("div");
+    div.id = "repl-user-input";
+    //div.className = "content"
+    let input = document.createElement("input");
+    input.style.width = "100%";
+    input.className = "userinput"
+    input.addEventListener("keydown", e => {
+        switch (e.keyCode) {
+            case 13: // return
+                message.postMessage({ type: "user-input", line: input.value });
+                let el = document.createElement("div");
+                el.innerHTML = ansi.toHtml(escapeHTML(input.value));
+                el.className = "output";
+                con.printElement(el);
+                removeUserInput();
+        }
+    });
+    div.appendChild(input);
+    con.printElement(div);
+    input.focus();
+}
+
+function storeEvaluation(ns: string, form: string) {
+    evaluationNS = String(ns).trim();
+    evaluationForm = String(form).trim();
+}
+
+function runEvaluation(ns: string, form: string) {
+    if (con.readline && ns && form) {
+        con.readline.promptElem.textContent = ns + "=> ";
+        originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
+        [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
+        con.setText(form);
+        con.submitLine(true);
+    }    
+}
+
+function runStoredEvaluation() {
+    if (evaluationNS && evaluationForm) {
+        runEvaluation(evaluationNS, evaluationForm);
+    }
+    evaluationNS = "";
+    evaluationForm = "";
+}
+
+function showAsyncOutput(classname: string, id: string, text: string) {
+    text = `<repl#${id}>`+ text;
+    let el = document.createElement("div");
+    el.innerHTML = ansi.toHtml(escapeHTML(text));
+    el.className = classname;
+    con.printElementBeforeReadline(el);
+    let userinput = hasUserInput();
+    if(userinput) {
+        userinput.scrollIntoView({ block: "end" });
+    }
+}
+
 window.onmessage = (msg) => {
+
     if (msg.data.type == "init") {
         ns = msg.data.ns;
         con.setHistory(msg.data.history);
         con.requestPrompt(ns + "=> ")
+    }
+
+    if (msg.data.type == "clear") {
+        message.postMessage({ type: "interrupt" });
+        removeUserInput();
+        ns = msg.data.ns;
+        con.setHistory(msg.data.history);
+        con.commands["clear-window"]
+        con.requestPrompt(ns + "=> ")
+    }
+
+    if (msg.data.type == "need-input") {
+        showUserInput();
+    }
+
+    if (msg.data.type == "paredit-keymap") {
+        con.setPareditKeyMap(msg.data.keymap);
     }
 
     if (msg.data.type == "ui-command") {
@@ -422,33 +542,63 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "repl-response") {
+        inEvaluation = false;
+        removeUserInput();
         renderReplResponse(msg.data.ns, msg.data.value);
         restorePrompt();
-    }
-
-    if (msg.data.type == "do-eval") {
-        if (con.readline) {
-            con.readline.promptElem.textContent = msg.data.ns + "=> ";
-            originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
-            [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
-            con.setText(msg.data.value);
-            con.submitLine(false);
-        }
-    }
-
-    if (msg.data.type == "set-ns!") {
-        con.readline.promptElem.textContent = msg.data.ns + "=> ";
+        runStoredEvaluation();
     }
 
     if (msg.data.type == "repl-error") {
+        inEvaluation = false;
+        removeUserInput();
         let div = document.createElement("div")
         div.className = "error"
         div.innerHTML = ansi.toHtml(msg.data.ex);
         con.printElement(div);
+        let exception = JSON.parse(msg.data.stacktrace);
+        if(exception && exception.stacktrace) {
+            let stackView = createStackTrace(exception);
+            con.printElement(stackView);
+        }
         restorePrompt();
+        runStoredEvaluation();
+    }
+
+    if (msg.data.type == "stdout") {
+        removeUserInput();
+        let el = document.createElement("div");
+        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+        el.className = "output";
+        con.printElement(el);
+    }
+
+    if (msg.data.type == "stderr") {
+        removeUserInput();
+        let div = document.createElement("div")
+        div.className = "error"
+        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+        con.printElement(div);
+    }
+
+    if (msg.data.type == "do-eval") {
+        if(hasUserInput() || inEvaluation) {
+           removeUserInput();
+           message.postMessage({ type: "interrupt" });
+           storeEvaluation(msg.data.ns, msg.data.value);
+           return; 
+        }
+        runEvaluation(msg.data.ns, msg.data.value);
+    }
+
+    if (msg.data.type == "set-ns!") {
+        removeUserInput();
+        ns = msg.data.ns;
+        con.readline.promptElem.textContent = msg.data.ns + "=> ";
     }
 
     if (msg.data.type == "disconnected") {
+        removeUserInput();
         let div = document.createElement("div");
         div.className = "error";
         div.textContent = "REPL disconnected."
@@ -458,42 +608,37 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "reconnected") {
+        removeUserInput();
         let div = document.createElement("div");
         ns = msg.data.ns;
         div.className = "winnage";
         div.textContent = "REPL connected."
         con.printElement(div);
-        restorePrompt();
-    }
-
-    if (msg.data.type == "repl-ex") {
-        let exception = JSON.parse(msg.data.ex);
-        let stackView = createStackTrace(exception);
-        con.printElement(stackView);
+        if(msg.data.value) {
+            div = document.createElement("div")
+            div.className = "error"
+            div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
+            con.printElement(div); 
+        }
         restorePrompt();
     }
 
     if (msg.data.type == "info") {
+        removeUserInput();
         updateDoc(msg.data);
     }
 
-    if (msg.data.type == "stdout") {
-        let el = document.createElement("div");
-        el.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-        el.className = "output";
-        con.printElement(el);
-    }
-
     if (msg.data.type == "complete") {
+        removeUserInput();
         updateCompletion(msg);
     }
 
-    if (msg.data.type == "stderr") {
-        let div = document.createElement("div")
-        div.className = "error"
-        div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-        con.printElement(div);
+    if (msg.data.type == "async-stdout") {
+        showAsyncOutput("output", msg.data.id, msg.data.value);
     }
+
+    if (msg.data.type == "async-stderr") {
+        showAsyncOutput("error", msg.data.id, msg.data.value);
+    } 
 }
 message.postMessage({ type: "init" });
-// document.querySelector("#motd").textContent = motd[Math.floor(Math.random() * motd.length)];

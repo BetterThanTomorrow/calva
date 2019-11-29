@@ -1,3 +1,16 @@
+/**
+ * Calva Clojure Lexer
+ * 
+ * NB: The lexer tokenizes any combination of clojure quotes, `~`, and `@` prepending a list, symbol, or a literal
+ *     as one token, together with said list, symbol, or literal, even if there is whitespace between the quoting characters.
+ *     All such combos won't actually be accepted by the Clojure Reader, but, hey, we're not writing a Clojure Reader here. 😀
+ *     See below for the regex used for this.
+ *     TODO: The newline as whitespace matching doesn't work. We only get one line at a time...
+ *           Investigate!.
+ */
+
+ // Regex for the above mentioned behavior: /(['`~@][\s\r\n]*)*/
+
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
 /** The 'toplevel' lexical grammar. This grammar contains all normal tokens. Multi-line strings are identified as
@@ -6,24 +19,24 @@ import { LexicalGrammar, Token as LexerToken } from "./lexer"
 let toplevel = new LexicalGrammar()
 
 
-/** Maps open and close parentheses to their class. */
-export const canonicalParens = {
-    '#?(': '()',
-    '#?@(': '()',
-    '#(': '()',
-    '(': '()',
-    ')': '()',
-    '#{': '{}',
-    '{': '{}',
-    '}': '{}',
-    '[': '[]',
-    ']': '[]'
-}
-
-
-/** Returns true if open and close are compatible parentheses */
-export function validPair(open: string, close: string) {
-    return canonicalParens[open] == canonicalParens[close];
+/**
+ * Returns `true` if open and close are compatible parentheses
+ * @param open 
+ * @param close 
+ */
+export function validPair(open: string, close: string): boolean {
+    let valid = false;
+    switch (close) {
+        case `)`:
+            return open.endsWith("(");
+        case `]`:
+            return open.endsWith("[");
+        case `}`:
+            return open.endsWith("{");
+        default:
+            break;
+    };
+    return valid;
 }
 
 export interface Token extends LexerToken {
@@ -37,24 +50,25 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 // open parens
-toplevel.terminal(/\(|\[|\{|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
+//toplevel.terminal(/\(|\[|\{|@\(|['`]\(|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*[\(\[\{]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
 toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
-toplevel.terminal(/true|false|nil/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/[0-9]+[rR][0-9a-zA-Z]+/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/[-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/:[^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal(/[^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 // complete string on a single line
-toplevel.terminal(/"([^"\\]|\\.)*"/, (l, m) => ({ type: "str" }))
-toplevel.terminal(/"([^"\\]|\\.)*/, (l, m) => ({ type: "str-start" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
+toplevel.terminal(/(['`~@][\s\r\n]*)*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */
@@ -62,7 +76,7 @@ let multstring = new LexicalGrammar()
 // end a multiline string
 multstring.terminal(/([^"\\]|\\.)*"/, (l, m) => ({ type: "str-end" }))
 // still within a multiline string
-multstring.terminal(/([^"\\]|\\.)*/, (l, m) => ({ type: "str-inside" }))
+multstring.terminal(/([^"\\]|\\.)+/, (l, m) => ({ type: "str-inside" }))
 
 /**
  * The state of the scanner.
