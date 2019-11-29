@@ -1023,6 +1023,18 @@
                 "command": "calva-fmt.tabDedent",
                 "title": "Dedent Line",
                 "category": "Calva Format"
+            },
+            {
+                "category": "REPL Window",
+                "command": "calva.replWindow.submitPrompt",
+                "title": "Submit REPL Window Prompt",
+                "enablement": "calva:replWindowActive"
+            },
+            {
+                "category": "REPL Window",
+                "command": "calva.replWindow.newLine",
+                "title": "Create a New Line at the REPL Window Prompt",
+                "enablement": "calva:replWindowActive"
             }
         ],
         "keybindings": [
@@ -1377,6 +1389,16 @@
                 "command": "calva-fmt.tabDedent",
                 "key": "shift+ctrl+i",
                 "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
+            },
+            {
+                "command": "calva.replWindow.newLine",
+                "key": "enter",
+                "when": "calva:replWindowActive"
+            },
+            {
+                "command": "calva.replWindow.submitPrompt",
+                "key": "alt+enter",
+                "when": "calva:replWindowActive"
             }
         ],
         "menus": {

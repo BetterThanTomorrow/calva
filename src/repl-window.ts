@@ -584,7 +584,18 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', newLine));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', submitPrompt));
 }
+
+function submitPrompt() {
+    activeReplWindow().executeCommand('submit');
+
+}
+function newLine() {
+    activeReplWindow().executeCommand('new-line');
+}
+
 
 function clearClojureREPLWindowAndHistory() {
     clearREPLWindowAndHistory("clj")

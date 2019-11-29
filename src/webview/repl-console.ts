@@ -31,7 +31,7 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     //"Shift+End": "cursor-select-end", TODO: Figure out how to bind this right
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
-    "Alt+Return": "submit",
+    //"Alt+Return": "submit",
     "Ctrl+L": "clear-window"
 })
 
@@ -183,20 +183,20 @@ export class ReplConsole {
                     case 9: // Tab
                         e.preventDefault();
                         break;
-                    case 13:
-                        if (this.readline.canReturn()) {
-                            this.submitLine();
-                            this.readline.clearCompletion();
-                            window.scrollTo({ left: 0 });
-                        } else {
-                            this.readline.model.undoManager.insertUndoStop();
-                            let indent = getIndent(this.readline.model, this.readline.selectionEnd);
-                            let istr = ""
-                            for (let i = 0; i < indent; i++)
-                                istr += " "
-                            this.readline.insertString("\n" + istr);
-                        }
-                        break;
+                    // case 13:
+                    //     if (this.readline.canReturn()) {
+                    //         this.submitLine();
+                    //         this.readline.clearCompletion();
+                    //         window.scrollTo({ left: 0 });
+                    //     } else {
+                    //         this.readline.model.undoManager.insertUndoStop();
+                    //         let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                    //         let istr = ""
+                    //         for (let i = 0; i < indent; i++)
+                    //             istr += " "
+                    //         this.readline.insertString("\n" + istr);
+                    //     }
+                    //     break;
                 }
             }
         }, { capture: true })
@@ -710,6 +710,20 @@ export class ReplConsole {
                 ], { selection: emptySelectionOption(line.length) });
             })
             this.readline.repaint();
+        },
+        "new-line": () {
+            if (this.readline.canReturn()) {
+                this.submitLine();
+                this.readline.clearCompletion();
+                window.scrollTo({ left: 0 });
+            } else {
+                this.readline.model.undoManager.insertUndoStop();
+                let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                let istr = ""
+                for (let i = 0; i < indent; i++)
+                    istr += " "
+                this.readline.insertString("\n" + istr);
+            }
         },
         "submit": () => {
             this.submitLine(true, false)
