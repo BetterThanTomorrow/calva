@@ -89,10 +89,10 @@ jobs:
       - run:
           name: Run Extension Tests
           environment:
-            MOCHA_FILE: ~/junit/test-results.xml
+            MOCHA_FILE: ~/calva/junit/test-results.xml
           command: npm run test
       - store_test_results:
-          path: ~/junit
+          path: ~/calva/junit
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
