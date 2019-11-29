@@ -2,20 +2,20 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [Fix tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
-- Fix: [Fix glitch in current form highlight in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)
-- Now using the same Paredit implementation for the Edit as for the REPL Window.
-  - A much more complete set of Paredit commands, and [all documented](https://calva.readthedocs.io/en/latest/paredit.html), in beautiful GIF animations.
-  - List based Paredit commands work on strings as well. (Limited by that strings don't have sub lists/strings).
-  - Lots of fixes for Paredit commands.
-- Fix: [Paredit not activated until focused moved from and back to the editor again](https://github.com/BetterThanTomorrow/calva/issues/454)
-- Improving: [paredit `paredit-kill`](https://github.com/BetterThanTomorrow/calva/issues/380)
-- Fix: [paredit `backspace` in strict mode](https://github.com/BetterThanTomorrow/calva/issues/379)
-- Fix: [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
-- Improvements for Commands using the **Current form** and **Current top level form**:
-  - Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
-  - Less precision needed for the right form to be selected.
-  - All commands for this use the same implemengtion (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
+* Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
+* Fix: [Glitch in current form highlight in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)
+* Now using the same Paredit implementation for the editor as for the REPL Window.
+  * A much more complete set of Paredit commands, and [all documented](https://calva.readthedocs.io/en/latest/paredit.html), in beautiful GIF animations.
+  * List based Paredit commands work on strings as well. (Limited by that strings don't have sub lists/strings).
+  * Lots of fixes for Paredit commands.
+* Fix: [Paredit not activated until focused moved from and back to the editor again](https://github.com/BetterThanTomorrow/calva/issues/454)
+* Improving: [paredit `paredit-kill`](https://github.com/BetterThanTomorrow/calva/issues/380)
+* Fix: [paredit `backspace` in strict mode](https://github.com/BetterThanTomorrow/calva/issues/379)
+* Fix: [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
+* Improvements for Commands using the **Current form** and **Current top level form**:
+  * Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
+  * Less precision needed for the right form to be selected.
+  * All commands for this use the same implemengtion (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
 
 ## [2.0.61] - 2019-11-15
 - Fix: [paredit.deleteBackward sets cursor position wrong when deleting a line. ](https://github.com/BetterThanTomorrow/calva/issues/458)

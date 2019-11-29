@@ -24,6 +24,8 @@ In Calva Paredit, strings are treated in much the same way as lists are. Here's 
 
 ### Navigating
 
+(Modify these with `shift` to select rather than move, see below.)
+
 Default keybinding      | Action | Description
 ------------------      | ------ | -----------
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>right</kbd>          | **Forward Sexp/Form** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> ![](_static/images/paredit/forward-sexp.gif) 
@@ -34,8 +36,6 @@ Default keybinding      | Action | Description
 <kbd>ctrl</kbd> <kbd>up</kbd>                 | **Backward Up Sexp/Form** | Moves the cursor backwards, out of the current list.<br> ![](_static/images/paredit/backward-up-sexp.gif)
 <kbd>ctrl</kbd> <kbd>end</kbd>                | **Forward to List End/Close** | Moves the cursor forwards, staying within the current list.<br> ![](_static/images/paredit/close-list.gif)
 <kbd>ctrl</kbd> <kbd>home</kbd>               | **Backward to List Start/Open** | Moves the cursor backwards, staying within the current list.<br> ![](_static/images/paredit/open-list.gif) 
-
-(Modify these with `shift` to select rather than move.)
 
 ### Selecting
 

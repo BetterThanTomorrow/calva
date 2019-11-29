@@ -54,19 +54,19 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.closeList',
         handler: (doc: EditableDocument) => { paredit.moveToRangeEnd(doc, paredit.rangeToForwardList(doc)) },
-        replWindowCommand: ""
+        replWindowCommand: "close-list"
     },
     {
         command: 'paredit.openList',
         handler: (doc: EditableDocument) => { paredit.moveToRangeStart(doc, paredit.rangeToBackwardList(doc)) },
-        replWindowCommand: ""
+        replWindowCommand: "open-list"
     },
 
     // SELECTING
     {
         command: 'paredit.rangeForDefun',
         handler: (doc: EditableDocument) => { paredit.selectRange(doc, paredit.rangeForDefun(doc)) },
-        replWindowCommand: ""
+        replWindowCommand: "select-defun"
     },
     {
         command: 'paredit.sexpRangeExpansion',

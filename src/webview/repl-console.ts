@@ -23,12 +23,12 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Shift+DownArrow": "cursor-select-down",
     "Home": "cursor-home",
     "Shift+Home": "cursor-select-home",
-    "Ctrl+Home": "cursor-home-all",
-    "Shift+Ctrl+Home": "cursor-select-home-all",
+    //"Ctrl+Home": "cursor-home-all", TODO: Figure out how to bind this right
+    //"Shift+Home": "cursor-select-home", TODO: Figure out how to bind this right
     "End": "cursor-end",
     "Shift+End": "cursor-select-end",
-    "Ctrl+End": "cursor-end-all",
-    "Shift+Ctrl+End": "cursor-select-end-all",
+    //"Ctrl+End": "cursor-end-all", TODO: Figure out how to bind this right
+    //"Shift+End": "cursor-select-end", TODO: Figure out how to bind this right
     "Alt+UpArrow": "history-up",
     "Alt+DownArrow": "history-down",
     "Alt+Return": "submit",
@@ -391,42 +391,87 @@ export class ReplConsole {
             })
         },
         "backward-sexp": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.backwardSexp(true);
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardSexp(this.readline));
             this.readline.repaint();
         },
         "forward-sexp": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.forwardSexp(true);
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardSexp(this.readline));
             this.readline.repaint();
         },
         "down-list": () => {
-            let cursor = this.readline.getTokenCursor();
-            do {
-                cursor.forwardWhitespace()
-            } while (cursor.getToken().type != "open" && cursor.forwardSexp()) { }
-            cursor.downList();
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardDownList(this.readline));
             this.readline.repaint();
         },
         "up-list": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.forwardList();
-            cursor.upList();
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-up-list": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.backwardList();
-            cursor.backwardUpList();
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-down-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToForwardDownList(this.readline))
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            this.readline.repaint();
+        },
+        "close-list": () => {
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardList(this.readline));
+            this.readline.repaint();
+        },
+        "open-list": () => {
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardList(this.readline));
+            this.readline.repaint();
+        },
+        "select-defun": () => {
+            paredit.selectRange(this.readline, paredit.rangeForDefun(this.readline));
+            this.readline.repaint();
+        },
+        "select-forward-sexp": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardSexp(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-backward-sexp": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            this.readline.repaint();
+        },
+        "select-forward-down-sexp": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-backward-down-sexp": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            this.readline.repaint();
+        },
+        "select-forward-up-sexp": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-backward-up-sexp": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            this.readline.repaint();
+        },
+        "select-close-list": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-open-list": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardList(this.readline));
+            this.readline.repaint();
+        },
+        "kill-forward-sexp": () => {
+            paredit.killRange(this.readline, paredit.rangeToForwardSexp(this.readline));
+            this.readline.repaint();
+        },
+        "kill-backward-sexp": () => {
+            paredit.killRange(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            this.readline.repaint();
+        },
+        "kill-close-list": () => {
+            paredit.killForwardList(this.readline);
+            this.readline.repaint();
+        },
+        "kill-open-list": () => {
+            paredit.killBackwardList(this.readline);
             this.readline.repaint();
         },
         "select-all": () => {
