@@ -7,7 +7,7 @@ const testFolderLocation = "/../../../src/test/examples/";
 
 suite("opening file", () => {
     test("", async () => {
-        //const testClj = await openFile("test.clj");
+        const testClj = await openFile("test.clj");
         //Do stuff with the file
         assert.equal(1, 1);
 

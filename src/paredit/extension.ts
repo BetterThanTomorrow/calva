@@ -225,7 +225,7 @@ export function activate(context: ExtensionContext) {
                 workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global); 
             }
         }),
-        window.onDidChangeActiveTextEditor((e) => e.document && languages.has(e.document.languageId)),
+        window.onDidChangeActiveTextEditor((e) => e && e.document && languages.has(e.document.languageId)),
         workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
             if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
                 setKeyMapConf();
