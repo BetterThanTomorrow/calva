@@ -1467,7 +1467,8 @@
         "test-compile": "npm i && npx shadow-cljs compile :calva-lib &&  tsc -p ./ && webpack --mode development",
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
-        "bump-version": "npm set git-tag-version false && npm version patch"
+        "bump-version": "npm set git-tag-version false && npm version patch",
+        "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
@@ -1493,7 +1494,7 @@
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
-        "@types/mocha": "^5.2.6",
+        "@types/mocha": "^5.2.7",
         "@types/vscode": "^1.30.0",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.1",
@@ -1508,9 +1509,9 @@
         "file-loader": "^3.0.1",
         "glob": "^7.1.4",
         "json": "^9.0.6",
+        "mocha": "^6.1.4",
         "node-gyp": "^5.0.0",
         "nodemon": "^1.19.1",
-        "mocha": "^6.1.4",
         "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
         "shadow-cljs": "^2.8.69",

@@ -1,6 +1,7 @@
 # visual code
 /*.vsix
 .vscode/settings.json
+.vscode-test
 
 # Logs
 logs

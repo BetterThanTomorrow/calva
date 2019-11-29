@@ -42,16 +42,16 @@
             ]
         },
         {
-            "name": "Extension Tests (integrations)",
+            "name": "Extension Tests",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
               "--disable-extensions",
               "--extensionDevelopmentPath=${workspaceRoot}",
-              "--extensionTestsPath=${workspaceRoot}/out/test/integration/suite/index"
+              "--extensionTestsPath=${workspaceRoot}/out/test/suite/index"
             ],
-            "outFiles": ["${workspaceRoot}/out/test/integration/**/*.js"],
+            "outFiles": ["${workspaceRoot}/out/test/**/*.js"],
             "preLaunchTask": "npm: test-compile"
           }
     ]
