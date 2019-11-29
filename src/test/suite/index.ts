@@ -5,10 +5,15 @@ import * as glob from 'glob';
 export function run(): Promise<void> {
   // Create the mocha test
   const mocha = new Mocha({
-    ui: 'tdd'
+    ui: 'tdd',
+    timeout: 60000,
+    reporter: 'mocha-multi-reporters',
+    reporterOptions: {
+      "reporterEnabled": "mocha-junit-reporter, spec"
+    }
   });
   mocha.useColors(true);
-  
+
   const testsRoot = path.resolve(__dirname, '..');
 
   return new Promise((c, e) => {
