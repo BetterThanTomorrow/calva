@@ -91,6 +91,8 @@ jobs:
           environment:
             MOCHA_FILE: ~/junit/test-results.xml
           command: npm run test
+      - store_test_results:
+          path: ~/junit
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
