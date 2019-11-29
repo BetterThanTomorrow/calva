@@ -8,13 +8,30 @@ Calva Paredit helps you navigate, select and edit Clojure code in a structural w
 
 If you are new to Paredit, start with learning the **Slurp Forward** (pull in the next form into this form) and **Barf Forward** (push the last form out of this form).
 
-NB: **Strict mode** (see below) is enabled by default. _Disable it at your own peril._ Instead, when you want to delete something that strict mode hinders, use **Force backspace** and **Force delete** (which are the normal, brute, **backspace** and **delete** that you might be used to). Strict mode can be switched off by configuring `calva.paredit.defaultKeyMap` to `original`.
+## Strict Mode
+
+To protect the integrity of your code, **Strict mode** is enabled by default.
+
+Strict mode keybinding              | Action | Description
+----------------------              | ------ | -----------
+<kbd>backspace</kbd>                | **Delete Backward** | Deletes one character backwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. If the list is empty, it will remove both open and close brackets. <br> ![](_static/images/paredit/strict-backspace.gif)
+<kbd>delete</kbd>                   | **Delete Forward** | Deletes one character forwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. If the list is empty, it is removed. <br> ![](_static/images/paredit/strict-delete.gif)
+<kbd>alt</kbd> <kbd>backspace</kbd> | **Force Delete Backward** | Deletes one character backwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-backspace.gif)
+<kbd>alt</kbd> <kbd>delete</kbd>    | **Force Delete Forward** | Deletes one character forwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-delete.gif)
+
+_Disable at your own peril._ Strict mode can be toggled on/off using the **Toggle Paredit Mode** command, and there is a status bar indicator telling you: 
+
+Indicator | Status
+:-------: | ------
+`[λ]`     | Strict mode on
+`(λ)`     | Cave man mode on
+ `λ`      | No default key bindings
 
 ## Commands
 
-Here you will find the Paredit commands sorted into **Navigating**, **Selecting**, and **Editing**. As mentioned, **slurp** and **barf** are real power commands. Learning to navigate structurally, saves time and adds precision to your editing, and it has the double effect that if you learn a shortcut for navigation, say **Forward/Backward Sexp/Form**, you have at the same time learnt how to select code using shortcuts, because that is the same, just adding the shift key.
+The Paredit commands sorts into **Navigation**, **Selection**, and **Edit**. As mentioned, **Slurp** and **Barf** are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.
 
-To make the command descriptions a bit clearer, each of them are also animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
+To make the command descriptions a bit clearer, each entry is also animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
 
 ### Strings are not Lists, but Anyway...
 
@@ -83,14 +100,6 @@ Default keybinding                | Action | Description
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>s</kbd>                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](_static/images/paredit/wrap-around-brackets.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>c</kbd>                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-around-curlies.gif)
 
-There is also a **strict** mode:
-
-Strict mode keybinding              | Action | Description
-----------------------              | ------ | -----------
-<kbd>backspace</kbd>                | **Delete Backward** | Deletes one character backwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. <br> ![](_static/images/paredit/strict-backspace.gif)
-<kbd>delete</kbd>                   | **Delete Forward** | Deletes one character forwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. <br> ![](_static/images/paredit/strict-delete.gif) This is currently not working 😢.
-<kbd>alt</kbd> <kbd>backspace</kbd> | **Force Delete Backward** | Deletes one character backwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-backspace.gif)
-<kbd>alt</kbd> <kbd>delete</kbd>    | **Force Delete Forward** | Deletes one character forwards, even if it will unbalance a form. <br> ![](_static/images/paredit/force-delete.gif)
 
 ## About the Keyboard Shortcuts
 
