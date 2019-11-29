@@ -6,9 +6,9 @@ import { ModelEdit, EditableDocument, emptySelectionOption } from "./model";
 // In the repl-console, compose commands just by performing them in succession, making sure
 // you provide selecions, old and new.
 
-export function killRange(doc: EditableDocument, range: [number, number]) {
+export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionStart, end = doc.selectionEnd) {
     doc.model.edit([
-        new ModelEdit('deleteRange', [range[0], range[1] - range[0]])
+        new ModelEdit('deleteRange', [range[0], range[1] - range[0], [start, end]])
     ], { selection: emptySelectionOption(range[0]) });
 }
 

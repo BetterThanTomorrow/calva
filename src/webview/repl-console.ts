@@ -330,10 +330,10 @@ export class ReplConsole {
             return;
         }
         let last = "";
-        if(this.history.length > 0) {
-           last = this.history[this.history.length - 1];
+        if (this.history.length > 0) {
+            last = this.history[this.history.length - 1];
         }
-        if(last != line.trim()) {
+        if (last != line.trim()) {
             this.history.push(line.trim());
             this._historyListeners.forEach(x => x(line));
         }
@@ -459,20 +459,28 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "kill-forward-sexp": () => {
-            paredit.killRange(this.readline, paredit.rangeToForwardSexp(this.readline));
-            this.readline.repaint();
+            this.readline.withUndo(() => {
+                paredit.killRange(this.readline, paredit.rangeToForwardSexp(this.readline));
+                this.readline.repaint();
+            })
         },
         "kill-backward-sexp": () => {
-            paredit.killRange(this.readline, paredit.rangeToBackwardSexp(this.readline));
-            this.readline.repaint();
+            this.readline.withUndo(() => {
+                paredit.killRange(this.readline, paredit.rangeToBackwardSexp(this.readline));
+                this.readline.repaint();
+            })
         },
         "kill-close-list": () => {
-            paredit.killForwardList(this.readline);
-            this.readline.repaint();
+            this.readline.withUndo(() => {
+                paredit.killForwardList(this.readline);
+                this.readline.repaint();
+            })
         },
         "kill-open-list": () => {
-            paredit.killBackwardList(this.readline);
-            this.readline.repaint();
+            this.readline.withUndo(() => {
+                paredit.killBackwardList(this.readline);
+                this.readline.repaint();
+            })
         },
         "select-all": () => {
             this.readline.selectionStart = 0;
@@ -689,7 +697,7 @@ export class ReplConsole {
                     new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
                 ], { selection: emptySelectionOption(line.length) });
             })
-            this.readline.repaint();   
+            this.readline.repaint();
         },
         "history-down": () => {
             if (this.historyIndex == this.history.length || this.historyIndex == -1)
