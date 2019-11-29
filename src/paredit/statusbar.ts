@@ -63,7 +63,7 @@ export class StatusBar {
         this._enabled = value;
 
         if (this._enabled) {
-            this._toggleBarItem.color = statusbar.color.active;
+            this._toggleBarItem.color = undefined;
         } else {
             this._toggleBarItem.color = statusbar.color.inactive;
         }

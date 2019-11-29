@@ -31,7 +31,7 @@ function update() {
 
     const pprint = state.config().prettyPrintingOptions.enabled;
     prettyPrintToggle.text = "pprint";
-    prettyPrintToggle.color = pprint ? color.active : color.inactive;
+    prettyPrintToggle.color = pprint ? undefined : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`
     prettyPrintToggle.command = "calva.togglePrettyPrint"
 
