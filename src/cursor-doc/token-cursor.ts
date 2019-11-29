@@ -529,7 +529,7 @@ export class LispTokenCursor extends TokenCursor {
      * Indicates if the current token is inside a string
      */
     withinString() {
-        return this.getToken().type == 'str-inside';
+        return this.getToken().type == 'str-inside' || this.getPrevToken().type == 'str-inside';
     }
 
     /**

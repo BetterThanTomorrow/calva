@@ -157,31 +157,18 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
 }
 
 export function splitSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
-    let cursor = doc.getTokenCursor(start);
-    if (cursor.withinString()) {
-        if (doc.model.getText(start - 1, start + 1, true) == '\\"') {
-            doc.model.edit([
-                new ModelEdit('changeRange', [start + 1, start + 1, "\" \""])
-            ], { selection: emptySelectionOption(start + 2 ) });
-        } else {
-            doc.model.edit([
-                new ModelEdit('changeRange', [start, start, "\" \""])
-            ], { selection: emptySelectionOption(start + 2 ) });
-        }
-        return;
+    const cursor = doc.getTokenCursor(start);
+    if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
+        cursor.forwardWhitespace();
     }
-    cursor.backwardWhitespace();
-    start = cursor.offsetStart;
-    let ws = cursor.clone();
-    ws.forwardWhitespace()
+    const splitPos = cursor.withinString() ? start : cursor.offsetStart;
     if (cursor.backwardList()) {
-        let open = cursor.getPrevToken().raw;
-
+        const open = cursor.getPrevToken().raw;
         if (cursor.forwardList()) {
-            let close = cursor.getToken().raw;
+            const close = cursor.getToken().raw;
             doc.model.edit([
-                new ModelEdit('changeRange', [start, ws.offsetStart, close + " " + open])
-            ], { selection: emptySelectionOption(start + 1 ) });
+                new ModelEdit('changeRange', [splitPos, splitPos, `${close}${open}`])
+            ], { selection: emptySelectionOption(splitPos + 1) });
         }
     }
 }
@@ -231,9 +218,6 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionE
 
 export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
-    // NOTE: this should unwrap the string, not throw.
-    if (cursor.withinString())
-        throw new Error("Invalid context for paredit.killBackwardList");
     cursor.backwardList();
     return doc.model.edit([
         new ModelEdit('changeRange', [cursor.offsetStart, start, "", [start, start], [cursor.offsetStart, cursor.offsetStart]])
@@ -243,13 +227,10 @@ export function killBackwardList(doc: EditableDocument, start: number = doc.sele
 export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
-    // NOTE: this should unwrap the string, not throw.
-    if (cursor.withinString())
-        throw new Error("Invalid context for paredit.killForwardList");
     cursor.forwardList();
     return doc.model.edit([
         new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : "", [start, start], [start, start]])
-    ], { selection: emptySelectionOption(start)});
+    ], { selection: emptySelectionOption(start) });
 }
 
 export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
@@ -296,7 +277,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
         doc.model.edit([
             new ModelEdit('deleteRange', [offset, close.length]),
             new ModelEdit('insertString', [cursor.offsetStart, close])
-        ], start >= cursor.offsetStart ? {selection: emptySelectionOption(cursor.offsetStart) } : {});
+        ], start >= cursor.offsetStart ? { selection: emptySelectionOption(cursor.offsetStart) } : {});
     }
 }
 
@@ -314,7 +295,7 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
         doc.model.edit([
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
             new ModelEdit('deleteRange', [offset, tk.raw.length])
-        ], start <= cursor.offsetStart ? {selection: emptySelectionOption(cursor.offsetStart) } : {});
+        ], start <= cursor.offsetStart ? { selection: emptySelectionOption(cursor.offsetStart) } : {});
     }
 }
 
@@ -356,7 +337,8 @@ const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
 export function backspace(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
-    if (start != end) {
+    const cursor = doc.getTokenCursor(start);
+    if (start != end || cursor.withinString()) {
         doc.backspace();
     } else {
         if (doc.model.getText(start - 3, start, true) == '\\""') {
@@ -381,7 +363,8 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionSt
 }
 
 export function deleteForward(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
-    if (start != end) {
+    const cursor = doc.getTokenCursor(start);
+    if (start != end || cursor.withinString()) {
         doc.delete();
     } else {
         if (parenPair.has(doc.model.getText(start, start + 2, true))) {
@@ -560,13 +543,13 @@ export function transpose(doc: EditableDocument, start = doc.selectionStart, end
                 const leftEnd = cursor.offsetStart;
                 if (cursor.backwardSexp()) {
                     const leftStart = cursor.offsetStart,
-                    leftText = doc.model.getText(leftStart, leftEnd),
-                    rightText = doc.model.getText(rightStart, rightEnd),
-                    newCursorPos = leftStart + rightText.length;
+                        leftText = doc.model.getText(leftStart, leftEnd),
+                        rightText = doc.model.getText(rightStart, rightEnd),
+                        newCursorPos = leftStart + rightText.length;
                     doc.model.edit([
                         new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
                         new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
-                    ], { selection: emptySelectionOption(newCursorPos)});
+                    ], { selection: emptySelectionOption(newCursorPos) });
                 }
             }
         }
