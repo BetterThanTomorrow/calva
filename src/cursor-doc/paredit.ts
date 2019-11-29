@@ -7,9 +7,10 @@ import { ModelEdit, EditableDocument, emptySelectionOption } from "./model";
 // you provide selecions, old and new.
 
 export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionStart, end = doc.selectionEnd) {
+    const [left, right] = [Math.min(...range), Math.max(...range)];
     doc.model.edit([
-        new ModelEdit('deleteRange', [range[0], range[1] - range[0], [start, end]])
-    ], { selection: emptySelectionOption(range[0]) });
+        new ModelEdit('deleteRange', [left, right - left, [start, end]])
+    ], { selection: emptySelectionOption(left) });
 }
 
 export function moveToRangeStart(doc: EditableDocument, range: [number, number]) {
