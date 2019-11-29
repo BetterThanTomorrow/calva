@@ -711,7 +711,7 @@ export class ReplConsole {
             })
             this.readline.repaint();
         },
-        "new-line": () {
+        "new-line": () => {
             if (this.readline.canReturn()) {
                 this.submitLine();
                 this.readline.clearCompletion();
