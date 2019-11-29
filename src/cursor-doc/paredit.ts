@@ -188,10 +188,9 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
         const nextToken = cursor.getToken(),
             nextStart = cursor.offsetStart;
         if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
-            doc.selectionStart = doc.selectionEnd = prevEnd - 1;
             return doc.model.edit([
-                new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : ""])
-            ], { selection: emptySelectionOption(prevEnd - 1) });
+                new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : "", [start, start], [prevEnd, prevEnd]])
+            ], { selection: emptySelectionOption(prevEnd) });
         }
     }
 }
