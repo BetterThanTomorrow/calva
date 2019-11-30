@@ -313,6 +313,16 @@
                         "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
                         "default": true
                     },
+                    "calva.REPLWindowPromptKeyMap": {
+                        "type": "string",
+                        "description": "The default key bindings for the REPL Window prompt",
+                        "default": "multi-line",
+                        "enum": [
+                            "multi-line",
+                            "single-line"
+                        ],
+                        "scope": "window"
+                    },
                     "calva.sendAsyncOutputTo": {
                         "type": "string",
                         "description": "The destination for output outside of an evaluation.",
@@ -1392,13 +1402,63 @@
             },
             {
                 "command": "calva.replWindow.newLine",
+                "key": "alt+enter",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == single-line"
+            },
+            {
+                "command": "calva.replWindow.submitPrompt",
                 "key": "enter",
-                "when": "calva:replWindowActive"
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == single-line"
+            },
+            {
+                "command": "calva.replWindow.cursorDown",
+                "key": "alt+down",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == single-line"
+            },
+            {
+                "command": "calva.replWindow.cursorUp",
+                "key": "alt+up",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == single-line"
+            },
+            {
+                "command": "calva.replWindow.historyUp",
+                "key": "up",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == single-line"
+            },
+            {
+                "command": "calva.replWindow.historyDown",
+                "key": "down",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == single-line"
+            },
+            {
+                "command": "calva.replWindow.newLine",
+                "key": "enter",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
             },
             {
                 "command": "calva.replWindow.submitPrompt",
                 "key": "alt+enter",
-                "when": "calva:replWindowActive"
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.replWindow.cursorDown",
+                "key": "down",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.replWindow.cursorUp",
+                "key": "up",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.replWindow.historyUp",
+                "key": "alt+up",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.replWindow.historyDown",
+                "key": "alt+down",
+                "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
             }
         ],
         "menus": {

@@ -12,7 +12,7 @@ Changes to Calva.
 - Improving: [paredit `paredit-kill`](https://github.com/BetterThanTomorrow/calva/issues/380)
 - Fix: [paredit `backspace` in strict mode](https://github.com/BetterThanTomorrow/calva/issues/379)
 - Fix: [REPL window use it own set of paredit hotkeys and these are not configurable](https://github.com/BetterThanTomorrow/calva/issues/260)
-- Adds configurable keyboard shortcuts for the REPL prompt: submitting and entering new lines.
+- Adds default keyboard shortcut maps for the REPL prompt: multi-line or single-line.
 - Improvements for Commands using the **Current form** and **Current top level form**:
   - Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
   - Less precision needed for the right form to be selected.

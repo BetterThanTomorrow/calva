@@ -17,9 +17,9 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Shift+LeftArrow": "cursor-select-left",
     "RightArrow": "cursor-right",
     "Shift+RightArrow": "cursor-select-right",
-    "UpArrow": "cursor-up",
+    //"UpArrow": "cursor-up",
     "Shift+UpArrow": "cursor-select-up",
-    "DownArrow": "cursor-down",
+    //"DownArrow": "cursor-down",
     "Shift+DownArrow": "cursor-select-down",
     "Home": "cursor-home",
     "Shift+Home": "cursor-select-home",
@@ -29,8 +29,8 @@ const defaultHotkeys = new HotKeyTable<ReplConsole>({
     "Shift+End": "cursor-select-end",
     //"Ctrl+End": "cursor-end-all", TODO: Figure out how to bind this right
     //"Shift+End": "cursor-select-end", TODO: Figure out how to bind this right
-    "Alt+UpArrow": "history-up",
-    "Alt+DownArrow": "history-down",
+    //"Alt+UpArrow": "history-up",
+    //"Alt+DownArrow": "history-down",
     //"Alt+Return": "submit",
     "Ctrl+L": "clear-window"
 })
