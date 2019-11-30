@@ -1,56 +1,37 @@
 import { ReplReadline, CompletionListener } from "./readline";
-import * as paredit from "./paredit";
-import { getIndent } from "./indent";
+import * as paredit from "../cursor-doc/paredit";
+import { getIndent } from "../cursor-doc/indent";
 import { HotKeyTable } from "./hotkeys";
+import { ModelEdit, emptySelectionOption } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
-    "Alt+R": "raise-sexp",
-    "Alt+Shift+/": "convolute-sexp",
+    "Backspace": "backspace",
+    "Delete": "delete",
     "Alt+Backspace": "force-backspace",
-    "Ctrl+Shift+Space": "grow-selection",
-    "Ctrl+Alt+Shift+Space": "shrink-selection",
     "Alt+Delete": "force-delete",
-    "Alt+LeftArrow": "backward-sexp",
-    "Alt+RightArrow": "forward-sexp",
-    "Ctrl+DownArrow": "down-list",
-    "Ctrl+Shift+UpArrow": "up-list",
-    "Ctrl+UpArrow": "backward-up-list",
+
     "Cmd+A": "select-all",
     "Cmd+Z": "undo",
     "Cmd+Shift+Z": "redo",
-    "Alt+Shift+J": "join-sexp",
-    "Alt+Shift+Cmd+LeftArrow": "backward-slurp-sexp",
-    "Alt+Cmd+LeftArrow": "forward-barf-sexp",
     "LeftArrow": "cursor-left",
     "Shift+LeftArrow": "cursor-select-left",
-    "Alt+Shift+Cmd+RightArrow": "forward-slurp-sexp",
-    "Alt+Cmd+RightArrow": "backward-barf-sexp",
     "RightArrow": "cursor-right",
     "Shift+RightArrow": "cursor-select-right",
-    "Alt+Ctrl+Backspace": "splice-sexp-killing-backwards",
-    "UpArrow": "cursor-up",
+    //"UpArrow": "cursor-up",
     "Shift+UpArrow": "cursor-select-up",
-    "Alt+Ctrl+Delete": "splice-sexp-killing-forwards",
-    "DownArrow": "cursor-down",
+    //"DownArrow": "cursor-down",
     "Shift+DownArrow": "cursor-select-down",
-    "Backspace": "backspace",
     "Home": "cursor-home",
     "Shift+Home": "cursor-select-home",
-    "Ctrl+Home": "cursor-home-all",
-    "Shift+Ctrl+Home": "cursor-select-home-all",
+    //"Ctrl+Home": "cursor-home-all", TODO: Figure out how to bind this right
+    //"Shift+Home": "cursor-select-home", TODO: Figure out how to bind this right
     "End": "cursor-end",
     "Shift+End": "cursor-select-end",
-    "Ctrl+End": "cursor-end-all",
-    "Shift+Ctrl+End": "cursor-select-end-all",
-    "Delete": "delete",
-    "Alt+Shift+9": "wrap-round",
-    "Alt+[": "wrap-square",
-    "Alt+Shift+[": "wrap-curly",
-    "Alt+Shift+S": "split-sexp",
-    "Alt+S": "splice-sexp",
-    "Alt+UpArrow": "history-up",
-    "Alt+DownArrow": "history-down",
-    "Alt+Return": "submit",
+    //"Ctrl+End": "cursor-end-all", TODO: Figure out how to bind this right
+    //"Shift+End": "cursor-select-end", TODO: Figure out how to bind this right
+    //"Alt+UpArrow": "history-up",
+    //"Alt+DownArrow": "history-down",
+    //"Alt+Return": "submit",
     "Ctrl+L": "clear-window"
 })
 
@@ -202,20 +183,20 @@ export class ReplConsole {
                     case 9: // Tab
                         e.preventDefault();
                         break;
-                    case 13:
-                        if (this.readline.canReturn()) {
-                            this.submitLine();
-                            this.readline.clearCompletion();
-                            window.scrollTo({ left: 0 });
-                        } else {
-                            this.readline.model.undoManager.insertUndoStop();
-                            let indent = getIndent(this.readline.model, this.readline.selectionEnd);
-                            let istr = ""
-                            for (let i = 0; i < indent; i++)
-                                istr += " "
-                            this.readline.insertString("\n" + istr);
-                        }
-                        break;
+                    // case 13:
+                    //     if (this.readline.canReturn()) {
+                    //         this.submitLine();
+                    //         this.readline.clearCompletion();
+                    //         window.scrollTo({ left: 0 });
+                    //     } else {
+                    //         this.readline.model.undoManager.insertUndoStop();
+                    //         let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                    //         let istr = ""
+                    //         for (let i = 0; i < indent; i++)
+                    //             istr += " "
+                    //         this.readline.insertString("\n" + istr);
+                    //     }
+                    //     break;
                 }
             }
         }, { capture: true })
@@ -330,7 +311,9 @@ export class ReplConsole {
     }
 
     setText(text: string) {
-        this.readline.model.changeRange(0, this.readline.model.maxOffset, text)
+        this.readline.model.edit([
+            new ModelEdit('changeRange', [0, this.readline.model.maxOffset, text])
+        ], {});
         this.readline.repaint();
     }
 
@@ -347,10 +330,10 @@ export class ReplConsole {
             return;
         }
         let last = "";
-        if(this.history.length > 0) {
-           last = this.history[this.history.length - 1];
+        if (this.history.length > 0) {
+            last = this.history[this.history.length - 1];
         }
-        if(last != line.trim()) {
+        if (last != line.trim()) {
             this.history.push(line.trim());
             this._historyListeners.forEach(x => x(line));
         }
@@ -381,23 +364,19 @@ export class ReplConsole {
             });
 
         },
+        "transpose-sexps": () => {
+            console.warn("Transpose is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+            // this.readline.withUndo(() => {
+            //     paredit.transpose(this.readline);
+            //     this.readline.repaint();
+            // });
+        },
         "convolute-sexp": () => {
-            this.readline.withUndo(() => {
-                paredit.convolute(this.readline);
-                this.readline.repaint();
-            });
-        },
-        "force-backspace": () => {
-            this.readline.withUndo(() => {
-                this.readline.backspace();
-                this.readline.repaint();
-            });
-        },
-        "force-delete": () => {
-            this.readline.withUndo(() => {
-                this.readline.delete();
-                this.readline.repaint();
-            });
+            console.warn("Convolute is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+            // this.readline.withUndo(() => {
+            //     paredit.convolute(this.readline);
+            //     this.readline.repaint();
+            // });
         },
         "grow-selection": () => {
             this.readline.withUndo(() => {
@@ -412,39 +391,96 @@ export class ReplConsole {
             })
         },
         "backward-sexp": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.backwardSexp(true);
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardSexp(this.readline));
             this.readline.repaint();
         },
         "forward-sexp": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.forwardSexp(true);
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardSexp(this.readline));
             this.readline.repaint();
         },
         "down-list": () => {
-            let cursor = this.readline.getTokenCursor();
-            do {
-                cursor.forwardWhitespace()
-            } while (cursor.getToken().type != "open" && cursor.forwardSexp()) { }
-            cursor.downList();
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardDownList(this.readline));
             this.readline.repaint();
         },
         "up-list": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.forwardList();
-            cursor.upList();
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-up-list": () => {
-            let cursor = this.readline.getTokenCursor();
-            cursor.backwardList();
-            cursor.backwardUpList();
-            this.readline.selectionStart = this.readline.selectionEnd = cursor.offsetStart;
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardUpList(this.readline));
             this.readline.repaint();
+        },
+        "backward-down-list": () => {
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            this.readline.repaint();
+        },
+        "close-list": () => {
+            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardList(this.readline));
+            this.readline.repaint();
+        },
+        "open-list": () => {
+            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardList(this.readline));
+            this.readline.repaint();
+        },
+        "select-defun": () => {
+            paredit.selectRange(this.readline, paredit.rangeForDefun(this.readline));
+            this.readline.repaint();
+        },
+        "select-forward-sexp": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardSexp(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-backward-sexp": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            this.readline.repaint();
+        },
+        "select-forward-down-sexp": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-backward-down-sexp": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            this.readline.repaint();
+        },
+        "select-forward-up-sexp": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-backward-up-sexp": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            this.readline.repaint();
+        },
+        "select-close-list": () => {
+            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionEnd));
+            this.readline.repaint();
+        },
+        "select-open-list": () => {
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardList(this.readline));
+            this.readline.repaint();
+        },
+        "kill-forward-sexp": () => {
+            this.readline.withUndo(() => {
+                paredit.killRange(this.readline, paredit.rangeToForwardSexp(this.readline));
+                this.readline.repaint();
+            })
+        },
+        "kill-backward-sexp": () => {
+            this.readline.withUndo(() => {
+                paredit.killRange(this.readline, paredit.rangeToBackwardSexp(this.readline));
+                this.readline.repaint();
+            })
+        },
+        "kill-close-list": () => {
+            this.readline.withUndo(() => {
+                paredit.killForwardList(this.readline);
+                this.readline.repaint();
+            })
+        },
+        "kill-open-list": () => {
+            this.readline.withUndo(() => {
+                paredit.killBackwardList(this.readline);
+                this.readline.repaint();
+            })
         },
         "select-all": () => {
             this.readline.selectionStart = 0;
@@ -507,7 +543,8 @@ export class ReplConsole {
         },
         "splice-sexp-killing-backwards": () => {
             this.readline.withUndo(() => {
-                paredit.spliceSexpKillingBackward(this.readline)
+                paredit.killBackwardList(this.readline);
+                paredit.spliceSexp(this.readline);
                 this.readline.repaint();
             });
         },
@@ -521,7 +558,8 @@ export class ReplConsole {
         },
         "splice-sexp-killing-forwards": () => {
             this.readline.withUndo(() => {
-                paredit.spliceSexpKillingForward(this.readline)
+                paredit.killForwardList(this.readline);
+                paredit.spliceSexp(this.readline);
                 this.readline.repaint();
             });
         },
@@ -542,6 +580,45 @@ export class ReplConsole {
             } else {
                 this.readline.withUndo(() => {
                     this.readline.backspace();
+                    this.readline.repaint()
+                })
+            }
+        },
+        "force-backspace": () => {
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
+                this.readline.withUndo(() => {
+                    this.readline.backspace();
+                    this.readline.repaint()
+                })
+            } else {
+                this.readline.withUndo(() => {
+                    paredit.backspace(this.readline);
+                    this.readline.repaint()
+                })
+            }
+        },
+        "delete": () => {
+            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
+                this.readline.withUndo(() => {
+                    paredit.deleteForward(this.readline);
+                    this.readline.repaint()
+                })
+            } else {
+                this.readline.withUndo(() => {
+                    this.readline.delete();
+                    this.readline.repaint()
+                })
+            }
+        },
+        "force-delete": () => {
+            if (this.isKeyMap[ReplPareditKeyMap.STRICT]) {
+                this.readline.withUndo(() => {
+                    this.readline.delete();
+                    this.readline.repaint();
+                });
+            } else {
+                this.readline.withUndo(() => {
+                    paredit.deleteForward(this.readline);
                     this.readline.repaint()
                 })
             }
@@ -578,19 +655,6 @@ export class ReplConsole {
             this.readline.caretEndAll(false);
             this.readline.repaint();
         },
-        "delete": () => {
-            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.deleteForward(this.readline);
-                    this.readline.repaint()
-                })
-            } else {
-                this.readline.withUndo(() => {
-                    this.readline.delete();
-                    this.readline.repaint()
-                })
-            }
-        },
         "wrap-round": () => {
             this.readline.withUndo(() => {
                 paredit.wrapSexpr(this.readline, "(", ")");
@@ -606,6 +670,12 @@ export class ReplConsole {
         "wrap-curly": () => {
             this.readline.withUndo(() => {
                 paredit.wrapSexpr(this.readline, "{", "}");
+                this.readline.repaint();
+            })
+        },
+        "wrap-quote": () => {
+            this.readline.withUndo(() => {
+                paredit.wrapSexpr(this.readline, '"', '"');
                 this.readline.repaint();
             })
         },
@@ -629,10 +699,11 @@ export class ReplConsole {
             this.historyIndex--;
             let line = this.history[this.historyIndex] || "";
             this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                this.readline.selectionStart = this.readline.selectionEnd = line.length;
+                this.readline.model.edit([
+                    new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
+                ], { selection: emptySelectionOption(line.length) });
             })
-            this.readline.repaint();   
+            this.readline.repaint();
         },
         "history-down": () => {
             if (this.historyIndex == this.history.length || this.historyIndex == -1)
@@ -640,10 +711,25 @@ export class ReplConsole {
             this.historyIndex++;
             let line = this.history[this.historyIndex] || "";
             this.readline.withUndo(() => {
-                this.readline.model.changeRange(0, this.readline.model.maxOffset, line);
-                this.readline.selectionStart = this.readline.selectionEnd = line.length;
+                this.readline.model.edit([
+                    new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
+                ], { selection: emptySelectionOption(line.length) });
             })
             this.readline.repaint();
+        },
+        "new-line": () => {
+            if (this.readline.canReturn()) {
+                this.submitLine();
+                this.readline.clearCompletion();
+                window.scrollTo({ left: 0 });
+            } else {
+                this.readline.model.undoManager.insertUndoStop();
+                let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                let istr = ""
+                for (let i = 0; i < indent; i++)
+                    istr += " "
+                this.readline.insertString("\n" + istr);
+            }
         },
         "submit": () => {
             this.submitLine(true, false)

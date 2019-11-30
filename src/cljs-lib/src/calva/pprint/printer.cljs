@@ -48,14 +48,14 @@
     result))
 
 
-(defn pretty-print-js-bridge [s {:keys [width, maxLength, maxDepth]}]
+(defn pretty-print-js [s {:keys [width, maxLength, maxDepth]}]
   (let [opts (into {} (remove (comp nil? val) {:width width
                                                :max-length maxLength
                                                :max-depth maxDepth}))]
     (jsify (pretty-print s opts))))
 
-(defn pretty-print-js [s ^js opts]
-  (pretty-print-js-bridge s (cljify opts)))
+(defn pretty-print-js-bridge [s ^js opts]
+  (pretty-print-js s (cljify opts)))
 
 
 ;; SCRAP

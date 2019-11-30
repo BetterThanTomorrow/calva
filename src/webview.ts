@@ -1,9 +1,10 @@
 import { ReplConsole } from "./webview/repl-console";
-import * as lexer from "./webview/clojure-lexer";
+import * as lexer from "./cursor-doc/clojure-lexer";
 var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html") ;
-import * as paredit from "./webview/paredit";
+import * as paredit from "./cursor-doc/paredit";
+import { ModelEdit } from "./cursor-doc/model";
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
@@ -264,7 +265,9 @@ window.addEventListener("keydown", e => {
             let start = tk.offsetStart
             let end = tk.offsetEnd;
             con.readline.withUndo(() => {
-                con.readline.model.changeRange(start, end, completions[selectedCompletion]);
+                con.readline.model.edit([
+                    new ModelEdit('changeRange', [start, end, completions[selectedCompletion]])
+                ], {});
             });
             con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
             docDiv.style.visibility = "hidden";

@@ -1,6 +1,6 @@
-import { LineInputModel } from "./model";
-import { Token, validPair } from "./clojure-lexer";
-import { TokenCursor, LispTokenCursor } from "./token-cursor";
+import { LineInputModel, ModelEdit, EditableDocument, emptySelectionOption } from "../cursor-doc/model";
+import { Token, validPair } from "../cursor-doc/clojure-lexer";
+import { TokenCursor, LispTokenCursor } from "../cursor-doc/token-cursor";
 
 /** A cheesy utility canvas, used to measure the length of text. */
 const canvas = document.createElement("canvas");
@@ -28,7 +28,7 @@ export type CompletionListener = (c: CompletionEvent) => void;
 /**
  * A syntax-highlighting text editor.
  */
-export class ReplReadline {
+export class ReplReadline implements EditableDocument {
     /** Event listeners for completion */
     private _completionListeners: CompletionListener[] = [];
 
@@ -56,6 +56,11 @@ export class ReplReadline {
         this._selectionStart = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
+    set selection(selection: { anchor: number, active: number}) {
+        this.selectionStart = selection.anchor;
+        this.selectionEnd = selection.active;
+    }
+
     /** The offset of the end of the selection into the document. */
     private _selectionEnd: number = 0;
 
@@ -70,7 +75,7 @@ export class ReplReadline {
     }
 
     /** The underlying tokenized source. */
-    model = new LineInputModel();
+    model = new LineInputModel(1, this);
 
     /** The HTMLDivElements in the rendered view for each line. */
     inputLines: HTMLDivElement[] = [];
@@ -136,8 +141,9 @@ export class ReplReadline {
         this.withUndo(() => {
             let cs = Math.min(this.selectionStart, this.selectionEnd);
             let ce = Math.max(this.selectionStart, this.selectionEnd);
-            this.model.changeRange(cs, ce, text, [cs, ce], [cs + text.length, cs + text.length])
-            this.selectionStart = this.selectionEnd = cs + text.length;
+            this.model.edit([
+                new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])
+            ], { selection: emptySelectionOption(cs + text.length) });
             this.repaint();
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
@@ -312,7 +318,7 @@ export class ReplReadline {
      * Retrieve the current selection as text.
      * 
      */
-    getSelection() {
+    getSelectionText() {
         if (this.selectionStart != this.selectionEnd) {
             return this.model.getText(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd))
         }
@@ -537,7 +543,7 @@ export class ReplReadline {
         for (let line = startLine[0]; line <= endLine[0]; line++) {
             let ln = this.inputLines[line].querySelector(".selection");
             if (line < cs[0] || line > ce[0]) {
-                // definitely outside the selection, nuke all the selectiond divs.
+                // definitely outside the selection, nuke all the selection divs.
                 while (ln.firstChild)
                     ln.removeChild(ln.firstChild);
             } else if (line == cs[0] && line == ce[0]) {

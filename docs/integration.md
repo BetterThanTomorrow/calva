@@ -41,6 +41,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
 
 1. Checkout `dev`
 1. Add the CHANGELOG entries from `[Unreleased]`, **NB** No newline between the header and the entries.
+1. Commit.
 1. Tag with `v<VERSION>` (must provide tag message)
 1. Push `dev` (Using `--follow-tags`).
    * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace.

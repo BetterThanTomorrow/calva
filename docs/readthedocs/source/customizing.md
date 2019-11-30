@@ -7,19 +7,33 @@ Tip For VS Code newcomers: The search box in **Settings** is your friend. Also, 
 ```json
     "calva.prettyPrintingOptions": {
         "enabled": true,
-        "clientOrServer": "client",
-        "width": 120,
-        "serverPrinter": "puget"
-    }
+        "printEngine": "pprint",
+        "width": 40
+    },
 ```
 
 ## Jack-in and Connect Sequences
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
 
-## REPL Window
+## The REPL Window
 
 If you don't want the REPL window to open automatically on jack-in/connect, set `calva.openREPLWindowOnConnect` to `false`. Please note, that if the [Connect Sequence](connect-sequences.md) you are using has `afterCLJReplJackInCode`, then the CLJ REPL window will open anyway in order to evaluate that code for you in a visible way.
+
+### Default Key Bindings
+
+The REPL Window prompt is a multi line editor, and the keyboard shortcuts facilitate this by default. The shortcuts can be configured however you like, and there are two preconfigured maps for it as well. You set this via the `calva.REPLWindowPromptKeyMap` setting:
+
+| Prompt command | multi-line | single-line
+| -------------- | ---------- | -----------
+| **Submit** | <kbd>alt+enter</kbd> | <kbd>enter</kbd>
+| **New line** | <kbd>enter</kbd> | <kbd>alt+enter</kbd>
+| **Cursor Up** | <kbd>up</kbd> | <kbd>alt+up</kbd>
+| **Cursor Down** | <kbd>down</kbd> | <kbd>alt+down</kbd>
+| **History Up** | <kbd>alt+up</kbd> | <kbd>up</kbd>
+| **History Down** | <kbd>alt+down</kbd> | <kbd>down</kbd>
+
+As you might see, the simple pattern here is that in multi-line mode you move the cursor and enter new lines as in the regular editor, and use `alt` modifier to navigate the history and submit evaluations. In single-line mode it is the other way around.
 
 ## Pretty Printing
 
@@ -29,17 +43,17 @@ Calva's pretty printing mode can be configured a bit. See [Pretty Printing](ppri
 
 Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.
 
-You are in charge of how brackets and comments are highlighted:
+You are in charge of how brackets and comments are highlighted via the `calva.highlight.<setting>` settings:
 
 | Setting | Meaning | Example |
 | --- | ------- | ------- |
-| `"calva.highlight.enableBracketColors"` | Enable rainbow colors |  `true` |
-| `"calva.highlight.bracketColors"` | Which colors to use |  `["#000", "#999"]` |
-| `"calva.highlight.cycleBracketColors"` | Whether same colors should be reused for deeply nested brackets | `true` |
-| `"calva.highlight.misplacedBracketStyle"` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
-| `"calva.highlight.matchedBracketStyle"` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
-| `"calva.highlight.ignoredFormStyle"` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
-| `"calva.highlight.commentFormStyle"` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
+| `enableBracketColors` | Enable rainbow colors |  `true` |
+| `bracketColors` | Which colors to use |  `["#000", "#999"]` |
+| `cycleBracketColors` | Whether same colors should be reused for deeply nested brackets | `true` |
+| `misplacedBracketStyle` | Style of misplaced bracket | `{ "border": "2px solid #c33" }` |
+| `matchedBracketStyle` | Style of bracket pair highlight | `{"backgroundColor": "#E0E0E0"}` |
+| `ignoredFormStyle` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
+| `commentFormStyle` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
 
 The extras are built from **Clojure Warrior**, created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s. Please note that the default styling for `(comment ...)` forms now is to italicize them (instead of dimming). This is to promote using `comment` forms to work with the REPL.
 
@@ -74,6 +88,9 @@ Please update this with the settings you find you like for your theme.
 
 Are you a vim extension user? See: [[Using with VIM extension]].
 
+### Paredit
+
+Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing [Paredit](paredit.md) shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.
 
 ## Wrap using `(`, `[`, `{` (like Cursive)
 

@@ -67,7 +67,6 @@ class REPLWindow {
         public type: "clj" | "cljs",
         public cljType: string,
         public cljsType: string) {
-        vscode.commands.executeCommand("setContext", "calva:pareditValid", true)
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
@@ -116,7 +115,6 @@ class REPLWindow {
 
                 if (msg.type == "focus") {
                     vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
-                    vscode.commands.executeCommand("setContext", "calva:pareditValid", true);
                 }
 
                 if (msg.type == "blur") {
@@ -586,6 +584,12 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { activeReplWindow().executeCommand('new-line') }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit') }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', () => { activeReplWindow().executeCommand('history-up') }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', () => { activeReplWindow().executeCommand('history-down') }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', () => { activeReplWindow().executeCommand('cursor-up') }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', () => { activeReplWindow().executeCommand('cursor-down') }));
 }
 
 function clearClojureREPLWindowAndHistory() {

@@ -1,5 +1,5 @@
 import { SignatureInformation, ParameterInformation } from 'vscode';
-import * as tokenCursor from '../webview/token-cursor';
+import * as tokenCursor from '../cursor-doc/token-cursor';
 
 export class REPLInfoParser {
     private _name: string = undefined;

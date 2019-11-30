@@ -115,19 +115,19 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Moves this token past the inside of a multiline string
      */
-    forwardString() {
-        while (!this.atEnd()) {
-            switch (this.getToken().type) {
-                case "eol":
-                case "str-inside":
-                case "str-start":
-                    this.next();
-                    continue;
-                default:
-                    return;
-            }
-        }
-    }
+    // forwardString() {
+    //     while (!this.atEnd()) {
+    //         switch (this.getToken().type) {
+    //             case "eol":
+    //             case "str-inside":
+    //             case "str-start":
+    //                 this.next();
+    //                 continue;
+    //             default:
+    //                 return;
+    //         }
+    //     }
+    // }
 
     /**
      * Moves this token past any whitespace or comment.
@@ -136,11 +136,16 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atEnd()) {
             switch (this.getToken().type) {
                 case "comment":
-                    if (!includeComments)
+                    if (!includeComments) {
                         return;
+                    }
                 case "eol":
                 case "ws":
                     this.next();
+                    if (this.getToken().type == "comment" && !includeComments) {
+                        this.previous();
+                        return;
+                    }
                     continue;
                 default:
                     return;
@@ -155,17 +160,16 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atStart()) {
             switch (this.getPrevToken().type) {
                 case "comment":
-                    if (!includeComments)
+                    if (!includeComments) {
                         return;
+                    }
                 case "eol":
+                case "ws":
                     this.previous();
-                    if (this.getPrevToken().type == "comment") {
+                    if (this.getPrevToken().type == "comment" && !includeComments) {
                         this.next();
                         return;
                     }
-                    continue;
-                case "ws":
-                    this.previous();
                     continue;
                 default:
                     return;
@@ -184,14 +188,14 @@ export class LispTokenCursor extends TokenCursor {
      * 
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = false): boolean {
+    forwardSexp(skipComments = true): boolean {
         let delta = 0;
-        this.forwardWhitespace(!skipComments);
+        this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
             return false;
         }
         while (!this.atEnd()) {
-            this.forwardWhitespace(!skipComments);
+            this.forwardWhitespace(skipComments);
             let tk = this.getToken();
             switch (tk.type) {
                 case 'comment':
@@ -203,19 +207,11 @@ export class LispTokenCursor extends TokenCursor {
                 case 'kw':
                 case 'punc':
                 case 'junk':
-                case 'str':
-                case 'str-end':
+                case 'str-inside':
                     this.next();
                     if (delta <= 0)
                         return true;
                     break;
-                case 'str-inside':
-                case 'str-start':
-                    do {
-                        this.next();
-                        tk = this.getToken();
-                    } while (!this.atEnd() && (tk.type == "str-inside" || tk.type == "eol"))
-                    continue;
                 case 'close':
                     delta--;
                     this.next();
@@ -235,43 +231,39 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Moves this token backward one s-expression at this level.
-     * If the previous non whitespace token is an close paren, skips past it's matching
+     * If the previous non whitespace token is a close paren, skips past it's matching
      * open paren.
      * 
      * If the previous token is a form of open paren, does not move.
+     * 
+     * Note. The cursor won't move when ”on” the first sexp inside a list.
+     *       TODO: Fix this. (Probably the only way is to give the cursor knowledge
+     *             about the offset it was created from.)
      * 
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {
         let delta = 0;
-        this.backwardWhitespace(!skipComments);
-        switch (this.getPrevToken().type) {
-            case "open":
-                return false;
+        this.backwardWhitespace(skipComments);
+        if (this.getPrevToken().type === 'open') {
+            return false;
         }
         while (!this.atStart()) {
-            this.backwardWhitespace(!skipComments);
+            this.backwardWhitespace(skipComments);
             let tk = this.getPrevToken();
             switch (tk.type) {
                 case 'id':
                 case 'lit':
+                case 'kw':
                 case 'punc':
                 case 'junk':
                 case 'kw':
                 case 'comment':
-                case 'str':
-                case 'str-start':
+                case 'str-inside':
                     this.previous();
                     if (delta <= 0)
                         return true;
                     break;
-                case 'str-inside':
-                case 'str-end':
-                    do {
-                        this.previous();
-                        tk = this.getPrevToken();
-                    } while (!this.atStart() && tk.type == "str-inside")
-                    continue;
                 case 'close':
                     delta++;
                     this.previous();
@@ -284,6 +276,7 @@ export class LispTokenCursor extends TokenCursor {
                     break;
                 default:
                     this.previous();
+                    break;
             }
         }
     }
@@ -430,31 +423,94 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Moves the cursor to the current form according to this priority:
-     * 1. If not within whitespace, don't move, return `true`.
-     * 2. Move adjacent to the form to the left, return `true`.
-     * 3. Move adjacent to the form to the right, return `true`.
-     * Otherwise, don't move, return `false`.
-    */
-    moveToCurrentForm(): boolean {
-        let cursor = this.clone();
-        const prevToken = cursor.getPrevToken();
-        if (!cursor.withinWhiteSpace()) {
-            return true;
+     * Figures out the `range` for the current form according to this priority:
+     * 0. If `offset` is within a symbol, literal or keyword
+     * 1. If `offset` is adjacent after form
+     * 2. Else, if `offset` is adjacent before a form
+     * 3. Else, if the previous form is on the same line
+     * 4. Else, if the next form is on the same line
+     * 5. Else, the previous form, if any
+     * 6. Else, the next form, if any
+     * 7. Else, the current enclosing form, if any
+     * 8. Else, return `undefined`.
+     * @param offset the current cursor (caret) offset in the document
+     */
+    rangeForCurrentForm(offset: number): [number, number] {
+        if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
+            return [this.offsetStart, this.offsetEnd];
         }
-        if (cursor.isWhiteSpace()) {
-            cursor.backwardWhitespace();
-            if (!cursor.atStart()) {
-                this.set(cursor);
-                return true;
+        const peekBackwards = this.clone();
+        peekBackwards.backwardWhitespace(true);
+        if (peekBackwards.offsetStart == offset) {
+            if (peekBackwards.backwardSexp()) { // 1.
+                return [peekBackwards.offsetStart, offset];
             }
         }
-        cursor.forwardWhitespace();
-        if (!cursor.atEnd()) {
-            this.set(cursor);
-            return true;
+        const peekForwards = this.clone();
+        peekForwards.forwardWhitespace(true);
+        if (peekForwards.offsetStart == offset) {
+            if (peekForwards.forwardSexp()) { // 2.
+                return [offset, peekForwards.offsetStart];
+            }
         }
-        return false;
+        if (peekBackwards.rowCol[0] == this.rowCol[0]) {
+            const peekBehindBackwards = peekBackwards.clone();
+            if (peekBehindBackwards.backwardSexp()) { // 3.
+                return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+            }
+        }
+        if (peekForwards.rowCol[0] == this.rowCol[0]) {
+            const peekPastForwards = peekForwards.clone();
+            if (peekPastForwards.forwardSexp()) { // 4.
+                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+            }
+        }
+        const peekBehindBackwards = peekBackwards.clone();
+        if (peekBehindBackwards.backwardSexp()) { // 5.
+            return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+        } else {
+            const peekPastForwards = peekForwards.clone();
+            if (peekPastForwards.forwardSexp()) { // 6.
+                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+            } else {
+                const peekUp = this.clone();
+                if (peekUp.upList()) {
+                    const peekBehindUp = peekUp.clone();
+                    if (peekBehindUp.backwardSexp()) {  // 7.
+                        return [peekBehindUp.offsetStart, peekUp.offsetStart];
+                    }
+                }
+            }
+        }
+        return undefined; // 8.
+    }
+
+    /**
+     * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
+     * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
+     * @param offset The ”current” position
+     * @param start From where to start examine candidate forms, should be before `offset`
+     */
+    rangeForDefun(offset: number, depth = 0): [number, number] {
+        const cursor = this.clone();
+        while (cursor.forwardSexp()) {
+            if (cursor.offsetEnd >= offset) {
+                if (depth < 1 && cursor.getPrevToken().raw === ')') {
+                    const commentCursor = cursor.clone();
+                    commentCursor.previous();
+                    if (commentCursor.getFunction() === 'comment') {
+                        commentCursor.backwardList();
+                        commentCursor.forwardWhitespace();
+                        commentCursor.forwardSexp();
+                        return commentCursor.rangeForDefun(offset, depth + 1);
+                    }
+                }
+                const end = cursor.offsetStart;
+                cursor.backwardSexp();
+                return [cursor.offsetStart, end];
+            }
+        }
+        return [offset, offset]
     }
 
     isWhiteSpace(): boolean {
@@ -470,22 +526,10 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Indicates if the current token is inside a string (e.g. a documentation string)
+     * Indicates if the current token is inside a string
      */
     withinString() {
-        const strTypes = ['str', 'str-start', 'str-inside', 'str-end'],
-            token = this.getToken();
-        if (token.type == 'eol') {
-            let next = this.clone().next()
-            let previous = this.clone().previous();
-            if (next && strTypes.includes(next.getToken().type) &&
-                previous && strTypes.includes(previous.getToken().type)) {
-                return (true);
-            }
-        } else if (strTypes.includes(token.type)) {
-            return (true);
-        }
-        return false;
+        return this.getToken().type == 'str-inside' || this.getPrevToken().type == 'str-inside';
     }
 
     /**
@@ -540,7 +584,7 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Tries to move this cursor backwards to the open paren of the function, `level` functions up.
-     * If there aren't that many functions bahind the cursor, the cursor is not moved at all.
+     * If there aren't that many functions behind the cursor, the cursor is not moved at all.
      * @param levels how many functions up to go before placing the cursor at the start of it.
      * @returns `true` if the cursor was moved, otherwise `false`
      */

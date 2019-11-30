@@ -1,6 +1,6 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { UndoManager, UndoStep } from "./undo";
-import { ReplReadline } from "./readline";
+import { ReplReadline } from "../webview/readline";
 import { LispTokenCursor } from "./token-cursor";
 
 const scanner = new Scanner();
@@ -45,10 +45,61 @@ export class TextLine {
     }
 }
 
+export type ModelEditFunction = 'insertString' | 'changeRange' | 'deleteRange';
+
+export class ModelEdit {
+    constructor(public editFn: ModelEditFunction, public args: any[]) { }
+}
+
+export type ModelEditSelection = {
+    anchor: number,
+    active: number
+};
+
+export type ModelEditOptions = { 
+    undoStopBefore?: boolean,
+    formatParent?: boolean,
+    selection?: ModelEditSelection 
+};
+
+/**
+ * Utility to create a selection object representing a caret w/o anything selected
+ * @param startEnd 
+ */
+export function emptySelectionOption(startEnd: number): ModelEditSelection {
+    return { anchor: startEnd, active: startEnd };
+}
+
+export interface EditableModel {
+    /**
+     * Performs a model edit batch.
+     * For some EditableModel's these are performed as one atomic set of edits.
+     * @param edits 
+     */
+    edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
+
+    getText: (start: number, end: number, mustBeWithin?: boolean) => string;
+    getOffsetForLine: (line: number) => number;
+    getTokenCursor: (offset: number, previous?: boolean) => LispTokenCursor;
+}
+
+export interface EditableDocument {
+    selectionStart: number,
+    selectionEnd: number,
+    selection: { anchor: number, active: number },
+    model: EditableModel,
+    growSelectionStack: [number, number][],
+    getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
+    insertString: (text: string) => void,
+    getSelectionText: () => string,
+    delete: () => void,
+    backspace: () => void;
+}
+
 /** The underlying model for the REPL readline. */
-export class LineInputModel {
+export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
-    constructor(private lineEndingLength: number = 1) { }
+    constructor(private lineEndingLength: number = 1, private document?: EditableDocument) { }
 
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
@@ -251,6 +302,37 @@ export class LineInputModel {
     }
 
     /**
+     * Performs a model edit batch.
+     * Doesn't need to be atomic in the LineInputModel.
+     * @param edits 
+     */
+    edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
+        return new Promise((resolve, reject) => {
+            for (const edit of edits) {
+                switch (edit.editFn) {
+                    case 'insertString':
+                        this.insertString.apply(this, edit.args);
+                        break;
+                    case 'changeRange':
+                        this.changeRange.apply(this, edit.args);
+                        break;
+                    case 'deleteRange':
+                        this.deleteRange.apply(this, edit.args);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (this.document && options.selection) {
+                this.document.selection = options.selection;
+                const document = this.document as ReplReadline;
+                document.caretX = this.getRowCol(options.selection.active)[1];
+            } 
+            resolve(true);
+        })
+    }
+
+    /**
      * Changes the model. Deletes any text between `start` and `end`, and the inserts `text`.
      * 
      * If provided, `oldSelection` and `newSelection` are used to manage the cursor positioning for undo support.
@@ -261,7 +343,7 @@ export class LineInputModel {
      * @param oldSelection the old selection
      * @param newSelection the new selection
      */
-    changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+    private changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
         let startPos = Math.min(start, end);
         let endPos = Math.max(start, end);
         let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
@@ -379,15 +461,15 @@ class EditorUndoStep extends UndoStep<ReplReadline> {
     }
 
     undo(c: ReplReadline) {
-        c.model.changeRange(this.start, this.start+this.insertedText.length, this.deletedText);
-        if(this.oldSelection)
-            [c.selectionStart, c.selectionEnd] = this.oldSelection;
+        c.model.edit(
+            [new ModelEdit('changeRange', [this.start, this.start+this.insertedText.length, this.deletedText])
+        ], this.oldSelection ? { selection: { anchor: this.oldSelection[0], active: this.oldSelection[1]}} : {});
     }
 
     redo(c: ReplReadline) {
-        c.model.changeRange(this.start, this.start+this.deletedText.length, this.insertedText);
-        if(this.newSelection)
-            [c.selectionStart, c.selectionEnd] = this.newSelection;
+        c.model.edit([
+            new ModelEdit('changeRange', [this.start, this.start+this.deletedText.length, this.insertedText])
+        ], this.newSelection ? { selection: { anchor: this.newSelection[0], active: this.newSelection[1]}} : {});
     }
 
     coalesce(step: EditorUndoStep) {

@@ -5,16 +5,15 @@
  *     as one token, together with said list, symbol, or literal, even if there is whitespace between the quoting characters.
  *     All such combos won't actually be accepted by the Clojure Reader, but, hey, we're not writing a Clojure Reader here. 😀
  *     See below for the regex used for this.
- *     TODO: The newline as whitespace matching doesn't work. We only get one line at a time...
- *           Investigate!.
  */
 
- // Regex for the above mentioned behavior: /(['`~@][\s\r\n]*)*/
+ // Regex for the above mentioned behavior are variations of this: /(['`~#@?^]\s*)*/
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
-/** The 'toplevel' lexical grammar. This grammar contains all normal tokens. Multi-line strings are identified as
- * "str-start", which trigger the lexer to switch to the 'multstring' lexical grammar.
+/** 
+ * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
+ * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
 let toplevel = new LexicalGrammar()
 
@@ -27,12 +26,14 @@ let toplevel = new LexicalGrammar()
 export function validPair(open: string, close: string): boolean {
     let valid = false;
     switch (close) {
-        case `)`:
+        case ')':
             return open.endsWith("(");
-        case `]`:
+        case ']':
             return open.endsWith("[");
-        case `}`:
+        case '}':
             return open.endsWith("{");
+        case '"':
+            return open.endsWith('"');
         default:
             break;
     };
@@ -49,41 +50,46 @@ toplevel.terminal(/[\t ,]+/, (l, m) => ({ type: "ws" }))
 toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
+
 // open parens
-//toplevel.terminal(/\(|\[|\{|@\(|['`]\(|#\(|#\?\(|#\{|#\?@\(/, (l, m) => ({ type: "open" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*[\(\[\{]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
 toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
-toplevel.terminal(/(['`~@][\s\r\n]*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/(['`~@][\s\r\n]*)*(:[^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-toplevel.terminal(/(['`~@][\s\r\n]*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\}#,~@'`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+// TODO: Figure out why we can't allow `'` in the symbol name
+toplevel.terminal(/(['`~#^@]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
-// complete string on a single line
-toplevel.terminal(/(['`~@][\s\r\n]*)*(#?"([^"\\]|\\.)*")/, (l, m) => ({ type: "str" }))
-toplevel.terminal(/(['`~@][\s\r\n]*)*(#?"([^"\\]|\\.)*)/, (l, m) => ({ type: "str-start" }))
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
-/** This is the multi-line string grammar. It spits out 'str-end' once it is time to switch back to the 'toplevel' grammar, and 'str-inside' if the string continues. */
-let multstring = new LexicalGrammar()
-// end a multiline string
-multstring.terminal(/([^"\\]|\\.)*"/, (l, m) => ({ type: "str-end" }))
-// still within a multiline string
-multstring.terminal(/([^"\\]|\\.)+/, (l, m) => ({ type: "str-inside" }))
+/** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
+ * and 'str-inside' for the words in the string. */
+let inString = new LexicalGrammar()
+// end a string
+inString.terminal(/"/, (l, m) => ({ type: "close" }))
+// still within a string
+inString.terminal(/(\\.|[^\\"\t ])+/, (l, m) => ({ type: "str-inside" }))
+// whitespace, excluding newlines
+inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
+// newlines, we want each one as a token of its own
+inString.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
+
 
 /**
  * The state of the scanner.
  * We only really need to know if we're inside a string or not.
  */
 export interface ScannerState {
-    /** Are we scanning inside a string? If so use multstring grammar, otherwise use toplevel. */
+    /** Are we scanning inside a string? If so use inString grammar, otherwise use toplevel. */
     inString: boolean
 }
 
@@ -97,23 +103,26 @@ export class Scanner {
     processLine(line: string, state: ScannerState = this.state) {
         let tks: Token[] = [];
         this.state = state;
-        let lex = (this.state.inString ? multstring : toplevel).lex(line);
+        let lex = (this.state.inString ? inString : toplevel).lex(line);
         let tk: LexerToken;
         do {
             tk = lex.scan();
             if (tk) {
                 let oldpos = lex.position;
-                switch (tk.type) {
-                    case "str-end": // multiline string ended, switch back to toplevel
-                        this.state = { ...this.state, inString: false };
-                        lex = toplevel.lex(line);
-                        lex.position = oldpos;
-                        break;
-                    case "str-start": // multiline string started, switch to multstring.
-                        this.state = { ...this.state, inString: true };
-                        lex = multstring.lex(line);
-                        lex.position = oldpos;
-                        break;
+                if (tk.raw.match(/[~`'@#]*"$/)) {
+                    switch (tk.type) {
+                        case "open": // string started, switch to inString.
+                            this.state = { ...this.state, inString: true };
+                            lex = inString.lex(line);
+                            lex.position = oldpos;
+                            break;
+                        case "close": 
+                            // string ended, switch back to toplevel
+                            this.state = { ...this.state, inString: false };
+                            lex = toplevel.lex(line);
+                            lex.position = oldpos;
+                            break;
+                    }
                 }
                 tks.push({ ...tk, state: this.state });
             }

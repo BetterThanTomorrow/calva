@@ -6,9 +6,8 @@
 (defn infer-parens
   "Calculate the edits needed for infering parens in `text`,
    and where the cursor should be placed to 'stay' in the right place."
-  [^js m]
-  (let [{:keys [text line character previous-line previous-character]} (cljify m)
-        options {:cursorLine line
+  [{:keys [text line character previous-line previous-character]}]
+  (let [options {:cursorLine line
                  :cursorX character
                  :prevCursorLine previous-line
                  :prevCursorX previous-character}
@@ -21,6 +20,10 @@
         :edits (editor/raplacement-edits-for-diffing-lines text (:text result))}
        {:success false
         :error-msg (get-in result [:error :message])}))))
+
+(defn infer-parens-bridge
+  [^js m]
+  (infer-parens (cljify m)))
 
 
 (comment
@@ -38,9 +41,8 @@
 (defn infer-indents
   "Calculate the edits needed for infering indents in `text`,
    and where the cursor should be placed to 'stay' in the right place."
-  [^js m]
-  (let [{:keys [text line character previous-line previous-character changes]} (cljify m)
-        options {:cursorLine line :cursorX character
+  [{:keys [text line character previous-line previous-character changes]}]
+  (let [options {:cursorLine line :cursorX character
                  :prevCursorLine previous-line
                  :prevCursorX previous-character
                  :changes (mapv (fn [change]
@@ -59,9 +61,12 @@
        {:success false
         :error-msg (get-in result [:error :message])}))))
 
+(defn infer-indents-bridge
+  [^js m]
+  (infer-indents (cljify m)))
 
 
-(comment
+(comment ;; SCRAP
   (let [o (jsify {:cursorLine 1 :cursorX 4
                   :changes {:lineNo 1 :x 0 :oldText "" :newText " "}})
         result (parinfer/parenMode "  (defn a []\n     (foo []\n     (bar)\n     (baz)))" o)]

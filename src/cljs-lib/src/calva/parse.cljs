@@ -20,6 +20,9 @@
 (defn parse-edn-js [s]
   (jsify (parse-edn s)))
 
+(defn parse-edn-js-bridge [s]
+  (parse-edn-js s))
+
 (defn- parse-forms
   "Parses out all top level forms from `s`.
    Returns a vector with the parsed forms."
@@ -40,6 +43,8 @@
 (defn parse-forms-js [s]
   (jsify (parse-forms s)))
 
+(defn parse-forms-js-bridge [s]
+  (parse-forms-js s))
 
 ;[[ar gu ment] {:as extras, :keys [d e :s t r u c t u r e d]}]
 (comment

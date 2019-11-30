@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import * as config from './config';
-import { getIndent, getDocument, getDocumentOffset } from "./docmirror";
+import { getIndent, getDocument, getDocumentOffset } from "../../doc-mirror";
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 
 
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
     let editor = vscode.window.activeTextEditor;
     let pos = new vscode.Position(position.line, 0);
-    let indent = getIndent(getDocument(document), getDocumentOffset(document, position));
+    let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position));
     let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
     if (delta > 0) {
         //return [vscode.TextEdit.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta)))];
@@ -35,7 +35,7 @@ export function formatRange(document: vscode.TextDocument, range: vscode.Range) 
     return vscode.workspace.applyEdit(wsEdit);
 }
 
-export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): void {
+export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}) {
     const doc: vscode.TextDocument = editor.document,
         pos: vscode.Position = editor.selection.active,
         index = doc.offsetAt(pos),
@@ -43,16 +43,32 @@ export function formatPosition(editor: vscode.TextEditor, onType: boolean = fals
         range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1])),
         newIndex: number = doc.offsetAt(range.start) + formatted["new-index"],
         previousText: string = doc.getText(range);
-    if (previousText != formatted["range-text"]) {
-        editor.edit(textEditorEdit => {
-            textEditorEdit.replace(range, formatted["range-text"]);
-        }, { undoStopAfter: false, undoStopBefore: false }).then((_onFulfilled: boolean) => {
-            editor.selection = new vscode.Selection(doc.positionAt(newIndex), doc.positionAt(newIndex));
+    return {
+        formattedText: formatted["range-text"],
+        range: range,
+        previousText: previousText,
+        previousIndex: index,
+        newIndex: newIndex
+    }
+}
+
+export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
+    const doc: vscode.TextDocument = editor.document,
+        formattedInfo = formatPositionInfo(editor, onType, extraConfig);
+    if (formattedInfo.previousText != formattedInfo.formattedText) {
+        return editor.edit(textEditorEdit => {
+            textEditorEdit.replace(formattedInfo.range, formattedInfo.formattedText);
+        }, { undoStopAfter: false, undoStopBefore: false }).then((onFulfilled: boolean) => {
+            editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex))
+            return onFulfilled;
         });
     } else {
-        if (newIndex != index) {
-            editor.selection = new vscode.Selection(doc.positionAt(newIndex), doc.positionAt(newIndex));
-        }
+        return new Promise((resolve, _reject) => {
+            if (formattedInfo.newIndex != formattedInfo.previousIndex) {
+                editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
+            }
+            resolve(true);
+        });
     }
 }
 
