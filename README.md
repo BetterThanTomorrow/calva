@@ -107,7 +107,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
 [![Byron Miller](https://avatars1.githubusercontent.com/u/1461719?s=30)](https://github.com/supernovae)
 [![Terje](https://avatars2.githubusercontent.com/u/6209?s=30)](https://github.com/terjesb)
-
+[![JC](https://avatars0.githubusercontent.com/u/11434205?s=30)](https://github.com/dijonkitchen)
 ## The Calva Team
 
 Many people have contributed to Calva. Here are the ones who have engaged in the project as such.
