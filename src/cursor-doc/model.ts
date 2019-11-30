@@ -57,7 +57,8 @@ export type ModelEditSelection = {
 };
 
 export type ModelEditOptions = { 
-    undoStopBefore?: boolean, 
+    undoStopBefore?: boolean,
+    formatParent?: boolean,
     selection?: ModelEditSelection 
 };
 

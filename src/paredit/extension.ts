@@ -242,6 +242,11 @@ const pareditCommands: PareditCommand[] = [
         replWindowCommand: "wrap-curly"
     },
     {
+        command: 'paredit.wrapAroundQuote',
+        handler: (doc: EditableDocument) => { paredit.wrapSexpr(doc, '"', '"') },
+        replWindowCommand: "wrap-quote"
+    },
+    {
         command: 'paredit.deleteForward',
         handler: paredit.deleteForward,
         // do not bind replWindowCommand

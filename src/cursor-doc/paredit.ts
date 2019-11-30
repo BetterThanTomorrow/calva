@@ -138,6 +138,9 @@ export function rangeToBackwardList(doc: EditableDocument, offset: number = doc.
 
 export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd): Thenable<boolean> {
     const cursor = doc.getTokenCursor(end);
+    if (cursor.withinString() && open == '"') {
+        open = close = '\\"';
+    }
     if (start == end) { // No selection
         const currentFormRange = cursor.rangeForCurrentForm(start);
         if (currentFormRange) {
@@ -190,7 +193,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
         if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
             return doc.model.edit([
                 new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : "", [start, start], [prevEnd, prevEnd]])
-            ], { selection: emptySelectionOption(prevEnd) });
+            ], { selection: emptySelectionOption(prevEnd), formatParent: true });
         }
     }
 }
@@ -276,7 +279,10 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
         doc.model.edit([
             new ModelEdit('deleteRange', [offset, close.length]),
             new ModelEdit('insertString', [cursor.offsetStart, close])
-        ], start >= cursor.offsetStart ? { selection: emptySelectionOption(cursor.offsetStart) } : {});
+        ], start >= cursor.offsetStart ? { 
+            selection: emptySelectionOption(cursor.offsetStart),
+            formatParent: true
+        } : { formatParent: true });
     }
 }
 
@@ -294,7 +300,10 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
         doc.model.edit([
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
             new ModelEdit('deleteRange', [offset, tk.raw.length])
-        ], start <= cursor.offsetStart ? { selection: emptySelectionOption(cursor.offsetStart) } : {});
+        ], start <= cursor.offsetStart ? { 
+            selection: emptySelectionOption(cursor.offsetStart),
+            formatParent: true
+        } : { formatParent: true });
     }
 }
 

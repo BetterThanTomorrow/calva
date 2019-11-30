@@ -3,6 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.63] - 2019-11-30
+- Improve performance of editing Paredit commands
+- Add command **Wrap Around ""**
+
 ## [2.0.62] - 2019-11-30
 - Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
 - Fix: [Glitch in current form highlight in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)

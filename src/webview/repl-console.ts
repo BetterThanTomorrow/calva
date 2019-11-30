@@ -673,6 +673,12 @@ export class ReplConsole {
                 this.readline.repaint();
             })
         },
+        "wrap-quote": () => {
+            this.readline.withUndo(() => {
+                paredit.wrapSexpr(this.readline, '"', '"');
+                this.readline.repaint();
+            })
+        },
         "split-sexp": () => {
             this.readline.withUndo(() => {
                 paredit.splitSexp(this.readline);

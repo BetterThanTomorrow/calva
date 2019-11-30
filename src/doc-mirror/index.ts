@@ -36,7 +36,7 @@ export class DocumentModel implements EditableModel {
                 if (options.selection) {
                     this.document.selection = options.selection;
                 }
-                return formatter.formatPosition(editor, false, { "calva-fmt/use-enclosing-parent?": true });
+                return formatter.formatPosition(editor, false, { "calva-fmt/use-enclosing-parent?": !!options.formatParent });
             }
         });
     }

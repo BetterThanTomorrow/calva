@@ -99,6 +99,7 @@ Default keybinding                | Action | Description
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>p</kbd>                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](_static/images/paredit/wrap-around-parens.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>s</kbd>                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](_static/images/paredit/wrap-around-brackets.gif)
 <kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>c</kbd>                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-around-curlies.gif)
+<kbd>ctrl</kbd> <kbd>alt</kbd> <kbd>shift</kbd> <kbd>q</kbd>                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](_static/images/paredit/wrap-around-quotes.gif)
 
 
 ## About the Keyboard Shortcuts

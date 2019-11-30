@@ -436,7 +436,7 @@ export class LispTokenCursor extends TokenCursor {
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
-        if (['id', 'kw', 'lit'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
+        if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
             return [this.offsetStart, this.offsetEnd];
         }
         const peekBackwards = this.clone();

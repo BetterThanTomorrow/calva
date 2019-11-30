@@ -1010,6 +1010,11 @@
                 "title": "Wrap Around {}"
             },
             {
+                "category": "Calva Paredit",
+                "command": "paredit.wrapAroundQuote",
+                "title": "Wrap Around \"\""
+            },
+            {
                 "command": "calva-fmt.formatCurrentForm",
                 "title": "Format Current Form",
                 "category": "Calva Format"
@@ -1353,6 +1358,11 @@
             {
                 "command": "paredit.wrapAroundCurly",
                 "key": "ctrl+alt+shift+c",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.wrapAroundQuote",
+                "key": "ctrl+alt+shift+q",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
