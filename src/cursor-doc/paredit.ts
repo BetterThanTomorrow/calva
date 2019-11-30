@@ -531,7 +531,7 @@ export function convolute(doc: EditableDocument, start = doc.selectionStart, end
     }
 }
 
-export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd, newPosOffset?: { fromLeft?: number, fromRight?: number } = {}) {
+export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
     const cursor = doc.getTokenCursor(end);
     cursor.backwardWhitespace();
     if (cursor.getPrevToken().type == 'open') {
