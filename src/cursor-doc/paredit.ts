@@ -588,7 +588,7 @@ export function pushSexprRight(doc: EditableDocument, start = doc.selectionStart
     forwardCursor.forwardWhitespace();
     forwardCursor.forwardSexp();
     const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetEnd);
-    if (forwardRange[0] !== currentRange[0) { // there is a sexp to the right
+    if (forwardRange[0] !== currentRange[0]) { // there is a sexp to the right
         transpose(doc, start, currentRange[1], { fromRight: newPosOffset });
     }
 }
