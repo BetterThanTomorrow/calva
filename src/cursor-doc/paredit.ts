@@ -279,7 +279,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
         doc.model.edit([
             new ModelEdit('deleteRange', [offset, close.length]),
             new ModelEdit('insertString', [cursor.offsetStart, close])
-        ], start >= cursor.offsetStart ? { 
+        ], start >= cursor.offsetStart ? {
             selection: emptySelectionOption(cursor.offsetStart),
             formatParent: true
         } : { formatParent: true });
@@ -300,7 +300,7 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
         doc.model.edit([
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
             new ModelEdit('deleteRange', [offset, tk.raw.length])
-        ], start <= cursor.offsetStart ? { 
+        ], start <= cursor.offsetStart ? {
             selection: emptySelectionOption(cursor.offsetStart),
             formatParent: true
         } : { formatParent: true });
@@ -531,35 +531,64 @@ export function convolute(doc: EditableDocument, start = doc.selectionStart, end
     }
 }
 
-export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
-    if (start == end) {
-        const cursor = doc.getTokenCursor(end);
-        cursor.backwardWhitespace();
-        if (cursor.getPrevToken().type == 'open') {
-            cursor.forwardSexp();
-        }
-        cursor.forwardWhitespace();
-        if (cursor.getToken().type == 'close') {
+export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd, newPosOffset?: { fromLeft?: number, fromRight?: number } = {}) {
+    const cursor = doc.getTokenCursor(end);
+    cursor.backwardWhitespace();
+    if (cursor.getPrevToken().type == 'open') {
+        cursor.forwardSexp();
+    }
+    cursor.forwardWhitespace();
+    if (cursor.getToken().type == 'close') {
+        cursor.backwardSexp();
+    }
+    if (cursor.getToken().type != 'close') {
+        const rightStart = cursor.offsetStart;
+        if (cursor.forwardSexp()) {
+            const rightEnd = cursor.offsetStart;
             cursor.backwardSexp();
-        }
-        if (cursor.getToken().type != 'close') {
-            const rightStart = cursor.offsetStart;
-            if (cursor.forwardSexp()) {
-                const rightEnd = cursor.offsetStart;
-                cursor.backwardSexp();
-                cursor.backwardWhitespace();
-                const leftEnd = cursor.offsetStart;
-                if (cursor.backwardSexp()) {
-                    const leftStart = cursor.offsetStart,
-                        leftText = doc.model.getText(leftStart, leftEnd),
-                        rightText = doc.model.getText(rightStart, rightEnd),
-                        newCursorPos = leftStart + rightText.length;
-                    doc.model.edit([
-                        new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
-                        new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
-                    ], { selection: emptySelectionOption(newCursorPos) });
+            cursor.backwardWhitespace();
+            const leftEnd = cursor.offsetStart;
+            if (cursor.backwardSexp()) {
+                const leftStart = cursor.offsetStart,
+                    leftText = doc.model.getText(leftStart, leftEnd),
+                    rightText = doc.model.getText(rightStart, rightEnd);
+                let newCursorPos = leftStart + rightText.length;
+                if (newPosOffset.fromLeft != undefined) {
+                    newCursorPos = leftStart + newPosOffset.fromLeft
+                } else if (newPosOffset.fromRight != undefined) {
+                    newCursorPos = rightEnd - newPosOffset.fromRight
                 }
+                doc.model.edit([
+                    new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
+                    new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
+                ], { selection: emptySelectionOption(newCursorPos) });
             }
         }
+    }
+}
+
+export function pushSexprLeft(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+    const cursor = doc.getTokenCursor(end),
+        currentRange = cursor.rangeForCurrentForm(end),
+        newPosOffset = end - currentRange[0];
+    const backCursor = doc.getTokenCursor(currentRange[0]);
+    backCursor.backwardWhitespace();
+    backCursor.backwardSexp();
+    const backRange = backCursor.rangeForCurrentForm(backCursor.offsetEnd);
+    if (backRange[0] !== currentRange[0]) { // there is a sexp to the left
+        transpose(doc, start, currentRange[0], { fromLeft: newPosOffset });
+    }
+}
+
+export function pushSexprRight(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+    const cursor = doc.getTokenCursor(end),
+        currentRange = cursor.rangeForCurrentForm(end),
+        newPosOffset = currentRange[1] - end;
+    const forwardCursor = doc.getTokenCursor(currentRange[1]);
+    forwardCursor.forwardWhitespace();
+    forwardCursor.forwardSexp();
+    const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetEnd);
+    if (forwardRange[0] !== currentRange[0) { // there is a sexp to the right
+        transpose(doc, start, currentRange[1], { fromRight: newPosOffset });
     }
 }

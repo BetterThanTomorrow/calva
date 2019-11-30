@@ -951,6 +951,16 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.pushSexprLeft",
+                "title": "Push Sexp/Form Left"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.pushSexprRight",
+                "title": "Push Sexp/Form Right"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.convolute",
                 "title": "Convolute Sexp/Form ¯\\_(ツ)_/¯"
             },
@@ -1308,6 +1318,16 @@
             {
                 "command": "paredit.transpose",
                 "key": "ctrl+alt+t",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.pushSexprLeft",
+                "key": "ctrl+shift+alt+l",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.pushSexprRight",
+                "key": "ctrl+shift+alt+r",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
