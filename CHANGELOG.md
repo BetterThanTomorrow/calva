@@ -2,7 +2,10 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.64] - 2019-12-01
 - [Add Paredit commands **Push Form Left/right**](https://www.reddit.com/r/Clojure/comments/e3zni2/a_paredit_visual_guide_calvas_paredit_docs/f95v24w/)
+- [Add Paredit command **Rewrap**](https://clojureverse.org/t/calva-paredit-just-got-majorly-better/5155/3)
 
 ## [2.0.63] - 2019-11-30
 - Improve performance of editing Paredit commands
