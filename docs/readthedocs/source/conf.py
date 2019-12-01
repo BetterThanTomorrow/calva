@@ -22,7 +22,11 @@ copyright = '2019, Better Than Tomorrow'
 author = 'The Calva Team & Contributors'
 
 # The full version, including alpha/beta/rc tags
-release = '2.0.49'
+import os
+import json
+with open('../../../package.json') as f:
+  package_data = json.load(f)
+release = package_data['version']
 
 
 # -- General configuration ---------------------------------------------------
@@ -55,7 +59,6 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-import os
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 if on_rtd:
     html_theme = 'default'
