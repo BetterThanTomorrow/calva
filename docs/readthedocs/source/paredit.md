@@ -47,12 +47,12 @@ In Calva Paredit, strings are treated in much the same way as lists are. Here's 
 
 Default keybinding      | Action | Description
 ------------------      | ------ | -----------
- `ctrl+alt+right`          | **Forward Sexp/Form** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> ![](_static/images/paredit/forward-sexp.gif) 
- `ctrl+alt+left`           | **Backward Sexp/Form** | Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Will not move out of lists.<br> ![](_static/images/paredit/backward-sexp.gif)
- `ctrl+down`               | **Forward Down Sexp/Form** | Moves the cursor into the following list.<br> ![](_static/images/paredit/forward-down-sexp.gif)
- `ctrl+alt+up`             | **Backward Down Sexp/Form** | Moves the cursor into the preceding list.<br> ![](_static/images/paredit/backward-down-sexp.gif)
- `ctrl+alt+down`           | **Forward Up Sexp/Form** | Moves the cursor forwards, out of the current list.<br> ![](_static/images/paredit/forward-up-sexp.gif)
- `ctrl+up`                 | **Backward Up Sexp/Form** | Moves the cursor backwards, out of the current list.<br> ![](_static/images/paredit/backward-up-sexp.gif)
+ `ctrl+alt+right`          | **Forward Sexp** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> ![](_static/images/paredit/forward-sexp.gif) 
+ `ctrl+alt+left`           | **Backward Sexp** | Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Will not move out of lists.<br> ![](_static/images/paredit/backward-sexp.gif)
+ `ctrl+down`               | **Forward Down Sexp** | Moves the cursor into the following list.<br> ![](_static/images/paredit/forward-down-sexp.gif)
+ `ctrl+alt+up`             | **Backward Down Sexp** | Moves the cursor into the preceding list.<br> ![](_static/images/paredit/backward-down-sexp.gif)
+ `ctrl+alt+down`           | **Forward Up Sexp** | Moves the cursor forwards, out of the current list.<br> ![](_static/images/paredit/forward-up-sexp.gif)
+ `ctrl+up`                 | **Backward Up Sexp** | Moves the cursor backwards, out of the current list.<br> ![](_static/images/paredit/backward-up-sexp.gif)
  `ctrl+end`                | **Forward to List End/Close** | Moves the cursor forwards, staying within the current list.<br> ![](_static/images/paredit/close-list.gif)
  `ctrl+home`               | **Backward to List Start/Open** | Moves the cursor backwards, staying within the current list.<br> ![](_static/images/paredit/open-list.gif) 
 
@@ -69,14 +69,16 @@ The selecting ”versions” of the navigation commands above:
 
 Default keybinding    | Action | Description
 ------------------    | ------ | --------------
- `ctrl+shift+alt+right`  | **Select Forward Sexp/Form** | ![](_static/images/paredit/select-forward-sexp.gif) 
- `ctrl+shift+alt+left`   | **Select Backward Sexp/Form** | ![](_static/images/paredit/select-backward-sexp.gif)
- `ctrl+shift+down`       | **Select Forward Down Sexp/Form** | ![](_static/images/paredit/select-forward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
- `ctrl+shift+alt+up`     | **Select Backward Down Sexp/Form** | ![](_static/images/paredit/select-backward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
- `ctrl+shift+alt+down`   | **Select Forward Up Sexp/Form** | ![](_static/images/paredit/select-forward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
- `ctrl+shift+up`         | **Select Backward Up Sexp/Form** | ![](_static/images/paredit/select-backward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
+ `ctrl+shift+alt+right`  | **Select Forward Sexp** | ![](_static/images/paredit/select-forward-sexp.gif) 
+ `ctrl+shift+alt+left`   | **Select Backward Sexp** | ![](_static/images/paredit/select-backward-sexp.gif)
+ `ctrl+shift+down`       | **Select Forward Down Sexp** | ![](_static/images/paredit/select-forward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
+ `ctrl+shift+alt+up`     | **Select Backward Down Sexp** | ![](_static/images/paredit/select-backward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
+ `ctrl+shift+alt+down`   | **Select Forward Up Sexp** | ![](_static/images/paredit/select-forward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
+ `ctrl+shift+up`         | **Select Backward Up Sexp** | ![](_static/images/paredit/select-backward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
  `ctrl+shift+end`        | **Select Forward to List End/Close** | ![](_static/images/paredit/select-close-list.gif)
  `ctrl+shift+home`       | **Select Backward to List Start/Open** | ![](_static/images/paredit/select-open-list.gif)
+
+(Earlier versions of Calva had commands for copying, cutting and deleting that corresponded to all movements. This has now been replaced with this selection commands, and you can choose to copy/cut/delete once you have the selection.)
 
 ### Editing
 
@@ -93,24 +95,25 @@ Default keybinding                | Action | Description
  `ctrl+alt+t`                        | **Transpose Sexps/Forms** | Swaps place of the two forms surrounding the cursor. <br> ![](_static/images/paredit/transpose.gif)
  `ctrl+alt+shift`  `l`<br> `ctrl+alt+shift`  `r` | **Push Sexp/Form Left/Right** | Moves the current form to the left/right of the previous/next one. <br> ![](_static/images/paredit/left-right.gif)
  `ctrl+shift+c`                      | **Convolute Current Sexp/Form** | ¯\\\_(ツ)_/¯ <br> ![](_static/images/paredit/convolute.gif)
- `ctrl+shift+delete`                   | **Kill/Delete One Sexp/Form Forward** |  <br> ![](_static/images/paredit/kill-forward-sexp.gif)
- `ctrl+alt+backspace`                | **Kill/Delete One Sexp/Form Backward** | <br> ![](_static/images/paredit/kill-backward-sexp.gif)
- `ctrl+delete`                       | **Kill/Delete Forward to End of List** | <br> ![](_static/images/paredit/kill-close-list.gif)
- `ctrl+backspace`                    | **Kill/Delete Backward to Start of List** | <br> ![](_static/images/paredit/kill-open-list.gif) 
- `ctrl+alt+shift`  `delete`                 | **Splice Killing Forward** | Delete forward to end of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-forward.gif)
- `ctrl+alt+shift`  `backspace`              | **Splice Killing Backwards** | Delete backward to the start of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-backward.gif) 
- `ctrl+alt`  `shift+p`                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](_static/images/paredit/wrap-around-parens.gif)
- `ctrl+alt`  `shift+s`                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](_static/images/paredit/wrap-around-brackets.gif)
- `ctrl+alt`  `shift+c`                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-around-curlies.gif)
- `ctrl+alt`  `shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](_static/images/paredit/wrap-around-quotes.gif)
+ `ctrl+shift+delete`                   | **Kill Sexp/Form Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-forward-sexp.gif)
+ `ctrl+alt+backspace`                | **Kill Sexp/Form Backward** | Deletes the previous form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-backward-sexp.gif)
+ `ctrl+delete`                       | **Kill List Forward** | Deletes everything from the cursor to the closing of the current enclosing form.<br> ![](_static/images/paredit/kill-close-list.gif)
+ `ctrl+backspace`                    | **Kill List Backward** | Deletes everything from the cursor to the opening of the current enclosing form.<br> ![](_static/images/paredit/kill-open-list.gif) 
+ `ctrl+alt+shift+delete`                 | **Splice Killing Forward** | Delete forward to end of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-forward.gif)
+ `ctrl+alt+shift+backspace`              | **Splice Killing Backwards** | Delete backward to the start of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-backward.gif) 
+ `ctrl+alt+shift+p`                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](_static/images/paredit/wrap-around-parens.gif)
+ `ctrl+alt+shift+s`                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](_static/images/paredit/wrap-around-brackets.gif)
+ `ctrl+alt+shift+c`                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-around-curlies.gif)
+ `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](_static/images/paredit/wrap-around-quotes.gif)
+ `ctrl+alt+r`<br>`p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](_static/images/paredit/rewrap.gif)
 
 
 ## About the Keyboard Shortcuts
 
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
 
-Note: You can choose to disable all default key bindings by configuring`calva.paredit.defaultKeyMap` to`none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+Note: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
 
-If you add your own key bindings, please be aware that chorded shortcuts will work badly in the the REPL window. Please avoid.
+If you add your own key bindings, please be aware that [shortcuts with typable characters will work badly in the the REPL window](https://github.com/microsoft/vscode/issues/85879). Please avoid.
 
 Happy Editing! ❤️
