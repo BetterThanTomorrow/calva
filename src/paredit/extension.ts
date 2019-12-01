@@ -257,6 +257,26 @@ const pareditCommands: PareditCommand[] = [
         replWindowCommand: "wrap-quote"
     },
     {
+        command: 'paredit.rewrapParens',
+        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '(', ')') },
+        replWindowCommand: "rewrap-round"
+    },
+    {
+        command: 'paredit.rewrapSquare',
+        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '[', ']') },
+        replWindowCommand: "rewrap-square"
+    },
+    {
+        command: 'paredit.rewrapCurly',
+        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '{', '}') },
+        replWindowCommand: "rewrap-curly"
+    },
+    {
+        command: 'paredit.rewrapQuote',
+        handler: (doc: EditableDocument) => { paredit.rewrapSexpr(doc, '"', '"') },
+        replWindowCommand: "rewrap-quote"
+    },
+    {
         command: 'paredit.deleteForward',
         handler: paredit.deleteForward,
         // do not bind replWindowCommand

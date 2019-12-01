@@ -1025,6 +1025,26 @@
                 "title": "Wrap Around \"\""
             },
             {
+                "category": "Calva Paredit",
+                "command": "paredit.rewrapParens",
+                "title": "Rewrap ()"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.rewrapSquare",
+                "title": "Rewrap []"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.rewrapCurly",
+                "title": "Rewrap {}"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.rewrapQuote",
+                "title": "Rewrap \"\""
+            },
+            {
                 "command": "calva-fmt.formatCurrentForm",
                 "title": "Format Current Form",
                 "category": "Calva Format"
@@ -1383,6 +1403,26 @@
             {
                 "command": "paredit.wrapAroundQuote",
                 "key": "ctrl+alt+shift+q",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.rewrapParens",
+                "key": "ctrl+alt+r ctrl+alt+p",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.rewrapSquare",
+                "key": "ctrl+alt+r ctrl+alt+s",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.rewrapCurly",
+                "key": "ctrl+alt+r ctrl+alt+c",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.rewrapQuote",
+                "key": "ctrl+alt+r ctrl+alt+q",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {

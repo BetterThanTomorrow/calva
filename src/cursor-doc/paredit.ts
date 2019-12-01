@@ -1,5 +1,5 @@
 import { validPair } from "./clojure-lexer";
-import { ModelEdit, EditableDocument, emptySelectionOption } from "./model";
+import { ModelEdit, EditableDocument, emptySelectionOption, ModelEditOptions } from "./model";
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can ccompose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -136,7 +136,7 @@ export function rangeToBackwardList(doc: EditableDocument, offset: number = doc.
     }
 }
 
-export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd): Thenable<boolean> {
+export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd, options = { skipFormat: false }): Thenable<boolean> {
     const cursor = doc.getTokenCursor(end);
     if (cursor.withinString() && open == '"') {
         open = close = '\\"';
@@ -148,14 +148,36 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             return doc.model.edit([
                 new ModelEdit('insertString', [range[1], close]),
                 new ModelEdit('insertString', [range[0], open])
-            ], { selection: emptySelectionOption(start + open.length) });
+            ], { 
+                selection: emptySelectionOption(start + open.length),
+                skipFormat: options.skipFormat
+             });
         }
     } else { // there is a selection
         const range = [Math.min(start, end), Math.max(start, end)];
         return doc.model.edit([
             new ModelEdit('insertString', [range[1], close]),
             new ModelEdit('insertString', [range[0], open])
-        ], { selection: { anchor: start + open.length, active: end + open.length } });
+        ], { 
+            selection: { anchor: start + open.length, active: end + open.length },
+            skipFormat: options.skipFormat
+        });
+    }
+}
+
+export function rewrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd): Thenable<boolean> {
+    const cursor = doc.getTokenCursor(end);
+    if (cursor.backwardList()) {
+        const openStart = cursor.offsetStart - 1,
+            openEnd = cursor.offsetStart;
+            if (cursor.forwardList()) {
+                const closeStart = cursor.offsetStart,
+                    closeEnd = cursor.offsetEnd;
+                return doc.model.edit([
+                    new ModelEdit('changeRange', [closeStart, closeEnd, close]),
+                    new ModelEdit('changeRange', [openStart, openEnd, open])
+                ], { selection: emptySelectionOption(end)});
+            }
     }
 }
 
