@@ -1312,7 +1312,7 @@
             },
             {
                 "command": "paredit.raiseSexp",
-                "key": "ctrl+alt+r",
+                "key": "ctrl+alt+p ctrl+alt+r",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
