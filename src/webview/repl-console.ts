@@ -5,10 +5,10 @@ import { HotKeyTable } from "./hotkeys";
 import { ModelEdit, emptySelectionOption } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
-    "Backspace": "backspace",
-    "Delete": "delete",
-    "Alt+Backspace": "force-backspace",
-    "Alt+Delete": "force-delete",
+    // "Backspace": "backspace",
+    // "Delete": "delete",
+    // "Alt+Backspace": "force-backspace",
+    // "Alt+Delete": "force-delete",
 
     "Cmd+A": "select-all",
     "Cmd+Z": "undo",
@@ -586,56 +586,28 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "backspace": () => {
-            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.backspace(this.readline);
-                    this.readline.repaint()
-                })
-            } else {
-                this.readline.withUndo(() => {
-                    this.readline.backspace();
-                    this.readline.repaint()
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.backspace(this.readline);
+                this.readline.repaint()
+            })
         },
         "force-backspace": () => {
-            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    this.readline.backspace();
-                    this.readline.repaint()
-                })
-            } else {
-                this.readline.withUndo(() => {
-                    paredit.backspace(this.readline);
-                    this.readline.repaint()
-                })
-            }
+            this.readline.withUndo(() => {
+                this.readline.backspace();
+                this.readline.repaint()
+            })
         },
         "delete": () => {
-            if (this.isKeyMap([ReplPareditKeyMap.STRICT])) {
-                this.readline.withUndo(() => {
-                    paredit.deleteForward(this.readline);
-                    this.readline.repaint()
-                })
-            } else {
-                this.readline.withUndo(() => {
-                    this.readline.delete();
-                    this.readline.repaint()
-                })
-            }
+            this.readline.withUndo(() => {
+                paredit.deleteForward(this.readline);
+                this.readline.repaint()
+            })
         },
         "force-delete": () => {
-            if (this.isKeyMap[ReplPareditKeyMap.STRICT]) {
-                this.readline.withUndo(() => {
-                    this.readline.delete();
-                    this.readline.repaint();
-                });
-            } else {
-                this.readline.withUndo(() => {
-                    paredit.deleteForward(this.readline);
-                    this.readline.repaint()
-                })
-            }
+            this.readline.withUndo(() => {
+                this.readline.delete();
+                this.readline.repaint();
+            });
         },
         "cursor-home": () => {
             this.readline.caretHome(true);
