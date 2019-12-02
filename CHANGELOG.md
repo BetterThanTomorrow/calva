@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.65] - 2019-12-02
 - [Make all Paredit selection commands shrinkable](https://www.reddit.com/r/Clojure/comments/e3zni2/a_paredit_visual_guide_calvas_paredit_docs/f9e7ujq/)
 - Fix: [Raise Sexp/Form needs updated doc and shortcut keys](https://github.com/BetterThanTomorrow/calva/issues/495)
 
