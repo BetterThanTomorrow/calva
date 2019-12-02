@@ -62,7 +62,7 @@ Default keybinding    | Action | Description
 ------------------    | ------ | -----------
  `ctrl+w`                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](_static/images/paredit/grow-selection.gif)
  `ctrl+shift+w`          | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](_static/images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
- `ctrl+alt+w space`      | **Select Current Top Level Form** | Top level in a structural sence. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](_static/images/paredit/select-top-level-form.gif) 
+ `ctrl+alt+w space`      | **Select Top Level Form** | Top level in a structural sence. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](_static/images/paredit/select-top-level-form.gif) 
 
 
 The selecting ”versions” of the navigation commands above. They will all grow whatever current selection as far as the **Shrink Selection** command is concerned.
@@ -88,15 +88,15 @@ Default keybinding                | Action | Description
  `ctrl+left`                         | **Barf Forward** | Moves the _closing_ bracket _backward_, _towards_ the cursor, past the preceding form. <br> ![](_static/images/paredit/barf-forward.gif)
  `ctrl+shift+left`                   | **Slurp Backward** | Moves the _opening_ bracket _backward_, _away_ from the cursor, past the preceding form, if any. <br> ![](_static/images/paredit/slurp-backward.gif)
  `ctrl+shift+right`                  | **Barf Backward** | Moves the _opening_ bracket _forward_, _towards_ the cursor, past the following form. <br> ![](_static/images/paredit/barf-backward.gif)
- `ctrl+alt+s`                      | **Splice Current Sexp/Form** | Remove enclosing brackets. <br> ![](_static/images/paredit/splice.gif)
- `ctrl+shift+s`                  | **Split Current Sexp/Form** | Splits a string, or a list, into two strings, or lists of the same type as the current. <br> ![](_static/images/paredit/split.gif)
+ `ctrl+alt+s`                      | **Splice Sexp** | Remove enclosing brackets. <br> ![](_static/images/paredit/splice.gif)
+ `ctrl+shift+s`                  | **Split Sexp** | Splits a string, or a list, into two strings, or lists of the same type as the current. <br> ![](_static/images/paredit/split.gif)
  `ctrl+shift+j`                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](_static/images/paredit/join.gif)
- `ctrl+alt+p ctrl+alt+r`                        | **Raise Current Sexp/Form** | Replaces the enclosing list with the current form. <br> ![](_static/images/paredit/raise.gif)
+ `ctrl+alt+p ctrl+alt+r`                        | **Raise Sexp** | Replaces the enclosing list with the current form. <br> ![](_static/images/paredit/raise.gif)
  `ctrl+alt+t`                        | **Transpose Sexps/Forms** | Swaps place of the two forms surrounding the cursor. <br> ![](_static/images/paredit/transpose.gif)
- `ctrl+alt+shift`  `l`<br> `ctrl+alt+shift`  `r` | **Push Sexp/Form Left/Right** | Moves the current form to the left/right of the previous/next one. <br> ![](_static/images/paredit/left-right.gif)
- `ctrl+shift+c`                      | **Convolute Current Sexp/Form** | ¯\\\_(ツ)_/¯ <br> ![](_static/images/paredit/convolute.gif)
- `ctrl+shift+delete`                   | **Kill Sexp/Form Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-forward-sexp.gif)
- `ctrl+alt+backspace`                | **Kill Sexp/Form Backward** | Deletes the previous form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-backward-sexp.gif)
+ `ctrl+alt+shift`  `l`<br> `ctrl+alt+shift`  `r` | **Push Sexp Left/Right** | Moves the current form to the left/right of the previous/next one. <br> ![](_static/images/paredit/left-right.gif)
+ `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](_static/images/paredit/convolute.gif)
+ `ctrl+shift+delete`                   | **Kill Sexp Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-forward-sexp.gif)
+ `ctrl+alt+backspace`                | **Kill Sexp Backward** | Deletes the previous form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-backward-sexp.gif)
  `ctrl+delete`                       | **Kill List Forward** | Deletes everything from the cursor to the closing of the current enclosing form.<br> ![](_static/images/paredit/kill-close-list.gif)
  `ctrl+backspace`                    | **Kill List Backward** | Deletes everything from the cursor to the opening of the current enclosing form.<br> ![](_static/images/paredit/kill-open-list.gif) 
  `ctrl+alt+shift+delete`                 | **Splice Killing Forward** | Delete forward to end of the list, then Splice. <br> ![](_static/images/paredit/splice-killing-forward.gif)
@@ -105,7 +105,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+s`                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](_static/images/paredit/wrap-around-brackets.gif)
  `ctrl+alt+shift+c`                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](_static/images/paredit/wrap-around-curlies.gif)
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](_static/images/paredit/wrap-around-quotes.gif)
- `ctrl+alt+r`<br>`p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](_static/images/paredit/rewrap.gif)
+ `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](_static/images/paredit/rewrap.gif)
 
 
 ## About the Keyboard Shortcuts

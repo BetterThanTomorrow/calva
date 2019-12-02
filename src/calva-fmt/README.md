@@ -14,7 +14,7 @@ A Clojure and ClojureScript formatter for Visual Studio Code.
 * Formats the code when new lines are entered, mostly keeping things formated as you type.
 * Adds a command for formatting the enclosing form, default key binding is `tab`.
 * Adds a command for aligning map items, and bindings in the current form, default key binding `ctrl+alt+l`. (This is a bit experimental and will not always produce the prettiest results. Also it is recursive.) You can also opt-in to have this behaviour be on for all formatting, via settings.
-* Adds a command for infering parens/brackets from indents (using ParinferLib), default key binding `ctrl+alt+p`.
+* Adds a command for infering parens/brackets from indents (using ParinferLib), default key binding `ctrl+alt+f ctrl+alt+p`.
 * Adds a command for indenting and dedenting the current line (using ParinferLib), default key binding `ctrl+i` and `shift+ctrl+i`, respectively.
 * Provides the formater for the VSCode *Format Selection* and *Format Document* commands as well as for *Format on Paste*.
 * Is intended to be used alongside and by other Clojure extensions.
