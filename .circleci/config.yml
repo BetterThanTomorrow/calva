@@ -70,7 +70,7 @@ jobs:
           paths:
             - ~/.atom/packages
             - ./node_modules
-  test:
+  test-cljslib:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node-browsers
     working_directory: ~/calva
@@ -83,6 +83,18 @@ jobs:
       - run:
           name: Compile and Run Tests (Cljs)
           command: npm run compile-cljs
+      - store_test_results:
+          path: ~/calva/junit
+  test-ts:
+    docker:
+      - image: circleci/openjdk:11.0.4-stretch-node-browsers
+    working_directory: ~/calva
+    steps:
+      - checkout:
+          path: ~/calva
+      - restore_cache:
+          name: Restore dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Compile Extension Tests
           command: npm run test-compile
@@ -212,13 +224,17 @@ workflows:
       - test-grammar:
           requires:
             - install-deps
-      - test:
+      - test-cljslib:
+          requires:
+            - install-deps
+      - test-ts:
           requires:
             - install-deps
       - build:
           requires:
-            - test
             - test-grammar
+            - test-cljslib
+            - test-ts
   test-build-release-publish:
     jobs:
       - install-deps:
@@ -235,7 +251,15 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-      - test:
+      - test-cljslib:
+          requires:
+            - install-deps
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - test-ts:
           requires:
             - install-deps
           filters:
@@ -245,8 +269,9 @@ workflows:
               only: /^v\d+\.\d+\.\d+-?.*/
       - build:
           requires:
-            - test
             - test-grammar
+            - test-cljslib
+            - test-ts
           filters:
             branches:
               ignore: /.*/
