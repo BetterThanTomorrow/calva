@@ -812,32 +812,32 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardSexp",
-                "title": "Forward Sexp/Form"
+                "title": "Forward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardSexp",
-                "title": "Backward Sexp/Form"
+                "title": "Backward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardDownSexp",
-                "title": "Forward Down Sexp/Form"
+                "title": "Forward Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardDownSexp",
-                "title": "Backward Down Sexp/Form"
+                "title": "Backward Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardUpSexp",
-                "title": "Backward Up Sexp/Form"
+                "title": "Backward Up Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardUpSexp",
-                "title": "Forward Up Sexp/Form"
+                "title": "Forward Up Sexp"
             },
             {
                 "category": "Calva Paredit",
@@ -852,32 +852,32 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectForwardSexp",
-                "title": "Select Forward Sexp/Form"
+                "title": "Select Forward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectBackwardSexp",
-                "title": "Select Backward Sexp/Form"
+                "title": "Select Backward Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectForwardDownSexp",
-                "title": "Select Forward Down Sexp/Form"
+                "title": "Select Forward Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectBackwardDownSexp",
-                "title": "Select Backward Down Sexp/Form"
+                "title": "Select Backward Down Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectBackwardUpSexp",
-                "title": "Select Backward Up Sexp/Form"
+                "title": "Select Backward Up Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectForwardUpSexp",
-                "title": "Select Forward Up Sexp/Form"
+                "title": "Select Forward Up Sexp"
             },
             {
                 "category": "Calva Paredit",
@@ -907,72 +907,72 @@
             {
                 "category": "Calva Paredit",
                 "command": "paredit.slurpSexpForward",
-                "title": "Slurp Sexp/Form Forward"
+                "title": "Slurp Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.slurpSexpBackward",
-                "title": "Slurp Sexp/Form Backward"
+                "title": "Slurp Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpForward",
-                "title": "Barf Sexp/Form Forward"
+                "title": "Barf Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpBackward",
-                "title": "Barf Sexp/Form Backward"
+                "title": "Barf Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexp",
-                "title": "Splice Sexp/Form"
+                "title": "Splice Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.splitSexp",
-                "title": "Split Sexp/Form"
+                "title": "Split Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.joinSexp",
-                "title": "Join Sexp/Form"
+                "title": "Join Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.raiseSexp",
-                "title": "Raise Sexp/Form"
+                "title": "Raise Sexp"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.transpose",
-                "title": "Transpose (Swap) the two Sexp/Forms Around the Cursor"
+                "title": "Transpose (Swap) the two Sexps Around the Cursor"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.pushSexprLeft",
-                "title": "Push Sexp/Form Left"
+                "title": "Push Sexp Left"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.pushSexprRight",
-                "title": "Push Sexp/Form Right"
+                "title": "Push Sexp Right"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.convolute",
-                "title": "Convolute Sexp/Form ¯\\_(ツ)_/¯"
+                "title": "Convolute Sexp ¯\\_(ツ)_/¯"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
-                "title": "Kill/Delete Sexp/Form Forward"
+                "title": "Kill/Delete Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpBackward",
-                "title": "Kill/Delete Sexp/Form Backward"
+                "title": "Kill/Delete Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
@@ -1457,7 +1457,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "ctrl+alt+p",
+                "key": "ctrl+alt+f ctrl+alt+p",
                 "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
