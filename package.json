@@ -1197,7 +1197,7 @@
             },
             {
                 "command": "paredit.togglemode",
-                "key": "ctrl+alt+c -",
+                "key": "ctrl+alt+p ctrl+alt+m",
                 "when": "paredit:keyMap =~ /original|strict/"
             },
             {
