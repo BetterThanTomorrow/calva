@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.66] - 2019-12-02
 - Fix: [Cursor moves forward after undoing wraparound commands in REPL window](https://github.com/BetterThanTomorrow/calva/issues/499)
 - Fix: Wrong keybinding for Toggle Paredit Mode, now is `ctrl+alt+p ctrl+alt+m`, as it should be
 - Fix: [Force Delete Forward not working in REPL window in strict mode](https://github.com/BetterThanTomorrow/calva/issues/496)

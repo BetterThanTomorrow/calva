@@ -1120,7 +1120,7 @@
             },
             {
                 "command": "calva.selectCurrentForm",
-                "key": "ctrl+alt+c s"
+                "key": "ctrl+alt+c ctrl+s"
             },
             {
                 "command": "calva.clearInlineResults",
