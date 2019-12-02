@@ -150,7 +150,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             const range = currentFormRange;
             return doc.model.edit([
                 new ModelEdit('insertString', [range[1], close]),
-                new ModelEdit('insertString', [range[0], open])
+                new ModelEdit('insertString', [range[0], open, [end, end], [start + open.length, start + open.length]])
             ], { 
                 selection: emptySelectionOption(start + open.length),
                 skipFormat: options.skipFormat

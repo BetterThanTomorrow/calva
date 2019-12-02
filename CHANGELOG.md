@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Cursor moves forward after undoing wraparound commands in REPL window](https://github.com/BetterThanTomorrow/calva/issues/499)
 
 ## [2.0.65] - 2019-12-02
 - [Make all Paredit selection commands shrinkable](https://www.reddit.com/r/Clojure/comments/e3zni2/a_paredit_visual_guide_calvas_paredit_docs/f9e7ujq/)
