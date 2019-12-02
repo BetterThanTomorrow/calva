@@ -40,7 +40,19 @@
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ]
-        }
-
+        },
+        {
+            "name": "Extension Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+              "--disable-extensions",
+              "--extensionDevelopmentPath=${workspaceRoot}",
+              "--extensionTestsPath=${workspaceRoot}/out/test/suite/index"
+            ],
+            "outFiles": ["${workspaceRoot}/out/test/**/*.js"],
+            "preLaunchTask": "npm: test-compile"
+          }
     ]
 }

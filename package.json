@@ -1648,13 +1648,14 @@
         "release-cljs": "npx shadow-cljs release :calva-lib",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
+        "test-compile": "npm i && npx shadow-cljs compile :calva-lib &&  tsc -p ./ && webpack --mode development",
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
-        "bump-version": "npm set git-tag-version false && npm version patch"
+        "bump-version": "npm set git-tag-version false && npm version patch",
+        "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
-        "@types/mocha": "^2.2.42",
         "@types/node": "^7.10.6",
         "@types/universal-analytics": "^0.4.2",
         "@types/uuid": "^3.4.4",
@@ -1676,6 +1677,8 @@
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.7",
         "@types/vscode": "^1.30.0",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.1",
@@ -1688,7 +1691,11 @@
         "eslint-plugin-promise": "^3.7.0",
         "eslint-plugin-standard": "^3.0.1",
         "file-loader": "^3.0.1",
+        "glob": "^7.1.4",
         "json": "^9.0.6",
+        "mocha": "^6.1.4",
+        "mocha-junit-reporter": "^1.23.1",
+        "mocha-multi-reporters": "^1.1.7",
         "node-gyp": "^5.0.0",
         "nodemon": "^1.19.1",
         "rimraf": "^2.7.1",
@@ -1702,6 +1709,7 @@
         "typescript": "^3.5.1",
         "url-loader": "^1.1.2",
         "vsce": "^1.67.1",
+        "vscode-test": "^1.0.0",
         "webpack": "^4.33.0",
         "webpack-cli": "^3.3.5"
     }

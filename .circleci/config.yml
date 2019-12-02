@@ -72,7 +72,7 @@ jobs:
             - ./node_modules
   test:
     docker:
-      - image: circleci/openjdk:11.0.4-stretch-node
+      - image: circleci/openjdk:11.0.4-stretch-node-browsers
     working_directory: ~/calva
     steps:
       - checkout:
@@ -81,8 +81,16 @@ jobs:
           name: Restore dependencies
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
-          name: Compile and Run Tests
+          name: Compile and Run Tests (Cljs)
           command: npm run compile-cljs
+      - run:
+          name: Compile Extension Tests
+          command: npm run test-compile
+      - run:
+          name: Run Extension Tests
+          command: npm run test
+      - store_test_results:
+          path: ~/calva/junit
   build:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node
