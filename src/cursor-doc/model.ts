@@ -89,7 +89,7 @@ export interface EditableDocument {
     selectionEnd: number,
     selection: { anchor: number, active: number },
     model: EditableModel,
-    growSelectionStack: [number, number][],
+    growSelectionStack: { anchor: number, active: number }[],
     getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
     insertString: (text: string) => void,
     getSelectionText: () => string,

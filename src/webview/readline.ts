@@ -61,6 +61,10 @@ export class ReplReadline implements EditableDocument {
         this.selectionEnd = selection.active;
     }
 
+    get selection(): { anchor: number, active: number} {
+        return { anchor: this.selectionStart, active: this.selectionEnd}
+    }
+
     /** The offset of the end of the selection into the document. */
     private _selectionEnd: number = 0;
 
@@ -721,7 +725,7 @@ export class ReplReadline implements EditableDocument {
         this.freeze();
     }
 
-    growSelectionStack: [number, number][] = [];
+    growSelectionStack: { anchor: number, active: number}[] = [];
 }
 
 /**

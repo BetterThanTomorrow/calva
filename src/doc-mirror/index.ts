@@ -106,7 +106,7 @@ class MirroredDocument implements EditableDocument {
 
     model = new DocumentModel(this);
 
-    growSelectionStack: [number, number][] = [];
+    growSelectionStack: { anchor: number, active: number }[] = [];
 
     public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);
@@ -130,6 +130,10 @@ class MirroredDocument implements EditableDocument {
             active = document.positionAt(selection.active);
         editor.selection = new vscode.Selection(anchor, active);
         editor.revealRange(new vscode.Range(active, active));
+    }
+
+    get selection(): { anchor: number, active: number } {
+        return { anchor: this.selectionStart, active: this.selectionEnd };
     }
 
     public getSelectionText() {

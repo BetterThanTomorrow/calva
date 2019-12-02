@@ -22,15 +22,18 @@ export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
-    doc.selection = { anchor: range[0], active: range[1] };
+    // doc.selection = { anchor: range[0], active: range[1] };
+    growSelectionStack(doc, range)
 }
 
 export function selectRangeFromSelectionStart(doc: EditableDocument, range: [number, number]) {
-    doc.selection = { anchor: doc.selectionStart, active: range[1] };
+    // doc.selection = { anchor: doc.selectionStart, active: range[1] };
+    growSelectionStack(doc, [doc.selectionStart, range[1]])
 }
 
 export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
-    doc.selection = { anchor: doc.selectionEnd, active: range[0] };
+    // doc.selection = { anchor: doc.selectionEnd, active: range[0] };
+    growSelectionStack(doc, [doc.selectionEnd, range[0]])
 }
 
 
@@ -480,25 +483,25 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
     }
 }
 
-function growSelectionStack(doc: EditableDocument, range: [number, number]) {
+export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
     const [start, end] = range;
     if (doc.growSelectionStack.length > 0) {
-        const [prevStart, prevEnd] = doc.growSelectionStack[doc.growSelectionStack.length - 1];
-        if (!(doc.selectionStart == prevStart && doc.selectionEnd == prevEnd)) {
-            doc.growSelectionStack = [[doc.selectionStart, doc.selectionEnd]];
+        const prev = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+        if (!(doc.selectionStart == prev.anchor && doc.selectionEnd == prev.active)) {
+            doc.growSelectionStack = [doc.selection];
         }
     } else {
-        doc.growSelectionStack = [[doc.selectionStart, doc.selectionEnd]];
+        doc.growSelectionStack = [doc.selection];
     }
-    doc.growSelectionStack.push(range);
-    [doc.selectionStart, doc.selectionEnd] = [start, end];
+    doc.selection = { anchor: start, active: end };
+    doc.growSelectionStack.push(doc.selection);
 }
 
 export function shrinkSelection(doc: EditableDocument) {
     if (doc.growSelectionStack.length) {
-        let [stackStart, stackEnd] = doc.growSelectionStack.pop();
-        if (doc.growSelectionStack.length && stackStart == doc.selectionStart && stackEnd == doc.selectionEnd) {
-            [doc.selectionStart, doc.selectionEnd] = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+        let latest = doc.growSelectionStack.pop();
+        if (doc.growSelectionStack.length && latest.anchor == doc.selectionStart && latest.active == doc.selectionEnd) {
+            doc.selection = doc.growSelectionStack[doc.growSelectionStack.length - 1];
         }
     }
 }

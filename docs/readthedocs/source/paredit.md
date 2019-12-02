@@ -61,11 +61,11 @@ Default keybinding      | Action | Description
 Default keybinding    | Action | Description
 ------------------    | ------ | -----------
  `ctrl+w`                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](_static/images/paredit/grow-selection.gif)
- `ctrl+shift+w`          | **Shrink Selection** | Contracts back from an expanded selection.<br> ![](_static/images/paredit/shrink-selection.gif)
- `ctrl+alt+w space`      | **Select Current Top Level Form** | Top level in a structural sence. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level.<br> ![](_static/images/paredit/select-top-level-form.gif) 
+ `ctrl+shift+w`          | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](_static/images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
+ `ctrl+alt+w space`      | **Select Current Top Level Form** | Top level in a structural sence. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](_static/images/paredit/select-top-level-form.gif) 
 
 
-The selecting ”versions” of the navigation commands above:
+The selecting ”versions” of the navigation commands above. They will all grow whatever current selection as far as the **Shrink Selection** command is concerned.
 
 Default keybinding    | Action | Description
 ------------------    | ------ | --------------
