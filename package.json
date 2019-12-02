@@ -1652,7 +1652,7 @@
         "postrelease": "rimraf ./out/cljs-lib",
         "vscode:prepublish": "npm run release",
         "bump-version": "npm set git-tag-version false && npm version patch",
-        "test": "node ./out/test/runTest.js"
+        "test": "node ./out/extension-test/runTests.js"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",

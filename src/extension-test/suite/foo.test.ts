@@ -3,7 +3,7 @@ import { after } from 'mocha';
 import * as path from "path";
 import * as vscode from "vscode";
 
-const testFolderLocation = "/../../../src/test/examples/";
+const testFolderLocation = "/../../../src/extension-test/examples/";
 
 suite("opening file", () => {
     test("", async () => {
