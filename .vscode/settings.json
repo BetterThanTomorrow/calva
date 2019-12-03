@@ -1,0 +1,5 @@
+{
+    "restructuredtext.confPath": "${workspaceFolder}/docs/readthedocs/source",
+    "mochaExplorer.files": "unit-test/**/*-test.ts",
+    "mochaExplorer.require": "ts-node/register"
+}
