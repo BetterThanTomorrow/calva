@@ -1680,7 +1680,7 @@
         "@types/chai": "^4.2.6",
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.7",
-        "@types/vscode": "^1.40.0",
+        "@types/vscode": "^1.30.0",
         "chai": "^4.2.0",
         "concurrently": "^4.1.0",
         "cson-parser": "^4.0.3",
