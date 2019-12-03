@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as utilities from '../utilities';
 import * as pprint from '../printer';
 
+import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
@@ -352,27 +353,6 @@ const projectTypes: { [id: string]: ProjectType } = {
         }
     }
 }
-
-/**
- * Prepends a `:` to a string, so it can be used as an EDN keyword.
- * (Or at least made to look like one).
- * @param  {string} s the string to be keywordized
- * @return {string} keywordized string
- */
-export function keywordize(s: string): string {
-    return s.replace(/^[\s,:]*/, ":");
-}
-
-/**
- * Remove the leading `:` from strings (EDN keywords)'
- * NB: Does not check if the leading character is really a `:`.
- * @param  {string} kw
- * @return {string} kw without the first character
- */
-export function unKeywordize(kw: string): string {
-    return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
-}
-
 
 /** Given the name of a project in project types, find that project. */
 export function getProjectTypeForName(name: string) {
