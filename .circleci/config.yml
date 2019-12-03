@@ -252,7 +252,8 @@ workflows:
           requires:
             - test-grammar
             - test-cljslib
-            - test-ts
+            - test-ts-integration
+            - test-ts-unit
   test-build-release-publish:
     jobs:
       - install-deps:
