@@ -85,7 +85,22 @@ jobs:
           command: npm run compile-cljs
       - store_test_results:
           path: ~/calva/junit
-  test-ts:
+  test-ts-unit:
+    docker:
+      - image: circleci/openjdk:11.0.4-stretch-node-browsers
+    working_directory: ~/calva
+    steps:
+      - checkout:
+          path: ~/calva
+      - restore_cache:
+          name: Restore dependencies
+          key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
+      - run:
+          name: Run Unit Tests
+          command: npm run unit-test
+      - store_test_results:
+          path: ~/calva/junit
+  test-ts-integration:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node-browsers
     working_directory: ~/calva
@@ -97,10 +112,10 @@ jobs:
           key: ts-{{ checksum "package.json" }}-cljs-{{ checksum "shadow-cljs.edn" }}-grammar-{{ checksum "src/calva-fmt/atom-language-clojure/package.json" }}
       - run:
           name: Compile Extension Tests
-          command: npm run test-compile
+          command: npm run compile-test
       - run:
           name: Run Extension Tests
-          command: npm run test
+          command: npm run integration-test
       - store_test_results:
           path: ~/calva/junit
   build:
@@ -227,7 +242,10 @@ workflows:
       - test-cljslib:
           requires:
             - install-deps
-      - test-ts:
+      - test-ts-integration:
+          requires:
+            - install-deps
+      - test-ts-unit:
           requires:
             - install-deps
       - build:
@@ -259,7 +277,15 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-      - test-ts:
+      - test-ts-integration:
+          requires:
+            - install-deps
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+-?.*/
+      - test-ts-unit:
           requires:
             - install-deps
           filters:

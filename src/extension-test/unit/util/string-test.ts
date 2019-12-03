@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {keywordize, unKeywordize} from '../../src/util/string';
+import { keywordize, unKeywordize } from '../../../util/string';
 
 // TODO: Hook this into the CI pipeline
 
