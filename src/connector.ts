@@ -11,6 +11,7 @@ import { NReplClient, NReplSession } from "./nrepl";
 import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
+import { keywordize } from './util/string';
 
 function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
@@ -183,7 +184,7 @@ function updateInitCode(build: string, initCode): string {
         if (["node-repl", "browser-repl"].includes(build)) {
             return initCode.repl.replace("%REPL%", build);
         } else {
-            return initCode.build.replace("%BUILD%", projectTypes.keywordize(build));
+            return initCode.build.replace("%BUILD%", keywordize(build));
         }
     } else if (build && typeof initCode === 'string') {
         return initCode.replace("%BUILD%", `"${build}"`);
