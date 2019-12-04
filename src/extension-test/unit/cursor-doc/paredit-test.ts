@@ -29,13 +29,25 @@ describe('paredit.selectRangeFromSelectionStart', () => {
     });
 });
 
-describe('paredit.growSelectionStack', () => {
+describe('paredit selection stack', () => {
     const doc = new mock.MockDocument();
     doc.insertString('(def foo [:foo :bar :baz])');
-    const range = [15, 20] as [number, number],
+    const startSelection = doc.selection,
+        range = [15, 20] as [number, number],
         selection = { anchor: range[0], active: range[1] };
     it('selection is topmost element on the stack', () => {
         paredit.growSelectionStack(doc, range);
         expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(selection);
     });
+    it('shrink selection pops the last selection up', () => {
+        paredit.shrinkSelection(doc);
+        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(startSelection);
+    });
+    it('shrink selection after adding the same selection twice pops the original selection up', () => {
+        paredit.growSelectionStack(doc, range);
+        paredit.growSelectionStack(doc, range);
+        paredit.shrinkSelection(doc);
+        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(startSelection);
+    });
+
 });
