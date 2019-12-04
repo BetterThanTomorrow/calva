@@ -487,6 +487,9 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
     const [start, end] = range;
     if (doc.growSelectionStack.length > 0) {
         const prev = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+        if (prev.anchor === range[0] && prev.active === range[1]) {
+            return;
+        }
         if (!(doc.selectionStart == prev.anchor && doc.selectionEnd == prev.active)) {
             doc.growSelectionStack = [doc.selection];
         }
