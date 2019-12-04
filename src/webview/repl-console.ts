@@ -445,7 +445,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-backward-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardSexp(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-forward-down-sexp": () => {

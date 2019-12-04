@@ -33,7 +33,7 @@ export function selectRangeFromSelectionStart(doc: EditableDocument, range: [num
 
 export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
     // doc.selection = { anchor: doc.selectionEnd, active: range[0] };
-    growSelectionStack(doc, [doc.selectionEnd, range[0]])
+    growSelectionStack(doc, [doc.selectionStart, range[0]])
 }
 
 
@@ -56,7 +56,7 @@ export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.s
     }
 }
 
-export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionEnd): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
         // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
@@ -487,7 +487,7 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
     const [start, end] = range;
     if (doc.growSelectionStack.length > 0) {
         const prev = doc.growSelectionStack[doc.growSelectionStack.length - 1];
-        if (!(doc.selectionStart == prev.anchor && doc.selectionEnd == prev.active)) {
+        if (!(doc.selectionStart === prev.anchor && doc.selectionEnd === prev.active)) {
             doc.growSelectionStack = [doc.selection];
         }
     } else {
