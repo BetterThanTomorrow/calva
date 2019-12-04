@@ -3,9 +3,8 @@ import * as paredit from '../../../cursor-doc/paredit';
 import { ReplReadline } from '../../../webview/readline';
 import * as mock from './mock';
 
-
-describe('paredit.selectRangeFromSelectionEnd', function () {
-    it('grows the selection backwards', function () {
+describe('paredit.selectRangeFromSelectionEnd', () => {
+    it('grows the selection backwards', () => {
         const doc = new mock.MockDocument();
         doc.insertString('(def foo [:foo :bar :baz])');
         const bazSelection = { anchor: 20, active: 15 },
@@ -17,8 +16,8 @@ describe('paredit.selectRangeFromSelectionEnd', function () {
     });
 });
 
-describe('paredit.selectRangeFromSelectionStart', function () {
-    it('grows the selection backwards', function () {
+describe('paredit.selectRangeFromSelectionStart', () => {
+    it('grows the selection backwards', () => {
         const doc = new mock.MockDocument();
         doc.insertString('(def foo [:foo :bar :baz])');
         const barSelection = { anchor: 15, active: 19 },
@@ -27,5 +26,16 @@ describe('paredit.selectRangeFromSelectionStart', function () {
         doc.selection = barSelection;
         paredit.selectRangeFromSelectionStart(doc, bazRange);
         expect(doc.selection).deep.equal(barBazSelection);
+    });
+});
+
+describe('paredit.growSelectionStack', () => {
+    const doc = new mock.MockDocument();
+    doc.insertString('(def foo [:foo :bar :baz])');
+    const range = [15, 20] as [number, number],
+        selection = { anchor: range[0], active: range[1] };
+    it('selection is topmost element on the stack', () => {
+        paredit.growSelectionStack(doc, range);
+        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(selection);
     });
 });
