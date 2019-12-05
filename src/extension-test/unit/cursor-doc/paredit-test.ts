@@ -3,21 +3,21 @@ import * as paredit from '../../../cursor-doc/paredit';
 import { ReplReadline } from '../../../webview/readline';
 import * as mock from './mock';
 
-describe('paredit.selectRangeFromSelectionEnd', () => {
+describe('paredit.selectRangeFromSelectionRight', () => {
     // TODO: Fix #498
-    xit('grows the selection backwards', () => {
+    it('grows the selection backwards', () => {
         const doc = new mock.MockDocument();
         doc.insertString('(def foo [:foo :bar :baz])');
-        const bazSelection = { anchor: 20, active: 15 },
+        const bazSelection = { anchor: 24, active: 20 },
             barRange = [15, 19] as [number, number],
             barBazSelection = { anchor: 24, active: 15 };
         doc.selection = bazSelection;
-        paredit.selectRangeFromSelectionEnd(doc, barRange);
+        paredit.selectRangeFromSelectionRight(doc, barRange);
         expect(doc.selection).deep.equal(barBazSelection);
     });
 });
 
-describe('paredit.selectRangeFromSelectionStart', () => {
+describe('paredit.selectRangeFromSelectionLeft', () => {
     it('grows the selection backwards', () => {
         const doc = new mock.MockDocument();
         doc.insertString('(def foo [:foo :bar :baz])');
@@ -25,7 +25,7 @@ describe('paredit.selectRangeFromSelectionStart', () => {
             bazRange = [20, 24] as [number, number],
             barBazSelection = { anchor: 15, active: 24 };
         doc.selection = barSelection;
-        paredit.selectRangeFromSelectionStart(doc, bazRange);
+        paredit.selectRangeFromSelectionLeft(doc, bazRange);
         expect(doc.selection).deep.equal(barBazSelection);
     });
 });

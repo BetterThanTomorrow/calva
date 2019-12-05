@@ -441,35 +441,35 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-sexp": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardSexp(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardSexp(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-backward-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardSexp(this.readline));
             this.readline.repaint();
         },
         "select-forward-down-sexp": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-backward-down-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardDownList(this.readline));
             this.readline.repaint();
         },
         "select-forward-up-sexp": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-backward-up-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardUpList(this.readline));
             this.readline.repaint();
         },
         "select-close-list": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-open-list": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardList(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardList(this.readline));
             this.readline.repaint();
         },
         "kill-forward-sexp": () => {

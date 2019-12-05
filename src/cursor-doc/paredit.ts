@@ -26,14 +26,16 @@ export function selectRange(doc: EditableDocument, range: [number, number]) {
     growSelectionStack(doc, range)
 }
 
-export function selectRangeFromSelectionStart(doc: EditableDocument, range: [number, number]) {
-    // doc.selection = { anchor: doc.selectionStart, active: range[1] };
-    growSelectionStack(doc, [doc.selectionStart, range[1]])
+export function selectRangeFromSelectionLeft(doc: EditableDocument, range: [number, number]) {
+    const selectionLeft = Math.min(doc.selectionStart, doc.selectionEnd),
+        rangeRight = Math.max(range[0], range[1]);
+    growSelectionStack(doc, [selectionLeft, rangeRight])
 }
 
-export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
-    // doc.selection = { anchor: doc.selectionEnd, active: range[0] };
-    growSelectionStack(doc, [doc.selectionEnd, range[0]])
+export function selectRangeFromSelectionRight(doc: EditableDocument, range: [number, number]) {
+    const selectionRight = Math.max(doc.selectionStart, doc.selectionEnd),
+        rangeLeft = Math.min(range[0], range[1]);
+    growSelectionStack(doc, [selectionRight, rangeLeft])
 }
 
 
@@ -56,7 +58,7 @@ export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.s
     }
 }
 
-export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionEnd): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
         // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
