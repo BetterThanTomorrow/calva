@@ -453,7 +453,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-backward-down-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardDownList(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-forward-up-sexp": () => {
@@ -461,7 +461,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-backward-up-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardUpList(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-close-list": () => {
@@ -469,7 +469,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-open-list": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardList(this.readline));
+            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardList(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "kill-forward-sexp": () => {
