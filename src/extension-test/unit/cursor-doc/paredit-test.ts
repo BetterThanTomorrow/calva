@@ -3,6 +3,36 @@ import * as paredit from '../../../cursor-doc/paredit';
 import { ReplReadline } from '../../../webview/readline';
 import * as mock from './mock';
 
+describe('paredit forward movement', () => {
+    const docText = '(def foo [:foo :bar :baz])';
+    let doc: mock.MockDocument,
+        startSelection = { anchor: 0, active: 0 };
+
+    before(() => {
+        doc = new mock.MockDocument();
+        doc.insertString(docText);
+    });
+    describe('rangeToSexprForward', () => {
+        it('when adjacent right to a sexpr, the range is the range of the sexpr', () => {
+            const topLevelRange = [0, docText.length];
+            doc.selection = startSelection;
+            expect(paredit.rangeToForwardSexp(doc)).deep.equal(topLevelRange);
+            const [defStart, defEnd] = [1, 4];
+            doc.selection = { anchor: defStart, active: defStart};
+            expect(paredit.rangeToForwardSexp(doc)).deep.equal([defStart, defEnd]);
+        });
+        it('when "in" a sexpr, the range is the range from cursor start to the end the sexpr', () => {
+            const [defMid, defEnd] = [2, 4];
+            doc.selection = { anchor: defMid, active: defMid};
+            expect(paredit.rangeToForwardSexp(doc)).deep.equal([defMid, defEnd]);
+            const [bazMid, bazEnd] = [22, 24];
+            doc.selection = { anchor: bazMid, active: bazMid};
+            expect(paredit.rangeToForwardSexp(doc)).deep.equal([bazMid, bazEnd]);
+        });
+    });
+});
+
+
 describe('paredit.selectRangeFromSelectionRight', () => {
     // TODO: Fix #498
     it('grows the selection backwards', () => {
