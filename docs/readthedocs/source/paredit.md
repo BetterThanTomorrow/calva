@@ -84,8 +84,8 @@ Default keybinding    | Action | Description
 
 Default keybinding                | Action | Description
 ------------------                | ------ | -----------
- `ctrl+right`                        | **Slurp Forward** |  Moves the _closing_ bracket _forward_, _away_ from the cursor, past the following form, if any. <br> ![](_static/images/paredit/slurp-forward.gif)
- `ctrl+left`                         | **Barf Forward** | Moves the _closing_ bracket _backward_, _towards_ the cursor, past the preceding form. <br> ![](_static/images/paredit/barf-forward.gif)
+ `ctrl+right`<br>**NB** On Mac this keybinding might need your attention, see [Quirks](quirks.html).                        | **Slurp Forward** |  Moves the _closing_ bracket _forward_, _away_ from the cursor, past the following form, if any. <br> ![](_static/images/paredit/slurp-forward.gif) 
+ `ctrl+left` <br>**NB** On Mac this keybinding might need your attention, see [Quirks](quirks.html).                        | **Barf Forward** | Moves the _closing_ bracket _backward_, _towards_ the cursor, past the preceding form. <br> ![](_static/images/paredit/barf-forward.gif)
  `ctrl+shift+left`                   | **Slurp Backward** | Moves the _opening_ bracket _backward_, _away_ from the cursor, past the preceding form, if any. <br> ![](_static/images/paredit/slurp-backward.gif)
  `ctrl+shift+right`                  | **Barf Backward** | Moves the _opening_ bracket _forward_, _towards_ the cursor, past the following form. <br> ![](_static/images/paredit/barf-backward.gif)
  `ctrl+alt+s`                      | **Splice Sexp** | Remove enclosing brackets. <br> ![](_static/images/paredit/splice.gif)

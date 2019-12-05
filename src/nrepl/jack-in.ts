@@ -44,7 +44,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
-    const env = { ...process.env, ...state.config().jackInEnv } as {
+    const env =  Object.assign(process.env, state.config().jackInEnv) as {
         [key: string]: string;
     };
     const execution = projectTypes.isWin ?

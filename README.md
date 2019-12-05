@@ -2,9 +2,19 @@
 
 ![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Much of the power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
+_Distilled from [CIDER](https://cider.mx/)*._
 
-*Calva is short for Calvados, a liquid gifted to humanity from God. It is distilled from [Cider](https://cider.mx/).*
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, [Paredit](https://calva.readthedocs.io/en/latest/paredit.html), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Most of the REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
+
+(*) Calva is short for Calvados, a liquid gifted to humanity from God.
+
+## There is Documentation
+
+Head over to https://calva.readthedocs.io/ to learn more about how to use Calva. The most important stuff would be:
+
+* [Connect Calva to Your Project](https://calva.readthedocs.io/en/latest/connect.html) (TL;DR; Use **Jack in**.)
+* [Quirks](https://calva.readthedocs.io/en/latest/quirks.html) (Yes, there are quirks.)
+* [Paredit – a Visual Guide](https://calva.readthedocs.io/en/latest/paredit.html) (Clojure editing is for civilized people.)
 
 ## Why Calva?
 
@@ -108,6 +118,8 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Byron Miller](https://avatars1.githubusercontent.com/u/1461719?s=30)](https://github.com/supernovae)
 [![Terje](https://avatars2.githubusercontent.com/u/6209?s=30)](https://github.com/terjesb)
 [![JC](https://avatars0.githubusercontent.com/u/11434205?s=30)](https://github.com/dijonkitchen)
+[![Ullrich Schäfer](https://avatars1.githubusercontent.com/u/13815?s=30)](https://github.com/stigi)
+
 ## The Calva Team
 
 Many people have contributed to Calva. Here are the ones who have engaged in the project as such.

@@ -1,6 +1,6 @@
 # visual code
 /*.vsix
-.vscode/settings.json
+# .vscode/settings.json
 .vscode-test
 
 # Logs
@@ -67,4 +67,6 @@ html/main.js.map
 
 ## Read The Docs
 docs/readthedocs/build
+
+# Test reporter
 junit/test-results.xml
