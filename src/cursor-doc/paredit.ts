@@ -41,14 +41,14 @@ export function selectRangeFromSelectionRight(doc: EditableDocument, range: [num
 
 /**
  * Gets the range for the ”current” top level form
- * @see ListTokenCursor.rangeForDefun 
+ * @see ListTokenCursor.rangeForDefun
  */
 export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionStart, start: number = 0): [number, number] {
     const cursor = doc.getTokenCursor(start);
     return cursor.rangeForDefun(offset);
 }
 
-export function forwardSexpRange(doc: EditableDocument, offset: number = doc.selectionEnd): [number, number] {
+export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardWhitespace();
     if (cursor.forwardSexp()) {
@@ -58,7 +58,7 @@ export function forwardSexpRange(doc: EditableDocument, offset: number = doc.sel
     }
 }
 
-export function backwardSexpRange(doc: EditableDocument, offset: number = doc.selectionEnd): [number, number] {
+export function backwardSexpRange(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
         // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
@@ -153,7 +153,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             return doc.model.edit([
                 new ModelEdit('insertString', [range[1], close]),
                 new ModelEdit('insertString', [range[0], open, [end, end], [start + open.length, start + open.length]])
-            ], { 
+            ], {
                 selection: emptySelectionOption(start + open.length),
                 skipFormat: options.skipFormat
              });
@@ -163,7 +163,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
         return doc.model.edit([
             new ModelEdit('insertString', [range[1], close]),
             new ModelEdit('insertString', [range[0], open])
-        ], { 
+        ], {
             selection: { anchor: start + open.length, active: end + open.length },
             skipFormat: options.skipFormat
         });
@@ -205,8 +205,8 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
 
 /**
  * If `start` is between two strings or two lists of the same type: join them. Otherwise do nothing.
- * @param doc 
- * @param start 
+ * @param doc
+ * @param start
  */
 export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);

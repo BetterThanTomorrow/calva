@@ -82,7 +82,7 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.selectForwardSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.forwardSexpRange(doc, doc.selectionEnd))
+            paredit.selectRangeFromSelectionLeft(doc, paredit.forwardSexpRange(doc))
         },
         replWindowCommand: "select-forward-sexp"
     },
