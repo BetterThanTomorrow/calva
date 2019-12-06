@@ -99,9 +99,9 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Returns a TokenCursor into the document.
-     * 
+     *
      * @param row the line to position the cursor at.
-     * @param col the column to position the cursor at. 
+     * @param col the column to position the cursor at.
      * @param previous if true, position the cursor at the previous token.
      */
     public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false) {
@@ -122,9 +122,9 @@ export class ReplReadline implements EditableDocument {
     /**
      * Executes a block of code, during which any edits that are performed on the document will be created with Undo support.
      * This should happen almost all of the time- in fact the only time it shouldn't is when replaying undo/redo operations.
-     * 
+     *
      * FIXME: Perhaps this should be "withoutUndo"?
-     * 
+     *
      * @param body the code to execute.
      */
     withUndo(body: () => void) {
@@ -139,7 +139,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Inserts a string at the current cursor location.
-     * 
+     *
      * @param text the text to insert
      */
     insertString(text: string) {
@@ -169,7 +169,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret left one character, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretLeft(clear: boolean = true) {
@@ -190,7 +190,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret right one character, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretRight(clear: boolean = true) {
@@ -211,7 +211,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret to the beginning of the document, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretHomeAll(clear: boolean = true) {
@@ -225,7 +225,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret to the end of the document, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretEndAll(clear: boolean = true) {
@@ -239,7 +239,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret to the beginning of the line, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretHome(clear: boolean = true) {
@@ -254,7 +254,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret to the end of the line, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretEnd(clear: boolean = true) {
@@ -269,7 +269,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret to the previous line, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretUp(clear: boolean = true) {
@@ -288,7 +288,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Moves the caret to the next line, using text editor semantics.
-     * 
+     *
      * @param clear if true, clears the current selection, if any, otherwise moves `cursorEnd` only.
      */
     caretDown(clear: boolean = true) {
@@ -307,7 +307,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Deletes the current selection.
-     * 
+     *
      * FIXME: this should just be `changeRange`
      */
     private deleteSelection() {
@@ -321,7 +321,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * Retrieve the current selection as text.
-     * 
+     *
      */
     getSelectionText() {
         if (this.selectionStart != this.selectionEnd) {
@@ -332,7 +332,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * If there is no selection- deletes the character to the left of the cursor and moves it back one character.
-     * 
+     *
      * If there is a selection, deletes the selection.
      */
     backspace() {
@@ -353,7 +353,7 @@ export class ReplReadline implements EditableDocument {
 
     /**
      * If there is no selection- deletes the character to the right of the cursor.
-     * 
+     *
      * If there is a selection, deletes the selection.
      */
     delete() {
@@ -470,8 +470,8 @@ export class ReplReadline implements EditableDocument {
     }
 
     /**
-     * Given a TokenCursor, returns the HTMLElement that is rendered for this token. 
-     * @param cursor 
+     * Given a TokenCursor, returns the HTMLElement that is rendered for this token.
+     * @param cursor
      */
     private getElementForToken(cursor: TokenCursor) {
         if (cursor && this.inputLines[cursor.line])
