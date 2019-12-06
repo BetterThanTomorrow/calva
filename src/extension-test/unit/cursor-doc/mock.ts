@@ -3,16 +3,16 @@ import { LispTokenCursor } from '../../../cursor-doc/token-cursor'
 
 
 export class MockDocument implements model.EditableDocument {
-    selectionStart: number; 
-    selectionEnd: number;
+    selectionLeft: number; 
+    selectionRight: number;
 
     get selection() {
-        return new model.ModelEditSelection(this.selectionStart, this.selectionEnd);
+        return new model.ModelEditSelection(this.selectionLeft, this.selectionRight);
     }
 
     set selection(sel: model.ModelEditSelection) {
-        this.selectionStart = sel.anchor;
-        this.selectionEnd = sel.active;
+        this.selectionLeft = sel.anchor;
+        this.selectionRight = sel.active;
     }
 
     model: model.LineInputModel = new model.LineInputModel();

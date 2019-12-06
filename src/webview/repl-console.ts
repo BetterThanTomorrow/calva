@@ -145,7 +145,7 @@ export class ReplConsole {
 
         document.addEventListener("cut", e => {
             if (document.activeElement == this.input) {
-                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
+                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionLeft, this.readline.selectionRight));
                 this.readline.delete();
                 e.preventDefault();
                 this.ensureCaretInView();
@@ -154,7 +154,7 @@ export class ReplConsole {
 
         document.addEventListener("copy", e => {
             if (document.activeElement == this.input) {
-                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
+                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionLeft, this.readline.selectionRight));
                 e.preventDefault();
             }
         })
@@ -266,7 +266,7 @@ export class ReplConsole {
                     this.readline.mainElem.scrollIntoView({ block: "end" });
                 } else {
                     this.readline.model.undoManager.insertUndoStop();
-                    let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                    let indent = getIndent(this.readline.model, this.readline.selectionRight);
                     let istr = ""
                     for (let i = 0; i < indent; i++)
                         istr += " "
@@ -441,7 +441,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.forwardSexpRange(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.forwardSexpRange(this.readline, this.readline.selectionRight));
             this.readline.repaint();
         },
         "select-backward-sexp": () => {
@@ -449,7 +449,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-down-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionRight));
             this.readline.repaint();
         },
         "select-backward-down-sexp": () => {
@@ -457,7 +457,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-up-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionRight));
             this.readline.repaint();
         },
         "select-backward-up-sexp": () => {
@@ -465,7 +465,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-close-list": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionRight));
             this.readline.repaint();
         },
         "select-open-list": () => {
@@ -497,8 +497,8 @@ export class ReplConsole {
             })
         },
         "select-all": () => {
-            this.readline.selectionStart = 0;
-            this.readline.selectionEnd = this.readline.model.maxOffset;
+            this.readline.selectionLeft = 0;
+            this.readline.selectionRight = this.readline.model.maxOffset;
             this.readline.repaint();
         },
         "undo": () => {
@@ -734,7 +734,7 @@ export class ReplConsole {
                 window.scrollTo({ left: 0 });
             } else {
                 this.readline.model.undoManager.insertUndoStop();
-                let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                let indent = getIndent(this.readline.model, this.readline.selectionRight);
                 let istr = ""
                 for (let i = 0; i < indent; i++)
                     istr += " "

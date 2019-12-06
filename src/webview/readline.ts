@@ -49,12 +49,12 @@ export class ReplReadline implements EditableDocument {
     private _selection: ModelEditSelection;
 
     /** Returns the offset of the start of the selection. */
-    get selectionStart() {
+    get selectionLeft() {
         return this._selection.anchor;
     };
 
     // /** Sets the start of the selection. */
-    set selectionStart(val: number) {
+    set selectionLeft(val: number) {
         this._selection.anchor = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
@@ -63,19 +63,19 @@ export class ReplReadline implements EditableDocument {
     }
 
     get selection(): ModelEditSelection {
-        return new ModelEditSelection(this.selectionStart, this.selectionEnd);
+        return new ModelEditSelection(this.selectionLeft, this.selectionRight);
     }
 
     /** The offset of the end of the selection into the document. */
     //private _selectionEnd: number = 0;
 
     /** Returns the offset of the end of the selection. */
-    get selectionEnd() {
+    get selectionRight() {
         return this._selection.active;
     };
 
     /** Sets the end of the selection. */
-    set selectionEnd(val: number) {
+    set selectionRight(val: number) {
         this._selection.active = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
@@ -104,7 +104,7 @@ export class ReplReadline implements EditableDocument {
      * @param col the column to position the cursor at.
      * @param previous if true, position the cursor at the previous token.
      */
-    public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false) {
+    public getTokenCursor(offset: number = this.selectionRight, previous: boolean = false) {
         let [row, col] = this.model.getRowCol(offset);
         let line = this.model.lines[row]
         let lastIndex = 0;
@@ -144,13 +144,13 @@ export class ReplReadline implements EditableDocument {
      */
     insertString(text: string) {
         this.withUndo(() => {
-            let cs = Math.min(this.selectionStart, this.selectionEnd);
-            let ce = Math.max(this.selectionStart, this.selectionEnd);
+            let cs = Math.min(this.selectionLeft, this.selectionRight);
+            let ce = Math.max(this.selectionLeft, this.selectionRight);
             this.model.edit([
                 new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])
             ], { selection: new ModelEditSelection(cs + text.length) });
             this.repaint();
-            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+            this.caretX = this.model.getRowCol(this.selectionRight)[1];
         });
     }
 
@@ -160,8 +160,8 @@ export class ReplReadline implements EditableDocument {
     }
 
     maybeShowCompletion() {
-        if (this.getTokenCursor().offsetStart == this.selectionEnd && !this.getTokenCursor().previous().isWhiteSpace()) {
-            let evt: CompletionEvent = { type: "show", position: this.selectionEnd, toplevel: this.model.getText(0, this.model.maxOffset) }
+        if (this.getTokenCursor().offsetStart == this.selectionRight && !this.getTokenCursor().previous().isWhiteSpace()) {
+            let evt: CompletionEvent = { type: "show", position: this.selectionRight, toplevel: this.model.getText(0, this.model.maxOffset) }
             this._completionListeners.forEach(x => x(evt));
         } else
             this.clearCompletion();
@@ -174,18 +174,18 @@ export class ReplReadline implements EditableDocument {
      */
     caretLeft(clear: boolean = true) {
         this.clearCompletion();
-        if (clear && this.selectionStart != this.selectionEnd) {
-            if (this.selectionStart < this.selectionEnd)
-                this.selectionEnd = this.selectionStart;
+        if (clear && this.selectionLeft != this.selectionRight) {
+            if (this.selectionLeft < this.selectionRight)
+                this.selectionRight = this.selectionLeft;
             else
-                this.selectionStart = this.selectionEnd;
+                this.selectionLeft = this.selectionRight;
         } else {
-            this.selectionEnd--;
+            this.selectionRight--;
             if (clear)
-                this.selectionStart = this.selectionEnd;
+                this.selectionLeft = this.selectionRight;
         }
         this.repaint();
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
     }
 
     /**
@@ -195,18 +195,18 @@ export class ReplReadline implements EditableDocument {
      */
     caretRight(clear: boolean = true) {
         this.clearCompletion();
-        if (clear && this.selectionStart != this.selectionEnd) {
-            if (this.selectionStart > this.selectionEnd)
-                this.selectionEnd = this.selectionStart;
+        if (clear && this.selectionLeft != this.selectionRight) {
+            if (this.selectionLeft > this.selectionRight)
+                this.selectionRight = this.selectionLeft;
             else
-                this.selectionStart = this.selectionEnd;
+                this.selectionLeft = this.selectionRight;
         } else {
-            this.selectionEnd++
+            this.selectionRight++
             if (clear)
-                this.selectionStart = this.selectionEnd;
+                this.selectionLeft = this.selectionRight;
         }
         this.repaint();
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
     }
 
     /**
@@ -216,11 +216,11 @@ export class ReplReadline implements EditableDocument {
      */
     caretHomeAll(clear: boolean = true) {
         this.clearCompletion();
-        this.selectionEnd = 0;
+        this.selectionRight = 0;
         if (clear)
-            this.selectionStart = this.selectionEnd;
+            this.selectionLeft = this.selectionRight;
         this.repaint();
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
     }
 
     /**
@@ -230,11 +230,11 @@ export class ReplReadline implements EditableDocument {
      */
     caretEndAll(clear: boolean = true) {
         this.clearCompletion();
-        this.selectionEnd = this.model.maxOffset;
+        this.selectionRight = this.model.maxOffset;
         if (clear)
-            this.selectionStart = this.selectionEnd;
+            this.selectionLeft = this.selectionRight;
         this.repaint();
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
     }
 
     /**
@@ -244,12 +244,12 @@ export class ReplReadline implements EditableDocument {
      */
     caretHome(clear: boolean = true) {
         this.clearCompletion();
-        let [row, col] = this.model.getRowCol(this.selectionEnd);
-        this.selectionEnd = this.selectionEnd - col;
+        let [row, col] = this.model.getRowCol(this.selectionRight);
+        this.selectionRight = this.selectionRight - col;
         if (clear)
-            this.selectionStart = this.selectionEnd;
+            this.selectionLeft = this.selectionRight;
         this.repaint();
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
     }
 
     /**
@@ -259,12 +259,12 @@ export class ReplReadline implements EditableDocument {
      */
     caretEnd(clear: boolean = true) {
         this.clearCompletion();
-        let [row, col] = this.model.getRowCol(this.selectionEnd);
-        this.selectionEnd = this.selectionEnd - col + this.model.lines[row].text.length;
+        let [row, col] = this.model.getRowCol(this.selectionRight);
+        this.selectionRight = this.selectionRight - col + this.model.lines[row].text.length;
         if (clear)
-            this.selectionStart = this.selectionEnd;
+            this.selectionLeft = this.selectionRight;
         this.repaint();
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
     }
 
     /**
@@ -274,15 +274,15 @@ export class ReplReadline implements EditableDocument {
      */
     caretUp(clear: boolean = true) {
         this.clearCompletion();
-        let [row, col] = this.model.getRowCol(this.selectionEnd);
+        let [row, col] = this.model.getRowCol(this.selectionRight);
         if (row > 0) {
             let len = this.model.lines[row - 1].text.length;
-            this.selectionEnd = this.model.getOffsetForLine(row - 1) + Math.min(this.caretX, len);
+            this.selectionRight = this.model.getOffsetForLine(row - 1) + Math.min(this.caretX, len);
         } else {
-            this.selectionEnd = 0;
+            this.selectionRight = 0;
         }
         if (clear)
-            this.selectionStart = this.selectionEnd;
+            this.selectionLeft = this.selectionRight;
         this.repaint();
     }
 
@@ -293,15 +293,15 @@ export class ReplReadline implements EditableDocument {
      */
     caretDown(clear: boolean = true) {
         this.clearCompletion();
-        let [row, col] = this.model.getRowCol(this.selectionEnd);
+        let [row, col] = this.model.getRowCol(this.selectionRight);
         if (row < this.model.lines.length - 1) {
             let len = this.model.lines[row + 1].text.length;
-            this.selectionEnd = this.model.getOffsetForLine(row + 1) + Math.min(this.caretX, len);
+            this.selectionRight = this.model.getOffsetForLine(row + 1) + Math.min(this.caretX, len);
         } else {
-            this.selectionEnd = this.model.maxOffset;
+            this.selectionRight = this.model.maxOffset;
         }
         if (clear)
-            this.selectionStart = this.selectionEnd;
+            this.selectionLeft = this.selectionRight;
         this.repaint();
     }
 
@@ -312,9 +312,9 @@ export class ReplReadline implements EditableDocument {
      */
     private deleteSelection() {
         this.withUndo(() => {
-            if (this.selectionStart != this.selectionEnd) {
-                this.model.deleteRange(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd) - Math.min(this.selectionStart, this.selectionEnd));
-                this.selectionStart = this.selectionEnd = Math.min(this.selectionStart, this.selectionEnd);
+            if (this.selectionLeft != this.selectionRight) {
+                this.model.deleteRange(Math.min(this.selectionLeft, this.selectionRight), Math.max(this.selectionLeft, this.selectionRight) - Math.min(this.selectionLeft, this.selectionRight));
+                this.selectionLeft = this.selectionRight = Math.min(this.selectionLeft, this.selectionRight);
             }
         })
     }
@@ -324,8 +324,8 @@ export class ReplReadline implements EditableDocument {
      *
      */
     getSelectionText() {
-        if (this.selectionStart != this.selectionEnd) {
-            return this.model.getText(Math.min(this.selectionStart, this.selectionEnd), Math.max(this.selectionStart, this.selectionEnd))
+        if (this.selectionLeft != this.selectionRight) {
+            return this.model.getText(Math.min(this.selectionLeft, this.selectionRight), Math.max(this.selectionLeft, this.selectionRight))
         }
         return "";
     }
@@ -337,17 +337,17 @@ export class ReplReadline implements EditableDocument {
      */
     backspace() {
         this.withUndo(() => {
-            if (this.selectionStart != this.selectionEnd) {
+            if (this.selectionLeft != this.selectionRight) {
                 this.deleteSelection();
             } else {
-                if (this.selectionEnd > 0) {
-                    this.model.deleteRange(this.selectionEnd - 1, 1, [this.selectionStart, this.selectionEnd], [this.selectionEnd - 1, this.selectionEnd - 1]);
-                    this.selectionEnd--;
+                if (this.selectionRight > 0) {
+                    this.model.deleteRange(this.selectionRight - 1, 1, [this.selectionLeft, this.selectionRight], [this.selectionRight - 1, this.selectionRight - 1]);
+                    this.selectionRight--;
                 }
-                this.selectionStart = this.selectionEnd;
+                this.selectionLeft = this.selectionRight;
             }
             this.repaint()
-            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+            this.caretX = this.model.getRowCol(this.selectionRight)[1];
         });
     }
 
@@ -358,13 +358,13 @@ export class ReplReadline implements EditableDocument {
      */
     delete() {
         this.withUndo(() => {
-            if (this.selectionStart != this.selectionEnd) {
+            if (this.selectionLeft != this.selectionRight) {
                 this.deleteSelection();
             } else {
-                this.model.deleteRange(this.selectionEnd, 1);
-                this.selectionStart = this.selectionEnd;
+                this.model.deleteRange(this.selectionRight, 1);
+                this.selectionLeft = this.selectionRight;
             }
-            this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+            this.caretX = this.model.getRowCol(this.selectionRight)[1];
             this.repaint()
         });
     }
@@ -528,18 +528,18 @@ export class ReplReadline implements EditableDocument {
         this.model.changedLines.clear();
 
         // reposition the caret
-        let [row, col] = this.model.getRowCol(this.selectionEnd);
+        let [row, col] = this.model.getRowCol(this.selectionRight);
         this.inputLines[row].appendChild(this.caret);
         let style = getComputedStyle(this.inputLines[row]);
         ctx.font = style.fontStyle + " " + style.fontSize + " " + style.fontFamily;
 
         this.caret.style.left = measureText(this.model.lines[row].text.substr(0, col)) + "px";
 
-        let startLine = this.model.getRowCol(Math.min(this.lastSelectionStart, this.lastSelectionEnd, this.selectionStart, this.selectionEnd));
-        let endLine = this.model.getRowCol(Math.max(this.lastSelectionStart, this.lastSelectionEnd, this.selectionStart, this.selectionEnd));
+        let startLine = this.model.getRowCol(Math.min(this.lastSelectionStart, this.lastSelectionEnd, this.selectionLeft, this.selectionRight));
+        let endLine = this.model.getRowCol(Math.max(this.lastSelectionStart, this.lastSelectionEnd, this.selectionLeft, this.selectionRight));
 
-        let cs = this.model.getRowCol(Math.min(this.selectionStart, this.selectionEnd));
-        let ce = this.model.getRowCol(Math.max(this.selectionStart, this.selectionEnd));
+        let cs = this.model.getRowCol(Math.min(this.selectionLeft, this.selectionRight));
+        let ce = this.model.getRowCol(Math.max(this.selectionLeft, this.selectionRight));
 
         let lcs = this.model.getRowCol(Math.min(this.lastSelectionStart, this.lastSelectionEnd));
         let lce = this.model.getRowCol(Math.max(this.lastSelectionStart, this.lastSelectionEnd));
@@ -586,8 +586,8 @@ export class ReplReadline implements EditableDocument {
             }
         }
 
-        this.lastSelectionStart = this.selectionStart;
-        this.lastSelectionEnd = this.selectionEnd;
+        this.lastSelectionStart = this.selectionLeft;
+        this.lastSelectionEnd = this.selectionRight;
 
         this.updateParenMatches()
         this._repaintListeners.forEach(x => x());
@@ -637,8 +637,8 @@ export class ReplReadline implements EditableDocument {
     }
 
     private mouseDrag = (e: MouseEvent) => {
-        this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.selectionRight = this.pageToOffset(e.pageX, e.pageY)
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
         this.repaint();
     }
 
@@ -650,8 +650,8 @@ export class ReplReadline implements EditableDocument {
     private mouseDown = (e: MouseEvent) => {
         e.preventDefault();
 
-        this.selectionStart = this.selectionEnd = this.pageToOffset(e.pageX, e.pageY)
-        this.caretX = this.model.getRowCol(this.selectionEnd)[1];
+        this.selectionLeft = this.selectionRight = this.pageToOffset(e.pageX, e.pageY)
+        this.caretX = this.model.getRowCol(this.selectionRight)[1];
         this.repaint();
 
         window.addEventListener("mousemove", this.mouseDrag)
@@ -706,7 +706,7 @@ export class ReplReadline implements EditableDocument {
     }
 
     public canReturn() {
-        return this.selectionEnd == this.selectionStart && this.selectionEnd == this.model.maxOffset;
+        return this.selectionRight == this.selectionLeft && this.selectionRight == this.model.maxOffset;
     }
 
     public freeze() {
@@ -717,7 +717,7 @@ export class ReplReadline implements EditableDocument {
         this.wrap.removeEventListener("touchstart", this.focus);
         this.input.disabled = true;
 
-        this.selectionStart = this.selectionEnd = this.model.maxOffset;
+        this.selectionLeft = this.selectionRight = this.model.maxOffset;
         this.repaint();
         this.caret.parentElement.removeChild(this.caret);
     }

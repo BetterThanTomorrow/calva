@@ -80,11 +80,11 @@ export class DocumentModel implements EditableModel {
 class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
-    get selectionStart(): number {
+    get selectionLeft(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.anchor);
     }
 
-    get selectionEnd(): number {
+    get selectionRight(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.active);
     }
 
@@ -92,7 +92,7 @@ class MirroredDocument implements EditableDocument {
 
     selectionStack: ModelEditSelection[] = [];
 
-    public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
+    public getTokenCursor(offset: number = this.selectionRight, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);
     }
 
@@ -100,7 +100,7 @@ class MirroredDocument implements EditableDocument {
         const editor = vscode.window.activeTextEditor,
             selection = editor.selection,
             wsEdit = new vscode.WorkspaceEdit(),
-            edit = vscode.TextEdit.insert(this.document.positionAt(this.selectionStart), text);
+            edit = vscode.TextEdit.insert(this.document.positionAt(this.selectionLeft), text);
         wsEdit.set(this.document.uri, [edit]);
         vscode.workspace.applyEdit(wsEdit).then((_v) => {
             editor.selection = selection;
@@ -117,7 +117,7 @@ class MirroredDocument implements EditableDocument {
     }
 
     get selection(): ModelEditSelection {
-        return new ModelEditSelection(this.selectionStart, this.selectionEnd);
+        return new ModelEditSelection(this.selectionLeft, this.selectionRight);
     }
 
     public getSelectionText() {

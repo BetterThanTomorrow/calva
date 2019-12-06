@@ -51,6 +51,20 @@ export class ModelEdit {
     constructor(public editFn: ModelEditFunction, public args: any[]) { }
 }
 
+/**
+ * Naming notes for Model Selections:
+ * `anchor`, the start of a selection, can be left or right of, or the same as the end of the selection (active)
+ * `active`, the end of a selection, where the caret is, can be left or right of, or the same as the start of the selection   (anchor)
+ * `left`, the smallest of `anchor` and `active`
+ * `right`, the largest of `anchor` and `active` 
+ * `backward`, movement towards the left
+ * `forward`, movement towards the right
+ * `up`, movement out of lists
+ * `down`, movement into lists
+ * 
+ * This will be in line with vscode when it comes to anchor/active, but introduce our own terminology  for the span of the selection. It will also keep the tradition of paredit with backward/forward and up/down.
+ */
+
 export class ModelEditSelection {
     private _anchor: number;
     private _active: number;
@@ -103,8 +117,8 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-    readonly selectionStart: number,
-    readonly selectionEnd: number,
+    readonly selectionLeft: number,
+    readonly selectionRight: number,
     selection: ModelEditSelection,
     model: EditableModel,
     selectionStack: ModelEditSelection[],

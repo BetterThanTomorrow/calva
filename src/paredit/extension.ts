@@ -96,7 +96,7 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.selectForwardDownSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardDownList(doc, doc.selectionEnd))
+            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardDownList(doc, doc.selectionRight))
         },
         replWindowCommand: "select-forward-down-sexp"
     },
@@ -110,7 +110,7 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.selectForwardUpSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardUpList(doc, doc.selectionEnd))
+            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardUpList(doc, doc.selectionRight))
         },
         replWindowCommand: "select-forward-up-sexp"
     },
@@ -124,7 +124,7 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.selectCloseList',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardList(doc, doc.selectionEnd))
+            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardList(doc, doc.selectionRight))
         },
         replWindowCommand: "select-close-list"
     },
@@ -222,7 +222,7 @@ const pareditCommands: PareditCommand[] = [
         command: 'paredit.spliceSexpKillForward',
         handler: (doc: EditableDocument) => {
             paredit.killForwardList(doc).then((isFulfilled) => {
-                return paredit.spliceSexp(doc, doc.selectionEnd, false);
+                return paredit.spliceSexp(doc, doc.selectionRight, false);
             });
         },
         replWindowCommand: "splice-sexp-killing-forwards"
@@ -231,7 +231,7 @@ const pareditCommands: PareditCommand[] = [
         command: 'paredit.spliceSexpKillBackward',
         handler: (doc: EditableDocument) => {
             paredit.killBackwardList(doc).then((isFulfilled) => {
-                return paredit.spliceSexp(doc, doc.selectionEnd, false);
+                return paredit.spliceSexp(doc, doc.selectionRight, false);
             })
         },
         replWindowCommand: "splice-sexp-killing-backwards"

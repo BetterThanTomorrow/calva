@@ -6,7 +6,7 @@ import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } fro
 // In the repl-console, compose commands just by performing them in succession, making sure
 // you provide selecions, old and new.
 
-export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionStart, end = doc.selectionEnd) {
+export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionLeft, end = doc.selectionRight) {
     const [left, right] = [Math.min(...range), Math.max(...range)];
     doc.model.edit([
         new ModelEdit('deleteRange', [left, right - left, [start, end]])
@@ -26,13 +26,13 @@ export function selectRange(doc: EditableDocument, range: [number, number]) {
 }
 
 export function selectRangeFromSelectionLeft(doc: EditableDocument, range: [number, number]) {
-    const selectionLeft = Math.min(doc.selectionStart, doc.selectionEnd),
+    const selectionLeft = Math.min(doc.selectionLeft, doc.selectionRight),
         rangeRight = Math.max(range[0], range[1]);
     growSelectionStack(doc, [selectionLeft, rangeRight])
 }
 
 export function selectRangeFromSelectionRight(doc: EditableDocument, range: [number, number]) {
-    const selectionRight = Math.max(doc.selectionStart, doc.selectionEnd),
+    const selectionRight = Math.max(doc.selectionLeft, doc.selectionRight),
         rangeLeft = Math.min(range[0], range[1]);
     growSelectionStack(doc, [selectionRight, rangeLeft])
 }
@@ -42,7 +42,7 @@ export function selectRangeFromSelectionRight(doc: EditableDocument, range: [num
  * Gets the range for the ”current” top level form
  * @see ListTokenCursor.rangeForDefun
  */
-export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionStart, start: number = 0): [number, number] {
+export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionLeft, start: number = 0): [number, number] {
     const cursor = doc.getTokenCursor(start);
     return cursor.rangeForDefun(offset);
 }
@@ -140,7 +140,7 @@ export function rangeToBackwardList(doc: EditableDocument, offset: number = Math
     }
 }
 
-export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd, options = { skipFormat: false }): Thenable<boolean> {
+export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionLeft, end: number = doc.selectionRight, options = { skipFormat: false }): Thenable<boolean> {
     const cursor = doc.getTokenCursor(end);
     if (cursor.withinString() && open == '"') {
         open = close = '\\"';
@@ -169,7 +169,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
     }
 }
 
-export function rewrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd): Thenable<boolean> {
+export function rewrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionLeft, end: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(end);
     if (cursor.backwardList()) {
         const openStart = cursor.offsetStart - 1,
@@ -185,7 +185,7 @@ export function rewrapSexpr(doc: EditableDocument, open: string, close: string, 
     }
 }
 
-export function splitSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function splitSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
         cursor.forwardWhitespace();
@@ -207,7 +207,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
  * @param doc
  * @param start
  */
-export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
+export function joinSexp(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardWhitespace();
     const prevToken = cursor.getPrevToken(),
@@ -224,7 +224,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
     }
 }
 
-export function spliceSexp(doc: EditableDocument, start: number = doc.selectionEnd, undoStopBefore = true): Thenable<boolean> {
+export function spliceSexp(doc: EditableDocument, start: number = doc.selectionRight, undoStopBefore = true): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     // TODO: this should unwrap the string, not the enclosing list.
 
@@ -244,7 +244,7 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionE
     }
 }
 
-export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
+export function killBackwardList(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     return doc.model.edit([
@@ -252,7 +252,7 @@ export function killBackwardList(doc: EditableDocument, start: number = doc.sele
     ], { selection: new ModelEditSelection(cursor.offsetStart) });
 }
 
-export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
+export function killForwardList(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     cursor.forwardList();
@@ -261,7 +261,7 @@ export function killForwardList(doc: EditableDocument, start: number = doc.selec
     ], { selection: new ModelEditSelection(start) });
 }
 
-export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
@@ -277,7 +277,7 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
     }
 }
 
-export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
@@ -294,7 +294,7 @@ export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.sel
     }
 }
 
-export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
@@ -312,7 +312,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
     }
 }
 
-export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
@@ -333,8 +333,8 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
     }
 }
 
-export function open(doc: EditableDocument, open: string, close: string, start: number = doc.selectionEnd) {
-    let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
+export function open(doc: EditableDocument, open: string, close: string, start: number = doc.selectionRight) {
+    let [cs, ce] = [doc.selectionLeft, doc.selectionRight];
     doc.insertString(open + doc.getSelectionText() + close);
     if (cs != ce) {
         doc.selection = new ModelEditSelection(cs + open.length, ce + open.length);
@@ -343,7 +343,7 @@ export function open(doc: EditableDocument, open: string, close: string, start: 
     }
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selectionEnd) {
+export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor();
     cursor.forwardWhitespace(false);
     if (cursor.getToken().raw == close) {
@@ -368,7 +368,7 @@ const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
-export function backspace(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     if (start != end || cursor.withinString()) {
         doc.backspace();
@@ -394,7 +394,7 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionSt
     }
 }
 
-export function deleteForward(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function deleteForward(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     if (start != end || cursor.withinString()) {
         doc.delete();
@@ -414,7 +414,7 @@ export function deleteForward(doc: EditableDocument, start: number = doc.selecti
     }
 }
 
-export function stringQuote(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function stringQuote(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     if (start != end) {
         doc.insertString('"');
     } else {
@@ -436,7 +436,7 @@ export function stringQuote(doc: EditableDocument, start: number = doc.selection
     }
 }
 
-export function growSelection(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function growSelection(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const startC = doc.getTokenCursor(start),
         endC = doc.getTokenCursor(end),
         emptySelection = startC.equals(endC);
@@ -489,7 +489,7 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
         if (prev.anchor === range[0] && prev.active === range[1]) {
             return;
         }
-        if (!(doc.selectionStart == prev.anchor && doc.selectionEnd == prev.active)) {
+        if (!(doc.selectionLeft == prev.anchor && doc.selectionRight == prev.active)) {
             doc.selectionStack = [doc.selection];
         }
     } else {
@@ -502,13 +502,13 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
 export function shrinkSelection(doc: EditableDocument) {
     if (doc.selectionStack.length) {
         let latest = doc.selectionStack.pop();
-        if (doc.selectionStack.length && latest.anchor == doc.selectionStart && latest.active == doc.selectionEnd) {
+        if (doc.selectionStack.length && latest.anchor == doc.selectionLeft && latest.active == doc.selectionRight) {
             doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
         }
     }
 }
 
-export function raiseSexp(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     if (start == end) {
         let cursor = doc.getTokenCursor(end);
         cursor.forwardWhitespace();
@@ -529,7 +529,7 @@ export function raiseSexp(doc: EditableDocument, start = doc.selectionStart, end
     }
 }
 
-export function convolute(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function convolute(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     if (start == end) {
         let cursorStart = doc.getTokenCursor(end);
         let cursorEnd = cursorStart.clone();
@@ -558,7 +558,7 @@ export function convolute(doc: EditableDocument, start = doc.selectionStart, end
     }
 }
 
-export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
+export function transpose(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
     const cursor = doc.getTokenCursor(end);
     cursor.backwardWhitespace();
     if (cursor.getPrevToken().type == 'open') {
@@ -594,7 +594,7 @@ export function transpose(doc: EditableDocument, start = doc.selectionStart, end
     }
 }
 
-export function pushSexprLeft(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function pushSexprLeft(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end),
         currentRange = cursor.rangeForCurrentForm(end),
         newPosOffset = end - currentRange[0];
@@ -607,7 +607,7 @@ export function pushSexprLeft(doc: EditableDocument, start = doc.selectionStart,
     }
 }
 
-export function pushSexprRight(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function pushSexprRight(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end),
         currentRange = cursor.rangeForCurrentForm(end),
         newPosOffset = currentRange[1] - end;
