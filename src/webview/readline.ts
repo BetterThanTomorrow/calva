@@ -44,21 +44,22 @@ export class ReplReadline implements EditableDocument {
     }
 
     /** The offset of the start of the selection into the document. */
-    private _selectionStart: number = 0;
+    //private _selectionStart: number = 0;
+
+    private _selection: { anchor: number, active: number }
 
     /** Returns the offset of the start of the selection. */
     get selectionStart() {
-        return this._selectionStart
+        return this._selection.anchor;
     };
 
-    /** Sets the start of the selection. */
+    // /** Sets the start of the selection. */
     set selectionStart(val: number) {
-        this._selectionStart = Math.min(this.model.maxOffset, Math.max(val, 0));
+        this._selection.anchor = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
     set selection(selection: { anchor: number, active: number}) {
-        this.selectionStart = selection.anchor;
-        this.selectionEnd = selection.active;
+        this._selection = selection;
     }
 
     get selection(): { anchor: number, active: number} {
@@ -66,16 +67,16 @@ export class ReplReadline implements EditableDocument {
     }
 
     /** The offset of the end of the selection into the document. */
-    private _selectionEnd: number = 0;
+    //private _selectionEnd: number = 0;
 
     /** Returns the offset of the end of the selection. */
     get selectionEnd() {
-        return this._selectionEnd
+        return this._selection.active;
     };
 
     /** Sets the end of the selection. */
     set selectionEnd(val: number) {
-        this._selectionEnd = Math.min(this.model.maxOffset, Math.max(val, 0));
+        this._selection.active = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
     /** The underlying tokenized source. */

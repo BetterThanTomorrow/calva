@@ -84,25 +84,25 @@ class MirroredDocument implements EditableDocument {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.start);
     }
 
-    set selectionStart(offset: number) {
-        const editor = vscode.window.activeTextEditor,
-            docEnd = this.document.offsetAt(editor.selection.end),
-            position = this.document.positionAt(offset);
-        editor.selection = new vscode.Selection(position, docEnd >= offset ? editor.selection.end : position);
-        editor.revealRange(editor.selection);
-    }
+    // set selectionStart(offset: number) {
+    //     const editor = vscode.window.activeTextEditor,
+    //         docEnd = this.document.offsetAt(editor.selection.end),
+    //         position = this.document.positionAt(offset);
+    //     editor.selection = new vscode.Selection(position, docEnd >= offset ? editor.selection.end : position);
+    //     editor.revealRange(editor.selection);
+    // }
 
     get selectionEnd(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.end);
     }
 
-    set selectionEnd(offset: number) {
-        const editor = vscode.window.activeTextEditor,
-            docStart = this.document.offsetAt(editor.selection.start),
-            position = this.document.positionAt(offset);
-        editor.selection = new vscode.Selection(docStart <= offset ? editor.selection.start : position, position);
-        editor.revealRange(editor.selection);
-    }
+    // set selectionEnd(offset: number) {
+    //     const editor = vscode.window.activeTextEditor,
+    //         docStart = this.document.offsetAt(editor.selection.start),
+    //         position = this.document.positionAt(offset);
+    //     editor.selection = new vscode.Selection(docStart <= offset ? editor.selection.start : position, position);
+    //     editor.revealRange(editor.selection);
+    // }
 
     model = new DocumentModel(this);
 

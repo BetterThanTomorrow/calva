@@ -16,18 +16,45 @@ describe('paredit forward movement', () => {
         it('when adjacent right to a sexpr, the range is the range of the sexpr', () => {
             const topLevelRange = [0, docText.length];
             doc.selection = startSelection;
-            expect(paredit.rangeToForwardSexp(doc)).deep.equal(topLevelRange);
+            expect(paredit.forwardSexpRange(doc)).deep.equal(topLevelRange);
             const [defStart, defEnd] = [1, 4];
             doc.selection = { anchor: defStart, active: defStart};
-            expect(paredit.rangeToForwardSexp(doc)).deep.equal([defStart, defEnd]);
+            expect(paredit.forwardSexpRange(doc)).deep.equal([defStart, defEnd]);
         });
-        it('when "in" a sexpr, the range is the range from cursor start to the end the sexpr', () => {
+        it('when "in" a sexpr, the range is the range from cursor to the end the sexpr', () => {
             const [defMid, defEnd] = [2, 4];
             doc.selection = { anchor: defMid, active: defMid};
-            expect(paredit.rangeToForwardSexp(doc)).deep.equal([defMid, defEnd]);
+            expect(paredit.forwardSexpRange(doc)).deep.equal([defMid, defEnd]);
             const [bazMid, bazEnd] = [22, 24];
             doc.selection = { anchor: bazMid, active: bazMid};
-            expect(paredit.rangeToForwardSexp(doc)).deep.equal([bazMid, bazEnd]);
+            expect(paredit.forwardSexpRange(doc)).deep.equal([bazMid, bazEnd]);
+        });
+        it('when adjacent to the right of a sexpr, the range is the range from cursor to the end the next sexpr', () => {
+            const defEnd = 4,
+                [fooMid, fooEnd] = [4, 8];
+            doc.selection = { anchor: defEnd, active: defEnd};
+            expect(paredit.forwardSexpRange(doc)).deep.equal([fooMid, fooEnd]);
+        });
+        it('when adjacent to the left of the last sexpr in the list, the range is the range of the sexpr', () => {
+            const [vecStart, vecEnd] = [9, 25];
+            doc.selection = { anchor: vecStart, active: vecStart};
+            expect(paredit.forwardSexpRange(doc)).deep.equal([vecStart, vecEnd]);
+            const [bazStart, bazEnd] = [20, 24];
+            doc.selection = { anchor: bazStart, active: bazStart};
+            expect(paredit.forwardSexpRange(doc)).deep.equal([bazStart, bazEnd]);
+        });
+        it('when to the right of the last sexpr, the range is the same range as the cursor', () => {
+            const bazEnd = 24;
+            doc.selection = { anchor: bazEnd, active: bazEnd};
+            expect(paredit.forwardSexpRange(doc)).deep.equal([bazEnd, bazEnd]);
+        });
+
+        it('extends an existing forwards selection to the right of the range', () => {
+            const existingSelection = { anchor: 1, active: 4 },
+                fooEnd = 8;
+            doc.selection = existingSelection;
+            const range = paredit.forwardSexpRange(doc);
+            expect(range).deep.equal([existingSelection.active, fooEnd])
         });
     });
 });

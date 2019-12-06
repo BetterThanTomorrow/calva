@@ -405,35 +405,35 @@ export class ReplConsole {
             })
         },
         "backward-sexp": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.backwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "forward-sexp": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardSexp(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.forwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "down-list": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardDownList(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.rangeToForwardDownList(this.readline));
             this.readline.repaint();
         },
         "up-list": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardUpList(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.rangeToForwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-up-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.rangeToBackwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-down-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.rangeToBackwardDownList(this.readline));
             this.readline.repaint();
         },
         "close-list": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardList(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.rangeToForwardList(this.readline));
             this.readline.repaint();
         },
         "open-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardList(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.rangeToBackwardList(this.readline));
             this.readline.repaint();
         },
         "select-defun": () => {
@@ -441,11 +441,11 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardSexp(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.forwardSexpRange(this.readline, this.readline.selectionEnd));
             this.readline.repaint();
         },
         "select-backward-sexp": () => {
-            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.backwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "select-forward-down-sexp": () => {
@@ -474,13 +474,13 @@ export class ReplConsole {
         },
         "kill-forward-sexp": () => {
             this.readline.withUndo(() => {
-                paredit.killRange(this.readline, paredit.rangeToForwardSexp(this.readline));
+                paredit.killRange(this.readline, paredit.forwardSexpRange(this.readline));
                 this.readline.repaint();
             })
         },
         "kill-backward-sexp": () => {
             this.readline.withUndo(() => {
-                paredit.killRange(this.readline, paredit.rangeToBackwardSexp(this.readline));
+                paredit.killRange(this.readline, paredit.backwardSexpRange(this.readline));
                 this.readline.repaint();
             })
         },

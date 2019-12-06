@@ -85,8 +85,8 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-    selectionStart: number,
-    selectionEnd: number,
+    readonly selectionStart: number,
+    readonly selectionEnd: number,
     selection: { anchor: number, active: number },
     model: EditableModel,
     growSelectionStack: { anchor: number, active: number }[],
