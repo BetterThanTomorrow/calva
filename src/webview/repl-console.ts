@@ -2,7 +2,7 @@ import { ReplReadline, CompletionListener } from "./readline";
 import * as paredit from "../cursor-doc/paredit";
 import { getIndent } from "../cursor-doc/indent";
 import { HotKeyTable } from "./hotkeys";
-import { ModelEdit, emptySelectionOption } from "../cursor-doc/model";
+import { ModelEdit, ModelEditSelection } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
     // "Backspace": "backspace",
@@ -711,7 +711,7 @@ export class ReplConsole {
             this.readline.withUndo(() => {
                 this.readline.model.edit([
                     new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
-                ], { selection: emptySelectionOption(line.length) });
+                ], { selection: new ModelEditSelection(line.length) });
             })
             this.readline.repaint();
         },
@@ -723,7 +723,7 @@ export class ReplConsole {
             this.readline.withUndo(() => {
                 this.readline.model.edit([
                     new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
-                ], { selection: emptySelectionOption(line.length) });
+                ], { selection: new ModelEditSelection(line.length) });
             })
             this.readline.repaint();
         },

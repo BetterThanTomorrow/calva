@@ -3,7 +3,7 @@ import * as vscode from "vscode"
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
-import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel } from "../cursor-doc/model";
+import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -90,7 +90,7 @@ class MirroredDocument implements EditableDocument {
 
     model = new DocumentModel(this);
 
-    growSelectionStack: { anchor: number, active: number }[] = [];
+    growSelectionStack: ModelEditSelection[] = [];
 
     public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);
@@ -107,7 +107,7 @@ class MirroredDocument implements EditableDocument {
         });
     }
 
-    set selection(selection: { anchor: number, active: number }) {
+    set selection(selection: ModelEditSelection) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document,
             anchor = document.positionAt(selection.anchor),
@@ -116,8 +116,8 @@ class MirroredDocument implements EditableDocument {
         editor.revealRange(new vscode.Range(active, active));
     }
 
-    get selection(): { anchor: number, active: number } {
-        return { anchor: this.selectionStart, active: this.selectionEnd };
+    get selection(): ModelEditSelection {
+        return new ModelEditSelection(this.selectionStart, this.selectionEnd);
     }
 
     public getSelectionText() {

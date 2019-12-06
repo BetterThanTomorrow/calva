@@ -1,5 +1,5 @@
 import { validPair } from "./clojure-lexer";
-import { ModelEdit, EditableDocument, emptySelectionOption, ModelEditOptions } from "./model";
+import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can ccompose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -10,19 +10,18 @@ export function killRange(doc: EditableDocument, range: [number, number], start 
     const [left, right] = [Math.min(...range), Math.max(...range)];
     doc.model.edit([
         new ModelEdit('deleteRange', [left, right - left, [start, end]])
-    ], { selection: emptySelectionOption(left) });
+    ], { selection: new ModelEditSelection(left) });
 }
 
 export function moveToRangeLeft(doc: EditableDocument, range: [number, number]) {
-    doc.selection = emptySelectionOption(Math.min(range[0], range[1]));
+    doc.selection = new ModelEditSelection(Math.min(range[0], range[1]));
 }
 
 export function moveToRangeRight(doc: EditableDocument, range: [number, number]) {
-    doc.selection = emptySelectionOption(Math.max(range[0], range[1]));
+    doc.selection = new ModelEditSelection(Math.max(range[0], range[1]));
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
-    // doc.selection = { anchor: range[0], active: range[1] };
     growSelectionStack(doc, range)
 }
 
@@ -154,7 +153,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
                 new ModelEdit('insertString', [range[1], close]),
                 new ModelEdit('insertString', [range[0], open, [end, end], [start + open.length, start + open.length]])
             ], {
-                selection: emptySelectionOption(start + open.length),
+                selection: new ModelEditSelection(start + open.length),
                 skipFormat: options.skipFormat
              });
         }
@@ -164,7 +163,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             new ModelEdit('insertString', [range[1], close]),
             new ModelEdit('insertString', [range[0], open])
         ], {
-            selection: { anchor: start + open.length, active: end + open.length },
+            selection: new ModelEditSelection(start + open.length, end + open.length),
             skipFormat: options.skipFormat
         });
     }
@@ -181,7 +180,7 @@ export function rewrapSexpr(doc: EditableDocument, open: string, close: string, 
                 return doc.model.edit([
                     new ModelEdit('changeRange', [closeStart, closeEnd, close]),
                     new ModelEdit('changeRange', [openStart, openEnd, open])
-                ], { selection: emptySelectionOption(end)});
+                ], { selection: new ModelEditSelection(end)});
             }
     }
 }
@@ -198,7 +197,7 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
             const close = cursor.getToken().raw;
             doc.model.edit([
                 new ModelEdit('changeRange', [splitPos, splitPos, `${close}${open}`])
-            ], { selection: emptySelectionOption(splitPos + 1) });
+            ], { selection: new ModelEditSelection(splitPos + 1) });
         }
     }
 }
@@ -220,7 +219,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
         if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
             return doc.model.edit([
                 new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : "", [start, start], [prevEnd, prevEnd]])
-            ], { selection: emptySelectionOption(prevEnd), formatParent: true });
+            ], { selection: new ModelEditSelection(prevEnd), formatParent: true });
         }
     }
 }
@@ -240,7 +239,7 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionE
             return doc.model.edit([
                 new ModelEdit('changeRange', [end, end + 1, ""]),
                 new ModelEdit('changeRange', [beginning - 1, beginning, ""])
-            ], { undoStopBefore, selection: emptySelectionOption(start - 1) });
+            ], { undoStopBefore, selection: new ModelEditSelection(start - 1) });
         }
     }
 }
@@ -250,7 +249,7 @@ export function killBackwardList(doc: EditableDocument, start: number = doc.sele
     cursor.backwardList();
     return doc.model.edit([
         new ModelEdit('changeRange', [cursor.offsetStart, start, "", [start, start], [cursor.offsetStart, cursor.offsetStart]])
-    ], { selection: emptySelectionOption(cursor.offsetStart) });
+    ], { selection: new ModelEditSelection(cursor.offsetStart) });
 }
 
 export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
@@ -259,7 +258,7 @@ export function killForwardList(doc: EditableDocument, start: number = doc.selec
     cursor.forwardList();
     return doc.model.edit([
         new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : "", [start, start], [start, start]])
-    ], { selection: emptySelectionOption(start) });
+    ], { selection: new ModelEditSelection(start) });
 }
 
 export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
@@ -307,7 +306,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
             new ModelEdit('deleteRange', [offset, close.length]),
             new ModelEdit('insertString', [cursor.offsetStart, close])
         ], start >= cursor.offsetStart ? {
-            selection: emptySelectionOption(cursor.offsetStart),
+            selection: new ModelEditSelection(cursor.offsetStart),
             formatParent: true
         } : { formatParent: true });
     }
@@ -328,7 +327,7 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
             new ModelEdit('deleteRange', [offset, tk.raw.length])
         ], start <= cursor.offsetStart ? {
-            selection: emptySelectionOption(cursor.offsetStart),
+            selection: new ModelEditSelection(cursor.offsetStart),
             formatParent: true
         } : { formatParent: true });
     }
@@ -338,9 +337,9 @@ export function open(doc: EditableDocument, open: string, close: string, start: 
     let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
     doc.insertString(open + doc.getSelectionText() + close);
     if (cs != ce) {
-        doc.selection = { anchor: cs + open.length, active: ce + open.length };
+        doc.selection = new ModelEditSelection(cs + open.length, ce + open.length);
     } else {
-        doc.selection = emptySelectionOption(start + open.length);
+        doc.selection = new ModelEditSelection(start + open.length);
     }
 }
 
@@ -350,17 +349,17 @@ export function close(doc: EditableDocument, close: string, start: number = doc.
     if (cursor.getToken().raw == close) {
         doc.model.edit([
             new ModelEdit('changeRange', [start, cursor.offsetStart, ""])
-        ], { selection: emptySelectionOption(start + close.length) });
+        ], { selection: new ModelEditSelection(start + close.length) });
     } else {
         // one of two things are possible:
         if (cursor.forwardList()) {
             //   we are in a matched list, just jump to the end of it.
-            doc.selection = emptySelectionOption(cursor.offsetEnd);
+            doc.selection = new ModelEditSelection(cursor.offsetEnd);
         } else {
             while (cursor.forwardSexp()) { }
             doc.model.edit([
                 new ModelEdit('changeRange', [cursor.offsetEnd, cursor.offsetEnd, close])
-            ], { selection: emptySelectionOption(cursor.offsetEnd + close.length) });
+            ], { selection: new ModelEditSelection(cursor.offsetEnd + close.length) });
         }
     }
 }
@@ -375,21 +374,21 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionSt
         doc.backspace();
     } else {
         if (doc.model.getText(start - 3, start, true) == '\\""') {
-            doc.selection = emptySelectionOption(start - 1);
+            doc.selection = new ModelEditSelection(start - 1);
         } else if (doc.model.getText(start - 2, start - 1, true) == '\\') {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 2, 2])
-            ], { selection: emptySelectionOption(start - 2) });
+            ], { selection: new ModelEditSelection(start - 2) });
         } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: emptySelectionOption(start - 1) });
+            ], { selection: new ModelEditSelection(start - 1) });
         } else if (closeParen.has(doc.model.getText(start - 1, start, true)) || openParen.has(doc.model.getText(start - 1, start, true))) {
-            doc.selection = emptySelectionOption(start - 1);
+            doc.selection = new ModelEditSelection(start - 1);
         } else if (openParen.has(doc.model.getText(start - 1, start + 1, true)) || closeParen.has(doc.model.getText(start - 1, start, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: emptySelectionOption(start - 1) });
+            ], { selection: new ModelEditSelection(start - 1) });
         } else
             doc.backspace();
     }
@@ -407,9 +406,9 @@ export function deleteForward(doc: EditableDocument, start: number = doc.selecti
         } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: emptySelectionOption(start - 1) });
+            ], { selection: new ModelEditSelection(start - 1) });
         } else if (openParen.has(doc.model.getText(start, start + 1, true)) || closeParen.has(doc.model.getText(start, start + 1, true))) {
-            doc.selection = emptySelectionOption(start + 1);
+            doc.selection = new ModelEditSelection(start + 1);
         } else
             doc.delete();
     }
@@ -423,16 +422,16 @@ export function stringQuote(doc: EditableDocument, start: number = doc.selection
         if (cursor.withinString()) {
             // inside a string, let's be clever
             if (cursor.offsetEnd - 1 == start && cursor.getToken().type == "str" || cursor.getToken().type == "str-end") {
-                doc.selection = emptySelectionOption(start + 1);
+                doc.selection = new ModelEditSelection(start + 1);
             } else {
                 doc.model.edit([
                     new ModelEdit('changeRange', [start, start, '"'])
-                ], { selection: emptySelectionOption(start + 1) });
+                ], { selection: new ModelEditSelection(start + 1) });
             }
         } else {
             doc.model.edit([
                 new ModelEdit('changeRange', [start, start, '""'])
-            ], { selection: emptySelectionOption(start + 1) });
+            ], { selection: new ModelEditSelection(start + 1) });
         }
     }
 }
@@ -496,7 +495,7 @@ export function growSelectionStack(doc: EditableDocument, range: [number, number
     } else {
         doc.growSelectionStack = [doc.selection];
     }
-    doc.selection = { anchor: start, active: end };
+    doc.selection = new ModelEditSelection(start, end);
     doc.growSelectionStack.push(doc.selection);
 }
 
@@ -523,7 +522,7 @@ export function raiseSexp(doc: EditableDocument, start = doc.selectionStart, end
                 if (endCursor.getToken().type == "close") {
                     doc.model.edit([
                         new ModelEdit('changeRange', [cursor.offsetStart, endCursor.offsetEnd, raised])
-                    ], { selection: emptySelectionOption(cursor.offsetStart) });
+                    ], { selection: new ModelEditSelection(cursor.offsetStart) });
                 }
             }
         }
@@ -589,7 +588,7 @@ export function transpose(doc: EditableDocument, start = doc.selectionStart, end
                 doc.model.edit([
                     new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
                     new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
-                ], { selection: emptySelectionOption(newCursorPos) });
+                ], { selection: new ModelEditSelection(newCursorPos) });
             }
         }
     }

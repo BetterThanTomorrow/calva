@@ -51,10 +51,36 @@ export class ModelEdit {
     constructor(public editFn: ModelEditFunction, public args: any[]) { }
 }
 
-export type ModelEditSelection = {
-    anchor: number,
-    active: number
-};
+export class ModelEditSelection {
+    private _anchor: number;
+    private _active: number;
+
+    constructor(anchor: number, active?: number) {
+        this._anchor = anchor;
+        if (active !== undefined) {
+            this._active = active;
+        } else {
+            this._active = anchor;
+        }
+    }
+
+    get anchor() {
+        return this._anchor;
+    }
+
+    set anchor(v: number) {
+        this._anchor = v;
+    }
+
+    get active() {
+        return this._active;
+    }
+
+    set active(v: number) {
+        this._active = v;
+    }
+}
+
 
 export type ModelEditOptions = { 
     undoStopBefore?: boolean,
@@ -62,14 +88,6 @@ export type ModelEditOptions = {
     skipFormat?: boolean,
     selection?: ModelEditSelection 
 };
-
-/**
- * Utility to create a selection object representing a caret w/o anything selected
- * @param startEnd 
- */
-export function emptySelectionOption(startEnd: number): ModelEditSelection {
-    return { anchor: startEnd, active: startEnd };
-}
 
 export interface EditableModel {
     /**
@@ -87,9 +105,9 @@ export interface EditableModel {
 export interface EditableDocument {
     readonly selectionStart: number,
     readonly selectionEnd: number,
-    selection: { anchor: number, active: number },
+    selection: ModelEditSelection,
     model: EditableModel,
-    growSelectionStack: { anchor: number, active: number }[],
+    growSelectionStack: ModelEditSelection[],
     getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
     insertString: (text: string) => void,
     getSelectionText: () => string,

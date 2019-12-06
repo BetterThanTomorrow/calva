@@ -1,4 +1,4 @@
-import { LineInputModel, ModelEdit, EditableDocument, emptySelectionOption } from "../cursor-doc/model";
+import { LineInputModel, ModelEdit, EditableDocument, ModelEditSelection } from "../cursor-doc/model";
 import { Token, validPair } from "../cursor-doc/clojure-lexer";
 import { TokenCursor, LispTokenCursor } from "../cursor-doc/token-cursor";
 
@@ -46,7 +46,7 @@ export class ReplReadline implements EditableDocument {
     /** The offset of the start of the selection into the document. */
     //private _selectionStart: number = 0;
 
-    private _selection: { anchor: number, active: number }
+    private _selection: ModelEditSelection;
 
     /** Returns the offset of the start of the selection. */
     get selectionStart() {
@@ -58,12 +58,12 @@ export class ReplReadline implements EditableDocument {
         this._selection.anchor = Math.min(this.model.maxOffset, Math.max(val, 0));
     }
 
-    set selection(selection: { anchor: number, active: number}) {
+    set selection(selection: ModelEditSelection) {
         this._selection = selection;
     }
 
-    get selection(): { anchor: number, active: number} {
-        return { anchor: this.selectionStart, active: this.selectionEnd}
+    get selection(): ModelEditSelection {
+        return new ModelEditSelection(this.selectionStart, this.selectionEnd);
     }
 
     /** The offset of the end of the selection into the document. */
@@ -148,7 +148,7 @@ export class ReplReadline implements EditableDocument {
             let ce = Math.max(this.selectionStart, this.selectionEnd);
             this.model.edit([
                 new ModelEdit('changeRange', [cs, ce, text, [cs, ce], [cs + text.length, cs + text.length]])
-            ], { selection: emptySelectionOption(cs + text.length) });
+            ], { selection: new ModelEditSelection(cs + text.length) });
             this.repaint();
             this.caretX = this.model.getRowCol(this.selectionEnd)[1];
         });
@@ -726,7 +726,7 @@ export class ReplReadline implements EditableDocument {
         this.freeze();
     }
 
-    growSelectionStack: { anchor: number, active: number}[] = [];
+    growSelectionStack: ModelEditSelection[] = [];
 }
 
 /**

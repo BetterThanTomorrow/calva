@@ -7,17 +7,17 @@ export class MockDocument implements model.EditableDocument {
     selectionEnd: number;
 
     get selection() {
-        return { anchor: this.selectionStart, active: this.selectionEnd };
+        return new model.ModelEditSelection(this.selectionStart, this.selectionEnd);
     }
 
-    set selection(sel: { anchor: number; active: number; }) {
+    set selection(sel: model.ModelEditSelection) {
         this.selectionStart = sel.anchor;
         this.selectionEnd = sel.active;
     }
 
     model: model.LineInputModel = new model.LineInputModel();
 
-    growSelectionStack: { anchor: number; active: number; }[] = [];
+    growSelectionStack: model.ModelEditSelection[] = [];
 
     getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor  {
         return this.model.getTokenCursor(offset);
