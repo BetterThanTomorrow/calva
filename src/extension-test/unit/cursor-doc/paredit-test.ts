@@ -173,18 +173,18 @@ describe('selection stack', () => {
     });
     it('should make grow selection the topmost element on the stack', () => {
         paredit.growSelectionStack(doc, range);
-        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(selection);
+        expect(doc.selectionStack[doc.selectionStack.length - 1]).deep.equal(selection);
     });
     it('get us back to where we started if we just grow, then shrink', () => {
         paredit.growSelectionStack(doc, range);
         paredit.shrinkSelection(doc);
-        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(startSelection);
+        expect(doc.selectionStack[doc.selectionStack.length - 1]).deep.equal(startSelection);
     });
     it('should not add selections identical to the topmost', () => {
         paredit.growSelectionStack(doc, range);
         paredit.growSelectionStack(doc, range);
         paredit.shrinkSelection(doc);
-        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(startSelection);
+        expect(doc.selectionStack[doc.selectionStack.length - 1]).deep.equal(startSelection);
     });
     it('should have A topmost after adding A, then B, then shrinking', () => {
         const a = range,
@@ -192,6 +192,6 @@ describe('selection stack', () => {
         paredit.growSelectionStack(doc, a);
         paredit.growSelectionStack(doc, b);
         paredit.shrinkSelection(doc);
-        expect(doc.growSelectionStack[doc.growSelectionStack.length - 1]).deep.equal(new ModelEditSelection(a[0], a[1]));
+        expect(doc.selectionStack[doc.selectionStack.length - 1]).deep.equal(new ModelEditSelection(a[0], a[1]));
     });
 });

@@ -726,7 +726,7 @@ export class ReplReadline implements EditableDocument {
         this.freeze();
     }
 
-    growSelectionStack: ModelEditSelection[] = [];
+    selectionStack: ModelEditSelection[] = [];
 }
 
 /**

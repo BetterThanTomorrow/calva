@@ -17,7 +17,7 @@ export class MockDocument implements model.EditableDocument {
 
     model: model.LineInputModel = new model.LineInputModel();
 
-    growSelectionStack: model.ModelEditSelection[] = [];
+    selectionStack: model.ModelEditSelection[] = [];
 
     getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor  {
         return this.model.getTokenCursor(offset);

@@ -484,26 +484,26 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
 
 export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
     const [start, end] = range;
-    if (doc.growSelectionStack.length > 0) {
-        const prev = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+    if (doc.selectionStack.length > 0) {
+        const prev = doc.selectionStack[doc.selectionStack.length - 1];
         if (prev.anchor === range[0] && prev.active === range[1]) {
             return;
         }
         if (!(doc.selectionStart == prev.anchor && doc.selectionEnd == prev.active)) {
-            doc.growSelectionStack = [doc.selection];
+            doc.selectionStack = [doc.selection];
         }
     } else {
-        doc.growSelectionStack = [doc.selection];
+        doc.selectionStack = [doc.selection];
     }
     doc.selection = new ModelEditSelection(start, end);
-    doc.growSelectionStack.push(doc.selection);
+    doc.selectionStack.push(doc.selection);
 }
 
 export function shrinkSelection(doc: EditableDocument) {
-    if (doc.growSelectionStack.length) {
-        let latest = doc.growSelectionStack.pop();
-        if (doc.growSelectionStack.length && latest.anchor == doc.selectionStart && latest.active == doc.selectionEnd) {
-            doc.selection = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+    if (doc.selectionStack.length) {
+        let latest = doc.selectionStack.pop();
+        if (doc.selectionStack.length && latest.anchor == doc.selectionStart && latest.active == doc.selectionEnd) {
+            doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
         }
     }
 }

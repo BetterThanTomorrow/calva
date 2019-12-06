@@ -107,7 +107,7 @@ export interface EditableDocument {
     readonly selectionEnd: number,
     selection: ModelEditSelection,
     model: EditableModel,
-    growSelectionStack: ModelEditSelection[],
+    selectionStack: ModelEditSelection[],
     getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
     insertString: (text: string) => void,
     getSelectionText: () => string,

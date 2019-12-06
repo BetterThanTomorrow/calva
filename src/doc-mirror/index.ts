@@ -90,7 +90,7 @@ class MirroredDocument implements EditableDocument {
 
     model = new DocumentModel(this);
 
-    growSelectionStack: ModelEditSelection[] = [];
+    selectionStack: ModelEditSelection[] = [];
 
     public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);
