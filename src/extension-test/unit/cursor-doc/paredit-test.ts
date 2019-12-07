@@ -7,18 +7,19 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
 /**
  * Prose gets a bit clumsy when describing the expectations of many Paredit operations and functions.
  * Therefore we here use a made-up ”language” to denote things. We have:
- * * Forms, lists of different kinds and symbols of different kinds.
+ * * Forms, lists and symbols of different kinds.
  *   * The current form is denoted surrounded by `*`.
  * * Positions, identifying a position in the text
- *   * Single positions are denoted with `|`.
  *   * Positions that are port of something else are denoted differently depending, read on.
  * * Selections, something selected in the editor.
  *   * Selections have direction, an anchor position and an active position, the active position is where the caret is shown.
  *   * selections are denoted with `>` before and after forward selections, and using`<` for backward selections.
+ *   * Single position selections are denoted with `><`.
  * * Ranges, used more internally (even if visible in the API) by Paredit to denote a range of positions in the text.
  *   * Ranges can have direction, but most often they don't.
  *   * Ranges w/o direction are denoted with `|` at the range's boundaries.
  *   * Ranges with direction are denoted with `>|` and `<|`, using the same semantics as selections.
+ *   * Single position ranges are denoted with a single `|`.
  */
 
 describe('paredit', () => {
@@ -34,41 +35,41 @@ describe('paredit', () => {
 
     describe('movement', () => {
         describe('rangeToSexprForward', () => {
-            it('|(def foo [vec]) => |(def foo [vec])|', () => {
+            it('><(def foo [vec]) => |(def foo [vec])|', () => {
                 const topLevelRange = [0, docText.length];
                 expect(paredit.forwardSexpRange(doc)).deep.equal(topLevelRange);
             });
-            it('(|def foo [vec]) => (|def| foo [vec])', () => {
+            it('(><def foo [vec]) => (|def| foo [vec])', () => {
                 const [defStart, defEnd] = [1, 4];
                 doc.selection = new ModelEditSelection(defStart);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([defStart, defEnd]);
             });
-            it('(d|ef foo [vec]) => (d|ef| foo [vec])', () => {
+            it('(d><ef foo [vec]) => (d|ef| foo [vec])', () => {
                 const [defMid, defEnd] = [2, 4];
                 doc.selection = new ModelEditSelection(defMid, defMid);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([defMid, defEnd]);
             });
-            it('(def foo [:foo :bar :ba|z]) => (def foo [:foo :bar :ba|z|])', () => {
+            it('(def foo [:foo :bar :ba><z]) => (def foo [:foo :bar :ba|z|])', () => {
                 const [bazMid, bazEnd] = [22, 24];
                 doc.selection = new ModelEditSelection(bazMid, bazMid);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([bazMid, bazEnd]);
             });
-            it('(def| foo [vec]) => (def| foo| [vec])', () => {
+            it('(def>< foo [vec]) => (def| foo| [vec])', () => {
                 const [defEnd, fooEnd] = [4, 8];
                 doc.selection = new ModelEditSelection(defEnd, defEnd);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([defEnd, fooEnd]);
             });
-            it('(def foo |[vec]) => (def foo |[vec]|)', () => {
+            it('(def foo ><[vec]) => (def foo |[vec]|)', () => {
                 const [vecStart, vecEnd] = [9, 25];
                 doc.selection = new ModelEditSelection(vecStart, vecStart);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([vecStart, vecEnd]);
             });
-            it('(def foo [:foo :bar :|baz]) => (def foo [:foo :bar |:baz|])', () => {
+            it('(def foo [:foo :bar :><baz]) => (def foo [:foo :bar |:baz|])', () => {
                 const [bazStart, bazEnd] = [20, 24];
                 doc.selection = new ModelEditSelection(bazStart, bazStart);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([bazStart, bazEnd]);
             });
-            it('(def foo [:foo :bar :baz|]) => (def foo [:foo :bar :baz|])', () => {
+            it('(def foo [:foo :bar :baz><]) => (def foo [:foo :bar :baz|])', () => {
                 const bazEnd = 24;
                 doc.selection = new ModelEditSelection(bazEnd, bazEnd);
                 expect(paredit.forwardSexpRange(doc)).deep.equal([bazEnd, bazEnd]);
@@ -81,7 +82,7 @@ describe('paredit', () => {
                 const range = paredit.forwardSexpRange(doc);
                 expect(range).deep.equal([defRight, fooRight]);
             });
-            it('()>def foo> [vec]) => (def foo| [vec]|)', () => {
+            it('(>def foo> [vec]) => (def foo| [vec]|)', () => {
                 const [defLeft, fooRight] = [1, 8],
                     vecRight = 25,
                     existingSelection = new ModelEditSelection(defLeft, fooRight);
@@ -108,21 +109,21 @@ describe('paredit', () => {
         })
 
         describe('moveToRangeRight', () => {
-            it('(|def >|foo>| [vec]) => (def foo| [vec])', () => {
+            it('(|def >|foo>| [vec]) => (def foo>< [vec])', () => {
                 const existingSelection = new ModelEditSelection(1, 1),
                     [fooLeft, fooRight] = [5, 8];
                 doc.selection = existingSelection;
                 paredit.moveToRangeRight(doc, [fooLeft, fooRight]);
                 expect(doc.selection).deep.equal(new ModelEditSelection(fooRight));
             });
-            it('(|def <|foo<| [vec]) => (def foo| [vec])', () => {
+            it('(|def <|foo<| [vec]) => (def foo>< [vec])', () => {
                 const existingSelection = new ModelEditSelection(1, 1),
                     [fooRight, fooLeft] = [8, 5];
                 doc.selection = existingSelection;
                 paredit.moveToRangeRight(doc, [fooLeft, fooRight]);
                 expect(doc.selection).deep.equal(new ModelEditSelection(fooRight));
             });
-            it('(<def< foo >|[vec]>|) => (def foo [vec]|)', () => {
+            it('(<def< foo >|[vec]>|) => (def foo [vec]><)', () => {
                 const [defRight, defLeft] = [4, 1],
                     existingSelection = new ModelEditSelection(defRight, defLeft),
                     [vecLeft, vecRight] = [9, 25];
@@ -133,7 +134,7 @@ describe('paredit', () => {
         })
 
         describe('moveToRangeLeft', () => {
-            it('(def >|foo>| |[vec]) => (def |foo [vec])', () => {
+            it('(def >|foo>| ><[vec]) => (def ><foo [vec])', () => {
                 const vecLeft = 9,
                     existingSelection = new ModelEditSelection(vecLeft, vecLeft),
                     [fooLeft, fooRight] = [5, 8];
@@ -141,7 +142,7 @@ describe('paredit', () => {
                 paredit.moveToRangeLeft(doc, [fooLeft, fooRight]);
                 expect(doc.selection).deep.equal(new ModelEditSelection(fooLeft));
             });
-            it('(def <|foo<| |[vec]) => (def |foo [vec])', () => {
+            it('(def <|foo<| ><[vec]) => (def ><foo [vec])', () => {
                 const vecLeft = 9,
                     existingSelection = new ModelEditSelection(vecLeft, vecLeft),
                     [fooRight, fooLeft] = [8, 5];
@@ -149,7 +150,7 @@ describe('paredit', () => {
                 paredit.moveToRangeLeft(doc, [fooRight, fooLeft]);
                 expect(doc.selection).deep.equal(new ModelEditSelection(fooLeft));
             });
-            it('(<|def<| foo >[vec]>) => (|def foo [vec])', () => {
+            it('(<|def<| foo >[vec]>) => (><def foo [vec])', () => {
                 const [defRight, defLeft] = [4, 1],
                     [vecLeft, vecRight] = [9, 25],
                     existingSelection = new ModelEditSelection(vecLeft, vecRight);
