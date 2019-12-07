@@ -102,6 +102,10 @@ Yeah, it's the only way right now, hopefully the other team members are setting 
 
 These people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
+### Calva Super Fans
+
+[![Jason Legler](https://avatars2.githubusercontent.com/u/6002769?s=30)](https://github.com/smashedtoatoms)
+
 ### Calva Fans
 
 [![Bozhidar Batsov](https://avatars0.githubusercontent.com/u/103882?s=32)](https://github.com/bbatsov)

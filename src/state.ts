@@ -102,6 +102,7 @@ function config() {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
         test: configOptions.get("testOnSave"),
+        showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
         syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
