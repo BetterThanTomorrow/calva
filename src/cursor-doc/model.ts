@@ -93,6 +93,10 @@ export class ModelEditSelection {
     set active(v: number) {
         this._active = v;
     }
+
+    clone() {
+        return new ModelEditSelection(this._anchor, this._active);
+    }
 }
 
 
