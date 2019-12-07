@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Use markdown in to format docstrings in hover.
 
 ## [2.0.66] - 2019-12-02
 - Fix: [Cursor moves forward after undoing wraparound commands in REPL window](https://github.com/BetterThanTomorrow/calva/issues/499)

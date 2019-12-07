@@ -1,5 +1,6 @@
-import { SignatureInformation, ParameterInformation } from 'vscode';
+import { SignatureInformation, ParameterInformation, MarkdownString } from 'vscode';
 import * as tokenCursor from '../cursor-doc/token-cursor';
+import { config } from "../state";
 
 export class REPLInfoParser {
     private _name: string = undefined;
@@ -81,14 +82,47 @@ export class REPLInfoParser {
         return '';
     }
 
-    private formatDocString(value: string) {
-        if (value && value != "") {
-            let result = '';
-            // Format the actual docstring
-            result += value.replace(/\s\s+/g, ' ');
-            return result;
+    private formatDocString(value: string, defaultValue?: string): MarkdownString {
+        const codeBlockRegex = /(```[a-z]*\n[\s\S]*?\n([\s]+)?```)/g;
+        const splitDocstring = (ds: string) => ds.split(codeBlockRegex).filter(s => s && s.trim());
+        const isCodeblock = (s: string) => s.match(codeBlockRegex);
+        const trimDocstringPadding = (s: string) => {
+            let min = undefined;
+            let lines = s.split(/\n/);
+            lines.forEach(l => {
+                const sp = l.match(/^\s+/);
+                if (sp) {
+                    const len = sp[0].length
+                    min = len < min || !min ? len : min;
+                }
+            });
+            if (!min) {
+                return s;
+            }
+            const trimmed = lines.map((l, i) => {
+                if (i === 0) {
+                    return l;
+                }
+                const re = RegExp(`^\\s{${min}}`);
+                return l.replace(re, "");
+            });
+            return trimmed.join("\n");
         }
-        return "";
+
+        const docString = new MarkdownString("");
+        if (value) {
+            value = trimDocstringPadding(value);
+            splitDocstring(value).forEach(s => {
+                if (isCodeblock(s)) {
+                    docString.appendMarkdown(s);
+                } else {
+                    docString.appendCodeblock(s, "text");
+                }
+            });
+        } else if (defaultValue) {
+            docString.appendText(defaultValue);
+        }
+        return docString;
     }
 
     private getParameters(symbol: string, argList: string): ParameterInformation[] {
@@ -116,7 +150,7 @@ export class REPLInfoParser {
                             arg,
                             [
                                 // If the previous arg was a `&` use its start offset instead
-                                previousArg !== undefined && previousArg[0] === '&' ? previousArg[1][0]: columnOffset[0] + symbolOffset,
+                                previousArg !== undefined && previousArg[0] === '&' ? previousArg[1][0] : columnOffset[0] + symbolOffset,
                                 columnOffset[1] + symbolOffset
                             ]
                         ] as [string, [number, number]];
@@ -131,32 +165,27 @@ export class REPLInfoParser {
         }
     }
 
-    getHover(): string {
-        let result = '';
+    getHover(): MarkdownString {
+        const hover = new MarkdownString();
         if (this._name !== '') {
-            result += this.formatName(this._name);
-            result += '\n';
+            const name = this.formatName(this._name);
+            hover.appendMarkdown(`${name}\n`);
             if (this._specialForm) {
                 if (this._formsString) {
-                    result += this.formatFormsString(this._formsString);
-                    result += '\n\n';
-                    result += '\n\n';
+                    hover.appendText(this.formatFormsString(this._formsString));
+                    hover.appendText("\n");
                 }
             } else {
                 if (this._arglist) {
-                    result += this.formatArgList(this._arglist);
-                    result += '\n\n';
-                    result += '\n\n';
+                    const args = this.formatArgList(this._arglist);
+                    hover.appendMarkdown(args);
+                    hover.appendText("\n");
                 }
             }
-            let docString = this.formatDocString(this._docString);
-            if (docString == '') {
-                docString = "No documentation available"
-            }
-            result += docString;
-            result += '  ';
+            let docString = this.formatDocString(this._docString, "No documentation available");
+            hover.appendMarkdown(docString.value);
         }
-        return result;
+        return hover;
     }
 
     getHoverNotAvailable() {
@@ -169,12 +198,9 @@ export class REPLInfoParser {
         return result;
     }
 
-    getCompletion(): [string, string] {
+    getCompletion(): [string | MarkdownString, string] {
         if (this._name !== '') {
             let docString = this.formatDocString(this._docString);
-            if (docString == '') {
-                docString = undefined;
-            }
             if (this._specialForm) {
                 return [docString, this._formsString];
             } else {
@@ -197,6 +223,9 @@ export class REPLInfoParser {
                             if (!this._specialForm && !argList.match(/\?/)) {
                                 signature.parameters = this.getParameters(symbol, argList);
                             }
+                            if (this._docString && config().showDocstringInParameterHelp) {
+                                signature.documentation = this.formatDocString(this._docString);
+                            }
                             return signature;
                         }
                     });
@@ -206,7 +235,7 @@ export class REPLInfoParser {
     }
 }
 
-export function getHover(msg: any): string {
+export function getHover(msg: any): MarkdownString {
     return new REPLInfoParser(msg).getHover();
 }
 
@@ -214,7 +243,7 @@ export function getHoverNotAvailable(text: string): string {
     return new REPLInfoParser({ name: text }).getHoverNotAvailable();
 }
 
-export function getCompletion(msg: any): [string, string] {
+export function getCompletion(msg: any): [string | MarkdownString, string] {
     return new REPLInfoParser(msg).getCompletion();
 }
 
