@@ -441,7 +441,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.forwardSexpRange(this.readline, this.readline.selectionRight));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.forwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "select-backward-sexp": () => {
@@ -449,7 +449,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-down-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionRight));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardDownList(this.readline));
             this.readline.repaint();
         },
         "select-backward-down-sexp": () => {
@@ -457,7 +457,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-up-sexp": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionRight));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardUpList(this.readline));
             this.readline.repaint();
         },
         "select-backward-up-sexp": () => {
@@ -465,7 +465,7 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-close-list": () => {
-            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionRight));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardList(this.readline));
             this.readline.repaint();
         },
         "select-open-list": () => {
