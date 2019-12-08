@@ -1,10 +1,15 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
 
-// NB: doc.model.edit returns a Thenable, so that the vscode Editor can ccompose commands.
+// NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
 // In the repl-console, compose commands just by performing them in succession, making sure
-// you provide selecions, old and new.
+// you provide selections, old and new.
+
+// TODO: Implement all movement and selection commands here, instead of composing them
+//       exactly the same way in the editor and in the repl-window.
+//       Example: paredit.moveToRangeRight(this.readline, paredit.forwardSexpRange(this.readline))
+//                => paredit.moveForwardSexp(this.readline)
 
 export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionLeft, end = doc.selectionRight) {
     const [left, right] = [Math.min(...range), Math.max(...range)];
