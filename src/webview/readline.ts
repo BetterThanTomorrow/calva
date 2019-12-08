@@ -46,7 +46,7 @@ export class ReplReadline implements EditableDocument {
     /** The offset of the start of the selection into the document. */
     //private _selectionStart: number = 0;
 
-    private _selection: ModelEditSelection;
+    private _selection = new ModelEditSelection(0);
 
     /** Returns the offset of the start of the selection. */
     get selectionLeft() {
