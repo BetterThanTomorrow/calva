@@ -2,8 +2,10 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Use markdown to format doc strings in hover
-- Add setting to enable doc strings in parameter hints
+- [Use markdown to format doc strings in hover](https://github.com/BetterThanTomorrow/calva/pull/503)
+- [Add setting to enable doc strings in parameter hints](https://github.com/BetterThanTomorrow/calva/pull/503)
+- Fix: [Select Backward * commands won't grow selection in REPL window](https://github.com/BetterThanTomorrow/calva/issues/498)
+- Fix: [Paredit select forward/backward add to the selection stack even when they don't select anything](https://github.com/BetterThanTomorrow/calva/issues/506)
 - Fix: [(read-line) is being called twice from the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/509)
 
 ## [2.0.66] - 2019-12-02

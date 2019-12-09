@@ -123,10 +123,11 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Terje](https://avatars2.githubusercontent.com/u/6209?s=30)](https://github.com/terjesb)
 [![JC](https://avatars0.githubusercontent.com/u/11434205?s=30)](https://github.com/dijonkitchen)
 [![Ullrich Schäfer](https://avatars1.githubusercontent.com/u/13815?s=30)](https://github.com/stigi)
+[![Scott Archer](https://avatars3.githubusercontent.com/u/703980?s=30)](https://github.com/scarcher2)
 
 ## The Calva Team
 
-Many people have contributed to Calva. Here are the ones who have engaged in the project as such.
+We are Clojure and Visual Studio Code fans who care about the ergonomics of using our favorite programming language with our editor of choice.
 
 ### Current Maintainers:
 
@@ -139,6 +140,11 @@ Many people have contributed to Calva. Here are the ones who have engaged in the
 * [Matt Seddon](https://github.com/mseddon)
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
+
+
+### Code Contributors
+
+Calva is a quite young open source project, with surprisingly many code contributors. We take great care to keep it easy and fun to contribute. See the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) for more on this.
 
 ## Happy coding
 

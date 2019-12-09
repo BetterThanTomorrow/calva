@@ -3,21 +3,21 @@ import { LispTokenCursor } from '../../../cursor-doc/token-cursor'
 
 
 export class MockDocument implements model.EditableDocument {
-    selectionStart: number; 
-    selectionEnd: number;
+    selectionLeft: number; 
+    selectionRight: number;
 
     get selection() {
-        return { anchor: this.selectionStart, active: this.selectionEnd };
+        return new model.ModelEditSelection(this.selectionLeft, this.selectionRight);
     }
 
-    set selection(sel: { anchor: number; active: number; }) {
-        this.selectionStart = sel.anchor;
-        this.selectionEnd = sel.active;
+    set selection(sel: model.ModelEditSelection) {
+        this.selectionLeft = sel.anchor;
+        this.selectionRight = sel.active;
     }
 
     model: model.LineInputModel = new model.LineInputModel();
 
-    growSelectionStack: { anchor: number; active: number; }[] = [];
+    selectionStack: model.ModelEditSelection[] = [];
 
     getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor  {
         return this.model.getTokenCursor(offset);

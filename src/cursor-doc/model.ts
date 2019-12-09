@@ -51,10 +51,54 @@ export class ModelEdit {
     constructor(public editFn: ModelEditFunction, public args: any[]) { }
 }
 
-export type ModelEditSelection = {
-    anchor: number,
-    active: number
-};
+/**
+ * Naming notes for Model Selections:
+ * `anchor`, the start of a selection, can be left or right of, or the same as the end of the selection (active)
+ * `active`, the end of a selection, where the caret is, can be left or right of, or the same as the start of the selection   (anchor)
+ * `left`, the smallest of `anchor` and `active`
+ * `right`, the largest of `anchor` and `active` 
+ * `backward`, movement towards the left
+ * `forward`, movement towards the right
+ * `up`, movement out of lists
+ * `down`, movement into lists
+ * 
+ * This will be in line with vscode when it comes to anchor/active, but introduce our own terminology  for the span of the selection. It will also keep the tradition of paredit with backward/forward and up/down.
+ */
+
+export class ModelEditSelection {
+    private _anchor: number;
+    private _active: number;
+
+    constructor(anchor: number, active?: number) {
+        this._anchor = anchor;
+        if (active !== undefined) {
+            this._active = active;
+        } else {
+            this._active = anchor;
+        }
+    }
+
+    get anchor() {
+        return this._anchor;
+    }
+
+    set anchor(v: number) {
+        this._anchor = v;
+    }
+
+    get active() {
+        return this._active;
+    }
+
+    set active(v: number) {
+        this._active = v;
+    }
+
+    clone() {
+        return new ModelEditSelection(this._anchor, this._active);
+    }
+}
+
 
 export type ModelEditOptions = { 
     undoStopBefore?: boolean,
@@ -62,14 +106,6 @@ export type ModelEditOptions = {
     skipFormat?: boolean,
     selection?: ModelEditSelection 
 };
-
-/**
- * Utility to create a selection object representing a caret w/o anything selected
- * @param startEnd 
- */
-export function emptySelectionOption(startEnd: number): ModelEditSelection {
-    return { anchor: startEnd, active: startEnd };
-}
 
 export interface EditableModel {
     /**
@@ -85,11 +121,11 @@ export interface EditableModel {
 }
 
 export interface EditableDocument {
-    selectionStart: number,
-    selectionEnd: number,
-    selection: { anchor: number, active: number },
+    readonly selectionLeft: number,
+    readonly selectionRight: number,
+    selection: ModelEditSelection,
     model: EditableModel,
-    growSelectionStack: { anchor: number, active: number }[],
+    selectionStack: ModelEditSelection[],
     getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
     insertString: (text: string) => void,
     getSelectionText: () => string,
