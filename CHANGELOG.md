@@ -4,6 +4,7 @@ Changes to Calva.
 ## [Unreleased]
 - Use markdown to format doc strings in hover
 - Add setting to enable doc strings in parameter hints
+- Fix: [(read-line) is being called twice from the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/509)
 
 ## [2.0.66] - 2019-12-02
 - Fix: [Cursor moves forward after undoing wraparound commands in REPL window](https://github.com/BetterThanTomorrow/calva/issues/499)
