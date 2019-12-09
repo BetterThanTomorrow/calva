@@ -2,7 +2,7 @@ import { ReplReadline, CompletionListener } from "./readline";
 import * as paredit from "../cursor-doc/paredit";
 import { getIndent } from "../cursor-doc/indent";
 import { HotKeyTable } from "./hotkeys";
-import { ModelEdit, emptySelectionOption } from "../cursor-doc/model";
+import { ModelEdit, ModelEditSelection } from "../cursor-doc/model";
 
 const defaultHotkeys = new HotKeyTable<ReplConsole>({
     // "Backspace": "backspace",
@@ -145,7 +145,7 @@ export class ReplConsole {
 
         document.addEventListener("cut", e => {
             if (document.activeElement == this.input) {
-                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
+                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionLeft, this.readline.selectionRight));
                 this.readline.delete();
                 e.preventDefault();
                 this.ensureCaretInView();
@@ -154,7 +154,7 @@ export class ReplConsole {
 
         document.addEventListener("copy", e => {
             if (document.activeElement == this.input) {
-                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionStart, this.readline.selectionEnd));
+                e.clipboardData.setData("text/plain", this.readline.model.getText(this.readline.selectionLeft, this.readline.selectionRight));
                 e.preventDefault();
             }
         })
@@ -266,7 +266,7 @@ export class ReplConsole {
                     this.readline.mainElem.scrollIntoView({ block: "end" });
                 } else {
                     this.readline.model.undoManager.insertUndoStop();
-                    let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                    let indent = getIndent(this.readline.model, this.readline.selectionRight);
                     let istr = ""
                     for (let i = 0; i < indent; i++)
                         istr += " "
@@ -405,35 +405,35 @@ export class ReplConsole {
             })
         },
         "backward-sexp": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.backwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "forward-sexp": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardSexp(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.forwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "down-list": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardDownList(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.rangeToForwardDownList(this.readline));
             this.readline.repaint();
         },
         "up-list": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardUpList(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.rangeToForwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-up-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.rangeToBackwardUpList(this.readline));
             this.readline.repaint();
         },
         "backward-down-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.rangeToBackwardDownList(this.readline));
             this.readline.repaint();
         },
         "close-list": () => {
-            paredit.moveToRangeEnd(this.readline, paredit.rangeToForwardList(this.readline));
+            paredit.moveToRangeRight(this.readline, paredit.rangeToForwardList(this.readline));
             this.readline.repaint();
         },
         "open-list": () => {
-            paredit.moveToRangeStart(this.readline, paredit.rangeToBackwardList(this.readline));
+            paredit.moveToRangeLeft(this.readline, paredit.rangeToBackwardList(this.readline));
             this.readline.repaint();
         },
         "select-defun": () => {
@@ -441,46 +441,46 @@ export class ReplConsole {
             this.readline.repaint();
         },
         "select-forward-sexp": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardSexp(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.forwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "select-backward-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardSexp(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.backwardSexpRange(this.readline));
             this.readline.repaint();
         },
         "select-forward-down-sexp": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardDownList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardDownList(this.readline));
             this.readline.repaint();
         },
         "select-backward-down-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardDownList(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardDownList(this.readline));
             this.readline.repaint();
         },
         "select-forward-up-sexp": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardUpList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardUpList(this.readline));
             this.readline.repaint();
         },
         "select-backward-up-sexp": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardUpList(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardUpList(this.readline));
             this.readline.repaint();
         },
         "select-close-list": () => {
-            paredit.selectRangeFromSelectionStart(this.readline, paredit.rangeToForwardList(this.readline, this.readline.selectionEnd));
+            paredit.selectRangeFromSelectionLeft(this.readline, paredit.rangeToForwardList(this.readline));
             this.readline.repaint();
         },
         "select-open-list": () => {
-            paredit.selectRangeFromSelectionEnd(this.readline, paredit.rangeToBackwardList(this.readline));
+            paredit.selectRangeFromSelectionRight(this.readline, paredit.rangeToBackwardList(this.readline));
             this.readline.repaint();
         },
         "kill-forward-sexp": () => {
             this.readline.withUndo(() => {
-                paredit.killRange(this.readline, paredit.rangeToForwardSexp(this.readline));
+                paredit.killRange(this.readline, paredit.forwardSexpRange(this.readline));
                 this.readline.repaint();
             })
         },
         "kill-backward-sexp": () => {
             this.readline.withUndo(() => {
-                paredit.killRange(this.readline, paredit.rangeToBackwardSexp(this.readline));
+                paredit.killRange(this.readline, paredit.backwardSexpRange(this.readline));
                 this.readline.repaint();
             })
         },
@@ -497,8 +497,8 @@ export class ReplConsole {
             })
         },
         "select-all": () => {
-            this.readline.selectionStart = 0;
-            this.readline.selectionEnd = this.readline.model.maxOffset;
+            this.readline.selectionLeft = 0;
+            this.readline.selectionRight = this.readline.model.maxOffset;
             this.readline.repaint();
         },
         "undo": () => {
@@ -711,7 +711,7 @@ export class ReplConsole {
             this.readline.withUndo(() => {
                 this.readline.model.edit([
                     new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
-                ], { selection: emptySelectionOption(line.length) });
+                ], { selection: new ModelEditSelection(line.length) });
             })
             this.readline.repaint();
         },
@@ -723,7 +723,7 @@ export class ReplConsole {
             this.readline.withUndo(() => {
                 this.readline.model.edit([
                     new ModelEdit('changeRange', [0, this.readline.model.maxOffset, line])
-                ], { selection: emptySelectionOption(line.length) });
+                ], { selection: new ModelEditSelection(line.length) });
             })
             this.readline.repaint();
         },
@@ -734,7 +734,7 @@ export class ReplConsole {
                 window.scrollTo({ left: 0 });
             } else {
                 this.readline.model.undoManager.insertUndoStop();
-                let indent = getIndent(this.readline.model, this.readline.selectionEnd);
+                let indent = getIndent(this.readline.model, this.readline.selectionRight);
                 let istr = ""
                 for (let i = 0; i < indent; i++)
                     istr += " "

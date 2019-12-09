@@ -3,7 +3,7 @@ import * as vscode from "vscode"
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
-import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel } from "../cursor-doc/model";
+import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -80,35 +80,19 @@ export class DocumentModel implements EditableModel {
 class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
-    get selectionStart(): number {
-        return this.document.offsetAt(vscode.window.activeTextEditor.selection.start);
+    get selectionLeft(): number {
+        return this.document.offsetAt(vscode.window.activeTextEditor.selection.anchor);
     }
 
-    set selectionStart(offset: number) {
-        const editor = vscode.window.activeTextEditor,
-            docEnd = this.document.offsetAt(editor.selection.end),
-            position = this.document.positionAt(offset);
-        editor.selection = new vscode.Selection(position, docEnd >= offset ? editor.selection.end : position);
-        editor.revealRange(editor.selection);
-    }
-
-    get selectionEnd(): number {
-        return this.document.offsetAt(vscode.window.activeTextEditor.selection.end);
-    }
-
-    set selectionEnd(offset: number) {
-        const editor = vscode.window.activeTextEditor,
-            docStart = this.document.offsetAt(editor.selection.start),
-            position = this.document.positionAt(offset);
-        editor.selection = new vscode.Selection(docStart <= offset ? editor.selection.start : position, position);
-        editor.revealRange(editor.selection);
+    get selectionRight(): number {
+        return this.document.offsetAt(vscode.window.activeTextEditor.selection.active);
     }
 
     model = new DocumentModel(this);
 
-    growSelectionStack: { anchor: number, active: number }[] = [];
+    selectionStack: ModelEditSelection[] = [];
 
-    public getTokenCursor(offset: number = this.selectionEnd, previous: boolean = false): LispTokenCursor {
+    public getTokenCursor(offset: number = this.selectionRight, previous: boolean = false): LispTokenCursor {
         return this.model.getTokenCursor(offset, previous);
     }
 
@@ -116,14 +100,14 @@ class MirroredDocument implements EditableDocument {
         const editor = vscode.window.activeTextEditor,
             selection = editor.selection,
             wsEdit = new vscode.WorkspaceEdit(),
-            edit = vscode.TextEdit.insert(this.document.positionAt(this.selectionStart), text);
+            edit = vscode.TextEdit.insert(this.document.positionAt(this.selectionLeft), text);
         wsEdit.set(this.document.uri, [edit]);
         vscode.workspace.applyEdit(wsEdit).then((_v) => {
             editor.selection = selection;
         });
     }
 
-    set selection(selection: { anchor: number, active: number }) {
+    set selection(selection: ModelEditSelection) {
         const editor = vscode.window.activeTextEditor,
             document = editor.document,
             anchor = document.positionAt(selection.anchor),
@@ -132,8 +116,8 @@ class MirroredDocument implements EditableDocument {
         editor.revealRange(new vscode.Range(active, active));
     }
 
-    get selection(): { anchor: number, active: number } {
-        return { anchor: this.selectionStart, active: this.selectionEnd };
+    get selection(): ModelEditSelection {
+        return new ModelEditSelection(this.selectionLeft, this.selectionRight);
     }
 
     public getSelectionText() {

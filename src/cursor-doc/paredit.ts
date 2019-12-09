@@ -1,52 +1,58 @@
 import { validPair } from "./clojure-lexer";
-import { ModelEdit, EditableDocument, emptySelectionOption, ModelEditOptions } from "./model";
+import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
 
-// NB: doc.model.edit returns a Thenable, so that the vscode Editor can ccompose commands.
+// NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
 // In the repl-console, compose commands just by performing them in succession, making sure
-// you provide selecions, old and new.
+// you provide selections, old and new.
 
-export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionStart, end = doc.selectionEnd) {
+// TODO: Implement all movement and selection commands here, instead of composing them
+//       exactly the same way in the editor and in the repl-window.
+//       Example: paredit.moveToRangeRight(this.readline, paredit.forwardSexpRange(this.readline))
+//                => paredit.moveForwardSexp(this.readline)
+
+export function killRange(doc: EditableDocument, range: [number, number], start = doc.selectionLeft, end = doc.selectionRight) {
     const [left, right] = [Math.min(...range), Math.max(...range)];
     doc.model.edit([
         new ModelEdit('deleteRange', [left, right - left, [start, end]])
-    ], { selection: emptySelectionOption(left) });
+    ], { selection: new ModelEditSelection(left) });
 }
 
-export function moveToRangeStart(doc: EditableDocument, range: [number, number]) {
-    doc.selection = emptySelectionOption(range[0]);
+export function moveToRangeLeft(doc: EditableDocument, range: [number, number]) {
+    doc.selection = new ModelEditSelection(Math.min(range[0], range[1]));
 }
 
-export function moveToRangeEnd(doc: EditableDocument, range: [number, number]) {
-    doc.selection = emptySelectionOption(range[1]);
+export function moveToRangeRight(doc: EditableDocument, range: [number, number]) {
+    doc.selection = new ModelEditSelection(Math.max(range[0], range[1]));
 }
 
 export function selectRange(doc: EditableDocument, range: [number, number]) {
-    // doc.selection = { anchor: range[0], active: range[1] };
     growSelectionStack(doc, range)
 }
 
-export function selectRangeFromSelectionStart(doc: EditableDocument, range: [number, number]) {
-    // doc.selection = { anchor: doc.selectionStart, active: range[1] };
-    growSelectionStack(doc, [doc.selectionStart, range[1]])
+export function selectRangeFromSelectionLeft(doc: EditableDocument, range: [number, number]) {
+    const selectionLeft = Math.min(doc.selectionLeft, doc.selectionRight),
+        rangeRight = Math.max(range[0], range[1]);
+    growSelectionStack(doc, [selectionLeft, rangeRight])
 }
 
-export function selectRangeFromSelectionEnd(doc: EditableDocument, range: [number, number]) {
-    // doc.selection = { anchor: doc.selectionEnd, active: range[0] };
-    growSelectionStack(doc, [doc.selectionEnd, range[0]])
+export function selectRangeFromSelectionRight(doc: EditableDocument, range: [number, number]) {
+    const selectionRight = Math.max(doc.selectionLeft, doc.selectionRight),
+        rangeLeft = Math.min(range[0], range[1]);
+    growSelectionStack(doc, [selectionRight, rangeLeft])
 }
 
 
 /**
  * Gets the range for the ”current” top level form
- * @see ListTokenCursor.rangeForDefun 
+ * @see ListTokenCursor.rangeForDefun
  */
-export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionStart, start: number = 0): [number, number] {
+export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionLeft, start: number = 0): [number, number] {
     const cursor = doc.getTokenCursor(start);
     return cursor.rangeForDefun(offset);
 }
 
-export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardWhitespace();
     if (cursor.forwardSexp()) {
@@ -56,7 +62,7 @@ export function rangeToForwardSexp(doc: EditableDocument, offset: number = doc.s
     }
 }
 
-export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function backwardSexpRange(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
         // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
@@ -71,7 +77,7 @@ export function rangeToBackwardSexp(doc: EditableDocument, offset: number = doc.
     }
 }
 
-export function rangeToForwardUpList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToForwardUpList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardList();
     if (cursor.upList()) {
@@ -81,7 +87,7 @@ export function rangeToForwardUpList(doc: EditableDocument, offset: number = doc
     }
 }
 
-export function rangeToBackwardUpList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToBackwardUpList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.backwardList();
     if (cursor.backwardUpList()) {
@@ -91,7 +97,7 @@ export function rangeToBackwardUpList(doc: EditableDocument, offset: number = do
     }
 }
 
-export function rangeToForwardDownList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToForwardDownList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     do {
         cursor.forwardWhitespace();
@@ -106,7 +112,7 @@ export function rangeToForwardDownList(doc: EditableDocument, offset: number = d
     }
 }
 
-export function rangeToBackwardDownList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToBackwardDownList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     do {
         cursor.backwardWhitespace();
@@ -121,7 +127,7 @@ export function rangeToBackwardDownList(doc: EditableDocument, offset: number = 
     }
 }
 
-export function rangeToForwardList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToForwardList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (cursor.forwardList()) {
         return [offset, cursor.offsetStart];
@@ -130,7 +136,7 @@ export function rangeToForwardList(doc: EditableDocument, offset: number = doc.s
     }
 }
 
-export function rangeToBackwardList(doc: EditableDocument, offset: number = doc.selectionStart): [number, number] {
+export function rangeToBackwardList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (cursor.backwardList()) {
         return [cursor.offsetStart, offset];
@@ -139,7 +145,7 @@ export function rangeToBackwardList(doc: EditableDocument, offset: number = doc.
     }
 }
 
-export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd, options = { skipFormat: false }): Thenable<boolean> {
+export function wrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionLeft, end: number = doc.selectionRight, options = { skipFormat: false }): Thenable<boolean> {
     const cursor = doc.getTokenCursor(end);
     if (cursor.withinString() && open == '"') {
         open = close = '\\"';
@@ -151,8 +157,8 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             return doc.model.edit([
                 new ModelEdit('insertString', [range[1], close]),
                 new ModelEdit('insertString', [range[0], open, [end, end], [start + open.length, start + open.length]])
-            ], { 
-                selection: emptySelectionOption(start + open.length),
+            ], {
+                selection: new ModelEditSelection(start + open.length),
                 skipFormat: options.skipFormat
              });
         }
@@ -161,14 +167,14 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
         return doc.model.edit([
             new ModelEdit('insertString', [range[1], close]),
             new ModelEdit('insertString', [range[0], open])
-        ], { 
-            selection: { anchor: start + open.length, active: end + open.length },
+        ], {
+            selection: new ModelEditSelection(start + open.length, end + open.length),
             skipFormat: options.skipFormat
         });
     }
 }
 
-export function rewrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionStart, end: number = doc.selectionEnd): Thenable<boolean> {
+export function rewrapSexpr(doc: EditableDocument, open: string, close: string, start: number = doc.selectionLeft, end: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(end);
     if (cursor.backwardList()) {
         const openStart = cursor.offsetStart - 1,
@@ -179,12 +185,12 @@ export function rewrapSexpr(doc: EditableDocument, open: string, close: string, 
                 return doc.model.edit([
                     new ModelEdit('changeRange', [closeStart, closeEnd, close]),
                     new ModelEdit('changeRange', [openStart, openEnd, open])
-                ], { selection: emptySelectionOption(end)});
+                ], { selection: new ModelEditSelection(end)});
             }
     }
 }
 
-export function splitSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function splitSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     if (!cursor.withinString() && !(cursor.isWhiteSpace() || cursor.previousIsWhiteSpace())) {
         cursor.forwardWhitespace();
@@ -196,17 +202,17 @@ export function splitSexp(doc: EditableDocument, start: number = doc.selectionEn
             const close = cursor.getToken().raw;
             doc.model.edit([
                 new ModelEdit('changeRange', [splitPos, splitPos, `${close}${open}`])
-            ], { selection: emptySelectionOption(splitPos + 1) });
+            ], { selection: new ModelEditSelection(splitPos + 1) });
         }
     }
 }
 
 /**
  * If `start` is between two strings or two lists of the same type: join them. Otherwise do nothing.
- * @param doc 
- * @param start 
+ * @param doc
+ * @param start
  */
-export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
+export function joinSexp(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardWhitespace();
     const prevToken = cursor.getPrevToken(),
@@ -218,12 +224,12 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionEnd
         if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
             return doc.model.edit([
                 new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : "", [start, start], [prevEnd, prevEnd]])
-            ], { selection: emptySelectionOption(prevEnd), formatParent: true });
+            ], { selection: new ModelEditSelection(prevEnd), formatParent: true });
         }
     }
 }
 
-export function spliceSexp(doc: EditableDocument, start: number = doc.selectionEnd, undoStopBefore = true): Thenable<boolean> {
+export function spliceSexp(doc: EditableDocument, start: number = doc.selectionRight, undoStopBefore = true): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     // TODO: this should unwrap the string, not the enclosing list.
 
@@ -238,29 +244,29 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionE
             return doc.model.edit([
                 new ModelEdit('changeRange', [end, end + 1, ""]),
                 new ModelEdit('changeRange', [beginning - 1, beginning, ""])
-            ], { undoStopBefore, selection: emptySelectionOption(start - 1) });
+            ], { undoStopBefore, selection: new ModelEditSelection(start - 1) });
         }
     }
 }
 
-export function killBackwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
+export function killBackwardList(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     return doc.model.edit([
         new ModelEdit('changeRange', [cursor.offsetStart, start, "", [start, start], [cursor.offsetStart, cursor.offsetStart]])
-    ], { selection: emptySelectionOption(cursor.offsetStart) });
+    ], { selection: new ModelEditSelection(cursor.offsetStart) });
 }
 
-export function killForwardList(doc: EditableDocument, start: number = doc.selectionEnd): Thenable<boolean> {
+export function killForwardList(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     cursor.forwardList();
     return doc.model.edit([
         new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : "", [start, start], [start, start]])
-    ], { selection: emptySelectionOption(start) });
+    ], { selection: new ModelEditSelection(start) });
 }
 
-export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
@@ -276,7 +282,7 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
     }
 }
 
-export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
@@ -293,7 +299,7 @@ export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.sel
     }
 }
 
-export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
@@ -305,13 +311,13 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
             new ModelEdit('deleteRange', [offset, close.length]),
             new ModelEdit('insertString', [cursor.offsetStart, close])
         ], start >= cursor.offsetStart ? {
-            selection: emptySelectionOption(cursor.offsetStart),
+            selection: new ModelEditSelection(cursor.offsetStart),
             formatParent: true
         } : { formatParent: true });
     }
 }
 
-export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selectionEnd) {
+export function backwardBarfSexp(doc: EditableDocument, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
@@ -326,41 +332,39 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
             new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
             new ModelEdit('deleteRange', [offset, tk.raw.length])
         ], start <= cursor.offsetStart ? {
-            selection: emptySelectionOption(cursor.offsetStart),
+            selection: new ModelEditSelection(cursor.offsetStart),
             formatParent: true
         } : { formatParent: true });
     }
 }
 
-export function open(doc: EditableDocument, open: string, close: string, start: number = doc.selectionEnd) {
-    let [cs, ce] = [doc.selectionStart, doc.selectionEnd];
+export function open(doc: EditableDocument, open: string, close: string, start: number = doc.selectionRight) {
+    let [cs, ce] = [doc.selectionLeft, doc.selectionRight];
     doc.insertString(open + doc.getSelectionText() + close);
-    doc.selectionStart = doc.selectionEnd = start + open.length;
     if (cs != ce) {
-        doc.selectionStart = (cs + open.length)
-        doc.selectionEnd = (ce + open.length)
+        doc.selection = new ModelEditSelection(cs + open.length, ce + open.length);
     } else {
-        doc.selectionStart = doc.selectionEnd = start + open.length;
+        doc.selection = new ModelEditSelection(start + open.length);
     }
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selectionEnd) {
+export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
     let cursor = doc.getTokenCursor();
     cursor.forwardWhitespace(false);
     if (cursor.getToken().raw == close) {
         doc.model.edit([
             new ModelEdit('changeRange', [start, cursor.offsetStart, ""])
-        ], { selection: emptySelectionOption(start + close.length) });
+        ], { selection: new ModelEditSelection(start + close.length) });
     } else {
         // one of two things are possible:
         if (cursor.forwardList()) {
             //   we are in a matched list, just jump to the end of it.
-            doc.selectionStart = doc.selectionEnd = cursor.offsetEnd;
+            doc.selection = new ModelEditSelection(cursor.offsetEnd);
         } else {
             while (cursor.forwardSexp()) { }
             doc.model.edit([
                 new ModelEdit('changeRange', [cursor.offsetEnd, cursor.offsetEnd, close])
-            ], { selection: emptySelectionOption(cursor.offsetEnd + close.length) });
+            ], { selection: new ModelEditSelection(cursor.offsetEnd + close.length) });
         }
     }
 }
@@ -369,33 +373,33 @@ const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
-export function backspace(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     if (start != end || cursor.withinString()) {
         doc.backspace();
     } else {
         if (doc.model.getText(start - 3, start, true) == '\\""') {
-            doc.selectionStart = doc.selectionEnd = start - 1;
+            doc.selection = new ModelEditSelection(start - 1);
         } else if (doc.model.getText(start - 2, start - 1, true) == '\\') {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 2, 2])
-            ], { selection: emptySelectionOption(start - 2) });
+            ], { selection: new ModelEditSelection(start - 2) });
         } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: emptySelectionOption(start - 1) });
+            ], { selection: new ModelEditSelection(start - 1) });
         } else if (closeParen.has(doc.model.getText(start - 1, start, true)) || openParen.has(doc.model.getText(start - 1, start, true))) {
-            doc.selectionStart = doc.selectionEnd = start - 1;
+            doc.selection = new ModelEditSelection(start - 1);
         } else if (openParen.has(doc.model.getText(start - 1, start + 1, true)) || closeParen.has(doc.model.getText(start - 1, start, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: emptySelectionOption(start - 1) });
+            ], { selection: new ModelEditSelection(start - 1) });
         } else
             doc.backspace();
     }
 }
 
-export function deleteForward(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function deleteForward(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     if (start != end || cursor.withinString()) {
         doc.delete();
@@ -407,15 +411,15 @@ export function deleteForward(doc: EditableDocument, start: number = doc.selecti
         } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: emptySelectionOption(start - 1) });
+            ], { selection: new ModelEditSelection(start - 1) });
         } else if (openParen.has(doc.model.getText(start, start + 1, true)) || closeParen.has(doc.model.getText(start, start + 1, true))) {
-            doc.selectionStart = doc.selectionEnd = start + 1;
+            doc.selection = new ModelEditSelection(start + 1);
         } else
             doc.delete();
     }
 }
 
-export function stringQuote(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function stringQuote(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     if (start != end) {
         doc.insertString('"');
     } else {
@@ -423,21 +427,21 @@ export function stringQuote(doc: EditableDocument, start: number = doc.selection
         if (cursor.withinString()) {
             // inside a string, let's be clever
             if (cursor.offsetEnd - 1 == start && cursor.getToken().type == "str" || cursor.getToken().type == "str-end") {
-                doc.selectionStart = doc.selectionEnd = start + 1;
+                doc.selection = new ModelEditSelection(start + 1);
             } else {
                 doc.model.edit([
                     new ModelEdit('changeRange', [start, start, '"'])
-                ], { selection: emptySelectionOption(start + 1) });
+                ], { selection: new ModelEditSelection(start + 1) });
             }
         } else {
             doc.model.edit([
                 new ModelEdit('changeRange', [start, start, '""'])
-            ], { selection: emptySelectionOption(start + 1) });
+            ], { selection: new ModelEditSelection(start + 1) });
         }
     }
 }
 
-export function growSelection(doc: EditableDocument, start: number = doc.selectionStart, end: number = doc.selectionEnd) {
+export function growSelection(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const startC = doc.getTokenCursor(start),
         endC = doc.getTokenCursor(end),
         emptySelection = startC.equals(endC);
@@ -485,28 +489,31 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
 
 export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
     const [start, end] = range;
-    if (doc.growSelectionStack.length > 0) {
-        const prev = doc.growSelectionStack[doc.growSelectionStack.length - 1];
-        if (!(doc.selectionStart == prev.anchor && doc.selectionEnd == prev.active)) {
-            doc.growSelectionStack = [doc.selection];
+    if (doc.selectionStack.length > 0) {
+        const prev = doc.selectionStack[doc.selectionStack.length - 1];
+        if (prev.anchor === range[0] && prev.active === range[1]) {
+            return;
+        }
+        if (!(doc.selectionLeft == prev.anchor && doc.selectionRight == prev.active)) {
+            doc.selectionStack = [doc.selection];
         }
     } else {
-        doc.growSelectionStack = [doc.selection];
+        doc.selectionStack = [doc.selection];
     }
-    doc.selection = { anchor: start, active: end };
-    doc.growSelectionStack.push(doc.selection);
+    doc.selection = new ModelEditSelection(start, end);
+    doc.selectionStack.push(doc.selection);
 }
 
 export function shrinkSelection(doc: EditableDocument) {
-    if (doc.growSelectionStack.length) {
-        let latest = doc.growSelectionStack.pop();
-        if (doc.growSelectionStack.length && latest.anchor == doc.selectionStart && latest.active == doc.selectionEnd) {
-            doc.selection = doc.growSelectionStack[doc.growSelectionStack.length - 1];
+    if (doc.selectionStack.length) {
+        let latest = doc.selectionStack.pop();
+        if (doc.selectionStack.length && latest.anchor == doc.selectionLeft && latest.active == doc.selectionRight) {
+            doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
         }
     }
 }
 
-export function raiseSexp(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     if (start == end) {
         let cursor = doc.getTokenCursor(end);
         cursor.forwardWhitespace();
@@ -520,14 +527,14 @@ export function raiseSexp(doc: EditableDocument, start = doc.selectionStart, end
                 if (endCursor.getToken().type == "close") {
                     doc.model.edit([
                         new ModelEdit('changeRange', [cursor.offsetStart, endCursor.offsetEnd, raised])
-                    ], { selection: emptySelectionOption(cursor.offsetStart) });
+                    ], { selection: new ModelEditSelection(cursor.offsetStart) });
                 }
             }
         }
     }
 }
 
-export function convolute(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function convolute(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     if (start == end) {
         let cursorStart = doc.getTokenCursor(end);
         let cursorEnd = cursorStart.clone();
@@ -556,7 +563,7 @@ export function convolute(doc: EditableDocument, start = doc.selectionStart, end
     }
 }
 
-export function transpose(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
+export function transpose(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
     const cursor = doc.getTokenCursor(end);
     cursor.backwardWhitespace();
     if (cursor.getPrevToken().type == 'open') {
@@ -586,13 +593,13 @@ export function transpose(doc: EditableDocument, start = doc.selectionStart, end
                 doc.model.edit([
                     new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
                     new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
-                ], { selection: emptySelectionOption(newCursorPos) });
+                ], { selection: new ModelEditSelection(newCursorPos) });
             }
         }
     }
 }
 
-export function pushSexprLeft(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function pushSexprLeft(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end),
         currentRange = cursor.rangeForCurrentForm(end),
         newPosOffset = end - currentRange[0];
@@ -605,7 +612,7 @@ export function pushSexprLeft(doc: EditableDocument, start = doc.selectionStart,
     }
 }
 
-export function pushSexprRight(doc: EditableDocument, start = doc.selectionStart, end = doc.selectionEnd) {
+export function pushSexprRight(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end),
         currentRange = cursor.rangeForCurrentForm(end),
         newPosOffset = currentRange[1] - end;
