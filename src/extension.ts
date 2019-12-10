@@ -170,14 +170,7 @@ function activate(context: vscode.ExtensionContext) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        vscode.commands.executeCommand("setContext", "calva:replWindowActive", editor && replWindow.activeReplWindow()).then(
-            (v) => {
-
-            },
-            (e) => {
-                console.error("setContext failure, Needs investigation.");
-            }
-        );
+        vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
         status.update();
         if (editor && editor.document && editor.document.fileName) {
             const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
