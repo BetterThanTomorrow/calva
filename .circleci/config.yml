@@ -100,7 +100,7 @@ jobs:
           command: npm run unit-test
       - store_test_results:
           path: ~/calva/junit
-  test-ts-integration:
+  test-integration:
     docker:
       - image: circleci/openjdk:11.0.4-stretch-node-browsers
     working_directory: ~/calva
@@ -242,7 +242,7 @@ workflows:
       - test-cljslib:
           requires:
             - install-deps
-      - test-ts-integration:
+      - test-integration:
           requires:
             - install-deps
       - test-ts-unit:
@@ -252,7 +252,7 @@ workflows:
           requires:
             - test-grammar
             - test-cljslib
-            - test-ts-integration
+            - test-integration
             - test-ts-unit
   test-build-release-publish:
     jobs:
@@ -278,7 +278,7 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-      - test-ts-integration:
+      - test-integration:
           requires:
             - install-deps
           filters:
@@ -298,7 +298,7 @@ workflows:
           requires:
             - test-grammar
             - test-cljslib
-            - test-ts-integration
+            - test-integration
             - test-ts-unit
           filters:
             branches:
