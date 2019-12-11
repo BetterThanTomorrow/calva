@@ -1,8 +1,9 @@
-# Change Log 
+# Change Log
 Changes to Calva.
 
 ## [Unreleased]
 - Fix: [(read-line) is being called twice from the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/509)
+- Fix: [Font size if visibly bigger in the REPL window](https://github.com/BetterThanTomorrow/calva/issues/152)
 
 ## [2.0.67] - 2019-12-10
 - [Use markdown to format doc strings in hover](https://github.com/BetterThanTomorrow/calva/pull/503)
@@ -213,7 +214,7 @@ Changes to Calva.
 - Change all keyboard shortcuts to use prefix `ctrl+alt+v`, due to old prefix not working on some alternate keyboard layouts. See [Issue #9](https://github.com/PEZ/clojure4vscode/issues/9).
 
 ## [1.2.12] - 2018-04-06
-- Add command for re-running previously failing tests (`ctrl+alt+v ctrl+t`). 
+- Add command for re-running previously failing tests (`ctrl+alt+v ctrl+t`).
 
 ## [1.2.10] - 2018-04-03
 - Add command for toggling automatic adjustment of indentation for new lines (`ctrl+alt+v tab`)

@@ -36,7 +36,7 @@ img {
       flex-direction: row;
       align-content: flex-start;
       .type-card[class^="cljs-type"], // No type-card for custom cljs types
-      .type-card[class*=" cljs-type"] { 
+      .type-card[class*=" cljs-type"] {
         display: none;
       }
       .type-card,
@@ -61,8 +61,10 @@ img {
   }
 }
 
-p.hint {
-  width: 550px; 
+.hint {
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  width: 550px;
 }
 
 ul.commands {
@@ -118,11 +120,11 @@ input[class*="userinput"]:focus {
 .repl {
   font-family: var(--vcode-editor-font-family), "Fira Code", "Courier New", monospace;
   font-weight: var(--vscode-editor-font-weight);
-  font-size: 15px; // var(--vscode-editor-font-size);
+  font-size: var(--vscode-editor-font-size);
   letter-spacing: 0;
   cursor: text;
   position: relative;
-  
+
   .repl-response {
     .ws {
       white-space: pre;
@@ -141,8 +143,8 @@ input[class*="userinput"]:focus {
   border: solid 1px var(--vscode-editorWidget-border);
   max-width: 400px;
   overflow-y: scroll;
-  font-family: sans-serif;
-  font-size: 14px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
   padding: 4px;
   visibility: hidden;
   white-space: pre-wrap;
@@ -151,7 +153,7 @@ input[class*="userinput"]:focus {
 
 .documentation .name,
 .documentation .arglist {
-  font-family: Fira Code;
+  font-family: var(--vscode-editor-font-family);
   white-space: pre-wrap;
   padding-bottom: 8px;
 }
@@ -171,8 +173,8 @@ input[class*="userinput"]:focus {
   max-height: 256px;
   width: 200px;
   overflow-y: scroll;
-  font-family: Fira Code;
-  font-size: 14px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-font-size);
   padding: 4px;
   visibility: hidden;
 }

@@ -666,8 +666,10 @@ export class ReplReadline implements EditableDocument {
     wrap: HTMLElement;
 
     constructor(public parent: HTMLElement, prompt: string, public input: HTMLInputElement) {
+        const editorFontSize = getComputedStyle(document.body).getPropertyValue('--vscode-editor-font-size'); // https://github.com/microsoft/vscode/issues/86722
         this.wrap = this.elem = document.createElement("div");
-        this.wrap.className = "prompt-wrap"
+        this.wrap.className = "prompt-wrap";
+        this.parent.setAttribute('style', `font-size: ${editorFontSize}px;`);
         this.wrap.addEventListener("mousedown", this.focus);
         this.wrap.addEventListener("touchstart", this.focus);
         this.promptElem = document.createElement("div");
@@ -683,6 +685,7 @@ export class ReplReadline implements EditableDocument {
 
         this.caret = document.createElement("div");
         this.caret.className = "caret";
+        this.caret.setAttribute('style', `height: ${editorFontSize}px;`);
         let line = this.makeLine();
         this.inputLines.push(line)
         this.mainElem.appendChild(line);
