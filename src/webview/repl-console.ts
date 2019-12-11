@@ -183,20 +183,6 @@ export class ReplConsole {
                     case 9: // Tab
                         e.preventDefault();
                         break;
-                    // case 13:
-                    //     if (this.readline.canReturn()) {
-                    //         this.submitLine();
-                    //         this.readline.clearCompletion();
-                    //         window.scrollTo({ left: 0 });
-                    //     } else {
-                    //         this.readline.model.undoManager.insertUndoStop();
-                    //         let indent = getIndent(this.readline.model, this.readline.selectionEnd);
-                    //         let istr = ""
-                    //         for (let i = 0; i < indent; i++)
-                    //             istr += " "
-                    //         this.readline.insertString("\n" + istr);
-                    //     }
-                    //     break;
                 }
             }
         }, { capture: true })
@@ -210,49 +196,42 @@ export class ReplConsole {
                     this.readline.repaint()
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == "(") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "(", ")");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == "[") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "[", "]");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == "{") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "{", "}");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == "{") {
                 this.readline.withUndo(() => {
                     paredit.open(this.readline, "{", "}");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == ")") {
                 this.readline.withUndo(() => {
                     paredit.close(this.readline, ")");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == "]") {
                 this.readline.withUndo(() => {
                     paredit.close(this.readline, "]");
                     this.readline.repaint();
                 })
                 this.readline.clearCompletion();
-                e.preventDefault();
             } else if (this.input.value == "}") {
                 this.readline.withUndo(() => {
                     paredit.close(this.readline, "}");
@@ -277,8 +256,8 @@ export class ReplConsole {
                 this.readline.insertString(this.input.value)
                 this.readline.maybeShowCompletion();
             }
-            this.input.value = ""
             e.preventDefault();
+            this.input.value = ""
             this.ensureCaretInView();
         })
     }

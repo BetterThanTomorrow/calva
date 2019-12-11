@@ -2,7 +2,7 @@ import { ReplConsole } from "./webview/repl-console";
 import * as lexer from "./cursor-doc/clojure-lexer";
 var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
-import escapeHTML = require("escape-html") ;
+import escapeHTML = require("escape-html");
 import * as paredit from "./cursor-doc/paredit";
 import { ModelEdit, ModelEditSelection } from "./cursor-doc/model";
 
@@ -14,10 +14,22 @@ const ansi = new Ansi();
 let evaluationForm = "";
 let evaluationNS = "";
 let inEvaluation = false;
+let inUserInput = false;
 let ns = "user";
 let con = new ReplConsole(document.querySelector(".repl"), (line, pprint) => {
-    inEvaluation = true;
-    message.postMessage({ type: "read-line", line: line, pprint: pprint })
+    if (!inUserInput) {
+        inEvaluation = true;
+        message.postMessage({ type: "read-line", line: line, pprint: pprint })
+    } else {
+        inUserInput = false;
+        let input = document.getElementById("repl-user-input-input") as HTMLInputElement;
+        message.postMessage({ type: "user-input", line: input.value })
+        let el = document.createElement("div");
+        el.innerHTML = ansi.toHtml(escapeHTML(input.value));
+        el.className = "output";
+        con.printElement(el);
+        removeUserInput();
+    }
 });
 
 let completionDiv = document.createElement("div");
@@ -174,8 +186,7 @@ window.addEventListener("mouseup", e => {
     }
 })
 
-window.addEventListener('dblclick', function(e: MouseEvent) { 
-
+window.addEventListener('dblclick', function (e: MouseEvent) {
     if (con.readline && !inEvaluation) {
         if (con.readline.withinBoundingClientRect(e.pageX, e.pageY)) {
             let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
@@ -194,7 +205,7 @@ window.addEventListener('dblclick', function(e: MouseEvent) {
             }
         }
     }
-  });
+});
 
 window.addEventListener("focus", e => {
     message.postMessage({ type: "focus" });
@@ -299,9 +310,9 @@ function renderReplResponse(newNs: string, text: string) {
     let div = document.createElement("div"),
         line = null,
         content = null;
-        // the code cannot handle '\n\r' line endings
-        // so ensure we remove the '\r'.
-        text = text.replace(/\r/g, "")
+    // the code cannot handle '\n\r' line endings
+    // so ensure we remove the '\r'.
+    text = text.replace(/\r/g, "")
     div.className = "repl-response";
     for (let tk of scanner.processLine(text)) {
         if (!line || tk.raw == "\n") {
@@ -364,10 +375,9 @@ function updateCompletion(msg: any) {
             comp.appendChild(icon);
             comp.appendChild(makeSpan("completed", completion.candidate.substring(0, currentText.length)));
             comp.appendChild(makeSpan("rest", completion.candidate.substring(currentText.length)));
-    
             completionDiv.appendChild(comp);
         }
-    
+
         if (msg.data.data.completions.length) {
             let box = con.readline.getCaretOnScreen();
             if (box.x + completionDiv.offsetWidth > window.innerWidth) {
@@ -439,40 +449,29 @@ function updateDoc(msg: any) {
 
 function hasUserInput() {
     let element = document.getElementById("repl-user-input");
-    if(element) {
-       return(element);
-    } 
-    return(false); 
+    if (element) {
+        return (element);
+    }
+    return (false);
 }
 
 function removeUserInput() {
     let element = document.getElementById("repl-user-input");
-    if(element) {
+    if (element) {
         message.postMessage({ type: "user-input", line: "" });
         element.remove();
-    }  
+    }
 }
 
 function showUserInput() {
-
+    inUserInput = true;
     removeUserInput();
     let div = document.createElement("div");
     div.id = "repl-user-input";
-    //div.className = "content"
     let input = document.createElement("input");
+    input.id = "repl-user-input-input"
     input.style.width = "100%";
     input.className = "userinput"
-    input.addEventListener("keydown", e => {
-        switch (e.keyCode) {
-            case 13: // return
-                message.postMessage({ type: "user-input", line: input.value });
-                let el = document.createElement("div");
-                el.innerHTML = ansi.toHtml(escapeHTML(input.value));
-                el.className = "output";
-                con.printElement(el);
-                removeUserInput();
-        }
-    });
     div.appendChild(input);
     con.printElement(div);
     input.focus();
@@ -490,7 +489,7 @@ function runEvaluation(ns: string, form: string) {
         [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
         con.setText(form);
         con.submitLine(true);
-    }    
+    }
 }
 
 function runStoredEvaluation() {
@@ -502,13 +501,13 @@ function runStoredEvaluation() {
 }
 
 function showAsyncOutput(classname: string, id: string, text: string) {
-    text = `<repl#${id}>`+ text;
+    text = `<repl#${id}>` + text;
     let el = document.createElement("div");
     el.innerHTML = ansi.toHtml(escapeHTML(text));
     el.className = classname;
     con.printElementBeforeReadline(el);
     let userinput = hasUserInput();
-    if(userinput) {
+    if (userinput) {
         userinput.scrollIntoView({ block: "end" });
     }
 }
@@ -559,7 +558,7 @@ window.onmessage = (msg) => {
         div.innerHTML = ansi.toHtml(msg.data.ex);
         con.printElement(div);
         let exception = JSON.parse(msg.data.stacktrace);
-        if(exception && exception.stacktrace) {
+        if (exception && exception.stacktrace) {
             let stackView = createStackTrace(exception);
             con.printElement(stackView);
         }
@@ -584,11 +583,11 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type == "do-eval") {
-        if(hasUserInput() || inEvaluation) {
-           removeUserInput();
-           message.postMessage({ type: "interrupt" });
-           storeEvaluation(msg.data.ns, msg.data.value);
-           return; 
+        if (hasUserInput() || inEvaluation) {
+            removeUserInput();
+            message.postMessage({ type: "interrupt" });
+            storeEvaluation(msg.data.ns, msg.data.value);
+            return;
         }
         runEvaluation(msg.data.ns, msg.data.value);
     }
@@ -616,11 +615,11 @@ window.onmessage = (msg) => {
         div.className = "winnage";
         div.textContent = "REPL connected."
         con.printElement(div);
-        if(msg.data.value) {
+        if (msg.data.value) {
             div = document.createElement("div")
             div.className = "error"
             div.innerHTML = ansi.toHtml(escapeHTML(msg.data.value));
-            con.printElement(div); 
+            con.printElement(div);
         }
         restorePrompt();
     }
@@ -641,6 +640,6 @@ window.onmessage = (msg) => {
 
     if (msg.data.type == "async-stderr") {
         showAsyncOutput("error", msg.data.id, msg.data.value);
-    } 
+    }
 }
 message.postMessage({ type: "init" });

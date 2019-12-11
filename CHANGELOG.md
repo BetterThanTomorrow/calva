@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [(read-line) is being called twice from the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/509)
 - Fix: [Font size if visibly bigger in the REPL window](https://github.com/BetterThanTomorrow/calva/issues/152)
 
 ## [2.0.67] - 2019-12-10
