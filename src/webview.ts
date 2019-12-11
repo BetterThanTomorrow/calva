@@ -4,7 +4,7 @@ var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html");
 import * as paredit from "./cursor-doc/paredit";
-import { ModelEdit } from "./cursor-doc/model";
+import { ModelEdit, ModelEditSelection } from "./cursor-doc/model";
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
@@ -194,8 +194,7 @@ window.addEventListener('dblclick', function (e: MouseEvent) {
             if (cursor.withinString()) {
                 let [selectionStart, selectionEnd] = con.readline.model.getWordSelection(pageOffset);
                 con.readline.withUndo(() => {
-                    con.readline.selectionStart = selectionStart;
-                    con.readline.selectionEnd = selectionEnd;
+                    con.readline.selection = new ModelEditSelection(selectionStart, selectionEnd);
                     con.readline.repaint();
                 })
             } else {
@@ -211,11 +210,11 @@ window.addEventListener('dblclick', function (e: MouseEvent) {
 window.addEventListener("focus", e => {
     message.postMessage({ type: "focus" });
     con.input.focus();
-})
+});
 
 window.addEventListener("blur", e => {
     message.postMessage({ type: "blur" });
-})
+});
 
 
 document.addEventListener("selectionchange", e => {

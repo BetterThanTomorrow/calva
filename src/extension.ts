@@ -170,12 +170,7 @@ function activate(context: vscode.ExtensionContext) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        const isClojureFile = editor && editor.document.languageId == 'clojure';
-        if (isClojureFile) {
-            vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
-        } else if (editor && replWindow.activeReplWindow()) {
-            vscode.commands.executeCommand("setContext", "calva:replWindowActive", true);
-        }
+        vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
         status.update();
         if (editor && editor.document && editor.document.fileName) {
             const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
