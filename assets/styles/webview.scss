@@ -210,7 +210,7 @@ input[class*="userinput"]:focus {
 
 .caret {
   position: absolute;
-  height: 14px;
+  height: var(--vscode-editor-font-size);
   top: 0px;
   pointer-events: none;
   width: 0 !important;
@@ -218,7 +218,7 @@ input[class*="userinput"]:focus {
 
 .is-focused .caret {
   position: absolute;
-  height: 14px;
+  height: var(--vscode-editor-font-size);
   top: 0px;
   animation: 1200ms step-end caret-blink infinite;
   pointer-events: none;
