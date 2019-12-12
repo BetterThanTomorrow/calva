@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Prepare for Fix of Webview editor font size bug](https://github.com/microsoft/vscode/commit/7e2d7965e5d5728c53996f0024be9b0681369b2a)
+- Fix: [REPL window font broken](https://github.com/BetterThanTomorrow/calva/issues/515)
 
 ## [2.0.68] - 2019-12-11
 - Fix: [(read-line) is being called twice from the REPL Window](https://github.com/BetterThanTomorrow/calva/issues/509)
