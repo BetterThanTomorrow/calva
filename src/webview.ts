@@ -177,16 +177,19 @@ function setCompletionIndex(idx: number) {
 let hasSelection = false;
 
 window.addEventListener("mousedown", e => {
+    message.postMessage({ type: "focus" });
     hasSelection = false;
 })
 
 window.addEventListener("mouseup", e => {
+    message.postMessage({ type: "focus" });
     if (!hasSelection) {
         con.input.focus();
     }
 })
 
 window.addEventListener('dblclick', function (e: MouseEvent) {
+    message.postMessage({ type: "focus" });
     if (con.readline && !inEvaluation) {
         if (con.readline.withinBoundingClientRect(e.pageX, e.pageY)) {
             let pageOffset = con.readline.pageToOffset(e.pageX, e.pageY);
