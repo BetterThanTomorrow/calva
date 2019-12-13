@@ -378,24 +378,25 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
     if (start != end || cursor.withinString()) {
         doc.backspace();
     } else {
-        if (doc.model.getText(start - 3, start, true) == '\\""') {
-            doc.selection = new ModelEditSelection(start - 1);
-        } else if (doc.model.getText(start - 2, start - 1, true) == '\\') {
+        const p = start;
+        if (doc.model.getText(p - 3, p, true) == '\\""') {
+            doc.selection = new ModelEditSelection(p - 1);
+        } else if (doc.model.getText(p - 2, p - 1, true) == '\\') {
             doc.model.edit([
-                new ModelEdit('deleteRange', [start - 2, 2])
-            ], { selection: new ModelEditSelection(start - 2) });
-        } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
+                new ModelEdit('deleteRange', [p - 2, 2])
+            ], { selection: new ModelEditSelection(p - 2) });
+        } else if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
             doc.model.edit([
-                new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: new ModelEditSelection(start - 1) });
-        } else if (closeParen.has(doc.model.getText(start - 1, start, true)) || openParen.has(doc.model.getText(start - 1, start, true))) {
-            doc.selection = new ModelEditSelection(start - 1);
-        } else if (openParen.has(doc.model.getText(start - 1, start + 1, true)) || closeParen.has(doc.model.getText(start - 1, start, true))) {
-            doc.model.edit([
-                new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: new ModelEditSelection(start - 1) });
-        } else
-            doc.backspace();
+                new ModelEdit('deleteRange', [p - 1, 2])
+            ], { selection: new ModelEditSelection(p - 1) });
+        } else {
+            const prevChar = doc.model.getText(p - 1, p);
+            if (openParen.has(prevChar) && cursor.forwardList() || closeParen.has(prevChar) && cursor.backwardSexp()) {
+                doc.selection = new ModelEditSelection(p - 1);
+            } else {
+                doc.backspace();
+            }
+        }
     }
 }
 
@@ -404,18 +405,19 @@ export function deleteForward(doc: EditableDocument, start: number = doc.selecti
     if (start != end || cursor.withinString()) {
         doc.delete();
     } else {
-        if (parenPair.has(doc.model.getText(start, start + 2, true))) {
+        const p = start;
+        if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
             doc.model.edit([
-                new ModelEdit('deleteRange', [start, 2])
+                new ModelEdit('deleteRange', [p - 1, 2])
             ], {});
-        } else if (parenPair.has(doc.model.getText(start - 1, start + 1, true))) {
-            doc.model.edit([
-                new ModelEdit('deleteRange', [start - 1, 2])
-            ], { selection: new ModelEditSelection(start - 1) });
-        } else if (openParen.has(doc.model.getText(start, start + 1, true)) || closeParen.has(doc.model.getText(start, start + 1, true))) {
-            doc.selection = new ModelEditSelection(start + 1);
-        } else
-            doc.delete();
+        } else {
+            const nextChar = doc.model.getText(p, p + 1);
+            if (openParen.has(nextChar) && cursor.forwardSexp() || closeParen.has(nextChar) && cursor.backwardList()) {
+                doc.selection = new ModelEditSelection(p + 1);
+            } else {
+                doc.delete();
+            }
+        }
     }
 }
 
