@@ -168,7 +168,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             new ModelEdit('insertString', [range[1], close]),
             new ModelEdit('insertString', [range[0], open])
         ], {
-            selection: new ModelEditSelection(start + open.length, end + open.length),
+            selection: new ModelEditSelection(start + open.length),
             skipFormat: options.skipFormat
         });
     }
