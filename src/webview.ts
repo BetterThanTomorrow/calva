@@ -272,17 +272,18 @@ window.addEventListener("keydown", e => {
             e.preventDefault();
         }
         if (e.keyCode == 9 || e.keyCode == 13) { // tab or enter
-            let tk = con.readline.getTokenCursor(con.readline.selectionEnd, true)
+            const [oldLeft, oldRight] = [con.readline.selectionLeft, con.readline.selectionRight]
+            let tk = con.readline.getTokenCursor(oldRight, true)
             if (tk.isWhiteSpace())
                 tk.previous();
             let start = tk.offsetStart
             let end = tk.offsetEnd;
             con.readline.withUndo(() => {
                 con.readline.model.edit([
-                    new ModelEdit('changeRange', [start, end, completions[selectedCompletion]])
+                    new ModelEdit('changeRange', [start, end, completions[selectedCompletion], [oldRight, oldRight], [end, end]])
                 ], {});
             });
-            con.readline.selectionStart = con.readline.selectionEnd = start + completions[selectedCompletion].length;
+            con.readline.selection = new ModelEditSelection(start + completions[selectedCompletion].length);
             docDiv.style.visibility = "hidden";
             completionDiv.style.visibility = "hidden";
             completions = [];
@@ -290,7 +291,7 @@ window.addEventListener("keydown", e => {
             e.stopImmediatePropagation();
             e.preventDefault();
         }
-    } else {
+    } else {[con.readline.selectionLeft, con.readline.selectionRight]
         if (e.keyCode == 0x20 && e.ctrlKey) {
             con.readline.maybeShowCompletion();
             e.stopImmediatePropagation()
@@ -343,7 +344,7 @@ function restorePrompt() {
     con.requestPrompt(ns + "=> ");
     if (originalText) {
         con.setText(originalText);
-        [con.readline.selectionStart, con.readline.selectionEnd] = [selectionStart, selectionEnd];
+        con.readline.selection = new ModelEditSelection(selectionStart, selectionEnd);
         con.readline.repaint();
         selectionStart = selectionEnd = 0;
         originalText = null;
@@ -489,7 +490,7 @@ function runEvaluation(ns: string, form: string) {
     if (con.readline && ns && form) {
         con.readline.promptElem.textContent = ns + "=> ";
         originalText = con.readline.model.getText(0, con.readline.model.maxOffset);
-        [selectionStart, selectionEnd] = [con.readline.selectionStart, con.readline.selectionEnd];
+        [selectionStart, selectionEnd] = [con.readline.selectionLeft, con.readline.selectionRight];
         con.setText(form);
         con.submitLine(true);
     }
