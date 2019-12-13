@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Deselect text after surrounding with parens/braces/etc](https://github.com/BetterThanTomorrow/calva/issues/511)
+- Fix: [Strict mode backspace/delete not deleting unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/501)
 
 ## [2.0.71] - 2019-12-13
 - Fix: [Autocompletion in REPL window broken](https://github.com/BetterThanTomorrow/calva/issues/519)
