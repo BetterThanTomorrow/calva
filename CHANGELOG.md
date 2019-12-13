@@ -2,7 +2,9 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [autocompletion in REPL window broken](https://github.com/BetterThanTomorrow/calva/issues/519)
+
+## [2.0.71] - 2019-12-13
+- Fix: [Autocompletion in REPL window broken](https://github.com/BetterThanTomorrow/calva/issues/519)
 
 ## [2.0.70] - 2019-12-12
 - Fix: [REPL Window not accepting keys like cursor, return, etcetera](https://github.com/BetterThanTomorrow/calva/issues/516)
