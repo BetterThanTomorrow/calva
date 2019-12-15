@@ -247,7 +247,7 @@ workflows:
       - test-ts-unit:
           requires:
             - build
-  test-build-release-publish:
+  release-publish:
     jobs:
       - build:
           filters:
