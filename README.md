@@ -124,6 +124,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![JC](https://avatars0.githubusercontent.com/u/11434205?s=30)](https://github.com/dijonkitchen)
 [![Ullrich Schäfer](https://avatars1.githubusercontent.com/u/13815?s=30)](https://github.com/stigi)
 [![Scott Archer](https://avatars3.githubusercontent.com/u/703980?s=30)](https://github.com/scarcher2)
+[![]()]()
 
 ## The Calva Team
 

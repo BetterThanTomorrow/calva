@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.72] - 2019-12-13
 - [Deselect text after surrounding with parens/braces/etc](https://github.com/BetterThanTomorrow/calva/issues/511)
 - Fix: [Strict mode backspace/delete not deleting unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/501)
 
