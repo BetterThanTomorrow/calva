@@ -364,6 +364,12 @@ export class ReplConsole {
             //     this.readline.repaint();
             // });
         },
+        "push-sexp-backward-up": () => {
+            this.readline.withUndo(() => {
+                paredit.pushSexprBackwardUp(this.readline);
+                this.readline.repaint();
+            });
+        },
         "convolute-sexp": () => {
             console.warn("Convolute is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
             // this.readline.withUndo(() => {

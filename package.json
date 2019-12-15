@@ -966,6 +966,11 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.pushSexprBackwardUp",
+                "title": "Push Sexp Backward Up"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.convolute",
                 "title": "Convolute Sexp ¯\\_(ツ)_/¯"
             },

@@ -194,6 +194,11 @@ const pareditCommands: PareditCommand[] = [
         replWindowCommand: "push-sexp-right"
     },
     {
+        command: 'paredit.pushSexprBackwardUp',
+        handler: paredit.pushSexprBackwardUp,
+        replWindowCommand: "push-sexp-backward-up"
+    },
+    {
         command: 'paredit.convolute',
         handler: paredit.convolute,
         replWindowCommand: "convolute-sexp"

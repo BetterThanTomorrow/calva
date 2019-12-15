@@ -626,3 +626,21 @@ export function pushSexprRight(doc: EditableDocument, start = doc.selectionLeft,
         transpose(doc, start, currentRange[1], { fromRight: newPosOffset });
     }
 }
+
+export function pushSexprBackwardUp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
+    if (start == end) {
+        const p = start,
+            cursor = doc.getTokenCursor(p),
+            currentRange = cursor.rangeForCurrentForm(p),
+            currentText = doc.model.getText(...currentRange),
+            currentListRange = cursor.rangeForList();
+            if (currentListRange !== undefined) {
+                const newPosOffset = p - currentRange[0],
+                    newCursorPos = currentListRange[0] + newPosOffset;
+            doc.model.edit([
+                new ModelEdit('deleteRange', [currentRange[0], currentRange[1] - currentRange[0]]),
+                new ModelEdit('insertString', [currentListRange[0], currentText, [p, p], [newCursorPos, newCursorPos]])
+            ], { selection: new ModelEditSelection(newCursorPos) });
+        }
+    }
+}
