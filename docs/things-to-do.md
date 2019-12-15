@@ -11,7 +11,6 @@ The major themes are:
 * Video, How to get started with Calva, to support the text on the wiki
 * The Calva settings (which ones are not documented on the wiki?)
 * Replace some outdated GIFs used in the README.
-* Make clear what Calva is about, what stances it takes and where it is heading
 
 ## Squash Bugs
 * The test runner sometimes just doesn't work
@@ -20,16 +19,12 @@ The major themes are:
   * Truncate large output in the REPL window and print it in an untitled Clojure-enabled editor window instead.
   * Implement something like CIDER inspect: https://github.com/BetterThanTomorrow/calva/issues/228
   * Make it super easy to use Calva with REBL
-* Fix the statusbar button default colors (or remove this feature if we don't think it is valuable enough).
 
 ## The Right Features
 * Support clj-fmt indent settings.
-* [x] Enable clj-kondo as default Calva linter
 * Enable using nrepl in streaming mode
   * Use this for the test runner
 * Add some basic refactoring support
-* Use ”last opened in” column when opening the REPL window at jack in. (example? I do not fully understand.)
-* Consider not opening the REPL window at jack-in / make it an option.
 * Better connection life-cycle control fo shadow-cljs. Either:
   1. Tap in to the shadow message bus (THeller said that there is such a thing that we can query about what shadow-cljs is doing.)
   1. Run Jack-in in a Task proper and see if we can somehow catch the output. (This is needed for shadow-cljs Jack-in.)
@@ -38,15 +33,11 @@ The major themes are:
 * A way to get output pasted in a Clojure-enabled editor window.
 
 ## Development Workflow
-* Write a basic smoke test checklist
 * Write an issues template
-* Get a unit test framework in place for the TypeScript code base.
-* Get an integration test framework in place, for automatic smoke testing.
 
 ## Code Maintainability
-* We have two ParEdit implementations, we should scrap paredit.js
 * We have two formatters, cljs-lib ormatter and the one in docmirror.
-  * It mmight make sense to keep both for different purposes, but we should fix whatever it is that makes us still keep the `newIndentEngine` setting.
+  * It might make sense to keep both for different purposes, but we should fix whatever it is that makes us still keep the `newIndentEngine` setting.
 * Organize Calva functionality in ”components”, more like we do with calva-fmt, ParEdit, and Clojure Warrior.
 * Get better control of Calva state.
 * Clean up extra messy parts of the code. Candidates:
