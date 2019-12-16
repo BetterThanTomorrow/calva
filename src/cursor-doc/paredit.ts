@@ -635,17 +635,22 @@ export function dragSexprBackwardUp(doc: EditableDocument, start = doc.selection
         if (cursor.backwardList() && cursor.backwardUpList()) {
             const listStart = cursor.offsetStart,
                 listIndent = cursor.getToken().offset,
-                wsRight = currentRange[0],
-                wsCursor = doc.getTokenCursor(wsRight);
-            wsCursor.backwardWhitespace();
-            const wsLeft = wsCursor.offsetStart,
-                ws = doc.model.getText(wsLeft, wsRight),
-                hasNewLine = ws.indexOf('\n') !== -1,
+                leftWsRight = currentRange[0],
+                leftWsCursor = doc.getTokenCursor(leftWsRight),
+                rightWsLeft = currentRange[1],
+                rightWsCursor = doc.getTokenCursor(rightWsLeft);
+            leftWsCursor.backwardWhitespace();
+            rightWsCursor.forwardWhitespace();
+            const leftWsLeft = leftWsCursor.offsetStart,
+                leftWs = doc.model.getText(leftWsLeft, leftWsRight),
+                rightWsRight = rightWsCursor.offsetStart,
+                rightWsLength = rightWsRight - rightWsLeft,
+                leftWsHasNewLine = leftWs.indexOf('\n') !== -1,
                 newPosOffset = p - currentRange[0],
                 newCursorPos = listStart + newPosOffset,
-                dragText = doc.model.getText(...currentRange) + (hasNewLine ? '\n' + ' '.repeat(listIndent) : ' ');
+                dragText = doc.model.getText(...currentRange) + (leftWsHasNewLine ? '\n' + ' '.repeat(listIndent) : ' ');
             doc.model.edit([
-                new ModelEdit('deleteRange', [wsLeft, currentRange[1] - wsLeft]),
+                new ModelEdit('deleteRange', leftWs !== '' ? [leftWsLeft, currentRange[1] - leftWsLeft] : [currentRange[0], rightWsLength]),
                 new ModelEdit('insertString', [listStart, dragText, [p, p], [newCursorPos, newCursorPos]])
             ], {
                 selection: new ModelEditSelection(newCursorPos),
