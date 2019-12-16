@@ -601,7 +601,7 @@ export function transpose(doc: EditableDocument, start = doc.selectionLeft, end 
     }
 }
 
-export function pushSexprLeft(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
+export function dragSexprLeft(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end),
         currentRange = cursor.rangeForCurrentForm(end),
         newPosOffset = end - currentRange[0];
@@ -614,7 +614,7 @@ export function pushSexprLeft(doc: EditableDocument, start = doc.selectionLeft, 
     }
 }
 
-export function pushSexprRight(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
+export function dragSexprRight(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end),
         currentRange = cursor.rangeForCurrentForm(end),
         newPosOffset = currentRange[1] - end;
@@ -627,7 +627,7 @@ export function pushSexprRight(doc: EditableDocument, start = doc.selectionLeft,
     }
 }
 
-export function pushSexprBackwardUp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
+export function dragSexprBackwardUp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     if (start == end) {
         const p = start,
             cursor = doc.getTokenCursor(p),
