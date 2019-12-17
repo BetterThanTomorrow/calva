@@ -186,17 +186,17 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.dragSexprLeft',
         handler: paredit.dragSexprLeft,
-        replWindowCommand: "push-sexp-left"
+        replWindowCommand: "drag-sexp-left"
     },
     {
         command: 'paredit.dragSexprRight',
         handler: paredit.dragSexprRight,
-        replWindowCommand: "push-sexp-right"
+        replWindowCommand: "drag-sexp-right"
     },
     {
         command: 'paredit.dragSexprBackwardUp',
         handler: paredit.dragSexprBackwardUp,
-        replWindowCommand: "push-sexp-backward-up"
+        replWindowCommand: "drag-sexp-backward-up"
     },
     {
         command: 'paredit.convolute',
