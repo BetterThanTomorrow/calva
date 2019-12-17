@@ -627,34 +627,66 @@ export function dragSexprRight(doc: EditableDocument, left = doc.selectionLeft, 
     }
 }
 
-export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRight) {
+export type WhitespaceInfo = {
+    hasLeftWs: boolean,
+    leftWsRange: [number, number]
+    leftWs: string,
+    leftWsHasNewline: boolean,
+    hasRightWs: boolean,
+    rightWsRange: [number, number]
+    rightWs: string,
+    rightWsHasNewline: boolean,
+}
+
+/**
+ * Collect and return information about the current form regarding its surrounding whitespace
+ * @param doc 
+ * @param p the position in `doc` from where to determine the current form
+ */
+export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRight): WhitespaceInfo {
     const cursor = doc.getTokenCursor(p),
+        currentRange = cursor.rangeForCurrentForm(p),
+        leftWsRight = currentRange[0],
+        leftWsCursor = doc.getTokenCursor(leftWsRight),
+        rightWsLeft = currentRange[1],
+        rightWsCursor = doc.getTokenCursor(rightWsLeft);
+    leftWsCursor.backwardWhitespace();
+    rightWsCursor.forwardWhitespace();
+    const leftWsLeft = leftWsCursor.offsetStart,
+        leftWs = doc.model.getText(leftWsLeft, leftWsRight),
+        leftWsHasNewline = leftWs.indexOf('\n') !== -1,
+        rightWsRight = rightWsCursor.offsetStart,
+        rightWs = doc.model.getText(rightWsLeft, rightWsRight),
+        rightWsHasNewline = rightWs.indexOf('\n') !== -1;;
+    return {
+        hasLeftWs: leftWs !== '',
+        leftWsRange: [leftWsLeft, leftWsRight],
+        leftWs,
+        leftWsHasNewline,
+        hasRightWs: rightWs !== '',
+        rightWsRange: [rightWsLeft, rightWsRight],
+        rightWs,
+        rightWsHasNewline
+    }
+}
+
+export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRight) {
+    const wsInfo = collectWhitespaceInfo(doc, p),
+        cursor = doc.getTokenCursor(p),
         currentRange = cursor.rangeForCurrentForm(p);
     if (cursor.backwardList() && cursor.backwardUpList()) {
         const listStart = cursor.offsetStart,
             newPosOffset = p - currentRange[0],
             newCursorPos = listStart + newPosOffset,
-            listIndent = cursor.getToken().offset,
-            leftWsRight = currentRange[0],
-            leftWsCursor = doc.getTokenCursor(leftWsRight);
-        leftWsCursor.backwardWhitespace();
+            listIndent = cursor.getToken().offset;
         let dragText: string,
             deleteEdit: ModelEdit;
-        const leftWsLeft = leftWsCursor.offsetStart,
-            leftWs = doc.model.getText(leftWsLeft, leftWsRight),
-            leftWsHasNewLine = leftWs.indexOf('\n') !== -1;
-        if (leftWs !== '') {
-            dragText = doc.model.getText(...currentRange) + (leftWsHasNewLine ? '\n' + ' '.repeat(listIndent) : ' ');
-            deleteEdit = new ModelEdit('deleteRange', [leftWsLeft, currentRange[1] - leftWsLeft]);
+        if (wsInfo.hasLeftWs) {
+            dragText = doc.model.getText(...currentRange) + (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+            deleteEdit = new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], currentRange[1] - wsInfo.leftWsRange[0]]);
         } else {
-            const rightWsLeft = currentRange[1],
-                rightWsCursor = doc.getTokenCursor(rightWsLeft);
-            rightWsCursor.forwardWhitespace();
-            const rightWsRight = rightWsCursor.offsetStart,
-                rightWs = doc.model.getText(rightWsLeft, rightWsRight),
-                rightWsHasNewLine = rightWs.indexOf('\n') !== -1;
-            dragText = doc.model.getText(...currentRange) + (rightWsHasNewLine ? '\n' + ' '.repeat(listIndent) : ' ');
-            deleteEdit = new ModelEdit('deleteRange', [currentRange[0], rightWsRight - currentRange[0]]);
+            dragText = doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+            deleteEdit = new ModelEdit('deleteRange', [currentRange[0], wsInfo.rightWsRange[1] - currentRange[0]]);
         }
         doc.model.edit([
             deleteEdit,
