@@ -256,12 +256,12 @@ describe('paredit', () => {
                 expect(doc.model.getText(0, Infinity)).equal('(def foo :baz [:foo :bar])');
                 expect(doc.selection).deep.equal(new ModelEditSelection(13));
             });
-            it('(d>|e>|f foo [:foo :bar :baz]) => d><ef (foo [:foo :bar :baz])', () => {
+            it('(d>|e>|f foo [:foo :bar :baz]) => de><f (foo [:foo :bar :baz])', () => {
                 const eSel = [2, 3];
                 doc.selection = new ModelEditSelection(eSel[0], eSel[1]);
                 paredit.dragSexprBackwardUp(doc);
                 expect(doc.model.getText(0, Infinity)).equal('def (foo [:foo :bar :baz])');
-                expect(doc.selection).deep.equal(new ModelEditSelection(1));
+                expect(doc.selection).deep.equal(new ModelEditSelection(2));
             });
         });
         describe('backwardUp - multi-line', () => {
