@@ -1371,6 +1371,11 @@
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
+                "command": "paredit.dragSexprBackwardUp",
+                "key": "ctrl+shift+alt+u",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
                 "command": "paredit.convolute",
                 "key": "ctrl+shift+c",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
