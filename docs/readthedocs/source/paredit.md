@@ -93,7 +93,7 @@ Default keybinding                | Action | Description
  `ctrl+shift+j`                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](_static/images/paredit/join.gif)
  `ctrl+alt+p ctrl+alt+r`                        | **Raise Sexp** | Replaces the enclosing list with the current form. <br> ![](_static/images/paredit/raise.gif)
  `ctrl+alt+t`                        | **Transpose Sexps/Forms** | Swaps place of the two forms surrounding the cursor. <br> ![](_static/images/paredit/transpose.gif)
- `ctrl+alt+shift` `l`<br> `ctrl+alt+shift` `r` | **Drag Sexp Left/Right** | Moves the current form to the left/right of the previous/next one. <br> ![](_static/images/paredit/left-right.gif)
+ `ctrl+alt+shift` `b`<br> `ctrl+alt+shift` `f` | **Drag Sexp Backward/Forward** | Moves the current form to the left/right of the previous/next one. <br> ![](_static/images/paredit/drag-backward-forward.gif)
  `ctrl+alt+shift` `u` | **Drag Sexp Backward Up** | Moves the current form up/out of the current list, *backwards*, keeping the cursor within the sexpr being dragged.<br> ![](_static/images/paredit/drag-backward-up.gif)
  `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](_static/images/paredit/convolute.gif)
  `ctrl+shift+delete`                   | **Kill Sexp Forward** | Deletes the next form in the same enclosing form as the cursor.<br> ![](_static/images/paredit/kill-forward-sexp.gif)

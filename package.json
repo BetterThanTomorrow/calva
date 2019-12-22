@@ -956,13 +956,13 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.dragSexprLeft",
-                "title": "Drag Sexp Left"
+                "command": "paredit.dragSexprBackward",
+                "title": "Drag Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.dragSexprRight",
-                "title": "Drag Sexp Right"
+                "command": "paredit.dragSexprForward",
+                "title": "Drag Sexp Forward"
             },
             {
                 "category": "Calva Paredit",
@@ -1366,13 +1366,13 @@
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.dragSexprLeft",
-                "key": "ctrl+shift+alt+l",
+                "command": "paredit.dragSexprBackward",
+                "key": "ctrl+shift+alt+b",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.dragSexprRight",
-                "key": "ctrl+shift+alt+r",
+                "command": "paredit.dragSexprForward",
+                "key": "ctrl+shift+alt+f",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
