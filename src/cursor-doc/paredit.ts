@@ -693,7 +693,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRigh
             new ModelEdit('insertString', [listStart, dragText, [p, p], [newCursorPos, newCursorPos]])
         ], {
             selection: new ModelEditSelection(newCursorPos),
-            skipFormat: true,
+            skipFormat: false,
             undoStopBefore: true
         });
     }
@@ -709,29 +709,18 @@ export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRig
         cursor.forwardWhitespace();
         const token = cursor.getToken();
         if (token.type === 'open') {
-            const listStart = cursor.offsetStart;
-            // ,
-            // listIndent = cursor.getToken().offset;
-            let insertText: string,
+            const listStart = cursor.offsetStart,
+                deleteLength = wsInfo.rightWsRange[1] - currentRange[0],
                 insertStart = listStart + token.raw.length,
-                deleteLength: number,
-                deleteEdit: ModelEdit;
-            //if (wsInfo.hasLeftWs) {
-            //        insertText = doc.model.getText(...currentRange) + (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
-            //        deleteEdit = new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], currentRange[1] - wsInfo.leftWsRange[0]]);
-            //} else {
-            deleteLength = wsInfo.rightWsRange[1] - currentRange[0];
-            insertText = doc.model.getText(...currentRange) + ' ';
-            const newCursorPos = insertStart - deleteLength + newPosOffset;
-
-            deleteEdit = new ModelEdit('deleteRange', [currentRange[0], deleteLength]);
-            //}
+                newCursorPos = insertStart - deleteLength + newPosOffset;
+            let insertText = doc.model.getText(...currentRange);
+            insertText += wsInfo.rightWsHasNewline ? '\n' : ' ';
             doc.model.edit([
                 new ModelEdit('insertString', [insertStart, insertText, [p, p], [newCursorPos, newCursorPos]]),
-                deleteEdit
+                new ModelEdit('deleteRange', [currentRange[0], deleteLength])
             ], {
                 selection: new ModelEditSelection(newCursorPos),
-                skipFormat: true,
+                skipFormat: false,
                 undoStopBefore: true
             });
             break;
