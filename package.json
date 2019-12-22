@@ -971,6 +971,11 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.dragSexprForwardDown",
+                "title": "Drag Sexp Forward Down"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.convolute",
                 "title": "Convolute Sexp ¯\\_(ツ)_/¯"
             },
@@ -1373,6 +1378,11 @@
             {
                 "command": "paredit.dragSexprBackwardUp",
                 "key": "ctrl+shift+alt+u",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprForwardDown",
+                "key": "ctrl+shift+alt+d",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {

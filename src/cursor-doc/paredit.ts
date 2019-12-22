@@ -698,3 +698,43 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRigh
         });
     }
 }
+
+// (def foo [:foo :bar :baz])
+export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRight) {
+    const wsInfo = collectWhitespaceInfo(doc, p),
+        currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p),
+        newPosOffset = p - currentRange[0],
+        cursor = doc.getTokenCursor(currentRange[0]);
+    while (cursor.forwardSexp()) {
+        cursor.forwardWhitespace();
+        const token = cursor.getToken();
+        if (token.type === 'open') {
+            const listStart = cursor.offsetStart;
+            // ,
+            // listIndent = cursor.getToken().offset;
+            let insertText: string,
+                insertStart = listStart + token.raw.length,
+                deleteLength: number,
+                deleteEdit: ModelEdit;
+            //if (wsInfo.hasLeftWs) {
+            //        insertText = doc.model.getText(...currentRange) + (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+            //        deleteEdit = new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], currentRange[1] - wsInfo.leftWsRange[0]]);
+            //} else {
+            deleteLength = wsInfo.rightWsRange[1] - currentRange[0];
+            insertText = doc.model.getText(...currentRange) + ' ';
+            const newCursorPos = insertStart - deleteLength + newPosOffset;
+
+            deleteEdit = new ModelEdit('deleteRange', [currentRange[0], deleteLength]);
+            //}
+            doc.model.edit([
+                new ModelEdit('insertString', [insertStart, insertText, [p, p], [newCursorPos, newCursorPos]]),
+                deleteEdit
+            ], {
+                selection: new ModelEditSelection(newCursorPos),
+                skipFormat: true,
+                undoStopBefore: true
+            });
+            break;
+        }
+    }
+}

@@ -297,6 +297,22 @@ describe('paredit', () => {
                 expect(doc.selection).deep.equal(new ModelEditSelection(0));
             });
         });
+        describe('forwardDown - one line', () => {
+            it('(def f><oo [:foo :bar :baz]) => (def [f><oo :foo :bar :baz])', () => {
+                const inFoo = 6;
+                doc.selection = new ModelEditSelection(inFoo);
+                paredit.dragSexprForwardDown(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(def [foo :foo :bar :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(7));
+            });
+            it('(d>|ef>| foo [:foo :bar :baz]) => (foo [def>< :foo :bar :baz])', () => {
+                const eSel = [2, 4];
+                doc.selection = new ModelEditSelection(eSel[0], eSel[1]);
+                paredit.dragSexprForwardDown(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(foo [def :foo :bar :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(9));
+            });
+        });
     });
 });
 
