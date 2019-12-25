@@ -179,6 +179,7 @@ jobs:
   github-release:
     docker:
       - image: cibuilds/github:0.10
+    working_directory: ~/calva
     steps:
       - attach_workspace:
           at: /tmp
@@ -198,7 +199,7 @@ jobs:
             fi
             [[ "${CIRCLE_TAG}" =~ ^v([0-9]+\.[0-9]+\.[0-9]+) ]]
             TAG_VERSION=${BASH_REMATCH[1]}
-            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/["$]/, "\\\\&"); print }' ~/calva/CHANGELOG.md | tail -n +2)
+            BODY=$(awk '/^## \['${TAG_VERSION}'\]/, /^ *$/ { gsub(/["$]/, "\\\\&"); print }' CHANGELOG.md | tail -n +2)
             if [ "${IS_LOCAL}" = YES ]
             then
               GHR_CMD=echo
