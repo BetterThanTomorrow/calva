@@ -350,17 +350,24 @@ export class ReplConsole {
             //     this.readline.repaint();
             // });
         },
-        "push-sexp-left": () => {
-            console.warn("Push sexp left is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+        "drag-sexp-backward": () => {
+            console.warn("Drag Sexp Backward is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
             // this.readline.withUndo(() => {
-            //     paredit.pushSexprLeft(this.readline);
+            //     paredit.dragSexprBackward(this.readline);
             //     this.readline.repaint();
             // });
         },
-        "push-sexp-right": () => {
-            console.warn("Push sexp right is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+        "drag-sexp-forward": () => {
+            console.warn("Drag Sexp Forward is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
             // this.readline.withUndo(() => {
-            //     paredit.pushSexprRight(this.readline);
+            //     paredit.dragSexprForward(this.readline);
+            //     this.readline.repaint();
+            // });
+        },
+        "drag-sexp-backward-up": () => {
+            console.warn("Drag Sexp backward up is disabled in the REPL window, because: https://github.com/BetterThanTomorrow/calva/issues/490");
+            // this.readline.withUndo(() => {
+            //     paredit.dragSexprBackwardUp(this.readline);
             //     this.readline.repaint();
             // });
         },

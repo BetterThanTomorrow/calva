@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.72",
+    "version": "2.0.73",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -956,13 +956,33 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.pushSexprLeft",
-                "title": "Push Sexp Left"
+                "command": "paredit.dragSexprBackward",
+                "title": "Drag Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.pushSexprRight",
-                "title": "Push Sexp Right"
+                "command": "paredit.dragSexprForward",
+                "title": "Drag Sexp Forward"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprBackwardUp",
+                "title": "Drag Sexp Backward Up"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprForwardDown",
+                "title": "Drag Sexp Forward Down"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprForwardUp",
+                "title": "Drag Sexp Forward Up"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprBackwardDown",
+                "title": "Drag Sexp Backward Down"
             },
             {
                 "category": "Calva Paredit",
@@ -1356,13 +1376,33 @@
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.pushSexprLeft",
-                "key": "ctrl+shift+alt+l",
+                "command": "paredit.dragSexprBackward",
+                "key": "ctrl+shift+alt+b",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.pushSexprRight",
-                "key": "ctrl+shift+alt+r",
+                "command": "paredit.dragSexprForward",
+                "key": "ctrl+shift+alt+f",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprBackwardUp",
+                "key": "ctrl+shift+alt+u",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprForwardDown",
+                "key": "ctrl+shift+alt+d",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprForwardUp",
+                "key": "ctrl+shift+alt+k",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprBackwardDown",
+                "key": "ctrl+shift+alt+j",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1650,13 +1690,14 @@
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
         "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
-        "release-cljs": "npx shadow-cljs release :calva-lib",
+        "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
-        "compile-test": "npm i && npx shadow-cljs compile :calva-lib &&  tsc -p ./ && webpack --mode development",
-        "postrelease": "rimraf ./out/cljs-lib",
+        "compile-test": "tsc -p ./ && webpack --mode development",
+        "postrelease": "",
         "vscode:prepublish": "npm run release",
         "bump-version": "npm set git-tag-version false && npm version patch",
+        "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
         "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'"
     },

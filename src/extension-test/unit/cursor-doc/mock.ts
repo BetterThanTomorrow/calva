@@ -15,7 +15,7 @@ export class MockDocument implements model.EditableDocument {
         this.selectionRight = sel.active;
     }
 
-    model: model.LineInputModel = new model.LineInputModel();
+    model: model.LineInputModel = new model.LineInputModel(1, this);
 
     selectionStack: model.ModelEditSelection[] = [];
 

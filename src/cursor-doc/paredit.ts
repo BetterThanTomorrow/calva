@@ -160,7 +160,7 @@ export function wrapSexpr(doc: EditableDocument, open: string, close: string, st
             ], {
                 selection: new ModelEditSelection(start + open.length),
                 skipFormat: options.skipFormat
-             });
+            });
         }
     } else { // there is a selection
         const range = [Math.min(start, end), Math.max(start, end)];
@@ -179,14 +179,14 @@ export function rewrapSexpr(doc: EditableDocument, open: string, close: string, 
     if (cursor.backwardList()) {
         const openStart = cursor.offsetStart - 1,
             openEnd = cursor.offsetStart;
-            if (cursor.forwardList()) {
-                const closeStart = cursor.offsetStart,
-                    closeEnd = cursor.offsetEnd;
-                return doc.model.edit([
-                    new ModelEdit('changeRange', [closeStart, closeEnd, close]),
-                    new ModelEdit('changeRange', [openStart, openEnd, open])
-                ], { selection: new ModelEditSelection(end)});
-            }
+        if (cursor.forwardList()) {
+            const closeStart = cursor.offsetStart,
+                closeEnd = cursor.offsetEnd;
+            return doc.model.edit([
+                new ModelEdit('changeRange', [closeStart, closeEnd, close]),
+                new ModelEdit('changeRange', [openStart, openEnd, open])
+            ], { selection: new ModelEditSelection(end) });
+        }
     }
 }
 
@@ -565,8 +565,8 @@ export function convolute(doc: EditableDocument, start = doc.selectionLeft, end 
     }
 }
 
-export function transpose(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
-    const cursor = doc.getTokenCursor(end);
+export function transpose(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight, newPosOffset: { fromLeft?: number, fromRight?: number } = {}) {
+    const cursor = doc.getTokenCursor(right);
     cursor.backwardWhitespace();
     if (cursor.getPrevToken().type == 'open') {
         cursor.forwardSexp();
@@ -594,35 +594,193 @@ export function transpose(doc: EditableDocument, start = doc.selectionLeft, end 
                 }
                 doc.model.edit([
                     new ModelEdit('changeRange', [rightStart, rightEnd, leftText]),
-                    new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [start, start], [newCursorPos, newCursorPos]])
+                    new ModelEdit('changeRange', [leftStart, leftEnd, rightText, [left, left], [newCursorPos, newCursorPos]])
                 ], { selection: new ModelEditSelection(newCursorPos) });
             }
         }
     }
 }
 
-export function pushSexprLeft(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
-    const cursor = doc.getTokenCursor(end),
-        currentRange = cursor.rangeForCurrentForm(end),
-        newPosOffset = end - currentRange[0];
+export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
+    const cursor = doc.getTokenCursor(right),
+        currentRange = cursor.rangeForCurrentForm(right),
+        newPosOffset = right - currentRange[0];
     const backCursor = doc.getTokenCursor(currentRange[0]);
     backCursor.backwardWhitespace();
     backCursor.backwardSexp();
     const backRange = backCursor.rangeForCurrentForm(backCursor.offsetEnd);
     if (backRange[0] !== currentRange[0]) { // there is a sexp to the left
-        transpose(doc, start, currentRange[0], { fromLeft: newPosOffset });
+        transpose(doc, left, currentRange[0], { fromLeft: newPosOffset });
     }
 }
 
-export function pushSexprRight(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
-    const cursor = doc.getTokenCursor(end),
-        currentRange = cursor.rangeForCurrentForm(end),
-        newPosOffset = currentRange[1] - end;
+export function dragSexprForward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
+    const cursor = doc.getTokenCursor(right),
+        currentRange = cursor.rangeForCurrentForm(right),
+        newPosOffset = currentRange[1] - right;
     const forwardCursor = doc.getTokenCursor(currentRange[1]);
     forwardCursor.forwardWhitespace();
     forwardCursor.forwardSexp();
     const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetEnd);
     if (forwardRange[0] !== currentRange[0]) { // there is a sexp to the right
-        transpose(doc, start, currentRange[1], { fromRight: newPosOffset });
+        transpose(doc, left, currentRange[1], { fromRight: newPosOffset });
+    }
+}
+
+export type WhitespaceInfo = {
+    hasLeftWs: boolean,
+    leftWsRange: [number, number]
+    leftWs: string,
+    leftWsHasNewline: boolean,
+    hasRightWs: boolean,
+    rightWsRange: [number, number]
+    rightWs: string,
+    rightWsHasNewline: boolean,
+}
+
+/**
+ * Collect and return information about the current form regarding its surrounding whitespace
+ * @param doc 
+ * @param p the position in `doc` from where to determine the current form
+ */
+export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRight): WhitespaceInfo {
+    const cursor = doc.getTokenCursor(p),
+        currentRange = cursor.rangeForCurrentForm(p),
+        leftWsRight = currentRange[0],
+        leftWsCursor = doc.getTokenCursor(leftWsRight),
+        rightWsLeft = currentRange[1],
+        rightWsCursor = doc.getTokenCursor(rightWsLeft);
+    leftWsCursor.backwardWhitespace();
+    rightWsCursor.forwardWhitespace();
+    const leftWsLeft = leftWsCursor.offsetStart,
+        leftWs = doc.model.getText(leftWsLeft, leftWsRight),
+        leftWsHasNewline = leftWs.indexOf('\n') !== -1,
+        rightWsRight = rightWsCursor.offsetStart,
+        rightWs = doc.model.getText(rightWsLeft, rightWsRight),
+        rightWsHasNewline = rightWs.indexOf('\n') !== -1;;
+    return {
+        hasLeftWs: leftWs !== '',
+        leftWsRange: [leftWsLeft, leftWsRight],
+        leftWs,
+        leftWsHasNewline,
+        hasRightWs: rightWs !== '',
+        rightWsRange: [rightWsLeft, rightWsRight],
+        rightWs,
+        rightWsHasNewline
+    }
+}
+
+export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRight) {
+    const wsInfo = collectWhitespaceInfo(doc, p),
+        cursor = doc.getTokenCursor(p),
+        currentRange = cursor.rangeForCurrentForm(p);
+    if (cursor.backwardList() && cursor.backwardUpList()) {
+        const listStart = cursor.offsetStart,
+            newPosOffset = p - currentRange[0],
+            newCursorPos = listStart + newPosOffset,
+            listIndent = cursor.getToken().offset;
+        let dragText: string,
+            deleteEdit: ModelEdit;
+        if (wsInfo.hasLeftWs) {
+            dragText = doc.model.getText(...currentRange) + (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+            deleteEdit = new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], currentRange[1] - wsInfo.leftWsRange[0]]);
+        } else {
+            dragText = doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
+            deleteEdit = new ModelEdit('deleteRange', [currentRange[0], wsInfo.rightWsRange[1] - currentRange[0]]);
+        }
+        doc.model.edit([
+            deleteEdit,
+            new ModelEdit('insertString', [listStart, dragText, [p, p], [newCursorPos, newCursorPos]])
+        ], {
+            selection: new ModelEditSelection(newCursorPos),
+            skipFormat: false,
+            undoStopBefore: true
+        });
+    }
+}
+
+export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRight) {
+    const wsInfo = collectWhitespaceInfo(doc, p),
+        currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p),
+        newPosOffset = p - currentRange[0],
+        cursor = doc.getTokenCursor(currentRange[0]);
+    while (cursor.forwardSexp()) {
+        cursor.forwardWhitespace();
+        const token = cursor.getToken();
+        if (token.type === 'open') {
+            const listStart = cursor.offsetStart,
+                deleteLength = wsInfo.rightWsRange[1] - currentRange[0],
+                insertStart = listStart + token.raw.length,
+                newCursorPos = insertStart - deleteLength + newPosOffset;
+            let insertText = doc.model.getText(...currentRange);
+            insertText += wsInfo.rightWsHasNewline ? '\n' : ' ';
+            doc.model.edit([
+                new ModelEdit('insertString', [insertStart, insertText, [p, p], [newCursorPos, newCursorPos]]),
+                new ModelEdit('deleteRange', [currentRange[0], deleteLength])
+            ], {
+                selection: new ModelEditSelection(newCursorPos),
+                skipFormat: false,
+                undoStopBefore: true
+            });
+            break;
+        }
+    }
+}
+
+export function dragSexprForwardUp(doc: EditableDocument, p = doc.selectionRight) {
+    const wsInfo = collectWhitespaceInfo(doc, p),
+        cursor = doc.getTokenCursor(p),
+        currentRange = cursor.rangeForCurrentForm(p);
+    if (cursor.forwardList() && cursor.upList()) {
+        const listEnd = cursor.offsetStart,
+            newPosOffset = p - currentRange[0],
+            listWsInfo = collectWhitespaceInfo(doc, listEnd),
+            dragText = (listWsInfo.rightWsHasNewline ? '\n' : ' ') + doc.model.getText(...currentRange);
+        let deleteStart = wsInfo.leftWsRange[0],
+            deleteLength = currentRange[1] - deleteStart;
+        if (wsInfo.hasRightWs) {
+            deleteStart = currentRange[0];
+            deleteLength = wsInfo.rightWsRange[1] - deleteStart;
+        }
+        const newCursorPos = listEnd + newPosOffset + 1 - deleteLength;
+        doc.model.edit([
+            new ModelEdit('insertString', [listEnd, dragText, [p, p], [newCursorPos, newCursorPos]]),
+            new ModelEdit('deleteRange', [deleteStart, deleteLength])
+        ], {
+            selection: new ModelEditSelection(newCursorPos),
+            skipFormat: false,
+            undoStopBefore: true
+        });
+    }
+}
+
+export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRight) {
+    const wsInfo = collectWhitespaceInfo(doc, p),
+        currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p),
+        newPosOffset = p - currentRange[0],
+        cursor = doc.getTokenCursor(currentRange[1]);
+    while (cursor.backwardSexp()) {
+        cursor.backwardWhitespace();
+        const token = cursor.getPrevToken();
+        if (token.type === 'close') {
+            cursor.previous();
+            const listEnd = cursor.offsetStart;
+            cursor.backwardWhitespace();
+            const siblingWsInfo = collectWhitespaceInfo(doc, cursor.offsetStart),
+                deleteLength = currentRange[1] - wsInfo.leftWsRange[0],
+                insertStart = listEnd,
+                newCursorPos = insertStart + newPosOffset + 1;
+            let insertText = doc.model.getText(...currentRange);
+            insertText = (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
+            doc.model.edit([
+                new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], deleteLength]),
+                new ModelEdit('insertString', [insertStart, insertText, [p, p], [newCursorPos, newCursorPos]])
+            ], {
+                selection: new ModelEditSelection(newCursorPos),
+                skipFormat: false,
+                undoStopBefore: true
+            });
+            break;
+        }
     }
 }
