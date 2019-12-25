@@ -764,12 +764,14 @@ export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRi
         const token = cursor.getPrevToken();
         if (token.type === 'close') {
             cursor.previous();
-            const listEnd = cursor.offsetStart,
+            const listEnd = cursor.offsetStart;
+            cursor.backwardWhitespace();
+            const siblingWsInfo = collectWhitespaceInfo(doc, cursor.offsetStart),
                 deleteLength = currentRange[1] - wsInfo.leftWsRange[0],
                 insertStart = listEnd,
                 newCursorPos = insertStart + newPosOffset + 1;
             let insertText = doc.model.getText(...currentRange);
-            insertText = (wsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
+            insertText = (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
             doc.model.edit([
                 new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], deleteLength]),
                 new ModelEdit('insertString', [insertStart, insertText, [p, p], [newCursorPos, newCursorPos]])

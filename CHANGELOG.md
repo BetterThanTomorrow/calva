@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add Paredit drag up/down commands](https://github.com/BetterThanTomorrow/calva/issues/500)
+- [Add Paredit drag forward up/backward down commands](https://github.com/BetterThanTomorrow/calva/issues/500)
 
 ## [2.0.72] - 2019-12-13
 - [Deselect text after surrounding with parens/braces/etc](https://github.com/BetterThanTomorrow/calva/issues/511)
