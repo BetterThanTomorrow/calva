@@ -173,7 +173,7 @@ describe('paredit', () => {
                 expect(doc.selection).deep.equal(barBazSelection);
             });
         });
-        
+
         describe('selectRangeFromSelectionLeft', () => {
             it('(def foo [:foo >:bar> >|:baz>|]) => (def foo [:foo >:bar :baz>])', () => {
                 const barSelection = new ModelEditSelection(15, 19),
@@ -230,6 +230,133 @@ describe('paredit', () => {
             paredit.growSelectionStack(doc, b);
             paredit.shrinkSelection(doc);
             expect(doc.selectionStack[doc.selectionStack.length - 1]).deep.equal(new ModelEditSelection(a[0], a[1]));
+        });
+    });
+
+    describe('dragSexpr', () => {
+        describe('backwardUp - one line', () => {
+            it('(def foo [:><foo :bar :baz]) => (def foo :><foo [:bar :baz])', () => {
+                const inKwFoo = 11;
+                doc.selection = new ModelEditSelection(inKwFoo);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(def foo :foo [:bar :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(10));
+            });
+            it('(def foo [:foo ><:bar :baz]) => (def foo ><:bar [:foo :baz])', () => {
+                const kwBarLeft = 15;
+                doc.selection = new ModelEditSelection(kwBarLeft);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(def foo :bar [:foo :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(9));
+            });
+            it('(def foo [:foo :bar :baz><]) => (def foo :baz>< [:foo :bar])', () => {
+                const kwBazRight = 24;
+                doc.selection = new ModelEditSelection(kwBazRight);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(def foo :baz [:foo :bar])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(13));
+            });
+            it('(d>|e>|f foo [:foo :bar :baz]) => de><f (foo [:foo :bar :baz])', () => {
+                const eSel = [2, 3];
+                doc.selection = new ModelEditSelection(eSel[0], eSel[1]);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('def (foo [:foo :bar :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(2));
+            });
+        });
+        describe('backwardUp - multi-line', () => {
+            const docText = '((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n 1)';
+            let doc: mock.MockDocument,
+                startSelection = new ModelEditSelection(0, 0);
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+                doc.selection = startSelection.clone();
+            });
+
+            it('((fn foo\n  [x]\n  [><:foo\n   :bar\n   :baz])\n 1) => (fn foo\n  [x]\n  ><:foo\n  [:bar\n   :baz])\n(1)', () => {
+                const kwFoo = 18;
+                doc.selection = new ModelEditSelection(kwFoo);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('((fn foo\n  [x]\n  :foo\n  [:bar\n   :baz])\n 1)');
+                expect(doc.selection).deep.equal(new ModelEditSelection(17));
+            });
+            it('(><(fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n 1) => ><(fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n(1)', () => {
+                const fnList = 1;
+                doc.selection = new ModelEditSelection(fnList);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n(1)');
+                expect(doc.selection).deep.equal(new ModelEditSelection(0));
+            });
+            it('((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n ><1) => ><1\n((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz]))', () => {
+                const one = 42;
+                doc.selection = new ModelEditSelection(one);
+                paredit.dragSexprBackwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('1\n((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz]))');
+                expect(doc.selection).deep.equal(new ModelEditSelection(0));
+            });
+        });
+        describe('forwardDown - one line', () => {
+            it('(def f><oo [:foo :bar :baz]) => (def [f><oo :foo :bar :baz])', () => {
+                const inFoo = 6;
+                doc.selection = new ModelEditSelection(inFoo);
+                paredit.dragSexprForwardDown(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(def [foo :foo :bar :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(7));
+            });
+            it('(d>|ef>| foo [:foo :bar :baz]) => (foo [def>< :foo :bar :baz])', () => {
+                const eSel = [2, 4];
+                doc.selection = new ModelEditSelection(eSel[0], eSel[1]);
+                paredit.dragSexprForwardDown(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(foo [def :foo :bar :baz])');
+                expect(doc.selection).deep.equal(new ModelEditSelection(9));
+            });
+        });
+        describe('forwardUp', () => {
+            const docText = '((fn foo [x] [:foo :bar])) :baz';
+            let doc: mock.MockDocument,
+                startSelection = new ModelEditSelection(0, 0);
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+                doc.selection = startSelection.clone();
+            });
+
+            it('((fn foo [x] [:foo :b><ar])) :baz => ((fn foo [x] [:foo] :b><ar)) :baz', () => {
+                const inBazKw = 21;
+                doc.selection = new ModelEditSelection(inBazKw);
+                paredit.dragSexprForwardUp(doc);
+                expect(doc.model.getText(0, Infinity)).equal('((fn foo [x] [:foo] :bar)) :baz');
+                expect(doc.selection).deep.equal(new ModelEditSelection(22));
+            });
+        });
+        describe('backwardDown', () => {
+            const docText = '((fn foo [x] [:foo :bar])) :baz';
+            let doc: mock.MockDocument,
+                startSelection = new ModelEditSelection(0, 0);
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+                doc.selection = startSelection.clone();
+            });
+
+            it('((fn foo [x] [:foo :b><ar])) :baz => ((fn foo [x] [:foo :b><ar])) :baz', () => {
+                const inBazKw = 21;
+                doc.selection = new ModelEditSelection(inBazKw);
+                paredit.dragSexprBackwardDown(doc);
+                expect(doc.model.getText(0, Infinity)).equal(docText);
+                expect(doc.selection).deep.equal(new ModelEditSelection(21));
+            });
+            it('((fn foo [x] [:foo :bar])) :b><az => ((fn foo [x] [:foo :bar]) :b><az)', () => {
+                const inBazKw = 29;
+                doc.selection = new ModelEditSelection(inBazKw);
+                paredit.dragSexprBackwardDown(doc);
+                expect(doc.model.getText(0, Infinity)).equal('((fn foo [x] [:foo :bar]) :baz)');
+                expect(doc.selection).deep.equal(new ModelEditSelection(28));
+            });
         });
     });
 });

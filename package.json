@@ -956,13 +956,33 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.pushSexprLeft",
-                "title": "Push Sexp Left"
+                "command": "paredit.dragSexprBackward",
+                "title": "Drag Sexp Backward"
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.pushSexprRight",
-                "title": "Push Sexp Right"
+                "command": "paredit.dragSexprForward",
+                "title": "Drag Sexp Forward"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprBackwardUp",
+                "title": "Drag Sexp Backward Up"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprForwardDown",
+                "title": "Drag Sexp Forward Down"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprForwardUp",
+                "title": "Drag Sexp Forward Up"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.dragSexprBackwardDown",
+                "title": "Drag Sexp Backward Down"
             },
             {
                 "category": "Calva Paredit",
@@ -1356,13 +1376,33 @@
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.pushSexprLeft",
-                "key": "ctrl+shift+alt+l",
+                "command": "paredit.dragSexprBackward",
+                "key": "ctrl+shift+alt+b",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.pushSexprRight",
-                "key": "ctrl+shift+alt+r",
+                "command": "paredit.dragSexprForward",
+                "key": "ctrl+shift+alt+f",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprBackwardUp",
+                "key": "ctrl+shift+alt+u",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprForwardDown",
+                "key": "ctrl+shift+alt+d",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprForwardUp",
+                "key": "ctrl+shift+alt+k",
+                "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.dragSexprBackwardDown",
+                "key": "ctrl+shift+alt+j",
                 "when": "calva:replWindowActive || editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {

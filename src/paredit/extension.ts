@@ -184,14 +184,34 @@ const pareditCommands: PareditCommand[] = [
         replWindowCommand: "transpose-sexps"
     },
     {
-        command: 'paredit.pushSexprLeft',
-        handler: paredit.pushSexprLeft,
-        replWindowCommand: "push-sexp-left"
+        command: 'paredit.dragSexprBackward',
+        handler: paredit.dragSexprBackward,
+        replWindowCommand: "drag-sexp-backward"
     },
     {
-        command: 'paredit.pushSexprRight',
-        handler: paredit.pushSexprRight,
-        replWindowCommand: "push-sexp-right"
+        command: 'paredit.dragSexprForward',
+        handler: paredit.dragSexprForward,
+        replWindowCommand: "drag-sexp-forward"
+    },
+    {
+        command: 'paredit.dragSexprBackwardUp',
+        handler: paredit.dragSexprBackwardUp,
+        replWindowCommand: "drag-sexp-backward-up"
+    },
+    {
+        command: 'paredit.dragSexprForwardDown',
+        handler: paredit.dragSexprForwardDown,
+        replWindowCommand: "drag-sexp-forward-down"
+    },
+    {
+        command: 'paredit.dragSexprForwardUp',
+        handler: paredit.dragSexprForwardUp,
+        replWindowCommand: "drag-sexp-forward-up"
+    },
+    {
+        command: 'paredit.dragSexprBackwardDown',
+        handler: paredit.dragSexprBackwardDown,
+        replWindowCommand: "drag-sexp-backward-down"
     },
     {
         command: 'paredit.convolute',

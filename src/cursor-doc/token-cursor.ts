@@ -343,7 +343,7 @@ export class LispTokenCursor extends TokenCursor {
      * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
      * @param openingBracket 
      */
-    rangeForList(openingBracket?: string): [[number, number], [number, number]] {
+    rangeForList(openingBracket?: string): [number, number] {
         const cursor = this.clone();
         if (openingBracket === undefined) {
             if (!(cursor.backwardList() && cursor.backwardUpList())) {
@@ -354,11 +354,11 @@ export class LispTokenCursor extends TokenCursor {
                 return undefined;
             }
         }
-        const start = cursor.rowCol as [number, number];
+        const start = cursor.offsetStart;
         if (!cursor.forwardSexp()) {
             return undefined;
         }
-        const end = cursor.rowCol as [number, number];
+        const end = cursor.offsetEnd;
         return [start, end]
     }
 
