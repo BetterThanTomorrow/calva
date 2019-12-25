@@ -290,7 +290,10 @@ workflows:
       - approve:
           type: approval
           requires:
-            - build
+            - test-grammar
+            - test-cljslib
+            - test-integration
+            - test-ts-unit
           filters:
             branches:
               ignore: /.*/
