@@ -6,7 +6,7 @@ Structural editing and navigation for Clojure.
 
 Calva Paredit helps you navigate, select and edit Clojure code in a structural way. LISP isn't line or character oriented, it is based around [S-expressions](https://en.wikipedia.org/wiki/S-expression), a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.
 
-If you are new to Paredit, start with learning the **Slurp Forward** (pull in the next form into this form) and **Barf Forward** (push the last form out of this form).
+If you are new to Paredit, consider starting with learning the **Slurp Forward** (pull in the next form into this form) and **Barf Forward** (push the last form out of this form). It will take you quite far.
 
 ## Strict Mode
 
@@ -33,17 +33,17 @@ Toggle bewteen Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
 The Paredit commands sorts into **Navigation**, **Selection**, and **Edit**. As mentioned, **Slurp** and **Barf** are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.
 
-To make the command descriptions a bit clearer, each entry is also animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
+To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
 
 ### Strings are not Lists, but Anyway...
 
 In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Grow Selection**.
 
-![Stings are treated much like lists](_static/images/paredit/string-as-list.gif) 
+![](_static/images/paredit/string-as-list.gif) 
 
 ### Navigating
 
-(Modify these with`shift` to select rather than move, see below.)
+(Modify these with `shift` to select rather than move, see below.)
 
 Default keybinding      | Action | Description
 ------------------      | ------ | -----------
