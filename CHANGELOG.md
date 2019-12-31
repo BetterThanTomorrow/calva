@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix Windows documentation for Evaluate current form](https://github.com/BetterThanTomorrow/calva/issues/533)
 
 ## [2.0.73] - 2019-12-25
 - [Add Paredit drag up/down commands](https://github.com/BetterThanTomorrow/calva/issues/500)
