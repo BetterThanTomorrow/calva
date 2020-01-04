@@ -258,7 +258,7 @@ class REPLWindow {
 
     getHistory(): Array<string> {
         let history = (state.extensionContext.workspaceState.get(this.type + "-history") || []) as Array<string>;
-        return (history)
+        return (history);
     }
 
     addToHistory(line: string) {
