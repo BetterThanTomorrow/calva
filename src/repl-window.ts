@@ -585,11 +585,21 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { activeReplWindow().executeCommand('new-line') }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit') }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', () => { activeReplWindow().executeCommand('history-up') }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', () => { activeReplWindow().executeCommand('history-down') }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', () => { activeReplWindow().executeCommand('cursor-up') }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', () => { activeReplWindow().executeCommand('cursor-down') }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { 
+        activeReplWindow().executeCommand('submit');
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => { 
+        activeReplWindow().executeCommand('history-up');
+    }, 100, true)));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', util.debounce(() => { 
+        activeReplWindow().executeCommand('history-down');
+    }, 100, true)));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', util.debounce(() => { 
+        activeReplWindow().executeCommand('cursor-up');
+    }, 100, true)));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', util.debounce(() => { 
+        activeReplWindow().executeCommand('cursor-down');
+    }, 100, true)));
 }
 
 function clearClojureREPLWindowAndHistory() {
