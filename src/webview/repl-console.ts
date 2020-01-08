@@ -73,17 +73,6 @@ export class ReplConsole {
         }
     }
 
-    private isKeyMap(values: ReplPareditKeyMap[]): boolean {
-
-        if (this.pareditKeyMap == ReplPareditKeyMap.NONE) {
-            return false;
-        }
-        if (values.includes(this.pareditKeyMap)) {
-            return true;
-        }
-        return false;
-    }
-
     getPareditKeyMap(): ReplPareditKeyMap {
         return this.pareditKeyMap;
     }
