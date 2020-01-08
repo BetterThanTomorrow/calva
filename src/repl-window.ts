@@ -588,16 +588,16 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit'); }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => { 
         activeReplWindow().executeCommand('history-up');
-    }, 100, true)));
+    }, 10, true)));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', util.debounce(() => { 
         activeReplWindow().executeCommand('history-down');
-    }, 100, true)));
+    }, 10, true)));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', util.debounce(() => { 
         activeReplWindow().executeCommand('cursor-up');
-    }, 100, true)));
+    }, 10, true)));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', util.debounce(() => { 
         activeReplWindow().executeCommand('cursor-down');
-    }, 100, true)));
+    }, 10, true)));
 }
 
 function clearClojureREPLWindowAndHistory() {
