@@ -22,6 +22,8 @@ Calva binds **expand selection** to `ctrl+w`. This conflicts with the VIM Extens
 
 Calva binds the `esc` key to dismiss the display of inline results. This gets into conflict with any `vi` coding since `esc` then is used to go back to command mode. You can either fix Calva's default keybinding or the VIM extension. 
 
+Alternatively, you can use the native Vim command `Ctrl + [` to escape and get back to command mode. Rebinding your keyboard's CapsLock key to Control may make this even easier. 
+
 #### Remap Calva's `clearInlineResults`
 
 - Open the Keyboard Shortcuts JSON file from the Command Palette
