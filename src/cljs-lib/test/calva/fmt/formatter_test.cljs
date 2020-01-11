@@ -1,5 +1,6 @@
 (ns calva.fmt.formatter-test
   (:require [cljs.test :include-macros true :refer [deftest is]]
+            [calva.js-utils :refer [cljify]]
             [calva.fmt.formatter :as sut]))
 
 (deftest format-text-at-range
@@ -281,3 +282,11 @@ bar))")
   (is (= [1 12]
          (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2
                                        :config {:calva-fmt/use-enclosing-parent? true}})))))
+
+(deftest convert-to-cljfmt-indents
+  (is (= {}
+         (sut/->cljfmt-indents (cljify #js {}))))
+  (is (= {'a [[:inner 0]] 'b [[:block 1]]}
+         (sut/->cljfmt-indents (cljify #js {"a" [["inner" 0]] "b" [["block" 1]]}))))
+  (is (= {'foo/#bar->! [[:inner 0 1] [:block 2]]}
+         (sut/->cljfmt-indents (cljify #js {"foo/#bar->!" [["inner" 0 1] ["block" 2]]})))))

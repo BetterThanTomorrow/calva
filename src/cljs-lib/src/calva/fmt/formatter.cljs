@@ -7,13 +7,14 @@
             [calva.fmt.util :as util]
             [clojure.string]))
 
-(defn- ->cljfmt-indents
+(defn ->cljfmt-indents
   [indents]
   (->> indents
-       ; `cljify` converts maps keys to keywords but cljfmt wants symbols
-       (w/prewalk #(if (keyword? %) (symbol %) %))
-       ; `inner` and `block` should be keywords instead of strings
-       (w/prewalk-replace {"inner" :inner "block" :block})))
+       (w/prewalk
+        #(cond
+           (keyword? %) (symbol %) ; `cljify` converts map's keys to keywords but cljfmt wants symbols
+           (string? %) (keyword %) ; `inner` and `block` should be keywords instead of strings
+           :else %))))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
