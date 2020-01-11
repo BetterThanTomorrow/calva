@@ -520,6 +520,33 @@
                         "default": true,
                         "description": "Correct the indentation of your code?"
                     },
+                    "calva.fmt.indentationRules": {
+                        "type": "object",
+                        "description": "Cljfmt indentation rules",
+                        "patternProperties": {
+                            ".*": {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": [
+                                        {
+                                            "type": "string",
+                                            "enum": [
+                                                "block",
+                                                "inner"
+                                            ]
+                                        },
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "type": "number"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
                     "calva.fmt.removeSurroundingWhitespace": {
                         "type": "boolean",
                         "default": true,
