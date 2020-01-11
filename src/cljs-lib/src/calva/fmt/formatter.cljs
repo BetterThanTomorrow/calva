@@ -1,17 +1,26 @@
 (ns calva.fmt.formatter
   (:require [cljfmt.core :as cljfmt]
+            [clojure.walk :as w]
             #_[zprint.core :refer [zprint-str]]
             ["paredit.js" :as paredit]
             [calva.js-utils :refer [cljify]]
             [calva.fmt.util :as util]
             [clojure.string]))
 
+(defn- ->cljfmt-indents
+  [indents]
+  (->> indents
+       ; `cljify` converts maps keys to keywords but cljfmt wants symbols
+       (w/prewalk #(if (keyword? %) (symbol %) %))
+       ; `inner` and `block` should be keywords instead of strings
+       (w/prewalk-replace {"inner" :inner "block" :block})))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
   (try
-    (let [formatted-text (-> range-text
-                             (cljfmt/reformat-string config)
+    (let [indents (->> config :indents ->cljfmt-indents (merge cljfmt/default-indents))
+          formatted-text (-> range-text
+                             (cljfmt/reformat-string (assoc config :indents indents))
                              (clojure.string/replace #"\r?\n" eol))]
       (assoc m :range-text formatted-text))
     (catch js/Error e

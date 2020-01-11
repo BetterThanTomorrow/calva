@@ -1,4 +1,5 @@
 import { LineInputModel, EditableModel } from "./model";
+import * as config from './../calva-fmt/src/config';
 
 const whitespace = new Set(["ws", "comment", "eol"])
 
@@ -81,7 +82,7 @@ let indentRules: { [id: string]: IndentRule[]} = {
 interface IndentInformation {
     /** The first token in the expression (after the open paren/bracket etc.), as a raw string */
     first: string;
-    
+
     /** The indent immediately after the open paren/bracket etc */
     startIndent: number;
 
@@ -108,7 +109,7 @@ const OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
 /**
  * Analyses the text before position in the document, and returns a list of enclosing expression information with
  * various indent information, for use with getIndent()
- * 
+ *
  * @param document The document to analyse
  * @param position The position (as [row, col] into the document to analyse from)
  * @param maxDepth The maximum depth upwards from the expression to search.
@@ -143,7 +144,7 @@ export function collectIndents(document: EditableModel, offset: number, maxDepth
             let startIndent = cursor.rowCol[1];
             if(!cursor.backwardUpList())
                 break;
-            let indentRule = indentRules[token] || [];
+            let indentRule = config.getConfig()["indents"][token] || indentRules[token] || [];
             indents.unshift({ first: token, rules: indentRule, argPos, exprsOnLine, startIndent, firstItemIdent });
             argPos = 0;
             exprsOnLine = 1;
@@ -178,7 +179,7 @@ export function getIndent(document: EditableModel, offset: number): number {
     let thisBlock = state[state.length-1];
     if(!state.length)
         return 0;
-    
+
     for(let pos = state.length-1; pos >= 0; pos--) {
         for(let rule of state[pos].rules) {
             if(rule[0] == "inner") {

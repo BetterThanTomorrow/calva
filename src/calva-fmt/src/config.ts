@@ -5,6 +5,7 @@ function readConfiguration() {
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
         "indentation?": workspaceConfig.get("indentation"),
+        "indents": workspaceConfig.get("indentationRules"),
         "remove-surrounding-whitespace?": workspaceConfig.get("removeSurroundingWhitespace"),
         "remove-trailing-whitespace?": workspaceConfig.get("removeTrailingWhitespace"),
         "insert-missing-whitespace?": workspaceConfig.get("insertMissingWhitespace"),
