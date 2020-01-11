@@ -522,25 +522,42 @@
                     },
                     "calva.fmt.indentationRules": {
                         "type": "object",
-                        "description": "Cljfmt indentation rules",
+                        "markdownDescription": "Indentation rules for [cljfmt](https://github.com/weavejester/cljfmt#indentation-rules)",
                         "patternProperties": {
                             ".*": {
                                 "type": "array",
+                                "markdownDescription": "form symbol",
                                 "items": {
-                                    "type": "array",
-                                    "items": [
+                                    "oneOf": [
                                         {
-                                            "type": "string",
-                                            "enum": [
-                                                "block",
-                                                "inner"
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "const": "block",
+                                                    "markdownDescription": "supports indenting to the first form argument"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "markdownDescription": "`line-arg-count-threshold` - when there are more than `line-arg-count-threshold` form arguments on the same line as the form symbol, eligible form arguments on subsequent lines are indented to align with the first form argument. Otherwise, two space inner indentation is applied."
+                                                }
                                             ]
                                         },
                                         {
-                                            "type": "number"
-                                        },
-                                        {
-                                            "type": "number"
+                                            "type": "array",
+                                            "items": [
+                                                {
+                                                    "const": "inner",
+                                                    "markdownDescription": "applies an indentation of two spaces to all eligible form arguments of forms at a given form depth"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "markdownDescription": "`form-depth` - apply inner indentation within forms at this depth"
+                                                },
+                                                {
+                                                    "type": "number",
+                                                    "markdownDescription": "`limit-to-form-index` - optionally limit indentation formatting to a single form, by default formatting is applied to all forms at `form-depth`"
+                                                }
+                                            ]
                                         }
                                     ]
                                 }
