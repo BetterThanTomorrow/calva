@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as state from '../../state';
 
 function readConfiguration() {
     let workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
@@ -9,7 +10,8 @@ function readConfiguration() {
         "remove-trailing-whitespace?": workspaceConfig.get("removeTrailingWhitespace"),
         "insert-missing-whitespace?": workspaceConfig.get("insertMissingWhitespace"),
         "remove-consecutive-blank-lines?": workspaceConfig.get("removeConsecutiveBlankLines"),
-        "align-associative?": workspaceConfig.get("alignMapItems")
+        "align-associative?": workspaceConfig.get("alignMapItems"),
+        "cljfmt-edn-path": state.resolvePath(workspaceConfig.get("configPath"))
     };
 }
 

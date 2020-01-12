@@ -233,6 +233,15 @@ export async function initProjectDir(): Promise<void> {
     }
 }
 
+/**
+ * Try to resolve absolute path in relation to project root
+ * @param filePath - absolute or relative to project
+ */
+export function resolvePath(filePath: string | undefined): string | undefined {
+    const root = getProjectWsFolder();
+    return filePath && root && path.resolve(root.uri.fsPath, filePath);
+}
+
 export {
     cursor,
     documentSelector,

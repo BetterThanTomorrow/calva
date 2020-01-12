@@ -6,12 +6,25 @@
             [calva.fmt.util :as util]
             [clojure.string]))
 
+(defn merge-default-indents
+  "Merges onto default-indents.
+   The :replace metadata hint allows to replace defaults."
+  [indents]
+  (if (:replace (meta indents))
+    indents
+    (merge cljfmt/default-indents indents)))
+
+(defn cljfmt-options
+  [{:as config :keys [cljfmt-edn-path]}]
+  (-> config
+      (merge (util/read-edn-file cljfmt-edn-path))
+      (update :indents merge-default-indents)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
   (try
     (let [formatted-text (-> range-text
-                             (cljfmt/reformat-string config)
+                             (cljfmt/reformat-string (cljfmt-options config))
                              (clojure.string/replace #"\r?\n" eol))]
       (assoc m :range-text formatted-text))
     (catch js/Error e
