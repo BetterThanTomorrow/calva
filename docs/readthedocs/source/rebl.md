@@ -33,7 +33,7 @@ To use this extension with REBL do the following.
             :main-opts ["-e" "((requiring-resolve,'cognitect.rebl/ui))" "-m" "nrepl.cmdline" "--middleware" "[nrebl.middleware/wrap-nrebl]" "-I"]}      
 ```
 
-Check out the [REBL github page](https://github.com/cognitect-labs/REBL-distro)  for more info
+Check out the [REBL github page](https://github.com/cognitect-labs/REBL-distro) for more info
 
 2. Create a Calva custom connect sequence for your VSCode editor
 
@@ -50,15 +50,58 @@ Check out the [REBL github page](https://github.com/cognitect-labs/REBL-distro) 
                     "rebl",
                     "rebl-12",
                     "nrebl"
-                ],
+                ]
             }
         }
     ]
 }
 ```
-## Leiningen (TBD)
+## Leiningen
 
-TBD. If you know how to do it, please update this page.
+1. Add rebl profiles to your [user-wide profiles](https://github.com/technomancy/leiningen/blob/stable/doc/PROFILES.md#declaring-profiles) so that they will be available for all your projects.
+A sample user profile (located at `~/.lein/profiles.clj` on mac)
+```clojure
+{:user {:plugins [[lein-ancient "0.6.15"]]}
+ ;; REBL Base
+ :rebl {:resource-paths ["/Users/ozimos/REBL/latest/REBL.jar"]
+        :dependencies [[org.clojure/core.async "0.4.490"]
+                       [org.clojure/data.csv "0.1.4"]
+                       [org.clojure/data.json "0.2.3"]
+                       [cljfmt "0.6.4"]
+                       [org.yaml/snakeyaml "1.23"]]}
+                       
+  ;; REBL 12 for JDK 12.0.1. Swap out for your JDK vaersion
+ :rebl-12 {:dependencies [[org.openjfx/javafx-fxml  "12.0.1"]
+                          [org.openjfx/javafx-controls "12.0.1"]
+                          [org.openjfx/javafx-graphics "12.0.1"]
+                          [org.openjfx/javafx-media "12.0.1"]
+                          [org.openjfx/javafx-swing "12.0.1"]
+                          [org.openjfx/javafx-base  "12.0.1"]
+                          [org.openjfx/javafx-web "12.0.1"]]}
+ ;; NREBL https://github.com/RickMoynihan/nrebl.middleware                         
+ :nrebl {:repl-options {:nrepl-middleware [nrebl.middleware/wrap-nrebl]}
+        :dependencies [[rickmoynihan/nrebl.middleware "0.3.1"]]}}
+```
+[More info here](https://github.com/eccentric-j/lein-rebl-example)
+
+2. Create a Calva custom connect sequence for your VSCode editor
+
+* Read [Custom REPL Connect Sequences](connect-sequences.md) if you haven't
+* Add the following to your vscode settings.json
+```json
+{
+    "calva.replConnectSequences": [
+        {
+            "name": "Lein REBL",
+            "projectType": "Leiningen",
+            "menuSelections": {
+                "leinProfiles": ["rebl", "rebl-12", ":nrebl"]
+            },
+            "afterCLJReplJackInCode": "((requiring-resolve 'cognitect.rebl/ui))"
+        }
+    ]
+}
+```
 
 ## shadow-cljs (TBD)
 

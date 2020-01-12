@@ -8,7 +8,7 @@ This is not likely to be fixed anytime soon. (Because, a **lot** of work.)
 
 ## Selection commands
 
-Calva's verious structural selection commands [do not put VIM into VISUAL mode](https://github.com/BetterThanTomorrow/calva/issues/297). This is true for many [VS Code selection scenarios](https://github.com/VSCodeVim/Vim/issues/2224) too, so it is not really Calva's fault, but it will be problematic for VIM Extension Calva users, regardless.
+Calva's various structural selection commands [do not put VIM into VISUAL mode](https://github.com/BetterThanTomorrow/calva/issues/297). This is true for many [VS Code selection scenarios](https://github.com/VSCodeVim/Vim/issues/2224) too, so it is not really Calva's fault, but it will be problematic for VIM Extension Calva users, regardless.
 
 ## Key bindings
 
@@ -21,6 +21,8 @@ Calva binds **expand selection** to `ctrl+w`. This conflicts with the VIM Extens
 ### The `esc` key
 
 Calva binds the `esc` key to dismiss the display of inline results. This gets into conflict with any `vi` coding since `esc` then is used to go back to command mode. You can either fix Calva's default keybinding or the VIM extension. 
+
+Alternatively, you can use the native Vim command `Ctrl + [` to escape and get back to command mode. Rebinding your keyboard's CapsLock key to Control may make this even easier. 
 
 #### Remap Calva's `clearInlineResults`
 

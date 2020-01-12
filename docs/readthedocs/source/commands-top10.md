@@ -4,7 +4,7 @@ There are not all that many Calva commands, you can learn them all. But there ar
 
 * **Grow/expand selection**: `ctrl+w`
 * **Load current file**: `alt+ctrl+c enter`, evaluates the namespace code in the active editor tab. This also loads any required namespaces, and generally gives Calva what it needs to work.
-* **Evaluate current form**:  `alt+ctrl+c e`, finds the form from the cursor position, evaluates it and displays the result inline. Hit `esc` to dismiss the results display.
+* **Evaluate current form**:  `alt+ctrl+c e` (`alt+ctrl+c v` on Windows), finds the form from the cursor position, evaluates it and displays the result inline. Hit `esc` to dismiss the results display.
 * **Evaluate current top-level form**: `alt+ctrl+c space`: inline evaluate the current top-level form. This also works inside `(comment)` forms. Use it to (re)define vars and then inside comment forms you can verify that they do what you want them to do.
 * **Dismiss the display of results**: `escape`: (VIM Extension users should read [Using Calva with the VIM Extension](vim.md)).
 

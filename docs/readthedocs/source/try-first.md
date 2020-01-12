@@ -2,7 +2,7 @@
 
 You might want to start with evaluating some code. This preferably starts with **Loading Current File and Dependencies**, `ctrl+alt+c enter`. 
 
-Then... Calva has this notion about the ”current” form. Issue the **Evaluate Current Form Inline** command, `ctrl+alt+c e` with the cursor placed in different locations to get a feeling for how the current form is determined. Dismiss the results display with `esc`.
+Then... Calva has this notion about the ”current” form. Issue the **Evaluate Current Form Inline** command, `ctrl+alt+c e` (`ctrl+alt+c v` on Windows) with the cursor placed in different locations to get a feeling for how the current form is determined. Dismiss the results display with `esc`.
 
 There is also a command for evaluating the current top level form. Good for evaluating  various `def`s `defn`, `defthis`, `defthat`. With your cursor placed anywhere inside such a form, issue the **Evaluate Current Top Level Form (defun)** command (`ctrl+alt+c space`).
 
