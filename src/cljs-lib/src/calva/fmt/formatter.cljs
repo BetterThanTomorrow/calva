@@ -4,6 +4,7 @@
             ["paredit.js" :as paredit]
             [calva.js-utils :refer [cljify]]
             [calva.fmt.util :as util]
+            [calva.parse :refer [parse-clj-edn]]
             [clojure.string]))
 
 (defn merge-default-indents
@@ -15,10 +16,11 @@
     (merge cljfmt/default-indents indents)))
 
 (defn cljfmt-options
-  [{:as config :keys [cljfmt-edn-path]}]
+  [{:as config :keys [cljfmt-edn]}]
   (-> config
-      (merge (util/read-edn-file cljfmt-edn-path))
-      (update :indents merge-default-indents)))
+      (merge (parse-clj-edn cljfmt-edn))
+      (update :indents merge-default-indents)
+      (dissoc :cljfmt-edn)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]

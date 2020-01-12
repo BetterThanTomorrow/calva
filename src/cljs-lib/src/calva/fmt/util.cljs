@@ -1,8 +1,7 @@
 (ns calva.fmt.util
   (:require [clojure.string]
             ["paredit.js" :as paredit]
-            [calva.js-utils :refer [cljify]]
-            [calva.parse :refer [parse-clj-edn]]))
+            [calva.js-utils :refer [cljify]]))
 
 
 (defn log
@@ -45,15 +44,6 @@
         children (:children ast)]
     (and (= 1 (count children))
          (= "list" (:type (first children))))))
-
-(def fs (js/require "fs"))
-
-(defn slurp [filename] ((aget fs "readFileSync") filename "utf8"))
-
-(defn read-edn-file [filename]
-  (try
-    (parse-clj-edn (slurp filename))
-    (catch js/Error _e {})))
 
 (comment
   (enclosing? "[][]")

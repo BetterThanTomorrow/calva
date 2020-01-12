@@ -1,5 +1,6 @@
 (ns calva.fmt.formatter-test
   (:require [cljs.test :include-macros true :refer [deftest is]]
+            [cljfmt.core :as cljfmt]
             [calva.fmt.formatter :as sut]))
 
 (deftest format-text-at-range
@@ -281,3 +282,30 @@ bar))")
   (is (= [1 12]
          (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2
                                        :config {:calva-fmt/use-enclosing-parent? true}})))))
+
+(deftest cljfmt-options
+  (let [result (sut/cljfmt-options {})]
+    (is (= [:indents] (keys result)))
+    (is (= (count cljfmt/default-indents)
+           (count (:indents result)))
+        "by default uses cljfmt indent rules"))
+  (let [result (sut/cljfmt-options {:cljfmt-edn "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"})]
+    (is (= [:indents] (keys result)))
+    (is (= (+ 2 (count cljfmt/default-indents))
+           (count (:indents result)))
+        "merges indents on top of cljfmt indent rules"))
+  (is (= {:indents {'a [[:inner 0]]}}
+         (sut/cljfmt-options {:cljfmt-edn "{:indents ^:replace {a [[:inner 0]]}}"}))
+      "with :replace metadata hint overrides default indents")
+  (is (= false
+         (:indentation? (sut/cljfmt-options {:indentation? true
+                                             :cljfmt-edn "{:indentation? false}"})))
+      "cljfmt :indentation? has higher priority than vscode option")
+  (is (= false
+         (:remove-surrounding-whitespace? (sut/cljfmt-options {:remove-surrounding-whitespace? true
+                                                               :cljfmt-edn "{:remove-surrounding-whitespace? false}"})))
+      "cljfmt :remove-surrounding-whitespace? has higher priority than vscode option")
+  (is (= false
+         (:insert-missing-whitespace? (sut/cljfmt-options {:insert-missing-whitespace? true
+                                                           :cljfmt-edn "{:insert-missing-whitespace? false}"})))
+      "cljfmt :insert-missing-whitespace? has higher priority than vscode option"))
