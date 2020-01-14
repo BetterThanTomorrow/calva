@@ -1,4 +1,4 @@
-{:dependencies [[cljfmt "0.6.6"]
+{:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]
                 [zprint "0.4.16"]]
 
  :source-paths ["src/cljs-lib/src"
