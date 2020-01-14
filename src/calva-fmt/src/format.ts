@@ -7,7 +7,7 @@ const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
     let editor = vscode.window.activeTextEditor;
     let pos = new vscode.Position(position.line, 0);
-    let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position));
+    let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position), config.getConfig());
     let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
     if (delta > 0) {
         //return [vscode.TextEdit.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta)))];

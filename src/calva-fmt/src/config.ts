@@ -11,7 +11,8 @@ function readConfiguration() {
         "insert-missing-whitespace?": workspaceConfig.get("insertMissingWhitespace"),
         "remove-consecutive-blank-lines?": workspaceConfig.get("removeConsecutiveBlankLines"),
         "align-associative?": workspaceConfig.get("alignMapItems"),
-        "cljfmt-edn": state.readConfigFile(workspaceConfig.get("configPath"))
+        "cljfmt-edn": state.readConfigFile(workspaceConfig.get("configPath")),
+        "cljfmt-parsed": state.readConfigEdn(workspaceConfig.get("configPath")),
     };
 }
 

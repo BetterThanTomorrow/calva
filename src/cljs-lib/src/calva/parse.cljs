@@ -57,6 +57,9 @@
            (is (= "/^foo.*bar$/" (str (parse-clj-edn "#\"^foo.*bar$\"")))))}
   [s] (tr/read-string s))
 
+(defn parse-clj-edn-js-bridge [s]
+  (jsify (parse-clj-edn s)))
+
 ;[[ar gu ment] {:as extras, :keys [d e :s t r u c t u r e d]}]
 (comment
   (= [:a {:foo [(quote bar)], :bar (quote foo)}]
