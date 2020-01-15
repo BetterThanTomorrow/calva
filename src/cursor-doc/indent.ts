@@ -1,4 +1,5 @@
 import { EditableModel } from "./model";
+import * as _ from 'lodash';
 
 const whitespace = new Set(["ws", "comment", "eol"])
 
@@ -144,8 +145,9 @@ export function collectIndents(document: EditableModel, offset: number, config: 
             if (!cursor.backwardUpList())
                 break;
 
-            const cljfmtIndents = config["cljfmt-parsed"]["indents"] || {};
-            let indentRule = cljfmtIndents[token] || indentRules[token] || [];
+            const rules = _.mergeWith(indentRules, config["cljfmt-parsed"]["indents"], /*shallow*/ (_, b) => b);
+            const pattern = _.find(_.keys(rules), (pattern) => pattern == token || testCljRe(pattern, token));
+            const indentRule = pattern ? rules[pattern] : [];
             indents.unshift({ first: token, rules: indentRule, argPos, exprsOnLine, startIndent, firstItemIdent });
             argPos = 0;
             exprsOnLine = 1;
@@ -170,6 +172,11 @@ export function collectIndents(document: EditableModel, offset: number, config: 
     if (!indents.length)
         indents.push({ argPos: 0, first: null, rules: [], exprsOnLine: 0, startIndent: lastIndent >= 0 ? lastIndent : 0, firstItemIdent: lastIndent >= 0 ? lastIndent : 0 })
     return indents;
+}
+
+const testCljRe = (re, str) => {
+    const matches = re.match(/^#"(.*)"$/);
+    return matches && RegExp(matches[1]).test(str)
 }
 
 /** Returns the expected newline indent for the given position, in characters. */
