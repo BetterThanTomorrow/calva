@@ -17,7 +17,7 @@
                              :prettyPrint calva.pprint.printer/pretty-print-js-bridge
                              :parseEdn calva.parse/parse-edn-js-bridge
                              :parseForms calva.parse/parse-forms-js-bridge
-                             :parseCljEdn calva.parse/parse-clj-edn-js-bridge}
+                             :cljfmtOptions calva.parse/parse-cljfmt-js-bridge}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

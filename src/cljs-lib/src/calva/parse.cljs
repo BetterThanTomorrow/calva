@@ -1,5 +1,6 @@
 (ns calva.parse
-  (:require [cljs.reader]
+  (:require [cljfmt.core :as cljfmt]
+            [cljs.reader]
             [cljs.tools.reader :as tr]
             [cljs.tools.reader.reader-types :as rt]
             [cljs.test :refer [is]]
@@ -57,8 +58,21 @@
            (is (= "/^foo.*bar$/" (str (parse-clj-edn "#\"^foo.*bar$\"")))))}
   [s] (tr/read-string s))
 
-(defn parse-clj-edn-js-bridge [s]
-  (jsify (parse-clj-edn s)))
+(defn merge-default-indents
+  "Merges onto default-indents.
+   The :replace metadata hint allows to replace defaults."
+  [indents]
+  (if (:replace (meta indents))
+    indents
+    (merge cljfmt/default-indents indents)))
+
+(defn parse-cljfmt
+  [s]
+  (-> s parse-clj-edn (update :indents merge-default-indents)))
+
+(defn parse-cljfmt-js-bridge
+  [s]
+  (-> s parse-cljfmt jsify))
 
 ;[[ar gu ment] {:as extras, :keys [d e :s t r u c t u r e d]}]
 (comment
