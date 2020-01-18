@@ -178,16 +178,16 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-          workspace = vscode.workspace.workspaceFolders![0],
-          doc = util.getDocument({});
+        workspace = vscode.workspace.workspaceFolders![0],
+        doc = util.getDocument({});
 
     // first try the workplace folder
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
         if(vscode.workspace.workspaceFolders.length == 1) {
-           // this is only save in a one directory workspace
-           // (aks "Open Folder") environment.
-           workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+            // this is only save in a one directory workspace
+            // (aks "Open Folder") environment.
+            workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
     if (!workspaceFolder) {
@@ -242,13 +242,24 @@ export function resolvePath(filePath: string | undefined): string | undefined {
     return filePath && root && path.resolve(root.uri.fsPath, filePath);
 }
 
+let fileCache: Map<String, { timestamp: number, content: string }> = new Map();
+
 /**
- * Tries to read content of file
- * @param filePath - absolute or relative to project
+ * Tries to read content of file.
+ * Caches file content in memory based on last modification time.
+ * @param path - absolute file path
  */
-export function readConfigFile(filePath: string | undefined): string | undefined {
+export function readFile(path: string | undefined): string | undefined {
+    if (!fileCache.has(path)) fileCache.set(path, { timestamp: undefined, content: undefined });
+    let cached = fileCache.get(path);
+
     try {
-        return fs.readFileSync(resolvePath(filePath), "utf8");
+        const stats = fs.statSync(path);
+        if (cached.timestamp !== stats.mtime.getTime()) {
+            cached.timestamp = stats.mtime.getTime();
+            cached.content = fs.readFileSync(path, "utf8");
+        }
+        return cached.content;
     } catch {
         return undefined;
     }
