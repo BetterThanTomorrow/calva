@@ -8,7 +8,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { customREPLCommandSnippet } from './repl-window';
 import { PrettyPrintingOptions } from './printer';
-import { cljfmtOptions } from '../out/cljs-lib/cljs-lib';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -253,10 +252,6 @@ export function readConfigFile(filePath: string | undefined): string | undefined
     } catch {
         return undefined;
     }
-}
-
-export function readConfigEdn(filePath: string | undefined): any {
-    return cljfmtOptions(readConfigFile(filePath) || "");
 }
 
 export {

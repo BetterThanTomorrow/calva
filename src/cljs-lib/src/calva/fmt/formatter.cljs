@@ -2,16 +2,16 @@
   (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             ["paredit.js" :as paredit]
-            [calva.js-utils :refer [cljify jsify]]
+            [calva.js-utils :refer [cljify]]
             [calva.fmt.util :as util]
             [calva.parse :refer [parse-cljfmt]]
             [clojure.string]))
 
 (defn cljfmt-options
-  [{:as config :keys [cljfmt-edn]}]
+  [{:as config :keys [cljfmt-string]}]
   (-> config
-      (merge (parse-cljfmt cljfmt-edn))
-      (dissoc :cljfmt-edn)))
+      (merge (parse-cljfmt cljfmt-string))
+      (dissoc :cljfmt-string)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]

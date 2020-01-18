@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as state from '../../state';
+import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib';
 
 function readConfiguration() {
     let workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
+    const cljfmtContent = state.readConfigFile(workspaceConfig.get("configPath"))
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
         "indentation?": workspaceConfig.get("indentation"),
@@ -11,8 +13,8 @@ function readConfiguration() {
         "insert-missing-whitespace?": workspaceConfig.get("insertMissingWhitespace"),
         "remove-consecutive-blank-lines?": workspaceConfig.get("removeConsecutiveBlankLines"),
         "align-associative?": workspaceConfig.get("alignMapItems"),
-        "cljfmt-edn": state.readConfigFile(workspaceConfig.get("configPath")),
-        "cljfmt-parsed": state.readConfigEdn(workspaceConfig.get("configPath")),
+        "cljfmt-string": cljfmtContent,
+        "cljfmt-options": cljfmtOptions(cljfmtContent),
     };
 }
 

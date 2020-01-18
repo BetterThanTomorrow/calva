@@ -51,6 +51,7 @@
   "Reads edn (with regexp tags)"
   ; https://ask.clojure.org/index.php/8675/cljs-reader-read-string-fails-input-clojure-string-accepts
   {:test (fn []
+           (is (= (parse-clj-edn nil) nil))
            (is (= (parse-clj-edn "{:foo [1 2]}") {:foo [1 2]}))
            (is (= (parse-clj-edn "{:foo/bar [1 2]}") {:foo/bar [1 2]}))
            (is (= :a (parse-clj-edn ":a {:foo ['bar] :bar 'foo}")))

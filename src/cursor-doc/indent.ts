@@ -74,7 +74,7 @@ export function collectIndents(document: EditableModel, offset: number, config: 
             if (!cursor.backwardUpList())
                 break;
 
-            const rules = config["cljfmt-parsed"]["indents"];
+            const rules = config["cljfmt-options"]["indents"];
             const pattern = _.find(_.keys(rules), (pattern) => pattern == token || testCljRe(pattern, token));
             const indentRule = pattern ? rules[pattern] : [];
             indents.unshift({ first: token, rules: indentRule, argPos, exprsOnLine, startIndent, firstItemIdent });
