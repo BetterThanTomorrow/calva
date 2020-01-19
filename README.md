@@ -114,6 +114,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
 [![Matthew Lyon](https://avatars2.githubusercontent.com/u/891?s=30)](https://github.com/mattly)
 [![Brian Scaturro](https://avatars0.githubusercontent.com/u/636651?s=30)](https://github.com/brianium)
+[![Steven Harms](https://avatars0.githubusercontent.com/u/95657?s=30)](https://github.com/sharms)
 
 
 ### Calva Friends
@@ -125,6 +126,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Ullrich Schäfer](https://avatars1.githubusercontent.com/u/13815?s=30)](https://github.com/stigi)
 [![Scott Archer](https://avatars3.githubusercontent.com/u/703980?s=30)](https://github.com/scarcher2)
 [![Norman Eckstein](https://avatars0.githubusercontent.com/u/3316334?s=30)](https://github.com/ITSecMedia)
+[![David Brear](https://avatars0.githubusercontent.com/u/1081640?s=30)](https://github.com/DavidBrear)
 
 ## The Calva Team
 
