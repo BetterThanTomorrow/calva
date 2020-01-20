@@ -524,31 +524,6 @@
                         "type": "string",
                         "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file."
                     },
-                    "calva.fmt.indentation": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Correct the indentation of your code?"
-                    },
-                    "calva.fmt.removeSurroundingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Remove whitespace surrounding inner forms? This will convert ( foo ) to (foo)."
-                    },
-                    "calva.fmt.removeTrailingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Remove trailing whitespace in lines? This will convert (foo) \\n to (foo)\\n."
-                    },
-                    "calva.fmt.insertMissingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Insert whitespace missing from between elements? This will convert (foo(bar)) to (foo (bar))."
-                    },
-                    "calva.fmt.removeConsecutiveBlankLines": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Squeeze consecutive blank lines to one?"
-                    },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
                         "default": true,
@@ -558,11 +533,6 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Help beta test the new indent engine (it is MUCH faster than the previous one)."
-                    },
-                    "calva.fmt.alignMapItems": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Align map items in columns? (Experimental)"
                     }
                 }
             },
