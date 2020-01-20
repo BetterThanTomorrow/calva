@@ -284,28 +284,16 @@ bar))")
                                        :config {:calva-fmt/use-enclosing-parent? true}})))))
 
 (deftest cljfmt-options
-  (let [result (sut/cljfmt-options {})]
-    (is (= [:indents] (keys result)))
-    (is (= (count cljfmt/default-indents)
-           (count (:indents result)))
-        "by default uses cljfmt indent rules"))
-  (let [result (sut/cljfmt-options {:cljfmt-string "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"})]
-    (is (= [:indents] (keys result)))
-    (is (= (+ 2 (count cljfmt/default-indents))
-           (count (:indents result)))
-        "merges indents on top of cljfmt indent rules"))
-  (is (= {:indents {'a [[:inner 0]]}}
-         (sut/cljfmt-options {:cljfmt-string "{:indents ^:replace {a [[:inner 0]]}}"}))
+  (is (= (count cljfmt/default-indents)
+         (count (:indents (sut/cljfmt-options {}))))
+      "by default uses cljfmt indent rules")
+  (is (= (+ 2 (count cljfmt/default-indents))
+         (count (:indents (sut/cljfmt-options {:cljfmt-string "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"}))))
+      "merges indents on top of cljfmt indent rules")
+  (is (= {'a [[:inner 0]]}
+         (:indents (sut/cljfmt-options {:cljfmt-string "{:indents ^:replace {a [[:inner 0]]}}"})))
       "with :replace metadata hint overrides default indents")
-  (is (= false
-         (:indentation? (sut/cljfmt-options {:indentation? true
-                                             :cljfmt-string "{:indentation? false}"})))
-      "cljfmt :indentation? has higher priority than vscode option")
-  (is (= false
-         (:remove-surrounding-whitespace? (sut/cljfmt-options {:remove-surrounding-whitespace? true
-                                                               :cljfmt-string "{:remove-surrounding-whitespace? false}"})))
-      "cljfmt :remove-surrounding-whitespace? has higher priority than vscode option")
-  (is (= false
-         (:insert-missing-whitespace? (sut/cljfmt-options {:insert-missing-whitespace? true
-                                                           :cljfmt-string "{:insert-missing-whitespace? false}"})))
-      "cljfmt :insert-missing-whitespace? has higher priority than vscode option"))
+  (is (= true
+         (:align-associative? (sut/cljfmt-options {:align-associative? true
+                                                   :cljfmt-string "{:align-associative? false}"})))
+      "cljfmt :align-associative? has lower priority than config's option"))

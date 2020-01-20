@@ -9,9 +9,7 @@
 
 (defn cljfmt-options
   [{:as config :keys [cljfmt-string]}]
-  (-> config
-      (merge (parse-cljfmt cljfmt-string))
-      (dissoc :cljfmt-string)))
+  (-> cljfmt-string parse-cljfmt (merge config)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
