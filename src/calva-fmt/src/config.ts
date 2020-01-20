@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import * as state from '../../state';
+import * as filesCache from '../../files-cache';
 import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib';
 
 function readConfiguration() {
     let workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
-    const cljfmtContent = state.readFile(state.resolvePath(workspaceConfig.get("configPath")));
+    const cljfmtContent = filesCache.content(workspaceConfig.get("configPath"));
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
         "cljfmt-string": cljfmtContent,
