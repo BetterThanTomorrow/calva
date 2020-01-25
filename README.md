@@ -127,6 +127,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![Scott Archer](https://avatars3.githubusercontent.com/u/703980?s=30)](https://github.com/scarcher2)
 [![Norman Eckstein](https://avatars0.githubusercontent.com/u/3316334?s=30)](https://github.com/ITSecMedia)
 [![David Brear](https://avatars0.githubusercontent.com/u/1081640?s=30)](https://github.com/DavidBrear)
+[![Sergei Udris](https://avatars0.githubusercontent.com/u/19359748?s=30)](https://github.com/sergeiudris)
 
 ## The Calva Team
 
