@@ -305,9 +305,9 @@ export class NReplSession {
             stderr?: (x: string) => void,
             stdout?: (x: string) => void,
             pprintOptions: PrettyPrintingOptions
-        } = { 
-            pprintOptions: disabledPrettyPrinter
-        }) {
+        } = {
+                pprintOptions: disabledPrettyPrinter
+            }) {
 
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
@@ -326,13 +326,22 @@ export class NReplSession {
 
     complete(ns: string, symbol: string, context?: string) {
         return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
+            const id = this.client.nextId,
+                extraOpts = state.config().enableJSCompletions ? { "enhanced-cljs-completion?": "t" } : {};
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId, context })
-        })
+            this.client.write({
+                op: "complete",
+                ns,
+                symbol,
+                id,
+                session: this.sessionId,
+                context,
+                ...extraOpts
+            });
+        });
     }
 
     info(ns: string, symbol: string) {
