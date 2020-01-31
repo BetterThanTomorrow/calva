@@ -36,26 +36,29 @@ export class Lexer {
     private positions: Map<number, any[]> = new Map<number, any[]>();
 
     constructor(public source: string, public rules: Rule[]) {
-
-        this.rules.forEach(rule => {
-            rule.r.lastIndex = 0
-            let x = rule.r.exec(source);
-            while(x) {
-                if(x && x[0]) {
-                    x.input = undefined;
-                    x["rule"] = rule;
-                    let position =  rule.r.lastIndex - x[0].length;
-                    let values = this.positions.get(position);
-                    if(values) {
-                        values.push(x);
-                        this.positions.set(position,values);
-                    } else {
-                        this.positions.set(position, [x]);
+        if (source !== undefined && source.length < 20000) { // TODO: Consider using vscode setting for tokenisation max length
+            this.rules.forEach(rule => {
+                rule.r.lastIndex = 0
+                let x = rule.r.exec(source);
+                while (x) {
+                    if (x && x[0]) {
+                        x.input = undefined;
+                        x["rule"] = rule;
+                        let position = rule.r.lastIndex - x[0].length;
+                        let values = this.positions.get(position);
+                        if (values) {
+                            values.push(x);
+                            this.positions.set(position, values);
+                        } else {
+                            this.positions.set(position, [x]);
+                        }
                     }
+                    x = rule.r.exec(source);
                 }
-                x = rule.r.exec(source);
-            }
-        })
+            });
+        } else {
+            this.positions.set(0, [{ type: "long-line" }])
+        }
     }
 
     /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
@@ -78,20 +81,20 @@ export class Lexer {
         var token = null;
         var length = 0;
         let values = this.positions.get(this.position);
-        if(values) {
-            values.forEach( x => {
+        if (values) {
+            values.forEach(x => {
                 if (x && x[0].length > length) {
                     token = x["rule"].fn(this, x);
                     token.offset = this.position;
                     token.raw = x[0];
                     length = x[0].length;
                 }
-            }) 
+            })
         }
         return ([token, length]);
     }
 
-     private retrieve(): [Token, number] {
+    private retrieve(): [Token, number] {
         var token = null;
         var length = 0;
         this.rules.forEach(rule => {

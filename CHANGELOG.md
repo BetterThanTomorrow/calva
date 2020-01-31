@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Fix Printing to Calva REPL prints <repl#7> before each print out](https://github.com/BetterThanTomorrow/calva/issues/548)
+- [Fix Calva locking up when opening files with very long lines](https://github.com/BetterThanTomorrow/calva/issues/556)
 
 ## [2.0.74] - 2020-01-12
 - [Fix Windows documentation for Evaluate current form](https://github.com/BetterThanTomorrow/calva/issues/533)
