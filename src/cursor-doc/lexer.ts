@@ -57,7 +57,13 @@ export class Lexer {
                 }
             });
         } else {
-            this.positions.set(0, [{ type: "long-line" }])
+            this.positions.set(0, [{
+                0: source,
+                rule: { fn: (l, m) => ({ type: "too-long-line" }) },
+                length: source.length,
+                index: 0,
+                input: undefined
+            }]);
         }
     }
 
