@@ -2,6 +2,9 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.75] - 2020-02-01
+- [Support cljs-suitable JavaScript completion](https://github.com/BetterThanTomorrow/calva/issues/552)
 - [Fix Printing to Calva REPL prints <repl#7> before each print out](https://github.com/BetterThanTomorrow/calva/issues/548)
 - [Fix Calva locking up when opening files with very long lines](https://github.com/BetterThanTomorrow/calva/issues/556)
 

@@ -47,8 +47,8 @@ export function shadowBuilds(): string[] {
 }
 
 const NREPL_VERSION = "0.6.0",
-    CIDER_NREPL_VERSION = "0.22.4",
-    PIGGIEBACK_VERSION = "0.4.1",
+    CIDER_NREPL_VERSION = "0.23.0",
+    PIGGIEBACK_VERSION = "0.4.2",
     SIDECAR_VERSION = "0.5.18",
     FIGWHEEL_MAIN_VERSION = "0.2.3";
 
@@ -96,7 +96,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
         nReplPortFile: [".nrepl-port"],
-        /** Build the Commandline args for a lein-project. 
+        /** Build the Commandline args for a lein-project.
          * 1. Parsing the project.clj
          * 2. Let the user choose a alias
          * 3. Let the user choose profiles to use
@@ -220,7 +220,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         name: "Boot",
         cmd: "boot",
         winCmd: "boot.exe",
-        useWhenExists: "build.boot",      
+        useWhenExists: "build.boot",
         commandLine: () => {
             let out: string[] = [];
             for(let dep in cliDependencies)
@@ -237,7 +237,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         useWhenExists: "deps.edn",
         nReplPortFile: [".nrepl-port"],
         /** Build the Commandline args for a clj-project.
-         * 1. Read the deps.edn and parsed it 
+         * 1. Read the deps.edn and parsed it
          * 2. Present the user all found aliases
          * 3. Define needed dependencies and middlewares used by calva
          * 4. Check if the selected aliases have main-opts
@@ -274,8 +274,8 @@ const projectTypes: { [id: string]: ProjectType } = {
                 }
             }
 
-            const dependencies = { 
-                ...cliDependencies, 
+            const dependencies = {
+                ...cliDependencies,
                 ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
