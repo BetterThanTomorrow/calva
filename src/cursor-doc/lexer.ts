@@ -35,8 +35,8 @@ export class Lexer {
 
     private positions: Map<number, any[]> = new Map<number, any[]>();
 
-    constructor(public source: string, public rules: Rule[]) {
-        if (source !== undefined && source.length < 20000) { // TODO: Consider using vscode setting for tokenisation max length
+    constructor(public source: string, public rules: Rule[], maxLength) {
+        if (source !== undefined && source.length < maxLength) { // TODO: Consider using vscode setting for tokenisation max length
             this.rules.forEach(rule => {
                 rule.r.lastIndex = 0
                 let x = rule.r.exec(source);
@@ -142,7 +142,7 @@ export class LexicalGrammar {
     /**
      * Create a Lexer for the given input.
      */
-    lex(source: string): Lexer {
-        return new Lexer(source, this.rules)
+    lex(source: string, maxLength): Lexer {
+        return new Lexer(source, this.rules, maxLength)
     }
 }
