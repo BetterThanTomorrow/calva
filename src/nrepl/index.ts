@@ -200,7 +200,7 @@ export class NReplSession {
 
         if (msgValue && this.replType) {
             const outputChan = state.config().asyncOutputDestination;
-            let msgText = `<${this.replType}-repl#${msdId}>` + msgValue.replace(/\n\r?$/, "");
+            let msgText = msgValue.replace(/\n\r?$/, "");
 
             if (outputChan == "REPL Window") {
                 replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
@@ -306,8 +306,8 @@ export class NReplSession {
             stdout?: (x: string) => void,
             pprintOptions: PrettyPrintingOptions
         } = {
-                pprintOptions: disabledPrettyPrinter
-            }) {
+            pprintOptions: disabledPrettyPrinter
+        }) {
 
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {

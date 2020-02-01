@@ -505,7 +505,6 @@ function runStoredEvaluation() {
 }
 
 function showAsyncOutput(classname: string, id: string, text: string) {
-    text = `<repl#${id}>` + text;
     let el = document.createElement("div");
     el.innerHTML = ansi.toHtml(escapeHTML(text));
     el.className = classname;
