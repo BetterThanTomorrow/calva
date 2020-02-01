@@ -17,8 +17,8 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
     }
 }
 
-// include the 'file' and 'untitled' to the 
-// document selector. All other schemes are 
+// include the 'file' and 'untitled' to the
+// document selector. All other schemes are
 // not known and therefore not supported.
 const documentSelector = [
     { scheme: 'file', language: 'clojure' },
@@ -88,7 +88,7 @@ function reset() {
 /**
  * Trims EDN alias and profile names from any surrounding whitespace or `:` characters.
  * This in order to free the user from having to figure out how the name should be entered.
- * @param  {string} name 
+ * @param  {string} name
  * @return {string} The trimmed name
  */
 function _trimAliasName(name: string): string {
@@ -113,7 +113,8 @@ function config() {
         openREPLWindowOnConnect: configOptions.get("openREPLWindowOnConnect") as boolean,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
-        prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions
+        prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
+        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean
     };
 }
 
@@ -164,8 +165,8 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * Figures out, and stores, the current clojure project root
  * Also stores the WorkSpace folder for the project to be used
  * when executing the Task and get proper vscode reporting.
- * 
- * 1. If there is no file open in single-rooted workspaced use 
+ *
+ * 1. If there is no file open in single-rooted workspaced use
  *    the workspace folder as a starting point. In multi-rooted
  *    workspaces stop and complain.
  * 2. If there is a file open, use it to determine the project root
@@ -179,13 +180,13 @@ export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
           workspace = vscode.workspace.workspaceFolders![0],
           doc = util.getDocument({});
-          
-    // first try the workplace folder 
+
+    // first try the workplace folder
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
         if(vscode.workspace.workspaceFolders.length == 1) {
-           // this is only save in a one directory workspace 
-           // (aks "Open Folder") environment. 
+           // this is only save in a one directory workspace
+           // (aks "Open Folder") environment.
            workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
@@ -217,13 +218,13 @@ export async function initProjectDir(): Promise<void> {
             d = path.resolve(d, "..");
         }
 
-        // at least be sure the the root folder contains a 
-        // supported project. 
+        // at least be sure the the root folder contains a
+        // supported project.
         for (let projectFile in projectFileNames) {
             const p = path.resolve(rootPath, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
                 cursor.set(PROJECT_DIR_KEY, rootPath);
-                return; 
+                return;
             }
         }
         vscode.window.showErrorMessage("There was no valid project configuration found in the workspace. Please open a file in your Clojure project and try again. Aborting.");

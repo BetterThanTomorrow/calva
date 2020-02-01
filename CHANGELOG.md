@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Support cljs-suitable JavaScript completion](https://github.com/BetterThanTomorrow/calva/issues/552)
 - [Fix Printing to Calva REPL prints <repl#7> before each print out](https://github.com/BetterThanTomorrow/calva/issues/548)
 
 ## [2.0.74] - 2020-01-12
