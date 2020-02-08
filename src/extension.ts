@@ -257,13 +257,14 @@ class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvid
 	 */
 	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
 
-		// if launch.json is missing or empty
+		// If launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && editor.document.languageId === 'clojure') {
 				config.type = 'clojure';
 				config.name = 'Calva Debug';
-				config.request = 'launch';
+                config.request = 'attach';
+                config.port = 5555;
 			}
 		}
 
