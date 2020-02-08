@@ -55,7 +55,8 @@
         "onCommand:calva.connectNonProjectREPL",
         "workspaceContains:**/project.clj",
         "workspaceContains:**/shadow-cljs.edn",
-        "workspaceContains:**/deps.edn"
+        "workspaceContains:**/deps.edn",
+        "onDebugResolve:type"
     ],
     "main": "./out/extension",
     "extensionPack": [
@@ -72,7 +73,14 @@
                 "type": "clojure",
                 "label": "Calva Debug",
                 "program": "./out/debugAdapter.js",
-                "runtime": "node"
+                "runtime": "node",
+                "initialConfigurations": [
+                    {
+                        "type": "clojure",
+                        "name": "Calva Debug",
+                        "request": "launch"
+                    }
+                ]
             }
         ],
         "languages": [

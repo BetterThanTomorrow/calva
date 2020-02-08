@@ -23,6 +23,9 @@ import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
+import * as Net from 'net';
+import { CalvaDebugSession } from './calvaDebug';
+import { WorkspaceFolder, CancellationToken, DebugConfiguration, ProviderResult } from 'vscode';
 
 function onDidSave(document) {
     let {
@@ -190,6 +193,16 @@ function activate(context: vscode.ExtensionContext) {
         statusbar.update();
     }));
 
+    // Debugger setup
+    const debuggerType = 'clojure';
+    const provider = new CalvaDebugConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(debuggerType, provider));
+    const factory = new CalvaDebugAdapterDescriptorFactory();
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(debuggerType, factory));
+    if ('dispose' in factory) {
+        context.subscriptions.push(factory);
+    }
+
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
     greetings.activationGreetings(chan);
@@ -234,6 +247,54 @@ function deactivate() {
     state.analytics().logEvent("LifeCycle", "Dectivated").send();
     jackIn.calvaJackout();
     paredit.deactivate()
+}
+
+class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
+
+	/**
+	 * Massage a debug configuration just before a debug session is being launched,
+	 * e.g. add all missing attributes to the debug configuration.
+	 */
+	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+
+		// if launch.json is missing or empty
+		if (!config.type && !config.request && !config.name) {
+			const editor = vscode.window.activeTextEditor;
+			if (editor && editor.document.languageId === 'clojure') {
+				config.type = 'clojure';
+				config.name = 'Calva Debug';
+				config.request = 'launch';
+			}
+		}
+
+		return config;
+	}
+}
+
+class CalvaDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptorFactory {
+
+	private server?: Net.Server;
+
+	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+
+		if (!this.server) {
+			// start listening on a random port (0 means an arbitrary unused port will be used)
+			this.server = Net.createServer(socket => {
+				const session = new CalvaDebugSession();
+				session.setRunAsServer(true);
+				session.start(<NodeJS.ReadableStream>socket, socket);
+			}).listen(0);
+		}
+
+		// make VS Code connect to debug server
+		return new vscode.DebugAdapterServer(this.server.address().port);
+	}
+
+	dispose() {
+		if (this.server) {
+			this.server.close();
+		}
+	}
 }
 
 
