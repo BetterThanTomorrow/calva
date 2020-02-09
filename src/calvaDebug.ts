@@ -65,7 +65,7 @@ class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
 		if (!config.type && !config.request && !config.name) {
 			const editor = window.activeTextEditor;
 			if (editor && editor.document.languageId === 'clojure') {
-				config = {...config, CALVA_DEBUG_CONFIGURATION};
+				config = {...config, ...CALVA_DEBUG_CONFIGURATION};
 			}
 		}
 
