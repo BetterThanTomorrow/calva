@@ -1,5 +1,8 @@
-import { LoggingDebugSession, InitializedEvent } from 'vscode-debugadapter';
+import { LoggingDebugSession, InitializedEvent, TerminatedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { cljSession } from './connector';
+import { NReplSession } from './nrepl';
+import { window } from 'vscode';
 
 export class CalvaDebugSession extends LoggingDebugSession {
     public constructor() {
@@ -11,6 +14,13 @@ export class CalvaDebugSession extends LoggingDebugSession {
 	 * to interrogate the features the debug adapter provides.
 	 */
     protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+
+        const nreplSession: NReplSession = cljSession;
+        if (!nreplSession) {
+            window.showInformationMessage('You must be connected to a Clojure REPL to use debugging.');
+            this.sendEvent(new TerminatedEvent());
+            return;
+        }
         
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
         this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
@@ -29,9 +39,12 @@ export class CalvaDebugSession extends LoggingDebugSession {
         this.sendEvent(new InitializedEvent());
     }
 
-    protected attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments) {
-        console.log('ATTACH REQUEST RECEIVED');
-        console.log('AttachResponse', response);
+    protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments) {
+        
+        const nreplSession: NReplSession = cljSession;
+        
+        const res = nreplSession.eval('(+ 2 2)');
+        const value = await res.value;
 
         this.sendResponse(response);
     }

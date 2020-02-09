@@ -78,8 +78,7 @@
                     {
                         "type": "clojure",
                         "name": "Calva Debug",
-                        "request": "attach",
-                        "port": 5555
+                        "request": "attach"
                     }
                 ]
             }

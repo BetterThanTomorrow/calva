@@ -264,7 +264,6 @@ class CalvaDebugConfigurationProvider implements vscode.DebugConfigurationProvid
 				config.type = 'clojure';
 				config.name = 'Calva Debug';
                 config.request = 'attach';
-                config.port = 5555;
 			}
 		}
 

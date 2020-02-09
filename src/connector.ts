@@ -59,8 +59,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         util.setConnectingState(false);
         util.setConnectedState(true);
         state.analytics().logEvent("REPL", "ConnectedCLJ").send();
-        state.cursor.set('clj', cljSession)
-        state.cursor.set('cljc', cljSession)
+        state.cursor.set('clj', cljSession);
+        state.cursor.set('cljc', cljSession);
         status.update();
 
         createAndConnectReplWindow(cljSession, "clj");
