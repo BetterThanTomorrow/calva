@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
 
 ## [2.0.75] - 2020-02-01
 - [Support cljs-suitable JavaScript completion](https://github.com/BetterThanTomorrow/calva/issues/552)
