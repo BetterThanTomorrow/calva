@@ -200,7 +200,7 @@ export class NReplSession {
 
         if (msgValue && this.replType) {
             const outputChan = state.config().asyncOutputDestination;
-            let msgText = `<${this.replType}-repl#${msdId}>` + msgValue.replace(/\n\r?$/, "");
+            let msgText = msgValue.replace(/\n\r?$/, "");
 
             if (outputChan == "REPL Window") {
                 replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
@@ -305,7 +305,7 @@ export class NReplSession {
             stderr?: (x: string) => void,
             stdout?: (x: string) => void,
             pprintOptions: PrettyPrintingOptions
-        } = { 
+        } = {
             pprintOptions: disabledPrettyPrinter
         }) {
 
@@ -326,13 +326,22 @@ export class NReplSession {
 
     complete(ns: string, symbol: string, context?: string) {
         return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
+            const id = this.client.nextId,
+                extraOpts = state.config().enableJSCompletions ? { "enhanced-cljs-completion?": "t" } : {};
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId, context })
-        })
+            this.client.write({
+                op: "complete",
+                ns,
+                symbol,
+                id,
+                session: this.sessionId,
+                context,
+                ...extraOpts
+            });
+        });
     }
 
     info(ns: string, symbol: string) {

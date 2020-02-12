@@ -4,7 +4,10 @@ var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html");
 import * as paredit from "./cursor-doc/paredit";
-import { ModelEdit, ModelEditSelection } from "./cursor-doc/model";
+import { ModelEdit, ModelEditSelection, initScanner } from "./cursor-doc/model";
+
+const MAX_LINE_TOKENIZATION_LENGTH = 20000;
+initScanner(MAX_LINE_TOKENIZATION_LENGTH);
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
@@ -82,7 +85,7 @@ function makeSpan(className: string, text: string) {
     return td;
 }
 
-let scanner = new lexer.Scanner();
+let scanner = new lexer.Scanner(MAX_LINE_TOKENIZATION_LENGTH);
 
 function createStackTrace(exception: any) {
     let div = document.createElement("div");
@@ -505,7 +508,6 @@ function runStoredEvaluation() {
 }
 
 function showAsyncOutput(classname: string, id: string, text: string) {
-    text = `<repl#${id}>` + text;
     let el = document.createElement("div");
     el.innerHTML = ansi.toHtml(escapeHTML(text));
     el.className = classname;

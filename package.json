@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.75",
+    "version": "2.0.76",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -491,6 +491,11 @@
                                 }
                             }
                         }
+                    },
+                    "calva.enableJSCompletions": {
+                        "type": "boolean",
+                        "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
+                        "default": true
                     }
                 }
             },
@@ -1716,7 +1721,7 @@
         "lodash": "^4.17.14",
         "lodash.isequal": "4.5.0",
         "net": "1.0.2",
-        "npm": "^6.13.4",
+        "npm": "^6.13.7",
         "open": "^6.3.0",
         "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
