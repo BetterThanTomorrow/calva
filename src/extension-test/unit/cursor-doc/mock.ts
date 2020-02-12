@@ -1,9 +1,10 @@
 import * as model from '../../../cursor-doc/model';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor'
 
+model.initScanner(20000);
 
 export class MockDocument implements model.EditableDocument {
-    selectionLeft: number; 
+    selectionLeft: number;
     selectionRight: number;
 
     get selection() {
@@ -31,5 +32,5 @@ export class MockDocument implements model.EditableDocument {
 
     delete: () => void;
 
-    backspace: () => void;   
+    backspace: () => void;
 }

@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix Calva locking up when opening files with very long lines](https://github.com/BetterThanTomorrow/calva/issues/556)
 
 ## [2.0.75] - 2020-02-01
 - [Support cljs-suitable JavaScript completion](https://github.com/BetterThanTomorrow/calva/issues/552)
