@@ -97,8 +97,7 @@ export class NReplClient {
                     if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
                         state.cursor.set('debug-input-key', data['key']);
                         state.cursor.set('debug-locals', data['locals']);
-                        const debugNreplSessionId = data['session'];
-                        client.sessions[debugNreplSessionId] = new NReplSession(debugNreplSessionId, client);
+                        state.cursor.set('debug-clj-session', new NReplSession(data['session'], client));
                     }
 
                     if (!client.describe && data["id"] == describeId) {
