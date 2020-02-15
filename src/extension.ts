@@ -24,6 +24,7 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './calvaDebug';
+import * as model from './cursor-doc/model';
 
 function onDidSave(document) {
     let {
@@ -57,6 +58,8 @@ function onDidOpen(document) {
 function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
+
+    model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
 
     const chan = state.outputChannel();
 
@@ -159,7 +162,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
-        
+
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
