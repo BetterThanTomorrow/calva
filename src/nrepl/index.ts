@@ -93,7 +93,14 @@ export class NReplClient {
                 let describeId = client.nextId;
 
                 client.decoder.on("data", data => {
-                    //console.log("-> ", data);
+
+                    if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
+                        state.cursor.set('debug-input-key', data['key']);
+                        state.cursor.set('debug-locals', data['locals']);
+                        const debugNreplSessionId = data['session'];
+                        client.sessions[debugNreplSessionId] = new NReplSession(debugNreplSessionId, client);
+                    }
+
                     if (!client.describe && data["id"] == describeId) {
                         client.describe = data;
                     } else if (data["id"] == nsId) {
@@ -110,7 +117,7 @@ export class NReplClient {
                         if (session)
                             session._response(data);
                     }
-                })
+                });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
             });
@@ -306,8 +313,8 @@ export class NReplSession {
             stdout?: (x: string) => void,
             pprintOptions: PrettyPrintingOptions
         } = {
-            pprintOptions: disabledPrettyPrinter
-        }) {
+                pprintOptions: disabledPrettyPrinter
+            }) {
 
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
@@ -486,8 +493,7 @@ export class NReplSession {
                 return true;
             }
             this.client.write({ op: "format-code", code, options })
-        })
-
+        });
     }
 
     interruptAll(): number {
@@ -506,6 +512,15 @@ export class NReplSession {
             return (ids.length);
         }
         return (0);
+    }
+
+    initDebugger(): void {
+        const id = this.client.nextId;
+        this.messageHandlers[id] = (msg) => {
+            console.log(msg);
+            return true;
+        };
+        this.client.write({ op: "init-debugger", id });
     }
 }
 

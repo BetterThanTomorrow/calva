@@ -46,6 +46,12 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments) {
+		
+		const cljSession = util.getSession('clj');
+
+		if (cljSession) {
+			cljSession.initDebugger();
+		}
 
         this.sendResponse(response);
     }
@@ -82,9 +88,9 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 		if (!this.server) {
 			// start listening on a random port (0 means an arbitrary unused port will be used)
 			this.server = Net.createServer(socket => {
-				const session = new CalvaDebugSession();
-				session.setRunAsServer(true);
-				session.start(<NodeJS.ReadableStream>socket, socket);
+				const debugSession = new CalvaDebugSession();
+				debugSession.setRunAsServer(true);
+				debugSession.start(<NodeJS.ReadableStream>socket, socket);
 			}).listen(0);
 		}
 
