@@ -3,6 +3,8 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
 import * as util from './utilities';
 import * as Net from 'net';
+import * as state from './state';
+import { NReplSession } from './nrepl';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -45,7 +47,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendEvent(new InitializedEvent());
     }
 
-    protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments) {
+    protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 		
 		const cljSession = util.getSession('clj');
 
@@ -54,7 +56,18 @@ class CalvaDebugSession extends LoggingDebugSession {
 		}
 
         this.sendResponse(response);
-    }
+	}
+	
+	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
+
+		const cljSession = util.getSession('clj');
+
+		if (cljSession) {
+			cljSession.sendDebugInput('quit');
+		}
+
+		this.sendResponse(response);
+	}
 }
 
 CalvaDebugSession.run(CalvaDebugSession);
@@ -105,8 +118,18 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 	}
 }
 
+function handleDebugResponse(response: any): void {
+	state.cursor.set('debug-response', response);
+    // const debugCljSession: NReplSession = state.deref().get('debug-clj-session');
+    // const incomingDebugSessionId = response['session'];
+    // if (!debugCljSession || debugCljSession.sessionId !== incomingDebugSessionId) {
+    //     state.cursor.set('debug-clj-session', new NReplSession(incomingDebugSessionId, client));
+    // }
+}
+
 export {
     CALVA_DEBUG_CONFIGURATION,
     CalvaDebugConfigurationProvider,
-    CalvaDebugAdapterDescriptorFactory
+	CalvaDebugAdapterDescriptorFactory,
+	handleDebugResponse
 };

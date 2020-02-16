@@ -5,6 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
+import { handleDebugResponse } from '../calvaDebug';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -95,9 +96,7 @@ export class NReplClient {
                 client.decoder.on("data", data => {
 
                     if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
-                        state.cursor.set('debug-input-key', data['key']);
-                        state.cursor.set('debug-locals', data['locals']);
-                        state.cursor.set('debug-clj-session', new NReplSession(data['session'], client));
+                        handleDebugResponse(data);
                     }
 
                     if (!client.describe && data["id"] == describeId) {
@@ -520,6 +519,17 @@ export class NReplSession {
             return true;
         };
         this.client.write({ op: "init-debugger", id });
+    }
+
+    sendDebugInput(input: string, key?: string): Promise<any> {
+        return new Promise<any>((resolve, _) => {
+            const id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "debug-input", id, input, key});
+        });
     }
 }
 
