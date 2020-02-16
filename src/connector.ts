@@ -63,6 +63,10 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('cljc', cljSession);
         status.update();
 
+        // Initialize debugger
+        cljSession.initDebugger();
+        chan.appendLine('Debugger initialized');
+
         createAndConnectReplWindow(cljSession, "clj");
         if (connectSequence.afterCLJReplJackInCode) {
             state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");

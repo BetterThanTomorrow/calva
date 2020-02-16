@@ -95,6 +95,8 @@ export class NReplClient {
 
                 client.decoder.on("data", data => {
 
+                    console.log(data['id'], data);
+
                     if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
                         handleDebugResponse(data);
                     }
@@ -514,10 +516,6 @@ export class NReplSession {
 
     initDebugger(): void {
         const id = this.client.nextId;
-        this.messageHandlers[id] = (msg) => {
-            console.log(msg);
-            return true;
-        };
         this.client.write({ op: "init-debugger", id });
     }
 
@@ -528,7 +526,11 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "debug-input", id, input, key});
+            const data:any = { op: "debug-input", id, input };
+            if (key) {
+                data.key = key;
+            }
+            this.client.write(data);
         });
     }
 }

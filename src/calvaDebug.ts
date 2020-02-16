@@ -1,10 +1,9 @@
 import { LoggingDebugSession, InitializedEvent, TerminatedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
+import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
 import * as util from './utilities';
 import * as Net from 'net';
 import * as state from './state';
-import { NReplSession } from './nrepl';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -49,12 +48,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 		
-		const cljSession = util.getSession('clj');
-
-		if (cljSession) {
-			cljSession.initDebugger();
-		}
-
         this.sendResponse(response);
 	}
 	
@@ -120,11 +113,10 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 
 function handleDebugResponse(response: any): void {
 	state.cursor.set('debug-response', response);
-    // const debugCljSession: NReplSession = state.deref().get('debug-clj-session');
-    // const incomingDebugSessionId = response['session'];
-    // if (!debugCljSession || debugCljSession.sessionId !== incomingDebugSessionId) {
-    //     state.cursor.set('debug-clj-session', new NReplSession(incomingDebugSessionId, client));
-    // }
+	
+	if (!debug.activeDebugSession) {
+		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+	}
 }
 
 export {

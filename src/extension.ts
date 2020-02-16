@@ -194,7 +194,7 @@ function activate(context: vscode.ExtensionContext) {
         statusbar.update();
     }));
 
-    // Clojure debugger setup
+    // Clojure debug adapter setup
     const provider = new CalvaDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(CALVA_DEBUG_CONFIGURATION.type, provider));
     const factory = new CalvaDebugAdapterDescriptorFactory();
