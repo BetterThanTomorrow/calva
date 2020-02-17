@@ -24,20 +24,18 @@ let toplevel = new LexicalGrammar()
  * @param close
  */
 export function validPair(open: string, close: string): boolean {
-    let valid = false;
+    const openBracket = open[open.length - 1],
     switch (close) {
         case ')':
-            return open.endsWith("(");
+            return openBracket === '(';
         case ']':
-            return open.endsWith("[");
+            return openBracket === '[';
         case '}':
-            return open.endsWith("{");
+            return openBracket === '{';
         case '"':
-            return open.endsWith('"');
-        default:
-            break;
+            return openBracket === '"';
     };
-    return valid;
+    return false;
 }
 
 export interface Token extends LexerToken {

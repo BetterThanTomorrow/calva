@@ -3,21 +3,9 @@ import { Position, Range } from 'vscode';
 import * as isEqual from 'lodash.isequal';
 import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror'
-import { Token } from '../../cursor-doc/clojure-lexer';
+import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 
 export function activate(context: vscode.ExtensionContext) {
-  const pairs = [["(",   ")"],
-                 ["[",   "]"],
-                 ["{",   "}"],
-                 ["#(",  ")"],
-                 ["#{",  "}"],
-                 ["#?(", ")"],
-                 ["#?@(",")"]];
-  const pairings = {};
-  pairs.forEach(pair => {
-    const [o,c]   = pair;
-    pairings[o+c] = true;
-  });
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -187,12 +175,10 @@ export function activate(context: vscode.ExtensionContext) {
         continue;
       } else if (token.type === 'str-inside') {
          continue;
-      } else if (char.endsWith('"') && (token.type === 'open' || token.type === 'close')) {
-        continue;
       } else if (char === ";") {
         in_comment = true;
         continue;
-      } else if (char.startsWith("#_")) {
+      } else if (char.startsWith('#_')) {
         if (ignore_counter == 0) {
           ignore_start = activeEditor.document.positionAt(tokenCursor.offsetStart);
         }
@@ -209,20 +195,22 @@ export function activate(context: vscode.ExtensionContext) {
         }
         ignore_pushed_by_closing = false;
         continue;
+      } else if (char.endsWith('"') && (token.type === 'open' || token.type === 'close')) {
+        continue;
       } else {
+        const charLength = char.length;
         if (!in_comment_form && char === "comment") {
           const peekCursor = tokenCursor.clone();
           peekCursor.backwardWhitespace();
-          if (peekCursor.getPrevToken().type === 'open') {
+          if (peekCursor.getPrevToken().raw === '(') {
             in_comment_form = true;
             stack[stack.length - 1].opens_comment_form = true;
           }
         }
         if (token.type === 'open') {
-          const len = char.length,
-            pos = activeEditor.document.positionAt(tokenCursor.offsetStart);
+          const pos = activeEditor.document.positionAt(tokenCursor.offsetStart);
           if (colorsEnabled) {
-            const decoration = { range: new Range(pos, pos.translate(0, len)) };
+            const decoration = { range: new Range(pos, pos.translate(0, charLength)) };
             rainbow[colorIndex(stack_depth)].push(decoration);
           }
           ++stack_depth;
@@ -239,20 +227,18 @@ export function activate(context: vscode.ExtensionContext) {
           while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
             pair_idx = stack[pair_idx].pair_idx - 1;
           }
-
-          const open: string = stack[pair_idx].char[stack[pair_idx].char.length - 1];
-          if (pair_idx === undefined || pair_idx < 0 || !pairings[open + char]) {
+          if (pair_idx === undefined || pair_idx < 0 || !validPair(stack[pair_idx].char, char)) {
             misplaced.push(decoration);
           } else {
             let pair = stack[pair_idx],
-              closing = new Range(pos, pos.translate(0, char.length)),
+              closing = new Range(pos, pos.translate(0, charLength)),
               opening = new Range(pair.pos, pair.pos.translate(0, pair.char.length));
             if (in_comment_form && pair.opens_comment_form) {
-              comment_forms.push(new Range(pair.pos, pos.translate(0, char.length)));
+              comment_forms.push(new Range(pair.pos, pos.translate(0, charLength)));
               in_comment_form = false;
             }
             if (ignore_counter > 0 && (pair.opens_ignore || !ignored_list_opened)) {
-              const ignore_end = ignored_list_opened ? pos.translate(0, char.length) : pos;
+              const ignore_end = ignored_list_opened ? pos.translate(0, charLength) : pos;
               ignore_counter--;
               ignores.push(new Range(ignore_start, ignore_end));
               ignored_list_opened = false;
@@ -260,7 +246,7 @@ export function activate(context: vscode.ExtensionContext) {
               ignore_pushed_by_closing = true;
             }
             stack.push({ char: char, pos: pos, pair_idx: pair_idx });
-            for (let i = 0; i < char.length; ++i)
+            for (let i = 0; i < charLength; ++i)
               pairsBack.set(position_str(pos.translate(0, i)), [opening, closing]);
             for (let i = 0; i < pair.char.length; ++i)
               pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
