@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { Position, Range } from 'vscode';
 import * as isEqual from 'lodash.isequal';
 import { isArray } from 'util';
+import * as docMirror from '../../doc-mirror'
+import { Token } from '../../cursor-doc/clojure-lexer';
 
 export function activate(context: vscode.ExtensionContext) {
   const pairs = [["(",   ")"],
@@ -11,18 +13,11 @@ export function activate(context: vscode.ExtensionContext) {
                  ["#{",  "}"],
                  ["#?(", ")"],
                  ["#?@(",")"]];
-  const opening  = {},
-        closing  = {},
-        pairings = {},
-        tokens   = ['"', "\\.", ";"];
+  const pairings = {};
   pairs.forEach(pair => {
     const [o,c]   = pair;
-    opening[o]    = true;
-    closing[c]    = true;
     pairings[o+c] = true;
-    tokens.push(o, c);
   });
-  const regexp = new RegExp("(#_[\\s,~@'^`]*|(?<=\\(\\s*)comment(?=\\s)|[\\s,]+|" + tokens.map(t => t.replace(/[\\()\[\]{}?]/g, "\\$&")).join("|") + ")", "g");
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
   function is_clojure(editor) { return !!editor && editor.document.languageId === "clojure"; }
 
@@ -160,8 +155,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (dirty) reset_styles();
 
+    const t1 = new Date();
+
     const doc           = activeEditor.document,
-          text          = doc.getText(),
+          tokenCursor   = docMirror.getDocument(doc).getTokenCursor(0),
           rainbow       = rainbowTypes.map(()=>[]),
           misplaced     = [],
           comment_forms = [],
@@ -170,9 +167,7 @@ export function activate(context: vscode.ExtensionContext) {
           colorsEnabled = enableBracketColors && len > 0,
           colorIndex    = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len-1));
 
-    let match,
-        in_string = false,
-        in_comment = false,
+    let in_comment = false,
         ignore_counter = 0,
         ignore_start: Position,
         ignored_text_start: Position,
@@ -183,46 +178,49 @@ export function activate(context: vscode.ExtensionContext) {
         stack_depth = 0;
     pairsBack = new Map();
     pairsForward = new Map();
-    regexp.lastIndex = 0;
-    while (match = regexp.exec(text)) {
-      let char: string = match[0];
+    do {
+      const token: Token = tokenCursor.getToken(),
+        char: string = token.raw;
       if (in_comment) {
         if (char.includes("\n")) { in_comment = false; continue; }
       } else if (char[0] === "\\") {
         continue;
-      } else if (in_string) {
-        if (char === "\"") { in_string = false; continue; }
+      } else if (token.type === 'str-inside') {
+         continue;
+      } else if (char.endsWith('"') && (token.type === 'open' || token.type === 'close')) {
+        continue;
       } else if (char === ";") {
         in_comment = true;
         continue;
-      } else if (char === "\"") {
-        in_string = true;
-        continue;
       } else if (char.startsWith("#_")) {
         if (ignore_counter == 0) {
-          ignore_start = activeEditor.document.positionAt(match.index);
+          ignore_start = activeEditor.document.positionAt(tokenCursor.offsetStart);
         }
-        ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
+        ignored_text_start = activeEditor.document.positionAt(tokenCursor.offsetEnd);
         ignore_counter++
         continue;
-      } else if (char.match(/^[\s,]+$/)) {
+      } else if (token.type === 'ws') {
         if (ignore_counter > 0 && !ignored_list_opened) {
-          ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
+          ignored_text_start = activeEditor.document.positionAt(tokenCursor.offsetEnd);
           if (!ignore_pushed_by_closing) {
             ignore_counter--;
-            ignores.push(new Range(ignore_start, activeEditor.document.positionAt(match.index)));
+            ignores.push(new Range(ignore_start, activeEditor.document.positionAt(tokenCursor.offsetStart)));
           }
         }
         ignore_pushed_by_closing = false;
         continue;
       } else {
-        if (!in_comment_form && char === "comment" && stack[stack.length - 1].char === "(") {
-          in_comment_form = true;
-          stack[stack.length - 1].opens_comment_form = true;
+        if (!in_comment_form && char === "comment") {
+          const peekCursor = tokenCursor.clone();
+          peekCursor.backwardWhitespace();
+          if (peekCursor.getPrevToken().type === 'open') {
+            in_comment_form = true;
+            stack[stack.length - 1].opens_comment_form = true;
+          }
         }
-        if (opening[char]) {
+        if (token.type === 'open') {
           const len = char.length,
-            pos = activeEditor.document.positionAt(match.index);
+            pos = activeEditor.document.positionAt(tokenCursor.offsetStart);
           if (colorsEnabled) {
             const decoration = { range: new Range(pos, pos.translate(0, len)) };
             rainbow[colorIndex(stack_depth)].push(decoration);
@@ -234,14 +232,16 @@ export function activate(context: vscode.ExtensionContext) {
           }
           stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false, opens_ignore: opens_ignore });
           continue;
-        } else if (closing[char]) {
-          const pos = activeEditor.document.positionAt(match.index),
+        } else if (token.type === 'close') {
+          const pos = activeEditor.document.positionAt(tokenCursor.offsetStart),
             decoration = { range: new Range(pos, pos.translate(0, 1)) };
           var pair_idx = stack.length - 1;
           while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
             pair_idx = stack[pair_idx].pair_idx - 1;
           }
-          if (pair_idx === undefined || pair_idx < 0 || !pairings[stack[pair_idx].char + char]) {
+
+          const open: string = stack[pair_idx].char[stack[pair_idx].char.length - 1];
+          if (pair_idx === undefined || pair_idx < 0 || !pairings[open + char]) {
             misplaced.push(decoration);
           } else {
             let pair = stack[pair_idx],
@@ -256,7 +256,7 @@ export function activate(context: vscode.ExtensionContext) {
               ignore_counter--;
               ignores.push(new Range(ignore_start, ignore_end));
               ignored_list_opened = false;
-              ignored_text_start = activeEditor.document.positionAt(match.index + char.length);
+              ignored_text_start = activeEditor.document.positionAt(tokenCursor.offsetEnd);
               ignore_pushed_by_closing = true;
             }
             stack.push({ char: char, pos: pos, pair_idx: pair_idx });
@@ -270,7 +270,10 @@ export function activate(context: vscode.ExtensionContext) {
           continue;
         }
       }
-    }
+    } while (tokenCursor.next());
+
+    console.log("Highlight parsing took: ", new Date().valueOf() - t1.valueOf());
+
     for (var i=0; i<rainbowTypes.length; ++i) {
       activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
     }
