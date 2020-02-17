@@ -111,12 +111,14 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 	}
 }
 
-function handleDebugResponse(response: any): void {
+function handleDebugResponse(response: any): boolean {
 	state.cursor.set('debug-response', response);
 	
 	if (!debug.activeDebugSession) {
 		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
 	}
+
+	return false;
 }
 
 export {

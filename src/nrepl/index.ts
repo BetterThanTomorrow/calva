@@ -97,9 +97,9 @@ export class NReplClient {
 
                     console.log(data['id'], data);
 
-                    if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
-                        handleDebugResponse(data);
-                    }
+                    // if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
+                    //     handleDebugResponse(data);
+                    // }
 
                     if (!client.describe && data["id"] == describeId) {
                         client.describe = data;
@@ -514,9 +514,10 @@ export class NReplSession {
         return (0);
     }
 
-    initDebugger(): void {
+    initDebugger(debugHandler: (response: any) => boolean): void {
         const id = this.client.nextId;
-        this.client.write({ op: "init-debugger", id });
+        this.messageHandlers[id] = debugHandler;
+        this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
     sendDebugInput(input: string, key?: string): Promise<any> {
@@ -526,7 +527,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            const data:any = { op: "debug-input", id, input };
+            const data:any = { op: "debug-input", id, input, session: this.sessionId };
             if (key) {
                 data.key = key;
             }
