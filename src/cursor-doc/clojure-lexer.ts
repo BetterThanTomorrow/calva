@@ -24,7 +24,7 @@ let toplevel = new LexicalGrammar()
  * @param close
  */
 export function validPair(open: string, close: string): boolean {
-    const openBracket = open[open.length - 1],
+    const openBracket = open[open.length - 1];
     switch (close) {
         case ')':
             return openBracket === '(';
