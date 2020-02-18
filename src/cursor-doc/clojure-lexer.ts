@@ -55,7 +55,7 @@ toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
-toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
+toplevel.terminal(/~@|~|'|#'|#:|#_\s*|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
 toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
@@ -65,7 +65,7 @@ toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, 
 toplevel.terminal(/(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all
 // TODO: Figure out why we can't allow `'` in the symbol name
-toplevel.terminal(/(['`~#^@]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
