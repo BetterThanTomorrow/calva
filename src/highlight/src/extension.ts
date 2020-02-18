@@ -216,6 +216,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
           }
           ignore_pushed_by_closing = false;
+          while (['ws', 'eol'].includes(cursor.getToken().type)) {
+            cursor.forwardWhitespace();
+          }
+          cursor.previous();
           continue;
         } else {
           const charLength = char.length;
