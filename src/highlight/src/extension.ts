@@ -190,6 +190,8 @@ export function activate(context: vscode.ExtensionContext) {
           char: string = token.raw;
         if (in_comment) {
           if (char.includes("\n")) { in_comment = false; continue; }
+        } else if (token.type === 'str-inside') {
+          continue;
         } else if (char[0] === "\\") {
           continue;
         } else if (char.startsWith('#_')) {
@@ -198,8 +200,6 @@ export function activate(context: vscode.ExtensionContext) {
           }
           ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
           ignore_counter++
-          continue;
-        } else if (token.type === 'str-inside') {
           continue;
         } else if (char === ";") {
           in_comment = true;
@@ -214,8 +214,6 @@ export function activate(context: vscode.ExtensionContext) {
           }
           ignore_pushed_by_closing = false;
           continue;
-        } else if (char.endsWith('"') && (token.type === 'open' || token.type === 'close')) {
-          continue;
         } else {
           const charLength = char.length;
           if (!in_comment_form && char === "comment") {
@@ -228,7 +226,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
           if (token.type === 'open') {
             const pos = activeEditor.document.positionAt(cursor.offsetStart);
-            if (colorsEnabled) {
+            if (colorsEnabled && char !== '"') {
               const decoration = { range: new Range(pos, pos.translate(0, charLength)) };
               rainbow[colorIndex(stack_depth)].push(decoration);
             }
@@ -270,7 +268,9 @@ export function activate(context: vscode.ExtensionContext) {
               for (let i = 0; i < pair.char.length; ++i)
                 pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
               --stack_depth;
-              if (colorsEnabled) rainbow[colorIndex(stack_depth)].push(decoration);
+              if (colorsEnabled && char !== '"') {
+                rainbow[colorIndex(stack_depth)].push(decoration);
+              }
             }
             continue;
           }
