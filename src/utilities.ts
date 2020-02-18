@@ -440,12 +440,13 @@ function debounce(func, wait, immediate) {
     };
 };
 
-function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[]): vscode.Range[] {
+function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], combine = true): vscode.Range[] {
     let filtered: vscode.Range[] = [];
     editor.visibleRanges.forEach(visibleRange => {
-        filtered = [].concat(filtered, ranges.filter(r => {
+        const visibles = ranges.filter(r => {
             return visibleRange.contains(r.start) || visibleRange.contains(r.end) || r.contains(visibleRange);
-        }));
+        });
+        filtered = [].concat(filtered, combine ? [new vscode.Range(visibles[0].start, visibles[visibles.length - 1].end)] : visibles);
     });
     return filtered;
 }
