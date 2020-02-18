@@ -192,17 +192,17 @@ export function activate(context: vscode.ExtensionContext) {
           if (char.includes("\n")) { in_comment = false; continue; }
         } else if (char[0] === "\\") {
           continue;
-        } else if (token.type === 'str-inside') {
-          continue;
-        } else if (char === ";") {
-          in_comment = true;
-          continue;
         } else if (char.startsWith('#_')) {
           if (ignore_counter == 0) {
             ignore_start = activeEditor.document.positionAt(cursor.offsetStart);
           }
           ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
           ignore_counter++
+          continue;
+        } else if (token.type === 'str-inside') {
+          continue;
+        } else if (char === ";") {
+          in_comment = true;
           continue;
         } else if (token.type === 'ws') {
           if (ignore_counter > 0 && !ignored_list_opened) {
