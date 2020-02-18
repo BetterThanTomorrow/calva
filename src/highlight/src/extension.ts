@@ -184,15 +184,21 @@ export function activate(context: vscode.ExtensionContext) {
     visibleTopLevelRanges.forEach(range => {
       const rangeStart = doc.offsetAt(range.start),
         rangeEnd = doc.offsetAt(range.end),
-        cursor = docMirror.getDocument(doc).getTokenCursor(rangeStart);
+        cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(rangeStart);
+      do {
+        cursor.backwardSexp()
+      } while (!cursor.atStart() && !cursor.getToken().raw.startsWith('#_'));
       do {
         const token: Token = cursor.getToken(),
           char: string = token.raw;
         if (in_comment) {
           if (char.includes("\n")) { in_comment = false; continue; }
+        } else if (char[0] === "\\") {
+          continue;
         } else if (token.type === 'str-inside') {
           continue;
-        } else if (char[0] === "\\") {
+        } else if (char === ";") {
+          in_comment = true;
           continue;
         } else if (char.startsWith('#_')) {
           if (ignore_counter == 0) {
@@ -201,10 +207,7 @@ export function activate(context: vscode.ExtensionContext) {
           ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
           ignore_counter++
           continue;
-        } else if (char === ";") {
-          in_comment = true;
-          continue;
-        } else if (token.type === 'ws') {
+        } else if (token.type === 'ws' || token.type === 'eol') {
           if (ignore_counter > 0 && !ignored_list_opened) {
             ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
             if (!ignore_pushed_by_closing) {
