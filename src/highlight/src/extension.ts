@@ -211,33 +211,6 @@ export function activate(context: vscode.ExtensionContext) {
           const ignore_end = activeEditor.document.positionAt(cursor.offsetStart);
           ignores.push(new Range(ignore_start, ignore_end));
           continue;
-        }
-        // TODO: If the token cursor can be made to only jump valid sexpr,
-        //       this could be a straighter way to paint the rainbiow
-        // else if (token.type === 'open') {
-        //   const stack_depth = stack.length,
-        //     opening_start = activeEditor.document.positionAt(cursor.offsetStart),
-        //     opening = new Range(opening_start, opening_start.translate(0, token.raw.length)),
-        //     matchCursor = cursor.clone();
-        //   matchCursor.forwardSexp();
-        //   const closing_start = activeEditor.document.positionAt(matchCursor.offsetStart - 1),
-        //     closing = new Range(closing_start, closing_start.translate(0, 1)),
-        //     matchToken = matchCursor.getPrevToken();
-        //   stack.push(token.raw);
-        //   if (validPair(token.raw, matchToken.raw)) {
-        //     if (colorsEnabled) {
-        //       rainbow[colorIndex(stack_depth)].push({ range: opening });
-        //       rainbow[colorIndex(stack_depth)].push({ range: closing });
-        //     }
-        //   }
-        // } else if (token.type === 'close') {
-        //   const opener = stack.length > 0 ? stack[stack.length - 1] : '';
-        //   if (validPair(opener, token.raw)) {
-        //     stack.pop();
-        //   }
-        // }
-        else if (token.type === 'ws' || token.type === 'eol') {
-          continue;
         } else {
           const char = token.raw,
             charLength = char.length;
