@@ -55,7 +55,7 @@ toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // punctuators
-toplevel.terminal(/~@|~|'|#'|#:|#_\s*|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
+toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
 
 toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))

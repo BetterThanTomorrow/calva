@@ -152,14 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (dirty) reset_styles();
 
-    const t1 = new Date();
-
     const doc = activeEditor.document,
-      tokenCursor = docMirror.getDocument(doc).getTokenCursor(0),
-      toplevelRanges = tokenCursor.rangesForTopLevelForms()
-        .map((r: [number, number]) => {
-          return new Range(doc.positionAt(r[0]), doc.positionAt(r[1]));
-        }),
       rainbow = rainbowTypes.map(() => []),
       misplaced = [],
       comment_forms = [],
@@ -168,61 +161,86 @@ export function activate(context: vscode.ExtensionContext) {
       colorsEnabled = enableBracketColors && len > 0,
       colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len - 1));
 
-    let in_comment = false,
-      ignore_counter = 0,
-      ignore_start: Position,
-      ignored_text_start: Position,
-      ignored_list_opened = false,
-      ignore_pushed_by_closing = false,
-      in_comment_form = false,
+    let in_comment_form = false,
       stack = [],
       stack_depth = 0;
     pairsBack = new Map();
     pairsForward = new Map();
-    const visibleTopLevelRanges = util.filterVisibleRanges(activeEditor, toplevelRanges);
-    console.log(visibleTopLevelRanges);
-    visibleTopLevelRanges.forEach(range => {
-      const rangeStart = doc.offsetAt(range.start),
-        rangeEnd = doc.offsetAt(range.end),
-        cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(rangeStart);
+    let t1: Date;
+    t1  = new Date();
+    activeEditor.visibleRanges.forEach(range => {
+      // Find the visible forms
+      const startOffset = doc.offsetAt(range.start),
+        endOffset =doc.offsetAt(range.end),
+        startCursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0),
+        startRange = startCursor.rangeForDefun(startOffset),
+        endCursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(startRange[1]),
+        endRange = endCursor.rangeForDefun(endOffset),
+        rangeStart = startRange[0],
+        rangeEnd = endRange[1];
+      // Look for top level ignores, and adjust starting point if found
+      const topLevelSentinelCursor = docMirror.getDocument(doc).getTokenCursor(rangeStart);
+      let startPaintingFrom = rangeStart;
+      for (i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
+        if (topLevelSentinelCursor.getToken().raw === '#_') {
+          do {
+            topLevelSentinelCursor.backwardSexp();
+          } while (!topLevelSentinelCursor.atStart() && topLevelSentinelCursor.getToken().raw === '#_');
+          startPaintingFrom = topLevelSentinelCursor.offsetStart;
+          break;
+        }
+      }
+      // Start painting!
+      const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(startPaintingFrom);
       do {
-        cursor.backwardSexp()
-      } while (!cursor.atStart() && !cursor.getToken().raw.startsWith('#_'));
-      do {
-        const token: Token = cursor.getToken(),
-          char: string = token.raw;
-        if (in_comment) {
-          if (char.includes("\n")) { in_comment = false; continue; }
-        } else if (char[0] === "\\") {
+        cursor.forwardWhitespace();
+        const token: Token = cursor.getToken();
+        if (token.type === 'str-inside' || token.raw === '"') {
           continue;
-        } else if (token.type === 'str-inside') {
-          continue;
-        } else if (char === ";") {
-          in_comment = true;
-          continue;
-        } else if (char.startsWith('#_')) {
-          if (ignore_counter == 0) {
-            ignore_start = activeEditor.document.positionAt(cursor.offsetStart);
-          }
-          ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
-          ignore_counter++
-          continue;
-        } else if (token.type === 'ws' || token.type === 'eol') {
-          if (ignore_counter > 0 && !ignored_list_opened) {
-            ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
-            if (!ignore_pushed_by_closing) {
-              ignore_counter--;
-              ignores.push(new Range(ignore_start, activeEditor.document.positionAt(cursor.offsetStart)));
-            }
-          }
-          ignore_pushed_by_closing = false;
-          while (['ws', 'eol'].includes(cursor.getToken().type)) {
+        } else if (token.raw === '#_') {
+          let ignore_counter = 0;
+          const ignore_start = activeEditor.document.positionAt(cursor.offsetStart);
+          while (cursor.getToken().raw == '#_') {
+            ignore_counter++;
+            cursor.forwardSexp();
             cursor.forwardWhitespace();
           }
-          cursor.previous();
+          for (i = 0; i < ignore_counter; i++) {
+            cursor.forwardSexp();
+          }
+          const ignore_end = activeEditor.document.positionAt(cursor.offsetStart);
+          ignores.push(new Range(ignore_start, ignore_end));
+          continue;
+        }
+        // TODO: If the token cursor can be made to only jump valid sexpr,
+        //       this could be a straighter way to paint the rainbiow
+        // else if (token.type === 'open') {
+        //   const stack_depth = stack.length,
+        //     opening_start = activeEditor.document.positionAt(cursor.offsetStart),
+        //     opening = new Range(opening_start, opening_start.translate(0, token.raw.length)),
+        //     matchCursor = cursor.clone();
+        //   matchCursor.forwardSexp();
+        //   const closing_start = activeEditor.document.positionAt(matchCursor.offsetStart - 1),
+        //     closing = new Range(closing_start, closing_start.translate(0, 1)),
+        //     matchToken = matchCursor.getPrevToken();
+        //   stack.push(token.raw);
+        //   if (validPair(token.raw, matchToken.raw)) {
+        //     if (colorsEnabled) {
+        //       rainbow[colorIndex(stack_depth)].push({ range: opening });
+        //       rainbow[colorIndex(stack_depth)].push({ range: closing });
+        //     }
+        //   }
+        // } else if (token.type === 'close') {
+        //   const opener = stack.length > 0 ? stack[stack.length - 1] : '';
+        //   if (validPair(opener, token.raw)) {
+        //     stack.pop();
+        //   }
+        // }
+        else if (token.type === 'ws' || token.type === 'eol') {
           continue;
         } else {
-          const charLength = char.length;
+          const char = token.raw,
+            charLength = char.length;
           if (!in_comment_form && char === "comment") {
             const peekCursor = cursor.clone();
             peekCursor.backwardWhitespace();
@@ -238,11 +256,7 @@ export function activate(context: vscode.ExtensionContext) {
               rainbow[colorIndex(stack_depth)].push(decoration);
             }
             ++stack_depth;
-            const opens_ignore = ignore_counter > 0 && !ignored_list_opened && pos.isEqual(ignored_text_start);
-            if (opens_ignore) {
-              ignored_list_opened = opens_ignore;
-            }
-            stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false, opens_ignore: opens_ignore });
+            stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false });
             continue;
           } else if (token.type === 'close') {
             const pos = activeEditor.document.positionAt(cursor.offsetStart),
@@ -260,14 +274,6 @@ export function activate(context: vscode.ExtensionContext) {
               if (in_comment_form && pair.opens_comment_form) {
                 comment_forms.push(new Range(pair.pos, pos.translate(0, charLength)));
                 in_comment_form = false;
-              }
-              if (ignore_counter > 0 && (pair.opens_ignore || !ignored_list_opened)) {
-                const ignore_end = ignored_list_opened ? pos.translate(0, charLength) : pos;
-                ignore_counter--;
-                ignores.push(new Range(ignore_start, ignore_end));
-                ignored_list_opened = false;
-                ignored_text_start = activeEditor.document.positionAt(cursor.offsetEnd);
-                ignore_pushed_by_closing = true;
               }
               stack.push({ char: char, pos: pos, pair_idx: pair_idx });
               for (let i = 0; i < charLength; ++i)
