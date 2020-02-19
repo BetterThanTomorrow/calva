@@ -189,6 +189,7 @@ export class LispTokenCursor extends TokenCursor {
      * @returns true if the cursor was moved, false otherwise.
      */
     forwardSexp(skipComments = true): boolean {
+        // TODO: Consider using a proper bracket stack
         let delta = 0;
         this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
