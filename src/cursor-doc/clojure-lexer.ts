@@ -49,6 +49,9 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
+// character literals
+toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
+
 // open parens
 toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
