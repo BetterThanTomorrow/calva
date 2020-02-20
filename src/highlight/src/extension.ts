@@ -167,15 +167,15 @@ export function activate(context: vscode.ExtensionContext) {
     pairsBack = new Map();
     pairsForward = new Map();
     let t1: Date;
-    t1  = new Date();
+    t1 = new Date();
     activeEditor.visibleRanges.forEach(range => {
       // Find the visible forms
       const startOffset = doc.offsetAt(range.start),
-        endOffset =doc.offsetAt(range.end),
+        endOffset = doc.offsetAt(range.end),
         startCursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0),
-        startRange = startCursor.rangeForDefun(startOffset),
+        startRange = startCursor.rangeForDefun(startOffset, 1),
         endCursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(startRange[1]),
-        endRange = endCursor.rangeForDefun(endOffset),
+        endRange = endCursor.rangeForDefun(endOffset, 1),
         rangeStart = startRange[0],
         rangeEnd = endRange[1];
       // Look for top level ignores, and adjust starting point if found
@@ -194,71 +194,72 @@ export function activate(context: vscode.ExtensionContext) {
       const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(startPaintingFrom);
       do {
         cursor.forwardWhitespace();
-        const token: Token = cursor.getToken();
-        if (token.type === 'str-inside' || token.raw.includes('"')) {
-          continue;
-        } else if (token.type === 'lit') {
-          continue;
-        } else if (token.raw === '#_') {
-          let ignore_counter = 0;
-          const ignore_start = activeEditor.document.positionAt(cursor.offsetStart);
-          while (cursor.getToken().raw == '#_') {
-            ignore_counter++;
-            cursor.forwardSexp();
-            cursor.forwardWhitespace();
-          }
-          for (i = 0; i < ignore_counter; i++) {
-            cursor.forwardSexp();
-          }
-          const ignore_end = activeEditor.document.positionAt(cursor.offsetStart);
-          ignores.push(new Range(ignore_start, ignore_end));
-          continue;
-        } else {
-          const char = token.raw,
-            charLength = char.length;
-          if (!in_comment_form && char === "comment") {
-            const peekCursor = cursor.clone();
-            peekCursor.backwardWhitespace();
-            if (peekCursor.getPrevToken().raw === '(') {
-              in_comment_form = true;
-              stack[stack.length - 1].opens_comment_form = true;
-            }
-          }
-          if (token.type === 'open') {
-            const pos = activeEditor.document.positionAt(cursor.offsetStart);
-            if (colorsEnabled && char !== '"') {
-              const decoration = { range: new Range(pos, pos.translate(0, charLength)) };
-              rainbow[colorIndex(stack_depth)].push(decoration);
-            }
-            ++stack_depth;
-            stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false });
+        {
+          const token: Token = cursor.getToken();
+          if (token.type === 'str-inside' || token.raw.includes('"')) {
             continue;
-          } else if (token.type === 'close') {
-            const pos = activeEditor.document.positionAt(cursor.offsetStart),
-              decoration = { range: new Range(pos, pos.translate(0, 1)) };
-            var pair_idx = stack.length - 1;
-            while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
-              pair_idx = stack[pair_idx].pair_idx - 1;
+          } else if (token.type === 'lit') {
+            continue;
+          } else if (token.raw === '#_') {
+            let ignore_counter = 0;
+            const ignore_start = activeEditor.document.positionAt(cursor.offsetStart);
+            while (cursor.getToken().raw == '#_') {
+              ignore_counter++;
+              cursor.forwardSexp();
+              cursor.forwardWhitespace();
             }
-            if (pair_idx === undefined || pair_idx < 0 || !validPair(stack[pair_idx].char, char)) {
-              misplaced.push(decoration);
-            } else {
-              let pair = stack[pair_idx],
-                closing = new Range(pos, pos.translate(0, charLength)),
-                opening = new Range(pair.pos, pair.pos.translate(0, pair.char.length));
-              if (in_comment_form && pair.opens_comment_form) {
-                comment_forms.push(new Range(pair.pos, pos.translate(0, charLength)));
-                in_comment_form = false;
-              }
-              stack.push({ char: char, pos: pos, pair_idx: pair_idx });
-              for (let i = 0; i < charLength; ++i)
-                pairsBack.set(position_str(pos.translate(0, i)), [opening, closing]);
-              for (let i = 0; i < pair.char.length; ++i)
-                pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
-              --stack_depth;
-              if (colorsEnabled && char !== '"') {
-                rainbow[colorIndex(stack_depth)].push(decoration);
-              }
+            for (i = 0; i < ignore_counter; i++) {
+              cursor.forwardSexp();
+            }
+            const ignore_end = activeEditor.document.positionAt(cursor.offsetStart);
+            ignores.push(new Range(ignore_start, ignore_end));
+          }
+        }
+        const token = cursor.getToken(),
+          char = token.raw,
+          charLength = char.length;
+        if (!in_comment_form && char === "comment") {
+          const peekCursor = cursor.clone();
+          peekCursor.backwardWhitespace();
+          if (peekCursor.getPrevToken().raw === '(') {
+            in_comment_form = true;
+            stack[stack.length - 1].opens_comment_form = true;
+          }
+        }
+        if (token.type === 'open') {
+          const pos = activeEditor.document.positionAt(cursor.offsetStart);
+          if (colorsEnabled) {
+            const decoration = { range: new Range(pos, pos.translate(0, charLength)) };
+            rainbow[colorIndex(stack_depth)].push(decoration);
+          }
+          ++stack_depth;
+          stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false });
+          continue;
+        } else if (token.type === 'close') {
+          const pos = activeEditor.document.positionAt(cursor.offsetStart),
+            decoration = { range: new Range(pos, pos.translate(0, 1)) };
+          var pair_idx = stack.length - 1;
+          while (pair_idx >= 0 && stack[pair_idx].pair_idx !== undefined) {
+            pair_idx = stack[pair_idx].pair_idx - 1;
+          }
+          if (pair_idx === undefined || pair_idx < 0 || !validPair(stack[pair_idx].char, char)) {
+            misplaced.push(decoration);
+          } else {
+            let pair = stack[pair_idx],
+              closing = new Range(pos, pos.translate(0, charLength)),
+              opening = new Range(pair.pos, pair.pos.translate(0, pair.char.length));
+            if (in_comment_form && pair.opens_comment_form) {
+              comment_forms.push(new Range(pair.pos, pos.translate(0, charLength)));
+              in_comment_form = false;
+            }
+            stack.push({ char: char, pos: pos, pair_idx: pair_idx });
+            for (let i = 0; i < charLength; ++i)
+              pairsBack.set(position_str(pos.translate(0, i)), [opening, closing]);
+            for (let i = 0; i < pair.char.length; ++i)
+              pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
+            --stack_depth;
+            if (colorsEnabled) {
+              rainbow[colorIndex(stack_depth)].push(decoration);
             }
             continue;
           }
