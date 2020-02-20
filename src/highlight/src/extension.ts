@@ -195,7 +195,9 @@ export function activate(context: vscode.ExtensionContext) {
       do {
         cursor.forwardWhitespace();
         const token: Token = cursor.getToken();
-        if (token.type === 'str-inside' || token.raw === '"') {
+        if (token.type === 'str-inside' || token.raw.includes('"')) {
+          continue;
+        } else if (token.type === 'lit') {
           continue;
         } else if (token.raw === '#_') {
           let ignore_counter = 0;
