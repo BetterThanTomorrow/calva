@@ -194,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
       const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(startPaintingFrom);
       do {
         cursor.forwardWhitespace();
-        {
+        { // Skip pass strings and literals, and highlight ignored forms.
           const token: Token = cursor.getToken();
           if (token.type === 'str-inside' || token.raw.includes('"')) {
             continue;
@@ -218,6 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
         const token = cursor.getToken(),
           char = token.raw,
           charLength = char.length;
+        // Highlight (comment ...) forms
         if (!in_comment_form && char === "comment") {
           const peekCursor = cursor.clone();
           peekCursor.backwardWhitespace();
@@ -226,6 +227,7 @@ export function activate(context: vscode.ExtensionContext) {
             stack[stack.length - 1].opens_comment_form = true;
           }
         }
+        // Rainbows! (And also highlight current parens.)
         if (token.type === 'open') {
           const pos = activeEditor.document.positionAt(cursor.offsetStart);
           if (colorsEnabled) {

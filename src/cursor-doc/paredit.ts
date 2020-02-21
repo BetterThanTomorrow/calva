@@ -492,12 +492,11 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
 export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
     const [start, end] = range;
     if (doc.selectionStack.length > 0) {
-        const prev = doc.selectionStack[doc.selectionStack.length - 1];
-        if (prev.anchor === range[0] && prev.active === range[1]) {
-            return;
-        }
+        let prev = doc.selectionStack[doc.selectionStack.length - 1];
         if (!(doc.selectionLeft == prev.anchor && doc.selectionRight == prev.active)) {
-            doc.selectionStack = [doc.selection];
+            setSelectionStack(doc);
+        } else if (prev.anchor === range[0] && prev.active === range[1]) {
+            return;
         }
     } else {
         doc.selectionStack = [doc.selection];
@@ -513,6 +512,10 @@ export function shrinkSelection(doc: EditableDocument) {
             doc.selection = doc.selectionStack[doc.selectionStack.length - 1];
         }
     }
+}
+
+export function setSelectionStack(doc: EditableDocument, selection = doc.selection) {
+    doc.selectionStack = [selection];
 }
 
 export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
@@ -640,7 +643,7 @@ export type WhitespaceInfo = {
 
 /**
  * Collect and return information about the current form regarding its surrounding whitespace
- * @param doc 
+ * @param doc
  * @param p the position in `doc` from where to determine the current form
  */
 export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRight): WhitespaceInfo {
