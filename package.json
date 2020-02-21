@@ -1749,8 +1749,7 @@
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-extension-telemetry": "0.0.15",
-        "vscode-debugadapter": "1.38.0",
-        "await-notify": "1.0.1"
+        "vscode-debugadapter": "1.38.0"
     },
     "devDependencies": {
         "@types/chai": "^4.2.6",
