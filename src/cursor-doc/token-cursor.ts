@@ -490,7 +490,7 @@ export class LispTokenCursor extends TokenCursor {
      * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
      * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
      * @param offset The ”current” position
-     * @param start From where to start examine candidate forms, should be before `offset`
+     * @param depth Controls if the cursor should consider `comment` top level (if > 0, it will not)
      */
     rangeForDefun(offset: number, depth = 0): [number, number] {
         const cursor = this.clone();
