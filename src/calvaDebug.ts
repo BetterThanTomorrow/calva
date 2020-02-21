@@ -1,4 +1,4 @@
-import { LoggingDebugSession, InitializedEvent, TerminatedEvent } from 'vscode-debugadapter';
+import { LoggingDebugSession, InitializedEvent, TerminatedEvent, Thread } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
 import * as util from './utilities';
@@ -15,6 +15,9 @@ const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
 class CalvaDebugSession extends LoggingDebugSession {
 
 	private _configurationDone = new Subject();
+
+	// We don't support multiple threads, so we can use a hardcoded ID for the default thread
+	static THREAD_ID = 1;
 
     public constructor() {
         super('calva-debug-logs.txt');
@@ -70,6 +73,18 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         this.sendResponse(response);
 	}
+	
+	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
+
+		const cljSession = util.getSession('clj');
+		const debugResponse = state.deref().get('debug-response');
+
+		if (cljSession) {
+			cljSession.sendDebugInput(':quit', debugResponse.key);
+		}
+
+		this.sendResponse(response);
+	}
 
 	protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): Promise<void> {
 		
@@ -82,16 +97,14 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 		this.sendResponse(response);
 	}
-	
-	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
-		const cljSession = util.getSession('clj');
-		const debugResponse = state.deref().get('debug-response');
-
-		if (cljSession) {
-			cljSession.sendDebugInput(':quit', debugResponse.key);
-		}
-
+	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
+		// We do not support multiple threads
+		response.body = {
+			threads: [
+				new Thread(CalvaDebugSession.THREAD_ID, "thread 1")
+			]
+		};  
 		this.sendResponse(response);
 	}
 }
