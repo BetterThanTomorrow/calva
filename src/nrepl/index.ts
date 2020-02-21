@@ -97,10 +97,6 @@ export class NReplClient {
 
                     console.log(data['id'], data);
 
-                    // if (data['status'] && data['status'].indexOf('need-debug-input') != -1) {
-                    //     handleDebugResponse(data);
-                    // }
-
                     if (!client.describe && data["id"] == describeId) {
                         client.describe = data;
                     } else if (data["id"] == nsId) {
@@ -520,19 +516,22 @@ export class NReplSession {
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
-    sendDebugInput(input: string, key?: string): Promise<any> {
-        return new Promise<any>((resolve, _) => {
-            const id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
-            const data:any = { op: "debug-input", id, input, session: this.sessionId };
-            if (key) {
-                data.key = key;
-            }
-            this.client.write(data);
-        });
+    sendDebugInput(input: string, key: string, opts?: {}): void {
+        // return new Promise<any>((resolve, _) => {
+        //     const id = this.client.nextId;
+        //     this.messageHandlers[id] = (msg) => {
+        //         resolve(msg);
+        //         return true;
+        //     }
+        //     const data:any = { id, op: "debug-input", input, key, session: this.sessionId };
+        //     if (key) {
+        //         data.key = key;
+        //     }
+        //     this.client.write(data);
+        // });
+        const id = this.client.nextId;
+        const data:any = { id, op: "debug-input", input, key, session: this.sessionId };
+        this.client.write(data);
     }
 }
 

@@ -4,6 +4,7 @@ import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfig
 import * as util from './utilities';
 import * as Net from 'net';
 import * as state from './state';
+const { Subject } = require('await-notify');
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -12,6 +13,9 @@ const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
 };
 
 class CalvaDebugSession extends LoggingDebugSession {
+
+	private _configurationDone = new Subject();
+
     public constructor() {
         super('calva-debug-logs.txt');
     }
@@ -35,7 +39,8 @@ class CalvaDebugSession extends LoggingDebugSession {
         // Build and return the capabilities of this debug adapter
         response.body = { 
             ...response.body,
-            supportsBreakpointLocationsRequest: true,
+			supportsBreakpointLocationsRequest: true,
+			supportsConfigurationDoneRequest: true
         };
         
         this.sendResponse(response);
@@ -44,19 +49,47 @@ class CalvaDebugSession extends LoggingDebugSession {
 		// we request them early by sending an 'initializeRequest' to the frontend.
 		// The frontend will end the configuration sequence by calling 'configurationDone' request.
         this.sendEvent(new InitializedEvent());
-    }
+	}
+	
+	/**
+	 * Called at the end of the configuration sequence.
+	 * Indicates that all breakpoints etc. have been sent to the DA and that the 'attach' can start.
+	 */
+	// DEBUG TODO: May not need this and may be able to remove it and the await-notify package from the package.json
+	protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments, request?: DebugProtocol.Request): void {
+		super.configurationDoneRequest(response, args);
+
+		// notify the attachRequest that configuration has finished
+		this._configurationDone.notify();
+	}
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 		
+		// wait until configuration has finished (and configurationDoneRequest has been called)
+		await this._configurationDone.wait(1000);
+
         this.sendResponse(response);
+	}
+
+	protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): Promise<void> {
+		
+		const cljSession = util.getSession('clj');
+		const debugResponse = state.deref().get('debug-response');
+
+		if (cljSession) {
+			cljSession.sendDebugInput(':next', debugResponse.key);
+		}
+
+		this.sendResponse(response);
 	}
 	
 	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
 		const cljSession = util.getSession('clj');
+		const debugResponse = state.deref().get('debug-response');
 
 		if (cljSession) {
-			cljSession.sendDebugInput('quit');
+			cljSession.sendDebugInput(':quit', debugResponse.key);
 		}
 
 		this.sendResponse(response);
