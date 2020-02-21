@@ -1,4 +1,4 @@
-import { LoggingDebugSession, InitializedEvent, TerminatedEvent, Thread } from 'vscode-debugadapter';
+import { LoggingDebugSession, InitializedEvent, TerminatedEvent, Thread, StoppedEvent } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
 import * as util from './utilities';
@@ -6,10 +6,11 @@ import * as Net from 'net';
 import * as state from './state';
 const { Subject } = require('await-notify');
 
+// DEBUG TODO: Put this inside of CalvaDebugSession class as static field?
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
     name: 'Calva Debug',
-    request: 'attach'
+	request: 'attach'
 };
 
 class CalvaDebugSession extends LoggingDebugSession {
@@ -71,7 +72,10 @@ class CalvaDebugSession extends LoggingDebugSession {
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
 
-        this.sendResponse(response);
+		this.sendResponse(response);
+		
+		// We want to stop as soon as we attach, because attaching is initiated by a breakpoint being hit by cider-nrepl
+		this.sendEvent(new StoppedEvent('entry', CalvaDebugSession.THREAD_ID));
 	}
 	
 	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -98,11 +102,20 @@ class CalvaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
+	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): void {
+
+		response.body = {
+			stackFrames: []
+		};
+
+		this.sendResponse(response);
+	}
+
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
 		// We do not support multiple threads
 		response.body = {
 			threads: [
-				new Thread(CalvaDebugSession.THREAD_ID, "thread 1")
+				new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')
 			]
 		};  
 		this.sendResponse(response);
