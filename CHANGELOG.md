@@ -6,6 +6,7 @@ Changes to Calva.
 - [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
 - [Fix: Some character literals throws paredit out of whack](https://github.com/BetterThanTomorrow/calva/issues/563)
 - [Fix: Initial expand selection sometimes fails](https://github.com/BetterThanTomorrow/calva/issues/549)
+- [Change line comment characters to ;;](https://github.com/BetterThanTomorrow/calva/issues/564)
 
 ## [2.0.76] - 2020-02-12
 - [Fix Calva locking up when opening files with very long lines](https://github.com/BetterThanTomorrow/calva/issues/556)
