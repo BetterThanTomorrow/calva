@@ -1,4 +1,4 @@
-import { LoggingDebugSession, InitializedEvent, TerminatedEvent, Thread, StoppedEvent, StackFrame, Source } from 'vscode-debugadapter';
+import { LoggingDebugSession, TerminatedEvent, Thread, StoppedEvent, StackFrame, Source, Scope, Handles, Variable } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
 import * as util from './utilities';
@@ -17,6 +17,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 	// We don't support multiple threads, so we can use a hardcoded ID for the default thread
 	static THREAD_ID = 1;
+
+	private _variableHandles = new Handles<string>();
 
     public constructor() {
         super('calva-debug-logs.txt');
@@ -54,15 +56,64 @@ class CalvaDebugSession extends LoggingDebugSession {
 		// We want to stop as soon as we attach, because attaching is initiated by a breakpoint being hit by cider-nrepl
 		this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
 	}
-	
-	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
-		const cljSession = util.getSession('clj');
+	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
+		// We do not support multiple threads. Return a dummy thread.
+		response.body = {
+			threads: [
+				new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')
+			]
+		};
+		this.sendResponse(response);
+	}
+
+	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): void {
+
+		const debugResponse = state.deref().get('debug-response');
+		const filePath = debugResponse.file;
+		const source = new Source(basename(filePath), filePath, undefined, undefined, 'test-debug-data');
+		// DEGUG TODO: Calculate line number (and maybe column number) using token cursor and coor from debug response
+		const lineNumber = 18;
+		const columnNumber = 0;
+		const stackFrames = [new StackFrame(0, 'test', source, lineNumber, columnNumber)];
+
+		response.body = {
+			stackFrames,
+			totalFrames: stackFrames.length
+		};
+
+		this.sendResponse(response);
+	}
+
+	protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
+
+		response.body = {
+			scopes: [
+				new Scope("Locals", this._variableHandles.create('locals'), false)
+			]
+		};
+		
+		this.sendResponse(response);
+	}
+
+	private _createVariableFromLocal(local: any[]): Variable {
+		return {
+			name: local[0],
+			value: local[1],
+			// DEBUG TODO: May need to check type of value. If it's a map or collection, we may need to set variablesReference to something > 0.
+			//             Also may need to convert string type to actual type - but how do we know if "10", for instance, is supposed to be a string or number?
+			/** If variablesReference is > 0, the variable is structured and its children can be retrieved by passing variablesReference to the VariablesRequest. */
+			variablesReference: 0
+		}
+	}
+
+	protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): void {
+
 		const debugResponse = state.deref().get('debug-response');
 
-		if (cljSession) {
-			cljSession.sendDebugInput(':quit', debugResponse.key);
-		}
+		response.body = {
+			variables: debugResponse.locals.map(this._createVariableFromLocal)
+		};
 
 		this.sendResponse(response);
 	}
@@ -79,29 +130,15 @@ class CalvaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): void {
+	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
+		const cljSession = util.getSession('clj');
 		const debugResponse = state.deref().get('debug-response');
-		const filePath = debugResponse.file;
-		const convertedFilePath = this.convertDebuggerPathToClient(filePath);
-		const source = new Source(basename(filePath), convertedFilePath, undefined, undefined, 'test-debug-data');
-		const stackFrames = [new StackFrame(0, 'test', source, 18, 0)];
 
-		response.body = {
-			stackFrames,
-			totalFrames: stackFrames.length
-		};
+		if (cljSession) {
+			cljSession.sendDebugInput(':quit', debugResponse.key);
+		}
 
-		this.sendResponse(response);
-	}
-
-	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
-		// We do not support multiple threads. Return a dummy thread.
-		response.body = {
-			threads: [
-				new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')
-			]
-		};
 		this.sendResponse(response);
 	}
 }
