@@ -1,9 +1,10 @@
-import { LoggingDebugSession, InitializedEvent, TerminatedEvent, Thread, StoppedEvent } from 'vscode-debugadapter';
+import { LoggingDebugSession, InitializedEvent, TerminatedEvent, Thread, StoppedEvent, StackFrame, Source } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
 import * as util from './utilities';
 import * as Net from 'net';
 import * as state from './state';
+import { basename } from 'path';
 
 // DEBUG TODO: Put this inside of CalvaDebugSession class as static field?
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
@@ -51,7 +52,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 		
 		// We want to stop as soon as we attach, because attaching is initiated by a breakpoint being hit by cider-nrepl
-		this.sendEvent(new StoppedEvent('entry', CalvaDebugSession.THREAD_ID));
+		this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
 	}
 	
 	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -80,20 +81,27 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): void {
 
+		const debugResponse = state.deref().get('debug-response');
+		const filePath = debugResponse.file;
+		const convertedFilePath = this.convertDebuggerPathToClient(filePath);
+		const source = new Source(basename(filePath), convertedFilePath, undefined, undefined, 'test-debug-data');
+		const stackFrames = [new StackFrame(0, 'test', source, 18, 0)];
+
 		response.body = {
-			stackFrames: []
+			stackFrames,
+			totalFrames: stackFrames.length
 		};
 
 		this.sendResponse(response);
 	}
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
-		// We do not support multiple threads
+		// We do not support multiple threads. Return a dummy thread.
 		response.body = {
 			threads: [
 				new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')
 			]
-		};  
+		};
 		this.sendResponse(response);
 	}
 }
