@@ -11,14 +11,14 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
     let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
     if (delta > 0) {
         //return [vscode.TextEdit.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta)))];
-        editor.edit(edits => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))), { undoStopAfter: false, undoStopBefore: false });
+        return editor.edit(edits => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))), { undoStopAfter: false, undoStopBefore: false });
     }
     else if (delta < 0) {
         let str = "";
         while (delta++ < 0)
             str += " ";
         //return [vscode.TextEdit.insert(pos, str)];
-        editor.edit(edits => edits.insert(pos, str), { undoStopAfter: false, undoStopBefore: false });
+        return editor.edit(edits => edits.insert(pos, str), { undoStopAfter: false, undoStopBefore: false });
     }
 }
 
