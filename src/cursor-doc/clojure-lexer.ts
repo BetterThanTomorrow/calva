@@ -52,13 +52,11 @@ toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
 // open parens
 toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
-// toplevel.terminal(/(['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
-// punctuators
-toplevel.terminal(/#_/, (l, m) => ({ type: "punc" }))
-// toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
+// ignores
+toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
 
 // literals
 toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
