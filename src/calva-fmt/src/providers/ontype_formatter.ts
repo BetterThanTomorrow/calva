@@ -4,7 +4,7 @@ import * as formatter from '../format';
 function continueComment(editor: vscode.TextEditor, document: vscode.TextDocument, position: vscode.Position): Thenable<boolean> {
     const prevLineRange = new vscode.Range(position.with(position.line - 1, 0), position.with(position.line)),
         prevLineText: string = document.getText(prevLineRange),
-        match = prevLineText.match(/^[ \t]*;;[ \t]*/);
+        match = prevLineText.match(/^[ \t]*;+[ \t]*/);
     console.log(match);
     if (match) {
         const [commentStart] = match;
