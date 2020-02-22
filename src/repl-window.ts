@@ -42,7 +42,7 @@ export function activeReplWindow() {
 }
 
 export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
-    // If we find `mode` in the `replWindows` 
+    // If we find `mode` in the `replWindows`
     // dictionary, then it is open.
     if (!replWindows[mode]) {
         return (false);
@@ -182,7 +182,7 @@ class REPLWindow {
     }
 
     reconnect() {
-        // evaluate something that really test 
+        // evaluate something that really test
         // the ability of the connected repl.
         let res = this.session.eval("(+ 1 1)");
         res.value.then((v) => {
@@ -458,11 +458,11 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
             let wnd = replWindows[sessionType];
             if (wnd) {
                 let inNs = ns ? ns : wnd.ns;
-                if (ns && ns !== wnd.ns) {
-                    const requireEvaluation = wnd.session.eval(`(require '${ns})`);
+                if (inNs && inNs !== wnd.ns) {
+                    const requireEvaluation = wnd.session.eval(inNs !== 'user' ? `(require '${inNs})` : 'nil');
                     requireEvaluation.value
                         .then((v) => {
-                            const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
+                            const inNSEvaluation = wnd.session.eval(`(in-ns '${inNs})`)
                             inNSEvaluation.value
                                 .then((v) => {
                                     wnd.setNamespace(inNSEvaluation.ns).then((v) => {
@@ -562,7 +562,9 @@ function sendCustomCommandSnippetToREPLCommand() {
         }).then(async (pick) => {
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
                 const command = snippetsDict[pick].snippet,
-                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
+                    editor = vscode.window.activeTextEditor,
+                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? util.getNamespace(editor.document) : undefined,
+                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
                 sendTextToREPLWindow(repl ? repl : "clj", command, ns);
             }
@@ -586,16 +588,16 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { activeReplWindow().executeCommand('new-line'); }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit'); }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => {
         activeReplWindow().executeCommand('history-up');
     }, 10, true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', util.debounce(() => {
         activeReplWindow().executeCommand('history-down');
     }, 10, true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', util.debounce(() => {
         activeReplWindow().executeCommand('cursor-up');
     }, 10, true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', util.debounce(() => {
         activeReplWindow().executeCommand('cursor-down');
     }, 10, true)));
 }
