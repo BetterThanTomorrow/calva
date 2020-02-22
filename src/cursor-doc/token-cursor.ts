@@ -206,7 +206,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
                 case 'str-inside':
                     this.next();
@@ -256,7 +256,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
                 case 'kw':
                 case 'comment':
@@ -576,7 +576,7 @@ export class LispTokenCursor extends TokenCursor {
         while (true) {
             cursor.forwardWhitespace();
             const start = cursor.rowCol;
-            if (cursor.getToken().raw === '#_') {
+            if (cursor.getToken().type === 'ignore') {
                 ignoreCounter++;
                 cursor.forwardSexp();
                 continue;

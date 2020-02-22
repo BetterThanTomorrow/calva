@@ -182,10 +182,10 @@ export function activate(context: vscode.ExtensionContext) {
       const topLevelSentinelCursor = docMirror.getDocument(doc).getTokenCursor(rangeStart);
       let startPaintingFrom = rangeStart;
       for (i = 0; i < 25 && topLevelSentinelCursor.backwardSexp(); i++) {
-        if (topLevelSentinelCursor.getToken().raw === '#_') {
+        if (topLevelSentinelCursor.getToken().type === 'ignore') {
           do {
             topLevelSentinelCursor.backwardSexp();
-          } while (!topLevelSentinelCursor.atStart() && topLevelSentinelCursor.getToken().raw === '#_');
+          } while (!topLevelSentinelCursor.atStart() && topLevelSentinelCursor.getToken().type === 'ignore');
           startPaintingFrom = topLevelSentinelCursor.offsetStart;
           break;
         }
@@ -200,18 +200,19 @@ export function activate(context: vscode.ExtensionContext) {
             continue;
           } else if (token.type === 'lit') {
             continue;
-          } else if (token.raw === '#_') {
+          } else if (token.type === 'ignore') {
+            const ignoreCursor = cursor.clone();
             let ignore_counter = 0;
-            const ignore_start = activeEditor.document.positionAt(cursor.offsetStart);
-            while (cursor.getToken().raw == '#_') {
+            const ignore_start = activeEditor.document.positionAt(ignoreCursor.offsetStart);
+            while (ignoreCursor.getToken().type == 'ignore') {
               ignore_counter++;
-              cursor.forwardSexp();
-              cursor.forwardWhitespace();
+              ignoreCursor.forwardSexp();
+              ignoreCursor.forwardWhitespace();
             }
             for (i = 0; i < ignore_counter; i++) {
-              cursor.forwardSexp();
+              ignoreCursor.forwardSexp();
             }
-            const ignore_end = activeEditor.document.positionAt(cursor.offsetStart);
+            const ignore_end = activeEditor.document.positionAt(ignoreCursor.offsetStart);
             ignores.push(new Range(ignore_start, ignore_end));
           }
         }
