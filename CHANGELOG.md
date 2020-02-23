@@ -3,6 +3,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
+
+## [2.0.77] - 2020-02-23
 - [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
 - [Fix: Some character literals throws paredit out of whack](https://github.com/BetterThanTomorrow/calva/issues/563)
 - [Fix: Initial expand selection sometimes fails](https://github.com/BetterThanTomorrow/calva/issues/549)
