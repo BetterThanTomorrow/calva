@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
 
 ## [2.0.77] - 2020-02-23
 - [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
