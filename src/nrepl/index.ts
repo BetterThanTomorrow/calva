@@ -5,6 +5,8 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
+import { CALVA_DEBUG_CONFIGURATION } from "../calvaDebug";
+import { debug } from "vscode";
 
 /** An nRREPL client */
 export class NReplClient {
@@ -509,19 +511,25 @@ export class NReplSession {
         return (0);
     }
 
-    initDebugger(debugHandler: (response: any, resolve?: Function) => boolean): void {
+    initDebugger(): void {
         const id = this.client.nextId;
         // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
-        this.messageHandlers[id] = debugHandler;
+        this.messageHandlers[id] = (response) => {
+            state.cursor.set('debug-response', response);
+            debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+            return true;
+        };
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
-    sendDebugInput(input: string, debugHandler: (response: any, resolve?: Function) => boolean): Promise<any> {
+    sendDebugInput(input: string): Promise<any> {
         const debugResponse = state.deref().get('debug-response');
 
         return new Promise<any>((resolve, _) => {
             this.messageHandlers[debugResponse.id] = (response) => {
-                return debugHandler(response, resolve);
+                state.cursor.set('debug-response', response);
+                resolve(response);
+                return true;
             };
             const data:any = { 
                 id: debugResponse.id, 

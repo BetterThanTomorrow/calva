@@ -12,7 +12,6 @@ import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWi
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
-import { handleDebugResponse } from './calvaDebug';
 
 function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
@@ -65,7 +64,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         status.update();
 
         // Initialize debugger
-        cljSession.initDebugger(handleDebugResponse);
+        cljSession.initDebugger();
         chan.appendLine('Debugger initialized');
 
         createAndConnectReplWindow(cljSession, "clj");

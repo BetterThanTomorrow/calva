@@ -22,7 +22,17 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     public constructor() {
         super('calva-debug-logs.txt');
-    }
+	}
+	
+	private _handleDebugResponse(response: any, resolve?: Function): boolean {
+		state.cursor.set('debug-response', response);
+	
+		if (resolve) {
+			resolve(true);
+		}
+	
+		return true;
+	}
 
     /**
 	 * The 'initialize' request is the first request called by the frontend
@@ -122,7 +132,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 		const cljSession = util.getSession('clj');
 
 		if (cljSession) {
-			await cljSession.sendDebugInput(':continue', handleDebugResponse);
+			const debugResponse = await cljSession.sendDebugInput(':continue');
+			console.log(debugResponse);
 		}
 
 		this.sendResponse(response);
@@ -133,7 +144,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 		const cljSession = util.getSession('clj');
 
 		if (cljSession) {
-			await cljSession.sendDebugInput(':quit', handleDebugResponse);
+			cljSession.sendDebugInput(':quit');
 		}
 
 		this.sendResponse(response);
@@ -188,23 +199,8 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 	}
 }
 
-function handleDebugResponse(response: any, resolve?: Function): boolean {
-	state.cursor.set('debug-response', response);
-	
-	if (!debug.activeDebugSession) {
-		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
-	} 
-
-	if (resolve) {
-		resolve(true);
-	}
-
-	return true;
-}
-
 export {
     CALVA_DEBUG_CONFIGURATION,
     CalvaDebugConfigurationProvider,
-	CalvaDebugAdapterDescriptorFactory,
-	handleDebugResponse
+	CalvaDebugAdapterDescriptorFactory
 };
