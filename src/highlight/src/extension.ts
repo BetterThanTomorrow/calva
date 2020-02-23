@@ -166,8 +166,6 @@ export function activate(context: vscode.ExtensionContext) {
       stack_depth = 0;
     pairsBack = new Map();
     pairsForward = new Map();
-    let t1: Date;
-    t1 = new Date();
     activeEditor.visibleRanges.forEach(range => {
       // Find the visible forms
       const startOffset = doc.offsetAt(range.start),
@@ -269,8 +267,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
       } while (cursor.offsetStart < rangeEnd && cursor.next());
     });
-
-    console.log("Highlight parsing took: ", new Date().valueOf() - t1.valueOf());
 
     for (var i = 0; i < rainbowTypes.length; ++i) {
       activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
