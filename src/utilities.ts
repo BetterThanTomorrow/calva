@@ -184,7 +184,7 @@ function getActualWord(document, position, selected, word) {
 
 function getWordAtPosition(document, position) {
     let selected = document.getWordRangeAtPosition(position),
-        selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "", 
+        selectedText = selected !== undefined ? document.getText(new vscode.Range(selected.start, selected.end)) : "",
         text = getActualWord(document, position, selected, selectedText);
     return text;
 }
@@ -254,7 +254,7 @@ function getSession(fileType = undefined): NReplSession {
     }
 }
 
-function getLaunchingState() { 
+function getLaunchingState() {
     return state.deref().get('launching');
 }
 
@@ -263,12 +263,12 @@ function setLaunchingState(value: any) {
     state.cursor.set('launching', value);
 }
 
-function getConnectedState() { 
+function getConnectedState() {
     return state.deref().get('connected');
 }
 
 function setConnectedState(value: Boolean) {
-    if(value) {
+    if (value) {
         vscode.commands.executeCommand("setContext", "calva:connected", true);
         state.cursor.set('connected', true);
     } else {
@@ -282,7 +282,7 @@ function getConnectingState() {
 }
 
 function setConnectingState(value: Boolean) {
-    if(value) {
+    if (value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
         state.cursor.set('connecting', true);
     } else {
@@ -419,26 +419,37 @@ function getREPLSessionType() {
 }
 
 async function promptForUserInputString(prompt: string): Promise<string> {
-    return vscode.window.showInputBox({ 
+    return vscode.window.showInputBox({
         prompt: prompt,
         ignoreFocusOut: true,
     });
 }
 
 function debounce(func, wait, immediate) {
-	var timeout;
-	return function() {
-		var context = this, args = arguments;
-		var later = function() {
-			timeout = null;
-			if (!immediate) func.apply(context, args);
-		};
-		var callNow = immediate && !timeout;
-		clearTimeout(timeout);
-		timeout = setTimeout(later, wait);
-		if (callNow) func.apply(context, args);
-	};
+    var timeout;
+    return function () {
+        var context = this, args = arguments;
+        var later = function () {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
 };
+
+function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], combine = true): vscode.Range[] {
+    let filtered: vscode.Range[] = [];
+    editor.visibleRanges.forEach(visibleRange => {
+        const visibles = ranges.filter(r => {
+            return visibleRange.contains(r.start) || visibleRange.contains(r.end) || r.contains(visibleRange);
+        });
+        filtered = [].concat(filtered, combine ? [new vscode.Range(visibles[0].start, visibles[visibles.length - 1].end)] : visibles);
+    });
+    return filtered;
+}
 
 export {
     getNamespace,
@@ -472,5 +483,6 @@ export {
     quickPickMulti,
     getTestUnderCursor,
     promptForUserInputString,
-    debounce
+    debounce,
+    filterVisibleRanges
 };

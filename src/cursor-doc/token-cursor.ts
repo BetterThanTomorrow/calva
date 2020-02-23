@@ -183,12 +183,13 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this token forward one s-expression at this level.
      * If the next non whitespace token is an open paren, skips past it's matching
      * close paren.
-     * 
+     *
      * If the next token is a form of closing paren, does not move.
-     * 
+     *
      * @returns true if the cursor was moved, false otherwise.
      */
     forwardSexp(skipComments = true): boolean {
+        // TODO: Consider using a proper bracket stack
         let delta = 0;
         this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
@@ -205,7 +206,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
                 case 'str-inside':
                     this.next();
@@ -233,13 +234,13 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this token backward one s-expression at this level.
      * If the previous non whitespace token is a close paren, skips past it's matching
      * open paren.
-     * 
+     *
      * If the previous token is a form of open paren, does not move.
-     * 
+     *
      * Note. The cursor won't move when ”on” the first sexp inside a list.
      *       TODO: Fix this. (Probably the only way is to give the cursor knowledge
      *             about the offset it was created from.)
-     * 
+     *
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {
@@ -255,7 +256,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
                 case 'kw':
                 case 'comment':
@@ -341,7 +342,7 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
-     * @param openingBracket 
+     * @param openingBracket
      */
     rangeForList(openingBracket?: string): [number, number] {
         const cursor = this.clone();
@@ -489,7 +490,7 @@ export class LispTokenCursor extends TokenCursor {
      * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
      * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
      * @param offset The ”current” position
-     * @param start From where to start examine candidate forms, should be before `offset`
+     * @param depth Controls if the cursor should consider `comment` top level (if > 0, it will not)
      */
     rangeForDefun(offset: number, depth = 0): [number, number] {
         const cursor = this.clone();
@@ -511,6 +512,18 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         return [offset, offset]
+    }
+
+    rangesForTopLevelForms(): [number, number][] {
+        const cursor = new LispTokenCursor(this.doc, 0, 0);
+        let ranges: [number, number][] = [];
+        while (cursor.forwardSexp()) {
+            const end = cursor.offsetStart;
+            cursor.backwardSexp();
+            ranges.push([cursor.offsetStart, end]);
+            cursor.forwardSexp();
+        }
+        return ranges;
     }
 
     isWhiteSpace(): boolean {
@@ -563,7 +576,7 @@ export class LispTokenCursor extends TokenCursor {
         while (true) {
             cursor.forwardWhitespace();
             const start = cursor.rowCol;
-            if (cursor.getToken().raw === '#_') {
+            if (cursor.getToken().type === 'ignore') {
                 ignoreCounter++;
                 cursor.forwardSexp();
                 continue;
@@ -629,4 +642,4 @@ export function createStringCursor(s: string): LispTokenCursor {
     const model = new LineInputModel();
     model.insertString(0, s);
     return model.getTokenCursor(0);
-} 
+}
