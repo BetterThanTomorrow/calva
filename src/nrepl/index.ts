@@ -5,7 +5,6 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleDebugResponse } from '../calvaDebug';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -95,7 +94,7 @@ export class NReplClient {
 
                 client.decoder.on("data", data => {
 
-                    console.log(data['id'], data);
+                    //console.log(data['id'], data);
 
                     if (!client.describe && data["id"] == describeId) {
                         client.describe = data;
@@ -510,28 +509,29 @@ export class NReplSession {
         return (0);
     }
 
-    initDebugger(debugHandler: (response: any) => boolean): void {
+    initDebugger(debugHandler: (response: any, resolve?: Function) => boolean): void {
         const id = this.client.nextId;
+        // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
         this.messageHandlers[id] = debugHandler;
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
-    sendDebugInput(input: string, key: string, opts?: {}): void {
-        // return new Promise<any>((resolve, _) => {
-        //     const id = this.client.nextId;
-        //     this.messageHandlers[id] = (msg) => {
-        //         resolve(msg);
-        //         return true;
-        //     }
-        //     const data:any = { id, op: "debug-input", input, key, session: this.sessionId };
-        //     if (key) {
-        //         data.key = key;
-        //     }
-        //     this.client.write(data);
-        // });
-        const id = this.client.nextId;
-        const data:any = { id, op: "debug-input", input, key, session: this.sessionId };
-        this.client.write(data);
+    sendDebugInput(input: string, debugHandler: (response: any, resolve?: Function) => boolean): Promise<any> {
+        const debugResponse = state.deref().get('debug-response');
+
+        return new Promise<any>((resolve, _) => {
+            this.messageHandlers[debugResponse.id] = (response) => {
+                return debugHandler(response, resolve);
+            };
+            const data:any = { 
+                id: debugResponse.id, 
+                op: "debug-input", 
+                input, 
+                key: debugResponse.key,
+                session: this.sessionId 
+            };
+            this.client.write(data);
+        });
     }
 }
 

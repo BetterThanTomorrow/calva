@@ -52,8 +52,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 		
 		this.sendResponse(response);
-		
-		// We want to stop as soon as we attach, because attaching is initiated by a breakpoint being hit by cider-nrepl
+
 		this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
 	}
 
@@ -118,13 +117,12 @@ class CalvaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): Promise<void> {
-		
+	protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
+
 		const cljSession = util.getSession('clj');
-		const debugResponse = state.deref().get('debug-response');
 
 		if (cljSession) {
-			cljSession.sendDebugInput(':next', debugResponse.key);
+			await cljSession.sendDebugInput(':continue', handleDebugResponse);
 		}
 
 		this.sendResponse(response);
@@ -133,10 +131,9 @@ class CalvaDebugSession extends LoggingDebugSession {
 	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
 		const cljSession = util.getSession('clj');
-		const debugResponse = state.deref().get('debug-response');
 
 		if (cljSession) {
-			cljSession.sendDebugInput(':quit', debugResponse.key);
+			await cljSession.sendDebugInput(':quit', handleDebugResponse);
 		}
 
 		this.sendResponse(response);
@@ -191,14 +188,18 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 	}
 }
 
-function handleDebugResponse(response: any): boolean {
+function handleDebugResponse(response: any, resolve?: Function): boolean {
 	state.cursor.set('debug-response', response);
 	
 	if (!debug.activeDebugSession) {
 		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+	} 
+
+	if (resolve) {
+		resolve(true);
 	}
 
-	return false;
+	return true;
 }
 
 export {
