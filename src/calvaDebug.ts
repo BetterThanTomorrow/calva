@@ -23,16 +23,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     public constructor() {
         super('calva-debug-logs.txt');
 	}
-	
-	private _handleDebugResponse(response: any, resolve?: Function): boolean {
-		state.cursor.set('debug-response', response);
-	
-		if (resolve) {
-			resolve(true);
-		}
-	
-		return true;
-	}
 
     /**
 	 * The 'initialize' request is the first request called by the frontend
@@ -129,14 +119,19 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 	protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
 
+		this.sendResponse(response);
+
 		const cljSession = util.getSession('clj');
 
 		if (cljSession) {
+			// Sometimes this just won't resolve, because there are no more breakpoints in the currently executing code.
+			// What do we do then?
 			const debugResponse = await cljSession.sendDebugInput(':continue');
-			console.log(debugResponse);
+			// DEBUG TODO: May need to send different reason param for stoppped event depending on the response.
+			if (debugResponse.status && debugResponse.status.indexOf('need-debug-input') !== -1) {
+				this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+			}
 		}
-
-		this.sendResponse(response);
 	}
 
 	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -199,8 +194,23 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 	}
 }
 
+function handleDebugResponse(response: any): boolean {
+	state.cursor.set('debug-response', response);
+
+	if (!debug.activeDebugSession) {
+		// This returns a Thenable, but awaiting it proves problematic since this function is called inside
+		// nrepl message handlers, which don't return promises. We can probably, however, make the
+		// message handlers asyncronous (return promises). But then again, do we need to know when the debugger
+		// finishes starting? Errors supposedly could occur, but we'll have to see.
+		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+	}
+
+	return true;
+}
+
 export {
     CALVA_DEBUG_CONFIGURATION,
     CalvaDebugConfigurationProvider,
-	CalvaDebugAdapterDescriptorFactory
+	CalvaDebugAdapterDescriptorFactory,
+	handleDebugResponse
 };

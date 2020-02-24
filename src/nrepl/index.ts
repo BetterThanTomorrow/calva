@@ -5,8 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { CALVA_DEBUG_CONFIGURATION } from "../calvaDebug";
-import { debug } from "vscode";
+import { handleDebugResponse } from "../calvaDebug";
 
 /** An nRREPL client */
 export class NReplClient {
@@ -102,13 +101,13 @@ export class NReplClient {
                         client.describe = data;
                     } else if (data["id"] == nsId) {
                         if (data["ns"])
-                            client.ns = data["ns"]
+                            client.ns = data["ns"];
                         if (data["status"] && data["status"].indexOf("done") != -1)
                             client.encoder.write({ "op": "clone", "id": cloneId });
                     } else if (data["id"] == cloneId) {
-                        client.session = new NReplSession(data["new-session"], client)
+                        client.session = new NReplSession(data["new-session"], client);
                         client.encoder.write({ "op": "describe", id: describeId, verbose: true, session: data["new-session"] });
-                        resolve(client)
+                        resolve(client);
                     } else if (data["session"]) {
                         let session = client.sessions[data["session"]];
                         if (session)
@@ -515,29 +514,30 @@ export class NReplSession {
         const id = this.client.nextId;
         // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
         this.messageHandlers[id] = (response) => {
-            state.cursor.set('debug-response', response);
-            debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+            handleDebugResponse(response);
             return true;
         };
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
     sendDebugInput(input: string): Promise<any> {
-        const debugResponse = state.deref().get('debug-response');
-
         return new Promise<any>((resolve, _) => {
-            this.messageHandlers[debugResponse.id] = (response) => {
-                state.cursor.set('debug-response', response);
+            const { id, key } = state.deref().get('debug-response');
+
+            this.messageHandlers[id] = (response) => {
+                handleDebugResponse(response);
                 resolve(response);
                 return true;
             };
+
             const data:any = { 
-                id: debugResponse.id, 
+                id,
                 op: "debug-input", 
                 input, 
-                key: debugResponse.key,
+                key,
                 session: this.sessionId 
             };
+            
             this.client.write(data);
         });
     }
