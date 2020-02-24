@@ -24,6 +24,14 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import * as model from './cursor-doc/model';
+import { LanguageClient, RequestType, ServerOptions } from 'vscode-languageclient';
+import * as path from 'path';
+
+const isWin = /^win/.test(process.platform);
+let jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
+let contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
+
+let client: LanguageClient;
 
 function onDidSave(document) {
     let {
@@ -53,8 +61,55 @@ function onDidOpen(document) {
     }
 }
 
+function activateLSP(context: vscode.ExtensionContext) {
+    let serverModule = isWin ? "clojure-lsp.bat" : "clojure-lsp";
+
+    let jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
+
+	let serverOptions: ServerOptions = {
+        run: {command: 'java', args:['-jar', jarPath] },
+        debug: {command: 'java', args:['-jar', jarPath]},
+    }
+
+	let clientOptions = {
+		// Register the server for plain text documents
+		documentSelector: [{ scheme: 'file', language: 'clojure' }],
+		synchronize: {
+			configurationSection: 'clojure-lsp',
+			fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
+		},
+		initializationOptions: {
+			"dependency-scheme": "jar"
+		}
+	};
+
+	// Create the language client and start the client.
+	client = new LanguageClient(
+		'clojureLSP',
+		'Clojure Language Client',
+		serverOptions,
+		clientOptions
+	);
+
+	context.subscriptions.push(client.start());
+
+	 let provider = {
+		onDidChange: jarEventEmitter.event,
+		provideTextDocumentContent: (uri: vscode.Uri, token: vscode.CancellationToken): Thenable<string> => {
+			return client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
+				{ uri: decodeURIComponent(uri.toString()) },
+				token).then((v: string) => {
+					return v || '';
+				});
+		}
+	};
+	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', provider));
+
+	console.log('Clojure-LSP started');
+}
 
 function activate(context: vscode.ExtensionContext) {
+    activateLSP(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -237,6 +292,9 @@ function deactivate() {
     state.analytics().logEvent("LifeCycle", "Dectivated").send();
     jackIn.calvaJackout();
     paredit.deactivate()
+    if (client !== undefined) {
+        return client.stop();
+    }
 }
 
 
