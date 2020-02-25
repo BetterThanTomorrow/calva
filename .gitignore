@@ -70,3 +70,6 @@ docs/readthedocs/build
 
 # Test reporter
 junit/test-results.xml
+
+# clojure-lsp
+.lsp
