@@ -60,7 +60,9 @@ toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
 
 // literals
 toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
+
+// This seems unecessary?
+//toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
@@ -70,7 +72,7 @@ toplevel.terminal(/(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "
 // TODO: Figure out why we can't allow `'` in the symbol name
 toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
-toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
+//toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
