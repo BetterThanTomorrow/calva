@@ -29,78 +29,14 @@ export interface Rule {
  * @param {string} source the source code to parse
  * @param rules the rules of this lexer.
  */
+
 export class Lexer {
-
     position: number = 0;
-
-    private positions: Map<number, any[]> = new Map<number, any[]>();
-
-    constructor(public source: string, public rules: Rule[], maxLength) {
-        if (source !== undefined && source.length < maxLength) { // TODO: Consider using vscode setting for tokenisation max length
-            this.rules.forEach(rule => {
-                rule.r.lastIndex = 0
-                let x = rule.r.exec(source);
-                while (x) {
-                    if (x && x[0]) {
-                        x.input = undefined;
-                        x["rule"] = rule;
-                        let position = rule.r.lastIndex - x[0].length;
-                        let values = this.positions.get(position);
-                        if (values) {
-                            values.push(x);
-                            this.positions.set(position, values);
-                        } else {
-                            this.positions.set(position, [x]);
-                        }
-                    }
-                    x = rule.r.exec(source);
-                }
-            });
-        } else {
-            this.positions.set(0, [{
-                0: source,
-                rule: { fn: (l, m) => ({ type: "too-long-line" }) },
-                length: source.length,
-                index: 0,
-                input: undefined
-            }]);
-        }
+    constructor(public source: string, public rules: Rule[]) {
     }
 
     /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
     scan(): Token {
-        let [token, length] = this.lookup();
-        if (token == null) {
-            if (this.position == this.source.length) {
-                return null;
-            }
-            [token, length] = this.retrieve();
-            if (token == null) {
-                throw new Error("Unexpected character at " + this.position + ": " + JSON.stringify(this.source));
-            }
-        }
-        this.position += length;
-        return token;
-    }
-
-    private lookup(): [Token, number] {
-        var token = null;
-        var length = 0;
-        let values = this.positions.get(this.position);
-        if (values) {
-            values.forEach(x => {
-                if (x && x[0].length > length) {
-                    token = x["rule"].fn(this, x);
-                    token.offset = this.position;
-                    token.raw = x[0];
-                    length = x[0].length;
-                }
-            })
-        }
-        return ([token, length]);
-    }
-
-    private retrieve(): [Token, number] {
         var token = null;
         var length = 0;
         this.rules.forEach(rule => {
@@ -113,9 +49,102 @@ export class Lexer {
                 length = x[0].length;
             }
         })
-        return ([token, length]);
+        this.position += length;
+        if (token == null) {
+            if (this.position == this.source.length)
+                return null;
+            throw new Error("Unexpected character at " + this.position + ": " + JSON.stringify(this.source));
+        }
+        return token;
     }
 }
+// export class Lexer {
+
+//     position: number = 0;
+
+//     private positions: Map<number, any[]> = new Map<number, any[]>();
+
+//     constructor(public source: string, public rules: Rule[], maxLength) {
+//         if (source !== undefined && source.length < maxLength) { // TODO: Consider using vscode setting for tokenisation max length
+//             this.rules.forEach(rule => {
+//                 rule.r.lastIndex = 0
+//                 let x = rule.r.exec(source);
+//                 while (x) {
+//                     if (x && x[0]) {
+//                         x.input = undefined;
+//                         x["rule"] = rule;
+//                         let position = rule.r.lastIndex - x[0].length;
+//                         let values = this.positions.get(position);
+//                         if (values) {
+//                             values.push(x);
+//                             this.positions.set(position, values);
+//                         } else {
+//                             this.positions.set(position, [x]);
+//                         }
+//                     }
+//                     x = rule.r.exec(source);
+//                 }
+//             });
+//         } else {
+//             this.positions.set(0, [{
+//                 0: source,
+//                 rule: { fn: (l, m) => ({ type: "too-long-line" }) },
+//                 length: source.length,
+//                 index: 0,
+//                 input: undefined
+//             }]);
+//         }
+//     }
+
+//     /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
+//     scan(): Token {
+//         let [token, length] = this.lookup();
+//         if (token == null) {
+//             if (this.position == this.source.length) {
+//                 return null;
+//             }
+//             [token, length] = this.retrieve();
+//             if (token == null) {
+//                 throw new Error("Unexpected character at " + this.position + ": " + JSON.stringify(this.source));
+//             }
+//         }
+//         this.position += length;
+//         return token;
+//     }
+
+//     private lookup(): [Token, number] {
+//         var token = null;
+//         var length = 0;
+//         let values = this.positions.get(this.position);
+//         if (values) {
+//             values.forEach(x => {
+//                 if (x && x[0].length > length) {
+//                     token = x["rule"].fn(this, x);
+//                     token.offset = this.position;
+//                     token.raw = x[0];
+//                     length = x[0].length;
+//                 }
+//             })
+//         }
+//         return ([token, length]);
+//     }
+
+//     private retrieve(): [Token, number] {
+//         var token = null;
+//         var length = 0;
+//         this.rules.forEach(rule => {
+//             rule.r.lastIndex = this.position;
+//             var x = rule.r.exec(this.source);
+//             if (x && x[0].length > length && this.position + x[0].length == rule.r.lastIndex) {
+//                 token = rule.fn(this, x);
+//                 token.offset = this.position;
+//                 token.raw = x[0];
+//                 length = x[0].length;
+//             }
+//         })
+//         return ([token, length]);
+//     }
+// }
 
 /**
  * A lexical grammar- factory for lexer instances.
@@ -143,6 +172,6 @@ export class LexicalGrammar {
      * Create a Lexer for the given input.
      */
     lex(source: string, maxLength): Lexer {
-        return new Lexer(source, this.rules, maxLength)
+        return new Lexer(source, this.rules)
     }
 }
