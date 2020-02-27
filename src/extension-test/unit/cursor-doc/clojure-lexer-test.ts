@@ -28,7 +28,7 @@ describe('Scanner', () => {
     });
     describe('max line length', () => {
         it('too long lines', () => {
-            const longLine = "foo".repeat(34),
+            const longLine = "foo ".repeat(26),
                 tokens = scanner.processLine(longLine);
             expect(tokens[0].type).equals('too-long-line');
             expect(tokens[0].raw).equals(longLine);
