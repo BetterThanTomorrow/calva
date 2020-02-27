@@ -32,23 +32,33 @@ export interface Rule {
 
 export class Lexer {
     position: number = 0;
-    constructor(public source: string, public rules: Rule[]) {
+    constructor(public source: string, public rules: Rule[], private maxLength) {
     }
 
     /** Returns the next token in this lexer, or null if at the end. If the match fails, throws an Error. */
     scan(): Token {
         var token = null;
         var length = 0;
-        this.rules.forEach(rule => {
-            rule.r.lastIndex = this.position;
-            var x = rule.r.exec(this.source);
-            if (x && x[0].length > length && this.position + x[0].length == rule.r.lastIndex) {
-                token = rule.fn(this, x);
-                token.offset = this.position;
-                token.raw = x[0];
-                length = x[0].length;
-            }
-        })
+        if (this.source !== undefined && this.source.length < this.maxLength) {
+            // TODO: Consider using vscode setting for tokenisation max length
+            this.rules.forEach(rule => {
+                rule.r.lastIndex = this.position;
+                const x = rule.r.exec(this.source);
+                if (x && x[0].length > length && this.position + x[0].length == rule.r.lastIndex) {
+                    token = rule.fn(this, x);
+                    token.offset = this.position;
+                    token.raw = x[0];
+                    length = x[0].length;
+                }
+            });
+        } else if (this.position < this.source.length) {
+            length = this.source.length;
+            token = {
+                type: "too-long-line",
+                offset: this.position,
+                raw: this.source
+            };
+        }
         this.position += length;
         if (token == null) {
             if (this.position == this.source.length)
@@ -58,6 +68,11 @@ export class Lexer {
         return token;
     }
 }
+
+// TODO: This below is a version containing performance enhancements.
+// But it also contains bugs, so we will not enable the changes until
+// the unit test harness helps us expose the bugs.
+
 // export class Lexer {
 
 //     position: number = 0;
@@ -172,6 +187,6 @@ export class LexicalGrammar {
      * Create a Lexer for the given input.
      */
     lex(source: string, maxLength): Lexer {
-        return new Lexer(source, this.rules)
+        return new Lexer(source, this.rules, maxLength)
     }
 }
