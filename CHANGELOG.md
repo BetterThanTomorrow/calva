@@ -3,6 +3,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
+
+## [2.0.78] - 2020-02-28
 - [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
 - [Fix lexer going into some weird state after flexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
 
