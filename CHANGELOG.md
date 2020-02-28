@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.78] - 2020-02-28
 - [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
 - [Fix lexer going into some weird state after flexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
 

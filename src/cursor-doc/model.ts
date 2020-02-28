@@ -440,7 +440,7 @@ export class LineInputModel implements EditableModel {
         if(this.recordingUndo) {
             this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
         }
-        console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
+        // console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
     }
 
     /**
