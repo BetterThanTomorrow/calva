@@ -3,6 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.78] - 2020-02-28
+- [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
+- [Fix lexer going into some weird state after flexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
+
 ## [2.0.77] - 2020-02-23
 - [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
 - [Fix: Some character literals throws paredit out of whack](https://github.com/BetterThanTomorrow/calva/issues/563)

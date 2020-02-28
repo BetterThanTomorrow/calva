@@ -1,5 +1,5 @@
 import { LineInputModel } from "./model";
-import { Token } from "./clojure-lexer";
+import { Token, validPair } from "./clojure-lexer";
 
 
 function tokenIsWhiteSpace(token: Token) {
@@ -179,6 +179,8 @@ export class LispTokenCursor extends TokenCursor {
 
     // Lisp navigation commands begin here.
 
+    // TODO: When f/b sexp, use the stack knowledge to ”flag” unbalance
+
     /**
      * Moves this token forward one s-expression at this level.
      * If the next non whitespace token is an open paren, skips past it's matching
@@ -190,7 +192,7 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardSexp(skipComments = true): boolean {
         // TODO: Consider using a proper bracket stack
-        let delta = 0;
+        let stack = [];
         this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
             return false;
@@ -210,17 +212,23 @@ export class LispTokenCursor extends TokenCursor {
                 case 'junk':
                 case 'str-inside':
                     this.next();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'close':
-                    delta--;
+                    const close = tk.raw;
+                    let open: string;
+                    while (open = stack.pop()) {
+                        if (validPair(open, close)) {
+                            break;
+                        }
+                    }
                     this.next();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'open':
-                    delta++;
+                    stack.push(tk.raw);
                     this.next();
                     break;
                 default:
@@ -237,14 +245,10 @@ export class LispTokenCursor extends TokenCursor {
      *
      * If the previous token is a form of open paren, does not move.
      *
-     * Note. The cursor won't move when ”on” the first sexp inside a list.
-     *       TODO: Fix this. (Probably the only way is to give the cursor knowledge
-     *             about the offset it was created from.)
-     *
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {
-        let delta = 0;
+        let stack = [];
         this.backwardWhitespace(skipComments);
         if (this.getPrevToken().type === 'open') {
             return false;
@@ -262,17 +266,23 @@ export class LispTokenCursor extends TokenCursor {
                 case 'comment':
                 case 'str-inside':
                     this.previous();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'close':
-                    delta++;
+                    stack.push(tk.raw);
                     this.previous();
                     break;
                 case 'open':
-                    delta--;
+                    const open = tk.raw;
+                    let close: string;
+                    while (close = stack.pop()) {
+                        if (validPair(open, close)) {
+                            break;
+                        }
+                    }
                     this.previous();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 default:

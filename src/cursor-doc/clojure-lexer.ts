@@ -60,7 +60,9 @@ toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
 
 // literals
 toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
+
+// This seems unecessary?
+//toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
