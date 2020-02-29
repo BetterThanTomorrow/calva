@@ -12,6 +12,9 @@ const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
 	request: 'attach'
 };
 
+const SEND_STOPPED_EVENT_REQUEST = 'send-stopped-event';
+const SEND_TERMINATED_EVENT_REQUEST = 'send-terminated-event';
+
 class CalvaDebugSession extends LoggingDebugSession {
 
 	// We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -51,8 +54,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 		
 		this.sendResponse(response);
-
-		this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
 	}
 
 	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
@@ -121,14 +122,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 		const cljSession = util.getSession('clj');
 		
 		if (cljSession) {
-			// Sometimes this just won't resolve, because there are no more breakpoints in the currently executing code.
-			// What do we do then?
-			const debugResponse = await cljSession.sendDebugInput(':continue');
-			// DEBUG TODO: May need to send different reason param for stoppped event depending on the response.
-			if (debugResponse.status && debugResponse.status.indexOf('need-debug-input') !== -1) {
-				// DEBUG TODO: This should be a responsibility of the need-debug-input response handler always
-				this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-			}
+			cljSession.sendDebugInput(':continue');
 		}
 
 		this.sendResponse(response);
@@ -143,8 +137,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 		}
 
 		this.sendResponse(response);
-
-		//this.sendEvent(new TerminatedEvent());
 	}
 
 	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): void {
@@ -155,8 +147,12 @@ class CalvaDebugSession extends LoggingDebugSession {
 	protected customRequest(command: string, response: DebugProtocol.Response, args: any, request?: DebugProtocol.Request): void {
 		
 		switch (command) {
-			case 'stop-debugger': {
+			case SEND_TERMINATED_EVENT_REQUEST: {
 				this.sendEvent(new TerminatedEvent());
+				break;
+			}
+			case SEND_STOPPED_EVENT_REQUEST: {
+				this.sendEvent(new StoppedEvent(args.reason, CalvaDebugSession.THREAD_ID, args.exceptionText));
 				break;
 			}
 		}
@@ -216,19 +212,23 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 function handleDebugResponse(response: any): boolean {
 	state.cursor.set('debug-response', response);
 
-	if (!debug.activeDebugSession) {
-		// This returns a Thenable, but awaiting it proves problematic since this function is called inside
-		// nrepl message handlers, which don't return promises. We can probably, however, make the
-		// message handlers asyncronous (return promises). But then again, do we need to know when the debugger
-		// finishes starting? Errors supposedly could occur, but we'll have to see.
+	if (debug.activeDebugSession) {
+		debug.activeDebugSession.customRequest(SEND_STOPPED_EVENT_REQUEST, {reason: 'need-debug-input'});
+	} else {
 		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
 	}
 
 	return true;
 }
 
+debug.onDidStartDebugSession(session => {
+	// We only start debugger sessions when a breakpoint is hit
+	session.customRequest(SEND_STOPPED_EVENT_REQUEST, {reason: 'breakpoint'});
+});
+
 export {
 	CALVA_DEBUG_CONFIGURATION,
+	SEND_TERMINATED_EVENT_REQUEST,
     CalvaDebugConfigurationProvider,
 	CalvaDebugAdapterDescriptorFactory,
 	handleDebugResponse
