@@ -1,10 +1,13 @@
 import { LoggingDebugSession, TerminatedEvent, Thread, StoppedEvent, StackFrame, Source, Scope, Handles, Variable } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer } from 'vscode';
+import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, 
+	DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer, Position } from 'vscode';
 import * as util from './utilities';
 import * as Net from 'net';
 import * as state from './state';
 import { basename } from 'path';
+import * as docMirror from './doc-mirror';
+import * as vscode from 'vscode';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -42,7 +45,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
         
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
-        this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
+		this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
         
         // Build and return the capabilities of this debug adapter
         response.body = { 
@@ -68,15 +71,31 @@ class CalvaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): void {
+	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
 		const debugResponse = state.deref().get('debug-response');
+		const coor = debugResponse.coor;
+		const document = await vscode.workspace.openTextDocument(debugResponse.file);
+		const offset = document.offsetAt(new Position(debugResponse.line - 1, debugResponse.column));
+		const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+
+		// This puts the cursor at the end of the sexp preceding the breakpoint reader macro (#break)
+		for (let i = 0; i < coor.length; i++) {
+			tokenCursor.downList();
+			for (let k = 0; k < coor[i]; k++) {
+				tokenCursor.forwardSexp();
+			}
+		}
+
+		// Move one more sexp to put the cursor at the end of the #break so we know what line it's on
+		tokenCursor.forwardSexp();
+
+		const [line, column] = tokenCursor.rowCol;
+
 		const filePath = debugResponse.file;
-		const source = new Source(basename(filePath), filePath, undefined, undefined, 'test-debug-data');
-		// DEGUG TODO: Calculate line number (and maybe column number) using token cursor and coor from debug response
-		const lineNumber = 18;
-		const columnNumber = 0;
-		const stackFrames = [new StackFrame(0, 'test', source, lineNumber, columnNumber)];
+		const source = new Source(basename(filePath), filePath);
+		const name = tokenCursor.getFunction();
+		const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
 		response.body = {
 			stackFrames,
@@ -212,12 +231,16 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 }
 
 function handleDebugResponse(response: any): boolean {
-	state.cursor.set('debug-response', response);
+	// DEBUG TODO: Need to check if status in response contains 'need-debug-response' and only save to state and send stopped event if so
+	//             Otherwise we'll likely just be returning the result "immediately" to the sender of debug input
+	if (response['status'].indexOf('need-debug-response')) {
+		state.cursor.set('debug-response', response);
 
-	if (debug.activeDebugSession) {
-		debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, {reason: 'need-debug-input'});
-	} else {
-		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+		if (debug.activeDebugSession) {
+			debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, {reason: 'need-debug-input'});
+		} else {
+			debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+		}
 	}
 
 	return true;
