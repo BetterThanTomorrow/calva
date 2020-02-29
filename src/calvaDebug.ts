@@ -73,6 +73,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
+		//// cider-nrepl seems to have 1-based lines and 0-based columns. StackFrames seem to have 1-based lines and columns. The editor has 0-based lines and columns.
+
 		const debugResponse = state.deref().get('debug-response');
 		const coor = debugResponse.coor;
 		const document = await vscode.workspace.openTextDocument(debugResponse.file);
