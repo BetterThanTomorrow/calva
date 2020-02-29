@@ -6,7 +6,6 @@ import * as Net from 'net';
 import * as state from './state';
 import { basename } from 'path';
 
-// DEBUG TODO: Put this inside of CalvaDebugSession class as static field?
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
     name: 'Calva Debug',
@@ -118,20 +117,21 @@ class CalvaDebugSession extends LoggingDebugSession {
 	}
 
 	protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
-
-		this.sendResponse(response);
-
+		
 		const cljSession = util.getSession('clj');
-
+		
 		if (cljSession) {
 			// Sometimes this just won't resolve, because there are no more breakpoints in the currently executing code.
 			// What do we do then?
 			const debugResponse = await cljSession.sendDebugInput(':continue');
 			// DEBUG TODO: May need to send different reason param for stoppped event depending on the response.
 			if (debugResponse.status && debugResponse.status.indexOf('need-debug-input') !== -1) {
+				// DEBUG TODO: This should be a responsibility of the need-debug-input response handler always
 				this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
 			}
 		}
+
+		this.sendResponse(response);
 	}
 
 	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -140,6 +140,25 @@ class CalvaDebugSession extends LoggingDebugSession {
 
 		if (cljSession) {
 			cljSession.sendDebugInput(':quit');
+		}
+
+		this.sendResponse(response);
+
+		//this.sendEvent(new TerminatedEvent());
+	}
+
+	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): void {
+
+		this.sendResponse(response);
+	}
+
+	protected customRequest(command: string, response: DebugProtocol.Response, args: any, request?: DebugProtocol.Request): void {
+		
+		switch (command) {
+			case 'stop-debugger': {
+				this.sendEvent(new TerminatedEvent());
+				break;
+			}
 		}
 
 		this.sendResponse(response);
@@ -209,7 +228,7 @@ function handleDebugResponse(response: any): boolean {
 }
 
 export {
-    CALVA_DEBUG_CONFIGURATION,
+	CALVA_DEBUG_CONFIGURATION,
     CalvaDebugConfigurationProvider,
 	CalvaDebugAdapterDescriptorFactory,
 	handleDebugResponse

@@ -6,6 +6,7 @@ import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 import { handleDebugResponse } from "../calvaDebug";
+import * as vscode from 'vscode';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -93,9 +94,16 @@ export class NReplClient {
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
 
-                client.decoder.on("data", data => {
+                client.decoder.on("data", (data) => {
 
                     //console.log(data['id'], data);
+
+                    // If we get a message with a done status, we are no longer debugging
+                    if (data['status'] && data['status'].indexOf('done') != -1) {
+                        if (vscode.debug.activeDebugSession) {
+                            vscode.debug.activeDebugSession.customRequest('stop-debugger');
+                        }
+                    }
 
                     if (!client.describe && data["id"] == describeId) {
                         client.describe = data;
@@ -513,10 +521,7 @@ export class NReplSession {
     initDebugger(): void {
         const id = this.client.nextId;
         // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
-        this.messageHandlers[id] = (response) => {
-            handleDebugResponse(response);
-            return true;
-        };
+        this.messageHandlers[id] = handleDebugResponse;
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
