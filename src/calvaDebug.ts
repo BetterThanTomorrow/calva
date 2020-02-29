@@ -71,6 +71,11 @@ class CalvaDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
+	private _convertOneBasedToZeroBased(n: number): number {
+		// Zero implies ignoring the line/column in the vscode-debugadapter StackFrame class, and perhaps in cider-nrepl as well
+		return n === 0 ? n : n - 1;
+	}
+
 	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
 		//// cider-nrepl seems to have 1-based lines and 0-based columns. StackFrames seem to have 1-based lines and columns. The editor has 0-based lines and columns.
@@ -78,7 +83,9 @@ class CalvaDebugSession extends LoggingDebugSession {
 		const debugResponse = state.deref().get('debug-response');
 		const coor = debugResponse.coor;
 		const document = await vscode.workspace.openTextDocument(debugResponse.file);
-		const offset = document.offsetAt(new Position(debugResponse.line - 1, debugResponse.column));
+		const positionLine = this._convertOneBasedToZeroBased(debugResponse.line);
+		const positionColumn = this._convertOneBasedToZeroBased(debugResponse.column);
+		const offset = document.offsetAt(new Position(positionLine, positionColumn));
 		const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
 		// This puts the cursor at the end of the sexp preceding the breakpoint reader macro (#break)
