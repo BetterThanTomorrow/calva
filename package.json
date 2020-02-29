@@ -1718,6 +1718,7 @@
         "eslint-plugin-node": "^6.0.1",
         "eslint-plugin-promise": "^3.7.0",
         "eslint-plugin-standard": "^3.0.1",
+        "fast-check": "^1.22.2",
         "file-loader": "^3.0.1",
         "glob": "^7.1.6",
         "json": "^9.0.6",
