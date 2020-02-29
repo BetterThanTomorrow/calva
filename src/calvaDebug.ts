@@ -12,8 +12,10 @@ const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
 	request: 'attach'
 };
 
-const SEND_STOPPED_EVENT_REQUEST = 'send-stopped-event';
-const SEND_TERMINATED_EVENT_REQUEST = 'send-terminated-event';
+const REQUESTS = {
+	SEND_STOPPED_EVENT: 'send-stopped-event',
+	SEND_TERMINATED_EVENT: 'send-terminated-event'
+};
 
 class CalvaDebugSession extends LoggingDebugSession {
 
@@ -147,11 +149,11 @@ class CalvaDebugSession extends LoggingDebugSession {
 	protected customRequest(command: string, response: DebugProtocol.Response, args: any, request?: DebugProtocol.Request): void {
 		
 		switch (command) {
-			case SEND_TERMINATED_EVENT_REQUEST: {
+			case REQUESTS.SEND_TERMINATED_EVENT: {
 				this.sendEvent(new TerminatedEvent());
 				break;
 			}
-			case SEND_STOPPED_EVENT_REQUEST: {
+			case REQUESTS.SEND_STOPPED_EVENT: {
 				this.sendEvent(new StoppedEvent(args.reason, CalvaDebugSession.THREAD_ID, args.exceptionText));
 				break;
 			}
@@ -213,7 +215,7 @@ function handleDebugResponse(response: any): boolean {
 	state.cursor.set('debug-response', response);
 
 	if (debug.activeDebugSession) {
-		debug.activeDebugSession.customRequest(SEND_STOPPED_EVENT_REQUEST, {reason: 'need-debug-input'});
+		debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, {reason: 'need-debug-input'});
 	} else {
 		debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
 	}
@@ -223,12 +225,12 @@ function handleDebugResponse(response: any): boolean {
 
 debug.onDidStartDebugSession(session => {
 	// We only start debugger sessions when a breakpoint is hit
-	session.customRequest(SEND_STOPPED_EVENT_REQUEST, {reason: 'breakpoint'});
+	session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {reason: 'breakpoint'});
 });
 
 export {
 	CALVA_DEBUG_CONFIGURATION,
-	SEND_TERMINATED_EVENT_REQUEST,
+	REQUESTS,
     CalvaDebugConfigurationProvider,
 	CalvaDebugAdapterDescriptorFactory,
 	handleDebugResponse

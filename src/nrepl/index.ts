@@ -5,7 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleDebugResponse, SEND_TERMINATED_EVENT_REQUEST } from "../calvaDebug";
+import { handleDebugResponse, REQUESTS } from "../calvaDebug";
 import * as vscode from 'vscode';
 
 /** An nRREPL client */
@@ -101,7 +101,7 @@ export class NReplClient {
                     // If we get a message with a done status, we are no longer debugging as per cider-nrepl
                     if (data['status'] && data['status'].indexOf('done') != -1) {
                         if (vscode.debug.activeDebugSession) {
-                            vscode.debug.activeDebugSession.customRequest(SEND_TERMINATED_EVENT_REQUEST);
+                            vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                         }
                     }
 
