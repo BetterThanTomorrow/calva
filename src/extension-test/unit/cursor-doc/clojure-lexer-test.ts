@@ -18,7 +18,7 @@ function symbolChar(): fc.Arbitrary<string> {
 }
 
 function symbolStartChar(): fc.Arbitrary<string> {
-    return symbolChar().filter(c => c !== ':');
+    return symbolChar().filter(c => ![':', '#'].includes(c));
 }
 
 function symbol(): fc.Arbitrary<string> {
@@ -196,6 +196,27 @@ describe('Scanner', () => {
             expect(tokens[2].raw).equals('"');
         });
     });
+    describe('data reader tags', () => {
+        it('tokenizes tag, separate line', () => {
+            const tokens = scanner.processLine('#foo');
+            expect(tokens[0].type).equals('reader');
+            expect(tokens[0].raw).equals('#foo');
+        });
+        it('tokenizes tagged kws', () => {
+            const tokens = scanner.processLine('#foo :bar');
+            expect(tokens[0].type).equals('kw');
+            expect(tokens[0].raw).equals('#foo :bar');
+        });
+        it('tokenizes tagged opens', () => {
+            const tokens = scanner.processLine('#foo (foo)');
+            expect(tokens[0].type).equals('open');
+            expect(tokens[0].raw).equals('#foo (');
+            expect(tokens[1].type).equals('id');
+            expect(tokens[1].raw).equals('foo');
+            expect(tokens[2].type).equals('close');
+            expect(tokens[2].raw).equals(')');
+        });
+    });
     describe('strings', () => {
         it('tokenizes words in strings', () => {
             const tokens = scanner.processLine('"(foo :bar)"');
@@ -224,15 +245,14 @@ describe('Scanner', () => {
             expect(tokens[4].raw).equals('"');
         });
     });
-    describe('max line length', () => {
-        it('too long lines', () => {
+    describe('Reported issues', () => {
+        it('too long lines - #566', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/556
             const longLine = "foo ".repeat(26),
                 tokens = scanner.processLine(longLine);
             expect(tokens[0].type).equals('too-long-line');
             expect(tokens[0].raw).equals(longLine);
         });
-    });
-    describe('Reported issues', () => {
         it('handles literal quotes - #566', () => {
             // https://github.com/BetterThanTomorrow/calva/issues/566
             const tokens = scanner.processLine("\\' foo");

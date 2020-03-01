@@ -262,10 +262,10 @@ export class LispTokenCursor extends TokenCursor {
                 case 'kw':
                 case 'ignore':
                 case 'junk':
-                case 'kw':
                 case 'comment':
                 case 'str-inside':
                     this.previous();
+                    this.backThroughAnyReader();
                     if (stack.length <= 0)
                         return true;
                     break;
@@ -282,6 +282,7 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     this.previous();
+                    this.backThroughAnyReader();
                     if (stack.length <= 0)
                         return true;
                     break;
@@ -289,6 +290,15 @@ export class LispTokenCursor extends TokenCursor {
                     this.previous();
                     break;
             }
+        }
+    }
+
+    private backThroughAnyReader() {
+        const readerPeeker = this.clone();
+        readerPeeker.backwardWhitespace();
+        if (readerPeeker.getPrevToken().type === 'reader') {
+            this.backwardWhitespace();
+            this.previous();
         }
     }
 
