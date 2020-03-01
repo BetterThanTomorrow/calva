@@ -1,7 +1,9 @@
 import { LoggingDebugSession, TerminatedEvent, Thread, StoppedEvent, StackFrame, Source, Scope, Handles, Variable } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory, 
-	DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer, Position } from 'vscode';
+import {
+    debug, window, DebugConfigurationProvider, WorkspaceFolder, DebugConfiguration, CancellationToken, ProviderResult, DebugAdapterDescriptorFactory,
+    DebugAdapterDescriptor, DebugSession, DebugAdapterExecutable, DebugAdapterServer, Position
+} from 'vscode';
 import * as util from './utilities';
 import * as Net from 'net';
 import * as state from './state';
@@ -12,24 +14,24 @@ import * as vscode from 'vscode';
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
     name: 'Calva Debug',
-	request: 'attach'
+    request: 'attach'
 };
 
 const REQUESTS = {
-	SEND_STOPPED_EVENT: 'send-stopped-event',
-	SEND_TERMINATED_EVENT: 'send-terminated-event'
+    SEND_STOPPED_EVENT: 'send-stopped-event',
+    SEND_TERMINATED_EVENT: 'send-terminated-event'
 };
 
 class CalvaDebugSession extends LoggingDebugSession {
 
-	// We don't support multiple threads, so we can use a hardcoded ID for the default thread
-	static THREAD_ID = 1;
+    // We don't support multiple threads, so we can use a hardcoded ID for the default thread
+    static THREAD_ID = 1;
 
-	private _variableHandles = new Handles<string>();
+    private _variableHandles = new Handles<string>();
 
     public constructor() {
         super('calva-debug-logs.txt');
-	}
+    }
 
     /**
 	 * The 'initialize' request is the first request called by the frontend
@@ -43,152 +45,153 @@ class CalvaDebugSession extends LoggingDebugSession {
             this.sendEvent(new TerminatedEvent());
             return;
         }
-        
+
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
-		this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
-        
+        this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
+
         // Build and return the capabilities of this debug adapter
-        response.body = { 
+        response.body = {
             ...response.body,
-			supportsBreakpointLocationsRequest: true
+            supportsBreakpointLocationsRequest: true
         };
-        
+
         this.sendResponse(response);
-	}
+    }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
-		
-		this.sendResponse(response);
-	}
 
-	protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
-		// We do not support multiple threads. Return a dummy thread.
-		response.body = {
-			threads: [
-				new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')
-			]
-		};
-		this.sendResponse(response);
-	}
+        this.sendResponse(response);
+    }
 
-	private _convertOneBasedToZeroBased(n: number): number {
-		// Zero implies ignoring the line/column in the vscode-debugadapter StackFrame class, and perhaps in cider-nrepl as well
-		return n === 0 ? n : n - 1;
-	}
+    protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
+        // We do not support multiple threads. Return a dummy thread.
+        response.body = {
+            threads: [
+                new Thread(CalvaDebugSession.THREAD_ID, 'thread 1')
+            ]
+        };
+        this.sendResponse(response);
+    }
 
-	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
+    private _convertOneBasedToZeroBased(n: number): number {
+        // Zero implies ignoring the line/column in the vscode-debugadapter StackFrame class, and perhaps in cider-nrepl as well
+        return n === 0 ? n : n - 1;
+    }
 
-		//// cider-nrepl seems to have 1-based lines and 0-based columns. StackFrames seem to have 1-based lines and columns. The editor has 0-based lines and columns.
+    protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
-		const debugResponse = state.deref().get('debug-response');
-		const coor = debugResponse.coor;
-		const document = await vscode.workspace.openTextDocument(debugResponse.file);
-		const positionLine = this._convertOneBasedToZeroBased(debugResponse.line);
-		const positionColumn = this._convertOneBasedToZeroBased(debugResponse.column);
-		const offset = document.offsetAt(new Position(positionLine, positionColumn));
-		const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+        //// cider-nrepl seems to have 1-based lines and 0-based columns. StackFrames seem to have 1-based lines and columns. The editor has 0-based lines and columns.
 
-		// This puts the cursor at the end of the sexp preceding the breakpoint reader macro (#break)
-		for (let i = 0; i < coor.length; i++) {
-			tokenCursor.downList();
-			for (let k = 0; k < coor[i]; k++) {
-				tokenCursor.forwardSexp();
-			}
-		}
+        const debugResponse = state.deref().get('debug-response');
+        const coor = debugResponse.coor;
+        const document = await vscode.workspace.openTextDocument(debugResponse.file);
+        const positionLine = this._convertOneBasedToZeroBased(debugResponse.line);
+        const positionColumn = this._convertOneBasedToZeroBased(debugResponse.column);
+        const offset = document.offsetAt(new Position(positionLine, positionColumn));
+        const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
-		// Move one more sexp to put the cursor at the end of the #break so we know what line it's on
-		tokenCursor.forwardSexp();
+        for (let i = 0; i < coor.length; i++) {
+            tokenCursor.downList();
+            for (let k = 0; k < coor[i]; k++) {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
+                if (tokenCursor.getToken().raw.startsWith('#')) {
+                    tokenCursor.forwardSexp();
+                }
+            }
+        }
+        tokenCursor.forwardWhitespace();
 
-		const [line, column] = tokenCursor.rowCol;
+        const [line, column] = tokenCursor.rowCol;
 
-		const filePath = debugResponse.file;
-		const source = new Source(basename(filePath), filePath);
-		const name = tokenCursor.getFunction();
-		const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
+        const filePath = debugResponse.file;
+        const source = new Source(basename(filePath), filePath);
+        const name = tokenCursor.getFunction();
+        const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
-		response.body = {
-			stackFrames,
-			totalFrames: stackFrames.length
-		};
+        response.body = {
+            stackFrames,
+            totalFrames: stackFrames.length
+        };
 
-		this.sendResponse(response);
-	}
+        this.sendResponse(response);
+    }
 
-	protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
+    protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
 
-		response.body = {
-			scopes: [
-				new Scope("Locals", this._variableHandles.create('locals'), false)
-			]
-		};
-		
-		this.sendResponse(response);
-	}
+        response.body = {
+            scopes: [
+                new Scope("Locals", this._variableHandles.create('locals'), false)
+            ]
+        };
 
-	private _createVariableFromLocal(local: any[]): Variable {
-		return {
-			name: local[0],
-			value: local[1],
-			// DEBUG TODO: May need to check type of value. If it's a map or collection, we may need to set variablesReference to something > 0.
-			//             Also may need to convert string type to actual type - but how do we know if "10", for instance, is supposed to be a string or number?
-			/** If variablesReference is > 0, the variable is structured and its children can be retrieved by passing variablesReference to the VariablesRequest. */
-			variablesReference: 0
-		}
-	}
+        this.sendResponse(response);
+    }
 
-	protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): void {
+    private _createVariableFromLocal(local: any[]): Variable {
+        return {
+            name: local[0],
+            value: local[1],
+            // DEBUG TODO: May need to check type of value. If it's a map or collection, we may need to set variablesReference to something > 0.
+            //             Also may need to convert string type to actual type - but how do we know if "10", for instance, is supposed to be a string or number?
+            /** If variablesReference is > 0, the variable is structured and its children can be retrieved by passing variablesReference to the VariablesRequest. */
+            variablesReference: 0
+        }
+    }
 
-		const debugResponse = state.deref().get('debug-response');
+    protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): void {
 
-		response.body = {
-			variables: debugResponse.locals.map(this._createVariableFromLocal)
-		};
+        const debugResponse = state.deref().get('debug-response');
 
-		this.sendResponse(response);
-	}
+        response.body = {
+            variables: debugResponse.locals.map(this._createVariableFromLocal)
+        };
 
-	protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
-		
-		const cljSession = util.getSession('clj');
-		
-		if (cljSession) {
-			cljSession.sendDebugInput(':continue');
-		}
+        this.sendResponse(response);
+    }
 
-		this.sendResponse(response);
-	}
+    protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
 
-	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
+        const cljSession = util.getSession('clj');
 
-		const cljSession = util.getSession('clj');
+        if (cljSession) {
+            cljSession.sendDebugInput(':continue');
+        }
 
-		if (cljSession) {
-			cljSession.sendDebugInput(':quit');
-		}
+        this.sendResponse(response);
+    }
 
-		this.sendResponse(response);
-	}
+    protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
-	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): void {
+        const cljSession = util.getSession('clj');
 
-		this.sendResponse(response);
-	}
+        if (cljSession) {
+            cljSession.sendDebugInput(':quit');
+        }
 
-	protected customRequest(command: string, response: DebugProtocol.Response, args: any, request?: DebugProtocol.Request): void {
-		
-		switch (command) {
-			case REQUESTS.SEND_TERMINATED_EVENT: {
-				this.sendEvent(new TerminatedEvent());
-				break;
-			}
-			case REQUESTS.SEND_STOPPED_EVENT: {
-				this.sendEvent(new StoppedEvent(args.reason, CalvaDebugSession.THREAD_ID, args.exceptionText));
-				break;
-			}
-		}
+        this.sendResponse(response);
+    }
 
-		this.sendResponse(response);
-	}
+    protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): void {
+
+        this.sendResponse(response);
+    }
+
+    protected customRequest(command: string, response: DebugProtocol.Response, args: any, request?: DebugProtocol.Request): void {
+
+        switch (command) {
+            case REQUESTS.SEND_TERMINATED_EVENT: {
+                this.sendEvent(new TerminatedEvent());
+                break;
+            }
+            case REQUESTS.SEND_STOPPED_EVENT: {
+                this.sendEvent(new StoppedEvent(args.reason, CalvaDebugSession.THREAD_ID, args.exceptionText));
+                break;
+            }
+        }
+
+        this.sendResponse(response);
+    }
 }
 
 CalvaDebugSession.run(CalvaDebugSession);
@@ -199,71 +202,71 @@ class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
 	 * Massage a debug configuration just before a debug session is being launched,
 	 * e.g. add all missing attributes to the debug configuration.
 	 */
-	resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+    resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
 
-		// If launch.json is missing or empty
-		if (!config.type && !config.request && !config.name) {
-			const editor = window.activeTextEditor;
-			if (editor && editor.document.languageId === 'clojure') {
-				config = {...config, ...CALVA_DEBUG_CONFIGURATION};
-			}
-		}
+        // If launch.json is missing or empty
+        if (!config.type && !config.request && !config.name) {
+            const editor = window.activeTextEditor;
+            if (editor && editor.document.languageId === 'clojure') {
+                config = { ...config, ...CALVA_DEBUG_CONFIGURATION };
+            }
+        }
 
-		return config;
-	}
+        return config;
+    }
 }
 
 class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactory {
 
-	private server?: Net.Server;
+    private server?: Net.Server;
 
-	createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): ProviderResult<DebugAdapterDescriptor> {
+    createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): ProviderResult<DebugAdapterDescriptor> {
 
-		if (!this.server) {
-			// start listening on a random port (0 means an arbitrary unused port will be used)
-			this.server = Net.createServer(socket => {
-				const debugSession = new CalvaDebugSession();
-				debugSession.setRunAsServer(true);
-				debugSession.start(<NodeJS.ReadableStream>socket, socket);
-			}).listen(0);
-		}
+        if (!this.server) {
+            // start listening on a random port (0 means an arbitrary unused port will be used)
+            this.server = Net.createServer(socket => {
+                const debugSession = new CalvaDebugSession();
+                debugSession.setRunAsServer(true);
+                debugSession.start(<NodeJS.ReadableStream>socket, socket);
+            }).listen(0);
+        }
 
-		// make VS Code connect to debug server
-		return new DebugAdapterServer(this.server.address().port);
-	}
+        // make VS Code connect to debug server
+        return new DebugAdapterServer(this.server.address().port);
+    }
 
-	dispose() {
-		if (this.server) {
-			this.server.close();
-		}
-	}
+    dispose() {
+        if (this.server) {
+            this.server.close();
+        }
+    }
 }
 
 function handleDebugResponse(response: any): boolean {
-	// DEBUG TODO: Need to check if status in response contains 'need-debug-response' and only save to state and send stopped event if so
-	//             Otherwise we'll likely just be returning the result "immediately" to the sender of debug input
-	if (response['status'].indexOf('need-debug-response')) {
-		state.cursor.set('debug-response', response);
+    // DEBUG TODO: Need to check if status in response contains 'need-debug-response' and only save to state and send stopped event if so
+    //             Otherwise we'll likely just be returning the result "immediately" to the sender of debug input
+    if (response['status'].indexOf('need-debug-response')) {
+        state.cursor.set('debug-response', response);
 
-		if (debug.activeDebugSession) {
-			debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, {reason: 'need-debug-input'});
-		} else {
-			debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
-		}
-	}
+        if (debug.activeDebugSession) {
+            debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: 'need-debug-input' });
+        } else {
+            debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+        }
+    }
 
-	return true;
+    return true;
 }
 
 debug.onDidStartDebugSession(session => {
-	// We only start debugger sessions when a breakpoint is hit
-	session.customRequest(REQUESTS.SEND_STOPPED_EVENT, {reason: 'breakpoint'});
+    // We only start debugger sessions when a breakpoint is hit
+    session.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: 'breakpoint' });
 });
 
 export {
-	CALVA_DEBUG_CONFIGURATION,
-	REQUESTS,
+    CALVA_DEBUG_CONFIGURATION,
+    REQUESTS,
     CalvaDebugConfigurationProvider,
-	CalvaDebugAdapterDescriptorFactory,
-	handleDebugResponse
+    CalvaDebugAdapterDescriptorFactory,
+    handleDebugResponse
 };
