@@ -49,9 +49,17 @@ toplevel.terminal(/(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
+// prefixing patterns
+// opens ((?<!\p{Ll})['`~#@?^]\s*)*
+// id    (['`~#^@]\s*)*
+// lit   (['`~#]\s*)*
+// kw    (['`~^]\s*)*
+
+// idea for prefixing data reader
+// (#[^\(\)\[\]\{\}]+[\n\s,]*)*
 
 // open parens
-toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
