@@ -4,6 +4,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
+- [Highlight/parsing/etc: Data reader tags are part of the tagged form](https://github.com/BetterThanTomorrow/calva/issues/570)
 
 ## [2.0.78] - 2020-02-28
 - [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
