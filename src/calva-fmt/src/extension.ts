@@ -19,7 +19,11 @@ function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfigu
                     removeText: Number.MAX_VALUE
                 }
             },
-        ] : []
+        ] : [],
+        comments: {
+            lineComment: ';;',
+            blockComment: ['(comment\n', ')']
+        }
     }
 }
 

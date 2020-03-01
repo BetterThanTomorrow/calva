@@ -2,6 +2,7 @@ import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { UndoManager, UndoStep } from "./undo";
 import { ReplReadline } from "../webview/readline";
 import { LispTokenCursor } from "./token-cursor";
+import { DebugConsoleMode } from "vscode";
 
 let scanner: Scanner;
 
@@ -385,6 +386,8 @@ export class LineInputModel implements EditableModel {
      * @param newSelection the new selection
      */
     private changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+        const t1 = new Date();
+
         let startPos = Math.min(start, end);
         let endPos = Math.max(start, end);
         let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
@@ -437,6 +440,7 @@ export class LineInputModel implements EditableModel {
         if(this.recordingUndo) {
             this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
         }
+        // console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
     }
 
     /**

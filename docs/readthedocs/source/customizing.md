@@ -57,30 +57,6 @@ You are in charge of how brackets and comments are highlighted via the `calva.hi
 
 The extras are built from **Clojure Warrior**, created by [Nikita Prokopov, a.k.a. @tonsky](https://tonsky.me)'s. Please note that the default styling for `(comment ...)` forms now is to italicize them (instead of dimming). This is to promote using `comment` forms to work with the REPL.
 
-## Keyword highlighting
-Many VS Code themes lack special highlighting of keywords. You can amend your theme by putting something like this in your `settings.json`:
-
-```json
-{
-    "editor.tokenColorCustomizations": {
-        "[Default Dark+]": {
-            "textMateRules": [
-                {
-                    "scope": [
-                        "constant.keyword.clojure"
-                    ],
-                    "settings": {
-                        "foreground": "#9cdcfeff"
-                    }
-                }
-            ]
-        },
-    }
-}
-```
-
-Please update this with the settings you find you like for your theme.
-
 ## Key bindings
 * These key binds replace the default Calva ”prefix”, `ctrl+alt+v` to just `alt+v`: [WebWItch's keybindings.json](https://gist.github.com/conan/aa38688d7daa50804c8a433215dc6dc9) (Please note, that `alt+v` does not work for some locales, but for when it works it is much less clunky than the default prefix).
 * Here the Calva key is switched for `ctrl+,`: [manas_marthi's keybindings](https://gist.github.com/pikeview/317f639091f57c3055681b06f0dc791a)
@@ -98,7 +74,7 @@ Something I use in IntelliJ/Cursive is the ability to select an expression and h
 
 Here's how you can make this work with Calva Paredit: Update all of the `Paredit: Wrap Around ...` commands so that their respective shortcuts are the wrappers themselves and update the `when` clause to include `editorHasSelection` (otherwise when you open a paren and the next expression would get slurped in).
 
-The change would look like this in your `keybindings.json`: 
+The change would look like this in your `keybindings.json`:
 
 ```json
     {

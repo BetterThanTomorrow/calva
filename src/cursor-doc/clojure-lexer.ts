@@ -24,20 +24,18 @@ let toplevel = new LexicalGrammar()
  * @param close
  */
 export function validPair(open: string, close: string): boolean {
-    let valid = false;
+    const openBracket = open[open.length - 1];
     switch (close) {
         case ')':
-            return open.endsWith("(");
+            return openBracket === '(';
         case ']':
-            return open.endsWith("[");
+            return openBracket === '[';
         case '}':
-            return open.endsWith("{");
+            return openBracket === '{';
         case '"':
-            return open.endsWith('"');
-        default:
-            break;
+            return openBracket === '"';
     };
-    return valid;
+    return false;
 }
 
 export interface Token extends LexerToken {
@@ -51,15 +49,20 @@ toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
+
 // open parens
-toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
-// punctuators
-toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
+// ignores
+toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
 
-toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
+// literals
+toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
+
+// This seems unecessary?
+//toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
@@ -67,7 +70,7 @@ toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, 
 toplevel.terminal(/(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all
 // TODO: Figure out why we can't allow `'` in the symbol name
-toplevel.terminal(/(['`~#^@]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
@@ -77,7 +80,7 @@ let inString = new LexicalGrammar()
 // end a string
 inString.terminal(/"/, (l, m) => ({ type: "close" }))
 // still within a string
-inString.terminal(/(\\.|[^\\"\t ])+/, (l, m) => ({ type: "str-inside" }))
+inString.terminal(/(\\.|[^\\"\t\r\n ])+/, (l, m) => ({ type: "str-inside" }))
 // whitespace, excluding newlines
 inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own

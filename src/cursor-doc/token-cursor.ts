@@ -1,5 +1,5 @@
 import { LineInputModel } from "./model";
-import { Token } from "./clojure-lexer";
+import { Token, validPair } from "./clojure-lexer";
 
 
 function tokenIsWhiteSpace(token: Token) {
@@ -179,17 +179,20 @@ export class LispTokenCursor extends TokenCursor {
 
     // Lisp navigation commands begin here.
 
+    // TODO: When f/b sexp, use the stack knowledge to ”flag” unbalance
+
     /**
      * Moves this token forward one s-expression at this level.
      * If the next non whitespace token is an open paren, skips past it's matching
      * close paren.
-     * 
+     *
      * If the next token is a form of closing paren, does not move.
-     * 
+     *
      * @returns true if the cursor was moved, false otherwise.
      */
     forwardSexp(skipComments = true): boolean {
-        let delta = 0;
+        // TODO: Consider using a proper bracket stack
+        let stack = [];
         this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
             return false;
@@ -205,21 +208,27 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
                 case 'str-inside':
                     this.next();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'close':
-                    delta--;
+                    const close = tk.raw;
+                    let open: string;
+                    while (open = stack.pop()) {
+                        if (validPair(open, close)) {
+                            break;
+                        }
+                    }
                     this.next();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'open':
-                    delta++;
+                    stack.push(tk.raw);
                     this.next();
                     break;
                 default:
@@ -233,17 +242,13 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this token backward one s-expression at this level.
      * If the previous non whitespace token is a close paren, skips past it's matching
      * open paren.
-     * 
+     *
      * If the previous token is a form of open paren, does not move.
-     * 
-     * Note. The cursor won't move when ”on” the first sexp inside a list.
-     *       TODO: Fix this. (Probably the only way is to give the cursor knowledge
-     *             about the offset it was created from.)
-     * 
+     *
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {
-        let delta = 0;
+        let stack = [];
         this.backwardWhitespace(skipComments);
         if (this.getPrevToken().type === 'open') {
             return false;
@@ -255,23 +260,29 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
                 case 'kw':
                 case 'comment':
                 case 'str-inside':
                     this.previous();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'close':
-                    delta++;
+                    stack.push(tk.raw);
                     this.previous();
                     break;
                 case 'open':
-                    delta--;
+                    const open = tk.raw;
+                    let close: string;
+                    while (close = stack.pop()) {
+                        if (validPair(open, close)) {
+                            break;
+                        }
+                    }
                     this.previous();
-                    if (delta <= 0)
+                    if (stack.length <= 0)
                         return true;
                     break;
                 default:
@@ -341,7 +352,7 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
-     * @param openingBracket 
+     * @param openingBracket
      */
     rangeForList(openingBracket?: string): [number, number] {
         const cursor = this.clone();
@@ -489,7 +500,7 @@ export class LispTokenCursor extends TokenCursor {
      * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
      * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
      * @param offset The ”current” position
-     * @param start From where to start examine candidate forms, should be before `offset`
+     * @param depth Controls if the cursor should consider `comment` top level (if > 0, it will not)
      */
     rangeForDefun(offset: number, depth = 0): [number, number] {
         const cursor = this.clone();
@@ -511,6 +522,18 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         return [offset, offset]
+    }
+
+    rangesForTopLevelForms(): [number, number][] {
+        const cursor = new LispTokenCursor(this.doc, 0, 0);
+        let ranges: [number, number][] = [];
+        while (cursor.forwardSexp()) {
+            const end = cursor.offsetStart;
+            cursor.backwardSexp();
+            ranges.push([cursor.offsetStart, end]);
+            cursor.forwardSexp();
+        }
+        return ranges;
     }
 
     isWhiteSpace(): boolean {
@@ -563,7 +586,7 @@ export class LispTokenCursor extends TokenCursor {
         while (true) {
             cursor.forwardWhitespace();
             const start = cursor.rowCol;
-            if (cursor.getToken().raw === '#_') {
+            if (cursor.getToken().type === 'ignore') {
                 ignoreCounter++;
                 cursor.forwardSexp();
                 continue;
@@ -629,4 +652,4 @@ export function createStringCursor(s: string): LispTokenCursor {
     const model = new LineInputModel();
     model.insertString(0, s);
     return model.getTokenCursor(0);
-} 
+}

@@ -3,6 +3,19 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
+- Use scope `variable.other.constant` for keywords, making them highlight nicely
+
+## [2.0.78] - 2020-02-28
+- [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
+- [Fix lexer going into some weird state after flexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
+
+## [2.0.77] - 2020-02-23
+- [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
+- [Fix: Some character literals throws paredit out of whack](https://github.com/BetterThanTomorrow/calva/issues/563)
+- [Fix: Initial expand selection sometimes fails](https://github.com/BetterThanTomorrow/calva/issues/549)
+- [Change line comment characters to ;;](https://github.com/BetterThanTomorrow/calva/issues/564)
+- [Use editor namespace for custom REPL commands w/o `ns` specified](https://github.com/BetterThanTomorrow/calva/issues/558)
+- [Add support for comment continuation](https://github.com/BetterThanTomorrow/calva/issues/536)
 
 ## [2.0.76] - 2020-02-12
 - [Fix Calva locking up when opening files with very long lines](https://github.com/BetterThanTomorrow/calva/issues/556)
