@@ -7,7 +7,11 @@
  *     See below for the regex used for this.
  */
 
- // Regex for the above mentioned behavior are variations of this: /(['`~#@?^]\s*)*/
+// prefixing patterns - TODO: revisit these and see if we can always use the same
+// opens ((?<!\p{Ll})['`~#@?^]\s*)*
+// id    (['`~#^@]\s*)*
+// lit   (['`~#]\s*)*
+// kw    (['`~^]\s*)*
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
@@ -49,17 +53,11 @@ toplevel.terminal(/(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
-// prefixing patterns
-// opens ((?<!\p{Ll})['`~#@?^]\s*)*
-// id    (['`~#^@]\s*)*
-// lit   (['`~#]\s*)*
-// kw    (['`~^]\s*)*
-
-// idea for prefixing data reader
-// (#[^\(\)\[\]\{\}]+[\n\s,]*)*
+// current idea for prefixing data reader
+// (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*
 
 // open parens
-toplevel.terminal(/((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
@@ -75,10 +73,15 @@ toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+
+// data readers
+toplevel.terminal(/#[^\(\)\[\]\{\}"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
+
 // this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all
 // TODO: Figure out why we can't allow `'` in the symbol name
 toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
+
 
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
