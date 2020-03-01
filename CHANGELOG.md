@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
 - [Highlight/parsing/etc: Data reader tags are part of the tagged form](https://github.com/BetterThanTomorrow/calva/issues/570)
 
