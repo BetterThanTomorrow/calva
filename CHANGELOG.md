@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix so that Calva treats symbol containing the quote character correctly.
 
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
