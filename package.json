@@ -93,10 +93,11 @@
                 "editor.autoClosingBrackets": "always",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
-                "editor.autoIndent": true,
+                "editor.autoIndent": "full",
                 "editor.formatOnPaste": true,
                 "files.trimTrailingWhitespace": false,
-                "editor.matchBrackets": false
+                "editor.matchBrackets": "never",
+                "editor.parameterHints.enabled": false
             }
         },
         "configuration": [
