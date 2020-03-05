@@ -4,6 +4,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
 - Fix so that Calva treats symbol containing the quote character correctly.
+- [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
 
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
