@@ -3,6 +3,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix so that Calva treats symbol containing the quote character correctly.
+- [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
 
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
