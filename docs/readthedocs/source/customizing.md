@@ -12,6 +12,32 @@ Tip For VS Code newcomers: The search box in **Settings** is your friend. Also, 
     },
 ```
 
+## Clojure Defaults
+
+Calva sets some VS Code settings for all Clojure files. Some of these are needed for Calva to function correctly, which should not be tampered with unless you really know what you are doing, and some of them are for convenience defaults. If you add a setting to your `settings.json` and accept the snippet help you get when you type `"[clojure]"`, you will get the Calva defaults pasted:
+
+```json
+    "[clojure]": {
+        "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
+        "editor.autoClosingBrackets": "always",
+        "editor.autoClosingQuotes": "always",
+        "editor.formatOnType": true,
+        "editor.autoIndent": "full",
+        "editor.formatOnPaste": true,
+        "files.trimTrailingWhitespace": false,
+        "editor.matchBrackets": "never",
+        "editor.parameterHints.enabled": false
+    }
+```
+
+### Automatic Parmaeter Hints Poppup
+
+Calva has helpful parameter hints to aid when typing function calls. They look like so:
+
+<img width="353" alt="image" src="https://user-images.githubusercontent.com/30010/75957543-8cf4c180-5eba-11ea-8d77-1e543a73ef28.png">
+
+To have the hints automatically pop up when you are typing, set `editor.parameterHints.enabled` to `true` in the above `[clojure]` scoped setting. (To call them up on demand the default VS Code keybindings are `cmd+shift+space` on Mac and `ctrl+shift+space` on Linux/Windows.)
+
 ## Jack-in and Connect Sequences
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
