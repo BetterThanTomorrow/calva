@@ -3,9 +3,9 @@
 
 ## What has Changed?
 <!-- Introduce the change(s) briefly here. Consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
-- 
-- 
-- 
+-
+-
+-
 
 <!-- Tell us what Github issue(s) your PR is fixing. Consider creating the issue if need be. -->
 Fixes #
@@ -16,9 +16,10 @@ Fixes #
 I have:
 
 - [ ] Read [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute#before-sending-pull-requests).
-- [ ] Made sure I am directing this pull request at the `dev` branch. (Or have specific reasons to target some other branch.)
-- [ ] Made sure I am changed the default PR base branch, so that it is not `master`. (Sorry for the nagging.)
-- [ ] Tested the VSIX built from the PR (well, if this is a PR that changes the source code.) You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test. (For now you'll need to opt in to the CircleCI _New Experience_ UI to see the Artifacts tab, because bug.)
+- [ ] I am directing this pull request at the `dev` branch. (Or have specific reasons to target some other branch.)
+- [ ] Made sure I have changed the default PR base branch, so that it is not `master`. (Sorry for the nagging.)
+- [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
+- [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test. NB: *There is a CircleCI bug that makes the Artifacts hard to find. Please see [this issue](https://discuss.circleci.com/t/artifacts-tab-not-showing-unless-logged-in/32433) for workarounds.*
      - [ ] Tested the particular change
      - [ ] Figured if the change might have some side effects and tested those as well.
      - [ ] Smoke tested the extension as such.
@@ -26,7 +27,6 @@ I have:
      - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
      - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
-- [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
 
 ## The Calva Team PR Checklist:
 <!-- Please read the list, since you'll get a better idea about what to expect by doing so. 😄 -->
