@@ -390,7 +390,7 @@ export class LispTokenCursor extends TokenCursor {
     downList(): boolean {
         let cursor = this.clone();
         cursor.forwardWhitespace();
-        if (cursor.getToken().type == "open") {
+        if (cursor.getToken().type === 'open') {
             cursor.next();
             this.set(cursor);
             return true;

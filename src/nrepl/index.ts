@@ -525,21 +525,20 @@ export class NReplSession {
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
-    sendDebugInput(input: string): Promise<any> {
+    sendDebugInput(input: string, debugResponseId: string, debugResponseKey: string): Promise<any> {
         return new Promise<any>((resolve, _) => {
-            const { id, key } = state.deref().get('debug-response');
 
-            this.messageHandlers[id] = (response) => {
+            this.messageHandlers[debugResponseId] = (response) => {
                 handleDebugResponse(response);
                 resolve(response);
                 return true;
             };
 
             const data:any = { 
-                id,
-                op: "debug-input", 
+                id: debugResponseId,
+                op: 'debug-input', 
                 input, 
-                key,
+                key: debugResponseKey,
                 session: this.sessionId 
             };
             

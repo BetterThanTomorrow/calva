@@ -22,6 +22,9 @@ const REQUESTS = {
     SEND_TERMINATED_EVENT: 'send-terminated-event'
 };
 
+const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
+const DEBUG_RESPONSE_KEY = 'debug-response';
+
 class CalvaDebugSession extends LoggingDebugSession {
 
     // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -82,7 +85,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         //// cider-nrepl seems to have 1-based lines and columns. StackFrames have 1-based lines and columns. The editor has 0-based lines and columns.
 
-        const debugResponse = state.deref().get('debug-response');
+        const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
         const coor = debugResponse.coor;
         const document = await vscode.workspace.openTextDocument(debugResponse.file);
         const positionLine = this._convertOneBasedToZeroBased(debugResponse.line);
@@ -91,7 +94,10 @@ class CalvaDebugSession extends LoggingDebugSession {
         const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
         for (let i = 0; i < coor.length; i++) {
-            tokenCursor.downList();
+            // DEBUG TODO: Prevent against infinite loops! We are trusting cider-nrepl's coordinates here, maybe too much.
+            while (!tokenCursor.downList()) {
+                tokenCursor.next();
+            }
             for (let k = 0; k < coor[i]; k++) {
                 tokenCursor.forwardSexp();
             }
@@ -137,7 +143,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): void {
 
-        const debugResponse = state.deref().get('debug-response');
+        const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
 
         response.body = {
             variables: debugResponse.locals.map(this._createVariableFromLocal)
@@ -149,9 +155,10 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = util.getSession('clj');
+        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
 
         if (cljSession) {
-            cljSession.sendDebugInput(':continue');
+            cljSession.sendDebugInput(':continue', id, key);
         }
 
         this.sendResponse(response);
@@ -160,9 +167,10 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = util.getSession('clj');
+        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
 
         if (cljSession) {
-            cljSession.sendDebugInput(':quit');
+            cljSession.sendDebugInput(':quit', id, key);
         }
 
         this.sendResponse(response);
@@ -239,13 +247,12 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 }
 
 function handleDebugResponse(response: any): boolean {
-    // DEBUG TODO: Need to check if status in response contains 'need-debug-response' and only save to state and send stopped event if so
-    //             Otherwise we'll likely just be returning the result "immediately" to the sender of debug input
-    if (response['status'].indexOf('need-debug-response')) {
-        state.cursor.set('debug-response', response);
+
+    if (response['status'].indexOf(NEED_DEBUG_INPUT_STATUS) != -1) {
+        state.cursor.set(DEBUG_RESPONSE_KEY, response);
 
         if (debug.activeDebugSession) {
-            debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: 'need-debug-input' });
+            debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: NEED_DEBUG_INPUT_STATUS });
         } else {
             debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
         }
