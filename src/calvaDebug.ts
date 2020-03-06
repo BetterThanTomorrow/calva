@@ -248,13 +248,23 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 
 function handleDebugResponse(response: any): boolean {
 
-    if (response['status'].indexOf(NEED_DEBUG_INPUT_STATUS) != -1) {
-        state.cursor.set(DEBUG_RESPONSE_KEY, response);
+    if (response['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+        if (typeof response.file === 'string'
+            && typeof response.column === 'number'
+            && typeof response.line === 'number') {
 
-        if (debug.activeDebugSession) {
-            debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: NEED_DEBUG_INPUT_STATUS });
+            state.cursor.set(DEBUG_RESPONSE_KEY, response);
+
+            if (debug.activeDebugSession) {
+                debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: NEED_DEBUG_INPUT_STATUS });
+            } else {
+                debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+            }
         } else {
-            debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
+            const cljSession = state.deref().get('clj');
+            cljSession.sendDebugInput(':quit', response.id, response.key);
+            vscode.window.showInformationMessage('Forms containing breakpoints that were not evaluated in the editor (such as if you evaluated it in the REPL window) cannot be debugged. Evaluate the form in the editor in order to debug it.');
+            return false;
         }
     }
 
