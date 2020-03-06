@@ -24,7 +24,7 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import * as model from './cursor-doc/model';
-import { LanguageClient, RequestType, ServerOptions } from 'vscode-languageclient';
+import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
 import * as path from 'path';
 
 const isWin = /^win/.test(process.platform);
@@ -62,8 +62,6 @@ function onDidOpen(document) {
 }
 
 function activateLSP(context: vscode.ExtensionContext) {
-    let serverModule = isWin ? "clojure-lsp.bat" : "clojure-lsp";
-
     let jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
 
 	let serverOptions: ServerOptions = {
@@ -71,8 +69,7 @@ function activateLSP(context: vscode.ExtensionContext) {
         debug: {command: 'java', args:['-jar', jarPath]},
     }
 
-	let clientOptions = {
-		// Register the server for plain text documents
+	let clientOptions: LanguageClientOptions = {
 		documentSelector: [{ scheme: 'file', language: 'clojure' }],
 		synchronize: {
 			configurationSection: 'clojure-lsp',
@@ -80,10 +77,9 @@ function activateLSP(context: vscode.ExtensionContext) {
 		},
 		initializationOptions: {
 			"dependency-scheme": "jar"
-		}
+        }
 	};
 
-	// Create the language client and start the client.
 	client = new LanguageClient(
 		'clojureLSP',
 		'Clojure Language Client',
@@ -105,7 +101,7 @@ function activateLSP(context: vscode.ExtensionContext) {
 	};
 	context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', provider));
 
-	console.log('Clojure-LSP started');
+	console.log('clojure-lsp started');
 }
 
 function activate(context: vscode.ExtensionContext) {
