@@ -5,7 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleDebugResponse, REQUESTS } from "../calvaDebug";
+import { handleNeedDebugInput, REQUESTS, NEED_DEBUG_INPUT_STATUS } from "../calvaDebug";
 import * as vscode from 'vscode';
 
 /** An nRREPL client */
@@ -99,20 +99,24 @@ export class NReplClient {
                     //console.log(data['id'], data);
 
                     // If we get a message with a done status, we are no longer debugging as per cider-nrepl
-                    if (data['status'] && data['status'].indexOf('done') != -1) {
+                    if (data['status'] && data['status'].indexOf('done') !== -1) {
                         if (vscode.debug.activeDebugSession) {
                             vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                         }
                     }
 
-                    if (!client.describe && data["id"] == describeId) {
+                    if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+                        handleNeedDebugInput(data);
+                    }
+
+                    if (!client.describe && data["id"] === describeId) {
                         client.describe = data;
-                    } else if (data["id"] == nsId) {
+                    } else if (data["id"] === nsId) {
                         if (data["ns"])
                             client.ns = data["ns"];
-                        if (data["status"] && data["status"].indexOf("done") != -1)
+                        if (data["status"] && data["status"].indexOf("done") !== -1)
                             client.encoder.write({ "op": "clone", "id": cloneId });
-                    } else if (data["id"] == cloneId) {
+                    } else if (data["id"] === cloneId) {
                         client.session = new NReplSession(data["new-session"], client);
                         client.encoder.write({ "op": "describe", id: describeId, verbose: true, session: data["new-session"] });
                         resolve(client);
@@ -521,7 +525,6 @@ export class NReplSession {
     initDebugger(): void {
         const id = this.client.nextId;
         // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
-        this.messageHandlers[id] = handleDebugResponse;
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
@@ -529,7 +532,6 @@ export class NReplSession {
         return new Promise<any>((resolve, _) => {
 
             this.messageHandlers[debugResponseId] = (response) => {
-                handleDebugResponse(response);
                 resolve(response);
                 return true;
             };
