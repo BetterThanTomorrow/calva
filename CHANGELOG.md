@@ -3,11 +3,16 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
+- Fix so that Calva treats symbol containing the quote character correctly.
+- [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
+
+## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
+- [Highlight/parsing/etc: Data reader tags are part of the tagged form](https://github.com/BetterThanTomorrow/calva/issues/570)
 
 ## [2.0.78] - 2020-02-28
 - [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
-- [Fix lexer going into some weird state after flexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
+- [Fix lexer going into some weird state after lexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
 
 ## [2.0.77] - 2020-02-23
 - [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)

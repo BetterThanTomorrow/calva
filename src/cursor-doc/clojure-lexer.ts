@@ -78,9 +78,8 @@ toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*(['`~^]\s*)*(:[^()[\]\{\},~@
 // data readers
 toplevel.terminal(/#[^\(\)\[\]\{\}"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
 
-// this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all
-// TODO: Figure out why we can't allow `'` in the symbol name
-toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
+// symbols, about anything goes!
+toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
