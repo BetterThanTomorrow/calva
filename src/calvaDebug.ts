@@ -94,10 +94,6 @@ class CalvaDebugSession extends LoggingDebugSession {
             tokenCursor.downList();
             for (let k = 0; k < coor[i]; k++) {
                 tokenCursor.forwardSexp();
-                tokenCursor.forwardWhitespace();
-                if (tokenCursor.getToken().raw.startsWith('#')) {
-                    tokenCursor.forwardSexp();
-                }
             }
         }
         tokenCursor.forwardWhitespace();
