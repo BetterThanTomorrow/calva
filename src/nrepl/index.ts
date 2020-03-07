@@ -98,13 +98,6 @@ export class NReplClient {
 
                     //console.log(data['id'], data);
 
-                    // If we get a message with a done status, we are no longer debugging as per cider-nrepl
-                    if (data['status'] && data['status'].indexOf('done') !== -1) {
-                        if (vscode.debug.activeDebugSession) {
-                            vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
-                        }
-                    }
-
                     if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
                         handleNeedDebugInput(data);
                     }
@@ -288,7 +281,7 @@ export class NReplSession {
             const opMsg = { op: "eval", session: this.sessionId, code, id, ...extraOpts, ...opts };
             this.addRunningID(id);
             this.client.write(opMsg);
-        }))
+        }));
 
         return evaluation;
     }
