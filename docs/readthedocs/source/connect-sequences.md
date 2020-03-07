@@ -33,6 +33,7 @@ A connect sequence configures the following:
   * `cljAliases`: At Jack-in to a Clojure CLI project, use these aliases to launch the repl.
   * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
   * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
+  * `projectRootDir`: The root directory to execute the Jack-in command from.  This will override the default behavior for determining the root directory relative to the current open file.  This is useful for working in monorepos.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/master/calva/nrepl/connectSequence.ts) also uses this format, check them out to get a clearer picture of how these settings work.
 
