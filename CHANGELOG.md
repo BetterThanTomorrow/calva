@@ -3,13 +3,20 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.80] - 2020-03-07
+- Fix so that Paredit treats symbols containing the quote character correctly.
+- [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
+- [Fix: `nil` followed by comma not highlighted correctly](https://github.com/BetterThanTomorrow/calva/issues/577)
+- [Fix: The syntax highlightning fails with symbols named truesomething/falsesomething](https://github.com/BetterThanTomorrow/calva/issues/578)
+- Fix so that Paredit does not consider `^` to be part of a symbol name.
+
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
 - [Highlight/parsing/etc: Data reader tags are part of the tagged form](https://github.com/BetterThanTomorrow/calva/issues/570)
 
 ## [2.0.78] - 2020-02-28
 - [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
-- [Fix lexer going into some weird state after flexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
+- [Fix lexer going into some weird state after lexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
 
 ## [2.0.77] - 2020-02-23
 - [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
