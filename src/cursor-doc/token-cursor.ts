@@ -113,23 +113,6 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Moves this token past the inside of a multiline string
-     */
-    // forwardString() {
-    //     while (!this.atEnd()) {
-    //         switch (this.getToken().type) {
-    //             case "eol":
-    //             case "str-inside":
-    //             case "str-start":
-    //                 this.next();
-    //                 continue;
-    //             default:
-    //                 return;
-    //         }
-    //     }
-    // }
-
-    /**
      * Moves this token past any whitespace or comment.
      */
     forwardWhitespace(includeComments = true) {
@@ -265,7 +248,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'comment':
                 case 'str-inside':
                     this.previous();
-                    this.backThroughAnyReader();
+                    this.backwardThroughAnyReader();
                     if (stack.length <= 0)
                         return true;
                     break;
@@ -282,7 +265,7 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     this.previous();
-                    this.backThroughAnyReader();
+                    this.backwardThroughAnyReader();
                     if (stack.length <= 0)
                         return true;
                     break;
@@ -293,12 +276,22 @@ export class LispTokenCursor extends TokenCursor {
         }
     }
 
-    private backThroughAnyReader() {
-        const readerPeeker = this.clone();
-        readerPeeker.backwardWhitespace();
-        if (readerPeeker.getPrevToken().type === 'reader') {
-            this.backwardWhitespace();
-            this.previous();
+    backwardThroughAnyReader() {
+        const cursor = this.clone();
+        cursor.backwardWhitespace();
+        if (cursor.getPrevToken().type === 'reader') {
+            cursor.backwardWhitespace();
+            cursor.previous();
+            this.set(cursor);
+        }
+    }
+
+    forwardThroughAnyReader() {
+        const cursor = this.clone();
+        cursor.forwardWhitespace();
+        if (cursor.getToken().type === 'reader') {
+            cursor.next();
+            this.set(cursor);
         }
     }
 
@@ -308,7 +301,7 @@ export class LispTokenCursor extends TokenCursor {
     forwardList(): boolean {
         let cursor = this.clone();
         while (cursor.forwardSexp()) { }
-        if (cursor.getToken().type == "close") {
+        if (cursor.getToken().type === "close") {
             this.set(cursor);
             return true;
         }
@@ -389,7 +382,9 @@ export class LispTokenCursor extends TokenCursor {
      */
     downList(): boolean {
         let cursor = this.clone();
+        cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
+
         if (cursor.getToken().type == "open") {
             cursor.next();
             this.set(cursor);
@@ -422,6 +417,7 @@ export class LispTokenCursor extends TokenCursor {
         cursor.backwardWhitespace();
         if (cursor.getPrevToken().type == "open") {
             cursor.previous();
+            cursor.backwardThroughAnyReader();
             this.set(cursor);
             return true;
         }
@@ -458,41 +454,44 @@ export class LispTokenCursor extends TokenCursor {
      */
     rangeForCurrentForm(offset: number): [number, number] {
         if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
-            return [this.offsetStart, this.offsetEnd];
+            const cursor = this.clone();
+            cursor.backwardThroughAnyReader();
+            return [cursor.offsetStart, this.offsetEnd];
         }
-        const peekBackwards = this.clone();
-        peekBackwards.backwardWhitespace(true);
-        if (peekBackwards.offsetStart == offset) {
-            if (peekBackwards.backwardSexp()) { // 1.
-                return [peekBackwards.offsetStart, offset];
+        const afterCursor = this.clone();
+        afterCursor.backwardWhitespace(true);
+        if (afterCursor.offsetStart == offset && afterCursor.getPrevToken().type !== 'reader') {
+            if (afterCursor.backwardSexp()) { // 1.
+                return [afterCursor.offsetStart, offset];
             }
         }
-        const peekForwards = this.clone();
-        peekForwards.forwardWhitespace(true);
-        if (peekForwards.offsetStart == offset) {
-            if (peekForwards.forwardSexp()) { // 2.
-                return [offset, peekForwards.offsetStart];
+        const beforeCursor = this.clone();
+        beforeCursor.backwardThroughAnyReader();
+        if (beforeCursor.offsetStart <= offset || beforeCursor.offsetEnd >= offset) {
+            const start = beforeCursor.offsetStart;
+            if (beforeCursor.forwardSexp()) { // 2.
+                return [start, beforeCursor.offsetStart];
             }
         }
-        if (peekBackwards.rowCol[0] == this.rowCol[0]) {
-            const peekBehindBackwards = peekBackwards.clone();
+        if (afterCursor.rowCol[0] == this.rowCol[0]) {
+            const peekBehindBackwards = afterCursor.clone();
             if (peekBehindBackwards.backwardSexp()) { // 3.
-                return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+                return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
             }
         }
-        if (peekForwards.rowCol[0] == this.rowCol[0]) {
-            const peekPastForwards = peekForwards.clone();
+        if (beforeCursor.rowCol[0] == this.rowCol[0]) {
+            const peekPastForwards = beforeCursor.clone();
             if (peekPastForwards.forwardSexp()) { // 4.
-                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+                return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
             }
         }
-        const peekBehindBackwards = peekBackwards.clone();
+        const peekBehindBackwards = afterCursor.clone();
         if (peekBehindBackwards.backwardSexp()) { // 5.
-            return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+            return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
         } else {
-            const peekPastForwards = peekForwards.clone();
+            const peekPastForwards = beforeCursor.clone();
             if (peekPastForwards.forwardSexp()) { // 6.
-                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+                return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
             } else {
                 const peekUp = this.clone();
                 if (peekUp.upList()) {
