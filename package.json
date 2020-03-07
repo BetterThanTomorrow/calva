@@ -414,6 +414,10 @@
                                         "cljsDefaultBuild": {
                                             "type": "string",
                                             "description": "Which cljs build to attach to at the initial connect."
+                                        },
+                                        "projectRootDir": {
+                                            "type": "string",
+                                            "descripion": "Defines the project root directory.  Useful for working with monorepos."
                                         }
                                     }
                                 },

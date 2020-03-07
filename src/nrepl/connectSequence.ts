@@ -38,7 +38,8 @@ interface MenuSelections {
     leinAlias?: string,
     cljAliases?: string[],
     cljsLaunchBuilds?: string[],
-    cljsDefaultBuild?: string
+    cljsDefaultBuild?: string,
+    projectRootDir?: string,
 }
 
 interface ReplConnectSequence {

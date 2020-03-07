@@ -156,6 +156,10 @@ export function getProjectRoot(useCache = true): string {
     }
 }
 
+export function setProjectRoot(rootPath: string) {
+    cursor.set(PROJECT_DIR_KEY, rootPath);
+}
+
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
     const doc = util.getDocument({});
     return doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
@@ -173,7 +177,6 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  *    by looking for project files from the file's directory and up to
  *    the window root (for plain folder windows) or the file's
  *    workspace folder root (for workspaces) to find the project root.
- *
  * If there is no project file found, throw an exception.
  */
 export async function initProjectDir(): Promise<void> {
@@ -223,7 +226,7 @@ export async function initProjectDir(): Promise<void> {
         for (let projectFile in projectFileNames) {
             const p = path.resolve(rootPath, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
-                cursor.set(PROJECT_DIR_KEY, rootPath);
+                setProjectRoot(rootPath);
                 return;
             }
         }

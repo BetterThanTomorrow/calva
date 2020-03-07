@@ -41,6 +41,10 @@ function cancelJackInTask() {
 }
 
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
+    // If the connection sequence specifies a project root dir, override the existing project dir
+    const projectRootDir = connectSequence?.menuSelections?.projectRootDir;
+    if(projectRootDir) state.setProjectRoot(projectRootDir);
+
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectTypes.nreplPortFile(connectSequence);

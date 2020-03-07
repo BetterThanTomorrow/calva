@@ -4,6 +4,7 @@ Changes to Calva.
 ## [Unreleased]
 
 ## [2.0.80] - 2020-03-07
+- Add replConnectSequences.menuSelections.projectRootDir for manually specifying the root directory in order to support jack-in for monorepo projects.
 - Fix so that Paredit treats symbols containing the quote character correctly.
 - [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
 - [Fix: `nil` followed by comma not highlighted correctly](https://github.com/BetterThanTomorrow/calva/issues/577)
