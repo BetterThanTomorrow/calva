@@ -68,11 +68,11 @@
 		"constants": {
 			"patterns": [
 				{
-					"match": "(nil)(?=(\\s|\\)|\\]|\\}))",
+					"match": "(?<=^|\\s|,|\\(|\\[|\\{)(nil)(?=(\\s|,|\\)|\\]|\\}|\\^))",
 					"name": "constant.language.nil.clojure"
 				},
 				{
-					"match": "(true|false)",
+					"match": "(?<=^|\\s|,|\\(|\\[|\\{)(true|false)(?=(\\s|,|\\)|\\]|\\}|\\^))",
 					"name": "constant.language.boolean.clojure"
 				},
 				{
