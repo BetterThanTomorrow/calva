@@ -84,9 +84,42 @@ describe "Clojure grammar", ->
       for bool in bools
         {tokens} = grammar.tokenizeLine bool
         expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine " " + bool
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine bool + " "
+        expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine "," + bool
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine bool + ","
+        expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine "(not " + bool + ")"
+        expect(tokens[3]).toEqual value: bool, scopes: ["source.clojure", "meta.expression.clojure", scope]
+        {tokens} = grammar.tokenizeLine "[" + bool + "]"
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", "meta.vector.clojure", scope]
+        {tokens} = grammar.tokenizeLine "{:a " + bool + "}"
+        expect(tokens[3]).toEqual value: bool, scopes: ["source.clojure", "meta.map.clojure", scope]
+        {tokens} = grammar.tokenizeLine bool + "^{:hi 1}[]"
+        expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+
 
   it "tokenizes nil", ->
     {tokens} = grammar.tokenizeLine "nil"
+    expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine " nil"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "nil "
+    expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine ",nil"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "nil,"
+    expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "(conj nil)"
+    expect(tokens[3]).toEqual value: "nil", scopes: ["source.clojure", "meta.expression.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "[nil]"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "meta.vector.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "{:a nil}"
+    expect(tokens[3]).toEqual value: "nil", scopes: ["source.clojure", "meta.map.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "nil^{:hi 1}[]"
     expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
 
   it "tokenizes keywords", ->
