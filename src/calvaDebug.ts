@@ -275,6 +275,7 @@ export {
     CALVA_DEBUG_CONFIGURATION,
     REQUESTS,
     NEED_DEBUG_INPUT_STATUS,
+    DEBUG_RESPONSE_KEY,
     CalvaDebugConfigurationProvider,
     CalvaDebugAdapterDescriptorFactory,
     handleNeedDebugInput

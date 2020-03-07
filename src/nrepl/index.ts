@@ -5,7 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleNeedDebugInput, REQUESTS, NEED_DEBUG_INPUT_STATUS } from "../calvaDebug";
+import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS } from "../calvaDebug";
 import * as vscode from 'vscode';
 
 /** An nRREPL client */
@@ -98,10 +98,6 @@ export class NReplClient {
 
                     //console.log(data['id'], data);
 
-                    if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
-                        handleNeedDebugInput(data);
-                    }
-
                     if (!client.describe && data["id"] === describeId) {
                         client.describe = data;
                     } else if (data["id"] === nsId) {
@@ -117,6 +113,13 @@ export class NReplClient {
                         let session = client.sessions[data["session"]];
                         if (session)
                             session._response(data);
+                    }
+
+                    if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+                        handleNeedDebugInput(data);
+                    }
+                    if (data['status'] && data['status'].indexOf('done') !== -1 && vscode.debug.activeDebugSession) {
+                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     }
                 });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
@@ -268,18 +271,40 @@ export class NReplSession {
         const pprintOptions = opts.pprintOptions;
         opts["pprint"] = pprintOptions.enabled;
         delete opts.pprintOptions;
-        const id = this.client.nextId,
-            extraOpts = getServerSidePrinter(pprintOptions);
+        const extraOpts = getServerSidePrinter(pprintOptions);
+        let opMsg;
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
-            this.messageHandlers[id] = (msg) => {
+        // DEBUG TODO: Refactor into createEvalOpMessage function
+        if (vscode.debug.activeDebugSession && this.replType === 'clj') {
+            const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
+            opMsg = { 
+                id: debugResponse.id,
+                session: this.sessionId,    
+                op: 'debug-input',
+                input: `{:response :eval, :code ${code}}`,
+                key: debugResponse.key,
+                ...extraOpts,
+                ...opts,
+            };
+        } else {
+            opMsg = {
+                id: this.client.nextId,
+                op: 'eval',
+                session: this.sessionId,
+                code,
+                ...extraOpts,
+                ...opts
+            };
+        }
+
+        let evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
+            this.messageHandlers[opMsg.id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
                 if (evaluation.onMessage(msg, pprintOptions)) {
                     return true;
                 }
             }
-            const opMsg = { op: "eval", session: this.sessionId, code, id, ...extraOpts, ...opts };
-            this.addRunningID(id);
+            this.addRunningID(opMsg.id);
             this.client.write(opMsg);
         }));
 
@@ -521,7 +546,7 @@ export class NReplSession {
         this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
-    sendDebugInput(input: string, debugResponseId: string, debugResponseKey: string): Promise<any> {
+    sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
         return new Promise<any>((resolve, _) => {
 
             this.messageHandlers[debugResponseId] = (response) => {
@@ -728,8 +753,8 @@ export class NReplEvaluation {
             if (msg.ex) {
                 this._exception = msg.ex;
             }
-            if (msg.value != undefined) {
-                this._msgValue = msg.value
+            if (msg.value !== undefined || msg['debug-value'] !== undefined) {
+                this._msgValue = msg.value || msg['debug-value'];
             }
             if (msg["pprint-out"]) {
                 this._pprintOut = msg["pprint-out"];
@@ -757,7 +782,7 @@ export class NReplEvaluation {
                         });
                 }
             }
-            if (msg.status && msg.status == "done") {
+            if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
                 this.remove();
                 if (this.exception) {
                     this.session.stacktrace().then((stacktrace) => {
