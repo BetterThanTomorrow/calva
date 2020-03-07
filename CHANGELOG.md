@@ -2,10 +2,13 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix so that Calva treats symbol containing the quote character correctly.
+
+## [2.0.80] - 2020-03-07
+- Fix so that Paredit treats symbols containing the quote character correctly.
 - [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
 - [Fix: `nil` followed by comma not highlighted correctly](https://github.com/BetterThanTomorrow/calva/issues/577)
 - [Fix: The syntax highlightning fails with symbols named truesomething/falsesomething](https://github.com/BetterThanTomorrow/calva/issues/578)
+- Fix so that Paredit does not consider `^` to be part of a symbol name.
 
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
