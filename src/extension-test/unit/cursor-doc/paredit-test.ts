@@ -3,6 +3,7 @@ import * as paredit from '../../../cursor-doc/paredit';
 import { ReplReadline } from '../../../webview/readline';
 import * as mock from './mock';
 import { ModelEditSelection } from '../../../cursor-doc/model';
+import { integer } from 'fast-check/*';
 
 /**
  * Prose gets a bit clumsy when describing the expectations of many Paredit operations and functions.
@@ -20,6 +21,7 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
  *   * Ranges w/o direction are denoted with `|` at the range's boundaries.
  *   * Ranges with direction are denoted with `>|` and `<|`, using the same semantics as selections.
  *   * Single position ranges are denoted with a single `|`.
+ * * Newlines are denoted with `•`
  */
 
 describe('paredit', () => {
@@ -157,6 +159,80 @@ describe('paredit', () => {
                 doc.selection = existingSelection;
                 paredit.moveToRangeLeft(doc, [defRight, defLeft]);
                 expect(doc.selection).deep.equal(new ModelEditSelection(defLeft));
+            });
+        });
+    });
+
+    describe('Reader tags', () => {
+        const docText = '(c\n#f\n(#b \n[:f :b :z])\n#z\n1)';
+        let doc: mock.MockDocument;
+
+        beforeEach(() => {
+            doc = new mock.MockDocument();
+            doc.insertString(docText);
+        });
+
+        it('rangeToForwardDownList: (|c•#f•(#b •[:f :b :z])•#z•1) => (c•#f•(|#b •[:f :b :z])•#z•1)', () => {
+            doc.selection = new ModelEditSelection(1, 1);
+            const newRange = paredit.rangeToForwardDownList(doc);
+            expect(newRange).deep.equal([1, 7]);
+        });
+        it('rangeToBackwardUpList: (c•#f•(|#b •[:f :b :z])•#z•1) => (c•|#f•(#b •[:f :b :z])•#z•1)', () => {
+            doc.selection = new ModelEditSelection(7, 7);
+            const newRange = paredit.rangeToBackwardUpList(doc);
+            expect(newRange).deep.equal([3, 7]);
+        });
+        it('dragSexprBackward: (c•#f•|(#b •[:f :b :z])•#z•1) => (#f•(#b •[:f :b :z])•c•#z•1)', () => {
+            doc.selection = new ModelEditSelection(6, 6);
+            paredit.dragSexprBackward(doc);
+            expect(doc.model.getText(0, Infinity)).equal('(#f\n(#b \n[:f :b :z])\nc\n#z\n1)');
+        });
+        it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#z•1) => (c•#z•1•#f•(#b •[:f :b :z]))', () => {
+            doc.selection = new ModelEditSelection(6, 6);
+            paredit.dragSexprForward(doc);
+            expect(doc.model.getText(0, Infinity)).equal('(c\n#z\n1\n#f\n(#b \n[:f :b :z]))');
+        });
+        describe('Stacked readers', () => {
+            const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
+            let doc: mock.MockDocument;
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+            });
+            it('dragSexprBackward: (c•#f•(#b •[:f :b :z])•#x•#y•|1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
+                doc.selection = new ModelEditSelection(30, 30);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+            });
+            it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#x•#y•1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
+                doc.selection = new ModelEditSelection(6, 6);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+            });
+        })
+        describe('Top Level Readers', () => {
+            const docText = '#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö';
+            let doc: mock.MockDocument;
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+            });
+            it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+                doc.selection = new ModelEditSelection(26, 26);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
+            });
+            it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+                doc.selection = new ModelEditSelection(3, 3);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
+            });
+            it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö', () => {
+                doc.selection = new ModelEditSelection(26, 26);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö');
             });
         })
     });

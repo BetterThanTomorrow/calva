@@ -276,22 +276,37 @@ export class LispTokenCursor extends TokenCursor {
         }
     }
 
+    /**
+     * Moves this cursor past the previous non-ws token, if it is a `reader` token.
+     * Otherwise, this cursor is left unaffected.
+     */
     backwardThroughAnyReader() {
         const cursor = this.clone();
-        cursor.backwardWhitespace();
-        if (cursor.getPrevToken().type === 'reader') {
+        while (true) {
             cursor.backwardWhitespace();
-            cursor.previous();
-            this.set(cursor);
+            if (cursor.getPrevToken().type === 'reader') {
+                cursor.previous();
+                this.set(cursor);
+            } else {
+                break;
+            }
         }
     }
 
+    /**
+     * Moves this cursor past the next non-ws token, if it is a `reader` token.
+     * Otherwise, this cursor is left unaffected.
+     */
     forwardThroughAnyReader() {
         const cursor = this.clone();
-        cursor.forwardWhitespace();
-        if (cursor.getToken().type === 'reader') {
-            cursor.next();
-            this.set(cursor);
+        while (true) {
+            cursor.forwardWhitespace();
+            if (cursor.getToken().type === 'reader') {
+                cursor.next();
+                this.set(cursor);
+            } else {
+                break;
+            }
         }
     }
 
