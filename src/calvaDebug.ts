@@ -10,6 +10,8 @@ import * as state from './state';
 import { basename } from 'path';
 import * as docMirror from './doc-mirror';
 import * as vscode from 'vscode';
+import { replWindows } from './repl-window';
+import { NReplSession } from './nrepl';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -24,6 +26,8 @@ const REQUESTS = {
 
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
+
+let previousReplWindowSession: NReplSession;
 
 class CalvaDebugSession extends LoggingDebugSession {
 
@@ -62,6 +66,12 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
+
+        // Switch the repl window session to the current clj session, which is now used for debugging. Store the old one so we can switch it back after debugging.
+        if (replWindows['clj']) {
+            previousReplWindowSession = replWindows['clj'].session;
+            replWindows['clj'].session = util.getSession('clj');
+        }
 
         this.sendResponse(response);
     }
@@ -171,6 +181,11 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         if (cljSession) {
             cljSession.sendDebugInput(':quit', id, key);
+        }
+
+        // Restore the repl window session to the one from before debugging started
+        if (previousReplWindowSession) {
+            replWindows['clj'].session = previousReplWindowSession;
         }
 
         this.sendResponse(response);

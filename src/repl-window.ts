@@ -633,3 +633,7 @@ function clearREPLWindowAndHistory(mode: "clj" | "cljs") {
         vscode.window.showInformationMessage(`No ${mode} REPL Window found.`);
     }
 }
+
+export {
+    replWindows
+};
