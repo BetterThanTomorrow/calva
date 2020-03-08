@@ -119,7 +119,10 @@ export class NReplClient {
                         handleNeedDebugInput(data);
                     }
                     if (data['status'] && data['status'].indexOf('done') !== -1 && vscode.debug.activeDebugSession) {
-                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+                        const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
+                        if (data['session'] === debugResponse.session) {
+                            vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+                        }
                     }
                 });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
