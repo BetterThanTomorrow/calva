@@ -1,4 +1,11 @@
 (comment
+  1
+  #foo
+   #bar
+    #baz
+     #{:foo (#foo '[1 2 3])})
+
+(comment
   
   #foo :bar
   (foo #foo ('foo^' :bar))
@@ -7,9 +14,11 @@
   \' {:foo (#foo '[1 2 3])} 'abc
   #_#_
   #foo
-   'bar
+   #bar
+    #baz
+     #{:foo (#foo '[1 2 3])}
   #foo
-   #{:foo (#foo '[1 2 3])}
+   'bar
   \a [] "a"
 
   )

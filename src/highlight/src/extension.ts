@@ -269,8 +269,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
             stack.push({ char: char, start: pos, end: pos.translate(0, charLength), pair_idx: pair_idx });
             pairsBack.set(position_str(pos), [opening, closing]);
-            for (let i = 0; i < pair.char.length; ++i)
-              pairsForward.set(position_str(pair.start.translate(0, i)), [opening, closing]);
+            const startOffset = activeEditor.document.offsetAt(pair.start);
+            for (let i = 0; i < pair.char.length; ++i) {
+              pairsForward.set(position_str(activeEditor.document.positionAt(startOffset + i)), [opening, closing]);
+            }
             --stack_depth;
             if (colorsEnabled) {
               rainbow[colorIndex(stack_depth)].push(decoration);
