@@ -6,6 +6,15 @@ import * as docMirror from '../../doc-mirror'
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import * as util from '../../utilities';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
+import { read } from 'fs';
+
+type StackItem = {
+  char: string,
+  start: Position,
+  end: Position,
+  pair_idx: number,
+  opens_comment_form?: boolean
+}
 
 export function activate(context: vscode.ExtensionContext) {
   function position_str(pos: Position) { return "" + pos.line + ":" + pos.character; }
@@ -162,7 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
       colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len - 1));
 
     let in_comment_form = false,
-      stack = [],
+      stack: StackItem[] = [],
       stack_depth = 0;
     pairsBack = new Map();
     pairsForward = new Map();
@@ -202,9 +211,9 @@ export function activate(context: vscode.ExtensionContext) {
             const ignoreCursor = cursor.clone();
             let ignore_counter = 0;
             const ignore_start = activeEditor.document.positionAt(ignoreCursor.offsetStart);
-            while (ignoreCursor.getToken().type == 'ignore') {
+            while (ignoreCursor.getToken().type === 'ignore') {
               ignore_counter++;
-              ignoreCursor.forwardSexp();
+              ignoreCursor.next();
               ignoreCursor.forwardWhitespace();
             }
             for (i = 0; i < ignore_counter; i++) {
@@ -228,13 +237,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
         // Rainbows! (And also highlight current parens.)
         if (token.type === 'open') {
-          const pos = activeEditor.document.positionAt(cursor.offsetStart);
+          const readerCursor = cursor.clone();
+          readerCursor.backwardThroughAnyReader();
+          const start = activeEditor.document.positionAt(readerCursor.offsetStart),
+            end = activeEditor.document.positionAt(cursor.offsetEnd),
+            openRange = new Range(start, end),
+            openString = activeEditor.document.getText(openRange);
           if (colorsEnabled) {
-            const decoration = { range: new Range(pos, pos.translate(0, charLength)) };
+            const decoration = { range: openRange };
             rainbow[colorIndex(stack_depth)].push(decoration);
           }
           ++stack_depth;
-          stack.push({ char: char, pos: pos, pair_idx: undefined, opens_comment_form: false });
+          stack.push({ char: openString, start: start, end: end, pair_idx: undefined, opens_comment_form: false });
           continue;
         } else if (token.type === 'close') {
           const pos = activeEditor.document.positionAt(cursor.offsetStart),
@@ -248,16 +262,17 @@ export function activate(context: vscode.ExtensionContext) {
           } else {
             let pair = stack[pair_idx],
               closing = new Range(pos, pos.translate(0, charLength)),
-              opening = new Range(pair.pos, pair.pos.translate(0, pair.char.length));
+              opening = new Range(pair.end.translate(0, -1), pair.end);
             if (in_comment_form && pair.opens_comment_form) {
-              comment_forms.push(new Range(pair.pos, pos.translate(0, charLength)));
+              comment_forms.push(new Range(pair.start, pos.translate(0, charLength)));
               in_comment_form = false;
             }
-            stack.push({ char: char, pos: pos, pair_idx: pair_idx });
-            for (let i = 0; i < charLength; ++i)
-              pairsBack.set(position_str(pos.translate(0, i)), [opening, closing]);
-            for (let i = 0; i < pair.char.length; ++i)
-              pairsForward.set(position_str(pair.pos.translate(0, i)), [opening, closing]);
+            stack.push({ char: char, start: pos, end: pos.translate(0, charLength), pair_idx: pair_idx });
+            pairsBack.set(position_str(pos), [opening, closing]);
+            const startOffset = activeEditor.document.offsetAt(pair.start);
+            for (let i = 0; i < pair.char.length; ++i) {
+              pairsForward.set(position_str(activeEditor.document.positionAt(startOffset + i)), [opening, closing]);
+            }
             --stack_depth;
             if (colorsEnabled) {
               rainbow[colorIndex(stack_depth)].push(decoration);

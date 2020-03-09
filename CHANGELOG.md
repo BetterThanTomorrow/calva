@@ -2,25 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix: Structural editing is a bit broken when reader tags are involved](https://github.com/BetterThanTomorrow/calva/issues/581)
 - [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
-- Fix so that Calva treats symbol containing the quote character correctly.
-- [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
-
-## [2.0.79] - 2020-03-01
-- Use scope `variable.other.constant` for keywords, making them highlight nicely
-- [Highlight/parsing/etc: Data reader tags are part of the tagged form](https://github.com/BetterThanTomorrow/calva/issues/570)
-
-## [2.0.78] - 2020-02-28
-- [Improve structural navigation through unbalanced brackets](https://github.com/BetterThanTomorrow/calva/issues/524)
-- [Fix lexer going into some weird state after lexing certain patterns](https://github.com/BetterThanTomorrow/calva/issues/566)
-
-## [2.0.77] - 2020-02-23
-- [Make rainbow parens and highlight use the same lexer as Paredit](https://github.com/BetterThanTomorrow/calva/issues/561)
-- [Fix: Some character literals throws paredit out of whack](https://github.com/BetterThanTomorrow/calva/issues/563)
-- [Fix: Initial expand selection sometimes fails](https://github.com/BetterThanTomorrow/calva/issues/549)
-- [Change line comment characters to ;;](https://github.com/BetterThanTomorrow/calva/issues/564)
-- [Use editor namespace for custom REPL commands w/o `ns` specified](https://github.com/BetterThanTomorrow/calva/issues/558)
-- [Add support for comment continuation](https://github.com/BetterThanTomorrow/calva/issues/536)
 
 ## [2.0.80] - 2020-03-07
 - Fix so that Paredit treats symbols containing the quote character correctly.
