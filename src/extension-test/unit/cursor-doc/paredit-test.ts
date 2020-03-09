@@ -180,10 +180,10 @@ describe('paredit', () => {
             const newRange = paredit.rangeToBackwardUpList(doc);
             expect(newRange).deep.equal([7, 11]);
         });
-        it.skip('rangeToBackwardUpList: (a(b(c•#f•(#b •|[:f :b :z])•#z•1))) => (a(b(c•<•#f•(#b •<[:f :b :z])•#z•1)))', () => {
+        it('rangeToBackwardUpList: (a(b(c•#f•(#b •|[:f :b :z])•#z•1))) => (a(b(c•<•#f•(#b •<[:f :b :z])•#z•1)))', () => {
             doc.selection = new ModelEditSelection(15, 15);
             const newRange = paredit.rangeToBackwardUpList(doc);
-            expect(newRange).deep.equal([7, 15]);
+            expect(newRange).deep.equal([4, 15]);
         });
         it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•(#b •[:f :b :z])•c•#z•1)))', () => {
             doc.selection = new ModelEditSelection(10, 10);
