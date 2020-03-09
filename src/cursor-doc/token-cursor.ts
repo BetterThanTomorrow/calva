@@ -483,10 +483,10 @@ export class LispTokenCursor extends TokenCursor {
         }
         const beforeCursor = this.clone();
         beforeCursor.backwardThroughAnyReader();
-        if (beforeCursor.offsetStart <= offset || beforeCursor.offsetEnd >= offset) {
-            const start = beforeCursor.offsetStart;
+        beforeCursor.forwardWhitespace(true);
+        if (beforeCursor.offsetStart == offset) {
             if (beforeCursor.forwardSexp()) { // 2.
-                return [start, beforeCursor.offsetStart];
+                return [offset, beforeCursor.offsetStart];
             }
         }
         if (afterCursor.rowCol[0] == this.rowCol[0]) {
