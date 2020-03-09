@@ -16,6 +16,7 @@ A connect sequence configures the following:
 * `projectType`: (required) This is either "Leiningen”, ”Clojure-CLI”, or ”shadow-cljs”.
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
 * `afterCLJReplJackInCode`: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.
+* `projectRootDir`: The root directory to execute the Jack-in command from.  This will override the default behavior for determining the root directory relative to the current open file.  This is useful for working in monorepos.
 * `cljsType`: This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", or a dictionary configuring a custom type. If omitted, Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
   * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
   * `isStarted`: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)
@@ -33,7 +34,6 @@ A connect sequence configures the following:
   * `cljAliases`: At Jack-in to a Clojure CLI project, use these aliases to launch the repl.
   * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
   * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
-  * `projectRootDir`: The root directory to execute the Jack-in command from.  This will override the default behavior for determining the root directory relative to the current open file.  This is useful for working in monorepos.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/master/calva/nrepl/connectSequence.ts) also uses this format, check them out to get a clearer picture of how these settings work.
 

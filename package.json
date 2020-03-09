@@ -375,6 +375,11 @@
                                     "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
                                     "required": false
                                 },
+                                "projectRootDir": {
+                                    "type": "string",
+                                    "descripion": "Defines the project root directory.  Useful for working with monorepos.",
+                                    "required": false
+                                },
                                 "menuSelections": {
                                     "type": "object",
                                     "description": "Pre-selected menu options. If a slection is made here. Calva won't prompt for it.",
@@ -414,10 +419,6 @@
                                         "cljsDefaultBuild": {
                                             "type": "string",
                                             "description": "Which cljs build to attach to at the initial connect."
-                                        },
-                                        "projectRootDir": {
-                                            "type": "string",
-                                            "descripion": "Defines the project root directory.  Useful for working with monorepos."
                                         }
                                     }
                                 },

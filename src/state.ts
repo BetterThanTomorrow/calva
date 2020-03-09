@@ -177,6 +177,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  *    by looking for project files from the file's directory and up to
  *    the window root (for plain folder windows) or the file's
  *    workspace folder root (for workspaces) to find the project root.
+ *
  * If there is no project file found, throw an exception.
  */
 export async function initProjectDir(): Promise<void> {
