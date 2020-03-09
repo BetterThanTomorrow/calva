@@ -429,6 +429,7 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardUpList(): boolean {
         let cursor = this.clone();
+        cursor.backwardThroughAnyReader();
         cursor.backwardWhitespace();
         if (cursor.getPrevToken().type == "open") {
             cursor.previous();

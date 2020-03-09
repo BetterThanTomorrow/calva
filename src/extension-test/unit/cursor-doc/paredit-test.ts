@@ -1,9 +1,7 @@
 import { expect } from 'chai';
 import * as paredit from '../../../cursor-doc/paredit';
-import { ReplReadline } from '../../../webview/readline';
 import * as mock from './mock';
 import { ModelEditSelection } from '../../../cursor-doc/model';
-import { integer } from 'fast-check/*';
 
 /**
  * Prose gets a bit clumsy when describing the expectations of many Paredit operations and functions.
