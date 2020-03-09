@@ -458,7 +458,7 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Figures out the `range` for the current form according to this priority:
      * 0. If `offset` is within a symbol, literal or keyword
-     * 1. If `offset` is adjacent after form
+     * 1. Else, if `offset` is adjacent after form
      * 2. Else, if `offset` is adjacent before a form
      * 3. Else, if the previous form is on the same line
      * 4. Else, if the next form is on the same line
@@ -482,11 +482,13 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         const beforeCursor = this.clone();
-        beforeCursor.backwardThroughAnyReader();
+        beforeCursor.forwardThroughAnyReader();
         beforeCursor.forwardWhitespace(true);
-        if (beforeCursor.offsetStart == offset) {
+        const readerCursor = beforeCursor.clone();
+        readerCursor.backwardThroughAnyReader();
+        if (beforeCursor.offsetStart == offset || readerCursor.offsetStart != beforeCursor.offsetStart) {
             if (beforeCursor.forwardSexp()) { // 2.
-                return [offset, beforeCursor.offsetStart];
+                return [readerCursor.offsetStart, beforeCursor.offsetStart];
             }
         }
         if (afterCursor.rowCol[0] == this.rowCol[0]) {

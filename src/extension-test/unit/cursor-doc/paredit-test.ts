@@ -222,7 +222,7 @@ describe('paredit', () => {
                 doc = new mock.MockDocument();
                 doc.insertString(docText);
             });
-            it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+            it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(26, 26);
                 paredit.dragSexprBackward(doc);
                 expect(doc.model.getText(0, Infinity)).equal('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');

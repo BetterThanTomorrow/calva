@@ -81,6 +81,14 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = doc.getTokenCursor(22);
             expect(cursor.rangeForCurrentForm(22)).deep.equal([22, 43]);
         });
+        it('2: selects from adjanent before form, or in readers', () => {
+            const cursor: LispTokenCursor = doc.getTokenCursor(21);
+            expect(cursor.rangeForCurrentForm(21)).deep.equal([16, 55]);
+        });
+        it('2: selects from adjanent before a form tagged with readers', () => {
+            const cursor: LispTokenCursor = doc.getTokenCursor(27);
+            expect(cursor.rangeForCurrentForm(22)).deep.equal([22, 43]);
+        });
         it('3: selects previous form, if on the same line', () => {
             const cursor: LispTokenCursor = doc.getTokenCursor(76);
             expect(cursor.rangeForCurrentForm(76)).deep.equal([72, 73]);
