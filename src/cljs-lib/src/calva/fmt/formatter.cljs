@@ -2,14 +2,30 @@
   (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             ["paredit.js" :as paredit]
-            [calva.js-utils :refer [cljify]]
+            [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.util :as util]
-            [calva.parse :refer [parse-cljfmt]]
+            [calva.parse :refer [parse-clj-edn]]
             [clojure.string]))
 
-(defn cljfmt-options
+(defn- merge-default-indents
+  "Merges onto default-indents.
+   The :replace metadata hint allows to replace defaults."
+  [indents]
+  (if (:replace (meta indents))
+    indents
+    (merge cljfmt/default-indents indents)))
+
+(defn- read-cljfmt
+  [s]
+  (-> s parse-clj-edn (update :indents merge-default-indents)))
+
+(defn read-cljfmt-js-bridge
+  [s]
+  (-> s read-cljfmt jsify))
+
+(defn- cljfmt-options
   [{:as config :keys [cljfmt-string]}]
-  (-> cljfmt-string parse-cljfmt (merge config)))
+  (-> cljfmt-string read-cljfmt (merge config)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]

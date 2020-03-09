@@ -10,14 +10,14 @@
                              :formatTextAtRange calva.fmt.formatter/format-text-at-range-bridge
                              :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
                              :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
+                             :cljfmtOptions calva.fmt.formatter/read-cljfmt-js-bridge
                              :inferIndents calva.fmt.inferer/infer-indents-bridge
                              :inferParens calva.fmt.inferer/infer-parens-bridge
                              :jsify calva.js-utils/jsify
                              :cljify calva.js-utils/cljify
                              :prettyPrint calva.pprint.printer/pretty-print-js-bridge
                              :parseEdn calva.parse/parse-edn-js-bridge
-                             :parseForms calva.parse/parse-forms-js-bridge
-                             :cljfmtOptions calva.parse/parse-cljfmt-js-bridge}
+                             :parseForms calva.parse/parse-forms-js-bridge}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
