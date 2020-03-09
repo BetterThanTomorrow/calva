@@ -211,9 +211,9 @@ export function activate(context: vscode.ExtensionContext) {
             const ignoreCursor = cursor.clone();
             let ignore_counter = 0;
             const ignore_start = activeEditor.document.positionAt(ignoreCursor.offsetStart);
-            while (ignoreCursor.getToken().type == 'ignore') {
+            while (ignoreCursor.getToken().type === 'ignore') {
               ignore_counter++;
-              ignoreCursor.forwardSexp();
+              ignoreCursor.next();
               ignoreCursor.forwardWhitespace();
             }
             for (i = 0; i < ignore_counter; i++) {

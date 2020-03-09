@@ -1,3 +1,10 @@
+(a(b
+   (c
+     #f
+      (#b
+        [:f :b :z])
+     #z
+      1)))
 (comment
   1
   #foo
@@ -9,8 +16,8 @@
   
   #foo :bar
   (foo #foo ('foo^' :bar))
-  #_#_
-  'abc #foo  @~#(foo :bar) \space
+  #_ 'abc 
+  #foo  @~#(foo :bar) \space
   \' {:foo (#foo '[1 2 3])} 'abc
   #_#_
   #foo

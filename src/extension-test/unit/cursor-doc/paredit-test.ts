@@ -164,7 +164,7 @@ describe('paredit', () => {
     });
 
     describe('Reader tags', () => {
-        const docText = '(c\n#f\n(#b \n[:f :b :z])\n#z\n1)';
+        const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';
         let doc: mock.MockDocument;
 
         beforeEach(() => {
@@ -172,25 +172,30 @@ describe('paredit', () => {
             doc.insertString(docText);
         });
 
-        it('rangeToForwardDownList: (|c•#f•(#b •[:f :b :z])•#z•1) => (c•#f•(|#b •[:f :b :z])•#z•1)', () => {
-            doc.selection = new ModelEditSelection(1, 1);
+        it('rangeToForwardDownList: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(|#b •[:f :b :z])•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(5, 5);
             const newRange = paredit.rangeToForwardDownList(doc);
-            expect(newRange).deep.equal([1, 7]);
+            expect(newRange).deep.equal([5, 11]);
         });
-        it('rangeToBackwardUpList: (c•#f•(|#b •[:f :b :z])•#z•1) => (c•|#f•(#b •[:f :b :z])•#z•1)', () => {
-            doc.selection = new ModelEditSelection(7, 7);
+        it('rangeToBackwardUpList: (a(b(c•#f•(|#b •[:f :b :z])•#z•1))) => (a(b(c•|#f•(#b •[:f :b :z])•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(11, 11);
             const newRange = paredit.rangeToBackwardUpList(doc);
-            expect(newRange).deep.equal([3, 7]);
+            expect(newRange).deep.equal([7, 11]);
         });
-        it('dragSexprBackward: (c•#f•|(#b •[:f :b :z])•#z•1) => (#f•(#b •[:f :b :z])•c•#z•1)', () => {
-            doc.selection = new ModelEditSelection(6, 6);
+        it.skip('rangeToBackwardUpList: (a(b(c•#f•(#b •|[:f :b :z])•#z•1))) => (a(b(c•<•#f•(#b •<[:f :b :z])•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(15, 15);
+            const newRange = paredit.rangeToBackwardUpList(doc);
+            expect(newRange).deep.equal([7, 15]);
+        });
+        it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•(#b •[:f :b :z])•c•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(10, 10);
             paredit.dragSexprBackward(doc);
-            expect(doc.model.getText(0, Infinity)).equal('(#f\n(#b \n[:f :b :z])\nc\n#z\n1)');
+            expect(doc.model.getText(0, Infinity)).equal('(a(b(#f\n(#b \n[:f :b :z])\nc\n#z\n1)))');
         });
-        it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#z•1) => (c•#z•1•#f•(#b •[:f :b :z]))', () => {
-            doc.selection = new ModelEditSelection(6, 6);
+        it('dragSexprForward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(c•#z•1•#f•(#b •[:f :b :z]))))', () => {
+            doc.selection = new ModelEditSelection(10, 10);
             paredit.dragSexprForward(doc);
-            expect(doc.model.getText(0, Infinity)).equal('(c\n#z\n1\n#f\n(#b \n[:f :b :z]))');
+            expect(doc.model.getText(0, Infinity)).equal('(a(b(c\n#z\n1\n#f\n(#b \n[:f :b :z]))))');
         });
         describe('Stacked readers', () => {
             const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
