@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix: Structural editing is a bit broken when reader tags are involved](https://github.com/BetterThanTomorrow/calva/issues/581)
 
 ## [2.0.80] - 2020-03-07
 - Fix so that Paredit treats symbols containing the quote character correctly.
