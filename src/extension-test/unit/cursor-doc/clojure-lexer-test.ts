@@ -10,7 +10,7 @@ const MAX_LINE_LENGTH = 100;
 const wsChars = [',', ' ', '\t', '\n', '\r'],
     openChars = ['"', '(', '[', '{'],
     closeChars = ['"', ')', ']', '}'],
-    nonSymbolChars = [...wsChars, ...[";"], ...openChars, ...closeChars];
+    nonSymbolChars = [...wsChars, ...[';', '@', '^', '~', '`'], ...openChars, ...closeChars];
 
 function symbolChar(): fc.Arbitrary<string> {
     // We need to filter away all kinds of whitespace, therefore the regex...
