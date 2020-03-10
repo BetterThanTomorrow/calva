@@ -69,7 +69,7 @@ Save, then hit `tab`, and the code should get formatted like so:
         (range 1 hn))))
 ```
 
-That's somewhat similar to Nikita Prokopov's [Better Clojure Formatting](https://tonsky.me/blog/clojurefmt/) suggestion. (Pleae be aware, that setting might not be sufficient to get complete **Tonsky Formatting**, please share any settings you do to get full compliance.)
+That's somewhat similar to Nikita Prokopov's [Better Clojure Formatting](https://tonsky.me/blog/clojurefmt/) suggestion. (Please be aware, that setting might not be sufficient to get complete **Tonsky Formatting**, please share any settings you do to get full compliance.)
 
 ## Under Construction
 
