@@ -523,17 +523,17 @@
                 "properties": {
                     "calva.fmt.configPath": {
                         "type": "string",
-                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file."
+                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Relative to the project root directory."
                     },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Auto-adjust indentation and format as you type (only on enter, currently)?"
+                        "description": "Auto-adjust indentation and format as you enter new lines."
                     },
                     "calva.fmt.newIndentEngine": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Help beta test the new indent engine (it is MUCH faster than the previous one)."
+                        "description": "Experimental. Help beta test the new auto-indent engine."
                     }
                 }
             },
