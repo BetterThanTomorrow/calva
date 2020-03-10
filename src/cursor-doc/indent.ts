@@ -5,6 +5,10 @@ const whitespace = new Set(["ws", "comment", "eol"])
 
 type IndentRule = ["block", number] | ["inner", number] | ["inner", number, number];
 
+let indentRules: { [id: string]: IndentRule[] } = {
+    '#"^\\w"': [['inner', 0]]
+}
+
 /**
  * The information about an enclosing s-expr, returned by collectIndents
  */
@@ -109,7 +113,16 @@ const testCljRe = (re, str) => {
 }
 
 /** Returns the expected newline indent for the given position, in characters. */
-export function getIndent(document: EditableModel, offset: number, config: any): number {
+export function getIndent(document: EditableModel, offset: number, config?: any): number {
+    // Not going the extra mile to figure out how to feed in the user format config here
+    // The REPL window will have to do with Tonsky Formatting for now.
+    if (!config) {
+        config = {
+            "cljfmt-options": {
+                "indents": indentRules
+            }
+        };
+    }
     let state = collectIndents(document, offset, config);
     // now find applicable indent rules
     let indent = -1;
