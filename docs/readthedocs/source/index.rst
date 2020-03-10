@@ -31,6 +31,7 @@ I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/B
    finding-commands
    eval-tips
    commands-top10
+   formatting
    paredit
    pprint
    customizing
