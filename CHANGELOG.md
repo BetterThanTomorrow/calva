@@ -3,6 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.81] - 2020-03-07
+- [Fix: Structural editing is a bit broken when reader tags are involved](https://github.com/BetterThanTomorrow/calva/issues/581)
+- [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
+
 ## [2.0.80] - 2020-03-07
 - Fix so that Paredit treats symbols containing the quote character correctly.
 - [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)

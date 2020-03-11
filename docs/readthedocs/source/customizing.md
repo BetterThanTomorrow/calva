@@ -38,6 +38,10 @@ Calva has helpful parameter hints to aid when typing function calls. They look l
 
 To have the hints automatically pop up when you are typing, set `editor.parameterHints.enabled` to `true` in the above `[clojure]` scoped setting. (To call them up on demand the default VS Code keybindings are `cmd+shift+space` on Mac and `ctrl+shift+space` on Linux/Windows.)
 
+## Code Formatting
+
+See [Formatting] for information on how to configure this.
+
 ## Jack-in and Connect Sequences
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).

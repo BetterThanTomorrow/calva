@@ -1,5 +1,6 @@
 (ns calva.parse
-  (:require [cljs.reader]
+  (:require [cljfmt.core :as cljfmt]
+            [cljs.reader]
             [cljs.tools.reader :as tr]
             [cljs.tools.reader.reader-types :as rt]
             [cljs.test :refer [is]]
@@ -45,6 +46,18 @@
 
 (defn parse-forms-js-bridge [s]
   (parse-forms-js s))
+
+(defn parse-clj-edn
+  "Reads edn (with regexp tags)"
+  ; https://ask.clojure.org/index.php/8675/cljs-reader-read-string-fails-input-clojure-string-accepts
+  {:test (fn []
+           (is (= (parse-clj-edn nil) nil))
+           (is (= (parse-clj-edn "{:foo [1 2]}") {:foo [1 2]}))
+           (is (= (parse-clj-edn "{:foo/bar [1 2]}") {:foo/bar [1 2]}))
+           (is (= :a (parse-clj-edn ":a {:foo ['bar] :bar 'foo}")))
+           (is (= js/RegExp (type (parse-clj-edn "#\"^foo.*bar$\""))))
+           (is (= "/^foo.*bar$/" (str (parse-clj-edn "#\"^foo.*bar$\"")))))}
+  [s] (tr/read-string s))
 
 ;[[ar gu ment] {:as extras, :keys [d e :s t r u c t u r e d]}]
 (comment

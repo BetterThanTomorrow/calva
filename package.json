@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.80",
+    "version": "2.0.81",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -521,45 +521,19 @@
                 "title": "Calva-fmt",
                 "type": "object",
                 "properties": {
-                    "calva.fmt.indentation": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Correct the indentation of your code?"
-                    },
-                    "calva.fmt.removeSurroundingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Remove whitespace surrounding inner forms? This will convert ( foo ) to (foo)."
-                    },
-                    "calva.fmt.removeTrailingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Remove trailing whitespace in lines? This will convert (foo) \\n to (foo)\\n."
-                    },
-                    "calva.fmt.insertMissingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Insert whitespace missing from between elements? This will convert (foo(bar)) to (foo (bar))."
-                    },
-                    "calva.fmt.removeConsecutiveBlankLines": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Squeeze consecutive blank lines to one?"
+                    "calva.fmt.configPath": {
+                        "type": "string",
+                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory."
                     },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Auto-adjust indentation and format as you type (only on enter, currently)?"
+                        "description": "Auto-adjust indentation and format as you enter new lines."
                     },
                     "calva.fmt.newIndentEngine": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Help beta test the new indent engine (it is MUCH faster than the previous one)."
-                    },
-                    "calva.fmt.alignMapItems": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Align map items in columns? (Experimental)"
+                        "description": "Experimental. Help beta test the new auto-indent engine."
                     }
                 }
             },

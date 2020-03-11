@@ -100,6 +100,7 @@ export function rangeToBackwardUpList(doc: EditableDocument, offset: number = Ma
 export function rangeToForwardDownList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     do {
+        cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
         if (cursor.getToken().type === 'open') {
             break;
@@ -522,6 +523,7 @@ export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end 
     if (start == end) {
         let cursor = doc.getTokenCursor(end);
         cursor.forwardWhitespace();
+        cursor.backwardThroughAnyReader();
         let endCursor = cursor.clone();
         if (endCursor.forwardSexp()) {
             let raised = doc.model.getText(cursor.offsetStart, endCursor.offsetStart);

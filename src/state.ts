@@ -158,7 +158,13 @@ export function getProjectRoot(useCache = true): string {
 
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
     const doc = util.getDocument({});
-    return doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
+    if (doc) {
+        const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
+        if (folder !== undefined) {
+            return folder;
+        }
+    }
+    return vscode.workspace.workspaceFolders[0];
 }
 
 /**
@@ -178,16 +184,16 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-          workspace = vscode.workspace.workspaceFolders![0],
-          doc = util.getDocument({});
+        workspace = vscode.workspace.workspaceFolders![0],
+        doc = util.getDocument({});
 
     // first try the workplace folder
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
-        if(vscode.workspace.workspaceFolders.length == 1) {
-           // this is only save in a one directory workspace
-           // (aks "Open Folder") environment.
-           workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+        if (vscode.workspace.workspaceFolders.length == 1) {
+            // this is only save in a one directory workspace
+            // (aks "Open Folder") environment.
+            workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
     if (!workspaceFolder) {
@@ -198,7 +204,7 @@ export async function initProjectDir(): Promise<void> {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
         let d = null;
         let prev = null;
-        if(doc) {
+        if (doc) {
             d = path.dirname(doc.uri.fsPath);
         } else {
             d = workspaceFolder.uri.fsPath;
@@ -231,6 +237,18 @@ export async function initProjectDir(): Promise<void> {
         analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
         throw "There was no valid project configuration found in the workspace. Aborting.";
     }
+}
+
+/**
+ * Tries to resolve absolute path in relation to project root
+ * @param filePath - absolute or relative to the project
+ */
+export function resolvePath(filePath?: string) {
+    const root = getProjectWsFolder();
+    if (filePath && path.isAbsolute(filePath)) {
+        return filePath;
+    }
+    return filePath && root && path.resolve(root.uri.fsPath, filePath);
 }
 
 export {
