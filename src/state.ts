@@ -158,7 +158,13 @@ export function getProjectRoot(useCache = true): string {
 
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
     const doc = util.getDocument({});
-    return doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
+    if (doc) {
+        const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
+        if (folder !== undefined) {
+            return folder;
+        }
+    }
+    return vscode.workspace.workspaceFolders[0];
 }
 
 /**
@@ -239,6 +245,9 @@ export async function initProjectDir(): Promise<void> {
  */
 export function resolvePath(filePath?: string) {
     const root = getProjectWsFolder();
+    if (filePath && path.isAbsolute(filePath)) {
+        return filePath;
+    }
     return filePath && root && path.resolve(root.uri.fsPath, filePath);
 }
 
