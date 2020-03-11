@@ -25,7 +25,7 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
 
  You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
 
- To start changing the defaults, paste the following map into a file and save it somewhere in the project workspace:
+ To start changing the defaults, paste the following map into a file and save it. It could be somewhere in the project workspace, or some other place, dependig on your requirements:
 
 ```clojure
 {:remove-surrounding-whitespace? true
@@ -35,7 +35,7 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
  :align-associative? false}
 ```
 
-Then set `calva.fmt.configPath` to the path to the file. The path should be relative to the project root directory. So, if you named the file `.cljfmt.edn` and saved it in the root of the project, then this setting should be `.cljfmt.edn`.
+Then set `calva.fmt.configPath` to the path to the file. The path should either be absolute, or relative to the project root directory. So, if you named the file `.cljfmt.edn` and saved it in the root of the project, then this setting should be `.cljfmt.edn`.
 
 Since you are editing the file in Calva (you are, right?), you can quickly test how different settings affect the formatting. Try:
 

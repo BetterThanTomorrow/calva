@@ -2,26 +2,30 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as state from "./state";
 
-const filesGlob: vscode.GlobPattern = "**/*.edn";
 const filesCache: Map<string, string> = new Map();
-const filesWatcher = vscode.workspace.createFileSystemWatcher(filesGlob);
 
 function writeToCache(uri: vscode.Uri) {
     try {
-        filesCache.set(uri.fsPath, fs.readFileSync(uri.fsPath, "utf8"))
+        const content: string = fs.readFileSync(uri.fsPath, "utf8");
+        filesCache.set(uri.fsPath, content)
     } catch {
         // if the file is not readable anymore then don't keep old content in cache
         filesCache.delete(uri.fsPath)
     }
 }
 
-vscode.workspace.findFiles(filesGlob).then((uris) => uris.forEach(writeToCache));
-filesWatcher.onDidChange(writeToCache);
-filesWatcher.onDidCreate(writeToCache);
-filesWatcher.onDidDelete((uri) => filesCache.delete(uri.fsPath));
-
 /**
  * Tries to get content of cached file
  * @param path - absolute or relative to the project
  */
-export const content = (path?: string) => filesCache.get(state.resolvePath(path));
+export const content = (path: string) => {
+    const resolvedPath = state.resolvePath(path);
+    if (!filesCache.has(resolvedPath)) {
+        writeToCache(vscode.Uri.file(resolvedPath));
+        const filesWatcher = vscode.workspace.createFileSystemWatcher(resolvedPath);
+        filesWatcher.onDidChange(writeToCache);
+        filesWatcher.onDidCreate(writeToCache);
+        filesWatcher.onDidDelete((uri) => filesCache.delete(uri.fsPath));
+    }
+    return filesCache.get(resolvedPath);
+};
