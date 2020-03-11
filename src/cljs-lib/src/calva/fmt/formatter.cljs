@@ -25,7 +25,9 @@
 
 (defn- cljfmt-options
   [{:as config :keys [cljfmt-string]}]
-  (-> cljfmt-string read-cljfmt (merge config)))
+  (-> cljfmt-string
+      (read-cljfmt)
+      (merge config)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
