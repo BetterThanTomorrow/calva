@@ -26,7 +26,7 @@ vscode.tasks.onDidEndTask(((e) => {
     if(e.execution.task.name == TASK_NAME) {
        JackinExecution = undefined;
        connector.default.disconnect();
-       // make sure everything is set back 
+       // make sure everything is set back
        // even if the task failed to connect
        // to the repl server.
        utilities.setLaunchingState(null);
@@ -36,14 +36,16 @@ vscode.tasks.onDidEndTask(((e) => {
 
 function cancelJackInTask() {
     setTimeout(() => {
-        calvaJackout(); 
+        calvaJackout();
     }, 1000);
 }
 
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
     // If the connection sequence specifies a project root dir, override the existing project dir
     const projectRootDir = connectSequence?.projectRootDir;
-    if(projectRootDir) state.setProjectRoot(projectRootDir);
+    if(projectRootDir) {
+        state.setProjectRoot(projectRootDir);
+    }
 
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
