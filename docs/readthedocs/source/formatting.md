@@ -25,6 +25,8 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
 
  You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
 
+ **NB:** The `cljfmt` docs mention the `:cljfmt` config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.
+
  To start changing the defaults, paste the following map into a file and save it. It could be somewhere in the project workspace, or some other place, dependig on your requirements:
 
 ```clojure
@@ -44,6 +46,8 @@ Since you are editing the file in Calva (you are, right?), you can quickly test 
 3. then hit `tab`, and see what happens.
 
 (This particular setting is experimental and known to cause trouble together with namespaced keywords. Consider using `ctrl+alt+l` instead of `tab` as your formatting command, instead of enabling this setting.)
+
+**NB:** The hot reloading of the config file does only work for files inside the project directory structure.
 
 ### Indentation rules
 
