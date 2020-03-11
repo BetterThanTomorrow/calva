@@ -3,7 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
-## [2.0.81] - 2020-03-07
+## [2.0.82] -2020-03-11
+- Fix bug with bad formatting defaults when no config file
+
+## [2.0.81] - 2020-03-11
 - [Fix: Structural editing is a bit broken when reader tags are involved](https://github.com/BetterThanTomorrow/calva/issues/581)
 - [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
 
