@@ -17,7 +17,13 @@
 
 (defn- read-cljfmt
   [s]
-  (-> s parse-clj-edn (update :indents merge-default-indents)))
+  #_ (println "*** parsing config")
+  (try
+    (-> s
+        (parse-clj-edn) 
+        (update :indents merge-default-indents))
+    (catch js/Error e
+      {:error (.-message e)})))
 
 (defn read-cljfmt-js-bridge
   [s]
