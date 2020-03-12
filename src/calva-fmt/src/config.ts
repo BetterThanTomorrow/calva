@@ -9,17 +9,29 @@ const defaultCljfmtContent = "\
  :insert-missing-whitespace? true\n\
  :align-associative? false}";
 
-function readConfiguration() {
-    let workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
-    const cljfmtContent = filesCache.content(workspaceConfig.get("configPath"));
+function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtString: string) {
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
-        "cljfmt-string": cljfmtContent ? cljfmtContent : defaultCljfmtContent,
-        "cljfmt-options": cljfmtContent ? cljfmtOptions(cljfmtContent) : cljfmtOptions(defaultCljfmtContent)
+        "cljfmt-string": cljfmtString,
+        "cljfmt-options": cljfmtOptions(cljfmtString)
     };
 }
 
+function readConfiguration() {
+    const workspaceConfig = vscode.workspace.getConfiguration("calva.fmt"),
+        configPath: string = workspaceConfig.get("configPath"),
+        cljfmtContent: string = filesCache.content(configPath),
+        config = configuration(workspaceConfig, cljfmtContent ? cljfmtContent : defaultCljfmtContent);
+    if (!config["cljfmt-options"]["error"]) {
+        return config;
+    } else {
+        vscode.window.showErrorMessage(`Error parsing ${configPath}: ${config["cljfmt-options"]["error"]}\n\nUsing default formatting configuration.`);
+        return configuration(workspaceConfig, defaultCljfmtContent)
+    }
+}
+
+
 export function getConfig() {
-    let config = readConfiguration();
+    const config = readConfiguration();
     return config;
 }

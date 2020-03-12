@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- When format config fails to parse, fall back on defaults rather than crash
 
 ## [2.0.82] -2020-03-11
 - Fix bug with bad formatting defaults when no config file
