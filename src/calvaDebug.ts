@@ -168,7 +168,9 @@ class CalvaDebugSession extends LoggingDebugSession {
         const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
 
         if (cljSession) {
-            cljSession.sendDebugInput(':continue', id, key);
+            cljSession.sendDebugInput(':continue', id, key).then(response => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
         }
 
         this.sendResponse(response);
@@ -269,9 +271,7 @@ function handleNeedDebugInput(response: any): void {
 
         state.cursor.set(DEBUG_RESPONSE_KEY, response);
 
-        if (debug.activeDebugSession) {
-            debug.activeDebugSession.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: NEED_DEBUG_INPUT_STATUS });
-        } else {
+        if (!debug.activeDebugSession) {
             debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
         }
     } else {
