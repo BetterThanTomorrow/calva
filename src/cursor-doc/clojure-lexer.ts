@@ -76,7 +76,7 @@ toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, 
 toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 
 // data readers
-toplevel.terminal(/#[^\(\)\[\]\{\}"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
+toplevel.terminal(/#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
 
 // symbols, about anything goes!
 toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
