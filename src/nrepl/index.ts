@@ -121,7 +121,6 @@ export class NReplClient {
                     // If we get a `value` property in a response, we're no longer debugging because the eval that started the debugging session is done
                     // Debug eval values are on a 'debug-value' property
                     if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
-                        const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
                         vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     }
                 });
@@ -270,35 +269,34 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
-        const pprintOptions = opts.pprintOptions;
-        opts["pprint"] = pprintOptions.enabled;
-        delete opts.pprintOptions;
-        const extraOpts = getServerSidePrinter(pprintOptions);
-        let opMsg;
-
-        // DEBUG TODO: Refactor into createEvalOpMessage function
+    private _createEvalOperationMessage(code: string, opts: any) {
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
             const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-            opMsg = {
+            return {
                 id: debugResponse.id,
                 session: this.sessionId,
                 op: 'debug-input',
                 input: `{:response :eval, :code ${code}}`,
                 key: debugResponse.key,
-                ...extraOpts,
                 ...opts,
             };
         } else {
-            opMsg = {
+            return {
                 id: this.client.nextId,
                 op: 'eval',
                 session: this.sessionId,
                 code,
-                ...extraOpts,
                 ...opts
             };
         }
+    }
+
+    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
+        const pprintOptions = opts.pprintOptions;
+        opts["pprint"] = pprintOptions.enabled;
+        delete opts.pprintOptions;
+        const extraOpts = getServerSidePrinter(pprintOptions);
+        const opMsg = this._createEvalOperationMessage(code, { ...extraOpts, ...opts });
 
         let evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[opMsg.id] = (msg) => {
