@@ -118,11 +118,11 @@ export class NReplClient {
                     if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
                         handleNeedDebugInput(data);
                     }
-                    if (data['status'] && data['status'].indexOf('done') !== -1 && vscode.debug.activeDebugSession && data['value'] !== undefined) {
+                    // If we get a `value` property in a response, we're no longer debugging because the eval that started the debugging session is done
+                    // Debug eval values are on a 'debug-value' property
+                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
                         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-                        if (data['session'] === debugResponse.session) {
-                            vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
-                        }
+                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     }
                 });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
@@ -280,9 +280,9 @@ export class NReplSession {
         // DEBUG TODO: Refactor into createEvalOpMessage function
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
             const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-            opMsg = { 
+            opMsg = {
                 id: debugResponse.id,
-                session: this.sessionId,    
+                session: this.sessionId,
                 op: 'debug-input',
                 input: `{:response :eval, :code ${code}}`,
                 key: debugResponse.key,
@@ -557,14 +557,14 @@ export class NReplSession {
                 return true;
             };
 
-            const data:any = { 
+            const data: any = {
                 id: debugResponseId,
-                op: 'debug-input', 
-                input, 
+                op: 'debug-input',
+                input,
                 key: debugResponseKey,
-                session: this.sessionId 
+                session: this.sessionId
             };
-            
+
             this.client.write(data);
         });
     }
