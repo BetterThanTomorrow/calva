@@ -10,19 +10,21 @@ const MAX_LINE_LENGTH = 100;
 const wsChars = [',', ' ', '\t', '\n', '\r'],
     openChars = ['"', '(', '[', '{'],
     closeChars = ['"', ')', ']', '}'],
-    nonSymbolChars = [...wsChars, ...[';', '@', '^', '~', '`'], ...openChars, ...closeChars];
+    nonSymbolChars = [...wsChars, ...[';', '@', '~', '`'], ...openChars, ...closeChars];
 
 function symbolChar(): fc.Arbitrary<string> {
     // We need to filter away all kinds of whitespace, therefore the regex...
     return fc.unicode().filter(c => !(nonSymbolChars.includes(c) || c.match(/\s/)));
 }
 
-function symbolStartChar(): fc.Arbitrary<string> {
-    return symbolChar().filter(c => ![':', '#'].includes(c));
+function symbolStart(): fc.Arbitrary<string> {
+    return fc.tuple(symbolChar(), symbolChar(), symbolChar())
+        .map(([c1, c2, c3]) => `${c1}${c2}${c3}`)
+        .filter(s => !!s.match(/^(?:[^#:]|#'[^'])/));
 }
 
 function symbol(): fc.Arbitrary<string> {
-    return fc.tuple(symbolStartChar(), fc.stringOf(symbolChar(), 1, 5)).map(([c, s]) => `${c}${s}`);
+    return fc.tuple(symbolStart(), fc.stringOf(symbolChar(), 1, 5)).map(([c, s]) => `${c}${s}`);
 }
 
 function keyword(): fc.Arbitrary<string> {
@@ -272,6 +274,12 @@ describe('Scanner', () => {
             expect(tokens[1].raw).equals(" ");
             expect(tokens[2].type).equals('id');
             expect(tokens[2].raw).equals("foo");
+        });
+        it('does not treat var quoted symbols as reader tags - #584', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/584
+            const tokens = scanner.processLine("#'foo");
+            expect(tokens[0].type).equals('id');
+            expect(tokens[0].raw).equals("#'foo");
         });
     });
 });
