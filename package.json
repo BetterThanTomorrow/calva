@@ -360,7 +360,8 @@
                                     "enum": [
                                         "Leiningen",
                                         "Clojure CLI",
-                                        "shadow-cljs"
+                                        "shadow-cljs",
+                                        "lein-shadow"
                                     ]
                                 },
                                 "nReplPortFile": {
