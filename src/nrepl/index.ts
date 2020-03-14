@@ -754,9 +754,12 @@ export class NReplEvaluation {
             if (msg.ex) {
                 this._exception = msg.ex;
             }
-            // cider-nrepl debug middleware eval error provides no additional information =(
-            if (msg.status && msg.status.indexOf('eval-error') !== -1 && !msg.ex) { 
-                this._msgValue = 'Evaluation error';
+            // cider-nrepl debug middleware eval error (eval error occurred during debug session)
+            if (msg.status && msg.status.indexOf('eval-error') !== -1 && msg.causes) {
+                const cause = msg.causes[0];
+                const errorMessage = `${cause.class}: ${cause.message}`;
+                this._stacktrace = {stacktrace: cause.stacktrace};
+                this.err(errorMessage);
             }
             if (msg.value !== undefined || msg['debug-value'] !== undefined) {
                 this._msgValue = msg.value || msg['debug-value'];
@@ -787,7 +790,7 @@ export class NReplEvaluation {
                         });
                 }
             }
-            if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1 || msg.status.indexOf('eval-error') !== -1)) {
+            if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
                 this.remove();
                 if (this.exception) {
                     this.session.stacktrace().then((stacktrace) => {
@@ -796,6 +799,8 @@ export class NReplEvaluation {
                     }).catch(() => { });
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
+                } else if (this.errorOutput) {
+                    this.doReject(this.errorOutput);
                 } else {
                     let printValue = this.msgValue;
                     if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
