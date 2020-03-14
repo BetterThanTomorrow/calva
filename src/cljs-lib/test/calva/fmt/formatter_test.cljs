@@ -1,5 +1,6 @@
 (ns calva.fmt.formatter-test
   (:require [cljs.test :include-macros true :refer [deftest is]]
+            [cljfmt.core :as cljfmt]
             [calva.fmt.formatter :as sut]))
 
 (deftest format-text-at-range
@@ -281,3 +282,18 @@ bar))")
   (is (= [1 12]
          (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2
                                        :config {:calva-fmt/use-enclosing-parent? true}})))))
+
+(deftest cljfmt-options
+  (is (= (count cljfmt/default-indents)
+         (count (:indents (sut/cljfmt-options {}))))
+      "by default uses cljfmt indent rules")
+  (is (= (+ 2 (count cljfmt/default-indents))
+         (count (:indents (sut/cljfmt-options {:cljfmt-string "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"}))))
+      "merges indents on top of cljfmt indent rules")
+  (is (= {'a [[:inner 0]]}
+         (:indents (sut/cljfmt-options {:cljfmt-string "{:indents ^:replace {a [[:inner 0]]}}"})))
+      "with :replace metadata hint overrides default indents")
+  (is (= true
+         (:align-associative? (sut/cljfmt-options {:align-associative? true
+                                                   :cljfmt-string "{:align-associative? false}"})))
+      "cljfmt :align-associative? has lower priority than config's option"))

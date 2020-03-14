@@ -4,7 +4,24 @@ Changes to Calva.
 ## [Unreleased]
 - [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
 - Fix so that Calva treats symbol containing the quote character correctly.
+
+## [2.0.83] -2020-03-13
+- When format config fails to parse, fall back on defaults rather than crash
+- [Fix: Var quoted symbols are treated as reader tags](https://github.com/BetterThanTomorrow/calva/issues/584)
+
+## [2.0.82] -2020-03-11
+- Fix bug with bad formatting defaults when no config file
+
+## [2.0.81] - 2020-03-11
+- [Fix: Structural editing is a bit broken when reader tags are involved](https://github.com/BetterThanTomorrow/calva/issues/581)
+- [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
+
+## [2.0.80] - 2020-03-07
+- Fix so that Paredit treats symbols containing the quote character correctly.
 - [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
+- [Fix: `nil` followed by comma not highlighted correctly](https://github.com/BetterThanTomorrow/calva/issues/577)
+- [Fix: The syntax highlightning fails with symbols named truesomething/falsesomething](https://github.com/BetterThanTomorrow/calva/issues/578)
+- Fix so that Paredit does not consider `^` to be part of a symbol name.
 
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
