@@ -799,8 +799,10 @@ export class NReplEvaluation {
                     }).catch(() => { });
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
-                } else if (this.errorOutput) {
-                    this.doReject(this.errorOutput);
+                } else if (this.stacktrace) {
+                    // No exception but stacktrace means likely debug eval error. Error will have been printed already from call to this.err(),
+                    // so just reject with no value so that just the stacktrace is printed.
+                    this.doReject('');
                 } else {
                     let printValue = this.msgValue;
                     if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
