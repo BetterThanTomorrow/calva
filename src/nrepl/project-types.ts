@@ -7,6 +7,7 @@ import * as pprint from '../printer';
 
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
+import { O_TRUNC } from 'constants';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -210,51 +211,7 @@ const projectTypes: { [id: string]: ProjectType } = {
          * 6. Use alias if selected otherwise repl :headless
         */
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-            let out: string[] = [];
-            const dependencies = {
-                ...leinDependencies,
-                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
-                ...serverPrinterDependencies
-            };
-            let keys = Object.keys(dependencies);
-
-            const defproject = leinDefProject();
-            const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
-
-            if (isWin) {
-                out.push("/d", "/c", "lein");
-            }
-            const q = isWin ? '' : "'",
-                dQ = '"',
-                s = isWin ? "^ " : " ";
-
-            for (let i = 0; i < keys.length; i++) {
-                let dep = keys[i];
-                out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
-            }
-
-            keys = Object.keys(leinPluginDependencies);
-            for (let i = 0; i < keys.length; i++) {
-                let dep = keys[i];
-                out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
-            }
-
-            const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
-            for (let mw of useMiddleware) {
-                out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
-            }
-
-            if (profiles.length) {
-                out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));
-            }
-
-            if (alias) {
-                out.push(alias);
-            } else {
-                out.push("repl", ":headless");
-            }
-
-            return out;
+            return await leinCommandLine(["repl", ":headless"], cljsType, connectSequence);
         }
     },
     /* // Works but analysing the possible launch environment is unsatifactory for now, use the cli :)
@@ -394,26 +351,14 @@ const projectTypes: { [id: string]: ProjectType } = {
          *  Build the Commandline args for a lein-shadow project.
          */
         commandLine: async (connectSequence, cljsType) => {
-            const chan = state.outputChannel(),
-                dependencies = {
-                    ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
-                    ...serverPrinterDependencies
-                };
-            let cmd: string[] = [];
-            if (isWin) {
-                cmd.push("/d", "/c", "lein");
-            }
-            cmd.push("shadow");
-            let args: string[] = [];
-            for (let dep in dependencies)
-                args.push("-d", dep + ":" + dependencies[dep]);
+            const chan = state.outputChannel();
 
             const defproject = await leinDefProject();
             const foundBuilds = leinShadowBuilds(defproject),
                 { selectedBuilds, args: extraArgs } = await selectShadowBuilds(connectSequence, foundBuilds);
 
             if (selectedBuilds && selectedBuilds.length) {
-                return [...cmd, ...args, ...extraArgs, "watch", ...selectedBuilds];
+                return leinCommandLine(["shadow", "watch", ...selectedBuilds], cljsType, connectSequence);
             } else {
                 chan.show();
                 chan.appendLine("Aborting. No valid shadow-cljs build selected.");
@@ -421,6 +366,42 @@ const projectTypes: { [id: string]: ProjectType } = {
             }
         }
     }
+}
+
+async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSequence: ReplConnectSequence) {
+    let out: string[] = [];
+    const dependencies = {
+        ...leinDependencies,
+        ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+        ...serverPrinterDependencies
+    };
+    let keys = Object.keys(dependencies);
+    const defproject = leinDefProject();
+    const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
+    if (isWin) {
+        out.push("/d", "/c", "lein");
+    }
+    const q = isWin ? '' : "'", dQ = '"', s = isWin ? "^ " : " ";
+    for (let i = 0; i < keys.length; i++) {
+        let dep = keys[i];
+        out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
+    }
+    keys = Object.keys(leinPluginDependencies);
+    for (let i = 0; i < keys.length; i++) {
+        let dep = keys[i];
+        out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
+    }
+    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+    for (let mw of useMiddleware) {
+        out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
+    }
+    if (profiles.length) {
+        out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));
+    }
+
+    out.push(...command);
+
+    return out;
 }
 
 /** Given the name of a project in project types, find that project. */

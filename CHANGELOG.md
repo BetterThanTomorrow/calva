@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: Make lein-shadow project type use lein injections
 
 ## [2.0.84] - 2020-03-15
 - [Support projects using lein-shadow](https://github.com/BetterThanTomorrow/calva/issues/585)
