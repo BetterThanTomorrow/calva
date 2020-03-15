@@ -805,7 +805,7 @@ export class NReplEvaluation {
                     this.doReject('');
                 } else {
                     let printValue = this.msgValue;
-                    if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
+                    if (pprintOptions.enabled && (pprintOptions.printEngine === 'calva' || msg['debug-value'] !== undefined)) {
                         const pretty = prettyPrint(this.msgValue, pprintOptions);
                         if (!pretty.error) {
                             printValue = pretty.value;

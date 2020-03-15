@@ -27,14 +27,13 @@ const REQUESTS = {
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
 
-let previousReplWindowSession: NReplSession;
-
 class CalvaDebugSession extends LoggingDebugSession {
 
     // We don't support multiple threads, so we can use a hardcoded ID for the default thread
     static THREAD_ID = 1;
 
     private _variableHandles = new Handles<string>();
+    private _previousReplWindowSession: NReplSession;
 
     public constructor() {
         super('calva-debug-logs.txt');
@@ -67,10 +66,13 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 
-        // Switch the repl window session to the current clj session, which is now used for debugging. Store the old one so we can switch it back after debugging.
-        if (replWindows['clj']) {
-            previousReplWindowSession = replWindows['clj'].session;
-            replWindows['clj'].session = util.getSession('clj');
+        const cljReplWindow = replWindows['clj'];
+
+        if (cljReplWindow) {
+            // Switch the repl window session to the current clj session, which is now used for debugging. Store the old one so we can switch it back after debugging.
+            this._previousReplWindowSession = cljReplWindow.session;
+            cljReplWindow.session = util.getSession('clj');
+            cljReplWindow.setNamespace('<<debug-mode>>');
         }
 
         this.sendResponse(response);
@@ -185,9 +187,10 @@ class CalvaDebugSession extends LoggingDebugSession {
             cljSession.sendDebugInput(':quit', id, key);
         }
 
-        // Restore the repl window session to the one from before debugging started
-        if (previousReplWindowSession) {
-            replWindows['clj'].session = previousReplWindowSession;
+        if (this._previousReplWindowSession) {
+            const cljReplWindow = replWindows['clj'];
+            cljReplWindow.session = this._previousReplWindowSession;
+            cljReplWindow.setNamespace(this._previousReplWindowSession.client.ns);
         }
 
         this.sendResponse(response);

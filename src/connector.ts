@@ -12,6 +12,7 @@ import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWi
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
+import { REQUESTS } from './calvaDebug';
 
 function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
@@ -521,6 +522,12 @@ export default {
             // the REPL client was connected.
             nClient.close();
         }
+
+        // If an active debug session exists, terminate it
+        if (vscode.debug.activeDebugSession) {
+            vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+        }
+
         callback();
     },
     toggleCLJCSession: () => {
