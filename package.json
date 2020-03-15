@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.83",
+    "version": "2.0.84",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -360,7 +360,8 @@
                                     "enum": [
                                         "Leiningen",
                                         "Clojure CLI",
-                                        "shadow-cljs"
+                                        "shadow-cljs",
+                                        "lein-shadow"
                                     ]
                                 },
                                 "nReplPortFile": {
