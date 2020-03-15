@@ -24,7 +24,7 @@ For shadow-cljs Luminus projects, the workflow is: Jack-in to the server, then J
 
 0. If you haven't created the project yet, create a new shadow-cljs Luminus project. E.g.:
     ```sh
-    $ lein new luminus my-luminus-shadow
+    $ lein new luminus my-luminus-shadow +reagent +shadow-cljs
     ```
 
 This creates the folder `my-luminus-shadow`, which will contain two VS Code Workspaces – one for the server, and one for the client.
@@ -57,7 +57,7 @@ As with the server only, the workflow here is really just: Jack-in and start hac
 
 0. If you haven't created the project yet, create a new server only Luminus project. E.g.:
     ```sh
-    $ lein new luminus my-fw
+    $ lein new luminus my-fw +reagent
     ```
 0. This creates the folder `my-fw`. Open it in VS Code:
     ```sh
