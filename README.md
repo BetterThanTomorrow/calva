@@ -104,7 +104,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 
 ### Calva Super Fans
 
-[![Jason Legler](https://avatars2.githubusercontent.com/u/6002769?s=30)](https://github.com/smashedtoatoms)
+It's empty here!
 
 ### Calva Fans
 
@@ -129,6 +129,7 @@ These people are helping to keep Calva maintained and improved by sponsoring wit
 [![David Brear](https://avatars0.githubusercontent.com/u/1081640?s=30)](https://github.com/DavidBrear)
 [![Sergei Udris](https://avatars0.githubusercontent.com/u/19359748?s=30)](https://github.com/sergeiudris)
 [![Janne Sauvala](https://avatars1.githubusercontent.com/u/4200280?s=30)](https://github.com/sauvala)
+[![Filipe Silva](https://avatars1.githubusercontent.com/u/4172079?s=30)](https://github.com/filipesilva)
 
 ## The Calva Team
 
