@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Support projects using lein-shadow](https://github.com/BetterThanTomorrow/calva/issues/585)
 
 ## [2.0.83] -2020-03-13
 - When format config fails to parse, fall back on defaults rather than crash

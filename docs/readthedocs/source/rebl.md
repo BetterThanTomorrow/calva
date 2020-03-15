@@ -1,5 +1,6 @@
-# Using Calva with REBL
-To use this extension with REBL do the following.
+# How to Use Calva and REBL Together
+
+[REBL](https://github.com/cognitect-labs/REBL-distro) is a graphical, interactive tool for browsing Clojure data.
 
 ## Clojure CLI
 
@@ -30,7 +31,7 @@ To use this extension with REBL do the following.
 
 ;; nREBL
 :nrebl {:extra-deps {rickmoynihan/nrebl.middleware {:mvn/version "0.2.0"}}
-            :main-opts ["-e" "((requiring-resolve,'cognitect.rebl/ui))" "-m" "nrepl.cmdline" "--middleware" "[nrebl.middleware/wrap-nrebl]" "-I"]}      
+            :main-opts ["-e" "((requiring-resolve,'cognitect.rebl/ui))" "-m" "nrepl.cmdline" "--middleware" "[nrebl.middleware/wrap-nrebl]" "-I"]}
 ```
 
 Check out the [REBL github page](https://github.com/cognitect-labs/REBL-distro) for more info
@@ -69,7 +70,7 @@ A sample user profile (located at `~/.lein/profiles.clj` on mac)
                        [org.clojure/data.json "0.2.3"]
                        [cljfmt "0.6.4"]
                        [org.yaml/snakeyaml "1.23"]]}
-                       
+
   ;; REBL 12 for JDK 12.0.1. Swap out for your JDK vaersion
  :rebl-12 {:dependencies [[org.openjfx/javafx-fxml  "12.0.1"]
                           [org.openjfx/javafx-controls "12.0.1"]
@@ -78,7 +79,7 @@ A sample user profile (located at `~/.lein/profiles.clj` on mac)
                           [org.openjfx/javafx-swing "12.0.1"]
                           [org.openjfx/javafx-base  "12.0.1"]
                           [org.openjfx/javafx-web "12.0.1"]]}
- ;; NREBL https://github.com/RickMoynihan/nrebl.middleware                         
+ ;; NREBL https://github.com/RickMoynihan/nrebl.middleware
  :nrebl {:repl-options {:nrepl-middleware [nrebl.middleware/wrap-nrebl]}
         :dependencies [[rickmoynihan/nrebl.middleware "0.3.1"]]}}
 ```
