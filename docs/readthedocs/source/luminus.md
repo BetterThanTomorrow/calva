@@ -15,43 +15,26 @@ The workflow here is really just: Jack-in and start hacking. The first time it i
     $ code my-luminus-server
     ```
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j` and wait for the **Calva says** output to say `Jack-in done.`
-0. Open http://0.0.0.0:3000 in your web browser and start hacking.
+0. Open [http://0.0.0.0:3000](http://0.0.0.0:3000) in your web browser and start hacking.
 
 
-## Server and shadow-cljs
+## Server + shadow-cljs
 
-For shadow-cljs Luminus projects, the workflow is: Jack-in to the server, then Jack-in to the client, then start hacking. The first time it involves these steps:
+Basically this is the same wokflow as with **Server only**. Behind the scenes there is more happening, though. Such as the ClojureScript app being built and the CLJS REPL connected once the web app is running.
 
 0. If you haven't created the project yet, create a new shadow-cljs Luminus project. E.g.:
     ```sh
     $ lein new luminus my-luminus-shadow +reagent +shadow-cljs
     ```
+0. This creates the folder `my-luminus-server`. Open it in VS Code:
+    ```sh
+    $ code my-luminus-server
+    ```
+0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`
+   * Select to start **Server + Client – my-shadow**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
+0. Open [http://0.0.0.0:3000](http://0.0.0.0:3000) in your web browser and start hacking.
 
-This creates the folder `my-luminus-shadow`, which will contain two VS Code Workspaces – one for the server, and one for the client.
-
-
-### Server Workspace
-
-1. Open the project folder:
-   ```sh
-   $ code my-luminus-shadow
-   ```
-1. VS Code should offer you a button to select a workspace, click it and select **Server-my-luminus-shadow**. (Otherwise do **File -> Open Workspace...**)
-1. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j` and wait for the **Calva says** _Output channel_ to say `Jack-in done.`
-1. Continue to the Client
-
-### Client Workspace
-
-1. Open the project folder:
-   ```sh
-   $ code my-luminus-shadow
-   ```
-1. VS Code should offer you a button to select a workspace, click it and select **Client-my-luminus-shadow**.
-1. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j` and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
-1. Open http://0.0.0.0:3000 in your web browser and start hacking.
-
-
-## Server and Figwheel
+## Server + Figwheel
 
 As with the server only, the workflow here is really just: Jack-in and start hacking. The first time it involves these steps:
 
