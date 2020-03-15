@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.85] - 2020-03-15
 - Fix: Make lein-shadow project type use lein injections
 
 ## [2.0.84] - 2020-03-15
