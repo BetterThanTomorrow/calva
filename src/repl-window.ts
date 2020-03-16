@@ -62,11 +62,17 @@ class REPLWindow {
 
     private disposed = false;
 
+    private _originalSession;
+    private _previousNs;
+
     constructor(public panel: vscode.WebviewPanel,
         public session: NReplSession,
         public type: "clj" | "cljs",
         public cljType: string,
         public cljsType: string) {
+
+        this._originalSession = session;
+
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
@@ -135,6 +141,7 @@ class REPLWindow {
             if (this.evaluation) {
                 this.evaluation.interrupt();
             }
+            this.session = this._originalSession;
             // first remove the close handler to avoid
             // sending any messages to the disposed webview.
             session.removeOnCloseHandler(this.onClose);
@@ -304,6 +311,17 @@ class REPLWindow {
 
     clear() {
         this.postMessage({ type: "clear", history: this.getHistory(), ns: this.ns });
+    }
+
+    startDebugMode(debugSession: NReplSession): void {
+        this.session = debugSession;
+        this._previousNs = this.ns;
+        this.setNamespace('<<debug-mode>>');
+    }
+
+    stopDebugMode(): void {
+        this.session = this._originalSession;
+        this.setNamespace(this._previousNs);
     }
 }
 
@@ -521,7 +539,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean) {
 }
 
 function evalCurrentFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(false,);
+    evalCurrentFormInREPLWindow(false);
 }
 
 function evalCurrentTopLevelFormInREPLWindowCommand() {

@@ -69,10 +69,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const cljReplWindow = replWindows['clj'];
 
         if (cljReplWindow) {
-            // Switch the repl window session to the current clj session, which is now used for debugging. Store the old one so we can switch it back after debugging.
-            this._previousReplWindowSession = cljReplWindow.session;
-            cljReplWindow.session = util.getSession('clj');
-            cljReplWindow.setNamespace('<<debug-mode>>');
+            cljReplWindow.startDebugMode(util.getSession('clj'));
         }
 
         this.sendResponse(response);
@@ -189,9 +186,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const cljReplWindow = replWindows['clj'];
 
-        if (this._previousReplWindowSession && cljReplWindow) {
-            cljReplWindow.session = this._previousReplWindowSession;
-            cljReplWindow.setNamespace(cljReplWindow.ns);
+        if (cljReplWindow) {
+            cljReplWindow.stopDebugMode();
         }
 
         this.sendResponse(response);
