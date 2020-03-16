@@ -26,13 +26,15 @@ Basically this is the same wokflow as with **Server only**. Behind the scenes th
     ```sh
     $ lein new luminus my-luminus-shadow +reagent +shadow-cljs
     ```
-0. This creates the folder `my-luminus-server`. Open it in VS Code:
+0. This creates the folder `my-luminus-shadow`. Open it in VS Code:
     ```sh
-    $ code my-luminus-server
+    $ code my-luminus-shadow
     ```
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`
-   * Select to start **Server + Client – my-shadow**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
+   * Select to start **Server + Client – my-luminus-shadow**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
 0. Open [http://0.0.0.0:3000](http://0.0.0.0:3000) in your web browser and start hacking.
+
+> Note: Currently Calva has troubles following the app-start with shadow-cljs, so Calva will report `Jack-in done.` in the `Calva says` output before shadow-cljs is actually done building the app. If you open the app page at that stage, you will see a message to ” Please run `lein shadow watch app`”. Rest assured that _this is already underway._ Follow the Jack-in process in the _Terminal_ tab in VS Code for the message that the app is built, _then_ reload the app page in the web browser.
 
 ## Server + Figwheel
 
