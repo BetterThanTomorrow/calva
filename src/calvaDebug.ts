@@ -187,10 +187,11 @@ class CalvaDebugSession extends LoggingDebugSession {
             cljSession.sendDebugInput(':quit', id, key);
         }
 
-        if (this._previousReplWindowSession) {
-            const cljReplWindow = replWindows['clj'];
+        const cljReplWindow = replWindows['clj'];
+
+        if (this._previousReplWindowSession && cljReplWindow) {
             cljReplWindow.session = this._previousReplWindowSession;
-            cljReplWindow.setNamespace(this._previousReplWindowSession.client.ns);
+            cljReplWindow.setNamespace(cljReplWindow.ns);
         }
 
         this.sendResponse(response);
