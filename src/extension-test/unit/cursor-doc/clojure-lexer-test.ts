@@ -246,6 +246,16 @@ describe('Scanner', () => {
             expect(tokens[4].type).equals('close');
             expect(tokens[4].raw).equals('"');
         });
+        it('tokenizes quoted quotes in strings', () => {
+            let tokens = scanner.processLine('"\\""');
+            expect(tokens[0].type).equals('open');
+            expect(tokens[0].raw).equals('"');
+            expect(tokens[1].type).equals('str-inside');
+            expect(tokens[1].raw).equals('\\"');
+            tokens = scanner.processLine('"foo\\"bar"');
+            expect(tokens[1].type).equals('str-inside');
+            expect(tokens[1].raw).equals('foo\\"bar');
+        });
     });
     describe('Reported issues', () => {
         it('too long lines - #566', () => {
@@ -283,5 +293,3 @@ describe('Scanner', () => {
         });
     });
 });
-
-

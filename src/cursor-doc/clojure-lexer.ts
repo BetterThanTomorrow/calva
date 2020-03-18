@@ -90,7 +90,7 @@ let inString = new LexicalGrammar()
 // end a string
 inString.terminal(/"/, (l, m) => ({ type: "close" }))
 // still within a string
-inString.terminal(/(\\.|[^\\"\t\r\n ])+/, (l, m) => ({ type: "str-inside" }))
+inString.terminal(/(\\.|[^"\s])+/, (l, m) => ({ type: "str-inside" }))
 // whitespace, excluding newlines
 inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
