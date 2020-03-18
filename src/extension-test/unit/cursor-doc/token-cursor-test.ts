@@ -55,24 +55,24 @@ describe('Token Cursor', () => {
     });
 
     // TODO: Figure out why adding these tests make other test break!
-    xdescribe('Navigation in and around strings', () => {
+    describe('Navigation in and around strings', () => {
         it('backwardList moves to start of string', () => {
             const doc = new mock.MockDocument();
-            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\"" \")');
+            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
             const cursor: LispTokenCursor = doc.getTokenCursor(21);
             cursor.backwardList();
             expect(cursor.offsetStart).equal(19);
         });
         it('forwardList moves to end of string', () => {
             const doc = new mock.MockDocument();
-            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\"" \")');
+            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
             const cursor: LispTokenCursor = doc.getTokenCursor(21);
             cursor.forwardList();
             expect(cursor.offsetStart).equal(27);
         });
         it('backwardSexpr inside string moves past quoted characters', () => {
             const doc = new mock.MockDocument();
-            doc.insertString('(str [] "foo \" bar")');
+            doc.insertString('(str [] "foo \\" bar")');
             const cursor: LispTokenCursor = doc.getTokenCursor(15);
             cursor.backwardSexp();
             expect(cursor.offsetStart).equal(13);
@@ -143,7 +143,7 @@ describe('Token Cursor', () => {
     describe('Location State', () => {
         it('Knows when inside string', () => {
             const doc = new mock.MockDocument();
-            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\"" \")');
+            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
             const withinEmpty = doc.getTokenCursor(9);
             expect(withinEmpty.withinString()).equal(true);
             const adjacentOutsideLeft = doc.getTokenCursor(8);
@@ -166,16 +166,16 @@ describe('Token Cursor', () => {
             expect(spaceAfterLastWord.withinString()).equal(true);
             const beforeQuotedStringQuote = doc.getTokenCursor(46);
             expect(beforeQuotedStringQuote.withinString()).equal(true);
-            // const inQuotedStringQuote = doc.getTokenCursor(47);
-            // expect(inQuotedStringQuote.withinString()).equal(true);
-            // const afterQuotedStringQuote = doc.getTokenCursor(48);
-            // expect(afterQuotedStringQuote.withinString()).equal(true);
-            // const beforeLiteralQuote = doc.getTokenCursor(50);
-            // expect(beforeLiteralQuote.withinString()).equal(false);
-            // const inLiteralQuote = doc.getTokenCursor(51);
-            // expect(inLiteralQuote.withinString()).equal(false);
-            // const afterLiteralQuote = doc.getTokenCursor(52);
-            // expect(afterLiteralQuote.withinString()).equal(false);
+            const inQuotedStringQuote = doc.getTokenCursor(47);
+            expect(inQuotedStringQuote.withinString()).equal(true);
+            const afterQuotedStringQuote = doc.getTokenCursor(48);
+            expect(afterQuotedStringQuote.withinString()).equal(true);
+            const beforeLiteralQuote = doc.getTokenCursor(50);
+            expect(beforeLiteralQuote.withinString()).equal(false);
+            const inLiteralQuote = doc.getTokenCursor(51);
+            expect(inLiteralQuote.withinString()).equal(false);
+            const afterLiteralQuote = doc.getTokenCursor(52);
+            expect(afterLiteralQuote.withinString()).equal(false);
         });
     });
 });
