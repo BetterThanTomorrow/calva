@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix: REPL Window Paredit does not close strings properly](https://github.com/BetterThanTomorrow/calva/issues/587)
 
 ## [2.0.85] - 2020-03-15
 - Fix: Make lein-shadow project type use lein injections
