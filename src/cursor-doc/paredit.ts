@@ -350,23 +350,14 @@ export function open(doc: EditableDocument, open: string, close: string, start: 
 }
 
 export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
-    let cursor = doc.getTokenCursor();
+    const cursor = doc.getTokenCursor(start);
     cursor.forwardWhitespace(false);
     if (cursor.getToken().raw == close) {
-        doc.model.edit([
-            new ModelEdit('changeRange', [start, cursor.offsetStart, ""])
-        ], { selection: new ModelEditSelection(start + close.length) });
+        doc.selection = new ModelEditSelection(start + close.length);
     } else {
-        // one of two things are possible:
-        if (cursor.forwardList()) {
-            //   we are in a matched list, just jump to the end of it.
-            doc.selection = new ModelEditSelection(cursor.offsetEnd);
-        } else {
-            while (cursor.forwardSexp()) { }
-            doc.model.edit([
-                new ModelEdit('changeRange', [cursor.offsetEnd, cursor.offsetEnd, close])
-            ], { selection: new ModelEditSelection(cursor.offsetEnd + close.length) });
-        }
+        doc.model.edit([
+            new ModelEdit('changeRange', [start, start, close])
+        ], { selection: new ModelEditSelection(start + close.length) });
     }
 }
 
@@ -429,12 +420,24 @@ export function stringQuote(doc: EditableDocument, start: number = doc.selection
         let cursor = doc.getTokenCursor(start);
         if (cursor.withinString()) {
             // inside a string, let's be clever
-            if (cursor.offsetEnd - 1 == start && cursor.getToken().type == "str" || cursor.getToken().type == "str-end") {
-                doc.selection = new ModelEditSelection(start + 1);
+            if (cursor.getToken().type == "close") {
+                if (doc.model.getText(0, start).endsWith('\\')) {
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [start, start, '"'])
+                    ], { selection: new ModelEditSelection(start + 1) });
+                } else {
+                    close(doc, '"', start);
+                }
             } else {
-                doc.model.edit([
-                    new ModelEdit('changeRange', [start, start, '"'])
-                ], { selection: new ModelEditSelection(start + 1) });
+                if (doc.model.getText(0, start).endsWith('\\')) {
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [start, start, '"'])
+                    ], { selection: new ModelEditSelection(start + 1) });
+                } else {
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [start, start, '\\"'])
+                    ], { selection: new ModelEditSelection(start + 2) });
+                }
             }
         } else {
             doc.model.edit([
