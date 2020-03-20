@@ -47,11 +47,37 @@ describe('Token Cursor', () => {
         cursor.backwardList();
         expect(cursor.offsetStart).equal(5);
     });
+
     it('backwardUpList: (a(b(c•#f•(#b •|[:f :b :z])•#z•1))) => (a(b(c•|#f•(#b •[:f :b :z])•#z•1)))', () => {
         const cursor: LispTokenCursor = doc.getTokenCursor(15);
         cursor.backwardUpList();
         expect(cursor.offsetStart).equal(7);
     });
+
+    // TODO: Figure out why adding these tests make other test break!
+    describe('Navigation in and around strings', () => {
+        it('backwardList moves to start of string', () => {
+            const doc = new mock.MockDocument();
+            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
+            const cursor: LispTokenCursor = doc.getTokenCursor(21);
+            cursor.backwardList();
+            expect(cursor.offsetStart).equal(19);
+        });
+        it('forwardList moves to end of string', () => {
+            const doc = new mock.MockDocument();
+            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
+            const cursor: LispTokenCursor = doc.getTokenCursor(21);
+            cursor.forwardList();
+            expect(cursor.offsetStart).equal(27);
+        });
+        it('backwardSexpr inside string moves past quoted characters', () => {
+            const doc = new mock.MockDocument();
+            doc.insertString('(str [] "foo \\" bar")');
+            const cursor: LispTokenCursor = doc.getTokenCursor(15);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).equal(13);
+        });
+    })
 
     describe('Current Form', () => {
         const docText = '(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))'.replace(/•/g, '\n'),
@@ -112,6 +138,44 @@ describe('Token Cursor', () => {
             doc.insertString('()  •  (foo {:a b})•(c)'.replace(/•/g, '\n'));
             const cursor: LispTokenCursor = doc.getTokenCursor(1);
             expect(cursor.rangeForCurrentForm(1)).deep.equal([0, 2]);
+        });
+    });
+    describe('Location State', () => {
+        it('Knows when inside string', () => {
+            const doc = new mock.MockDocument();
+            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
+            const withinEmpty = doc.getTokenCursor(9);
+            expect(withinEmpty.withinString()).equal(true);
+            const adjacentOutsideLeft = doc.getTokenCursor(8);
+            expect(adjacentOutsideLeft.withinString()).equal(false);
+            const adjacentOutsideRight = doc.getTokenCursor(10);
+            expect(adjacentOutsideRight.withinString()).equal(false);
+            const noStringWS = doc.getTokenCursor(11);
+            expect(noStringWS.withinString()).equal(false);
+            const leftOfFirstWord = doc.getTokenCursor(13);
+            expect(leftOfFirstWord.withinString()).equal(true);
+            const rightOfLastWord = doc.getTokenCursor(16);
+            expect(rightOfLastWord.withinString()).equal(true);
+            const inWord = doc.getTokenCursor(14);
+            expect(inWord.withinString()).equal(true);
+            const spaceBetweenWords = doc.getTokenCursor(21);
+            expect(spaceBetweenWords.withinString()).equal(true);
+            const spaceBeforeFirstWord = doc.getTokenCursor(33);
+            expect(spaceBeforeFirstWord.withinString()).equal(true);
+            const spaceAfterLastWord = doc.getTokenCursor(41);
+            expect(spaceAfterLastWord.withinString()).equal(true);
+            const beforeQuotedStringQuote = doc.getTokenCursor(46);
+            expect(beforeQuotedStringQuote.withinString()).equal(true);
+            const inQuotedStringQuote = doc.getTokenCursor(47);
+            expect(inQuotedStringQuote.withinString()).equal(true);
+            const afterQuotedStringQuote = doc.getTokenCursor(48);
+            expect(afterQuotedStringQuote.withinString()).equal(true);
+            const beforeLiteralQuote = doc.getTokenCursor(50);
+            expect(beforeLiteralQuote.withinString()).equal(false);
+            const inLiteralQuote = doc.getTokenCursor(51);
+            expect(inLiteralQuote.withinString()).equal(false);
+            const afterLiteralQuote = doc.getTokenCursor(52);
+            expect(afterLiteralQuote.withinString()).equal(false);
         });
     });
 });

@@ -7,7 +7,8 @@ import * as utilities from '../utilities';
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
     "Clojure CLI" = "Clojure CLI",
-    "shadow-cljs" = "shadow-cljs"
+    "shadow-cljs" = "shadow-cljs",
+    "lein-shadow" = "lein-shadow"
 }
 
 enum CljsTypes {
@@ -112,10 +113,18 @@ const shadowCljsDefaults: ReplConnectSequence[] = [{
     cljsType: CljsTypes["shadow-cljs"]
 }]
 
+const leinShadowDefaults: ReplConnectSequence[] = [{
+    name: "Leiningen + lein-shadow",
+    projectType: ProjectTypes["lein-shadow"],
+    cljsType: CljsTypes["shadow-cljs"],
+    nReplPortFile: [".shadow-cljs", "nrepl.port"]
+}];
+
 const defaultSequences = {
     "lein": leiningenDefaults,
     "clj": cljDefaults,
-    "shadow-cljs": shadowCljsDefaults
+    "shadow-cljs": shadowCljsDefaults,
+    "lein-shadow": leinShadowDefaults
 };
 
 const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {

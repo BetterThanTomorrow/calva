@@ -578,7 +578,12 @@ export class LispTokenCursor extends TokenCursor {
      * Indicates if the current token is inside a string
      */
     withinString() {
-        return this.getToken().type == 'str-inside' || this.getPrevToken().type == 'str-inside';
+        const cursor = this.clone();
+        cursor.backwardList();
+        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw === '"') {
+            return true;
+        };
+        return false;
     }
 
     /**

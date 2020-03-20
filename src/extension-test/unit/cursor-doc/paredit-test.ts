@@ -441,3 +441,26 @@ describe('paredit', () => {
 });
 
 
+
+    describe('edits', () => {
+        it('Closes list', () => {
+            const doc: mock.MockDocument = new mock.MockDocument(),
+                text = '(str "foo")',
+                caret = 10;
+            doc.insertString(text);
+            doc.selection = new ModelEditSelection(caret);
+            paredit.close(doc, ')');
+            expect(doc.model.getText(0, Infinity)).equal(text);
+            expect(doc.selection).deep.equal(new ModelEditSelection(caret + 1));
+        });
+        it('Closes quote at end of string', () => {
+            const doc: mock.MockDocument = new mock.MockDocument(),
+                text = '(str "foo")',
+                caret = 9;
+            doc.insertString(text);
+            doc.selection = new ModelEditSelection(caret);
+            paredit.stringQuote(doc);
+            expect(doc.model.getText(0, Infinity)).equal(text);
+            expect(doc.selection).deep.equal(new ModelEditSelection(caret + 1));
+        });
+    });

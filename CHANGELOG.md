@@ -5,11 +5,21 @@ Changes to Calva.
 - [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
 - Fix so that Calva treats symbol containing the quote character correctly.
 
-## [2.0.83] -2020-03-13
+## [2.0.86] - 2020-03-19
+- [Fix: REPL Window Paredit does not close strings properly](https://github.com/BetterThanTomorrow/calva/issues/587)
+
+## [2.0.85] - 2020-03-15
+- Fix: Make lein-shadow project type use lein injections
+
+## [2.0.84] - 2020-03-15
+- [Support projects using lein-shadow](https://github.com/BetterThanTomorrow/calva/issues/585)
+- [Add documentation for how to use Calva with Luminus](https://calva.readthedocs.io/en/latest/luminus.html)
+
+## [2.0.83] - 2020-03-13
 - When format config fails to parse, fall back on defaults rather than crash
 - [Fix: Var quoted symbols are treated as reader tags](https://github.com/BetterThanTomorrow/calva/issues/584)
 
-## [2.0.82] -2020-03-11
+## [2.0.82] - 2020-03-11
 - Fix bug with bad formatting defaults when no config file
 
 ## [2.0.81] - 2020-03-11
