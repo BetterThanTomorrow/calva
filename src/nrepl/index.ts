@@ -275,7 +275,7 @@ export class NReplSession {
             const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
             return {
                 id: debugResponse.id,
-                session: this.sessionId,
+                session: debugResponse.session,
                 op: 'debug-input',
                 input: `{:response :eval, :code ${code}}`,
                 key: debugResponse.key,
