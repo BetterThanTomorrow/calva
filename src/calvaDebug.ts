@@ -33,7 +33,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     static THREAD_ID = 1;
 
     private _variableHandles = new Handles<string>();
-    private _previousReplWindowSession: NReplSession;
 
     public constructor() {
         super('calva-debug-logs.txt');

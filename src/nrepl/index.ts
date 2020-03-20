@@ -118,9 +118,13 @@ export class NReplClient {
                     if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
                         handleNeedDebugInput(data);
                     }
-                    // If we get a `value` property in a response, we're no longer debugging because the eval that started the debugging session is done
-                    // Debug eval values are on a 'debug-value' property
-                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
+
+                    const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
+
+                    /* If we get a `value` property in a response and the session is the same as the debug nrepl session, 
+                       we're no longer debugging because the eval that started the debugging session is done.
+                       Debug eval values are on a 'debug-value' property. */
+                    if (vscode.debug.activeDebugSession && data['session'] && data['session'] === debugResponse.session && data['value'] !== undefined) {
                         vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     }
                 });
