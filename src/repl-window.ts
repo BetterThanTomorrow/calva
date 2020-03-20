@@ -399,6 +399,7 @@ async function showReplWindows(mode: "clj" | "cljs") {
         if (util.getSession(mode)) {
             if (!isReplWindowOpen(mode)) {
                 openReplWindow(mode, true).then(() => {
+                    
                     reconnectReplWindow(mode).then(() => {
                     }).catch(e => {
                         console.error(`Failed reconnecting ${mode} REPL window: `, e);
