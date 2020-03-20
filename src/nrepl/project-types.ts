@@ -152,7 +152,6 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
 const NREPL_VERSION = "0.6.0",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
-    SIDECAR_VERSION = "0.5.18",
     FIGWHEEL_MAIN_VERSION = "0.2.3";
 
 const cliDependencies = {
@@ -160,15 +159,12 @@ const cliDependencies = {
     "cider/cider-nrepl": CIDER_NREPL_VERSION,
 }
 
-const cljsCommonDependencies = {
-    "cider/piggieback": PIGGIEBACK_VERSION
-}
-
 const cljsDependencies: { [id: string]: Object } = {
     "lein-figwheel": {
-        "figwheel-sidecar": SIDECAR_VERSION
+        "cider/piggieback": PIGGIEBACK_VERSION
     },
     "Figwheel Main": {
+        "cider/piggieback": PIGGIEBACK_VERSION,
         "com.bhauman/figwheel-main": FIGWHEEL_MAIN_VERSION
     },
     "shadow-cljs": {
@@ -178,8 +174,10 @@ const cljsDependencies: { [id: string]: Object } = {
         "cider/cider-nrepl": CIDER_NREPL_VERSION,
     },
     "Nashorn": {
+        "cider/piggieback": PIGGIEBACK_VERSION
     },
     "User provided": {
+        "cider/piggieback": PIGGIEBACK_VERSION,
     }
 }
 
@@ -275,7 +273,7 @@ const projectTypes: { [id: string]: ProjectType } = {
 
             const dependencies = {
                 ...cliDependencies,
-                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
@@ -321,7 +319,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
                 dependencies = {
-                    ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                    ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                     ...serverPrinterDependencies
                 };
             let defaultArgs: string[] = [];
@@ -372,7 +370,7 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
     let out: string[] = [];
     const dependencies = {
         ...leinDependencies,
-        ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+        ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
         ...serverPrinterDependencies
     };
     let keys = Object.keys(dependencies);
