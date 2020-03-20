@@ -209,6 +209,7 @@ class REPLWindow {
                 return this.panel.webview.postMessage(msg);
             }
         }
+        return;
     }
 
     onClose = () => {
@@ -218,8 +219,8 @@ class REPLWindow {
 
     ns: string = "user";
 
-    evaluate(ns: string, text: string) {
-        this.postMessage({ type: "do-eval", value: text, ns })
+    async evaluate(ns: string, text: string) {
+        return this.postMessage({ type: "do-eval", value: text, ns })
     }
 
     async setNamespace(ns: string) {
@@ -456,7 +457,7 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
+export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
     openReplWindow(sessionType, true)
         .then((v) => {
             let wnd = replWindows[sessionType];
@@ -471,7 +472,7 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
                                 .then((v) => {
                                     wnd.setNamespace(inNSEvaluation.ns).then((v) => {
                                         wnd.interrupt();
-                                        wnd.evaluate(inNs, text);
+                                        return wnd.evaluate(inNs, text);
                                     }).catch((e) => {
                                         vscode.window.showErrorMessage("Error setting namespace: " + e);
                                     });
@@ -483,12 +484,13 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
                         })
                 } else {
                     wnd.interrupt();
-                    wnd.evaluate(inNs, text);
+                    return wnd.evaluate(inNs, text);
                 }
             }
         }).catch((e) => {
             vscode.window.showErrorMessage("Unable to open REPL window: " + e);
         })
+    return;
 }
 
 export async function setREPLNamespace(ns: string, reload = false) {

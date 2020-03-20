@@ -518,7 +518,7 @@ function showAsyncOutput(classname: string, id: string, text: string) {
     }
 }
 
-window.onmessage = (msg) => {
+window.onmessage = async (msg) => {
 
     if (msg.data.type == "init") {
         ns = msg.data.ns;
@@ -647,5 +647,7 @@ window.onmessage = (msg) => {
     if (msg.data.type == "async-stderr") {
         showAsyncOutput("error", msg.data.id, msg.data.value);
     }
+
+    return;
 }
 message.postMessage({ type: "init" });
