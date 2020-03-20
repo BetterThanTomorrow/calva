@@ -647,5 +647,13 @@ window.onmessage = (msg) => {
     if (msg.data.type == "async-stderr") {
         showAsyncOutput("error", msg.data.id, msg.data.value);
     }
+
+    if (msg.data.type === 'start-debug-mode') {
+        con.readline.freeze(); // DEBUG TODO: Remove this? Not sure if needed.
+        ns = msg.data.ns;
+        con.requestPrompt(ns + "=>");
+        con.readline.clearCompletion();
+        window.scrollTo({ left: 0 }); // DEBUG TODO: Remove this? Unsure if needed.
+    }
 }
 message.postMessage({ type: "init" });

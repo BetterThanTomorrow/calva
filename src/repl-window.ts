@@ -316,7 +316,8 @@ class REPLWindow {
     startDebugMode(debugSession: NReplSession): void {
         this.session = debugSession;
         this._previousNs = this.ns;
-        this.setNamespace('<<debug-mode>>');
+        this.ns = '<<debug-mode>>'; // DEBUG TODO: Refactor this into the calvaDebug module
+        this.postMessage({ type: 'start-debug-mode', ns: this.ns });
     }
 
     stopDebugMode(): void {
