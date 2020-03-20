@@ -649,11 +649,11 @@ window.onmessage = (msg) => {
     }
 
     if (msg.data.type === 'start-debug-mode') {
-        con.readline.freeze(); // DEBUG TODO: Remove this? Not sure if needed.
+        con.readline.freeze();
         ns = msg.data.ns;
-        con.requestPrompt(ns + "=>");
+        con.requestPrompt(ns + "=> ");
         con.readline.clearCompletion();
-        window.scrollTo({ left: 0 }); // DEBUG TODO: Remove this? Unsure if needed.
+        window.scrollTo({ left: 0 });
     }
 }
 message.postMessage({ type: "init" });

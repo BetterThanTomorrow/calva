@@ -63,7 +63,7 @@ class REPLWindow {
     private disposed = false;
 
     private _originalSession;
-    private _previousNs;
+    private _preDebugNamespace;
 
     constructor(public panel: vscode.WebviewPanel,
         public session: NReplSession,
@@ -315,14 +315,14 @@ class REPLWindow {
 
     startDebugMode(debugSession: NReplSession): void {
         this.session = debugSession;
-        this._previousNs = this.ns;
-        this.ns = '<<debug-mode>>'; // DEBUG TODO: Refactor this into the calvaDebug module
+        this._preDebugNamespace = this.ns;
+        this.ns = '<<debug-mode>>';
         this.postMessage({ type: 'start-debug-mode', ns: this.ns });
     }
 
     stopDebugMode(): void {
         this.session = this._originalSession;
-        this.setNamespace(this._previousNs);
+        this.setNamespace(this._preDebugNamespace);
     }
 }
 
