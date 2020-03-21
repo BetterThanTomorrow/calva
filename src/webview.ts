@@ -518,7 +518,7 @@ function showAsyncOutput(classname: string, id: string, text: string) {
     }
 }
 
-window.onmessage = (msg) => {
+window.onmessage = async (msg: any) => {
 
     if (msg.data.type == "init") {
         ns = msg.data.ns;

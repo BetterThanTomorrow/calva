@@ -5,6 +5,10 @@ Changes to Calva.
 - [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
 - Fix so that Calva treats symbol containing the quote character correctly.
 
+## [2.0.87] - 2020-03-21
+- [Fix: Two CLJ REPL Windows open on connect when `afterCLJReplJackInCode`is used](https://github.com/BetterThanTomorrow/calva/issues/593)
+- [Add info to docs about how to get around `command not found` Jack-in problems](https://github.com/BetterThanTomorrow/calva/issues/591)
+
 ## [2.0.86] - 2020-03-19
 - [Fix: REPL Window Paredit does not close strings properly](https://github.com/BetterThanTomorrow/calva/issues/587)
 

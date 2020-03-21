@@ -188,32 +188,35 @@ class REPLWindow {
         this.postMessage({ type: 'async-stderr', id: id, value: text });
     }
 
-    reconnect() {
+    async reconnect() {
         // evaluate something that really test
         // the ability of the connected repl.
-        let res = this.session.eval("(+ 1 1)");
-        res.value.then((v) => {
+        try {
+            const res = await this.session.eval("(+ 1 1)").value;
+
             if (res.ns) {
                 this.ns = res.ns;
             }
             if (res.errorOutput) {
-                this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
+                await this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
             } else {
-                this.postMessage({ type: "reconnected", ns: this.ns })
+                await this.postMessage({ type: "reconnected", ns: this.ns })
             }
-        }).catch(() => {
-            this.postMessage({ type: "reconnected", ns: this.ns })
-        });
-
+        } catch (e) {
+            await this.postMessage({ type: "reconnected", ns: this.ns });
+        }
     }
 
-    postMessage(msg: any) {
+    async postMessage(msg: any): Promise<boolean> {
         if (!this.disposed) {
-            if (this.useBuffer)
+            if (this.useBuffer) {
                 this.buffer.push(msg);
-            else
-                this.panel.webview.postMessage(msg)
+                return true;
+            } else {
+                return this.panel.webview.postMessage(msg);
+            }
         }
+        return;
     }
 
     onClose = () => {
@@ -223,8 +226,8 @@ class REPLWindow {
 
     ns: string = "user";
 
-    evaluate(ns: string, text: string) {
-        this.postMessage({ type: "do-eval", value: text, ns })
+    async evaluate(ns: string, text: string) {
+        return this.postMessage({ type: "do-eval", value: text, ns })
     }
 
     async setNamespace(ns: string) {
@@ -375,12 +378,6 @@ export function showAsyncOutput(mode: "clj" | "cljs", id: string, text: string, 
     }
 }
 
-export async function reconnectReplWindow(mode: "clj" | "cljs") {
-    if (replWindows[mode]) {
-        replWindows[mode].reconnect();
-    }
-}
-
 export async function openClojureReplWindows() {
     try {
         await showReplWindows("clj");
@@ -399,39 +396,42 @@ export async function openClojureScriptReplWindows() {
 
 async function showReplWindows(mode: "clj" | "cljs"): Promise<void> {
 
-    if (state.deref().get('connected') && util.getSession(mode)) {
-        if (!isReplWindowOpen(mode)) {
-            openReplWindow(mode, true).then(() => {
-                reconnectReplWindow(mode).then(() => {
-                }).catch(e => {
-                    console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                });
-            }).catch(e => {
-                console.error(`Failed to open ${mode} REPL window: `, e);
-            });
-        } else {
-            if (replWindows[mode]) {
-                replWindows[mode].panel.reveal();
+    if (state.deref().get('connected')) {
+        if (util.getSession(mode)) {
+            if (!isReplWindowOpen(mode)) {
+                try {
+                    const replWindow = await openReplWindow(mode, true);
+                    try {
+                        await replWindow.reconnect();
+                    } catch (e) {
+                        console.error(`Failed reconnecting ${mode} REPL window: `, e);
+                    }
+                } catch (e) {
+                    console.error(`Failed to open ${mode} REPL window: `, e);
+                }
+            } else {
+                if (replWindows[mode]) {
+                    replWindows[mode].panel.reveal();
+                }
             }
         }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
     }
-    vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true): Promise<REPLWindow> {
     const session = mode == "clj" ? cljSession : cljsSession;
-    const nreplClient = session.client;
     let replWindow = replWindows[mode];
 
-    if (replWindow) {
-        replWindow.session = await session.clone();
-    } else if (!nreplClient.sessions[replWindow.session.sessionId]) {
+    if (!replWindow) {
         replWindow = await createReplWindow(session, mode);
+        replWindow[mode] = replWindow;
+    } else if (!session.client.sessions[replWindow.session.sessionId]) {
+        replWindow.session = await session.clone();
     }
 
     replWindow.panel.reveal(getReplViewColumn(mode), preserveFocus);
-
-    replWindows[mode] = replWindow;
 
     return replWindow;
 }
@@ -476,7 +476,7 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
+export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
     openReplWindow(sessionType, true)
         .then((v) => {
             let wnd = replWindows[sessionType];
@@ -491,7 +491,7 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
                                 .then((v) => {
                                     wnd.setNamespace(inNSEvaluation.ns).then((v) => {
                                         wnd.interrupt();
-                                        wnd.evaluate(inNs, text);
+                                        return wnd.evaluate(inNs, text);
                                     }).catch((e) => {
                                         vscode.window.showErrorMessage("Error setting namespace: " + e);
                                     });
@@ -503,12 +503,13 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
                         })
                 } else {
                     wnd.interrupt();
-                    wnd.evaluate(inNs, text);
+                    return wnd.evaluate(inNs, text);
                 }
             }
         }).catch((e) => {
             vscode.window.showErrorMessage("Unable to open REPL window: " + e);
         })
+    return;
 }
 
 export async function setREPLNamespace(ns: string, reload = false) {
