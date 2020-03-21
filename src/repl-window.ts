@@ -181,31 +181,33 @@ class REPLWindow {
         this.postMessage({ type: 'async-stderr', id: id, value: text });
     }
 
-    reconnect() {
+    async reconnect() {
         // evaluate something that really test
         // the ability of the connected repl.
-        let res = this.session.eval("(+ 1 1)");
-        res.value.then((v) => {
+        try {
+            const res = await this.session.eval("(+ 1 1)").value;
+
             if (res.ns) {
                 this.ns = res.ns;
             }
             if (res.errorOutput) {
-                this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
+                await this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
             } else {
-                this.postMessage({ type: "reconnected", ns: this.ns })
+                await this.postMessage({ type: "reconnected", ns: this.ns })
             }
-        }).catch(() => {
-            this.postMessage({ type: "reconnected", ns: this.ns })
-        });
-
+        } catch (e) {
+            await this.postMessage({ type: "reconnected", ns: this.ns });
+        }
     }
 
-    postMessage(msg: any) {
+    async postMessage(msg: any): Promise<boolean> {
         if (!this.disposed) {
-            if (this.useBuffer)
+            if (this.useBuffer) {
                 this.buffer.push(msg);
-            else
-                this.panel.webview.postMessage(msg)
+                return true;
+            } else {
+                return this.panel.webview.postMessage(msg);
+            }
         }
     }
 
@@ -356,60 +358,62 @@ export function showAsyncOutput(mode: "clj" | "cljs", id: string, text: string, 
     }
 }
 
-export async function reconnectReplWindow(mode: "clj" | "cljs") {
-    if (replWindows[mode]) {
-        replWindows[mode].reconnect();
+export async function openClojureReplWindows() {
+    try {
+        await showReplWindows("clj");
+    } catch (e) {
+        console.error(`Failed to show clj REPL window: `, e);
     }
 }
 
-export async function openClojureReplWindows() {
-    showReplWindows("clj").catch((e) => {
-        console.error(`Failed to show clj REPL window: `, e);
-    });
-}
-
 export async function openClojureScriptReplWindows() {
-    showReplWindows("cljs").catch((e) => {
+    try {
+        await showReplWindows("cljs");
+    } catch (e) {
         console.error(`Failed to show cljs REPL window: `, e);
-    });
+    }
 }
 
-async function showReplWindows(mode: "clj" | "cljs") {
+async function showReplWindows(mode: "clj" | "cljs"): Promise<void> {
 
     if (state.deref().get('connected')) {
         if (util.getSession(mode)) {
             if (!isReplWindowOpen(mode)) {
-                openReplWindow(mode, true).then(() => {
-                    reconnectReplWindow(mode).then(() => {
-                    }).catch(e => {
+                try {
+                    const replWindow = await openReplWindow(mode, true);
+                    try {
+                        await replWindow.reconnect();
+                    } catch (e) {
                         console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                    });
-                }).catch(e => {
+                    }
+                } catch (e) {
                     console.error(`Failed to open ${mode} REPL window: `, e);
-                });
+                }
             } else {
                 if (replWindows[mode]) {
                     replWindows[mode].panel.reveal();
                 }
             }
-            return;
         }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
     }
-    vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
 }
 
-export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
-    let session = mode == "clj" ? cljSession : cljsSession,
-        nreplClient = session.client;
+export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true): Promise<REPLWindow> {
+    const session = mode == "clj" ? cljSession : cljsSession;
+    let replWindow = replWindows[mode];
 
-    if (!replWindows[mode]) {
-        await createReplWindow(session, mode);
-    } else if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
-        replWindows[mode].session = await session.clone();
+    if (!replWindow) {
+        replWindow = await createReplWindow(session, mode);
+        replWindow[mode] = replWindow;
+    } else if (!session.client.sessions[replWindow.session.sessionId]) {
+        replWindow.session = await session.clone();
     }
 
-    replWindows[mode].panel.reveal(getReplViewColumn(mode), preserveFocus);
-    return replWindows[mode];
+    replWindow.panel.reveal(getReplViewColumn(mode), preserveFocus);
+
+    return replWindow;
 }
 
 export async function createReplWindow(session: NReplSession, mode: "clj" | "cljs" = "clj") {
@@ -521,7 +525,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean) {
 }
 
 function evalCurrentFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(false,);
+    evalCurrentFormInREPLWindow(false);
 }
 
 function evalCurrentTopLevelFormInREPLWindowCommand() {

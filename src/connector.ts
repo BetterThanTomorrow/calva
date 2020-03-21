@@ -8,26 +8,30 @@ import status from './status';
 import * as projectTypes from './nrepl/project-types';
 
 import { NReplClient, NReplSession } from "./nrepl";
-import { reconnectReplWindow, openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
+import { openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
-import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
+import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 
-function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
+async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
 
     if(state.config().openREPLWindowOnConnect) {
-        createReplWindow(session, mode).then(() => {
-            openReplWindow(mode, true).then(() => {
-                reconnectReplWindow(mode).then(() => {
-                }).catch(e => {
-                    console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                });
-            }).catch(e => {
+        try {
+            await createReplWindow(session, mode);
+
+            try {
+                const replWindow = await openReplWindow(mode, true);
+                try {
+                    await replWindow.reconnect();
+                } catch (e) {
+                    console.log(`Failed reconnecting ${mode} REPL window: `, e);
+                }
+            } catch (e) {
                 console.error(`Failed to open ${mode} REPL window: `, e);
-            })
-        }).catch((e) => {
+            }
+        } catch (e) {
             console.error(`Failed to create ${mode} REPL window: `, e);
-        });
+        }
     }
 }
 
