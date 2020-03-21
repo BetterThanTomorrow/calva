@@ -20,7 +20,7 @@ Basically this is the same wokflow as with **Server only**. Behind the scenes th
     ```
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`
    * Select to start **Server + Client – my-luminus-shadow**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
-0. Open [http://127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
+0. Open [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
 
 > Note: Currently Calva has troubles following the app-start with shadow-cljs, so Calva will report `Jack-in done.` in the `Calva says` output before shadow-cljs is actually done building the app. If you open the app page at that stage, you will see a message to ” Please run `lein shadow watch app`”. Rest assured that _this is already underway._ Follow the Jack-in process in the _Terminal_ tab in VS Code for the message that the app is built, _then_ reload the app page in the web browser.
 
@@ -37,7 +37,7 @@ The workflow here is really just: Jack-in and start hacking. The first time it i
     $ code my-luminus-server
     ```
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j` and wait for the **Calva says** output to say `Jack-in done.`
-0. Open [http://127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
+0. Open [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
 
 ## Server + Figwheel
 
@@ -54,7 +54,7 @@ _This is Legacy Fighwheel (lein-figwheel), so the recommendation is to use the s
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`, select **Server + Client - my-fw** in the _Project type_ picker menu, and wait for the web app to pop open in your web browser.
 0. Start hacking.
 
-If you rather open the web app yourself, open `.vscode/settings.json` and change `"shouldOpenUrl"` to `false` in the preconfigured Calva connect sequence. Calva will then print the URL [http://127.0.0.1:3000](127.0.0.1:3000) in the output, so that you can click it open.
+If you rather open the web app yourself, open `.vscode/settings.json` and change `"shouldOpenUrl"` to `false` in the preconfigured Calva connect sequence. Calva will then print the URL [127.0.0.1:3000](http://127.0.0.1:3000) in the output, so that you can click it open.
 
 ## Etcetera
 

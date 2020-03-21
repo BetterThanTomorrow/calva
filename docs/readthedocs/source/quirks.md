@@ -25,6 +25,21 @@ To make slurping and barfing forward really easy to perform they are bound to `c
 
 See [Using Calva with the VIM Extension](vim.md).
 
+## ”Command not found” errors on Jack-in
+
+[Jack-in](jack-in-guid.md) starts by spawning of a command in the shell. You will need the commands used installed on your computer:
+
+* `clojure` for tools.deps/Clojure CLI
+* `lein` for Leiningen
+* `npx` for shadow-cljs
+
+Also, in some circumstances VS Code is not spawned from a shell with the environment variables, expecially `$PATH`, which might mean that even though you have the tools installed, they are not found when VS Code/Calva tries to execute them. To fix this you will need to do one of these two things:
+
+1. Figure out from where VS Code is spawned, and make sure the `$PATH` there includes the directoy with the needed binary.
+1. Start VS Code from a terminal where the `$PATH` is correctly configured. (Using the `code` commmand.)
+
+See [this issue](https://github.com/BetterThanTomorrow/calva/issues/591) for more clues on this problem.
+
 ## Strange linting errors?
 
-See [linting](linting.md).
+This is not really a quirk, and most linting errors are not strange when you learn about why they are there. Calva does not do any linting, btw, see also [linting](linting.md).
