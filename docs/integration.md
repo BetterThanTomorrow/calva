@@ -14,7 +14,7 @@ Bigger changes:
 * These go into a `wip` branch and we send PR’s asking for feedback.
 * We keep `wip` branches updated by merging  `dev` onto them often.
 * Circle-CI runs tests and builds a VSIX package for any commits pushed to a PR. Follow the links to the build to find the VSIX (the **Artifact** tab).
-* Consider asking for help testing in `#calva-dev` and wherever.
+* Consider asking for help testing in `#calva` and wherever.
 
 Smaller changes:
 * Small, low-risky, fixes, we do right on `dev`
@@ -32,7 +32,7 @@ Smaller changes:
    1. Push using `--follow-tags`
 1. Regardless if prerelease or not.
    1. Circle CI runs our tests, and builds a VSIX.
-   1. Download this VSIX post on #calva-dev asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
+   1. Download this VSIX post on #calva asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
 
 
 ## 3. Publishing a New Calva version
