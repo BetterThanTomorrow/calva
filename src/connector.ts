@@ -14,21 +14,19 @@ import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS } from './calvaDebug';
 
-async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ) {
+async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {
         return createReplWindow(session, mode).then(w => {
             return openReplWindow(mode, true).then(w => {
-                return w.reconnect().then(w => {
-                    return w;
-                }).catch(e => {
+                return w.reconnect().catch(e => {
                     console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                })
+                });
             }).catch(e => {
                 console.error(`Failed to open ${mode} REPL window: `, e);
-            })
+            });
         }).catch(e => {
             console.error(`Failed to create ${mode} REPL window: `, e);
-        })
+        });
     }
 }
 
@@ -70,7 +68,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         chan.appendLine('Debugger initialized');
 
         await createAndConnectReplWindow(cljSession, "clj");
-        
+
         if (connectSequence.afterCLJReplJackInCode) {
             state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");
             await sendTextToREPLWindow("clj", connectSequence.afterCLJReplJackInCode, null);

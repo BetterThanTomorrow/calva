@@ -316,11 +316,11 @@ class REPLWindow {
         this.postMessage({ type: "clear", history: this.getHistory(), ns: this.ns });
     }
 
-    startDebugMode(debugSession: NReplSession): void {
+    async startDebugMode(debugSession: NReplSession): Promise<void> {
         this.session = debugSession;
         this._preDebugNamespace = this.ns;
         this.ns = '<<debug-mode>>';
-        this.postMessage({ type: 'start-debug-mode', ns: this.ns });
+        await this.postMessage({ type: 'start-debug-mode' });
     }
 
     stopDebugMode(): void {
@@ -421,7 +421,7 @@ async function showReplWindows(mode: "clj" | "cljs"): Promise<void> {
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true): Promise<REPLWindow> {
-    const session = mode == "clj" ? cljSession : cljsSession;
+    const session = mode === "clj" ? cljSession : cljsSession;
     let replWindow = replWindows[mode];
 
     if (!replWindow) {
@@ -429,6 +429,10 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         replWindow[mode] = replWindow;
     } else if (!session.client.sessions[replWindow.session.sessionId]) {
         replWindow.session = await session.clone();
+    }
+
+    if (vscode.debug.activeDebugSession && mode === 'clj') {
+        await replWindow.startDebugMode(session);
     }
 
     replWindow.panel.reveal(getReplViewColumn(mode), preserveFocus);
@@ -611,7 +615,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { activeReplWindow().executeCommand('new-line'); }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { 
+        activeReplWindow().executeCommand('new-line'); 
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit'); }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => {
         activeReplWindow().executeCommand('history-up');

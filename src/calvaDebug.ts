@@ -68,7 +68,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const cljReplWindow = replWindows['clj'];
 
         if (cljReplWindow) {
-            cljReplWindow.startDebugMode(util.getSession('clj'));
+            await cljReplWindow.startDebugMode(util.getSession('clj'));
         }
 
         this.sendResponse(response);
