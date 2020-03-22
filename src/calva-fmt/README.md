@@ -59,7 +59,7 @@ We are committed to make the Clojure experience in VS Code pruductive and pleasu
 
 ## Something is not working?
 
-File issues or send pull requests. You can also find us in the #editors and #calva-dev channels of Clojurains Slack.
+File issues or send pull requests. You can also find us in the #editors and #calva channels of Clojurains Slack.
 
 
 ## Disable the Parinfer Extension
@@ -84,6 +84,6 @@ See [How to Contribute](https://github.com/BetterThanTomorrow/calva-fmt/wiki/How
 ## Happy Formatting ❤️
 
 
-PRs welcome, file an issue or chat us up in the [`#calva-dev` channel](https://clojurians.slack.com/messages/calva-dev/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
+PRs welcome, file an issue or chat us up in the [`#calva` channel](https://clojurians.slack.com/messages/calva/) of the Clojurians Slack. Tweeting [@pappapez](https://twitter.com/pappapez) works too.
 
-[![#calva-dev in Clojurians Slack](https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack)](https://clojurians.slack.com/messages/calva-dev/)
+[![#calva in Clojurians Slack](https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack)](https://clojurians.slack.com/messages/calva/)

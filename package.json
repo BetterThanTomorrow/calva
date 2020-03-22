@@ -42,8 +42,8 @@
     "badges": [
         {
             "url": "https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack",
-            "href": "https://clojurians.slack.com/messages/calva-dev/",
-            "description": "Let's talk in the #calva-dev channel at the Clojurians Slack"
+            "href": "https://clojurians.slack.com/messages/calva/",
+            "description": "Let's talk in the #calva channel at the Clojurians Slack"
         }
     ],
     "activationEvents": [
