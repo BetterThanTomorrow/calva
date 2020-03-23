@@ -64,6 +64,12 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
 
+        const cljReplWindow = replWindows['clj'];
+
+        if (cljReplWindow) {
+            await cljReplWindow.startDebugMode(util.getSession('clj'));
+        }
+
         this.sendResponse(response);
     }
 
@@ -152,11 +158,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         this.sendResponse(response);
 
-        const cljReplWindow = replWindows['clj'];
-
-        if (cljReplWindow) {
-            await cljReplWindow.startDebugMode(util.getSession('clj'));
-        }
+        vscode.window.showTextDocument(vscode.window.activeTextEditor.document);
     }
 
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
