@@ -11,7 +11,6 @@ import { basename } from 'path';
 import * as docMirror from './doc-mirror';
 import * as vscode from 'vscode';
 import { replWindows } from './repl-window';
-import { NReplSession } from './nrepl';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -64,12 +63,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
-
-        const cljReplWindow = replWindows['clj'];
-
-        if (cljReplWindow) {
-            await cljReplWindow.startDebugMode(util.getSession('clj'));
-        }
 
         this.sendResponse(response);
     }
@@ -149,7 +142,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
     }
 
-    protected variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): void {
+    protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
 
@@ -158,6 +151,12 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
 
         this.sendResponse(response);
+
+        const cljReplWindow = replWindows['clj'];
+
+        if (cljReplWindow) {
+            await cljReplWindow.startDebugMode(util.getSession('clj'));
+        }
     }
 
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
