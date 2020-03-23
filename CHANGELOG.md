@@ -2,6 +2,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add support for connecting to generic project types](https://github.com/BetterThanTomorrow/calva/issues/595)
 
 ## [2.0.88] - 2020-03-21
 - [Change all references to `#calva-dev` so that they now point to the `#calva` Slack channel](https://clojurians.slack.com/messages/calva/)
