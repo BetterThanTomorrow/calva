@@ -363,7 +363,19 @@ const projectTypes: { [id: string]: ProjectType } = {
                 throw "No shadow-cljs build selected"
             }
         }
-    }
+    },
+    'generic': {
+        // There is no Jack-in supported here
+        name: 'generic',
+        cljsTypes: [],
+        cmd: undefined,
+        winCmd: undefined,
+        useWhenExists: undefined,
+        nReplPortFile: [".nrepl-port"],
+        commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+            return undefined;
+        }
+    },
 }
 
 async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSequence: ReplConnectSequence) {
@@ -410,13 +422,15 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-    let rootDir = state.getProjectRoot(),
-        cljProjTypes = []
+    const rootDir = state.getProjectRoot(),
+        cljProjTypes = ['generic'];
     for (let clj in projectTypes) {
-        try {
-            fs.accessSync(rootDir + "/" + projectTypes[clj].useWhenExists);
-            cljProjTypes.push(clj);
-        } catch (_e) { }
+        if (projectTypes[clj].useWhenExists) {
+            try {
+                fs.accessSync(path.resolve(rootDir, projectTypes[clj].useWhenExists));
+                cljProjTypes.push(clj);
+            } catch (_e) { }
+        }
     }
     return cljProjTypes;
 }
