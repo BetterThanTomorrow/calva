@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
 import * as state from "../state";
-import * as projectTypes from './project-types';
-import * as path from 'path';
 import * as utilities from '../utilities';
 
 enum ProjectTypes {

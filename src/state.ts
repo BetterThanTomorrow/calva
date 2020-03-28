@@ -172,7 +172,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * Also stores the WorkSpace folder for the project to be used
  * when executing the Task and get proper vscode reporting.
  *
- * 1. If there is no file open in single-rooted workspaced use
+ * 1. If there is no file open in single-rooted workspace use
  *    the workspace folder as a starting point. In multi-rooted
  *    workspaces stop and complain.
  * 2. If there is a file open, use it to determine the project root

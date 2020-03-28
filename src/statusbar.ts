@@ -49,7 +49,7 @@ function update() {
 
     if (current.get('connected')) {
         connectionStatus.text = "nREPL $(zap)";
-        connectionStatus.color = colorValue("connectedSatusColor", currentConf);
+        connectionStatus.color = colorValue("connectedStatusColor", currentConf);
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = colorValue("typeStatusColor", currentConf);

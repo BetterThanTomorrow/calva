@@ -102,7 +102,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
         } catch(exception) {
             outputChannel.appendLine("Error in Jack-in: unable to read port file");
             outputChannel.appendLine(exception);
-            outputChannel.appendLine("You may have choosen the wrong jack-in configuration for your project.");
+            outputChannel.appendLine("You may have chosen the wrong jack-in configuration for your project.");
             vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
             cancelJackInTask();
         }
@@ -151,7 +151,7 @@ export async function calvaJackIn() {
 
         if (!projectConnectSequence) {
             state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
-            outputChannel.appendLine("Aborting Jack-in, since no project typee was selected.");
+            outputChannel.appendLine("Aborting Jack-in, since no project type was selected.");
             return;
         }
         if (projectConnectSequence.projectType !== 'generic') {

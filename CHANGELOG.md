@@ -128,7 +128,7 @@ Changes to Calva.
 - Improvements for Commands using the **Current form** and **Current top level form**:
   - Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
   - Less precision needed for the right form to be selected.
-  - All commands for this use the same implemengtion (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
+  - All commands for this use the same implementation (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
 - Fix: ["Load current Namespace in REPL Window" command not working](https://github.com/BetterThanTomorrow/calva/issues/477)
 - Theme compatible status bar indicators for pprint and paredit
 

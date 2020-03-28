@@ -67,7 +67,7 @@ async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBui
     const menuSelections = connectSequence.menuSelections, selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
         values: foundBuilds.filter(x => x[0] == ":"),
         placeHolder: "Select builds to start", saveAs: `
-                    ${state.getProjectRoot()}/shadowcljs-jack-in`
+                    ${state.getProjectRoot()}/shadow-cljs-jack-in`
     }), aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
     let args: string[] = [];
@@ -200,19 +200,19 @@ const projectTypes: { [id: string]: ProjectType } = {
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
         nReplPortFile: [".nrepl-port"],
-        /** Build the Commandline args for a lein-project.
+        /** Build the command line args for a lein-project.
          * 1. Parsing the project.clj
          * 2. Let the user choose a alias
          * 3. Let the user choose profiles to use
-         * 4. Add nedded middleware deps to args
-         * 5. Add all profiles choosed by the user
+         * 4. Add needed middleware deps to args
+         * 5. Add all profiles chosen by the user
          * 6. Use alias if selected otherwise repl :headless
         */
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
             return await leinCommandLine(["repl", ":headless"], cljsType, connectSequence);
         }
     },
-    /* // Works but analysing the possible launch environment is unsatifactory for now, use the cli :)
+    /* // Works but analysing the possible launch environment is unsatisfactory for now, use the cli :)
     "boot": {
         name: "Boot",
         cmd: "boot",
@@ -233,7 +233,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         winCmd: "powershell.exe",
         useWhenExists: "deps.edn",
         nReplPortFile: [".nrepl-port"],
-        /** Build the Commandline args for a clj-project.
+        /** Build the command line args for a clj-project.
          * 1. Read the deps.edn and parsed it
          * 2. Present the user all found aliases
          * 3. Define needed dependencies and middlewares used by calva
@@ -314,7 +314,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         useWhenExists: "shadow-cljs.edn",
         nReplPortFile: [".shadow-cljs", "nrepl.port"],
         /**
-         *  Build the Commandline args for a shadow-project.
+         *  Build the command line args for a shadow-project.
          */
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
@@ -346,7 +346,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         useWhenExists: "project.clj",
         nReplPortFile: [".shadow-cljs", "nrepl.port"],
         /**
-         *  Build the Commandline args for a lein-shadow project.
+         *  Build the command line args for a lein-shadow project.
          */
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel();
