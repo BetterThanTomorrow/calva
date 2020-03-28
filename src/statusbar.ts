@@ -12,10 +12,9 @@ const color = {
     inactive: "#b3b3b3"
 };
 
-function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration):string {
+function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
     let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
-
-    return workspaceFolderValue || workspaceValue || globalValue || defaultValue;
+    return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
 }
 
 function update() {
