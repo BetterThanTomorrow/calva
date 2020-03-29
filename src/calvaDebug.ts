@@ -55,8 +55,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         // Build and return the capabilities of this debug adapter
         response.body = {
-            ...response.body,
-            supportsBreakpointLocationsRequest: true
+            ...response.body
         };
 
         this.sendResponse(response);
