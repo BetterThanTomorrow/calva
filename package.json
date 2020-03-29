@@ -63,11 +63,6 @@
         "borkdude.clj-kondo"
     ],
     "contributes": {
-        "breakpoints": [
-            {
-                "language": "clojure"
-            }
-        ],
         "debuggers": [
             {
                 "type": "clojure",
