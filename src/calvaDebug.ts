@@ -107,7 +107,7 @@ class CalvaDebugSession extends LoggingDebugSession {
                 tokenCursor.forwardSexp();
             }
         }
-        tokenCursor.forwardWhitespace();
+        tokenCursor.forwardSexp();
 
         const [line, column] = tokenCursor.rowCol;
 
