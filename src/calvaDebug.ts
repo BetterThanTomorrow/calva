@@ -101,7 +101,6 @@ class CalvaDebugSession extends LoggingDebugSession {
         const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
         for (let i = 0; i < coor.length; i++) {
-            // DEBUG TODO: Prevent against infinite loops! We are trusting cider-nrepl's coordinates here, maybe too much.
             while (!tokenCursor.downList()) {
                 tokenCursor.next();
             }
