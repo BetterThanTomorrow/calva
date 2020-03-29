@@ -649,8 +649,7 @@ window.onmessage = async (msg: any) => {
     }
 
     if (msg.data.type === 'start-debug-mode') {
-        const namespace = '<<debug-mode>>';
-        ns = namespace;
+        ns = msg.data.ns;
         con.readline.freeze();
         con.requestPrompt(ns + '=> ');
         con.readline.clearCompletion();

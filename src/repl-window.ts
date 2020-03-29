@@ -320,7 +320,7 @@ class REPLWindow {
         this.session = debugSession;
         this._preDebugNamespace = this.ns;
         this.ns = '<<debug-mode>>';
-        await this.postMessage({ type: 'start-debug-mode' });
+        await this.postMessage({ type: 'start-debug-mode', ns: this.ns });
     }
 
     stopDebugMode(): void {
