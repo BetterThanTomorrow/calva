@@ -361,7 +361,8 @@
                                         "Leiningen",
                                         "Clojure CLI",
                                         "shadow-cljs",
-                                        "lein-shadow"
+                                        "lein-shadow",
+                                        "generic"
                                     ]
                                 },
                                 "nReplPortFile": {
