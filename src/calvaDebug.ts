@@ -140,7 +140,6 @@ class CalvaDebugSession extends LoggingDebugSession {
             name: local[0],
             value: local[1],
             // DEBUG TODO: May need to check type of value. If it's a map or collection, we may need to set variablesReference to something > 0.
-            //             Also may need to convert string type to actual type - but how do we know if "10", for instance, is supposed to be a string or number?
             /** If variablesReference is > 0, the variable is structured and its children can be retrieved by passing variablesReference to the VariablesRequest. */
             variablesReference: 0
         }
@@ -242,7 +241,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
     createDebugAdapterDescriptor(session: DebugSession, executable: DebugAdapterExecutable | undefined): ProviderResult<DebugAdapterDescriptor> {
 
         if (!this.server) {
-            // start listening on a random port (0 means an arbitrary unused port will be used)
+            // Start listening on a random port (0 means an arbitrary unused port will be used)
             this.server = Net.createServer(socket => {
                 const debugSession = new CalvaDebugSession();
                 debugSession.setRunAsServer(true);
@@ -250,7 +249,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
             }).listen(0);
         }
 
-        // make VS Code connect to debug server
+        // Make VS Code connect to debug server
         return new DebugAdapterServer(this.server.address().port);
     }
 
@@ -263,6 +262,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 
 function handleNeedDebugInput(response: any): void {
 
+    // Make sure the form exists in the editor and was not instrumented in the repl window
     if (typeof response.file === 'string'
         && typeof response.column === 'number'
         && typeof response.line === 'number') {
