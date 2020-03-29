@@ -68,14 +68,7 @@
                 "type": "clojure",
                 "label": "Calva Debug",
                 "program": "./out/debugAdapter.js",
-                "runtime": "node",
-                "initialConfigurations": [
-                    {
-                        "type": "clojure",
-                        "name": "Calva Debug",
-                        "request": "attach"
-                    }
-                ]
+                "runtime": "node"
             }
         ],
         "languages": [
