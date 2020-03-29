@@ -173,12 +173,16 @@ export class LispTokenCursor extends TokenCursor {
      *
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = true): boolean {
+    forwardSexp(skipComments = true, skipMetadata = false): boolean {
         // TODO: Consider using a proper bracket stack
         let stack = [];
+        let metadataPrecedesSexp = false;
         this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
             return false;
+        }
+        if (this.getToken().raw.endsWith('^{')) {
+            metadataPrecedesSexp = true;
         }
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
@@ -207,8 +211,12 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     this.next();
-                    if (stack.length <= 0)
+                    if (stack.length <= 0) {
+                        if (skipMetadata && metadataPrecedesSexp) {
+                            this.forwardSexp(skipComments, skipMetadata);
+                        }
                         return true;
+                    }
                     break;
                 case 'open':
                     stack.push(tk.raw);
