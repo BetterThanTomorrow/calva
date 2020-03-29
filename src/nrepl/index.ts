@@ -119,8 +119,6 @@ export class NReplClient {
                         handleNeedDebugInput(data);
                     }
 
-                    const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-
                     if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
                         vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     }
