@@ -12,10 +12,9 @@ const color = {
     inactive: "#b3b3b3"
 };
 
-function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration):string {
+function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
     let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
-
-    return workspaceFolderValue || workspaceValue || globalValue || defaultValue;
+    return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
 }
 
 function update() {
@@ -49,7 +48,7 @@ function update() {
 
     if (current.get('connected')) {
         connectionStatus.text = "nREPL $(zap)";
-        connectionStatus.color = colorValue("connectedSatusColor", currentConf);
+        connectionStatus.color = colorValue("connectedStatusColor", currentConf);
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = colorValue("typeStatusColor", currentConf);

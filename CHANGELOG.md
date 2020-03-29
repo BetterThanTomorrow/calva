@@ -3,7 +3,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
-## [2.0.88] - 2020-03-21
+## [2.0.89] - 2020-03-29
+- [Add support for connecting to generic project types](https://github.com/BetterThanTomorrow/calva/issues/595)
+
+## [2.0.88] - 2020-03-22
 - [Change all references to `#calva-dev` so that they now point to the `#calva` Slack channel](https://clojurians.slack.com/messages/calva/)
 
 ## [2.0.87] - 2020-03-21
@@ -127,7 +130,7 @@ Changes to Calva.
 - Improvements for Commands using the **Current form** and **Current top level form**:
   - Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
   - Less precision needed for the right form to be selected.
-  - All commands for this use the same implemengtion (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
+  - All commands for this use the same implementation (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
 - Fix: ["Load current Namespace in REPL Window" command not working](https://github.com/BetterThanTomorrow/calva/issues/477)
 - Theme compatible status bar indicators for pprint and paredit
 

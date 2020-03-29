@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.88",
+    "version": "2.0.89",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -194,7 +194,7 @@
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
                                 "description": "Foreground color for the launching status"
                             },
-                            "connectedSatusColor": {
+                            "connectedStatusColor": {
                                 "type": "string",
                                 "default": "#fdd023",
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
@@ -210,7 +210,7 @@
                         "default": {
                             "disconnectedColor": "#c0c0c0",
                             "launchingColor": "#fdd023",
-                            "connectedSatusColor": "#fdd023",
+                            "connectedStatusColor": "#fdd023",
                             "typeStatusColor": "#91dc47"
                         }
                     },
@@ -282,7 +282,7 @@
                                 },
                                 "ns": {
                                     "type": "string",
-                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
+                                    "description": "(optional) Namespace to evaluate the command in. If omitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
                                 },
                                 "repl": {
                                     "type": "string",
@@ -309,7 +309,7 @@
                     },
                     "calva.myCljAliases": {
                         "type": "array",
-                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the projects's `deps.edn` file.",
+                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the project's `deps.edn` file.",
                         "items": {
                             "type": "string"
                         }
@@ -361,12 +361,13 @@
                                         "Leiningen",
                                         "Clojure CLI",
                                         "shadow-cljs",
-                                        "lein-shadow"
+                                        "lein-shadow",
+                                        "generic"
                                     ]
                                 },
                                 "nReplPortFile": {
                                     "type": "array",
-                                    "description": "An array of path segments with the project root-releative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
+                                    "description": "An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
                                     "items": {
                                         "type": "string"
                                     }
@@ -378,7 +379,7 @@
                                 },
                                 "menuSelections": {
                                     "type": "object",
-                                    "description": "Pre-selected menu options. If a slection is made here. Calva won't prompt for it.",
+                                    "description": "Pre-selected menu options. If a selection is made here. Calva won't prompt for it.",
                                     "properties": {
                                         "leinProfiles": {
                                             "type": "array",
@@ -407,7 +408,7 @@
                                         },
                                         "cljsLaunchBuilds": {
                                             "type": "array",
-                                            "description": "The cljs builds to start/watch at Jack-in/comnnect.",
+                                            "description": "The cljs builds to start/watch at Jack-in/connect.",
                                             "items": {
                                                 "type": "string"
                                             }
