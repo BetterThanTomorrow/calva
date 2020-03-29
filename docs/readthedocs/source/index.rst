@@ -47,7 +47,7 @@ I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/B
 Have Questions and Feedback? Need Help?
 ---------------------------------------
 
-Easiest way is to chat with us and other Calva users. Please join the `#calva-dev channel <https://clojurians.slack.com/messages/calva-dev>`_ on the Clojurians Slack.
+Easiest way is to chat with us and other Calva users. Please join the `#calva channel <https://clojurians.slack.com/messages/calva>`_ on the Clojurians Slack.
 
 Happy coding! ❤️
 

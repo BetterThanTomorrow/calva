@@ -53,6 +53,6 @@ Then, why not always do it client side? It turns out that on the client side the
 
 ### Need More Configurability?
 
-The current options are limited, because our time developing Calva is limited. But `cider-nrepl` really allows for fully configurable pretty printing, so it is within reach. Please feel invited to give us feedback on what you would want to configure for the printing of results. File issues and/or chat us up in #calva-dev on the Clojurians slack.
+The current options are limited, because our time developing Calva is limited. But `cider-nrepl` really allows for fully configurable pretty printing, so it is within reach. Please feel invited to give us feedback on what you would want to configure for the printing of results. File issues and/or chat us up in #calva on the Clojurians slack.
 
 Enjoy Prettiful Printing! ❤️

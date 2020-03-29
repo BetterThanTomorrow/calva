@@ -1,14 +1,13 @@
 import * as vscode from "vscode";
 import * as state from "../state";
-import * as projectTypes from './project-types';
-import * as path from 'path';
 import * as utilities from '../utilities';
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
     "Clojure CLI" = "Clojure CLI",
     "shadow-cljs" = "shadow-cljs",
-    "lein-shadow" = "lein-shadow"
+    "lein-shadow" = "lein-shadow",
+    'generic' = 'generic'
 }
 
 enum CljsTypes {
@@ -120,11 +119,19 @@ const leinShadowDefaults: ReplConnectSequence[] = [{
     nReplPortFile: [".shadow-cljs", "nrepl.port"]
 }];
 
+const genericDefaults: ReplConnectSequence[] = [{
+    name: "Generic",
+    projectType: ProjectTypes['generic'],
+    cljsType: CljsTypes.none,
+    nReplPortFile: ["nrepl.port"]
+}];
+
 const defaultSequences = {
     "lein": leiningenDefaults,
     "clj": cljDefaults,
     "shadow-cljs": shadowCljsDefaults,
-    "lein-shadow": leinShadowDefaults
+    "lein-shadow": leinShadowDefaults,
+    'generic': genericDefaults
 };
 
 const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
@@ -219,13 +226,7 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 
 async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabel: string): Promise<ReplConnectSequence> {
     // figure out what possible kinds of project we're in
-    if (cljTypes.length == 0) {
-        vscode.window.showErrorMessage("Cannot find project, no project.clj, deps.edn or shadow-cljs.edn.");
-        state.analytics().logEvent("REPL", logLabel, "FailedFindingProjectType").send();
-        return;
-    }
-
-    const sequences = getConnectSequences(cljTypes);
+    const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
     if (sequences.length > 1) {
         const projectConnectSequenceName = await utilities.quickPickSingle({
             values: sequences.map(s => { return s.name }),

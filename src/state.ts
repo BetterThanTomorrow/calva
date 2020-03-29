@@ -172,7 +172,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * Also stores the WorkSpace folder for the project to be used
  * when executing the Task and get proper vscode reporting.
  *
- * 1. If there is no file open in single-rooted workspaced use
+ * 1. If there is no file open in single-rooted workspace use
  *    the workspace folder as a starting point. In multi-rooted
  *    workspaces stop and complain.
  * 2. If there is a file open, use it to determine the project root
@@ -202,6 +202,7 @@ export async function initProjectDir(): Promise<void> {
         throw "There is no document opened in the workspace. Aborting.";
     } else {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
+        cursor.set(PROJECT_DIR_KEY, rootPath);
         let d = null;
         let prev = null;
         if (doc) {
@@ -233,9 +234,7 @@ export async function initProjectDir(): Promise<void> {
                 return;
             }
         }
-        vscode.window.showErrorMessage("There was no valid project configuration found in the workspace. Please open a file in your Clojure project and try again. Aborting.");
-        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There was no valid project configuration found in the workspace. Aborting.";
+        return;
     }
 }
 
