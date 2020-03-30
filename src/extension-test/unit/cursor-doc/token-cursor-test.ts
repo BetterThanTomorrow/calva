@@ -27,11 +27,56 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).equal(31);
         });
 
-        it('should skip over metadata if skipMetadata is true: (a| ^{:a 1} (= 1 1)|)', () => {
+        it('should skip over metadata if skipMetadata is true: (a| ^{:a 1} (= 1 1)) => (a ^{:a 1} (= 1 1)|)', () => {
             scratchDoc.insertString('(a ^{:a 1} (= 1 1))');
             const cursor = scratchDoc.getTokenCursor(2);
             cursor.forwardSexp(true, true);
             expect(cursor.offsetStart).equal(18);
+        });
+    });
+
+    describe('downList', () => {
+
+        it('should put cursor to the right of the following open paren: (a |(b 1) => (a (|b 1)', () => {
+            scratchDoc.insertString('(a (b 1))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it('should put cursor to the right of the following open curly brace: (a |{:b 1})) => (a {|:b 1}))', () => {
+            scratchDoc.insertString('(a {:b 1}))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it('should put cursor to the right of the following open bracket: (a |[1 2])) => (a [|1 2]))', () => {
+            scratchDoc.insertString('(a [1 2]))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it(`should put cursor to the right of the following open paren that starts a list literal: (a |'(1 2)) => (a '(|1 2))`, () => {
+            scratchDoc.insertString(`(a '(1 2))`);
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(5);
+        });
+
+        it('should skip whitespace: (a| (b 1)) => (a (|b 1))', () => {
+            scratchDoc.insertString('(a (b 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it('should skip metadata when skipMetadata is true: (a |^{:x 1} (b 1)) => (a ^{:x 1} (|b 1))', () => {
+            scratchDoc.insertString('(a ^{:x 1} (b 1))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList(true);
+            expect(cursor.offsetStart).equal(12);
         });
     });
 
