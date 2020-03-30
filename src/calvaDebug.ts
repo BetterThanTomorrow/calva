@@ -103,6 +103,10 @@ class CalvaDebugSession extends LoggingDebugSession {
             while (!tokenCursor.downList(true)) {
                 tokenCursor.next();
             }
+            // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
+            if (tokenCursor.getPrevToken().raw.endsWith('#(')) {
+                i++;
+            }
             for (let k = 0; k < coor[i]; k++) {
                 tokenCursor.forwardSexp(true, true);
             }
