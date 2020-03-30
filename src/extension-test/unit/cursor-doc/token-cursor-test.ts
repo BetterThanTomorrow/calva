@@ -3,24 +3,38 @@ import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import * as mock from './mock';
 
 describe('Token Cursor', () => {
-    const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))',
-        doc: mock.MockDocument = new mock.MockDocument();
+    const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';
+    let doc: mock.MockDocument;
+    let scratchDoc: mock.MockDocument;
 
     beforeEach(() => {
+        doc = new mock.MockDocument();
         doc.insertString(docText);
+
+        scratchDoc = new mock.MockDocument();
     });
 
-    it('forwardSexp x4: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(5);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(6);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(26);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(31);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(31);
+    describe('forwardSexp', () => {
+        it('forwardSexp x4: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
+            const cursor: LispTokenCursor = doc.getTokenCursor(5);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(6);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(26);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(31);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(31);
+        });
+
+        it('should skip over metadata if skipMetadata is true: (a| ^{:a 1} (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^{:a 1} (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(18);
+        });
     });
+
     it('backwardSexp x4: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
         const cursor: LispTokenCursor = doc.getTokenCursor(31);
         cursor.backwardSexp();

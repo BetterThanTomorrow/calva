@@ -411,8 +411,7 @@ export class LispTokenCursor extends TokenCursor {
         let cursor = this.clone();
         cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
-        const token = cursor.getToken();
-        if (token.type === 'open') {
+        if (cursor.getToken().type === 'open') {
             if (skipMetadata) {
                 while (cursor.tokenBeginsMetadata()) {
                     cursor.forwardSexp();
