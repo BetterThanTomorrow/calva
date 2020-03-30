@@ -100,7 +100,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
 
         for (let i = 0; i < coor.length; i++) {
-            while (!tokenCursor.downList()) {
+            while (!tokenCursor.downList(true)) {
                 tokenCursor.next();
             }
             for (let k = 0; k < coor[i]; k++) {

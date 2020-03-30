@@ -112,6 +112,10 @@ export class LispTokenCursor extends TokenCursor {
         return new LispTokenCursor(this.doc, this.line, this.token);
     }
 
+    tokenBeginsMetadata(): boolean {
+        return this.getToken().raw.endsWith('^{');
+    }
+
     /**
      * Moves this token past any whitespace or comment.
      */
@@ -181,7 +185,7 @@ export class LispTokenCursor extends TokenCursor {
         if (this.getToken().type == "close") {
             return false;
         }
-        if (this.getToken().raw.endsWith('^{')) {
+        if (this.tokenBeginsMetadata()) {
             metadataPrecedesSexp = true;
         }
         while (!this.atEnd()) {
@@ -403,11 +407,18 @@ export class LispTokenCursor extends TokenCursor {
      * If possible, moves this cursor forwards past any whitespace, and then past the immediately following open-paren and returns true.
      * If the source does not match this, returns false and does not move the cursor.
      */
-    downList(): boolean {
+    downList(skipMetadata = false): boolean {
         let cursor = this.clone();
         cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
-        if (cursor.getToken().type === 'open') {
+        const token = cursor.getToken();
+        if (token.type === 'open') {
+            if (skipMetadata) {
+                while (cursor.tokenBeginsMetadata()) {
+                    cursor.forwardSexp();
+                    cursor.forwardWhitespace();
+                }
+            }
             cursor.next();
             this.set(cursor);
             return true;
