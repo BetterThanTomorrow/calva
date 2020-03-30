@@ -237,7 +237,9 @@ class REPLWindow {
 
     replEval(line: string, ns: string, pprintOptions: PrettyPrintingOptions) {
 
-        this.interrupt();
+        if (!vscode.debug.activeDebugSession) {
+            this.interrupt();
+        }
 
         let evaluation = this.session.eval(line, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
