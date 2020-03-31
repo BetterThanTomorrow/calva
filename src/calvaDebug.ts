@@ -11,6 +11,7 @@ import { basename } from 'path';
 import * as docMirror from './doc-mirror';
 import * as vscode from 'vscode';
 import { replWindows } from './repl-window';
+import { TokenCursor, LispTokenCursor } from './cursor-doc/token-cursor';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -87,6 +88,23 @@ class CalvaDebugSession extends LoggingDebugSession {
         return n === 0 ? n : n - 1;
     }
 
+    private _moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string, document: vscode.TextDocument): void {
+        const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList();
+        const startPosition = document.positionAt(listOffsetStart);
+        const endPosition = document.positionAt(listOffsetEnd - 1);
+        const text = document.getText(new vscode.Range(startPosition, endPosition));
+
+        const stringIndexInList = text.indexOf(s);
+        if (stringIndexInList !== -1) {
+            const coorOffset = listOffsetStart + stringIndexInList;
+            while (tokenCursor.offsetStart !== coorOffset) {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
+            }
+            tokenCursor.forwardSexp();
+        }
+    }
+
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         //// cider-nrepl seems to have 1-based lines and columns. StackFrames have 1-based lines and columns. The editor has 0-based lines and columns.
@@ -107,11 +125,18 @@ class CalvaDebugSession extends LoggingDebugSession {
             if (tokenCursor.getPrevToken().raw.endsWith('#(')) {
                 i++;
             }
-            for (let k = 0; k < coor[i]; k++) {
-                tokenCursor.forwardSexp(true, true);
+            // If coor is a string it represents a map key
+            if (typeof coor[i] === 'string') {
+                this._moveCursorPastStringInList(tokenCursor, coor[i], document);
+            } else {
+                for (let k = 0; k < coor[i]; k++) {
+                    tokenCursor.forwardSexp(true, true);
+                }
             }
         }
-        tokenCursor.forwardSexp(true, true);
+        do {
+            tokenCursor.forwardSexp(true, true);
+        } while (tokenCursor.getPrevToken().raw.startsWith('^'));
 
         const [line, column] = tokenCursor.rowCol;
 
