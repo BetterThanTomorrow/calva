@@ -134,9 +134,10 @@ class CalvaDebugSession extends LoggingDebugSession {
                 }
             }
         }
+        // Handle metadata shorthand syntax
         do {
             tokenCursor.forwardSexp(true, true);
-        } while (tokenCursor.getPrevToken().raw.startsWith('^'));
+        } while (tokenCursor.getPrevToken().raw.startsWith('^') || tokenCursor.getPrevToken().raw.indexOf('^:') !== -1);
 
         const [line, column] = tokenCursor.rowCol;
 
