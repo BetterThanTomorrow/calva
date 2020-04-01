@@ -116,13 +116,28 @@ class CalvaDebugSession extends LoggingDebugSession {
         const positionColumn = this._convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
         const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+        let inSyntaxQuote = false;
 
         for (let i = 0; i < coor.length; i++) {
             while (!tokenCursor.downList(true)) {
                 tokenCursor.next();
             }
+            const previousToken = tokenCursor.getPrevToken();
+            // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
+            // A `(. .) is read as (seq (concat (list .) (list .))).
+            if (/.*\`(\[|\{|\()$/.test(previousToken.raw)) {
+                inSyntaxQuote = true;
+                i++; // Ignore this coor and move to the next
+                if (!previousToken.raw.endsWith('(')) {
+                    // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
+                    // Ignore this coor too
+                    i++;
+                }
+                // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
+                coor[i]--;
+            }
             // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
-            if (tokenCursor.getPrevToken().raw.endsWith('#(')) {
+            if (previousToken.raw.endsWith('#(')) {
                 i++;
             }
             // If coor is a string it represents a map key
