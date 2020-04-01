@@ -33,6 +33,34 @@ describe('Token Cursor', () => {
             cursor.forwardSexp(true, true);
             expect(cursor.offsetStart).equal(18);
         });
+
+        it('should skip over multiple metadata maps if skipMetadata is true: (a| ^{:a 1} ^{:b 2} (= 1 1)) => (a ^{:a 1} ^{:b 2} (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^{:a 1} ^{:b 2} (= 1 1)|');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(26);
+        });
+
+        it('should skip over symbol shorthand for metadata if skipMetadata is true: (a| ^String (= 1 1)) => (a ^String (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^String (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(18);
+        });
+
+        it('should skip over keyword shorthand for metadata if skipMetadata is true: (a| ^:hello (= 1 1)) => (a ^:hello (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^:hello (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(18);
+        });
+
+        it('should skip over multiple keyword shorthands for metadata if skipMetadata is true: (a| ^:hello ^:world (= 1 1)) => (a ^:hello ^:world (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^:hello ^:world (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(26);
+        });
     });
 
     describe('downList', () => {

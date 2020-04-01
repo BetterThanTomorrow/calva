@@ -180,13 +180,13 @@ export class LispTokenCursor extends TokenCursor {
     forwardSexp(skipComments = true, skipMetadata = false): boolean {
         // TODO: Consider using a proper bracket stack
         let stack = [];
-        let metadataPrecedesSexp = false;
+        let isMetadata = false;
         this.forwardWhitespace(skipComments);
         if (this.getToken().type == "close") {
             return false;
         }
         if (this.tokenBeginsMetadata()) {
-            metadataPrecedesSexp = true;
+            isMetadata = true;
         }
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
@@ -195,30 +195,40 @@ export class LispTokenCursor extends TokenCursor {
                 case 'comment':
                     this.next(); // skip past comment
                     this.next(); // skip past EOL.
-                    return true;
+                    break;
                 case 'id':
-                case 'lit':
+                    if (skipMetadata && this.getToken().raw.startsWith('^')) {
+                        this.next();
+                    } else {
+                        this.next();
+                        if (stack.length <= 0) {
+                            return true;
+                        }
+                    }
+                    break;
                 case 'kw':
-                case 'ignore':
-                case 'junk':
-                case 'str-inside':
-                    this.next();
-                    if (stack.length <= 0)
-                        return true;
+                    if (skipMetadata && this.getToken().raw.startsWith('^')) {
+                        this.next();
+                    } else {
+                        this.next();
+                        if (stack.length <= 0) {
+                            return true;
+                        }
+                    }
                     break;
                 case 'close':
                     const close = tk.raw;
                     let open: string;
                     while (open = stack.pop()) {
                         if (validPair(open, close)) {
+                            this.next();
                             break;
                         }
                     }
-                    this.next();
+                    if (skipMetadata && isMetadata) {
+                        this.forwardSexp(skipComments, skipMetadata);
+                    }
                     if (stack.length <= 0) {
-                        if (skipMetadata && metadataPrecedesSexp) {
-                            this.forwardSexp(skipComments, skipMetadata);
-                        }
                         return true;
                     }
                     break;
