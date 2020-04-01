@@ -179,10 +179,10 @@ export class LispTokenCursor extends TokenCursor {
      */
     forwardSexp(skipComments = true, skipMetadata = false): boolean {
         // TODO: Consider using a proper bracket stack
-        let stack = [];
+        const stack = [];
         let isMetadata = false;
         this.forwardWhitespace(skipComments);
-        if (this.getToken().type == "close") {
+        if (this.getToken().type === 'close') {
             return false;
         }
         if (this.tokenBeginsMetadata()) {
@@ -190,25 +190,18 @@ export class LispTokenCursor extends TokenCursor {
         }
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
-            let tk = this.getToken();
-            switch (tk.type) {
+            const token = this.getToken();
+            switch(token.type) {
                 case 'comment':
-                    this.next(); // skip past comment
-                    this.next(); // skip past EOL.
-                    break;
-                case 'id':
-                    if (skipMetadata && this.getToken().raw.startsWith('^')) {
-                        this.next();
-                    } else {
-                        this.next();
-                        if (stack.length <= 0) {
-                            return true;
-                        }
-                    }
+                    this.next();
+                    this.next();
                     break;
                 case 'id':
                 case 'lit':
                 case 'kw':
+                case 'ignore':
+                case 'junk':
+                case 'str-inside':
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {
                         this.next();
                     } else {
@@ -218,15 +211,8 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     break;
-                case 'ignore':
-                case 'junk':
-                case 'str-inside':
-                    this.next();
-                    if (stack.length <= 0)
-                        return true;
-                    break;
                 case 'close':
-                    const close = tk.raw;
+                    const close = token.raw;
                     let open: string;
                     while (open = stack.pop()) {
                         if (validPair(open, close)) {
@@ -242,7 +228,7 @@ export class LispTokenCursor extends TokenCursor {
                     }
                     break;
                 case 'open':
-                    stack.push(tk.raw);
+                    stack.push(token.raw);
                     this.next();
                     break;
                 default:
