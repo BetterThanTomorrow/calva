@@ -206,6 +206,8 @@ export class LispTokenCursor extends TokenCursor {
                         }
                     }
                     break;
+                case 'id':
+                case 'lit':
                 case 'kw':
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {
                         this.next();
@@ -215,6 +217,13 @@ export class LispTokenCursor extends TokenCursor {
                             return true;
                         }
                     }
+                    break;
+                case 'ignore':
+                case 'junk':
+                case 'str-inside':
+                    this.next();
+                    if (stack.length <= 0)
+                        return true;
                     break;
                 case 'close':
                     const close = tk.raw;
