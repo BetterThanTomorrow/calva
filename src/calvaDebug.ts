@@ -123,10 +123,19 @@ class CalvaDebugSession extends LoggingDebugSession {
                 tokenCursor.next();
             }
             const previousToken = tokenCursor.getPrevToken();
+
             // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
-            // A `(. .) is read as (seq (concat (list .) (list .))).
+            // `(. .) is read as (seq (concat (list .) (list .))).
             if (/.*\`(\[|\{|\()$/.test(previousToken.raw)) {
                 inSyntaxQuote = true;
+            }
+
+            // Here a syntax quote is ending - this happens if ~ or ~@ precedes a form
+            if (previousToken.raw.match(/~@?/)) {
+                inSyntaxQuote = false;
+            }
+
+            if (inSyntaxQuote) {
                 i++; // Ignore this coor and move to the next
                 if (!previousToken.raw.endsWith('(')) {
                     // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
@@ -136,10 +145,12 @@ class CalvaDebugSession extends LoggingDebugSession {
                 // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
                 coor[i]--;
             }
+
             // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
             if (previousToken.raw.endsWith('#(')) {
                 i++;
             }
+
             // If coor is a string it represents a map key
             if (typeof coor[i] === 'string') {
                 this._moveCursorPastStringInList(tokenCursor, coor[i], document);
@@ -149,6 +160,7 @@ class CalvaDebugSession extends LoggingDebugSession {
                 }
             }
         }
+        // Move past the target sexp
         tokenCursor.forwardSexp(true, true, true);
 
         const [line, column] = tokenCursor.rowCol;
