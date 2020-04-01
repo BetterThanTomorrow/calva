@@ -130,15 +130,11 @@ class CalvaDebugSession extends LoggingDebugSession {
                 this._moveCursorPastStringInList(tokenCursor, coor[i], document);
             } else {
                 for (let k = 0; k < coor[i]; k++) {
-                    tokenCursor.forwardSexp(true, true);
+                    tokenCursor.forwardSexp(true, true, true);
                 }
             }
         }
-        tokenCursor.forwardSexp(true, true);
-        // Handle metadata shorthand syntax
-        // do {
-        //     tokenCursor.forwardSexp(true, true);
-        // } while (tokenCursor.getPrevToken().raw.startsWith('^') || tokenCursor.getPrevToken().raw.indexOf('^:') !== -1);
+        tokenCursor.forwardSexp(true, true, true);
 
         const [line, column] = tokenCursor.rowCol;
 

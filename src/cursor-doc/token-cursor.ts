@@ -177,7 +177,7 @@ export class LispTokenCursor extends TokenCursor {
      *
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = true, skipMetadata = false): boolean {
+    forwardSexp(skipComments = true, skipMetadata = false, skipIgnoredForms = false): boolean {
         // TODO: Consider using a proper bracket stack
         const stack = [];
         let isMetadata = false;
@@ -196,10 +196,15 @@ export class LispTokenCursor extends TokenCursor {
                     this.next();
                     this.next();
                     break;
+                case 'ignore':
+                    if (skipIgnoredForms) {
+                        this.next();
+                        this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+                        break;
+                    }
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'ignore':
                 case 'junk':
                 case 'str-inside':
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {

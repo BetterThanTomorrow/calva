@@ -61,6 +61,13 @@ describe('Token Cursor', () => {
             cursor.forwardSexp(true, true);
             expect(cursor.offsetStart).equal(26);
         });
+
+        it('should skip over ignored forms if skipIgnoredForms is true: (a| #_1 #_2 3) => (a #_1 #_2 3|)', () => {
+            scratchDoc.insertString('(a #_1 #_2 3)');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true, true);
+            expect(cursor.offsetStart).equal(12);
+        });
     });
 
     describe('downList', () => {
