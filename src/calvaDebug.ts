@@ -83,89 +83,14 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    private _convertOneBasedToZeroBased(n: number): number {
-        // Zero implies ignoring the line/column in the vscode-debugadapter StackFrame class, and perhaps in cider-nrepl as well
-        return n === 0 ? n : n - 1;
-    }
-
-    private _moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string, document: vscode.TextDocument): void {
-        const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList();
-        const startPosition = document.positionAt(listOffsetStart);
-        const endPosition = document.positionAt(listOffsetEnd - 1);
-        const text = document.getText(new vscode.Range(startPosition, endPosition));
-
-        const stringIndexInList = text.indexOf(s);
-        if (stringIndexInList !== -1) {
-            const coorOffset = listOffsetStart + stringIndexInList;
-            while (tokenCursor.offsetStart !== coorOffset) {
-                tokenCursor.forwardSexp();
-                tokenCursor.forwardWhitespace();
-            }
-            tokenCursor.forwardSexp();
-        }
-    }
-
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         //// cider-nrepl seems to have 1-based lines and columns. StackFrames have 1-based lines and columns. The editor has 0-based lines and columns.
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
         const document = await vscode.workspace.openTextDocument(debugResponse.file);
-        const positionLine = this._convertOneBasedToZeroBased(debugResponse.line);
-        const positionColumn = this._convertOneBasedToZeroBased(debugResponse.column);
-        const offset = document.offsetAt(new Position(positionLine, positionColumn));
-        const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
-        let inSyntaxQuote = false;
-
-        for (let i = 0; i < coor.length; i++) {
-            while (!tokenCursor.downList(true)) {
-                tokenCursor.next();
-            }
-            const previousToken = tokenCursor.getPrevToken();
-
-            // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
-            // `(. .) is read as (seq (concat (list .) (list .))).
-            if (/.*\`(\[|\{|\()$/.test(previousToken.raw)) {
-                inSyntaxQuote = true;
-            }
-
-            if (inSyntaxQuote) {
-                i++; // Ignore this coor and move to the next
-
-                // A syntax quote is ending - this happens if ~ or ~@ precedes a form
-                if (previousToken.raw.match(/~@?/)) {
-                    inSyntaxQuote = false;
-                }
-            }
-
-            if (inSyntaxQuote) {
-                if (!previousToken.raw.endsWith('(')) {
-                    // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
-                    // Ignore this coor too
-                    i++;
-                }
-                // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
-                coor[i]--;
-            }
-
-            // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
-            if (previousToken.raw.endsWith('#(')) {
-                i++;
-            }
-
-            // If coor is a string it represents a map key
-            if (typeof coor[i] === 'string') {
-                this._moveCursorPastStringInList(tokenCursor, coor[i], document);
-            } else {
-                for (let k = 0; k < coor[i]; k++) {
-                    tokenCursor.forwardSexp(true, true, true);
-                }
-            }
-        }
-
-        // Move past the target sexp
-        tokenCursor.forwardSexp(true, true, true);
+        
+        const tokenCursor = getBreakpointTokenCursor(document, debugResponse);
 
         const [line, column] = tokenCursor.rowCol;
 
@@ -341,6 +266,98 @@ debug.onDidStartDebugSession(session => {
     // We only start debugger sessions when a breakpoint is hit
     session.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: 'breakpoint' });
 });
+
+function convertOneBasedToZeroBased(n: number): number {
+    // Zero implies ignoring the line/column in the vscode-debugadapter StackFrame class, and perhaps in cider-nrepl as well
+    return n === 0 ? n : n - 1;
+}
+
+function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string, document: vscode.TextDocument): void {
+
+    const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList();
+    const startPosition = document.positionAt(listOffsetStart);
+    const endPosition = document.positionAt(listOffsetEnd - 1);
+    const text = document.getText(new vscode.Range(startPosition, endPosition));
+
+    const stringIndexInList = text.indexOf(s);
+    if (stringIndexInList !== -1) {
+        const coorOffset = listOffsetStart + stringIndexInList;
+        while (tokenCursor.offsetStart !== coorOffset) {
+            tokenCursor.forwardSexp();
+            tokenCursor.forwardWhitespace();
+        }
+        tokenCursor.forwardSexp();
+    } else {
+        throw "Cannot find string in list";
+    }
+}
+
+function getBreakpointTokenCursor(document: vscode.TextDocument, debugResponse: any): LispTokenCursor {
+
+    const positionLine = convertOneBasedToZeroBased(debugResponse.line);
+    const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
+    const offset = document.offsetAt(new Position(positionLine, positionColumn));
+    const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+    let inSyntaxQuote = false;
+
+    const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
+
+    for (let i = 0; i < coor.length; i++) {
+        while (!tokenCursor.downList(true)) {
+            tokenCursor.next();
+        }
+        const previousToken = tokenCursor.getPrevToken();
+
+        // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
+        // `(. .) is read as (seq (concat (list .) (list .))).
+        if (/.*\`(\[|\{|\()$/.test(previousToken.raw)) {
+            inSyntaxQuote = true;
+        }
+
+        if (inSyntaxQuote) {
+            i++; // Ignore this coor and move to the next
+
+            // A syntax quote is ending - this happens if ~ or ~@ precedes a form
+            if (previousToken.raw.match(/~@?/)) {
+                inSyntaxQuote = false;
+            }
+        }
+
+        if (inSyntaxQuote) {
+            if (!previousToken.raw.endsWith('(')) {
+                // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
+                // Ignore this coor too
+                i++;
+            }
+            // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
+            coor[i]--;
+        }
+
+        // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
+        if (previousToken.raw.endsWith('#(')) {
+            i++;
+        }
+
+        // If coor is a string it represents a map key
+        if (typeof coor[i] === 'string') {
+            moveCursorPastStringInList(tokenCursor, coor[i], document);
+        } else {
+            for (let k = 0; k < coor[i]; k++) {
+                if (!tokenCursor.forwardSexp(true, true, true)) {
+                    throw "Error finding position of breakpoint";
+                }
+                
+            }
+        }
+    }
+
+    // Move past the target sexp
+    if (!tokenCursor.forwardSexp(true, true, true)) {
+        throw "Error finding position of breakpoint";
+    }
+
+    return tokenCursor;
+}
 
 export {
     CALVA_DEBUG_CONFIGURATION,
