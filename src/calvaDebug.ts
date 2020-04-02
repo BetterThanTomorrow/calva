@@ -48,6 +48,8 @@ class CalvaDebugSession extends LoggingDebugSession {
         if (!cljSession) {
             window.showInformationMessage('You must be connected to a Clojure REPL to use debugging.');
             this.sendEvent(new TerminatedEvent());
+            response.success = false;
+            this.sendResponse(response);
             return;
         }
 
@@ -85,12 +87,19 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
-        //// cider-nrepl seems to have 1-based lines and columns. StackFrames have 1-based lines and columns. The editor has 0-based lines and columns.
-
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
         const document = await vscode.workspace.openTextDocument(debugResponse.file);
+        let tokenCursor: LispTokenCursor;
         
-        const tokenCursor = getBreakpointTokenCursor(document, debugResponse);
+        try {
+            tokenCursor = getBreakpointTokenCursor(document, debugResponse);
+        } catch (e) {
+            window.showErrorMessage('An error occurred in the breakpoint-finding logic. We would love if you submitted an issue in the Calva repo with the instrumented code, or a similar reproducible case.');
+            this.sendEvent(new TerminatedEvent());
+            response.success = false;
+            this.sendResponse(response);
+            return;
+        }
 
         const [line, column] = tokenCursor.rowCol;
 
@@ -294,10 +303,12 @@ function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string, doc
 
 function getBreakpointTokenCursor(document: vscode.TextDocument, debugResponse: any): LispTokenCursor {
 
+    const errorMessage = "Error finding position of breakpoint";
     const positionLine = convertOneBasedToZeroBased(debugResponse.line);
     const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
     const offset = document.offsetAt(new Position(positionLine, positionColumn));
     const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+    const [_, defunEnd] = tokenCursor.rangeForDefun(offset);
     let inSyntaxQuote = false;
 
     const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
@@ -344,16 +355,20 @@ function getBreakpointTokenCursor(document: vscode.TextDocument, debugResponse: 
         } else {
             for (let k = 0; k < coor[i]; k++) {
                 if (!tokenCursor.forwardSexp(true, true, true)) {
-                    throw "Error finding position of breakpoint";
+                    throw errorMessage;
                 }
-                
             }
         }
     }
 
     // Move past the target sexp
     if (!tokenCursor.forwardSexp(true, true, true)) {
-        throw "Error finding position of breakpoint";
+        throw errorMessage;
+    }
+
+    // Make sure we're still inside the original instrumented form, otherwise something went wrong
+    if (tokenCursor.offsetStart > defunEnd) {
+        throw errorMessage;
     }
 
     return tokenCursor;
