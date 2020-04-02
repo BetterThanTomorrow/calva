@@ -130,18 +130,20 @@ class CalvaDebugSession extends LoggingDebugSession {
                 inSyntaxQuote = true;
             }
 
-            // Here a syntax quote is ending - this happens if ~ or ~@ precedes a form
-            if (previousToken.raw.match(/~@?/)) {
-                inSyntaxQuote = false;
-            }
-
             if (inSyntaxQuote) {
                 i++; // Ignore this coor and move to the next
-                if (!previousToken.raw.endsWith('(')) {
+
+                // Here a syntax quote is ending - this happens if ~ or ~@ precedes a form
+                if (previousToken.raw.match(/~@?/)) {
+                    inSyntaxQuote = false;
+                } else if (!previousToken.raw.endsWith('(')) {
                     // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
                     // Ignore this coor too
                     i++;
                 }
+            }
+
+            if (inSyntaxQuote) {
                 // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
                 coor[i]--;
             }
