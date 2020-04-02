@@ -110,7 +110,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         //// cider-nrepl seems to have 1-based lines and columns. StackFrames have 1-based lines and columns. The editor has 0-based lines and columns.
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const coor = debugResponse.coor;
+        const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
         const document = await vscode.workspace.openTextDocument(debugResponse.file);
         const positionLine = this._convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = this._convertOneBasedToZeroBased(debugResponse.column);
@@ -163,7 +163,7 @@ class CalvaDebugSession extends LoggingDebugSession {
                 }
             }
         }
-        
+
         // Move past the target sexp
         tokenCursor.forwardSexp(true, true, true);
 
