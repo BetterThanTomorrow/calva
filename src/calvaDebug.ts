@@ -11,7 +11,7 @@ import { basename } from 'path';
 import * as docMirror from './doc-mirror';
 import * as vscode from 'vscode';
 import { replWindows } from './repl-window';
-import { TokenCursor, LispTokenCursor } from './cursor-doc/token-cursor';
+import { LispTokenCursor } from './cursor-doc/token-cursor';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -381,5 +381,6 @@ export {
     DEBUG_RESPONSE_KEY,
     CalvaDebugConfigurationProvider,
     CalvaDebugAdapterDescriptorFactory,
-    handleNeedDebugInput
+    handleNeedDebugInput,
+    getBreakpointTokenCursor
 };
