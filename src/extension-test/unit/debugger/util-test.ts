@@ -4,7 +4,8 @@ import * as mock from '../common/mock';
 import * as fs from "fs";
 
 function getCoordinates(text: string): (string | number)[] {
-    return text.split('\n')[0].split(' ').slice(1).map(coor => {
+    return text.split('\n')[0].split(',').map(s => {
+        const coor = s.replace(/;/g, '').trim();
         if (coor.startsWith('"')) {
             return coor.replace(/"/g, '');
         } else {
@@ -42,8 +43,20 @@ describe('Debugger Util', async () => {
 
     describe('moveTokenCursorToBreakpoint', () => {
 
-        it('simple example', async () => {
+        it('simple example', () => {
             expectBreakpointToBeFound('simple.clj');
+        });
+
+        it('function shorthand', () => {
+            expectBreakpointToBeFound('fn-shorthand.clj');
+        });
+
+        it('map', () => {
+            expectBreakpointToBeFound('map.clj');
+        });
+
+        it('metadata symbol', () => {
+            expectBreakpointToBeFound('metadata-symbol.clj');
         });
     });
 });
