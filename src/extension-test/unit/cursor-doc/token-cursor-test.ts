@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
-import * as mock from './mock';
+import * as mock from '../common/mock';
 
 describe('Token Cursor', () => {
     const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';

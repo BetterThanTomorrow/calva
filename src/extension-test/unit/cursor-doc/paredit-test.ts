@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as paredit from '../../../cursor-doc/paredit';
-import * as mock from './mock';
+import * as mock from '../common/mock';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 /**
