@@ -89,10 +89,14 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
         const document = await vscode.workspace.openTextDocument(debugResponse.file);
-        let tokenCursor: LispTokenCursor;
-        
+        const positionLine = convertOneBasedToZeroBased(debugResponse.line);
+        const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
+        const offset = document.offsetAt(new Position(positionLine, positionColumn));
+        const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
+
+        let breakpointTokenCursor: LispTokenCursor;
         try {
-            tokenCursor = getBreakpointTokenCursor(document, debugResponse);
+            breakpointTokenCursor = getBreakpointTokenCursor(tokenCursor, debugResponse);
         } catch (e) {
             window.showErrorMessage('An error occurred in the breakpoint-finding logic. We would love if you submitted an issue in the Calva repo with the instrumented code, or a similar reproducible case.');
             this.sendEvent(new TerminatedEvent());
@@ -101,11 +105,11 @@ class CalvaDebugSession extends LoggingDebugSession {
             return;
         }
 
-        const [line, column] = tokenCursor.rowCol;
+        const [line, column] = breakpointTokenCursor.rowCol;
 
         const filePath = debugResponse.file;
         const source = new Source(basename(filePath), filePath);
-        const name = tokenCursor.getFunction();
+        const name = breakpointTokenCursor.getFunction();
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
         response.body = {
@@ -281,12 +285,10 @@ function convertOneBasedToZeroBased(n: number): number {
     return n === 0 ? n : n - 1;
 }
 
-function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string, document: vscode.TextDocument): void {
+function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
 
     const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList();
-    const startPosition = document.positionAt(listOffsetStart);
-    const endPosition = document.positionAt(listOffsetEnd - 1);
-    const text = document.getText(new vscode.Range(startPosition, endPosition));
+    const text = tokenCursor.doc.getText(listOffsetStart, listOffsetEnd - 1);
 
     const stringIndexInList = text.indexOf(s);
     if (stringIndexInList !== -1) {
@@ -301,14 +303,10 @@ function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string, doc
     }
 }
 
-function getBreakpointTokenCursor(document: vscode.TextDocument, debugResponse: any): LispTokenCursor {
+function getBreakpointTokenCursor(tokenCursor: LispTokenCursor, debugResponse: any): LispTokenCursor {
 
     const errorMessage = "Error finding position of breakpoint";
-    const positionLine = convertOneBasedToZeroBased(debugResponse.line);
-    const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
-    const offset = document.offsetAt(new Position(positionLine, positionColumn));
-    const tokenCursor = docMirror.getDocument(document).getTokenCursor(offset);
-    const [_, defunEnd] = tokenCursor.rangeForDefun(offset);
+    const [_, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
     let inSyntaxQuote = false;
 
     const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
@@ -351,7 +349,7 @@ function getBreakpointTokenCursor(document: vscode.TextDocument, debugResponse: 
 
         // If coor is a string it represents a map key
         if (typeof coor[i] === 'string') {
-            moveCursorPastStringInList(tokenCursor, coor[i], document);
+            moveCursorPastStringInList(tokenCursor, coor[i]);
         } else {
             for (let k = 0; k < coor[i]; k++) {
                 if (!tokenCursor.forwardSexp(true, true, true)) {
