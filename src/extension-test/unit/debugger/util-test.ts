@@ -32,16 +32,16 @@ describe('Debugger Util', async () => {
         };
     });
 
-    function expectBreakpointToBeFound(fileName: string) {
-        const docText = getTestFileText(fileName);
-        debugResponse.coor = getCoordinates(docText);
-        doc.insertString(docText);
-        const tokenCursor = doc.getTokenCursor(0);
-        moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
-        expect(tokenCursor.getPrevToken().raw.endsWith('|')).equals(true);
-    }
-
     describe('moveTokenCursorToBreakpoint', () => {
+
+        function expectBreakpointToBeFound(fileName: string) {
+            const docText = getTestFileText(fileName);
+            debugResponse.coor = getCoordinates(docText);
+            doc.insertString(docText);
+            const tokenCursor = doc.getTokenCursor(0);
+            moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
+            expect(tokenCursor.getPrevToken().raw.endsWith('|')).equals(true);
+        }
 
         it('simple example', () => {
             expectBreakpointToBeFound('simple.clj');
@@ -57,6 +57,14 @@ describe('Debugger Util', async () => {
 
         it('metadata symbol', () => {
             expectBreakpointToBeFound('metadata-symbol.clj');
+        });
+
+        it('ignored forms', () => {
+            expectBreakpointToBeFound('ignored-forms.clj');
+        });
+
+        it('syntax quote', () => {
+            expectBreakpointToBeFound('syntax-quote.clj');
         });
     });
 });
