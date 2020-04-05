@@ -201,7 +201,7 @@ async function createNamespaceFromDocumentIfNotExists(doc) {
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
                     return;
                 }
-                await client.eval("(ns " + ns + ")").value;
+                await client.eval("(ns " + ns + ")", client.client.ns).value;
             }
         }
     }

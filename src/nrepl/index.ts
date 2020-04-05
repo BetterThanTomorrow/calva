@@ -26,7 +26,7 @@ export class NReplClient {
     /** Tracks all sessions */
     sessions: { [id: string]: NReplSession } = {};
 
-    ns: string = "user";
+    ns: string = 'user';
 
     private constructor(socket: net.Socket) {
         this.socket = socket;
@@ -256,7 +256,7 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
+    eval(code: string, ns: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
         const pprintOptions = opts.pprintOptions;
         opts["pprint"] = pprintOptions.enabled;
         delete opts.pprintOptions;
@@ -270,7 +270,7 @@ export class NReplSession {
                     return true;
                 }
             }
-            const opMsg = { op: "eval", session: this.sessionId, code, id, ...extraOpts, ...opts };
+            const opMsg = { op: "eval", session: this.sessionId, code, ns, id, ...extraOpts, ...opts };
             this.addRunningID(id);
             this.client.write(opMsg);
         }))
