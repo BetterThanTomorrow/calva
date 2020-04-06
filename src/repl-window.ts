@@ -185,7 +185,7 @@ class REPLWindow {
         // evaluate something that really test
         // the ability of the connected repl.
         try {
-            const res = await this.session.eval("(+ 1 1)").value;
+            const res = await this.session.eval("(+ 1 1)", this.session.client.ns).value;
 
             if (res.ns) {
                 this.ns = res.ns;
@@ -232,7 +232,7 @@ class REPLWindow {
 
         this.interrupt();
 
-        let evaluation = this.session.eval(line, {
+        let evaluation = this.session.eval(line, ns, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
             stdout: m => this.postMessage({ type: "stdout", value: m }),
             stdin: () => this.getUserInput(),
@@ -464,10 +464,10 @@ export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: st
             if (wnd) {
                 let inNs = ns ? ns : wnd.ns;
                 if (inNs && inNs !== wnd.ns) {
-                    const requireEvaluation = wnd.session.eval(inNs !== 'user' ? `(require '${inNs})` : 'nil');
+                    const requireEvaluation = wnd.session.eval(inNs !== 'user' ? `(require '${inNs})` : 'nil', wnd.ns);
                     requireEvaluation.value
                         .then((v) => {
-                            const inNSEvaluation = wnd.session.eval(`(in-ns '${inNs})`)
+                            const inNSEvaluation = wnd.session.eval(`(in-ns '${inNs})`, wnd.ns)
                             inNSEvaluation.value
                                 .then((v) => {
                                     wnd.setNamespace(inNSEvaluation.ns).then((v) => {
@@ -500,7 +500,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
     }
     let wnd = replWindows[util.getREPLSessionType()];
     if (wnd) {
-        await wnd.session.eval("(in-ns '" + ns + ")").value;
+        await wnd.session.eval("(in-ns '" + ns + ")", wnd.ns).value;
         wnd.setNamespace(ns).catch(() => { });
     }
 }

@@ -133,7 +133,7 @@ type connectFn = (session: NReplSession, name: string, checkSuccess: checkConnec
 
 async function evalConnectCode(newCljsSession: NReplSession, code: string, name: string, checkSuccess: checkConnectedFn, outputProcessors: processOutputFn[] = [], errorProcessors: processOutputFn[] = []): Promise<boolean> {
     let chan = state.connectionLogChannel();
-    let err = [], out = [], result = await newCljsSession.eval(code, {
+    let err = [], out = [], result = await newCljsSession.eval(code, "user", {
         stdout: x => {
             out.push(util.stripAnsi(x));
             chan.append(util.stripAnsi(x));

@@ -129,7 +129,7 @@ export function calvaJackout() {
             // https://github.com/clojure-emacs/cider/issues/390#issuecomment-317791387
             //
             if (nClient && nClient.session) {
-                nClient.session.eval("(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)");
+                nClient.session.eval("(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)", 'user');
             }
         }
         JackinExecution.terminate();
