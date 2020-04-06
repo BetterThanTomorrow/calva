@@ -74,14 +74,14 @@ async function evaluateSelection(document, options) {
             let c = codeSelection.start.character
 
             let err: string[] = [], out: string[] = [];
-
-            let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
+            const ns = util.getNamespace(doc);
+            let res = await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
 
             try {
                 const line = codeSelection.start.line,
                     column = codeSelection.start.character,
                     filePath = doc.fileName,
-                    context = client.eval(code, {
+                    context = client.eval(code, ns, {
                         file: filePath,
                         line: line + 1,
                         column: column + 1,
@@ -195,14 +195,14 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             } else {
                 chan.appendLine("No results from file evaluation.");
             }
-        }).catch((e) => { 
+        }).catch((e) => {
             chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
         });
     }
     if (callback) {
         try {
             callback();
-        } catch (e) { 
+        } catch (e) {
             chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
         };
     }
@@ -223,8 +223,8 @@ async function requireREPLUtilitiesCommand() {
         if (session) {
             try {
                 await util.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
-                await session.eval("(in-ns '" + ns + ")").value;
-                await session.eval(form).value;
+                await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+                await session.eval(form, ns).value;
                 chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
             } catch (e) {
                 chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
@@ -240,7 +240,7 @@ async function copyLastResultCommand() {
     const replWindow = activeReplWindow();
     let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
 
-    let value = await client.eval("*1").value;
+    let value = await client.eval("*1", client.client.ns).value;
     if (value !== null) {
         vscode.env.clipboard.writeText(value);
         vscode.window.showInformationMessage("Results copied to the clipboard.");
