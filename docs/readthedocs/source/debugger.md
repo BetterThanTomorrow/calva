@@ -20,6 +20,14 @@ Adding `#dbg` before a function definition then evaluating the top-level form wi
 
 When execution is paused at a breakpoint, you can evaluate code in that context. This can be done in the editor or in the REPL window, as usual. In the REPL window, the prompt changes to `<<debug-mode>>=>` to show that evaluations will occur in the debug context.
 
+### Viewing Variable Values While Debugging
+
+While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor. Currently, values for collections and maps are shown as strings, but we plan to make them structured in the future. For now, if you want to see the value of a large structured variable, you can evaluate the variable, either from the editor or from the REPL window.
+
+### Navigation
+
+You can use VS Code's debugger UI to navigate while debugging. Currently only the continue functionality is implemented, but in the future step over, step into, and step out will be implemented as well. Clicking the step buttons currently does nothing. Also, clicking restart does nothing, since this functionality does not make sense for our debugger.
+
 ## Features
 
 ### Current
