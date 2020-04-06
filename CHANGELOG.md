@@ -2,6 +2,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.90] - 2020-04-06
 - nREPL `eval` should always send along the `ns` parameter
 
 ## [2.0.89] - 2020-03-29
