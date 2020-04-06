@@ -227,6 +227,26 @@ jobs:
             else
               npx ${VSCE_CMD}
             fi
+  open-vsx-publish:
+    docker:
+      - image: circleci/node:latest
+    working_directory: ~/calva
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Restore build
+          command: cp -r /tmp/build/* .
+      - run:
+          name: Publish to Open VSX
+          command: |
+            OVSX_CMD="ovsx publish --pat ${OVSX_PUBLISH_TOKEN}"
+            if [ "${IS_LOCAL}" = YES ]
+            then
+              echo "Dry npx ${OVSX_CMD}"
+            else
+              npx ${OVSX_CMD}
+            fi
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
@@ -310,6 +330,15 @@ workflows:
               only: /^v\d+\.\d+\.\d+-?.*/
           context: Calva
       - marketplace-publish:
+          requires:
+            - github-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+          context: Calva
+      - open-vsx-publish:
           requires:
             - github-release
           filters:
