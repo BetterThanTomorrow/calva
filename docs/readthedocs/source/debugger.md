@@ -14,6 +14,10 @@ You can insert a breakpoint manually into any code by placing a `#break` in fron
 
 ![Setting a breakpoint with #break](_static/images/debugger/break.png)
 
+You can also set conditional breapoints by adding metadata before the form that the `#break` applies to.
+
+![Setting a conditional breakpoint with #break](_static/images/debugger/break-conditional.png)
+
 ### Instrumenting a Function with `#dbg`
 
 Adding `#dbg` before a function definition then evaluating the top-level form with `ctrl+alt+c space` will instrument the function, meaning breakpoints will be added in places where it makes sense. When you evaluate a call to this function, execution will pause wherever breakpoints were added. These breakpoints are not visible in the editor. If you notice execution does not pause, it's likely that no reasonable place was found to place a breakpoint.
