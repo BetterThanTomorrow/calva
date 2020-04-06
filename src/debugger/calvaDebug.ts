@@ -58,7 +58,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         // Build and return the capabilities of this debug adapter
         response.body = {
-            ...response.body
+            ...response.body,
+            supportsRestartRequest: true
         };
 
         this.sendResponse(response);
@@ -72,6 +73,26 @@ class CalvaDebugSession extends LoggingDebugSession {
             await cljReplWindow.startDebugMode(util.getSession('clj'));
         }
 
+        this.sendResponse(response);
+    }
+
+    protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request): void {
+        response.success = false;
+        this.sendResponse(response);
+    }
+
+    protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): void {
+        response.success = false;
+        this.sendResponse(response);
+    }
+
+    protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request): void {
+        response.success = false;
+        this.sendResponse(response);
+    }
+
+    protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): void {
+        response.success = false;
         this.sendResponse(response);
     }
 

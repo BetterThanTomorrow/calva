@@ -8,3 +8,4 @@ Note: The debugger currently does not support ClojureScript. Calva's debugger ut
 
 You can insert a breakpoint manually into any code by placing a `#break` in front of the form where you want execution to pause, and then evaluating the top level form with `ctrl+alt+c space`. When you evaluate a call to this code the VS Code debugger will start, the cursor will move to right after the form that's preceded by `#break`, and the line will be highlighted so show execution is paused there.
 
+<!-- explain that the form following the #break is eval'd. And explain #dbg. -->
