@@ -111,7 +111,7 @@ jobs:
           name: Download Atom build script
           command: |
             cd src/calva-fmt/atom-language-clojure
-            curl -s -O https://raw.githubusercontent.com/atom/ci/master/build-package.sh
+            curl -s -OL https://raw.githubusercontent.com/atom/ci/master/build-package.sh
       - run:
           name: Make build script executable
           command: |
