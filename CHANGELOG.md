@@ -1,8 +1,11 @@
 # Change Log
+
 Changes to Calva.
 
 ## [Unreleased]
-- [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
+
+## [2.0.91] - 2020-04-07
+- [Add debugger](https://github.com/BetterThanTomorrow/calva/issues/469)
 
 ## [2.0.90] - 2020-04-06
 - nREPL `eval` should always send along the `ns` parameter
