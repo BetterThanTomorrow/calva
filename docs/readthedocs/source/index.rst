@@ -34,6 +34,7 @@ I'm glad you asked! Please see the `Calva Development Wiki <https://github.com/B
    formatting
    paredit
    pprint
+   debugger
    customizing
    connect-sequences
    custom-commands

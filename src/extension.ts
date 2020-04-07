@@ -23,6 +23,7 @@ import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
+import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './debugger/calvaDebug';
 import * as model from './cursor-doc/model';
 
 function onDidSave(document) {
@@ -193,6 +194,15 @@ function activate(context: vscode.ExtensionContext) {
         statusbar.update();
     }));
 
+    // Clojure debug adapter setup
+    const provider = new CalvaDebugConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(CALVA_DEBUG_CONFIGURATION.type, provider));
+    const factory = new CalvaDebugAdapterDescriptorFactory();
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(CALVA_DEBUG_CONFIGURATION.type, factory));
+    if ('dispose' in factory) {
+        context.subscriptions.push(factory);
+    }
+
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
     greetings.activationGreetings(chan);
@@ -238,6 +248,5 @@ function deactivate() {
     jackIn.calvaJackout();
     paredit.deactivate()
 }
-
 
 export { activate, deactivate };
