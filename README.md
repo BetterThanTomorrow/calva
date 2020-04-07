@@ -22,7 +22,6 @@ From [The Tao of Calva](https://github.com/BetterThanTomorrow/calva/wiki):
 
 > Calva's _raison d´être_ is to provide Visual Studio Code users with an easy to use and productive environment for [Clojure](https://www.clojure.org) and [ClojureScript](https://clojurescript.org) development.
 
-
 From the same page you can also learn that we want Calva to be a good choice for VS Code users asking:
 
 > _How do I use my favorite code editor for Clojure development?_
@@ -46,6 +45,7 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
 - Go to / Peek at definition
 - View docstrings on hover
 - View function signatures on hover, including help with knowing which argument you are typing
+- [Debuggers](https://calva.readthedocs.io/en/latest/debugger.html)
 - Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
 - Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
 - Switch the CLJS REPL connection between your different CLJS builds at will.
