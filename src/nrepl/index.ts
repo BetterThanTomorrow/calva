@@ -5,6 +5,8 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
+import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS } from "../debugger/calvaDebug";
+import * as vscode from 'vscode';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -92,25 +94,35 @@ export class NReplClient {
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
 
-                client.decoder.on("data", data => {
-                    //console.log("-> ", data);
-                    if (!client.describe && data["id"] == describeId) {
+                client.decoder.on("data", (data) => {
+
+                    //console.log(data['id'], data);
+
+                    if (!client.describe && data["id"] === describeId) {
                         client.describe = data;
-                    } else if (data["id"] == nsId) {
+                    } else if (data["id"] === nsId) {
                         if (data["ns"])
-                            client.ns = data["ns"]
-                        if (data["status"] && data["status"].indexOf("done") != -1)
+                            client.ns = data["ns"];
+                        if (data["status"] && data["status"].indexOf("done") !== -1)
                             client.encoder.write({ "op": "clone", "id": cloneId });
-                    } else if (data["id"] == cloneId) {
-                        client.session = new NReplSession(data["new-session"], client)
+                    } else if (data["id"] === cloneId) {
+                        client.session = new NReplSession(data["new-session"], client);
                         client.encoder.write({ "op": "describe", id: describeId, verbose: true, session: data["new-session"] });
-                        resolve(client)
+                        resolve(client);
                     } else if (data["session"]) {
                         let session = client.sessions[data["session"]];
                         if (session)
                             session._response(data);
                     }
-                })
+
+                    if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+                        handleNeedDebugInput(data);
+                    }
+
+                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
+                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+                    }
+                });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
             });
@@ -256,24 +268,45 @@ export class NReplSession {
         })
     }
 
+    private _createEvalOperationMessage(code: string, ns: string, opts: any) {
+        if (vscode.debug.activeDebugSession && this.replType === 'clj') {
+            const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
+            return {
+                id: debugResponse.id,
+                session: debugResponse.session,
+                op: 'debug-input',
+                input: `{:response :eval, :code ${code}}`,
+                key: debugResponse.key,
+                ...opts,
+            };
+        } else {
+            return {
+                id: this.client.nextId,
+                op: 'eval',
+                session: this.sessionId,
+                code,
+                ...opts
+            };
+        }
+    }
+
     eval(code: string, ns: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
         const pprintOptions = opts.pprintOptions;
         opts["pprint"] = pprintOptions.enabled;
         delete opts.pprintOptions;
-        const id = this.client.nextId,
-            extraOpts = getServerSidePrinter(pprintOptions);
+        const extraOpts = getServerSidePrinter(pprintOptions);
+        const opMsg = this._createEvalOperationMessage(code, ns, { ...extraOpts, ...opts });
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
-            this.messageHandlers[id] = (msg) => {
+        let evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
+            this.messageHandlers[opMsg.id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
                 if (evaluation.onMessage(msg, pprintOptions)) {
                     return true;
                 }
             }
-            const opMsg = { op: "eval", session: this.sessionId, code, ns, id, ...extraOpts, ...opts };
-            this.addRunningID(id);
+            this.addRunningID(opMsg.id);
             this.client.write(opMsg);
-        }))
+        }));
 
         return evaluation;
     }
@@ -306,8 +339,8 @@ export class NReplSession {
             stdout?: (x: string) => void,
             pprintOptions: PrettyPrintingOptions
         } = {
-            pprintOptions: disabledPrettyPrinter
-        }) {
+                pprintOptions: disabledPrettyPrinter
+            }) {
 
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
@@ -486,8 +519,7 @@ export class NReplSession {
                 return true;
             }
             this.client.write({ op: "format-code", code, options })
-        })
-
+        });
     }
 
     interruptAll(): number {
@@ -506,6 +538,32 @@ export class NReplSession {
             return (ids.length);
         }
         return (0);
+    }
+
+    initDebugger(): void {
+        const id = this.client.nextId;
+        // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
+        this.client.write({ op: "init-debugger", id, session: this.sessionId });
+    }
+
+    sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
+        return new Promise<any>((resolve, _) => {
+
+            this.messageHandlers[debugResponseId] = (response) => {
+                resolve(response);
+                return true;
+            };
+
+            const data: any = {
+                id: debugResponseId,
+                op: 'debug-input',
+                input,
+                key: debugResponseKey,
+                session: this.sessionId
+            };
+
+            this.client.write(data);
+        });
     }
 }
 
@@ -695,8 +753,15 @@ export class NReplEvaluation {
             if (msg.ex) {
                 this._exception = msg.ex;
             }
-            if (msg.value != undefined) {
-                this._msgValue = msg.value
+            // cider-nrepl debug middleware eval error (eval error occurred during debug session)
+            if (msg.status && msg.status.indexOf('eval-error') !== -1 && msg.causes) {
+                const cause = msg.causes[0];
+                const errorMessage = `${cause.class}: ${cause.message}`;
+                this._stacktrace = {stacktrace: cause.stacktrace};
+                this.err(errorMessage);
+            }
+            if (msg.value !== undefined || msg['debug-value'] !== undefined) {
+                this._msgValue = msg.value || msg['debug-value'];
             }
             if (msg["pprint-out"]) {
                 this._pprintOut = msg["pprint-out"];
@@ -724,7 +789,7 @@ export class NReplEvaluation {
                         });
                 }
             }
-            if (msg.status && msg.status == "done") {
+            if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
                 this.remove();
                 if (this.exception) {
                     this.session.stacktrace().then((stacktrace) => {
@@ -733,9 +798,13 @@ export class NReplEvaluation {
                     }).catch(() => { });
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
+                } else if (this.stacktrace) {
+                    // No exception but stacktrace means likely debug eval error. Error will have been printed already from call to this.err(),
+                    // so just reject with no value so that just the stacktrace is printed.
+                    this.doReject('');
                 } else {
                     let printValue = this.msgValue;
-                    if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
+                    if (pprintOptions.enabled && (pprintOptions.printEngine === 'calva' || msg['debug-value'] !== undefined)) {
                         const pretty = prettyPrint(this.msgValue, pprintOptions);
                         if (!pretty.error) {
                             printValue = pretty.value;

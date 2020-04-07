@@ -518,7 +518,7 @@ function showAsyncOutput(classname: string, id: string, text: string) {
     }
 }
 
-window.onmessage = async (msg) => {
+window.onmessage = async (msg: any) => {
 
     if (msg.data.type == "init") {
         ns = msg.data.ns;
@@ -648,6 +648,12 @@ window.onmessage = async (msg) => {
         showAsyncOutput("error", msg.data.id, msg.data.value);
     }
 
-    return;
+    if (msg.data.type === 'start-debug-mode') {
+        ns = msg.data.ns;
+        con.readline.freeze();
+        con.requestPrompt(ns + '=> ');
+        con.readline.clearCompletion();
+        window.scrollTo({ left: 0 });
+    }
 }
 message.postMessage({ type: "init" });

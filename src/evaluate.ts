@@ -74,8 +74,9 @@ async function evaluateSelection(document, options) {
             let c = codeSelection.start.character
 
             let err: string[] = [], out: string[] = [];
+
             const ns = util.getNamespace(doc);
-            let res = await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
+            await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
 
             try {
                 const line = codeSelection.start.line,
@@ -136,7 +137,7 @@ async function evaluateSelection(document, options) {
             }
         }
     } else
-        vscode.window.showErrorMessage("Not connected to a REPL")
+        vscode.window.showErrorMessage("Not connected to a REPL");
 }
 
 function normalizeNewLines(strings: string[]): string {

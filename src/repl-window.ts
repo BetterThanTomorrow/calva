@@ -62,11 +62,17 @@ class REPLWindow {
 
     private disposed = false;
 
+    private _originalSession;
+    private _preDebugNamespace;
+
     constructor(public panel: vscode.WebviewPanel,
         public session: NReplSession,
         public type: "clj" | "cljs",
         public cljType: string,
         public cljsType: string) {
+
+        this._originalSession = session;
+
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
@@ -135,6 +141,7 @@ class REPLWindow {
             if (this.evaluation) {
                 this.evaluation.interrupt();
             }
+            this.session = this._originalSession;
             // first remove the close handler to avoid
             // sending any messages to the disposed webview.
             session.removeOnCloseHandler(this.onClose);
@@ -230,7 +237,9 @@ class REPLWindow {
 
     replEval(line: string, ns: string, pprintOptions: PrettyPrintingOptions) {
 
-        this.interrupt();
+        if (!vscode.debug.activeDebugSession) {
+            this.interrupt();
+        }
 
         let evaluation = this.session.eval(line, ns, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
@@ -307,6 +316,18 @@ class REPLWindow {
 
     clear() {
         this.postMessage({ type: "clear", history: this.getHistory(), ns: this.ns });
+    }
+
+    async startDebugMode(debugSession: NReplSession): Promise<void> {
+        this.session = debugSession;
+        this._preDebugNamespace = this.ns;
+        this.ns = '<<debug-mode>>';
+        await this.postMessage({ type: 'start-debug-mode', ns: this.ns });
+    }
+
+    stopDebugMode(): void {
+        this.session = this._originalSession;
+        this.setNamespace(this._preDebugNamespace);
     }
 }
 
@@ -402,7 +423,7 @@ async function showReplWindows(mode: "clj" | "cljs"): Promise<void> {
 }
 
 export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true): Promise<REPLWindow> {
-    const session = mode == "clj" ? cljSession : cljsSession;
+    const session = mode === "clj" ? cljSession : cljsSession;
     let replWindow = replWindows[mode];
 
     if (!replWindow) {
@@ -410,6 +431,10 @@ export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus
         replWindow[mode] = replWindow;
     } else if (!session.client.sessions[replWindow.session.sessionId]) {
         replWindow.session = await session.clone();
+    }
+
+    if (vscode.debug.activeDebugSession && mode === 'clj') {
+        await replWindow.startDebugMode(session);
     }
 
     replWindow.panel.reveal(getReplViewColumn(mode), preserveFocus);
@@ -592,7 +617,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { activeReplWindow().executeCommand('new-line'); }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { 
+        activeReplWindow().executeCommand('new-line'); 
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit'); }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => {
         activeReplWindow().executeCommand('history-up');
@@ -639,3 +666,7 @@ function clearREPLWindowAndHistory(mode: "clj" | "cljs") {
         vscode.window.showInformationMessage(`No ${mode} REPL Window found.`);
     }
 }
+
+export {
+    replWindows
+};
