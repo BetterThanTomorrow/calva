@@ -33,26 +33,27 @@ We also hope that Calva will contribute to making it easier to pick up Clojure a
 Go to the [documentation](https://calva.readthedocs.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from the same repository as Calva. So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR.
 
 ## Features
-- Syntax highlighting, plus:
-  - Rainbow parens
-  - Highlights misplaced brackets
-  - LISP friendly bracket matching
-  - Ignore form (`#_`) dimming and `(comment)` form highlighting
-- Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
-- Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit.html))
-- [Linting](https://calva.readthedocs.io/en/latest/linting.html)
-- Intellisense
-- Go to / Peek at definition
-- View docstrings on hover
-- View function signatures on hover, including help with knowing which argument you are typing
-- [Debuggers](https://calva.readthedocs.io/en/latest/debugger.html)
-- Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
-- Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
-- Switch the CLJS REPL connection between your different CLJS builds at will.
-- When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
-- And more
 
-### Demo: Evaluate top level forms inside `(comment...)`:
+* Syntax highlighting, plus:
+  * Rainbow parens
+  * Highlights misplaced brackets
+  * LISP friendly bracket matching
+  * Ignore form (`#_`) dimming and `(comment)` form highlighting
+* Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
+* Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit.html))
+* [Linting](https://calva.readthedocs.io/en/latest/linting.html)
+* Intellisense
+* Go to / Peek at definition
+* View docstrings on hover
+* View function signatures on hover, including help with knowing which argument you are typing
+* [Debugger](https://calva.readthedocs.io/en/latest/debugger.html)
+* Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
+* Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
+* Switch the CLJS REPL connection between your different CLJS builds at will.
+* When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
+* And more
+
+### Demo: Evaluate top level forms inside `(comment...)`
 
 ![Top level comment eval](/assets/howto/top-level-comment-eval.gif)
 
@@ -69,22 +70,22 @@ It is pretty educational using the signature help hover to see which argument yo
 
 ![Signature Help](assets/howto/signature-help.gif)
 
-
-### Demo: Syntax highlighting, dimming ignored forms:
+### Demo: Syntax highlighting, dimming ignored forms
 
 ![Dimming ignored forms](/assets/howto/dimming-ignores.gif)
 
-### Demo: Peek at definitions, etcetera:
+### Demo: Peek at definitions, etcetera
 
 ![Features](/assets/howto/features.gif)
 
-### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files:
+### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files
 
 ![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
 
 ## How to contribute
 
 I'm glad you are reading this section! There are many ways and you are welcome to combine them at will. Be creative 😄:
+
 * Give us feedback.
   * Via [#calva](https://clojurians.slack.com/messages/calva/) at the Clojurians Slack.
   * Via filing issues.
@@ -116,7 +117,6 @@ It's empty here!
 [![Brian Scaturro](https://avatars0.githubusercontent.com/u/636651?s=30)](https://github.com/brianium)
 [![Steven Harms](https://avatars0.githubusercontent.com/u/95657?s=30)](https://github.com/sharms)
 
-
 ### Calva Friends
 
 [![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
@@ -135,7 +135,7 @@ It's empty here!
 
 We are Clojure and Visual Studio Code fans who care about the ergonomics of using our favorite programming language with our editor of choice.
 
-### Current Maintainers:
+### Current Maintainers
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Kevin Stehn](https://github.com/kstehn)
@@ -143,10 +143,10 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 * [Brandon Ringe](https://github.com/bpringe)
 
 ### Alumni
+
 * [Matt Seddon](https://github.com/mseddon)
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
-
 
 ### Code Contributors
 
