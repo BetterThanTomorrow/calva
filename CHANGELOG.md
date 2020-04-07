@@ -4,6 +4,9 @@ Changes to Calva.
 ## [Unreleased]
 - [Add debugging](https://github.com/BetterThanTomorrow/calva/issues/469)
 
+## [2.0.90] - 2020-04-06
+- nREPL `eval` should always send along the `ns` parameter
+
 ## [2.0.89] - 2020-03-29
 - [Add support for connecting to generic project types](https://github.com/BetterThanTomorrow/calva/issues/595)
 

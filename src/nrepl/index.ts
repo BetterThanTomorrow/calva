@@ -28,7 +28,7 @@ export class NReplClient {
     /** Tracks all sessions */
     sessions: { [id: string]: NReplSession } = {};
 
-    ns: string = "user";
+    ns: string = 'user';
 
     private constructor(socket: net.Socket) {
         this.socket = socket;
@@ -268,7 +268,7 @@ export class NReplSession {
         })
     }
 
-    private _createEvalOperationMessage(code: string, opts: any) {
+    private _createEvalOperationMessage(code: string, ns: string, opts: any) {
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
             const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
             return {
@@ -290,12 +290,12 @@ export class NReplSession {
         }
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
+    eval(code: string, ns: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
         const pprintOptions = opts.pprintOptions;
         opts["pprint"] = pprintOptions.enabled;
         delete opts.pprintOptions;
         const extraOpts = getServerSidePrinter(pprintOptions);
-        const opMsg = this._createEvalOperationMessage(code, { ...extraOpts, ...opts });
+        const opMsg = this._createEvalOperationMessage(code, ns, { ...extraOpts, ...opts });
 
         let evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[opMsg.id] = (msg) => {
