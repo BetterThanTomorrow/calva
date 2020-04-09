@@ -240,7 +240,7 @@ jobs:
       - run:
           name: Publish to Open VSX
           command: |
-            OVSX_CMD="ovsx publish --pat ${OVSX_PUBLISH_TOKEN}"
+            OVSX_CMD="ovsx publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix --pat ${OVSX_PUBLISH_TOKEN}"
             if [ "${IS_LOCAL}" = YES ]
             then
               echo "Dry npx ${OVSX_CMD}"
