@@ -2,7 +2,7 @@
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated REPL powered environment for enjoyable and productive [Clojure] (https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, code formatting, a test runner, syntax highlighting, [linting](linting.md), and more. [Calva is open source](https://github.com/BetterThanTomorrow/calva), and free to use.
+[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, code formatting, a test runner, syntax highlighting, [linting](linting.md), and more. [Calva is open source](https://github.com/BetterThanTomorrow/calva), and free to use.
 
 ## Getting Started
 
