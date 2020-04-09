@@ -76,13 +76,36 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
+    protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
+
+        const cljSession = util.getSession('clj');
+        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+
+        if (cljSession) {
+            cljSession.sendDebugInput(':continue', id, key).then(response => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        }
+
+        this.sendResponse(response);
+    }
+
     protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request): void {
         response.success = false;
         this.sendResponse(response);
     }
 
     protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): void {
-        response.success = false;
+        
+        const cljSession = util.getSession('clj');
+        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+
+        if (cljSession) {
+            cljSession.sendDebugInput(':next', id, key).then(response => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        }
+
         this.sendResponse(response);
     }
 
@@ -172,20 +195,6 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
 
         vscode.window.showTextDocument(vscode.window.activeTextEditor.document);
-    }
-
-    protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
-
-        const cljSession = util.getSession('clj');
-        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
-
-        if (cljSession) {
-            cljSession.sendDebugInput(':continue', id, key).then(response => {
-                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-            });
-        }
-
-        this.sendResponse(response);
     }
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
