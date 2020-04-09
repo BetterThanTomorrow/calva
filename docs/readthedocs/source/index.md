@@ -17,14 +17,6 @@ One thing to note about Calva's code formatter is that it sets the default keybi
 
 I'm glad you asked! Please see the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki). (There, in a section labeled **The Tao of Calva**, we also try to make clear *why* you would want to contribute.)
 
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   connect
-
-
 ## Have Questions and Feedback? Need Help?
 
 Easiest way is to chat with us and other Calva users. Please join the [#calva channel](https://clojurians.slack.com/messages/calva) on the Clojurians Slack.
