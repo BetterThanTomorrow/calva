@@ -1,1 +1,1 @@
-sphinx-markdown-tables==0.0.9
+mkdocs==1.1

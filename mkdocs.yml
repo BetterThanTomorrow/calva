@@ -1,0 +1,28 @@
+site_name: Calva Documentation
+docs_dir: docs/readthedocs/source
+site_dir: docs/readthedocs/build
+theme: readthedocs
+nav:
+  - index.md
+  - connect.md
+  - try-first.md
+  - finding-commands.md
+  - eval-tips.md
+  - commands-top10.md
+  - formatting.md
+  - paredit.md
+  - debugger.md
+  - pprint.md
+  - customizing.md
+  - connect-sequences.md
+  - custom-commands.md
+  - workspace-layouts.md
+  - linting.md
+  - Using Calva with X:
+    - rebl.md
+    - vim.md
+    - wsl.md
+    - remote-development.md
+    - luminus.md
+  - quirks.md
+  - jack-in-guide.md
