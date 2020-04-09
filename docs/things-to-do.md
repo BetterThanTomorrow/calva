@@ -36,7 +36,7 @@ The major themes are:
 * Write an issues template
 
 ## Code Maintainability
-* We have two formatters, cljs-lib ormatter and the one in docmirror.
+* We have two formatters, cljs-lib formatter and the one in docmirror.
   * It might make sense to keep both for different purposes, but we should fix whatever it is that makes us still keep the `newIndentEngine` setting.
 * Organize Calva functionality in ”components”, more like we do with calva-fmt, ParEdit, and Clojure Warrior.
 * Get better control of Calva state.

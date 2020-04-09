@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.91",
+    "version": "2.0.92",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -21,6 +21,7 @@
         "Programming Languages",
         "Formatters",
         "Linters",
+        "Debuggers",
         "Other"
     ],
     "keywords": [
@@ -54,13 +55,22 @@
         "onCommand:calva.connectNonProjectREPL",
         "workspaceContains:**/project.clj",
         "workspaceContains:**/shadow-cljs.edn",
-        "workspaceContains:**/deps.edn"
+        "workspaceContains:**/deps.edn",
+        "onDebugResolve:type"
     ],
     "main": "./out/extension",
     "extensionPack": [
         "borkdude.clj-kondo"
     ],
     "contributes": {
+        "debuggers": [
+            {
+                "type": "clojure",
+                "label": "Calva Debug",
+                "program": "./out/debugAdapter.js",
+                "runtime": "node"
+            }
+        ],
         "languages": [
             {
                 "id": "clojure",
@@ -1703,7 +1713,8 @@
         "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
-        "vscode-extension-telemetry": "0.0.15"
+        "vscode-extension-telemetry": "0.0.15",
+        "vscode-debugadapter": "1.38.0"
     },
     "devDependencies": {
         "@types/chai": "^4.2.6",

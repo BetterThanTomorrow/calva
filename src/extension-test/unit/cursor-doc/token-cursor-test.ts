@@ -1,26 +1,127 @@
 import { expect } from 'chai';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
-import * as mock from './mock';
+import * as mock from '../common/mock';
 
 describe('Token Cursor', () => {
-    const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))',
-        doc: mock.MockDocument = new mock.MockDocument();
+    const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';
+    let doc: mock.MockDocument;
+    let scratchDoc: mock.MockDocument;
 
     beforeEach(() => {
+        doc = new mock.MockDocument();
         doc.insertString(docText);
+
+        scratchDoc = new mock.MockDocument();
     });
 
-    it('forwardSexp x4: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(5);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(6);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(26);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(31);
-        cursor.forwardSexp();
-        expect(cursor.offsetStart).equal(31);
+    describe('forwardSexp', () => {
+        it('forwardSexp x4: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
+            const cursor: LispTokenCursor = doc.getTokenCursor(5);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(6);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(26);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(31);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(31);
+        });
+
+        it('should skip over metadata if skipMetadata is true: (a| ^{:a 1} (= 1 1)) => (a ^{:a 1} (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^{:a 1} (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(18);
+        });
+
+        it('should skip over multiple metadata maps if skipMetadata is true: (a| ^{:a 1} ^{:b 2} (= 1 1)) => (a ^{:a 1} ^{:b 2} (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^{:a 1} ^{:b 2} (= 1 1)|');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(26);
+        });
+
+        it('should skip over symbol shorthand for metadata if skipMetadata is true: (a| ^String (= 1 1)) => (a ^String (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^String (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(18);
+        });
+
+        it('should skip over keyword shorthand for metadata if skipMetadata is true: (a| ^:hello (= 1 1)) => (a ^:hello (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^:hello (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(18);
+        });
+
+        it('should skip over multiple keyword shorthands for metadata if skipMetadata is true: (a| ^:hello ^:world (= 1 1)) => (a ^:hello ^:world (= 1 1)|)', () => {
+            scratchDoc.insertString('(a ^:hello ^:world (= 1 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).equal(26);
+        });
+
+        it('should skip ignored forms if skipIgnoredForms is true: (a| #_1 #_2 3) => (a #_1 #_2 3|)', () => {
+            scratchDoc.insertString('(a #_1 #_2 3)');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true, true);
+            expect(cursor.offsetStart).equal(12);
+        });
+
+        it('should skip stacked ignored forms if skipIgnoredForms is true: (a| #_ #_ 1 2 3) => (a #_ #_ 1 2 3|)', () => {
+            scratchDoc.insertString('(a #_ #_ 1 2 3)');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.forwardSexp(true, true, true);
+            expect(cursor.offsetStart).equal(14);
+        });
     });
+
+    describe('downList', () => {
+
+        it('should put cursor to the right of the following open paren: (a |(b 1) => (a (|b 1)', () => {
+            scratchDoc.insertString('(a (b 1))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it('should put cursor to the right of the following open curly brace: (a |{:b 1})) => (a {|:b 1}))', () => {
+            scratchDoc.insertString('(a {:b 1}))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it('should put cursor to the right of the following open bracket: (a |[1 2])) => (a [|1 2]))', () => {
+            scratchDoc.insertString('(a [1 2]))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it(`should put cursor to the right of the following open paren that starts a list literal: (a |'(1 2)) => (a '(|1 2))`, () => {
+            scratchDoc.insertString(`(a '(1 2))`);
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(5);
+        });
+
+        it('should skip whitespace: (a| (b 1)) => (a (|b 1))', () => {
+            scratchDoc.insertString('(a (b 1))');
+            const cursor = scratchDoc.getTokenCursor(2);
+            cursor.downList();
+            expect(cursor.offsetStart).equal(4);
+        });
+
+        it('should skip metadata when skipMetadata is true: (a |^{:x 1} (b 1)) => (a ^{:x 1} (|b 1))', () => {
+            scratchDoc.insertString('(a ^{:x 1} (b 1))');
+            const cursor = scratchDoc.getTokenCursor(3);
+            cursor.downList(true);
+            expect(cursor.offsetStart).equal(12);
+        });
+    });
+
     it('backwardSexp x4: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
         const cursor: LispTokenCursor = doc.getTokenCursor(31);
         cursor.backwardSexp();

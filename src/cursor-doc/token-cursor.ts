@@ -112,6 +112,10 @@ export class LispTokenCursor extends TokenCursor {
         return new LispTokenCursor(this.doc, this.line, this.token);
     }
 
+    tokenBeginsMetadata(): boolean {
+        return this.getToken().raw.endsWith('^{');
+    }
+
     /**
      * Moves this token past any whitespace or comment.
      */
@@ -173,45 +177,63 @@ export class LispTokenCursor extends TokenCursor {
      *
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = true): boolean {
+    forwardSexp(skipComments = true, skipMetadata = false, skipIgnoredForms = false): boolean {
         // TODO: Consider using a proper bracket stack
-        let stack = [];
+        const stack = [];
+        let isMetadata = false;
         this.forwardWhitespace(skipComments);
-        if (this.getToken().type == "close") {
+        if (this.getToken().type === 'close') {
             return false;
+        }
+        if (this.tokenBeginsMetadata()) {
+            isMetadata = true;
         }
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
-            let tk = this.getToken();
-            switch (tk.type) {
+            const token = this.getToken();
+            switch(token.type) {
                 case 'comment':
-                    this.next(); // skip past comment
-                    this.next(); // skip past EOL.
-                    return true;
+                    this.next();
+                    this.next();
+                    break;
+                case 'ignore':
+                    if (skipIgnoredForms) {
+                        this.next();
+                        this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+                        break;
+                    }
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'ignore':
                 case 'junk':
                 case 'str-inside':
-                    this.next();
-                    if (stack.length <= 0)
-                        return true;
+                    if (skipMetadata && this.getToken().raw.startsWith('^')) {
+                        this.next();
+                    } else {
+                        this.next();
+                        if (stack.length <= 0) {
+                            return true;
+                        }
+                    }
                     break;
                 case 'close':
-                    const close = tk.raw;
+                    const close = token.raw;
                     let open: string;
                     while (open = stack.pop()) {
                         if (validPair(open, close)) {
+                            this.next();
                             break;
                         }
                     }
-                    this.next();
-                    if (stack.length <= 0)
+                    if (skipMetadata && isMetadata) {
+                        this.forwardSexp(skipComments, skipMetadata);
+                    }
+                    if (stack.length <= 0) {
                         return true;
+                    }
                     break;
                 case 'open':
-                    stack.push(tk.raw);
+                    stack.push(token.raw);
                     this.next();
                     break;
                 default:
@@ -395,12 +417,17 @@ export class LispTokenCursor extends TokenCursor {
      * If possible, moves this cursor forwards past any whitespace, and then past the immediately following open-paren and returns true.
      * If the source does not match this, returns false and does not move the cursor.
      */
-    downList(): boolean {
+    downList(skipMetadata = false): boolean {
         let cursor = this.clone();
         cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
-
-        if (cursor.getToken().type == "open") {
+        if (cursor.getToken().type === 'open') {
+            if (skipMetadata) {
+                while (cursor.tokenBeginsMetadata()) {
+                    cursor.forwardSexp();
+                    cursor.forwardWhitespace();
+                }
+            }
             cursor.next();
             this.set(cursor);
             return true;

@@ -24,7 +24,7 @@ author = 'The Calva Team & Contributors'
 # The full version, including alpha/beta/rc tags
 import os
 import json
-with open('../../../package.json') as f:
+with open('../../../package.json', encoding='utf8') as f:
   package_data = json.load(f)
 release = package_data['version']
 
