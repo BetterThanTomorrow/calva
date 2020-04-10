@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Home
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
@@ -8,10 +14,7 @@
 
 First thing you need to do is to get [Calva connected to the REPL of your project](connect.md). Then we suggest you check out [Something to Try First](try-first.md).
 
-The below list of contents is sorted in what we think is a good **Getting Started** order.
-
-One thing to note about Calva's code formatter is that it sets the default keybinding of the **Format Current Form** command to `tab`. Good to know, right?
-
+One thing to note about Calva's code formatter is that it sets the default keybinding of the **Format Current Form** command to `tab`. Meaning that most often when things look a bit untidy, you can press `tab` to make things look pretty. Good to know, right? For performance reasons it only formats the current enclosing form, so sometimes you want to move the cursor up/out a form (`ctrl+up`) first. See [The Paredit Guide](paredit.md) for more on moving the cursor structurally through your code.
 
 ## How to Contribute to Calva?
 

@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/formatting">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Formatting
 
 We have tried to make Calva's formatter so that it _just works_. It is enabled by default for Clojure files, and unconfigured it mostly follows Bozhidar Batsov's [Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide). Calva uses [cljfmt](https://github.com/weavejester/cljfmt) for the formatting.
@@ -16,7 +22,7 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
 
 * trims whitespace at the end of the line
 * trims whitespace inside brackets
-  * this also folds trailing brackets (a k a _the paren trail_) up on the same line
+    * this also folds trailing brackets (a k a _the paren trail_) up on the same line
 * inserts whitespace between forms
 
  Not a fan of some default setting? The formatter is quite configurable.

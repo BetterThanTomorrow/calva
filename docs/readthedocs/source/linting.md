@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/linting">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Linting
 
 Calva does no linting, yet with Calva you get excellent linting. That is because Calva bundles the [clj-kondo](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo) extension, which is powered by the [linter with the same name](https://github.com/borkdude/clj-kondo).

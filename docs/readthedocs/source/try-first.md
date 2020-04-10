@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/try-first">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Something to Try First (After Connecting)
 
 You might want to start with evaluating some code. This preferably starts with **Loading Current File and Dependencies**, `ctrl+alt+c enter`.
@@ -8,7 +14,7 @@ There is also a command for evaluating the current top level form. Good for eval
 
 The Top Level command also works inside `(comment ...)` forms, treating the `comment` as creating a new top level context. It is good for in-file code experimentation.  To use it place the cursor inside a form contained inside a `(comment...)` and issue the command from there. It looks something like so:
 
-![Comment top level form evaluation!](/assets/howto/top-level-comment-eval.gif)
+![Comment top level form evaluation!](assets/howto/top-level-comment-eval.gif)
 
 See also
 * [Calva Top 10 Commands](commands-top10.md).
