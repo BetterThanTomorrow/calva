@@ -1,4 +1,4 @@
-<meta http-equiv="refresh" content="0; URL=https://calva.io/pprint">
+<meta http-equiv="refresh" content="0; URL=https://calva.io/paredit">
 
 ## Calva Doccumentation has Moved
 
