@@ -16,7 +16,7 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
 
 * trims whitespace at the end of the line
 * trims whitespace inside brackets
-  * this also folds trailing brackets (a k a _the paren trail_) up on the same line
+    * this also folds trailing brackets (a k a _the paren trail_) up on the same line
 * inserts whitespace between forms
 
  Not a fan of some default setting? The formatter is quite configurable.

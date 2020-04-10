@@ -5,20 +5,10 @@
 # Required
 version: 2
 
-# Build documentation in the docs/ directory with Sphinx
-# sphinx:
-#   configuration: docs/readthedocs/source/conf.py
-
-# Build documentation with MkDocs
 mkdocs:
  configuration: mkdocs.yml
 
-# Optionally build your docs in additional formats such as PDF and ePub
-# formats:
-#   -html
-
-# Optionally set the version of Python and requirements required to build your docs
 python:
   version: 3.7
   install:
-    - requirements: docs/readthedocs/source/requirements.txt
+    - requirements: docs/readthedocs/requirements.txt
