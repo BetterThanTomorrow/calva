@@ -1,6 +1,6 @@
 # Calva and the VIM Extension
 
-First thing first. The [VIM Extension](https://github.com/VSCodeVim/Vim) and Calva has some fritcion between them. Expect it to be a bit painful.
+First thing first. The [VIM Extension](https://github.com/VSCodeVim/Vim) and Calva has some friction between them. Expect it to be a bit painful.
 
 ## Selection commands
 

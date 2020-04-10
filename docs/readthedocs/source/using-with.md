@@ -1,5 +1,4 @@
-Using Calva with X
-==================
+# Using Calva with X
 
 Calva can be used in conjunction with many other Clojure related technologies and projects. Please consider contributing with guides about how you have set things up to achieve your workflow with this or that awesome thing.
 
