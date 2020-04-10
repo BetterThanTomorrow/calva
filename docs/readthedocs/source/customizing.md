@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/customizing">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Customizing Calva
 
 Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.
@@ -92,7 +98,7 @@ The extras are built from **Clojure Warrior**, created by [Nikita Prokopov, a.k.
 * Here the Calva key is switched for `ctrl+,`: [manas_marthi's keybindings](https://gist.github.com/pikeview/317f639091f57c3055681b06f0dc791a)
 * [Keybindings for Emacs users](emacs-keybindings.md)
 
-Are you a vim extension user? See: [[Using with VIM extension]].
+Are you a vim extension user? See: [Using with VIM extension](vim.md).
 
 ### Paredit
 

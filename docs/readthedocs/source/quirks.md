@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/quirks">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Quirks
 
 Here's a shocker for ya': Calva isn't perfect. 😄
@@ -19,7 +25,7 @@ However, with VS Code and Calva it is probably better to learn to use [Paredit](
 
 To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortcuts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
 
-![Disable Mission Control Shortcuts](../../../assets/mission-control-shortcuts.gif)
+![Disable Mission Control Shortcuts](assets/mission-control-shortcuts.gif)
 
 ## Calva and the VIM Extension
 
@@ -27,7 +33,7 @@ See [Using Calva with the VIM Extension](vim.md).
 
 ## ”Command not found” errors on Jack-in
 
-[Jack-in](jack-in-guid.md) starts by spawning of a command in the shell. You will need the commands used installed on your computer:
+[Jack-in](jack-in-guide.md) starts by spawning of a command in the shell. You will need the commands used installed on your computer:
 
 * `clojure` for tools.deps/Clojure CLI
 * `lein` for Leiningen

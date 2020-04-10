@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/wsl">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Calva ❤️ WSL
 
 The use of Calva with WSL (Windows Subsystem for Linux) is fully supported through the [Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) extension. Simply install the extension an open your project with one of the `Remote-WSL` commands. Calva will run directly in the WSL environment and no further configuration is required.

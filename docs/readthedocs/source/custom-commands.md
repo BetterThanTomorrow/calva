@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/custom-commands">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Running Custom REPL Commands
 
 Calva supports configuration of custom command snippets that you can execute in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting `calva.customREPLCommandSnippets` to configure it and then use the command **Run Custom REPL Command** to access it. The command will give you a menu with the snippets you have configured.

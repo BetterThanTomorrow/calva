@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/luminus">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # How to Use Calva with Luminus
 
 [Luminus](https://luminusweb.com) is a powerful and versitle Leiningen template for creating web development projects. It comes with built in configuration for making it easy to use Calva as your Clojure(Script) editor.

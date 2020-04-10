@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/eval-tips">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Code Evaluation Tips
 
 Calva tries to make it easy to evaluate code, supporting interactive development.

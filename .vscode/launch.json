@@ -42,6 +42,29 @@
             ]
         },
         {
+            "name": "Theia node launch",
+            "type": "node",
+            "request": "launch",
+            "port": 9229,
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "${workspaceFolder}/test-data",
+                "--port=3030",
+                "--hostname",
+                "0.0.0.0",
+                "--hosted-plugin-inspect=9229"
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "env": {
+                "CALVA_DEV_GA": "FUBAR-69796730-4",
+                "DEBUG": "no-debug-universal-analytics"
+            },
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+        },
+        {
             "name": "Extension Tests",
             "type": "extensionHost",
             "request": "launch",
