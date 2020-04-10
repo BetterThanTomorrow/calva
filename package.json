@@ -1677,7 +1677,7 @@
         }
     },
     "scripts": {
-        "watch-docs": "mkdocs serve",
+        "watch-docs": "echo \"Run `mkdocs serve` in the calva-docs repo.\"",
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
