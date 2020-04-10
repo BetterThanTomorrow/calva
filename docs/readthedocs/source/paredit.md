@@ -1,8 +1,6 @@
-<meta http-equiv="refresh" content="0; URL=https://calva.io/paredit">
-
 ## Calva Doccumentation has Moved
 
-https://calva.io
+https://calva.io/paredit
 
 # Paredit – a Visual Guide
 
