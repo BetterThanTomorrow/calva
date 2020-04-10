@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Home
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)

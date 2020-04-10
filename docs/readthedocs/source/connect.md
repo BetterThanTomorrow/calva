@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/connect">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Connect Calva to Your Project
 
 The recommended way is to:

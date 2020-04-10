@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/vim">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Calva and the VIM Extension
 
 First thing first. The [VIM Extension](https://github.com/VSCodeVim/Vim) and Calva has some friction between them. Expect it to be a bit painful.

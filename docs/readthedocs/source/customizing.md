@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/customizing">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Customizing Calva
 
 Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.

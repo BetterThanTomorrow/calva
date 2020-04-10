@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/commands-top10">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # The Top 10 Calva Commands
 
 There are not all that many Calva commands, you can learn them all. But there are a few anyway and not all commands are created equal. Here are the most important ones to know about for effective Clojure/ClojureScript coding:

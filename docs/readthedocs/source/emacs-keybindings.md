@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/emacs-keybindings">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Emacs Keybindings
 Some keybindings to make it easier for Emacs users
 ```json

@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/pprint">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Paredit – a Visual Guide
 
 Structural editing and navigation for Clojure.

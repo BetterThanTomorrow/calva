@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/try-first">
+
+## Calva Doccumentation has Moved
+
+https://calva.io
+
 # Something to Try First (After Connecting)
 
 You might want to start with evaluating some code. This preferably starts with **Loading Current File and Dependencies**, `ctrl+alt+c enter`.
