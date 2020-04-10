@@ -2,7 +2,7 @@
 
 ## Calva Doccumentation has Moved
 
-https://calva.io
+[calva.io](https://calva.io)
 
 # Calva and the VIM Extension
 

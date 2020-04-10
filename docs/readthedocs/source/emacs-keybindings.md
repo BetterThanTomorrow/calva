@@ -2,7 +2,7 @@
 
 ## Calva Doccumentation has Moved
 
-https://calva.io
+[calva.io](https://calva.io)
 
 # Emacs Keybindings
 Some keybindings to make it easier for Emacs users
