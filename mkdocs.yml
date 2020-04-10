@@ -1,7 +1,7 @@
 site_name: Calva Documentation
 docs_dir: docs/readthedocs/source
 site_dir: docs/readthedocs/build
-theme: material
+theme: readthedocs
 nav:
   - index.md
   - Getting Started:
