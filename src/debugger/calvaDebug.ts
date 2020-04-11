@@ -130,6 +130,14 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
+    private async _showDebugAnnotation(value: string, document: vscode.TextDocument, line: number, column: number): Promise<void> {
+        const range = new vscode.Range(line, column, line, column);
+        await vscode.window.showTextDocument(document);
+        const editor = vscode.window.activeTextEditor;
+        annotations.clearEvaluationDecorations(editor);
+        annotations.decorateResults(value, false, range, editor);
+    }
+
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
@@ -163,13 +171,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         this.sendResponse(response);
 
-
-        const range = new vscode.Range(line, column, line, column);
-        await vscode.window.showTextDocument(document);
-        const editor = vscode.window.activeTextEditor;
-        annotations.clearEvaluationDecorations(editor);
-        //annotations.decorateSelection()
-        annotations.decorateResults(debugResponse['debug-value'], false, range, editor);
+        this._showDebugAnnotation(debugResponse['debug-value'], document, line, column);
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
