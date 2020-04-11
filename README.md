@@ -4,17 +4,17 @@
 
 _Distilled from [CIDER](https://cider.mx/)*._
 
-Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, [Paredit](https://calva.readthedocs.io/en/latest/paredit.html), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Most of the REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
+Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva), an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, [Paredit](https://calva.io/paredit/), a Clojure formatter, a test runner, Clojure syntax highlighting, and more. Most of the REPL power is harvested from the produce of [The Orchard](https://github.com/clojure-emacs/orchard).
 
 (*) Calva is short for Calvados, a liquid gifted to humanity from God.
 
 ## There is Documentation
 
-Head over to https://calva.readthedocs.io/ to learn more about how to use Calva. The most important stuff would be:
+Head over to https://calva.io/ to learn more about how to use Calva. The most important stuff would be:
 
-* [Connect Calva to Your Project](https://calva.readthedocs.io/en/latest/connect.html) (TL;DR; Use **Jack in**.)
-* [Quirks](https://calva.readthedocs.io/en/latest/quirks.html) (Yes, there are quirks.)
-* [Paredit – a Visual Guide](https://calva.readthedocs.io/en/latest/paredit.html) (Clojure editing is for civilized people.)
+* [Connect Calva to Your Project](https://calva.io/connect/) (TL;DR; Use **Jack in**.)
+* [Quirks](https://calva.io/quirks/) (Yes, there are quirks.)
+* [Paredit – a Visual Guide](https://calva.io/paredit/) (Clojure editing is for civilized people.)
 
 ## Why Calva?
 
@@ -30,7 +30,7 @@ We also hope that Calva will contribute to making it easier to pick up Clojure a
 
 ## Getting Started with Calva
 
-Go to the [documentation](https://calva.readthedocs.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from the same repository as Calva. So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR.
+Go to the [documentation](https://calva.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from the same repository as Calva. So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR.
 
 ## Features
 
@@ -40,15 +40,15 @@ Go to the [documentation](https://calva.readthedocs.io/) to find info on how to 
   * LISP friendly bracket matching
   * Ignore form (`#_`) dimming and `(comment)` form highlighting
 * Code formatting and autoindent according to https://github.com/bbatsov/clojure-style-guide
-* Structural Editing (via [Paredit](https://calva.readthedocs.io/en/latest/paredit.html))
-* [Linting](https://calva.readthedocs.io/en/latest/linting.html)
+* Structural Editing (via [Paredit](https://calva.io/paredit/))
+* [Linting](https://calva.io/linting/)
 * Intellisense
 * Go to / Peek at definition
 * View docstrings on hover
 * View function signatures on hover, including help with knowing which argument you are typing
-* [Debugger](https://calva.readthedocs.io/en/latest/debugger.html)
+* [Debugger](https://calva.io/debugger/)
 * Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
-* Your [Custom Connect Sequences](https://calva.readthedocs.io/en/latest/connect-sequences.html), including fully customized CLJS REPLs.
+* Your [Custom Connect Sequences](https://calva.io/connect-sequences/), including fully customized CLJS REPLs.
 * Switch the CLJS REPL connection between your different CLJS builds at will.
 * When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 * And more
@@ -62,7 +62,7 @@ The gif demos several more features, apart from the in-comment evaluation, like:
 * signature help while typing function calls
 * evaluation result display is a bit sticky (so you can examine several evaluations at once)
 * there is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
-* some [structural editing](https://calva.readthedocs.io/en/latest/paredit.html)
+* some [structural editing](https://calva.io/paredit/)
 
 ### Demo: Signature Help, while Typing
 

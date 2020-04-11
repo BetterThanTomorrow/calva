@@ -73,9 +73,9 @@ function activate(context: vscode.ExtensionContext) {
         replConnectSequences = state.config().replConnectSequences,
         BUTTON_GOTO_DOC = "Open the docs",
         BUTTON_OK = "Got it",
-        VIM_DOC_URL = "https://calva.readthedocs.io/en/latest/vim.html",
+        VIM_DOC_URL = "https://calva.io/vim/",
         VIEWED_VIM_DOCS = "viewedVimDocs",
-        CONNECT_SEQUENCES_DOC_URL = "https://calva.readthedocs.io/en/latest/connect-sequences.html"
+        CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/"
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
