@@ -12,6 +12,7 @@ import * as docMirror from '../doc-mirror';
 import * as vscode from 'vscode';
 import { replWindows } from '../repl-window';
 import { moveTokenCursorToBreakpoint } from './util';
+import annotations from '../providers/annotations';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -161,6 +162,14 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
 
         this.sendResponse(response);
+
+
+        const range = new vscode.Range(line, column, line, column);
+        await vscode.window.showTextDocument(document);
+        const editor = vscode.window.activeTextEditor;
+        annotations.clearEvaluationDecorations(editor);
+        //annotations.decorateSelection()
+        annotations.decorateResults(debugResponse['debug-value'], false, range, editor);
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {

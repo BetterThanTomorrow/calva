@@ -94,7 +94,7 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     }
 }
 
-function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor) {
+function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor: vscode.TextEditor) {
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
         decorationRanges = state.deref().get(key) || [],
