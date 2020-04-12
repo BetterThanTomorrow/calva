@@ -7,6 +7,7 @@ import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS } from "../debugger/calvaDebug";
 import * as vscode from 'vscode';
+import annotations from '../providers/annotations';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -98,6 +99,13 @@ export class NReplClient {
 
                     //console.log(data['id'], data);
 
+                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
+                        annotations.clearEvaluationDecorations();
+                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+                    } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+                        handleNeedDebugInput(data);
+                    }
+
                     if (!client.describe && data["id"] === describeId) {
                         client.describe = data;
                     } else if (data["id"] === nsId) {
@@ -113,14 +121,6 @@ export class NReplClient {
                         let session = client.sessions[data["session"]];
                         if (session)
                             session._response(data);
-                    }
-
-                    if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
-                        handleNeedDebugInput(data);
-                    }
-
-                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
-                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     }
                 });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });

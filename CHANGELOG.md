@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Changed all documentation links from https://calva.readthedocs.io/ to https://calva.io/](https://github.com/BetterThanTomorrow/calva/issues/604)
+- Add step over, step into, and step out debugger features
+- Add annotations for debugging to show debug values as the cursor moves to each breakpoint
 
 ## [2.0.91] - 2020-04-07
 - [Add debugger](https://github.com/BetterThanTomorrow/calva/issues/469)
