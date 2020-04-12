@@ -131,7 +131,18 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): void {
-        response.success = false;
+        
+        const cljSession = util.getSession('clj');
+        
+        if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':out', id, key).then(_ => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        } else {
+            response.success = false;
+        }
+
         this.sendResponse(response);
     }
 
