@@ -80,12 +80,14 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = util.getSession('clj');
-        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
-
+        
         if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':continue', id, key).then(response => {
                 this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
             });
+        } else {
+            response.success = false;
         }
 
         this.sendResponse(response);
@@ -99,19 +101,32 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): void {
         
         const cljSession = util.getSession('clj');
-        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
-
+        
         if (cljSession) {
-            cljSession.sendDebugInput(':next', id, key).then(response => {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':next', id, key).then(_ => {
                 this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
             });
+        } else {
+            response.success = false;
         }
 
         this.sendResponse(response);
     }
 
     protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request): void {
-        response.success = false;
+        
+        const cljSession = util.getSession('clj');
+        
+        if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':in', id, key).then(_ => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        } else {
+            response.success = false;
+        }
+        
         this.sendResponse(response);
     }
 
@@ -141,7 +156,8 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const document = await vscode.workspace.openTextDocument(debugResponse.file);
+        const filePath = debugResponse.file.replace(/^(file:)/, '');
+        const document = await vscode.workspace.openTextDocument(filePath);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
@@ -159,7 +175,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const [line, column] = tokenCursor.rowCol;
 
-        const filePath = debugResponse.file;
         const source = new Source(basename(filePath), filePath);
         const name = tokenCursor.getFunction();
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
@@ -211,9 +226,9 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = util.getSession('clj');
-        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
-
+        
         if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':quit', id, key);
         }
 
