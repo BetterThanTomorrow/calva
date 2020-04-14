@@ -27,6 +27,7 @@ const REQUESTS = {
 
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
+const DEBUG_QUIT_VALUE = 'QUIT';
 
 class CalvaDebugSession extends LoggingDebugSession {
 
@@ -356,6 +357,7 @@ export {
     REQUESTS,
     NEED_DEBUG_INPUT_STATUS,
     DEBUG_RESPONSE_KEY,
+    DEBUG_QUIT_VALUE,
     CalvaDebugConfigurationProvider,
     CalvaDebugAdapterDescriptorFactory,
     handleNeedDebugInput
