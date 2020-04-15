@@ -5,7 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS } from "../debugger/calvaDebug";
+import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calvaDebug";
 import * as vscode from 'vscode';
 import annotations from '../providers/annotations';
 
@@ -744,7 +744,7 @@ export class NReplEvaluation {
             if (msg.out) {
                 this.out(msg.out)
             }
-            if (msg.err) {
+            if (msg.err && this.msgValue !== DEBUG_QUIT_VALUE) {
                 this.err(msg.err)
             }
             if (msg.ns) {
@@ -791,7 +791,7 @@ export class NReplEvaluation {
             }
             if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
                 this.remove();
-                if (this.exception) {
+                if (this.exception && this.msgValue !== DEBUG_QUIT_VALUE) {
                     this.session.stacktrace().then((stacktrace) => {
                         this._stacktrace = stacktrace;
                         this.doReject(this.exception);

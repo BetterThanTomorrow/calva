@@ -27,6 +27,7 @@ const REQUESTS = {
 
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
+const DEBUG_QUIT_VALUE = 'QUIT';
 
 class CalvaDebugSession extends LoggingDebugSession {
 
@@ -158,8 +159,11 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     private async _showDebugAnnotation(value: string, document: vscode.TextDocument, line: number, column: number): Promise<void> {
         const range = new vscode.Range(line, column, line, column);
-        await vscode.window.showTextDocument(document);
-        const editor = vscode.window.activeTextEditor;
+        const visibleEditor = vscode.window.visibleTextEditors.filter(editor => editor.document.fileName === document.fileName)[0];
+        if (visibleEditor) {
+            await vscode.window.showTextDocument(visibleEditor.document, visibleEditor.viewColumn);
+        }
+        const editor = visibleEditor || await vscode.window.showTextDocument(document);
         annotations.clearEvaluationDecorations(editor);
         annotations.decorateResults(value, false, range, editor);
     }
@@ -230,8 +234,6 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
 
         this.sendResponse(response);
-
-        vscode.window.showTextDocument(vscode.window.activeTextEditor.document);
     }
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -356,6 +358,7 @@ export {
     REQUESTS,
     NEED_DEBUG_INPUT_STATUS,
     DEBUG_RESPONSE_KEY,
+    DEBUG_QUIT_VALUE,
     CalvaDebugConfigurationProvider,
     CalvaDebugAdapterDescriptorFactory,
     handleNeedDebugInput
