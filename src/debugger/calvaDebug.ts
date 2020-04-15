@@ -159,7 +159,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     private async _showDebugAnnotation(value: string, document: vscode.TextDocument, line: number, column: number): Promise<void> {
         const range = new vscode.Range(line, column, line, column);
-        const editor = await vscode.window.showTextDocument(document);
+        const visibleEditor = vscode.window.visibleTextEditors.filter(editor => editor.document.fileName === document.fileName)[0];
+        const editor = visibleEditor || await vscode.window.showTextDocument(document);
         annotations.clearEvaluationDecorations(editor);
         annotations.decorateResults(value, false, range, editor);
     }
@@ -230,8 +231,6 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
 
         this.sendResponse(response);
-
-        vscode.window.showTextDocument(vscode.window.activeTextEditor.document);
     }
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
