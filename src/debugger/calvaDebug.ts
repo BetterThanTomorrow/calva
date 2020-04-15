@@ -159,8 +159,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     private async _showDebugAnnotation(value: string, document: vscode.TextDocument, line: number, column: number): Promise<void> {
         const range = new vscode.Range(line, column, line, column);
-        await vscode.window.showTextDocument(document);
-        const editor = vscode.window.activeTextEditor;
+        const editor = await vscode.window.showTextDocument(document);
         annotations.clearEvaluationDecorations(editor);
         annotations.decorateResults(value, false, range, editor);
     }
