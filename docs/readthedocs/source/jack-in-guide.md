@@ -2,7 +2,7 @@
 
 ## Calva Doccumentation has Moved
 
-https://calva.io
+[calva.io](https://calva.io)
 
 # Learn about Calva Jack-in
 
@@ -69,7 +69,7 @@ When the port file is created, Calva picks up the port number from it and connec
 
 ## Starting Your Clojure App
 
-Once you have the Clojure REPL connected you can start your Clojure app/server. See [Custom Connect Sequences](connect-sequences.md) for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-in process. It can be brought down to a single **Jack-In** command, even for a full stack Clojure and ClojureScript application.
+Once you have the Clojure REPL connected you can start your Clojure app/server. See [Custom Connect Sequences](connect-sequences) for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-in process. It can be brought down to a single **Jack-In** command, even for a full stack Clojure and ClojureScript application.
 
 ## ClojureScript
 
@@ -103,7 +103,7 @@ What Calva does instead is to monitor the output of the commands it uses for sta
 
 Meanwhile, Calva is monitoring the output and when it sees that the app is started, it continues to hook up the REPL connection to the editor.
 
-This whole connection sequence is quite configurable, using [Custom Connect Sequences](connect-sequences.md). In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and Nashorn) are all built using those same settings mechanisms.
+This whole connection sequence is quite configurable, using [Custom Connect Sequences](connect-sequences). In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and Nashorn) are all built using those same settings mechanisms.
 
 #### shadow-cljs is Less Managed by Calva
 **NB:** The managed way in which Calva creates and connects the ClojureScript REPL breaks apart a bit for shadow-cljs, which works a bit differently and also outputs most of the information Calva is looking for on the `stdout` of the REPL start command (where Calva can't see it, remember?). We'll figure out a better way to support shadow-cljs, but for now, the user needs to do more of this figuring out, than is needed with Figwheel projects.

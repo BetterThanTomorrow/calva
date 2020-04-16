@@ -2,7 +2,7 @@
 
 ## Calva Doccumentation has Moved
 
-https://calva.io
+[calva.io/paredit](https://calva.io/paredit)
 
 # Paredit – a Visual Guide
 

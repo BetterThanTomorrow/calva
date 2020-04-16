@@ -4,6 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.92] - 2020-04-15
+
+- [Changed all documentation links from https://calva.readthedocs.io/ to https://calva.io/](https://github.com/BetterThanTomorrow/calva/issues/604)
+- Add step over, step into, and step out debugger features
+- Add annotations for debugging to show debug values as the cursor moves to each breakpoint
+- Fix debugger disconnect to show quit value instead of cider-nrepl exception
+- Use visible editor if one exists with code being debugged, instead of opening a new one
+
 ## [2.0.91] - 2020-04-07
 - [Add debugger](https://github.com/BetterThanTomorrow/calva/issues/469)
 
@@ -28,7 +36,7 @@ Changes to Calva.
 
 ## [2.0.84] - 2020-03-15
 - [Support projects using lein-shadow](https://github.com/BetterThanTomorrow/calva/issues/585)
-- [Add documentation for how to use Calva with Luminus](https://calva.readthedocs.io/en/latest/luminus.html)
+- [Add documentation for how to use Calva with Luminus](https://calva.io/luminus/)
 
 ## [2.0.83] - 2020-03-13
 - When format config fails to parse, fall back on defaults rather than crash
@@ -126,7 +134,7 @@ Changes to Calva.
 - Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
 - Fix: [Glitch in current form highlight in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)
 - Now using the same Paredit implementation for the editor as for the REPL Window.
-  - A much more complete set of Paredit commands, and [all documented](https://calva.readthedocs.io/en/latest/paredit.html), in beautiful GIF animations.
+  - A much more complete set of Paredit commands, and [all documented](https://calva.io/paredit/), in beautiful GIF animations.
   - List based Paredit commands work on strings as well. (Limited by that strings don't have sub lists/strings).
   - Lots of fixes for Paredit commands.
 - Fix: [Paredit not activated until focused moved from and back to the editor again](https://github.com/BetterThanTomorrow/calva/issues/454)

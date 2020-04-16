@@ -12,6 +12,7 @@ import * as docMirror from '../doc-mirror';
 import * as vscode from 'vscode';
 import { replWindows } from '../repl-window';
 import { moveTokenCursorToBreakpoint } from './util';
+import annotations from '../providers/annotations';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -26,6 +27,7 @@ const REQUESTS = {
 
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
+const DEBUG_QUIT_VALUE = 'QUIT';
 
 class CalvaDebugSession extends LoggingDebugSession {
 
@@ -76,23 +78,72 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
+    protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
+
+        const cljSession = util.getSession('clj');
+        
+        if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':continue', id, key).then(response => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        } else {
+            response.success = false;
+        }
+
+        this.sendResponse(response);
+    }
+
     protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request): void {
         response.success = false;
         this.sendResponse(response);
     }
 
     protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): void {
-        response.success = false;
+        
+        const cljSession = util.getSession('clj');
+        
+        if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':next', id, key).then(_ => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        } else {
+            response.success = false;
+        }
+
         this.sendResponse(response);
     }
 
     protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request): void {
-        response.success = false;
+        
+        const cljSession = util.getSession('clj');
+        
+        if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':in', id, key).then(_ => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        } else {
+            response.success = false;
+        }
+        
         this.sendResponse(response);
     }
 
     protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): void {
-        response.success = false;
+        
+        const cljSession = util.getSession('clj');
+        
+        if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
+            cljSession.sendDebugInput(':out', id, key).then(_ => {
+                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
+            });
+        } else {
+            response.success = false;
+        }
+
         this.sendResponse(response);
     }
 
@@ -106,10 +157,22 @@ class CalvaDebugSession extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
+    private async _showDebugAnnotation(value: string, document: vscode.TextDocument, line: number, column: number): Promise<void> {
+        const range = new vscode.Range(line, column, line, column);
+        const visibleEditor = vscode.window.visibleTextEditors.filter(editor => editor.document.fileName === document.fileName)[0];
+        if (visibleEditor) {
+            await vscode.window.showTextDocument(visibleEditor.document, visibleEditor.viewColumn);
+        }
+        const editor = visibleEditor || await vscode.window.showTextDocument(document);
+        annotations.clearEvaluationDecorations(editor);
+        annotations.decorateResults(value, false, range, editor);
+    }
+
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const document = await vscode.workspace.openTextDocument(debugResponse.file);
+        const filePath = debugResponse.file.replace(/^(file:)/, '');
+        const document = await vscode.workspace.openTextDocument(filePath);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
@@ -127,7 +190,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const [line, column] = tokenCursor.rowCol;
 
-        const filePath = debugResponse.file;
         const source = new Source(basename(filePath), filePath);
         const name = tokenCursor.getFunction();
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
@@ -138,6 +200,8 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
 
         this.sendResponse(response);
+
+        this._showDebugAnnotation(debugResponse['debug-value'], document, line, column);
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
@@ -170,30 +234,14 @@ class CalvaDebugSession extends LoggingDebugSession {
         };
 
         this.sendResponse(response);
-
-        vscode.window.showTextDocument(vscode.window.activeTextEditor.document);
-    }
-
-    protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
-
-        const cljSession = util.getSession('clj');
-        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
-
-        if (cljSession) {
-            cljSession.sendDebugInput(':continue', id, key).then(response => {
-                this.sendEvent(new StoppedEvent('breakpoint', CalvaDebugSession.THREAD_ID));
-            });
-        }
-
-        this.sendResponse(response);
     }
 
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = util.getSession('clj');
-        const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
-
+        
         if (cljSession) {
+            const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':quit', id, key);
         }
 
@@ -310,6 +358,7 @@ export {
     REQUESTS,
     NEED_DEBUG_INPUT_STATUS,
     DEBUG_RESPONSE_KEY,
+    DEBUG_QUIT_VALUE,
     CalvaDebugConfigurationProvider,
     CalvaDebugAdapterDescriptorFactory,
     handleNeedDebugInput
