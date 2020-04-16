@@ -69,6 +69,10 @@ async function evaluateSelection(document, options) {
             code = doc.getText(selection);
         }
 
+        if (options.debug) {
+            code = '#dbg\n' + code;
+        }
+
         if (code.length > 0) {
             annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
@@ -264,7 +268,7 @@ async function togglePrettyPrint() {
 };
 
 async function instrumentTopLevelForm() {
-    evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions})
+    evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true})
         .catch(printWarningForError);
 }
 

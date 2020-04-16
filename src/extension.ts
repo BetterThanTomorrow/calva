@@ -12,11 +12,10 @@ import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider } from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
-import evaluator from './evaluate';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
 import select from './select';
-import evaluate from "./evaluate"
+import eval from "./evaluate"
 import refresh from "./refresh";
 import * as replWindow from "./repl-window";
 import * as greetings from "./greet";
@@ -43,7 +42,7 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        evaluator.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+        eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
 }
@@ -120,30 +119,30 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        evaluator.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
+        eval.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
             chan.show(true);
         }).catch((reason) => {
             chan.show(true);
         });
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', evaluator.interruptAllEvaluations));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', evaluator.evaluateCurrentForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', evaluator.evaluateTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', evaluator.evaluateSelectionReplace));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', evaluator.evaluateSelectionAsComment));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', evaluator.evaluateTopLevelFormAsComment));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', evaluator.togglePrettyPrint));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', eval.evaluateTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', eval.evaluateSelectionReplace));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', eval.evaluateSelectionAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', eval.evaluateTopLevelFormAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', eval.togglePrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', testRunner.runTestUnderCursorCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', testRunner.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', evaluate.requireREPLUtilitiesCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', eval.copyLastResultCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', eval.requireREPLUtilitiesCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
-    context.subscriptions.push(vscode.commands.registerCommand('debug.instrument', evaluator.instrumentTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('debug.instrument', eval.instrumentTopLevelForm));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
