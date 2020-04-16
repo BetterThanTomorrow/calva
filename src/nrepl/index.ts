@@ -5,7 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calvaDebug";
+import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import annotations from '../providers/annotations';
 

@@ -12,7 +12,7 @@ import { openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-w
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
-import { REQUESTS } from './debugger/calvaDebug';
+import { REQUESTS } from './debugger/calva-debug';
 
 async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {

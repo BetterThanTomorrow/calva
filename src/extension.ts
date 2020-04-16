@@ -23,7 +23,7 @@ import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
-import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './debugger/calvaDebug';
+import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 
 function onDidSave(document) {
@@ -137,14 +137,13 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', testRunner.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', evaluate.requireREPLUtilitiesCommand));
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
+    context.subscriptions.push(vscode.commands.registerCommand('debug.instrument', evaluator.instrumentTopLevelForm));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {

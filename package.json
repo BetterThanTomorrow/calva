@@ -603,6 +603,11 @@
         ],
         "commands": [
             {
+                "command": "debug.instrument",
+                "title": "Instrument a form for debugging",
+                "category": "Calva Debug"
+            },
+            {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
                 "category": "Calva"
@@ -1110,6 +1115,10 @@
             }
         ],
         "keybindings": [
+            {
+                "command": "debug.instrument",
+                "key": "ctrl+alt+c i"
+            },
             {
                 "command": "calva.tellAboutNewChordingKey",
                 "key": "ctrl+alt+v",
