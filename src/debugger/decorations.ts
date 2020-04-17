@@ -38,25 +38,53 @@ function getTokenRanges(tokenStrings: string[], document: vscode.TextDocument): 
     return ranges;
 }
 
-async function update(editor: vscode.TextEditor) {
-    if (editor) {
+let timeout: NodeJS.Timer | undefined = undefined;
+
+async function updateDecorations() {
+    const activeEditor = vscode.window.activeTextEditor;
+    // DEBUG TODO: Check if editor.document is clj (what about cljc)?
+    if (activeEditor) {
         const cljSession = util.getSession('clj');
         if (cljSession) {
+            const document = activeEditor.document;
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
-            const docNamespace = util.getDocumentNamespace(editor.document);
+            const docNamespace = util.getDocumentNamespace(document);
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
-            const ranges = getTokenRanges(instrumentedDefsInEditor, editor.document);
+            const ranges = getTokenRanges(instrumentedDefsInEditor, document);
             const decorations = ranges.map(([startOffset, endOffset]) => {
                 return {
-                    range: new vscode.Range(editor.document.positionAt(startOffset), editor.document.positionAt(endOffset)),
+                    range: new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset)),
                     hoverMessage: 'Instrumented for debugging'
                 };
             });
-            editor.setDecorations(instrumentedFunctionDecorationType, decorations);
+            activeEditor.setDecorations(instrumentedFunctionDecorationType, decorations);
         }
     }
 }
 
+function triggerUpdateDecorations() {
+    if (timeout) {
+        clearTimeout(timeout);
+        timeout = undefined;
+    }
+    timeout = setTimeout(updateDecorations, 50);
+}
+
+function activate() {
+
+    triggerUpdateDecorations();
+
+    vscode.window.onDidChangeActiveTextEditor(triggerUpdateDecorations);
+
+    vscode.workspace.onDidChangeTextDocument(event => {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor && event.document === activeEditor.document) {
+            triggerUpdateDecorations();
+        }
+    });
+}
+
 export default {
-    update
+    activate,
+    triggerUpdateDecorations
 };

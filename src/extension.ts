@@ -182,7 +182,6 @@ function activate(context: vscode.ExtensionContext) {
                     .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
             }
         }
-        debugDecorations.update(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
