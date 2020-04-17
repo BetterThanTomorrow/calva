@@ -5,10 +5,10 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
-import { activeReplWindow, getReplWindow } from './repl-window';
+import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
-import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
+import { PrettyPrintingOptions } from './printer';
 
 function interruptAllEvaluations() {
 

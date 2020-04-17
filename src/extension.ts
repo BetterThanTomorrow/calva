@@ -24,6 +24,7 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
+import debugDecorations from './debugger/decorations';
 
 function onDidSave(document) {
     let {
@@ -181,8 +182,9 @@ function activate(context: vscode.ExtensionContext) {
                     .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
             }
         }
+        debugDecorations.update(editor);
     }));
-    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
         connector.disconnect();
         chan.dispose();

@@ -565,6 +565,17 @@ export class NReplSession {
             this.client.write(data);
         });
     }
+
+    listDebugInstrumentedDefs(): Promise<any> {
+        return new Promise<any>((resolve, _) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: 'debug-instrumented-defs', id, session: this.sessionId });
+        });
+    }
 }
 
 /**
@@ -757,7 +768,7 @@ export class NReplEvaluation {
             if (msg.status && msg.status.indexOf('eval-error') !== -1 && msg.causes) {
                 const cause = msg.causes[0];
                 const errorMessage = `${cause.class}: ${cause.message}`;
-                this._stacktrace = {stacktrace: cause.stacktrace};
+                this._stacktrace = { stacktrace: cause.stacktrace };
                 this.err(errorMessage);
             }
             if (msg.value !== undefined || msg['debug-value'] !== undefined) {
