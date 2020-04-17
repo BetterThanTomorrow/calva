@@ -58,6 +58,8 @@ async function updateDecorations() {
                 };
             });
             activeEditor.setDecorations(instrumentedFunctionDecorationType, decorations);
+        } else {
+            activeEditor.setDecorations(instrumentedFunctionDecorationType, []);
         }
     }
 }

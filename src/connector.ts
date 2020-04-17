@@ -528,6 +528,8 @@ export default {
             vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
         }
 
+        debugDecorations.triggerUpdateDecorations();
+
         callback();
     },
     toggleCLJCSession: () => {
