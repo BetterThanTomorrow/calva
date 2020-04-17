@@ -603,9 +603,10 @@
         ],
         "commands": [
             {
-                "command": "debug.instrument",
-                "title": "Instrument a form for debugging",
-                "category": "Calva Debug"
+                "command": "calva.debug.instrument",
+                "title": "Instrument Top Level Form for Debugging",
+                "category": "Calva Debug",
+                "enablement": "editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.togglePrettyPrint",
@@ -1116,7 +1117,7 @@
         ],
         "keybindings": [
             {
-                "command": "debug.instrument",
+                "command": "calva.debug.instrument",
                 "key": "ctrl+alt+c i"
             },
             {
@@ -1592,6 +1593,10 @@
                 {
                     "command": "calva.jackInOrConnect",
                     "when": "false"
+                },
+                {
+                    "command": "calva.debug.instrument",
+                    "when": "editorLangId == clojure && calva:connected"
                 }
             ],
             "editor/title": [
@@ -1607,6 +1612,11 @@
                 }
             ],
             "editor/context": [
+                {
+                    "command": "calva.debug.instrument",
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "group": "calva/b-eval"
+                },
                 {
                     "when": "editorLangId == clojure && !calva:connected",
                     "command": "calva.jackInOrConnect",
