@@ -42,7 +42,7 @@ let timeout: NodeJS.Timer | undefined = undefined;
 
 async function updateDecorations() {
     const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor && /(\.cljc*)$/.test(activeEditor.document.fileName)) {
+    if (activeEditor && /(\.cljc?)$/.test(activeEditor.document.fileName)) {
         const cljSession = util.getSession('clj');
         if (cljSession) {
             const document = activeEditor.document;
