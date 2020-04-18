@@ -1117,13 +1117,14 @@
         ],
         "keybindings": [
             {
-                "command": "calva.debug.instrument",
-                "key": "ctrl+alt+c i"
-            },
-            {
                 "command": "calva.tellAboutNewChordingKey",
                 "key": "ctrl+alt+v",
                 "when": "editorLangId == clojure"
+            },
+            {
+                "command": "calva.debug.instrument",
+                "key": "ctrl+alt+c i",
+                "when": "editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.jackIn",
@@ -1613,11 +1614,6 @@
             ],
             "editor/context": [
                 {
-                    "command": "calva.debug.instrument",
-                    "enablement": "editorLangId == clojure && calva:connected",
-                    "group": "calva/b-eval"
-                },
-                {
                     "when": "editorLangId == clojure && !calva:connected",
                     "command": "calva.jackInOrConnect",
                     "group": "calva/x-connect"
@@ -1670,6 +1666,12 @@
                 {
                     "when": "editorLangId == clojure",
                     "command": "calva.togglePrettyPrint",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "command": "calva.debug.instrument",
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
                     "group": "calva/b-eval"
                 },
                 {

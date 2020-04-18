@@ -69,11 +69,10 @@ async function evaluateSelection(document, options) {
             code = doc.getText(selection);
         }
 
-        if (options.debug) {
-            code = '#dbg\n' + code;
-        }
-
         if (code.length > 0) {
+            if (options.debug) {
+                code = '#dbg\n' + code;
+            }
             annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
