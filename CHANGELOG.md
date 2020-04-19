@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Unclutter editor context menu when not in clojure files](https://github.com/BetterThanTomorrow/calva/issues/615)
+
 ## [2.0.92] - 2020-04-15
 
 - [Changed all documentation links from https://calva.readthedocs.io/ to https://calva.io/](https://github.com/BetterThanTomorrow/calva/issues/604)
