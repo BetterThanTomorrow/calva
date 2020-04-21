@@ -23,6 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
   let activeEditor: vscode.TextEditor = vscode.window.activeTextEditor,
     rainbowColors,
     rainbowTypes: vscode.TextEditorDecorationType[],
+    rainbowGuidesTypes: vscode.TextEditorDecorationType[],
     cycleBracketColors,
     misplacedBracketStyle,
     misplacedType: vscode.TextEditorDecorationType,
@@ -33,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     ignoredFormStyle,
     ignoredFormType: vscode.TextEditorDecorationType,
     enableBracketColors,
+    enableIndentGuideColors,
     pairsBack: Map<string, [Range, Range]> = new Map(),
     pairsForward: Map<string, [Range, Range]> = new Map(),
     rainbowTimer = undefined,
@@ -78,10 +80,38 @@ export function activate(context: vscode.ExtensionContext) {
       return decorationType({ color: color });
   }
 
+  function borderColorDecorationType(color) {
+    if (isArray(color))
+      return decorationType({
+        light: {
+          borderWidth: "0.5px",
+          borderStyle: "solid; opacity: 1.0;",
+          backgroundColor: color[0]
+        },
+        dark: {
+          borderWidth: "0.5px",
+          borderStyle: "inset; opacity: 0.75; border-radius: 1px;",
+          borderColor: color[1]
+        }
+      });
+    else
+      return decorationType({
+        borderWidth: "0.5px",
+        borderStyle: "inset; opacity: 0.75;",
+        borderColor: color
+      });
+  }
+
   function reset_styles() {
-    if (!!rainbowTypes)
+    if (!!rainbowTypes) {
       rainbowTypes.forEach(type => activeEditor.setDecorations(type, []));
+    }
     rainbowTypes = rainbowColors.map(colorDecorationType);
+
+    if (!!rainbowGuidesTypes) {
+      rainbowGuidesTypes.forEach(type => activeEditor.setDecorations(type, []));
+    }
+    rainbowGuidesTypes = rainbowColors.map(borderColorDecorationType);
 
     if (!!misplacedType)
       activeEditor.setDecorations(misplacedType, []);
@@ -135,6 +165,11 @@ export function activate(context: vscode.ExtensionContext) {
       dirty = true;
     }
 
+    if (enableIndentGuideColors !== configuration.get<boolean>("enableIndentGuideColors")) {
+      enableIndentGuideColors = configuration.get<boolean>("enableIndentGuideColors");
+      dirty = true;
+    }
+
     if (!isEqual(commentFormStyle, configuration.get("commentFormStyle"))) {
       commentFormStyle = configuration.get("commentFormStyle");
       dirty = true;
@@ -163,11 +198,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     const doc = activeEditor.document,
       rainbow = rainbowTypes.map(() => []),
+      rainbowGuides = rainbowTypes.map(() => []),
       misplaced = [],
       comment_forms = [],
       ignores = [],
       len = rainbowTypes.length,
       colorsEnabled = enableBracketColors && len > 0,
+      guideColorsEnabled = enableIndentGuideColors && len > 0,
       colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len - 1));
 
     let in_comment_form = false,
@@ -277,6 +314,16 @@ export function activate(context: vscode.ExtensionContext) {
             if (colorsEnabled) {
               rainbow[colorIndex(stack_depth)].push(decoration);
             }
+            if (guideColorsEnabled) {
+              const matchPos = pos.translate(0, 1);
+              const openSelection = matchBefore(new vscode.Selection(matchPos, matchPos));
+              const openSelectionPos = openSelection[0].start;
+              for (let lineDelta = 1; lineDelta <= matchPos.line - openSelectionPos.line; lineDelta++) {
+                const guidePos = openSelectionPos.translate(lineDelta, 0);
+                const guidesDecoration = { range: new Range(guidePos, guidePos) };
+                rainbowGuides[colorIndex(stack_depth)].push(guidesDecoration);
+              }
+            }
             continue;
           }
         }
@@ -285,6 +332,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     for (var i = 0; i < rainbowTypes.length; ++i) {
       activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
+      activeEditor.setDecorations(rainbowGuidesTypes[i], rainbowGuides[i]);
     }
     activeEditor.setDecorations(misplacedType, misplaced);
     activeEditor.setDecorations(commentFormType, comment_forms);

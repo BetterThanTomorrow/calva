@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Rainbow indent guides](https://github.com/BetterThanTomorrow/calva/issues/620)
 
 ## [2.0.93] - 2020-04-21
 - [Unclutter editor context menu when not in clojure files](https://github.com/BetterThanTomorrow/calva/issues/615)

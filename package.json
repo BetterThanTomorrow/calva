@@ -107,6 +107,7 @@
                 "editor.formatOnPaste": true,
                 "files.trimTrailingWhitespace": false,
                 "editor.matchBrackets": "never",
+                "editor.renderIndentGuides": false,
                 "editor.parameterHints.enabled": false
             }
         },
@@ -557,6 +558,12 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Enable rainbow brackets",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.enableIndentGuideColors": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Enable rainbow indent guides",
                         "scope": "resource"
                     },
                     "calva.highlight.bracketColors": {
