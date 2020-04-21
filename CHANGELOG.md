@@ -4,8 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
-## [2.0.92] - 2020-04-15
+## [2.0.93] - 2020-04-21
+- [Unclutter editor context menu when not in clojure files](https://github.com/BetterThanTomorrow/calva/issues/615)
 
+## [2.0.92] - 2020-04-15
 - [Changed all documentation links from https://calva.readthedocs.io/ to https://calva.io/](https://github.com/BetterThanTomorrow/calva/issues/604)
 - Add step over, step into, and step out debugger features
 - Add annotations for debugging to show debug values as the cursor moves to each breakpoint

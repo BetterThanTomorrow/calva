@@ -103,33 +103,29 @@ Yeah, it's the only way right now, hopefully the other team members are setting 
 
 These people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
-### Calva Super Fans
-
-It's empty here!
-
 ### Calva Fans
 
-[![Bozhidar Batsov](https://avatars0.githubusercontent.com/u/103882?s=32)](https://github.com/bbatsov)
-[![Adam Feldman](https://avatars0.githubusercontent.com/u/133385?s=32)](https://github.com/adamfeldman)
-[![Pedro Girardi](https://avatars2.githubusercontent.com/u/585191?s=30)](https://github.com/pedrorgirardi)
-[![Clay Hopperdietzel](https://avatars2.githubusercontent.com/u/6115204?s=30)](https://github.com/Gnurdle)
-[![Matthew Lyon](https://avatars2.githubusercontent.com/u/891?s=30)](https://github.com/mattly)
-[![Brian Scaturro](https://avatars0.githubusercontent.com/u/636651?s=30)](https://github.com/brianium)
-[![Steven Harms](https://avatars0.githubusercontent.com/u/95657?s=30)](https://github.com/sharms)
+[<img src="https://avatars0.githubusercontent.com/u/103882" width="32" alt="Bozhidar Batsov">](https://github.com/bbatsov)
+[<img src="https://avatars0.githubusercontent.com/u/133385" width="32" alt="Adam Feldman">](https://github.com/adamfeldman)
+[<img src="https://avatars2.githubusercontent.com/u/585191" width="32" alt="Pedro Girardi">](https://github.com/pedrorgirardi)
+[<img src="https://avatars2.githubusercontent.com/u/6115204" width="32" alt="Clay Hopperdietzel">](https://github.com/Gnurdle)
+[<img src="https://avatars2.githubusercontent.com/u/891" width="32" alt="Matthew Lyon">](https://github.com/mattly)
+[<img src="https://avatars0.githubusercontent.com/u/636651" width="32" alt="Brian Scaturro">](https://github.com/brianium)
+[<img src="https://avatars0.githubusercontent.com/u/95657" width="32" alt="Steven Harms">](https://github.com/sharms)
 
 ### Calva Friends
 
-[![Martin Klepsch](https://avatars3.githubusercontent.com/u/97496?s=30)](https://github.com/martinklepsch)
-[![Byron Miller](https://avatars1.githubusercontent.com/u/1461719?s=30)](https://github.com/supernovae)
-[![Terje](https://avatars2.githubusercontent.com/u/6209?s=30)](https://github.com/terjesb)
-[![JC](https://avatars0.githubusercontent.com/u/11434205?s=30)](https://github.com/dijonkitchen)
-[![Ullrich Schäfer](https://avatars1.githubusercontent.com/u/13815?s=30)](https://github.com/stigi)
-[![Scott Archer](https://avatars3.githubusercontent.com/u/703980?s=30)](https://github.com/scarcher2)
-[![Norman Eckstein](https://avatars0.githubusercontent.com/u/3316334?s=30)](https://github.com/ITSecMedia)
-[![David Brear](https://avatars0.githubusercontent.com/u/1081640?s=30)](https://github.com/DavidBrear)
-[![Sergei Udris](https://avatars0.githubusercontent.com/u/19359748?s=30)](https://github.com/sergeiudris)
-[![Janne Sauvala](https://avatars1.githubusercontent.com/u/4200280?s=30)](https://github.com/sauvala)
-[![Filipe Silva](https://avatars1.githubusercontent.com/u/4172079?s=30)](https://github.com/filipesilva)
+[<img src="https://avatars3.githubusercontent.com/u/97496" width="32" alt="Martin Klepsch">](https://github.com/martinklepsch)
+[<img src="https://avatars1.githubusercontent.com/u/1461719" width="32" alt="Byron Miller">](https://github.com/supernovae)
+[<img src="https://avatars2.githubusercontent.com/u/6209" width="32" alt="Terje">](https://github.com/terjesb)
+[<img src="https://avatars0.githubusercontent.com/u/11434205" width="32" alt="JC">](https://github.com/dijonkitchen)
+[<img src="https://avatars1.githubusercontent.com/u/13815" width="32" alt="Ullrich Schäfer">](https://github.com/stigi)
+[<img src="https://avatars3.githubusercontent.com/u/703980" width="32" alt="Scott Archer">](https://github.com/scarcher2)
+[<img src="https://avatars0.githubusercontent.com/u/3316334" width="32" alt="Norman Eckstein">](https://github.com/ITSecMedia)
+[<img src="https://avatars0.githubusercontent.com/u/1081640" width="32" alt="David Brear">](https://github.com/DavidBrear)
+[<img src="https://avatars0.githubusercontent.com/u/19359748" width="32" alt="Sergei Udris">](https://github.com/sergeiudris)
+[<img src="https://avatars1.githubusercontent.com/u/4200280" width="32" alt="Janne Sauvala">](https://github.com/sauvala)
+[<img src="https://avatars1.githubusercontent.com/u/4172079" width="32" alt="Filipe Silva">](https://github.com/filipesilva)
 
 ## The Calva Team
 
