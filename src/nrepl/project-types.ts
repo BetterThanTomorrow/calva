@@ -152,11 +152,13 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
 const NREPL_VERSION = "0.6.0",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
-    FIGWHEEL_MAIN_VERSION = "0.2.3";
+    FIGWHEEL_MAIN_VERSION = "0.2.3",
+    CLJ_KONDO_VERSION = "2020.04.05";
 
 const cliDependencies = {
     "nrepl": NREPL_VERSION,
     "cider/cider-nrepl": CIDER_NREPL_VERSION,
+    "clj-kondo": CLJ_KONDO_VERSION
 }
 
 const cljsDependencies: { [id: string]: Object } = {

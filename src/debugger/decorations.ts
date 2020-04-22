@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as docMirror from '../doc-mirror';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
+import { NReplSession } from '../nrepl';
+const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderWidth: '1px',
@@ -18,39 +20,46 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
-function getTokenRanges(tokenStrings: string[], document: vscode.TextDocument): Array<[number, number]> {
-    const docText = document.getText();
-    const mirroredDocument = docMirror.getDocument(document);
-    const ranges = [];
 
-    tokenStrings.forEach(tokenString => {
-        let index = docText.indexOf(tokenString);
-        let tokenCursor: LispTokenCursor;
-        while (index !== -1) {
-            tokenCursor = mirroredDocument.getTokenCursor(index);
-            if (tokenCursor.getToken().raw === tokenString) {
-                ranges.push([index, index + tokenString.length]);
-            }
-            index = docText.indexOf(tokenString, index + tokenString.length);
-        }
-    });
-
-    return ranges;
+async function getLintAnalysis(session: NReplSession, filePath: string): Promise<any> {
+    let resEdn: string;
+    resEdn = await session.eval(`(do (require 'clj-kondo.core) (:analysis (clj-kondo.core/run! {:lint ["${filePath}"] :config {:output {:analysis true}}})))`, 'user').value;
+    return parseEdn(resEdn);
 }
 
-let timeout: NodeJS.Timer | undefined = undefined;
+function getVarDefinitionRanges(definitions: any[], document: vscode.TextDocument): any[] {
+    const mirroredDocument = docMirror.getDocument(document);
+    return definitions.map(varInfo => {
+        const position = new vscode.Position(varInfo.row - 1, varInfo.col - 1);
+        const offset = document.offsetAt(position);
+        const tokenCursor = mirroredDocument.getTokenCursor(offset);
+        while (tokenCursor.getToken().raw !== varInfo.name && !tokenCursor.atEnd()) {
+            tokenCursor.next();
+        }
+        return [tokenCursor.offsetStart, tokenCursor.offsetEnd];
+    });
+}
 
 async function updateDecorations() {
     const activeEditor = vscode.window.activeTextEditor;
+
     if (activeEditor && /(\.cljc?)$/.test(activeEditor.document.fileName)) {
         const cljSession = util.getSession('clj');
+
         if (cljSession) {
             const document = activeEditor.document;
-            const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
+
+            // Get instrumented defs in current editor
             const docNamespace = util.getDocumentNamespace(document);
+            const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
-            const ranges = getTokenRanges(instrumentedDefsInEditor, document);
-            const decorations = ranges.map(([startOffset, endOffset]) => {
+
+            // Get editor locations of var definitions and usages
+            const lintAnalysis = await getLintAnalysis(cljSession, document.uri.path);
+            const varDefinitions = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
+            const varDefinitionRanges = getVarDefinitionRanges(varDefinitions, document);
+
+            const decorations = varDefinitionRanges.map(([startOffset, endOffset]) => {
                 return {
                     range: new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset)),
                     hoverMessage: 'Instrumented for debugging'
@@ -62,6 +71,8 @@ async function updateDecorations() {
         }
     }
 }
+
+let timeout: NodeJS.Timer | undefined = undefined;
 
 function triggerUpdateDecorations() {
     if (timeout) {
