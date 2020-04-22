@@ -84,20 +84,20 @@ export function activate(context: vscode.ExtensionContext) {
     if (isArray(color))
       return decorationType({
         light: {
-          borderWidth: "0.5px",
-          borderStyle: "solid; opacity: 1.0;",
+          borderWidth: "0; border-right-width: 0.5px; top: -1px; bottom: -1px;",
+          borderStyle: "ridge; opacity: 0.25;",
           backgroundColor: color[0]
         },
         dark: {
-          borderWidth: "0.5px",
-          borderStyle: "inset; opacity: 0.75; border-radius: 1px;",
+          borderWidth: "0; border-right-width: 0.5px; top: -1px; bottom: -1px;",
+          borderStyle: "ridge; opacity: 0.25;",
           borderColor: color[1]
         }
       });
     else
       return decorationType({
-        borderWidth: "0.5px",
-        borderStyle: "inset; opacity: 0.75;",
+        borderWidth: "0; border-right-width: 0.5px; top: -1px; bottom: -1px;",
+        borderStyle: "ridge; opacity: 0.25;",
         borderColor: color
       });
   }
