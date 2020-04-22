@@ -320,8 +320,10 @@ export function activate(context: vscode.ExtensionContext) {
               const openSelectionPos = openSelection[0].start;
               for (let lineDelta = 1; lineDelta <= matchPos.line - openSelectionPos.line; lineDelta++) {
                 const guidePos = openSelectionPos.translate(lineDelta, 0);
-                const guidesDecoration = { range: new Range(guidePos, guidePos) };
-                rainbowGuides[colorIndex(stack_depth)].push(guidesDecoration);
+                if (doc.lineAt(guidePos).range.end.character >= openSelectionPos.character) { // We can't decorate beyond EOL, unfortunately
+                  const guidesDecoration = { range: new Range(guidePos, guidePos) };
+                  rainbowGuides[colorIndex(stack_depth)].push(guidesDecoration);
+                }
               }
             }
             continue;
