@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as util from '../utilities';
 import * as docMirror from '../doc-mirror';
-import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import { NReplSession } from '../nrepl';
 const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
@@ -27,7 +26,7 @@ async function getLintAnalysis(session: NReplSession, filePath: string): Promise
     return parseEdn(resEdn);
 }
 
-function getVarDefinitionRanges(definitions: any[], document: vscode.TextDocument): any[] {
+function getVarDefinitionRanges(definitions: any[], document: vscode.TextDocument): [number, number][] {
     const mirroredDocument = docMirror.getDocument(document);
     return definitions.map(varInfo => {
         const position = new vscode.Position(varInfo.row - 1, varInfo.col - 1);
@@ -37,6 +36,14 @@ function getVarDefinitionRanges(definitions: any[], document: vscode.TextDocumen
             tokenCursor.next();
         }
         return [tokenCursor.offsetStart, tokenCursor.offsetEnd];
+    });
+}
+
+function getVarUsageRanges(usages: any[], document: vscode.TextDocument): [number, number][] {
+    return usages.map(varInfo => {
+        const position = new vscode.Position(varInfo.row - 1, varInfo.col - 1);
+        const offset = document.offsetAt(position);
+        return [offset, offset + varInfo.name.length];
     });
 }
 
@@ -54,12 +61,14 @@ async function updateDecorations() {
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
-            // Get editor locations of var definitions and usages
+            // Get editor ranges of var definitions and usages
             const lintAnalysis = await getLintAnalysis(cljSession, document.uri.path);
             const varDefinitions = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
             const varDefinitionRanges = getVarDefinitionRanges(varDefinitions, document);
+            const varUsages = lintAnalysis['var-usages'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
+            const varUsageRanges = getVarUsageRanges(varUsages, document);
 
-            const decorations = varDefinitionRanges.map(([startOffset, endOffset]) => {
+            const decorations = [...varDefinitionRanges, ...varUsageRanges].map(([startOffset, endOffset]) => {
                 return {
                     range: new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset)),
                     hoverMessage: 'Instrumented for debugging'
