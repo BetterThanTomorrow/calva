@@ -560,10 +560,10 @@
                         "description": "Enable rainbow brackets",
                         "scope": "resource"
                     },
-                    "calva.highlight.enableIndentGuideColors": {
+                    "calva.highlight.rainbowIndentGuides": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Enable rainbow indent guides",
+                        "description": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in [\"clojure\"] scope.",
                         "scope": "resource"
                     },
                     "calva.highlight.bracketColors": {

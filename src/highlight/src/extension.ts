@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     ignoredFormStyle,
     ignoredFormType: vscode.TextEditorDecorationType,
     enableBracketColors,
-    enableIndentGuideColors,
+    useRainbowIndentGuides,
     pairsBack: Map<string, [Range, Range]> = new Map(),
     pairsForward: Map<string, [Range, Range]> = new Map(),
     rainbowTimer = undefined,
@@ -138,7 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   function reloadConfig() {
-    let configuration = vscode.workspace.getConfiguration("calva.highlight", (!!activeEditor) ? activeEditor.document.uri : null);
+    const configuration = vscode.workspace.getConfiguration("calva.highlight", (!!activeEditor) ? activeEditor.document.uri : null);
 
     if (!isEqual(rainbowColors, configuration.get<string[]>("bracketColors"))) {
       rainbowColors = configuration.get<string[]>("bracketColors") || [["#000", "#ccc"], "#0098e6", "#e16d6d", "#3fa455", "#c968e6", "#999", "#ce7e00"];
@@ -165,8 +165,8 @@ export function activate(context: vscode.ExtensionContext) {
       dirty = true;
     }
 
-    if (enableIndentGuideColors !== configuration.get<boolean>("enableIndentGuideColors")) {
-      enableIndentGuideColors = configuration.get<boolean>("enableIndentGuideColors");
+    if (useRainbowIndentGuides !== configuration.get<boolean>("rainbowIndentGuides")) {
+      useRainbowIndentGuides = configuration.get<boolean>("rainbowIndentGuides");
       dirty = true;
     }
 
@@ -204,7 +204,7 @@ export function activate(context: vscode.ExtensionContext) {
       ignores = [],
       len = rainbowTypes.length,
       colorsEnabled = enableBracketColors && len > 0,
-      guideColorsEnabled = enableIndentGuideColors && len > 0,
+      guideColorsEnabled = useRainbowIndentGuides && len > 0,
       colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len - 1));
 
     let in_comment_form = false,
