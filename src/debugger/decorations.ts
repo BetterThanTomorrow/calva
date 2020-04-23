@@ -7,7 +7,6 @@ const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderWidth: '1px',
     borderStyle: 'solid',
-    borderRadius: '3px',
     overviewRulerColor: 'blue',
     overviewRulerLane: vscode.OverviewRulerLane.Right,
     light: {
