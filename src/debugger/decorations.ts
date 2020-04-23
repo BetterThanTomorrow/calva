@@ -19,7 +19,6 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
-
 async function getLintAnalysis(session: NReplSession, filePath: string): Promise<any> {
     let resEdn: string;
     resEdn = await session.eval(`(do (require 'clj-kondo.core) (:analysis (clj-kondo.core/run! {:lint ["${filePath}"] :config {:output {:analysis true}}})))`, 'user').value;
