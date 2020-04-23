@@ -8,7 +8,6 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     borderWidth: '1px',
     borderStyle: 'solid',
     overviewRulerColor: 'blue',
-    overviewRulerLane: vscode.OverviewRulerLane.Right,
     light: {
         // This color will be used in light color themes
         borderColor: 'darkblue'
@@ -19,9 +18,9 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
-async function getLintAnalysis(session: NReplSession, filePath: string): Promise<any> {
-    let resEdn: string;
-    resEdn = await session.eval(`(do (require 'clj-kondo.core) (:analysis (clj-kondo.core/run! {:lint ["${filePath}"] :config {:output {:analysis true}}})))`, 'user').value;
+async function getLintAnalysis(session: NReplSession, documentText: string): Promise<any> {
+    const code = `(do (require 'clj-kondo.core) (with-in-str ${JSON.stringify(documentText)} (:analysis (clj-kondo.core/run! {:lint ["-"] :lang :clj :config {:output {:analysis true}}}))))`;
+    const resEdn = await session.eval(code, 'user').value;
     return parseEdn(resEdn);
 }
 
@@ -63,7 +62,7 @@ async function updateDecorations() {
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
             // Get editor ranges of instrumented var definitions and usages
-            const lintAnalysis = await getLintAnalysis(cljSession, document.uri.path);
+            const lintAnalysis = await getLintAnalysis(cljSession, document.getText());
             const instrumentedVarDefs = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
             const instrumentedVarDefRanges = getVarDefinitionRanges(instrumentedVarDefs, document);
             const instrumentedVarUsages = lintAnalysis['var-usages'].filter(varInfo => {
@@ -99,11 +98,13 @@ function activate() {
 
     triggerUpdateDecorations();
 
-    vscode.window.onDidChangeActiveTextEditor(triggerUpdateDecorations);
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        triggerUpdateDecorations();
+    });
 
-    vscode.workspace.onDidSaveTextDocument(document => {
+    vscode.workspace.onDidChangeTextDocument(event => {
         const activeEditor = vscode.window.activeTextEditor;
-        if (activeEditor && document === activeEditor.document) {
+        if (activeEditor && event.document === activeEditor.document && event.contentChanges.length > 0) {
             triggerUpdateDecorations();
         }
     });
