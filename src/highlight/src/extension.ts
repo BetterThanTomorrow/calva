@@ -416,7 +416,9 @@ export function activate(context: vscode.ExtensionContext) {
       while (cursor.forwardList() && cursor.upList()) {
         const endPos = doc.positionAt(cursor.offsetStart);
         cursor.backwardSexp();
-        const startPos = doc.positionAt(cursor.offsetEnd - 1);
+        const downCursor = cursor.clone();
+        downCursor.downList();
+        const startPos = doc.positionAt(downCursor.offsetStart - 1);
         const guideRange = new vscode.Range(startPos, endPos);
         let colorIndex;
         colorIndex = placedGuidesColor.get(position_str(startPos));
