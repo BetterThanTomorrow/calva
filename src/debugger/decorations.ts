@@ -50,7 +50,7 @@ function getVarUsageRanges(usages: any[], document: vscode.TextDocument): [numbe
 async function updateDecorations() {
     const activeEditor = vscode.window.activeTextEditor;
 
-    if (activeEditor && /(\.cljc?)$/.test(activeEditor.document.fileName)) {
+    if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
         const cljSession = util.getSession('clj');
 
         if (cljSession) {
