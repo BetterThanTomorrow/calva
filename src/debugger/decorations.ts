@@ -40,10 +40,12 @@ function getVarDefinitionRanges(definitions: any[], document: vscode.TextDocumen
 }
 
 function getVarUsageRanges(usages: any[], document: vscode.TextDocument): [number, number][] {
+    const mirroredDocument = docMirror.getDocument(document);
     return usages.map(varInfo => {
         const position = new vscode.Position(varInfo.row - 1, varInfo.col - 1);
         const offset = document.offsetAt(position);
-        return [offset, offset + varInfo.name.length];
+        const tokenCursor = mirroredDocument.getTokenCursor(offset);
+        return [offset, tokenCursor.offsetEnd];
     });
 }
 
@@ -61,14 +63,17 @@ async function updateDecorations() {
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
-            // Get editor ranges of var definitions and usages
+            // Get editor ranges of instrumented var definitions and usages
             const lintAnalysis = await getLintAnalysis(cljSession, document.uri.path);
-            const varDefinitions = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
-            const varDefinitionRanges = getVarDefinitionRanges(varDefinitions, document);
-            const varUsages = lintAnalysis['var-usages'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
-            const varUsageRanges = getVarUsageRanges(varUsages, document);
+            const instrumentedVarDefs = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
+            const instrumentedVarDefRanges = getVarDefinitionRanges(instrumentedVarDefs, document);
+            const instrumentedVarUsages = lintAnalysis['var-usages'].filter(varInfo => {
+                const instrumentedDefsInVarNs = instrumentedDefs.list.filter(l => l[0] === varInfo.to)[0]?.slice(1) || [];
+                return instrumentedDefsInVarNs.includes(varInfo.name);
+            });
+            const instrumentedVarUsageRanges = getVarUsageRanges(instrumentedVarUsages, document);
 
-            const decorations = [...varDefinitionRanges, ...varUsageRanges].map(([startOffset, endOffset]) => {
+            const decorations = [...instrumentedVarDefRanges, ...instrumentedVarUsageRanges].map(([startOffset, endOffset]) => {
                 return {
                     range: new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset)),
                     hoverMessage: 'Instrumented for debugging'
