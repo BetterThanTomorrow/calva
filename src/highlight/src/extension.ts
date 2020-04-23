@@ -4,10 +4,7 @@ import * as isEqual from 'lodash.isequal';
 import { isArray } from 'util';
 import * as docMirror from '../../doc-mirror'
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
-import * as util from '../../utilities';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
-import { read } from 'fs';
-import { start } from 'repl';
 
 type StackItem = {
   char: string,
@@ -114,17 +111,6 @@ export function activate(context: vscode.ExtensionContext) {
   function activeGuidesDecorationType(color): vscode.TextEditorDecorationType {
     return guidesDecorationType_(color, true);
   }
-
-  // const activeGuideDecorationType: vscode.TextEditorDecorationType = decorationType({
-  //   light: {
-  //     borderWidth: "0; border-right-width: 1px; top: -1px; bottom: -1px;",
-  //     borderStyle: "solid; opacity: 1.0;",
-  //   },
-  //   dark: {
-  //     borderWidth: "0; border-right-width: 1px; top: -1px; bottom: -1px;",
-  //     borderStyle: "solid; opacity: 1.0;",
-  //   }
-  // });
 
   function reset_styles() {
     if (!!rainbowTypes) {
@@ -349,8 +335,10 @@ export function activate(context: vscode.ExtensionContext) {
               const matchPos = pos.translate(0, 1);
               const openSelection = matchBefore(new vscode.Selection(matchPos, matchPos));
               const openSelectionPos = openSelection[0].start;
-              decorateGuide(doc, openSelectionPos, matchPos, rainbowGuides[colorIndex(stack_depth)]);
-              placedGuidesColor.set(position_str(openSelectionPos), colorIndex(stack_depth))
+              const guideLength = decorateGuide(doc, openSelectionPos, matchPos, rainbowGuides[colorIndex(stack_depth)]);
+              if (guideLength > 0) {
+                placedGuidesColor.set(position_str(openSelectionPos), colorIndex(stack_depth))
+              }
             }
             continue;
           }
@@ -402,14 +390,17 @@ export function activate(context: vscode.ExtensionContext) {
     activeEditor.setDecorations(matchedType, matches);
   }
 
-  function decorateGuide(doc: vscode.TextDocument, startPos: vscode.Position, endPos: vscode.Position, guides: any[]) {
+  function decorateGuide(doc: vscode.TextDocument, startPos: vscode.Position, endPos: vscode.Position, guides: any[]): number {
+    let guideLength = 0;
     for (let lineDelta = 1; lineDelta <= endPos.line - startPos.line; lineDelta++) {
       const guidePos = startPos.translate(lineDelta, 0);
       if (doc.lineAt(guidePos).text.match(/^ */)[0].length >= startPos.character) {
         const guidesDecoration = { range: new Range(guidePos, guidePos) };
         guides.push(guidesDecoration);
+        guideLength++;
       }
     }
+    return guideLength;
   }
 
   function decorateActiveGuides() {
@@ -422,15 +413,19 @@ export function activate(context: vscode.ExtensionContext) {
       const doc = activeEditor.document;
       const mirrorDoc = docMirror.getDocument(doc);
       const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
-      if (cursor.forwardList() && cursor.upList()) {
+      while (cursor.forwardList() && cursor.upList()) {
         const endPos = doc.positionAt(cursor.offsetStart);
         cursor.backwardSexp();
-        const startPos = doc.positionAt(cursor.offsetStart);
+        const startPos = doc.positionAt(cursor.offsetEnd - 1);
         const guideRange = new vscode.Range(startPos, endPos);
-        const colorIndex = placedGuidesColor.get(position_str(startPos));
-        if (guideRange.contains(selection)) {
-          decorateGuide(doc, startPos, endPos, activeGuides);
-          activeEditor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
+        let colorIndex;
+        colorIndex = placedGuidesColor.get(position_str(startPos));
+        if (colorIndex !== undefined) {
+          if (guideRange.contains(selection)) {
+            decorateGuide(doc, startPos, endPos, activeGuides);
+            activeEditor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
+          }
+          break;
         }
       }
     });
