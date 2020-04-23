@@ -7,6 +7,7 @@ const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderWidth: '1px',
     borderStyle: 'solid',
+    borderRadius: '3px',
     overviewRulerColor: 'blue',
     overviewRulerLane: vscode.OverviewRulerLane.Right,
     light: {
@@ -102,9 +103,9 @@ function activate() {
 
     vscode.window.onDidChangeActiveTextEditor(triggerUpdateDecorations);
 
-    vscode.workspace.onDidChangeTextDocument(event => {
+    vscode.workspace.onDidSaveTextDocument(document => {
         const activeEditor = vscode.window.activeTextEditor;
-        if (activeEditor && event.document === activeEditor.document) {
+        if (activeEditor && document === activeEditor.document) {
             triggerUpdateDecorations();
         }
     });
