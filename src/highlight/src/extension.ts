@@ -34,6 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
     ignoredFormType: vscode.TextEditorDecorationType,
     enableBracketColors,
     useRainbowIndentGuides,
+    highlightActiveIndent,
     pairsBack: Map<string, [Range, Range]> = new Map(),
     pairsForward: Map<string, [Range, Range]> = new Map(),
     placedGuidesColor: Map<string, number> = new Map(),
@@ -51,7 +52,9 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor === vscode.window.activeTextEditor && is_clojure(event.textEditor)) {
       matchPairs();
-      decorateActiveGuides();
+      if (highlightActiveIndent && rainbowTypes.length) {
+        decorateActiveGuides();
+      }
     }
   }, null, context.subscriptions);
 
@@ -180,6 +183,11 @@ export function activate(context: vscode.ExtensionContext) {
       dirty = true;
     }
 
+    if (highlightActiveIndent !== configuration.get<boolean>("highlightActiveIndent")) {
+      highlightActiveIndent = configuration.get<boolean>("highlightActiveIndent");
+      dirty = true;
+    }
+
     if (useRainbowIndentGuides !== configuration.get<boolean>("rainbowIndentGuides")) {
       useRainbowIndentGuides = configuration.get<boolean>("rainbowIndentGuides");
       dirty = true;
@@ -221,6 +229,7 @@ export function activate(context: vscode.ExtensionContext) {
       len = rainbowTypes.length,
       colorsEnabled = enableBracketColors && len > 0,
       guideColorsEnabled = useRainbowIndentGuides && len > 0,
+      activeGuideEnabled = highlightActiveIndent && len > 0,
       colorIndex = cycleBracketColors ? (i => i % len) : (i => Math.min(i, len - 1));
 
     let in_comment_form = false,
@@ -331,7 +340,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (colorsEnabled) {
               rainbow[colorIndex(stack_depth)].push(decoration);
             }
-            if (guideColorsEnabled) {
+            if (guideColorsEnabled || activeGuideEnabled) {
               const matchPos = pos.translate(0, 1);
               const openSelection = matchBefore(new vscode.Selection(matchPos, matchPos));
               const openSelectionPos = openSelection[0].start;
@@ -348,13 +357,17 @@ export function activate(context: vscode.ExtensionContext) {
 
     for (var i = 0; i < rainbowTypes.length; ++i) {
       activeEditor.setDecorations(rainbowTypes[i], rainbow[i]);
-      activeEditor.setDecorations(rainbowGuidesTypes[i], rainbowGuides[i]);
+      if (guideColorsEnabled) {
+        activeEditor.setDecorations(rainbowGuidesTypes[i], rainbowGuides[i]);
+      }
     }
     activeEditor.setDecorations(misplacedType, misplaced);
     activeEditor.setDecorations(commentFormType, comment_forms);
     activeEditor.setDecorations(ignoredFormType, ignores);
     matchPairs();
-    decorateActiveGuides();
+    if (activeGuideEnabled) {
+      decorateActiveGuides();
+    }
   }
 
   function matchBefore(selection) {
