@@ -430,16 +430,19 @@ export function activate(context: vscode.ExtensionContext) {
         const endPos = doc.positionAt(cursor.offsetStart);
         cursor.backwardSexp();
         const downCursor = cursor.clone();
-        downCursor.downList();
-        const startPos = doc.positionAt(downCursor.offsetStart - 1);
-        const guideRange = new vscode.Range(startPos, endPos);
-        let colorIndex;
-        colorIndex = placedGuidesColor.get(position_str(startPos));
-        if (colorIndex !== undefined) {
-          if (guideRange.contains(selection)) {
-            decorateGuide(doc, startPos, endPos, activeGuides);
-            activeEditor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
+        if (downCursor.downList()) {
+          const startPos = doc.positionAt(downCursor.offsetStart - 1);
+          const guideRange = new vscode.Range(startPos, endPos);
+          let colorIndex;
+          colorIndex = placedGuidesColor.get(position_str(startPos));
+          if (colorIndex !== undefined) {
+            if (guideRange.contains(selection)) {
+              decorateGuide(doc, startPos, endPos, activeGuides);
+              activeEditor.setDecorations(activeGuidesTypes[colorIndex], activeGuides);
+            }
+            break;
           }
+        } else {
           break;
         }
       }
