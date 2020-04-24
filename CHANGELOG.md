@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.94] - 2020-04-24
 - [Rainbow indent guides](https://github.com/BetterThanTomorrow/calva/issues/620)
 
 ## [2.0.93] - 2020-04-21
