@@ -426,8 +426,16 @@ export function activate(context: vscode.ExtensionContext) {
       const doc = activeEditor.document;
       const mirrorDoc = docMirror.getDocument(doc);
       const cursor = mirrorDoc.getTokenCursor(doc.offsetAt(selection.start));
+      let visitedEndPositions = [selection.start];
+      findActiveGuide:
       while (cursor.forwardList() && cursor.upList()) {
         const endPos = doc.positionAt(cursor.offsetStart);
+        for (let i = 0; i < visitedEndPositions.length; i++) {
+          if (endPos.isEqual(visitedEndPositions[i])) {
+            break findActiveGuide;
+          }
+        }
+        visitedEndPositions.push(endPos);
         cursor.backwardSexp();
         const downCursor = cursor.clone();
         if (downCursor.downList()) {
