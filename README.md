@@ -36,6 +36,8 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 
 * Syntax highlighting, plus:
   * Rainbow parens
+  * Rainbow indent guides
+  * Highlight active indent guide
   * Highlights misplaced brackets
   * LISP friendly bracket matching
   * Ignore form (`#_`) dimming and `(comment)` form highlighting
@@ -69,6 +71,10 @@ The gif demos several more features, apart from the in-comment evaluation, like:
 It is pretty educational using the signature help hover to see which argument you are typing when the argument list is using destructuring, or when an argument is threaded in first before the arguments you provide inside the form.
 
 ![Signature Help](assets/howto/signature-help.gif)
+
+### Demo: Syntax highlighting, rainbow parens and guides
+
+![Dimming ignored forms](/assets/howto/rainbow-guides.gif)
 
 ### Demo: Syntax highlighting, dimming ignored forms
 
