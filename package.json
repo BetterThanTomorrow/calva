@@ -569,7 +569,7 @@
                     "calva.highlight.highlightActiveIndent": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Highligt active indent with a guideline. (Unlike the VS Code built-in setting, this works independently of the rainbowIndentGuides setting.)",
+                        "description": "Highlight active indent with a guideline. (Unlike the VS Code built-in setting, this works independently of the rainbowIndentGuides setting.)",
                         "scope": "resource"
                     },
                     "calva.highlight.bracketColors": {

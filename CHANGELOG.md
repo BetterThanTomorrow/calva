@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 ## [2.0.95] - 2020-04-25
-- [Seperate setting for highlighting current indent guide](https://github.com/BetterThanTomorrow/calva/issues/625)
+- [Separate setting for highlighting current indent guide](https://github.com/BetterThanTomorrow/calva/issues/625)
 - [Fix: Problems with v2.0.94 rendering performance ](https://github.com/BetterThanTomorrow/calva/issues/626)
 
 ## [2.0.94] - 2020-04-24
