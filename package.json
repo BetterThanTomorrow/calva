@@ -1786,6 +1786,7 @@
         "webpack-cli": "^3.3.11"
     },
     "resolutions": {
-        "minimist": "^1.2.5"
+        "minimist": "^1.2.5",
+        "kind-of": "^6.0.3"
     }
 }
