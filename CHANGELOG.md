@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix colors in suggestion popup (REPL window)](https://github.com/BetterThanTomorrow/calva/issues/623)
 
 ## [2.0.95] - 2020-04-25
 - [Separate setting for highlighting current indent guide](https://github.com/BetterThanTomorrow/calva/issues/625)
