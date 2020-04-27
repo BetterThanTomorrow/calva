@@ -19,7 +19,7 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
 });
 
 async function getLintAnalysis(session: NReplSession, documentText: string): Promise<any> {
-    const code = `(do (require 'clj-kondo.core) (with-in-str ${JSON.stringify(documentText)} (:analysis (clj-kondo.core/run! {:lint ["-"] :lang :clj :config {:output {:analysis true}}}))))`;
+    const code = `(with-in-str ${JSON.stringify(documentText)} (:analysis (clj-kondo.core/run! {:lint ["-"] :lang :clj :config {:output {:analysis true}}})))`;
     const resEdn = await session.eval(code, 'user').value;
     return parseEdn(resEdn);
 }
@@ -94,20 +94,27 @@ function triggerUpdateDecorations() {
     timeout = setTimeout(updateDecorations, 50);
 }
 
-function activate() {
+async function activate() {
+    const cljSession = util.getSession('clj');
 
-    triggerUpdateDecorations();
+    try {
+        await cljSession.eval("(require 'clj-kondo.core)", 'user').value;
 
-    vscode.window.onDidChangeActiveTextEditor(editor => {
         triggerUpdateDecorations();
-    });
 
-    vscode.workspace.onDidChangeTextDocument(event => {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (activeEditor && event.document === activeEditor.document && event.contentChanges.length > 0) {
+        vscode.window.onDidChangeActiveTextEditor(editor => {
             triggerUpdateDecorations();
-        }
-    });
+        });
+
+        vscode.workspace.onDidChangeTextDocument(event => {
+            const activeEditor = vscode.window.activeTextEditor;
+            if (activeEditor && event.document === activeEditor.document && event.contentChanges.length > 0) {
+                triggerUpdateDecorations();
+            }
+        });
+    } catch (_) {
+        vscode.window.showWarningMessage('clj-kondo was not found on the classpath. Debugger decorations will not be enabled.');
+    }
 }
 
 export default {
