@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.94",
+    "version": "2.0.96",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -107,6 +107,7 @@
                 "editor.formatOnPaste": true,
                 "files.trimTrailingWhitespace": false,
                 "editor.matchBrackets": "never",
+                "editor.renderIndentGuides": false,
                 "editor.parameterHints.enabled": false
             }
         },
@@ -557,6 +558,18 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Enable rainbow brackets",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.rainbowIndentGuides": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in [\"clojure\"] scope.",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.highlightActiveIndent": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Highlight active indent with a guideline. (Unlike the VS Code built-in setting, this works independently of the rainbowIndentGuides setting.)",
                         "scope": "resource"
                     },
                     "calva.highlight.bracketColors": {
@@ -1776,10 +1789,10 @@
         "mocha-junit-reporter": "^1.23.1",
         "mocha-multi-reporters": "^1.1.7",
         "node-gyp": "^5.0.5",
-        "nodemon": "^1.19.4",
+        "nodemon": "^2.0.3",
         "rimraf": "^2.7.1",
-        "sass": "^1.23.7",
-        "shadow-cljs": "^2.8.77",
+        "sass": "^1.0.0-beta.3",
+        "shadow-cljs": "^2.8.102",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",
@@ -1790,13 +1803,14 @@
         "url-loader": "^1.1.2",
         "vsce": "^1.75.0",
         "vscode-test": "^1.3.0",
-        "webpack": "^4.42.1",
+        "webpack": "^4.43.0",
         "webpack-cli": "^3.3.11"
     },
     "extensionDependencies": [
         "borkdude.clj-kondo"
     ],
     "resolutions": {
-        "minimist": "^1.2.5"
+        "minimist": "^1.2.5",
+        "kind-of": "^6.0.3"
     }
 }

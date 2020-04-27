@@ -36,6 +36,8 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 
 * Syntax highlighting, plus:
   * Rainbow parens
+  * Rainbow indent guides
+  * Highlight active indent guide
   * Highlights misplaced brackets
   * LISP friendly bracket matching
   * Ignore form (`#_`) dimming and `(comment)` form highlighting
@@ -44,7 +46,7 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 * [Linting](https://calva.io/linting/)
 * Intellisense
 * Go to / Peek at definition
-* View docstrings on hover
+* View doc strings on hover
 * View function signatures on hover, including help with knowing which argument you are typing
 * [Debugger](https://calva.io/debugger/)
 * Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
@@ -70,6 +72,10 @@ It is pretty educational using the signature help hover to see which argument yo
 
 ![Signature Help](assets/howto/signature-help.gif)
 
+### Demo: Syntax highlighting, rainbow parens and guides
+
+![Dimming ignored forms](/assets/howto/rainbow-guides.gif)
+
 ### Demo: Syntax highlighting, dimming ignored forms
 
 ![Dimming ignored forms](/assets/howto/dimming-ignores.gif)
@@ -89,7 +95,7 @@ I'm glad you are reading this section! There are many ways and you are welcome t
 * Give us feedback.
   * Via [#calva](https://clojurians.slack.com/messages/calva/) at the Clojurians Slack.
   * Via filing issues.
-* Fix issues. PRs welcome! Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) toolchain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva. TL;DR _It is super easy to get started!_
+* Fix issues. PRs welcome! Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) tool chain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva. TL;DR _It is super easy to get started!_
 * Fix typos. In the UI and in the docs. It might seem like a small enough thing to not bother about it, but really, typos get in the way of comprehension. Typos are bad, uhm?
 * Become a GitHub sponsor. Read on.
 
@@ -134,7 +140,7 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 ### Current Maintainers
 
 * [Peter Strömberg](https://github.com/PEZ)
-* [Kevin Stehn](https://github.com/kstehn)
+* [Kevin Ahlbrecht](https://github.com/kstehn)
 * [Christian Fehse](https://github.com/cfehse)
 * [Brandon Ringe](https://github.com/bpringe)
 
