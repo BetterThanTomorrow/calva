@@ -9,11 +9,9 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     borderStyle: 'solid',
     overviewRulerColor: 'blue',
     light: {
-        // This color will be used in light color themes
         borderColor: 'darkblue'
     },
     dark: {
-        // This color will be used in dark color themes
         borderColor: 'lightblue'
     }
 });
