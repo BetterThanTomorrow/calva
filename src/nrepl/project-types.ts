@@ -7,7 +7,6 @@ import * as pprint from '../printer';
 
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { O_TRUNC } from 'constants';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -148,7 +147,6 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
     return { profiles, alias };
 }
 
-
 const NREPL_VERSION = "0.6.0",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
@@ -188,6 +186,7 @@ const leinPluginDependencies = {
 }
 const leinDependencies = {
     "nrepl": NREPL_VERSION,
+    "clj-kondo": CLJ_KONDO_VERSION
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
