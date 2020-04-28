@@ -2,7 +2,7 @@ import { LispTokenCursor } from "../cursor-doc/token-cursor";
 
 function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
 
-    const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList();
+    const [listOffsetStart, listOffsetEnd] = tokenCursor.rangeForList(1);
     const text = tokenCursor.doc.getText(listOffsetStart, listOffsetEnd - 1);
 
     const stringIndexInList = text.indexOf(s);

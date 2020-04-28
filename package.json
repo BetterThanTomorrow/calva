@@ -1737,7 +1737,6 @@
         "net": "1.0.2",
         "npm": "^6.14.4",
         "open": "^6.3.0",
-        "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",

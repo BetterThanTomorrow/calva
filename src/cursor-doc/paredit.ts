@@ -225,7 +225,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionRig
         if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
             return doc.model.edit([
                 new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : "", [start, start], [prevEnd, prevEnd]])
-            ], { selection: new ModelEditSelection(prevEnd), formatParent: true });
+            ], { selection: new ModelEditSelection(prevEnd), formatDepth: 2 });
         }
     }
 }
@@ -313,8 +313,8 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
             new ModelEdit('insertString', [cursor.offsetStart, close])
         ], start >= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
-            formatParent: true
-        } : { formatParent: true });
+            formatDepth: 2
+            } : { formatDepth: 2 });
     }
 }
 
@@ -334,8 +334,8 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
             new ModelEdit('deleteRange', [offset, tk.raw.length])
         ], start <= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
-            formatParent: true
-        } : { formatParent: true });
+                formatDepth: 2
+            } : { formatDepth: 2 });
     }
 }
 

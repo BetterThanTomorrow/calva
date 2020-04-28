@@ -17,31 +17,31 @@ baz)")
 
 (deftest format-text-at-idx
   (is (= "(defn bar
-    [x]
+  [x]
 
-    baz)"
-         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11}))))
+  baz)"
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
   (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
   (is (= [10 38]
-         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11})))))
+         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11})))))
 
 
 (deftest new-index
   (is (= 1
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 11}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
   (is (= 13
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 28}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 28}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 22}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 22}))))
   (is (= 12
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 27}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 27}))))
   (is (= 22
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :idx 33}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 33}))))
   (is (= 5
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :range [2 7] :idx 6}))))
   (is (= 11
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :idx 11})))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [10 38] :idx 11})))))
 
 
 (def head-and-tail-text "(def a 1)
@@ -100,42 +100,42 @@ bar))")
 
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :ramge [0 7] :idx 7}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :idx 8}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :ramge [0 7] :idx 8}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :idx 6}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :ramge [0 7] :idx 6}))))
   (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :ramge [0 10] :idx 7}))))
   (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :ramge [0 10] :idx 7}))))
   (is (= "'([]\n    [])"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :ramge [2 10] :idx 7}))))
   (is (= "[:foo\n \n (foo) (bar)]"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6})))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :ramge [0 18] :idx 6})))))
 
 
 (deftest new-index-on-type
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :ramge [0 9] :idx 6}))))
   (is (= 8
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :ramge [0 9] :idx 6}))))
   #_(is (= 8 ;; Fails due to a bug in rewrite-cljs
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :ramge [0 9] :idx 6}))))
   (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :idx 7}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :ramge [0 9] :idx 7}))))
   (is (= 7
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :idx 7}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :ramge [0 9] :idx 7}))))
   (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :idx 9}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :ramge [0 9] :idx 9}))))
   (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :idx 7}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :ramge [0 9] :idx 7}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :idx 8}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :ramge [0 9] :idx 8}))))
   (is (= 13
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :idx 12}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :ramge [0 9] :idx 12}))))
   (is (= 7
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :idx 6})))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :ramge [0 9] :idx 6})))))
 
 
 (deftest new-index-on-type-crlf
@@ -206,82 +206,6 @@ bar))" :range [22 25]})))
          (sut/indent-before-range {:all-text "  '([]
 [])" :range [4 9]}))))
 
-
-(def enclosing-range-text "(def a 1)
-
-
-(defn foo [x] (let [bar 1]
-
-bar))")
-
-
-(deftest enclosing-range
-  (is (= [22 25] ;"[x]"
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 23}))))
-  (is (= [12 45] ;"enclosing form"
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 21}))))
-  (is (= [0 9] ; after top level form
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 9}))))
-  (is (= [0 9] ; before top level form
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 0}))))
-  (is (= [26 44] ; before top level form
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 39}))))
-  (is (= [10 10] ; void (between top level forms)
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 10}))))
-  (is (= [5 5]
-         (:range (sut/enclosing-range {:all-text "  []\n  \n[]" :idx 5}))))
-  (is (= [1 7]
-         (:range (sut/enclosing-range {:all-text " ([][])" :idx 4}))))
-  #_(is (= [1 6]
-         (:range (sut/enclosing-range {:all-text " (\"[\")" :idx 4}))))
-  (is (= [1 12]
-         (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2}))))
-  (is (= [1 13]
-         (:range (sut/enclosing-range {:all-text " #{:foo :bar}" :idx 8}))))
-  (is (= [1 12]
-         (:range (sut/enclosing-range {:all-text " '(:foo bar)" :idx 8})))))
-
-
-(deftest enclosing-parent-range
-  (is (= [12 45] ;"[x]" => enclosing defn
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 23
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [12 45] ;"enclosing top level defn"
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 21
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [0 9] ; after top level def form => selects it
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 9
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [0 9] ; before top level def form => selects it
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 0
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [26 44] ; inside let [bar 1] => selects let
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 33
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [12 45] ; inside let form => selects enclosing defn
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 31
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [10 10] ; void (between top level forms)
-         (:range (sut/enclosing-range {:all-text enclosing-range-text :idx 10
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [5 5]
-         (:range (sut/enclosing-range {:all-text "  []\n  \n[]" :idx 5
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [1 7] ; between the [][] => selects the enclosing list
-         (:range (sut/enclosing-range {:all-text " ([][])" :idx 4
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [1 7] ; inside one of the [][] => selects the enclosing list
-         (:range (sut/enclosing-range {:all-text " ([][])" :idx 3
-                                       :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [2 4] ; inside one of the [][], parent false => selects the []
-         (:range (sut/enclosing-range {:all-text " ([][])" :idx 3
-                                       :config {:calva-fmt/use-enclosing-parent? false}}))))
-  #_(is (= [1 6]
-           (:range (sut/enclosing-range {:all-text " (\"[\")" :idx 4
-                                         :config {:calva-fmt/use-enclosing-parent? true}}))))
-  (is (= [1 12]
-         (:range (sut/enclosing-range {:all-text " {:foo :bar}" :idx 2
-                                       :config {:calva-fmt/use-enclosing-parent? true}})))))
 
 (deftest cljfmt-options
   (is (= (count cljfmt/default-indents)
