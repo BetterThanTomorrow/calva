@@ -862,11 +862,6 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.selectOpenList",
-                "title": "Backward to List Start/Open"
-            },
-            {
-                "category": "Calva Paredit",
                 "command": "paredit.selectForwardSexp",
                 "title": "Select Forward Sexp"
             },
