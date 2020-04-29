@@ -5,9 +5,10 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calvaDebug";
+import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import annotations from '../providers/annotations';
+import debugDecorations from '../debugger/decorations';
 
 /** An nRREPL client */
 export class NReplClient {
@@ -300,6 +301,9 @@ export class NReplSession {
         let evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
             this.messageHandlers[opMsg.id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
+                if (opts.line && opts.column && opts.file) {
+                    debugDecorations.triggerUpdateDecorations();
+                }
                 if (evaluation.onMessage(msg, pprintOptions)) {
                     return true;
                 }
@@ -346,6 +350,7 @@ export class NReplSession {
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
+                debugDecorations.triggerUpdateDecorations();
                 if (evaluation.onMessage(msg, opts.pprintOptions)) {
                     return true;
                 }
@@ -565,6 +570,17 @@ export class NReplSession {
             this.client.write(data);
         });
     }
+
+    listDebugInstrumentedDefs(): Promise<any> {
+        return new Promise<any>((resolve, _) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: 'debug-instrumented-defs', id, session: this.sessionId });
+        });
+    }
 }
 
 /**
@@ -757,7 +773,7 @@ export class NReplEvaluation {
             if (msg.status && msg.status.indexOf('eval-error') !== -1 && msg.causes) {
                 const cause = msg.causes[0];
                 const errorMessage = `${cause.class}: ${cause.message}`;
-                this._stacktrace = {stacktrace: cause.stacktrace};
+                this._stacktrace = { stacktrace: cause.stacktrace };
                 this.err(errorMessage);
             }
             if (msg.value !== undefined || msg['debug-value'] !== undefined) {
@@ -804,7 +820,7 @@ export class NReplEvaluation {
                     this.doReject('');
                 } else {
                     let printValue = this.msgValue;
-                    if (pprintOptions.enabled && (pprintOptions.printEngine === 'calva' || msg['debug-value'] !== undefined)) {
+                    if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
                         const pretty = prettyPrint(this.msgValue, pprintOptions);
                         if (!pretty.error) {
                             printValue = pretty.value;
