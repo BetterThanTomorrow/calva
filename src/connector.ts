@@ -6,13 +6,13 @@ import * as util from './utilities';
 import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
-
 import { NReplClient, NReplSession } from "./nrepl";
 import { openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
-import { REQUESTS } from './debugger/calvaDebug';
+import { REQUESTS } from './debugger/calva-debug';
+import debugDecorations from './debugger/decorations';
 
 async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {
@@ -29,7 +29,6 @@ async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "
         });
     }
 }
-
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -66,6 +65,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         // Initialize debugger
         cljSession.initDebugger();
         chan.appendLine('Debugger initialized');
+        debugDecorations.activate();
 
         await createAndConnectReplWindow(cljSession, "clj");
 
@@ -527,6 +527,8 @@ export default {
         if (vscode.debug.activeDebugSession) {
             vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
         }
+
+        debugDecorations.triggerUpdateDecorations();
 
         callback();
     },
