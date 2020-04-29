@@ -5,10 +5,10 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
-import { activeReplWindow, getReplWindow } from './repl-window';
+import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
-import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
+import { PrettyPrintingOptions } from './printer';
 
 function interruptAllEvaluations() {
 
@@ -70,6 +70,9 @@ async function evaluateSelection(document, options) {
         }
 
         if (code.length > 0) {
+            if (options.debug) {
+                code = '#dbg\n' + code;
+            }
             annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
@@ -140,33 +143,37 @@ async function evaluateSelection(document, options) {
         vscode.window.showErrorMessage("Not connected to a REPL");
 }
 
+function printWarningForError(e: any) {
+    console.warn(`Unhandled error: ${e.message}`);
+}
+
 function normalizeNewLines(strings: string[]): string {
     return strings.map(x => x.replace(/\n\r?$/, "")).join("\n");
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
@@ -259,6 +266,11 @@ async function togglePrettyPrint() {
     statusbar.update();
 };
 
+async function instrumentTopLevelForm() {
+    evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true})
+        .catch(printWarningForError);
+}
+
 export default {
     interruptAllEvaluations,
     loadFile,
@@ -269,5 +281,6 @@ export default {
     evaluateTopLevelFormAsComment,
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
-    togglePrettyPrint
+    togglePrettyPrint,
+    instrumentTopLevelForm
 };

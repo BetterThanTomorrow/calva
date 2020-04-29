@@ -3,7 +3,11 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.96] - 2020-04-29
 - [Fix colors in suggestion popup (REPL window)](https://github.com/BetterThanTomorrow/calva/issues/623)
+- Add "Instrument Top Level Form for Debugging" command and decorations for instrumented functions
+- [Remove duplicate paredit.selectOpenList command in package.json](https://github.com/BetterThanTomorrow/calva/issues/629)
 
 ## [2.0.95] - 2020-04-25
 - [Separate setting for highlighting current indent guide](https://github.com/BetterThanTomorrow/calva/issues/625)

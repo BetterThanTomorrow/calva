@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.96",
+    "version": "2.0.97",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -616,6 +616,12 @@
         ],
         "commands": [
             {
+                "command": "calva.debug.instrument",
+                "title": "Instrument Top Level Form for Debugging",
+                "category": "Calva Debug",
+                "enablement": "editorLangId == clojure && calva:connected"
+            },
+            {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
                 "category": "Calva"
@@ -853,11 +859,6 @@
                 "category": "Calva Paredit",
                 "command": "paredit.closeList",
                 "title": "Forward to List End/Close"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.selectOpenList",
-                "title": "Backward to List Start/Open"
             },
             {
                 "category": "Calva Paredit",
@@ -1127,6 +1128,11 @@
                 "command": "calva.tellAboutNewChordingKey",
                 "key": "ctrl+alt+v",
                 "when": "editorLangId == clojure"
+            },
+            {
+                "command": "calva.debug.instrument",
+                "key": "ctrl+alt+c i",
+                "when": "editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.jackIn",
@@ -1596,6 +1602,10 @@
                 {
                     "command": "calva.jackInOrConnect",
                     "when": "false"
+                },
+                {
+                    "command": "calva.debug.instrument",
+                    "when": "editorLangId == clojure && calva:connected"
                 }
             ],
             "editor/title": [
@@ -1673,6 +1683,12 @@
                 {
                     "when": "editorLangId == clojure",
                     "command": "calva.togglePrettyPrint",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "command": "calva.debug.instrument",
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
                     "group": "calva/b-eval"
                 },
                 {
@@ -1784,6 +1800,9 @@
         "webpack": "^4.43.0",
         "webpack-cli": "^3.3.11"
     },
+    "extensionDependencies": [
+        "borkdude.clj-kondo"
+    ],
     "resolutions": {
         "minimist": "^1.2.5",
         "kind-of": "^6.0.3"
