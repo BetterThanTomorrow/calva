@@ -47,7 +47,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
 1. Commit.
 1. Tag with `v<VERSION>` (and you must provide a tag message, else the CI pipeline won't pick it up correctly)
 1. Push `dev` (Using `--follow-tags`).
-   * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace + `open-vsx.org`.
+   * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace + `open-vsx.org`. **Note:** There is an approval step in the CircleCI pipeline. The release and VSIX will not be published until the Approve button is clicked in CircleCI.
    * You'll get an e-mail when it is published. (Or maybe only @pez gets that, not sure).
 1. When the new version is live, immediately install it and see that it works.
    * If the Marketplace version works:
