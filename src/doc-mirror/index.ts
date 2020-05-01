@@ -37,8 +37,8 @@ export class DocumentModel implements EditableModel {
                     this.document.selection = options.selection;
                 }
                 if (!options.skipFormat) {
-                    return formatter.formatPosition(editor, true, { 
-                        "calva-fmt/use-enclosing-parent?": !!options.formatParent
+                    return formatter.formatPosition(editor, true, {
+                        "format-depth": options.formatDepth ? options.formatDepth : 1
                      });
                 }
             }
@@ -79,7 +79,7 @@ export class DocumentModel implements EditableModel {
         return this.lineInputModel.getTokenCursor(offset, previous);
     }
 }
-class MirroredDocument implements EditableDocument {
+export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
     get selectionLeft(): number {

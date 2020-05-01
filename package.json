@@ -1733,8 +1733,7 @@
         "bump-version": "npm set git-tag-version false && npm version patch",
         "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
-        "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-        "preinstall": "npx npm-force-resolutions"
+        "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
@@ -1753,7 +1752,6 @@
         "net": "1.0.2",
         "npm": "^6.14.4",
         "open": "^6.3.0",
-        "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
@@ -1765,10 +1763,10 @@
         "@types/mocha": "^5.2.7",
         "@types/vscode": "^1.30.0",
         "chai": "^4.2.0",
-        "concurrently": "^4.1.0",
+        "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",
         "css-loader": "^2.1.1",
-        "dart-sass-loader": "^1.0.0",
+        "sass-loader": "8.0.2",
         "eslint": "^6.8.0",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.17.3",
@@ -1786,8 +1784,8 @@
         "node-gyp": "^5.0.5",
         "nodemon": "^2.0.3",
         "rimraf": "^2.7.1",
-        "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.102",
+        "sass": "^1.26.5",
+        "shadow-cljs": "^2.8.109",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",
@@ -1803,9 +1801,5 @@
     },
     "extensionDependencies": [
         "borkdude.clj-kondo"
-    ],
-    "resolutions": {
-        "minimist": "^1.2.5",
-        "kind-of": "^6.0.3"
-    }
+    ]
 }

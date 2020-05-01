@@ -391,26 +391,31 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
+     * Finds the range of the current list up to `depth`.
+     * If you are particular about which type of list, supply the `openingBracket`.
      * @param openingBracket
      */
-    rangeForList(openingBracket?: string): [number, number] {
+    rangeForList(depth: number, openingBracket?: string): [number, number] {
         const cursor = this.clone();
-        if (openingBracket === undefined) {
-            if (!(cursor.backwardList() && cursor.backwardUpList())) {
-                return undefined;
+        let range: [number, number] = undefined;
+        for (let i = 0; i < depth; i++) {
+            if (openingBracket === undefined) {
+                if (!(cursor.backwardList() && cursor.backwardUpList())) {
+                    return range;
+                }
+            } else {
+                if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
+                    return range;
+                }
             }
-        } else {
-            if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
-                return undefined;
+            const start = cursor.offsetStart;
+            if (!cursor.forwardSexp()) {
+                return range;
             }
+            const end = cursor.offsetStart;
+            range = [start, end];
         }
-        const start = cursor.offsetStart;
-        if (!cursor.forwardSexp()) {
-            return undefined;
-        }
-        const end = cursor.offsetEnd;
-        return [start, end]
+        return range;
     }
 
     /**
