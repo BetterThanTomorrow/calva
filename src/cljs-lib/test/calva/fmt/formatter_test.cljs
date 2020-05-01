@@ -17,9 +17,9 @@ baz)")
 
 (deftest format-text-at-idx
   (is (= "(defn bar
-  [x]
+    [x]
 
-  baz)"
+    baz)"
          (:range-text (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
   (is (= 1
          (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
@@ -39,9 +39,9 @@ baz)")
   (is (= 22
          (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 33}))))
   (is (= 5
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :range [2 7] :idx 6}))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :range [0 14] :idx 6}))))
   (is (= 11
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [10 38] :idx 11})))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [0 14] :idx 11})))))
 
 
 (def head-and-tail-text "(def a 1)
@@ -100,59 +100,59 @@ bar))")
 
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :ramge [0 7] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idx 7}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :ramge [0 7] :idx 8}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :range [0 9] :idx 8}))))
   (is (= "(bar \n \n )"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :ramge [0 7] :idx 6}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idx 6}))))
   (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :ramge [0 10] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idx 7}))))
   (is (= "\"bar \n \n \""
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :ramge [0 10] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idx 7}))))
   (is (= "'([]\n    [])"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :ramge [2 10] :idx 7}))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :range [2 10] :idx 7}))))
   (is (= "[:foo\n \n (foo) (bar)]"
-         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :ramge [0 18] :idx 6})))))
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
 
 
 (deftest new-index-on-type
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :ramge [0 9] :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :range [0 8] :idx 6}))))
   (is (= 8
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :ramge [0 9] :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :range [0 8] :idx 6}))))
   #_(is (= 8 ;; Fails due to a bug in rewrite-cljs
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :ramge [0 9] :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :range [0 10] :idx 6}))))
   (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :ramge [0 9] :idx 7}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :range [0 8] :idx 7}))))
   (is (= 7
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :ramge [0 9] :idx 7}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  )" :range [0 10] :idx 7}))))
   (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :ramge [0 9] :idx 9}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n  \n  )" :range [0 13] :idx 9}))))
   (is (= 9
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :ramge [0 9] :idx 7}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :range [0 9] :idx 7}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :ramge [0 9] :idx 8}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n\n)" :range [0 9] :idx 8}))))
   (is (= 13
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :ramge [0 9] :idx 12}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(foo\n (bar)\n)" :range [0 13] :idx 12}))))
   (is (= 7
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :ramge [0 9] :idx 6})))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
 
 
 (deftest new-index-on-type-crlf
   (is (= 6
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :idx 6}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :range [0 9] :idx 6}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :idx 8}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n)" :range [0 9] :idx 8}))))
   (is (= 8
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  )" :idx 8}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  )" :range [0 11] :idx 8}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  \r\n  )" :idx 10}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n  \r\n  )" :range [0 15] :idx 10}))))
   (is (= 10
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :idx 8}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :range [0 11] :idx 8}))))
   (is (= 12
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :idx 10}))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :range [0 11] :idx 10}))))
   (is (= 15
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(foo\r\n (bar)\r\n)" :idx 14})))))
+         (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(foo\r\n (bar)\r\n)" :range [0 15] :idx 14})))))
   
 
 (deftest index-for-tail-in-range
