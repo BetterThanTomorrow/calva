@@ -2,60 +2,9 @@
   (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
             ["parinfer" :as parinfer]
-            ["paredit.js" :as paredit]
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.util :as util]))
 
-
-(comment
-  (cljify (paredit/parse "(\"(\")"))
-  (cljify (paredit/parse "[]"))
-  (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "[][]") 3 pr-str))
-  (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "[][]") 0 pr-str))
-  (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "([][])") 0 pr-str))
-  (-> [{:type "toplevel", :start 0, :end 6, :errors [], :children [{:type "list", :start 0, :end 6, :children [{:type "list", :start 1, :end 3, :children [], :open "[", :close "]"} {:type "list", :start 3, :end 5, :children [], :open "[", :close "]"}], :open "(", :close ")"}]}]
-      first
-      :children
-      count)
-  (-> (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "[][]") "a" identity)))
-  (-> (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "[][]") [0 4] identity)))
-  (-> (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "#()") 0 identity))
-      count)
-  (-> (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "()") 0 identity))
-      count)
-  (-> (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "[][]") 0 identity))
-      first
-      :children
-      count)
-  (-> (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "([][])") 0 identity))
-      first
-      :children
-      count)
-  (-> (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "{[][]}") 0 identity))
-      first
-      :children
-      first)
-  (-> (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "\"\"") 0 identity))
-      first
-      :children
-      count)
-  (-> (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "\"\"") 0 identity))
-      first
-      :children
-      first
-      :type)
-  (-> (cljify ((.. paredit -walk -sexpsAt) (paredit/parse "'#([])") 3 identity))
-      first
-      :children
-      (nth 2)
-      :type)
-  (-> (cljify ((.. paredit -walk -containingSexpsAt) (paredit/parse "'()") 0 identity))
-      first
-      :children
-      first
-      :type)
-  (cljify (paredit/parse "[][]"))
-  (cljify (paredit/parse "([][])")))
 
 (comment
   (foo
