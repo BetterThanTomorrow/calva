@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Remove dependency on `paredit.js` from `calva-lib`
 
 ## [2.0.96] - 2020-04-29
 - [Fix colors in suggestion popup (REPL window)](https://github.com/BetterThanTomorrow/calva/issues/623)
