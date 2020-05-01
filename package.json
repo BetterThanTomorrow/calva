@@ -545,8 +545,8 @@
                     },
                     "calva.fmt.newIndentEngine": {
                         "type": "boolean",
-                        "default": false,
-                        "description": "Experimental. Help beta test the new auto-indent engine."
+                        "default": true,
+                        "markdownDescription": "Use the structural editor for indentation (instead of `cljfmt`)."
                     }
                 }
             },
@@ -563,7 +563,7 @@
                     "calva.highlight.rainbowIndentGuides": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in [\"clojure\"] scope.",
+                        "markdownDescription": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in `[\"clojure\"]` scope.",
                         "scope": "resource"
                     },
                     "calva.highlight.highlightActiveIndent": {

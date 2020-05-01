@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [The New Indent engine doesn't follow block rules in ns :require #633](https://github.com/BetterThanTomorrow/calva/issues/633)
+- Make the new indent engine the default
 
 ## [2.0.96] - 2020-04-29
 - [Fix colors in suggestion popup (REPL window)](https://github.com/BetterThanTomorrow/calva/issues/623)
