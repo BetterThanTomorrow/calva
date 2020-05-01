@@ -1733,8 +1733,7 @@
         "bump-version": "npm set git-tag-version false && npm version patch",
         "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
-        "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-        "preinstall": "npx npm-force-resolutions"
+        "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
@@ -1764,7 +1763,7 @@
         "@types/mocha": "^5.2.7",
         "@types/vscode": "^1.30.0",
         "chai": "^4.2.0",
-        "concurrently": "^4.1.0",
+        "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",
         "css-loader": "^2.1.1",
         "dart-sass-loader": "^1.0.0",
@@ -1786,7 +1785,7 @@
         "nodemon": "^2.0.3",
         "rimraf": "^2.7.1",
         "sass": "^1.0.0-beta.3",
-        "shadow-cljs": "^2.8.102",
+        "shadow-cljs": "^2.8.109",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",
@@ -1802,9 +1801,5 @@
     },
     "extensionDependencies": [
         "borkdude.clj-kondo"
-    ],
-    "resolutions": {
-        "minimist": "^1.2.5",
-        "kind-of": "^6.0.3"
-    }
+    ]
 }
