@@ -33,13 +33,6 @@ interface IndentInformation {
 }
 
 /**
- * If a token's raw string is in this set, then it counts as an 'open list'. An open list that starts with a symbol
- * is something that could be
- * considered code, so special formatting rules apply.
- */
-const OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
-
-/**
  * Analyses the text before position in the document, and returns a list of enclosing expression information with
  * various indent information, for use with getIndent()
  *
@@ -49,10 +42,10 @@ const OPEN_LIST = new Set(["#(", "#?(", "(", "#?@("])
  * @param maxLines The maximum number of lines above the position to search until we bail with an imprecise answer.
  */
 export function collectIndents(document: EditableModel, offset: number, config: any, maxDepth: number = 3, maxLines: number = 20): IndentInformation[] {
-    let cursor = document.getTokenCursor(offset);
+    const cursor = document.getTokenCursor(offset);
     cursor.backwardWhitespace();
     let argPos = 0;
-    let startLine = cursor.line;
+    const startLine = cursor.line;
     let exprsOnLine = 0;
     let lastLine = cursor.line;
     let lastIndent = 0;
@@ -60,21 +53,24 @@ export function collectIndents(document: EditableModel, offset: number, config: 
     do {
         if (!cursor.backwardSexp()) {
             // this needs some work..
-            let prevToken = cursor.getPrevToken();
+            const prevToken = cursor.getPrevToken();
             if (prevToken.type == 'open' && prevToken.offset <= 1) {
                 maxDepth = 0; // treat an sexpr starting on line 0 sensibly.
             }
             // skip past the first item and record the indent of the first item on the same line if there is one.
-            let nextCursor = cursor.clone();
+            const nextCursor = cursor.clone();
             nextCursor.forwardSexp()
             nextCursor.forwardWhitespace();
 
-            // iff the first item of this list is a an identifier, and the second item is on the same line, indent to that second item. otherwise indent to the open paren.
-            let firstItemIdent = cursor.getToken().type == "id" && nextCursor.line == cursor.line && !nextCursor.atEnd() && OPEN_LIST.has(prevToken.raw) ? nextCursor.rowCol[1] : cursor.rowCol[1];
+            // if the first item of this list is a a function, and the second item is on the same line, indent to that second item. otherwise indent to the open paren.
+            const firstItemIdent = ['id', 'kw'].includes(cursor.getToken().type) &&
+                nextCursor.line == cursor.line &&
+                !nextCursor.atEnd() &&
+                prevToken.type === 'open' &&
+                prevToken.raw.endsWith('(') ? nextCursor.rowCol[1] : cursor.rowCol[1];
 
-
-            let token = cursor.getToken().raw;
-            let startIndent = cursor.rowCol[1];
+            const token = cursor.getToken().raw;
+            const startIndent = cursor.rowCol[1];
             if (!cursor.backwardUpList())
                 break;
 
@@ -114,8 +110,6 @@ const testCljRe = (re, str) => {
 
 /** Returns the expected newline indent for the given position, in characters. */
 export function getIndent(document: EditableModel, offset: number, config?: any): number {
-    // Not going the extra mile to figure out how to feed in the user format config here
-    // The REPL window will have to do with Tonsky Formatting for now.
     if (!config) {
         config = {
             "cljfmt-options": {
