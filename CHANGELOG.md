@@ -4,6 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.97] - 2020-05-02
+- Fix: [The New Indent engine doesn't follow block rules in ns :require #633](https://github.com/BetterThanTomorrow/calva/issues/633)
+- Make the new indent engine the default
+- Remove dependency on `paredit.js` from `calva-lib`
+
+## [2.0.96] - 2020-04-29
+- [Fix colors in suggestion popup (REPL window)](https://github.com/BetterThanTomorrow/calva/issues/623)
+- Add "Instrument Top Level Form for Debugging" command and decorations for instrumented functions
+- [Remove duplicate paredit.selectOpenList command in package.json](https://github.com/BetterThanTomorrow/calva/issues/629)
+
 ## [2.0.95] - 2020-04-25
 - [Separate setting for highlighting current indent guide](https://github.com/BetterThanTomorrow/calva/issues/625)
 - [Fix: Problems with v2.0.94 rendering performance ](https://github.com/BetterThanTomorrow/calva/issues/626)

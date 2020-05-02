@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.96",
+    "version": "2.0.97",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -545,8 +545,8 @@
                     },
                     "calva.fmt.newIndentEngine": {
                         "type": "boolean",
-                        "default": false,
-                        "description": "Experimental. Help beta test the new auto-indent engine."
+                        "default": true,
+                        "markdownDescription": "Use the structural editor for indentation (instead of `cljfmt`)."
                     }
                 }
             },
@@ -563,7 +563,7 @@
                     "calva.highlight.rainbowIndentGuides": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in [\"clojure\"] scope.",
+                        "markdownDescription": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in `[\"clojure\"]` scope.",
                         "scope": "resource"
                     },
                     "calva.highlight.highlightActiveIndent": {
@@ -615,6 +615,12 @@
             }
         ],
         "commands": [
+            {
+                "command": "calva.debug.instrument",
+                "title": "Instrument Top Level Form for Debugging",
+                "category": "Calva Debug",
+                "enablement": "editorLangId == clojure && calva:connected"
+            },
             {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
@@ -853,11 +859,6 @@
                 "category": "Calva Paredit",
                 "command": "paredit.closeList",
                 "title": "Forward to List End/Close"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.selectOpenList",
-                "title": "Backward to List Start/Open"
             },
             {
                 "category": "Calva Paredit",
@@ -1127,6 +1128,11 @@
                 "command": "calva.tellAboutNewChordingKey",
                 "key": "ctrl+alt+v",
                 "when": "editorLangId == clojure"
+            },
+            {
+                "command": "calva.debug.instrument",
+                "key": "ctrl+alt+c i",
+                "when": "editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.jackIn",
@@ -1596,6 +1602,10 @@
                 {
                     "command": "calva.jackInOrConnect",
                     "when": "false"
+                },
+                {
+                    "command": "calva.debug.instrument",
+                    "when": "editorLangId == clojure && calva:connected"
                 }
             ],
             "editor/title": [
@@ -1676,6 +1686,12 @@
                     "group": "calva/b-eval"
                 },
                 {
+                    "command": "calva.debug.instrument",
+                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "group": "calva/b-eval"
+                },
+                {
                     "when": "editorLangId == clojure",
                     "enablement": "calva:connected",
                     "command": "calva.runAllTests",
@@ -1717,8 +1733,7 @@
         "bump-version": "npm set git-tag-version false && npm version patch",
         "calva-lib-test": "node ./out/cljs-lib/test/cljs-lib-tests.js",
         "integration-test": "node ./out/extension-test/integration/runTests.js",
-        "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'",
-        "preinstall": "npx npm-force-resolutions"
+        "unit-test": "npx mocha --require ts-node/register 'src/extension-test/unit/**/*-test.ts'"
     },
     "dependencies": {
         "@types/escape-html": "0.0.20",
@@ -1737,7 +1752,6 @@
         "net": "1.0.2",
         "npm": "^6.14.4",
         "open": "^6.3.0",
-        "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
@@ -1749,10 +1763,10 @@
         "@types/mocha": "^5.2.7",
         "@types/vscode": "^1.30.0",
         "chai": "^4.2.0",
-        "concurrently": "^4.1.0",
+        "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",
         "css-loader": "^2.1.1",
-        "dart-sass-loader": "^1.0.0",
+        "sass-loader": "8.0.2",
         "eslint": "^6.8.0",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.17.3",
@@ -1763,14 +1777,15 @@
         "file-loader": "^3.0.1",
         "glob": "^7.1.6",
         "json": "^9.0.6",
+        "minimist": "^1.2.5",
         "mocha": "^7.1.1",
         "mocha-junit-reporter": "^1.23.1",
         "mocha-multi-reporters": "^1.1.7",
         "node-gyp": "^5.0.5",
-        "nodemon": "^1.19.4",
+        "nodemon": "^2.0.3",
         "rimraf": "^2.7.1",
-        "sass": "^1.23.7",
-        "shadow-cljs": "^2.8.77",
+        "sass": "^1.26.5",
+        "shadow-cljs": "^2.8.109",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",
@@ -1781,11 +1796,10 @@
         "url-loader": "^1.1.2",
         "vsce": "^1.75.0",
         "vscode-test": "^1.3.0",
-        "webpack": "^4.42.1",
-        "webpack-cli": "^3.3.11",
-        "minimist": "^1.2.5"
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.11"
     },
-    "resolutions": {
-        "minimist": "^1.2.5"
-    }
+    "extensionDependencies": [
+        "borkdude.clj-kondo"
+    ]
 }

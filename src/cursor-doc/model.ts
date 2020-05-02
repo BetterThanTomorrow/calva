@@ -107,7 +107,7 @@ export class ModelEditSelection {
 
 export type ModelEditOptions = {
     undoStopBefore?: boolean,
-    formatParent?: boolean,
+    formatDepth?: number,
     skipFormat?: boolean,
     selection?: ModelEditSelection
 };
