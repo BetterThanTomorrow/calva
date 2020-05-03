@@ -29,10 +29,13 @@ export function nreplPortFile(connectSequence: ReplConnectSequence): string {
         const projectType: ProjectType | string = connectSequence.projectType;
         subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile)
     }
-    try {
-        return path.resolve(state.getProjectRoot(), subPath);
-    } catch (e) {
-        console.log(e);
+    const projectRoot = state.getProjectRoot();
+    if (projectRoot) {
+        try {
+            return path.resolve(projectRoot, subPath);
+        } catch (e) {
+            console.log(e);
+        }
     }
     return subPath;
 }

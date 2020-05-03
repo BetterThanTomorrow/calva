@@ -63,7 +63,7 @@ function activate(context: vscode.ExtensionContext) {
 
     const chan = state.outputChannel();
 
-    const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
+    const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode');
     const fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt');
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
     const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
