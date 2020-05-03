@@ -64,18 +64,18 @@ function activate(context: vscode.ExtensionContext) {
     const chan = state.outputChannel();
 
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
-        fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
-        pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
-        cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior'),
-        vimExtension = vscode.extensions.getExtension('vscodevim.vim'),
-        cwConfig = vscode.workspace.getConfiguration('clojureWarrior'),
-        customCljsRepl = state.config().customCljsRepl,
-        replConnectSequences = state.config().replConnectSequences,
-        BUTTON_GOTO_DOC = "Open the docs",
-        BUTTON_OK = "Got it",
-        VIM_DOC_URL = "https://calva.io/vim/",
-        VIEWED_VIM_DOCS = "viewedVimDocs",
-        CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
+    const fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt');
+    const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
+    const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
+    const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
+    const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
+    const customCljsRepl = state.config().customCljsRepl;
+    const replConnectSequences = state.config().replConnectSequences;
+    const BUTTON_GOTO_DOC = "Open the docs";
+    const BUTTON_OK = "Got it";
+    const VIM_DOC_URL = "https://calva.io/vim/";
+    const VIEWED_VIM_DOCS = "viewedVimDocs";
+    const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
@@ -101,7 +101,7 @@ function activate(context: vscode.ExtensionContext) {
     if (!pareEditExtension) {
         paredit.activate(context);
     } else {
-        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
+        vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
     }
 
     replWindow.activate(context);

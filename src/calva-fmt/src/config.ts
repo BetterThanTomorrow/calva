@@ -19,9 +19,9 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtStr
 
 function readConfiguration() {
     const workspaceConfig = vscode.workspace.getConfiguration("calva.fmt"),
-        configPath: string = workspaceConfig.get("configPath"),
-        cljfmtContent: string = filesCache.content(configPath),
-        config = configuration(workspaceConfig, cljfmtContent ? cljfmtContent : defaultCljfmtContent);
+    const configPath: string = workspaceConfig.get("configPath");
+    const cljfmtContent: string = filesCache.content(configPath);
+    const config = configuration(workspaceConfig, cljfmtContent ? cljfmtContent : defaultCljfmtContent);
     if (!config["cljfmt-options"]["error"]) {
         return config;
     } else {
