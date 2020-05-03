@@ -94,17 +94,30 @@ function activate(context: vscode.ExtensionContext) {
     state.setExtensionContext(context);
 
     if (!fmtExtension) {
-        fmt.activate(context);
+        try {
+            fmt.activate(context);
+        } catch (e) {
+            console.error("Failed activating Formatter: " + e.message)
+        }
     } else {
         vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall or, disable, it before continuing using Calva.", ...["Got it. Will do!"]);
     }
     if (!pareEditExtension) {
-        paredit.activate(context);
+        try {
+            paredit.activate(context);
+        } catch (e) {
+            console.error("Failed activating Paredit: " + e.message)
+        }
     } else {
         vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
     }
 
-    replWindow.activate(context);
+    try {
+        replWindow.activate(context);
+    } catch (e) {
+        console.error("Failed activating REPL Window: " + e.message)
+    }
+
 
     chan.appendLine("Calva activated.");
 
@@ -224,7 +237,11 @@ function activate(context: vscode.ExtensionContext) {
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 
     if (!cwExtension) {
-        highlight.activate(context);
+        try {
+            highlight.activate(context);
+        } catch (e) {
+            console.error("Failed activating Highlight: " + e.message)
+        }
     } else {
         vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.", "Will do!"]);
     }
