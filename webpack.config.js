@@ -120,11 +120,11 @@ const REPL_WINDOW = {
 }
 
 // Build the configuration based on production
-// or development mode. The extenion is only
+// or development mode. The extension is only
 // webpacked for production.
 function buildConfig(isProduction) {
   if (!isProduction) {
-    // if not production set deftool to
+    // if not production set devtool to
     // 'eval-source-map' to make the webview
     // debugable in the vscode Webview Development
     // tools.

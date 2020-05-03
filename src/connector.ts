@@ -452,7 +452,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
         cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
-    state.analytics().logEvent("REPL", "ConnnectInitiated", cljsTypeName).send();
+    state.analytics().logEvent("REPL", "ConnectInitiated", cljsTypeName).send();
 
     const portFile = projectTypes.nreplPortFile(connectSequence);
 
