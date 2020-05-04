@@ -503,6 +503,8 @@ export default {
         try {
             await state.initProjectDir();
         } catch {
+            // Could be a bae file, user makes the call
+            vscode.commands.executeCommand('calva.jackInOrConnect');
             return;
         }
         const cljTypes = await projectTypes.detectProjectTypes(),
