@@ -160,11 +160,14 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
     const doc = util.getDocument({});
     if (doc) {
         const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
-        if (folder !== undefined) {
+        if (folder) {
             return folder;
         }
     }
-    return vscode.workspace.workspaceFolders[0];
+    if (vscode.workspace.workspaceFolders) {
+        return vscode.workspace.workspaceFolders[0];
+    }
+    return undefined;
 }
 
 /**

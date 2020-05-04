@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import annotations from '../providers/annotations';
 import debugDecorations from '../debugger/decorations';
 
-/** An nRREPL client */
+/** An nREPL client */
 export class NReplClient {
     private _nextId = 0;
 
@@ -606,7 +606,7 @@ export class NReplEvaluation {
 
     private _msgs: any[] = [];
 
-    private _interruped: boolean = false;
+    private _interrupted: boolean = false;
 
     private _finished: boolean = false;
 
@@ -655,7 +655,7 @@ export class NReplEvaluation {
     }
 
     get interrupted() {
-        return (this._interruped);
+        return (this._interrupted);
     }
 
     get running() {
@@ -737,7 +737,7 @@ export class NReplEvaluation {
     interrupt() {
         if (!this.interrupted && this.running) {
             this.remove();
-            this._interruped = true;
+            this._interrupted = true;
             this._exception = "Evaluation was interrupted";
             this._stacktrace = {};
             this.session.interrupt(this.id).catch(() => { });
