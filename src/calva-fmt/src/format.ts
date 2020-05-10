@@ -40,7 +40,13 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
     const mirroredDoc: MirroredDocument = getDocument(doc);
     const cursor = mirroredDoc.getTokenCursor(index);
     const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
-    const formatRange = cursor.rangeForList(formatDepth);
+    let formatRange = cursor.rangeForList(formatDepth);
+    if (!formatRange) {
+        formatRange = cursor.rangeForCurrentForm(index);
+        if (!formatRange.includes(index)) {
+            return;
+        }
+    }
     const formatted: {
         "range-text": string,
         "range": number[],
@@ -61,7 +67,7 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
 export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
     const doc: vscode.TextDocument = editor.document,
         formattedInfo = formatPositionInfo(editor, onType, extraConfig);
-    if (formattedInfo.previousText != formattedInfo.formattedText) {
+    if (formattedInfo && formattedInfo.previousText != formattedInfo.formattedText) {
         return editor.edit(textEditorEdit => {
             textEditorEdit.replace(formattedInfo.range, formattedInfo.formattedText);
         }, { undoStopAfter: false, undoStopBefore: false }).then((onFulfilled: boolean) => {
@@ -69,12 +75,16 @@ export function formatPosition(editor: vscode.TextEditor, onType: boolean = fals
             return onFulfilled;
         });
     } else {
-        return new Promise((resolve, _reject) => {
-            if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-                editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
-            }
-            resolve(true);
-        });
+        if (formattedInfo) {
+            return new Promise((resolve, _reject) => {
+                if (formattedInfo.newIndex != formattedInfo.previousIndex) {
+                    editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
+                }
+                resolve(true);
+            });
+        } else {
+            return formatRange(doc, new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)))
+        }
     }
 }
 
