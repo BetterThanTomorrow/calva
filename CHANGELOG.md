@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.99] - 2020-05-10
+- Fix [Formatting top-level form stopped working](https://github.com/BetterThanTomorrow/calva/issues/640)
+
 ## [2.0.98] - 2020-05-04
 - Fix [Problems Editing a Bare file (instead of directory)](https://github.com/BetterThanTomorrow/calva/issues/622)
 
