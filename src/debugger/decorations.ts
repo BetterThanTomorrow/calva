@@ -3,6 +3,9 @@ import * as util from '../utilities';
 import * as docMirror from '../doc-mirror';
 import { NReplSession } from '../nrepl';
 const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
+import * as state from '../state';
+
+let enabled = false;
 
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderStyle: 'solid',
@@ -91,7 +94,9 @@ function triggerUpdateDecorations() {
         clearTimeout(timeout);
         timeout = undefined;
     }
-    timeout = setTimeout(updateDecorations, 50);
+    if (enabled) {
+        timeout = setTimeout(updateDecorations, 50);
+    }
 }
 
 async function activate() {
@@ -99,7 +104,7 @@ async function activate() {
 
     try {
         await cljSession.eval("(require 'clj-kondo.core)", 'user').value;
-
+        enabled = true;
         triggerUpdateDecorations();
 
         vscode.window.onDidChangeActiveTextEditor(editor => {
@@ -113,7 +118,8 @@ async function activate() {
             }
         });
     } catch (_) {
-        vscode.window.showWarningMessage('clj-kondo was not found on the classpath. Debugger decorations will not be enabled.');
+        const chan = state.outputChannel();
+        chan.appendLine('clj-kondo was not found on the classpath. Debugger decorations will not be enabled.');
     }
 }
 
