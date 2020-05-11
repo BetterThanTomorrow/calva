@@ -119,7 +119,7 @@ async function activate() {
         });
     } catch (_) {
         const chan = state.outputChannel();
-        chan.appendLine('clj-kondo was not found on the classpath. Debugger decorations will not be enabled.');
+        chan.appendLine('clj-kondo was not found on the classpath. Debugger decorations will not be enabled. More details: https://calva.io/debugger/#dependencies');
     }
 }
 
