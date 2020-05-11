@@ -114,7 +114,7 @@
 		},
 		"keyword": {
 			"match": "(?<=(\\s|\\(|\\[|\\{)):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))",
-			"name": "constant.keyword.clojure"
+			"name": "keyword.control.clojure"
 		},
 		"keyfn": {
 			"patterns": [

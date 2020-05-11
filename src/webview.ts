@@ -4,7 +4,10 @@ var Ansi = require('ansi-to-html');
 import "../assets/styles/webview.scss";
 import escapeHTML = require("escape-html");
 import * as paredit from "./cursor-doc/paredit";
-import { ModelEdit, ModelEditSelection } from "./cursor-doc/model";
+import { ModelEdit, ModelEditSelection, initScanner } from "./cursor-doc/model";
+
+const MAX_LINE_TOKENIZATION_LENGTH = 20000;
+initScanner(MAX_LINE_TOKENIZATION_LENGTH);
 
 declare function acquireVsCodeApi(): { postMessage: (object: any) => void }
 const message = acquireVsCodeApi();
@@ -82,7 +85,7 @@ function makeSpan(className: string, text: string) {
     return td;
 }
 
-let scanner = new lexer.Scanner();
+let scanner = new lexer.Scanner(MAX_LINE_TOKENIZATION_LENGTH);
 
 function createStackTrace(exception: any) {
     let div = document.createElement("div");
@@ -515,7 +518,7 @@ function showAsyncOutput(classname: string, id: string, text: string) {
     }
 }
 
-window.onmessage = (msg) => {
+window.onmessage = async (msg: any) => {
 
     if (msg.data.type == "init") {
         ns = msg.data.ns;
@@ -643,6 +646,14 @@ window.onmessage = (msg) => {
 
     if (msg.data.type == "async-stderr") {
         showAsyncOutput("error", msg.data.id, msg.data.value);
+    }
+
+    if (msg.data.type === 'start-debug-mode') {
+        ns = msg.data.ns;
+        con.readline.freeze();
+        con.requestPrompt(ns + '=> ');
+        con.readline.clearCompletion();
+        window.scrollTo({ left: 0 });
     }
 }
 message.postMessage({ type: "init" });

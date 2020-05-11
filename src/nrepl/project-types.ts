@@ -29,10 +29,13 @@ export function nreplPortFile(connectSequence: ReplConnectSequence): string {
         const projectType: ProjectType | string = connectSequence.projectType;
         subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile)
     }
-    try {
-        return path.resolve(state.getProjectRoot(), subPath);
-    } catch (e) {
-        console.log(e);
+    const projectRoot = state.getProjectRoot();
+    if (projectRoot) {
+        try {
+            return path.resolve(projectRoot, subPath);
+        } catch (e) {
+            console.log(e);
+        }
     }
     return subPath;
 }
@@ -46,34 +49,138 @@ export function shadowBuilds(): string[] {
     return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 
+export function leinShadowBuilds(defproject: any): string[] {
+    if (defproject) {
+        let shadowIndex = defproject.indexOf("shadow-cljs");
+        if (shadowIndex > -1) {
+            const buildsMap = defproject[shadowIndex + 1];
+            try {
+                return [...Object.keys(buildsMap.builds).map((k, v) => { return ":" + k }), ...["node-repl", "browser-repl"]];
+            } catch (error) {
+                vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
+                console.log(error);
+            }
+            return [];
+        }
+    }
+}
+
+async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBuilds: string[]): Promise<{ selectedBuilds: string[], args: string[] }> {
+    const menuSelections = connectSequence.menuSelections, selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
+        values: foundBuilds.filter(x => x[0] == ":"),
+        placeHolder: "Select builds to start", saveAs: `
+                    ${state.getProjectRoot()}/shadow-cljs-jack-in`
+    }), aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
+    const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+    let args: string[] = [];
+    if (aliasesOption && aliasesOption.length) {
+        args.push(aliasesOption);
+    }
+    return { selectedBuilds, args };
+}
+
+function leinDefProject(): any {
+    const data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
+    try {
+        const parsed = parseForms(data);
+        return parsed.find(x => x[0] == "defproject");
+    } catch (e) {
+        vscode.window.showErrorMessage("Could not parse project.clj");
+        throw e;
+    }
+}
+
+async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnectSequence): Promise<{ profiles: string[], alias: string }> {
+    let profiles: string[] = [],
+        alias: string;
+
+    if (defproject) {
+        const aliasesIndex = defproject.indexOf("aliases");
+        if (aliasesIndex > -1) {
+            try {
+                const menuSelections = connectSequence.menuSelections,
+                    leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
+                if (leinAlias) {
+                    alias = unKeywordize(leinAlias);
+                } else if (leinAlias === null) {
+                    alias = undefined;
+                } else {
+                    let aliases: string[] = [];
+                    const aliasesMap = defproject[aliasesIndex + 1];
+                    aliases = Object.keys(aliasesMap).map((v, k) => v);
+                    if (aliases.length) {
+                        aliases.unshift("No alias");
+                        alias = await utilities.quickPickSingle({
+                            values: aliases,
+                            saveAs: `${state.getProjectRoot()}/lein-cli-alias`,
+                            placeHolder: "Choose alias to launch with"
+                        });
+                        alias = (alias == "No alias") ? undefined : alias;
+                    }
+                }
+            } catch (error) {
+                vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
+                console.log(error);
+            }
+        }
+
+        const profilesIndex = defproject.indexOf("profiles"),
+            menuSelections = connectSequence.menuSelections,
+            launchProfiles = menuSelections ? menuSelections.leinProfiles : undefined;
+        if (launchProfiles) {
+            profiles = launchProfiles.map(keywordize);
+        } else {
+            let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
+            const myProfiles = state.config().myLeinProfiles;
+            if (myProfiles && myProfiles.length) {
+                projectProfiles = [...projectProfiles, ...myProfiles];
+            }
+            if (projectProfiles.length) {
+                profiles = projectProfiles.map(keywordize);
+                if (profiles.length) {
+                    profiles = await utilities.quickPickMulti({
+                        values: profiles,
+                        saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
+                        placeHolder: "Pick any profiles to launch with"
+                    });
+                }
+            }
+        }
+    }
+    return { profiles, alias };
+}
+
 const NREPL_VERSION = "0.6.0",
-    CIDER_NREPL_VERSION = "0.22.4",
-    PIGGIEBACK_VERSION = "0.4.1",
-    SIDECAR_VERSION = "0.5.18",
-    FIGWHEEL_MAIN_VERSION = "0.2.3";
+    CIDER_NREPL_VERSION = "0.23.0",
+    PIGGIEBACK_VERSION = "0.4.2",
+    FIGWHEEL_MAIN_VERSION = "0.2.3",
+    CLJ_KONDO_VERSION = "2020.04.05";
 
 const cliDependencies = {
     "nrepl": NREPL_VERSION,
     "cider/cider-nrepl": CIDER_NREPL_VERSION,
-}
-
-const cljsCommonDependencies = {
-    "cider/piggieback": PIGGIEBACK_VERSION
+    "clj-kondo": CLJ_KONDO_VERSION
 }
 
 const cljsDependencies: { [id: string]: Object } = {
     "lein-figwheel": {
-        "figwheel-sidecar": SIDECAR_VERSION
+        "cider/piggieback": PIGGIEBACK_VERSION
     },
     "Figwheel Main": {
+        "cider/piggieback": PIGGIEBACK_VERSION,
         "com.bhauman/figwheel-main": FIGWHEEL_MAIN_VERSION
     },
     "shadow-cljs": {
         "cider/cider-nrepl": CIDER_NREPL_VERSION,
     },
+    "lein-shadow": {
+        "cider/cider-nrepl": CIDER_NREPL_VERSION,
+    },
     "Nashorn": {
+        "cider/piggieback": PIGGIEBACK_VERSION
     },
     "User provided": {
+        "cider/piggieback": PIGGIEBACK_VERSION,
     }
 }
 
@@ -82,6 +189,7 @@ const leinPluginDependencies = {
 }
 const leinDependencies = {
     "nrepl": NREPL_VERSION,
+    "clj-kondo": CLJ_KONDO_VERSION
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
@@ -96,131 +204,24 @@ const projectTypes: { [id: string]: ProjectType } = {
         winCmd: "cmd.exe",
         useWhenExists: "project.clj",
         nReplPortFile: [".nrepl-port"],
-        /** Build the Commandline args for a lein-project. 
+        /** Build the command line args for a lein-project.
          * 1. Parsing the project.clj
          * 2. Let the user choose a alias
          * 3. Let the user choose profiles to use
-         * 4. Add nedded middleware deps to args
-         * 5. Add all profiles choosed by the user
+         * 4. Add needed middleware deps to args
+         * 5. Add all profiles chosen by the user
          * 6. Use alias if selected otherwise repl :headless
         */
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-            let out: string[] = [];
-            const dependencies = { ...leinDependencies,
-                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
-                ...serverPrinterDependencies
-            };
-            let keys = Object.keys(dependencies);
-            let data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
-            let parsed;
-            try {
-                parsed = parseForms(data);
-            } catch (e) {
-                vscode.window.showErrorMessage("Could not parse project.clj");
-                throw e;
-            }
-            let profiles: string[] = [];
-            let alias: string;
-            const defproject = parsed.find(x => x[0] == "defproject");
-
-            if (defproject) {
-                let aliasesIndex = defproject.indexOf("aliases");
-                if (aliasesIndex > -1) {
-                    try {
-                        const menuSelections = connectSequence.menuSelections,
-                            leinAlias = menuSelections ? menuSelections.leinAlias : undefined;
-                        if (leinAlias) {
-                            alias = unKeywordize(leinAlias);
-                        } else if (leinAlias === null) {
-                            alias = undefined;
-                        } else {
-                            let aliases: string[] = [];
-                            const aliasesMap = defproject[aliasesIndex + 1];
-                            aliases = [...profiles, ...Object.keys(aliasesMap).map((v, k) => { return v })];
-                            if (aliases.length) {
-                                aliases.unshift("No alias");
-                                alias = await utilities.quickPickSingle({
-                                    values: aliases,
-                                    saveAs: `${state.getProjectRoot()}/lein-cli-alias`,
-                                    placeHolder: "Choose alias to launch with"
-                                });
-                                alias = (alias == "No alias") ? undefined : alias;
-                            }
-                        }
-                    } catch (error) {
-                        vscode.window.showErrorMessage("The project.clj file is not sane. " + error.message);
-                        console.log(error);
-                    }
-                }
-            }
-
-            if (defproject != undefined) {
-                const profilesIndex = defproject.indexOf("profiles"),
-                    menuSelections = connectSequence.menuSelections,
-                    launchProfiles = menuSelections ? menuSelections.leinProfiles : undefined;
-                if (launchProfiles) {
-                    profiles = [...profiles, ...launchProfiles.map(keywordize)];
-                } else {
-                    let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
-                    const myProfiles = state.config().myLeinProfiles;
-                    if (myProfiles && myProfiles.length) {
-                        projectProfiles = [...projectProfiles, ...myProfiles];
-                    }
-                    if (projectProfiles.length) {
-                        profiles = [...profiles, ...projectProfiles.map(keywordize)];
-                        if (profiles.length) {
-                            profiles = await utilities.quickPickMulti({
-                                values: profiles,
-                                saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
-                                placeHolder: "Pick any profiles to launch with"
-                            });
-                        }
-                    }
-                }
-            }
-
-            if (isWin) {
-                out.push("/d", "/c", "lein");
-            }
-            const q = isWin ? '' : "'",
-                dQ = '"',
-                s = isWin ? "^ " : " ";
-
-            for (let i = 0; i < keys.length; i++) {
-                let dep = keys[i];
-                out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
-            }
-
-            keys = Object.keys(leinPluginDependencies);
-            for (let i = 0; i < keys.length; i++) {
-                let dep = keys[i];
-                out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
-            }
-
-            const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
-            for (let mw of useMiddleware) {
-                out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
-            }
-
-            if (profiles.length) {
-                out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));
-            }
-
-            if (alias) {
-                out.push(alias);
-            } else {
-                out.push("repl", ":headless");
-            }
-
-            return out;
+            return await leinCommandLine(["repl", ":headless"], cljsType, connectSequence);
         }
     },
-    /* // Works but analysing the possible launch environment is unsatifactory for now, use the cli :)
+    /* // Works but analysing the possible launch environment is unsatisfactory for now, use the cli :)
     "boot": {
         name: "Boot",
         cmd: "boot",
         winCmd: "boot.exe",
-        useWhenExists: "build.boot",      
+        useWhenExists: "build.boot",
         commandLine: () => {
             let out: string[] = [];
             for(let dep in cliDependencies)
@@ -236,8 +237,8 @@ const projectTypes: { [id: string]: ProjectType } = {
         winCmd: "powershell.exe",
         useWhenExists: "deps.edn",
         nReplPortFile: [".nrepl-port"],
-        /** Build the Commandline args for a clj-project.
-         * 1. Read the deps.edn and parsed it 
+        /** Build the command line args for a clj-project.
+         * 1. Read the deps.edn and parsed it
          * 2. Present the user all found aliases
          * 3. Define needed dependencies and middlewares used by calva
          * 4. Check if the selected aliases have main-opts
@@ -274,9 +275,9 @@ const projectTypes: { [id: string]: ProjectType } = {
                 }
             }
 
-            const dependencies = { 
-                ...cliDependencies, 
-                ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+            const dependencies = {
+                ...cliDependencies,
+                ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
@@ -317,41 +318,104 @@ const projectTypes: { [id: string]: ProjectType } = {
         useWhenExists: "shadow-cljs.edn",
         nReplPortFile: [".shadow-cljs", "nrepl.port"],
         /**
-         *  Build the Commandline args for a shadow-project.
+         *  Build the command line args for a shadow-project.
          */
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
                 dependencies = {
-                    ...(cljsType ? { ...cljsCommonDependencies, ...cljsDependencies[cljsType] } : {}),
+                    ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                     ...serverPrinterDependencies
                 };
-            let args: string[] = [];
+            let defaultArgs: string[] = [];
             for (let dep in dependencies)
-                args.push("-d", dep + ":" + dependencies[dep]);
+                defaultArgs.push("-d", dep + ":" + dependencies[dep]);
 
             const foundBuilds = await shadowBuilds(),
-                menuSelections = connectSequence.menuSelections,
-                selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
-                    values: foundBuilds.filter(x => x[0] == ":"),
-                    placeHolder: "Select builds to start", saveAs: `
-                    ${state.getProjectRoot()}/shadowcljs-jack-in`
-                }),
-                aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
-
-            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-            if (aliasesOption && aliasesOption.length) {
-                args.push(aliasesOption);
-            }
+                { selectedBuilds, args } = await selectShadowBuilds(connectSequence, foundBuilds);
 
             if (selectedBuilds && selectedBuilds.length) {
-                return ["shadow-cljs", ...args, "watch", ...selectedBuilds];
+                return ["shadow-cljs", ...defaultArgs, ...args, "watch", ...selectedBuilds];
             } else {
                 chan.show();
                 chan.appendLine("Aborting. No valid shadow-cljs build selected.");
                 throw "No shadow-cljs build selected"
             }
         }
+    },
+    "lein-shadow": {
+        name: "lein-shadow",
+        cljsTypes: [],
+        cmd: "lein",
+        winCmd: "cmd.exe",
+        useWhenExists: "project.clj",
+        nReplPortFile: [".shadow-cljs", "nrepl.port"],
+        /**
+         *  Build the command line args for a lein-shadow project.
+         */
+        commandLine: async (connectSequence, cljsType) => {
+            const chan = state.outputChannel();
+
+            const defproject = await leinDefProject();
+            const foundBuilds = leinShadowBuilds(defproject),
+                { selectedBuilds, args: extraArgs } = await selectShadowBuilds(connectSequence, foundBuilds);
+
+            if (selectedBuilds && selectedBuilds.length) {
+                return leinCommandLine(["shadow", "watch", ...selectedBuilds], cljsType, connectSequence);
+            } else {
+                chan.show();
+                chan.appendLine("Aborting. No valid shadow-cljs build selected.");
+                throw "No shadow-cljs build selected"
+            }
+        }
+    },
+    'generic': {
+        // There is no Jack-in supported here
+        name: 'generic',
+        cljsTypes: [],
+        cmd: undefined,
+        winCmd: undefined,
+        useWhenExists: undefined,
+        nReplPortFile: [".nrepl-port"],
+        commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
+            return undefined;
+        }
+    },
+}
+
+async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSequence: ReplConnectSequence) {
+    let out: string[] = [];
+    const dependencies = {
+        ...leinDependencies,
+        ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
+        ...serverPrinterDependencies
+    };
+    let keys = Object.keys(dependencies);
+    const defproject = leinDefProject();
+    const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
+    if (isWin) {
+        out.push("/d", "/c", "lein");
     }
+    const q = isWin ? '' : "'", dQ = '"', s = isWin ? "^ " : " ";
+    for (let i = 0; i < keys.length; i++) {
+        let dep = keys[i];
+        out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
+    }
+    keys = Object.keys(leinPluginDependencies);
+    for (let i = 0; i < keys.length; i++) {
+        let dep = keys[i];
+        out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
+    }
+    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+    for (let mw of useMiddleware) {
+        out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
+    }
+    if (profiles.length) {
+        out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));
+    }
+
+    out.push(...command);
+
+    return out;
 }
 
 /** Given the name of a project in project types, find that project. */
@@ -362,13 +426,15 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-    let rootDir = state.getProjectRoot(),
-        cljProjTypes = []
+    const rootDir = state.getProjectRoot(),
+        cljProjTypes = ['generic'];
     for (let clj in projectTypes) {
-        try {
-            fs.accessSync(rootDir + "/" + projectTypes[clj].useWhenExists);
-            cljProjTypes.push(clj);
-        } catch (_e) { }
+        if (projectTypes[clj].useWhenExists) {
+            try {
+                fs.accessSync(path.resolve(rootDir, projectTypes[clj].useWhenExists));
+                cljProjTypes.push(clj);
+            } catch (_e) { }
+        }
     }
     return cljProjTypes;
 }

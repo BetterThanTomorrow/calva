@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.75",
+    "version": "2.0.100",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -21,6 +21,7 @@
         "Programming Languages",
         "Formatters",
         "Linters",
+        "Debuggers",
         "Other"
     ],
     "keywords": [
@@ -42,8 +43,8 @@
     "badges": [
         {
             "url": "https://img.shields.io/badge/clojurians-calva--dev-blue.svg?logo=slack",
-            "href": "https://clojurians.slack.com/messages/calva-dev/",
-            "description": "Let's talk in the #calva-dev channel at the Clojurians Slack"
+            "href": "https://clojurians.slack.com/messages/calva/",
+            "description": "Let's talk in the #calva channel at the Clojurians Slack"
         }
     ],
     "activationEvents": [
@@ -54,13 +55,22 @@
         "onCommand:calva.connectNonProjectREPL",
         "workspaceContains:**/project.clj",
         "workspaceContains:**/shadow-cljs.edn",
-        "workspaceContains:**/deps.edn"
+        "workspaceContains:**/deps.edn",
+        "onDebugResolve:type"
     ],
     "main": "./out/extension",
     "extensionPack": [
         "borkdude.clj-kondo"
     ],
     "contributes": {
+        "debuggers": [
+            {
+                "type": "clojure",
+                "label": "Calva Debug",
+                "program": "./out/debugAdapter.js",
+                "runtime": "node"
+            }
+        ],
         "languages": [
             {
                 "id": "clojure",
@@ -93,10 +103,12 @@
                 "editor.autoClosingBrackets": "always",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
-                "editor.autoIndent": true,
+                "editor.autoIndent": "full",
                 "editor.formatOnPaste": true,
                 "files.trimTrailingWhitespace": false,
-                "editor.matchBrackets": false
+                "editor.matchBrackets": "never",
+                "editor.renderIndentGuides": false,
+                "editor.parameterHints.enabled": false
             }
         },
         "configuration": [
@@ -193,7 +205,7 @@
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
                                 "description": "Foreground color for the launching status"
                             },
-                            "connectedSatusColor": {
+                            "connectedStatusColor": {
                                 "type": "string",
                                 "default": "#fdd023",
                                 "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
@@ -209,7 +221,7 @@
                         "default": {
                             "disconnectedColor": "#c0c0c0",
                             "launchingColor": "#fdd023",
-                            "connectedSatusColor": "#fdd023",
+                            "connectedStatusColor": "#fdd023",
                             "typeStatusColor": "#91dc47"
                         }
                     },
@@ -281,7 +293,7 @@
                                 },
                                 "ns": {
                                     "type": "string",
-                                    "description": "(optional) Namespace to evaluate the command in. If ommitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
+                                    "description": "(optional) Namespace to evaluate the command in. If omitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is mostly useful for running code using definitions from the `user` namespace."
                                 },
                                 "repl": {
                                     "type": "string",
@@ -308,7 +320,7 @@
                     },
                     "calva.myCljAliases": {
                         "type": "array",
-                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the projects's `deps.edn` file.",
+                        "description": "At Jack in, any aliases listed here will be added to the aliases found in the project's `deps.edn` file.",
                         "items": {
                             "type": "string"
                         }
@@ -359,12 +371,14 @@
                                     "enum": [
                                         "Leiningen",
                                         "Clojure CLI",
-                                        "shadow-cljs"
+                                        "shadow-cljs",
+                                        "lein-shadow",
+                                        "generic"
                                     ]
                                 },
                                 "nReplPortFile": {
                                     "type": "array",
-                                    "description": "An array of path segments with the project root-releative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
+                                    "description": "An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be [\".shadow-cljs\", \"nrepl.port\"]",
                                     "items": {
                                         "type": "string"
                                     }
@@ -376,7 +390,7 @@
                                 },
                                 "menuSelections": {
                                     "type": "object",
-                                    "description": "Pre-selected menu options. If a slection is made here. Calva won't prompt for it.",
+                                    "description": "Pre-selected menu options. If a selection is made here. Calva won't prompt for it.",
                                     "properties": {
                                         "leinProfiles": {
                                             "type": "array",
@@ -405,7 +419,7 @@
                                         },
                                         "cljsLaunchBuilds": {
                                             "type": "array",
-                                            "description": "The cljs builds to start/watch at Jack-in/comnnect.",
+                                            "description": "The cljs builds to start/watch at Jack-in/connect.",
                                             "items": {
                                                 "type": "string"
                                             }
@@ -491,6 +505,11 @@
                                 }
                             }
                         }
+                    },
+                    "calva.enableJSCompletions": {
+                        "type": "boolean",
+                        "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
+                        "default": true
                     }
                 }
             },
@@ -515,45 +534,19 @@
                 "title": "Calva-fmt",
                 "type": "object",
                 "properties": {
-                    "calva.fmt.indentation": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Correct the indentation of your code?"
-                    },
-                    "calva.fmt.removeSurroundingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Remove whitespace surrounding inner forms? This will convert ( foo ) to (foo)."
-                    },
-                    "calva.fmt.removeTrailingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Remove trailing whitespace in lines? This will convert (foo) \\n to (foo)\\n."
-                    },
-                    "calva.fmt.insertMissingWhitespace": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Insert whitespace missing from between elements? This will convert (foo(bar)) to (foo (bar))."
-                    },
-                    "calva.fmt.removeConsecutiveBlankLines": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Squeeze consecutive blank lines to one?"
+                    "calva.fmt.configPath": {
+                        "type": "string",
+                        "markdownDescription": "Path to [cljfmt](https://github.com/weavejester/cljfmt#configuration) configuration file. Absolute or relative to the project root directory."
                     },
                     "calva.fmt.formatAsYouType": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Auto-adjust indentation and format as you type (only on enter, currently)?"
+                        "description": "Auto-adjust indentation and format as you enter new lines."
                     },
                     "calva.fmt.newIndentEngine": {
                         "type": "boolean",
-                        "default": false,
-                        "description": "Help beta test the new indent engine (it is MUCH faster than the previous one)."
-                    },
-                    "calva.fmt.alignMapItems": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Align map items in columns? (Experimental)"
+                        "default": true,
+                        "markdownDescription": "Use the structural editor for indentation (instead of `cljfmt`)."
                     }
                 }
             },
@@ -565,6 +558,18 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Enable rainbow brackets",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.rainbowIndentGuides": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "Use rainbow indent guides. (To use built-in indent guides, disable this and enable built-in guides in `[\"clojure\"]` scope.",
+                        "scope": "resource"
+                    },
+                    "calva.highlight.highlightActiveIndent": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Highlight active indent with a guideline. (Unlike the VS Code built-in setting, this works independently of the rainbowIndentGuides setting.)",
                         "scope": "resource"
                     },
                     "calva.highlight.bracketColors": {
@@ -610,6 +615,12 @@
             }
         ],
         "commands": [
+            {
+                "command": "calva.debug.instrument",
+                "title": "Instrument Top Level Form for Debugging",
+                "category": "Calva Debug",
+                "enablement": "editorLangId == clojure && calva:connected"
+            },
             {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
@@ -848,11 +859,6 @@
                 "category": "Calva Paredit",
                 "command": "paredit.closeList",
                 "title": "Forward to List End/Close"
-            },
-            {
-                "category": "Calva Paredit",
-                "command": "paredit.selectOpenList",
-                "title": "Backward to List Start/Open"
             },
             {
                 "category": "Calva Paredit",
@@ -1122,6 +1128,11 @@
                 "command": "calva.tellAboutNewChordingKey",
                 "key": "ctrl+alt+v",
                 "when": "editorLangId == clojure"
+            },
+            {
+                "command": "calva.debug.instrument",
+                "key": "ctrl+alt+c i",
+                "when": "editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.jackIn",
@@ -1591,6 +1602,10 @@
                 {
                     "command": "calva.jackInOrConnect",
                     "when": "false"
+                },
+                {
+                    "command": "calva.debug.instrument",
+                    "when": "editorLangId == clojure && calva:connected"
                 }
             ],
             "editor/title": [
@@ -1607,12 +1622,14 @@
             ],
             "editor/context": [
                 {
-                    "when": "editorLangId == clojure && !calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "!calva:connected",
                     "command": "calva.jackInOrConnect",
                     "group": "calva/x-connect"
                 },
                 {
-                    "when": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.disconnect",
                     "group": "calva/x-connect"
                 },
@@ -1622,37 +1639,44 @@
                     "group": "calva/a-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure  && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.loadFile",
                     "group": "calva/b-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.loadNamespace",
                     "group": "calva/b-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.evaluateSelection",
                     "group": "calva/b-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.evaluateCurrentTopLevelForm",
                     "group": "calva/b-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.evaluateSelectionAsComment",
                     "group": "calva/b-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.evaluateTopLevelFormAsComment",
                     "group": "calva/b-eval"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.interruptAllEvaluations",
                     "group": "calva/b-eval"
                 },
@@ -1662,22 +1686,32 @@
                     "group": "calva/b-eval"
                 },
                 {
+                    "command": "calva.debug.instrument",
                     "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.runAllTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.runNamespaceTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.rerunTests",
                     "group": "calva/d-test"
                 },
                 {
-                    "enablement": "editorLangId == clojure && calva:connected",
+                    "when": "editorLangId == clojure",
+                    "enablement": "calva:connected",
                     "command": "calva.runTestUnderCursor",
                     "group": "calva/d-test"
                 }
@@ -1685,7 +1719,7 @@
         }
     },
     "scripts": {
-        "build-docs": "cd docs/readthedocs; make html && open build/html/index.html",
+        "watch-docs": "echo \"Run `mkdocs serve` in the calva-docs repo.\"",
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
@@ -1706,7 +1740,7 @@
         "@types/node": "^7.10.9",
         "@types/universal-analytics": "^0.4.2",
         "@types/uuid": "^3.4.6",
-        "acorn": "^6.4.0",
+        "acorn": "^6.4.1",
         "ansi-to-html": "^0.6.13",
         "escape-html": "^1.0.3",
         "find": "0.2.9",
@@ -1716,11 +1750,11 @@
         "lodash": "^4.17.14",
         "lodash.isequal": "4.5.0",
         "net": "1.0.2",
-        "npm": "^6.13.4",
+        "npm": "^6.14.4",
         "open": "^6.3.0",
-        "paredit.js": "^0.3.6",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
+        "vscode-debugadapter": "1.38.0",
         "vscode-extension-telemetry": "0.0.15"
     },
     "devDependencies": {
@@ -1729,27 +1763,29 @@
         "@types/mocha": "^5.2.7",
         "@types/vscode": "^1.30.0",
         "chai": "^4.2.0",
-        "concurrently": "^4.1.0",
+        "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",
         "css-loader": "^2.1.1",
-        "dart-sass-loader": "^1.0.0",
-        "eslint": "^4.19.1",
+        "sass-loader": "8.0.2",
+        "eslint": "^6.8.0",
         "eslint-config-standard": "^11.0.0",
         "eslint-plugin-import": "^2.17.3",
         "eslint-plugin-node": "^6.0.1",
         "eslint-plugin-promise": "^3.7.0",
         "eslint-plugin-standard": "^3.0.1",
+        "fast-check": "^1.22.2",
         "file-loader": "^3.0.1",
         "glob": "^7.1.6",
         "json": "^9.0.6",
-        "mocha": "^6.1.4",
+        "minimist": "^1.2.5",
+        "mocha": "^7.1.1",
         "mocha-junit-reporter": "^1.23.1",
         "mocha-multi-reporters": "^1.1.7",
         "node-gyp": "^5.0.5",
-        "nodemon": "^1.19.4",
+        "nodemon": "^2.0.3",
         "rimraf": "^2.7.1",
-        "sass": "^1.23.7",
-        "shadow-cljs": "^2.8.77",
+        "sass": "^1.26.5",
+        "shadow-cljs": "^2.8.109",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",
@@ -1758,9 +1794,12 @@
         "tslint": "^5.20.1",
         "typescript": "^3.7.2",
         "url-loader": "^1.1.2",
-        "vsce": "^1.70.0",
-        "vscode-test": "^1.0.0",
-        "webpack": "^4.41.2",
-        "webpack-cli": "^3.3.10"
-    }
+        "vsce": "^1.75.0",
+        "vscode-test": "^1.3.0",
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.11"
+    },
+    "extensionDependencies": [
+        "borkdude.clj-kondo"
+    ]
 }

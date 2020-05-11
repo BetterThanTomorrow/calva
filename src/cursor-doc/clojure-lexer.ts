@@ -1,17 +1,21 @@
 /**
  * Calva Clojure Lexer
- * 
+ *
  * NB: The lexer tokenizes any combination of clojure quotes, `~`, and `@` prepending a list, symbol, or a literal
  *     as one token, together with said list, symbol, or literal, even if there is whitespace between the quoting characters.
  *     All such combos won't actually be accepted by the Clojure Reader, but, hey, we're not writing a Clojure Reader here. 😀
  *     See below for the regex used for this.
  */
 
- // Regex for the above mentioned behavior are variations of this: /(['`~#@?^]\s*)*/
+// prefixing patterns - TODO: revisit these and see if we can always use the same
+// opens ((?<!\p{Ll})['`~#@?^]\s*)*
+// id    (['`~#^@]\s*)*
+// lit   (['`~#]\s*)*
+// kw    (['`~^]\s*)*
 
 import { LexicalGrammar, Token as LexerToken } from "./lexer"
 
-/** 
+/**
  * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
  * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
@@ -20,24 +24,22 @@ let toplevel = new LexicalGrammar()
 
 /**
  * Returns `true` if open and close are compatible parentheses
- * @param open 
- * @param close 
+ * @param open
+ * @param close
  */
 export function validPair(open: string, close: string): boolean {
-    let valid = false;
+    const openBracket = open[open.length - 1];
     switch (close) {
         case ')':
-            return open.endsWith("(");
+            return openBracket === '(';
         case ']':
-            return open.endsWith("[");
+            return openBracket === '[';
         case '}':
-            return open.endsWith("{");
+            return openBracket === '{';
         case '"':
-            return open.endsWith('"');
-        default:
-            break;
+            return openBracket === '"';
     };
-    return valid;
+    return false;
 }
 
 export interface Token extends LexerToken {
@@ -47,27 +49,38 @@ export interface Token extends LexerToken {
 // whitespace, excluding newlines
 toplevel.terminal(/[\t ,]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
-toplevel.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
+toplevel.terminal(/(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 
+// current idea for prefixing data reader
+// (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*
+
 // open parens
-toplevel.terminal(/((?<!\w)['`~#@?^]\s*)*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
-// punctuators
-toplevel.terminal(/~@|~|'|#'|#:|#_|\^|`|#|\^:/, (l, m) => ({ type: "punc" }))
+// ignores
+toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
 
-toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
+// literals
+toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
+
+// This seems unecessary?
+//toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
-// this is a REALLY lose symbol definition, but similar to how clojure really collects it. numbers/true/nil are all 
-// TODO: Figure out why we can't allow `'` in the symbol name
-toplevel.terminal(/(['`~#^@]\s*)*([^()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`'^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+
+// data readers
+toplevel.terminal(/#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
+
+// symbols, about anything goes!
+toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+
 
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
@@ -77,7 +90,7 @@ let inString = new LexicalGrammar()
 // end a string
 inString.terminal(/"/, (l, m) => ({ type: "close" }))
 // still within a string
-inString.terminal(/(\\.|[^\\"\t ])+/, (l, m) => ({ type: "str-inside" }))
+inString.terminal(/(\\.|[^"\s])+/, (l, m) => ({ type: "str-inside" }))
 // whitespace, excluding newlines
 inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
@@ -100,10 +113,12 @@ export interface ScannerState {
 export class Scanner {
     state: ScannerState = { inString: false };
 
+    constructor(private maxLength: number) {}
+
     processLine(line: string, state: ScannerState = this.state) {
         let tks: Token[] = [];
         this.state = state;
-        let lex = (this.state.inString ? inString : toplevel).lex(line);
+        let lex = (this.state.inString ? inString : toplevel).lex(line, this.maxLength);
         let tk: LexerToken;
         do {
             tk = lex.scan();
@@ -113,13 +128,13 @@ export class Scanner {
                     switch (tk.type) {
                         case "open": // string started, switch to inString.
                             this.state = { ...this.state, inString: true };
-                            lex = inString.lex(line);
+                            lex = inString.lex(line, this.maxLength);
                             lex.position = oldpos;
                             break;
-                        case "close": 
+                        case "close":
                             // string ended, switch back to toplevel
                             this.state = { ...this.state, inString: false };
-                            lex = toplevel.lex(line);
+                            lex = toplevel.lex(line, this.maxLength);
                             lex.position = oldpos;
                             break;
                     }

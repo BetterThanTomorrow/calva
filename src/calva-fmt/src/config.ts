@@ -1,19 +1,37 @@
 import * as vscode from 'vscode';
+import * as filesCache from '../../files-cache';
+import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib';
 
-function readConfiguration() {
-    let workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
+const defaultCljfmtContent = "\
+{:remove-surrounding-whitespace? true\n\
+ :remove-trailing-whitespace? true\n\
+ :remove-consecutive-blank-lines? false\n\
+ :insert-missing-whitespace? true\n\
+ :align-associative? false}";
+
+function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtString: string) {
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
-        "indentation?": workspaceConfig.get("indentation"),
-        "remove-surrounding-whitespace?": workspaceConfig.get("removeSurroundingWhitespace"),
-        "remove-trailing-whitespace?": workspaceConfig.get("removeTrailingWhitespace"),
-        "insert-missing-whitespace?": workspaceConfig.get("insertMissingWhitespace"),
-        "remove-consecutive-blank-lines?": workspaceConfig.get("removeConsecutiveBlankLines"),
-        "align-associative?": workspaceConfig.get("alignMapItems")
+        "cljfmt-string": cljfmtString,
+        "cljfmt-options": cljfmtOptions(cljfmtString)
     };
 }
 
+function readConfiguration() {
+    const workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
+    const configPath: string = workspaceConfig.get("configPath");
+    const cljfmtContent: string = filesCache.content(configPath);
+    const config = configuration(workspaceConfig, cljfmtContent ? cljfmtContent : defaultCljfmtContent);
+    if (!config["cljfmt-options"]["error"]) {
+        return config;
+    } else {
+        vscode.window.showErrorMessage(`Error parsing ${configPath}: ${config["cljfmt-options"]["error"]}\n\nUsing default formatting configuration.`);
+        return configuration(workspaceConfig, defaultCljfmtContent)
+    }
+}
+
+
 export function getConfig() {
-    let config = readConfiguration();
+    const config = readConfiguration();
     return config;
 }

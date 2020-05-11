@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/custom-commands">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Running Custom REPL Commands
 
 Calva supports configuration of custom command snippets that you can execute in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting `calva.customREPLCommandSnippets` to configure it and then use the command **Run Custom REPL Command** to access it. The command will give you a menu with the snippets you have configured.
@@ -6,7 +12,7 @@ The `calva.customREPLCommandSnippets` is an object/dictionary with the following
 
 * `name`: The name of the snippet as it will appear in the picker menu
 * `snippet`: The code that will be evaluated
-* `ns`: (optional) Namespace to evaluate the command in. If omitted the command will be executed in whatever namespace the REPL window has at the moment, which probably is only useful for running code in the `user` namespace.
+* `ns`: (optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.
 * `replType`: Which REPL window to use for the evaluation. Either `"clj"` or `"cljs"`
 
 E.g. with these settings:

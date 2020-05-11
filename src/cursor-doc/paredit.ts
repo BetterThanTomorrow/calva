@@ -100,6 +100,7 @@ export function rangeToBackwardUpList(doc: EditableDocument, offset: number = Ma
 export function rangeToForwardDownList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     do {
+        cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
         if (cursor.getToken().type === 'open') {
             break;
@@ -224,7 +225,7 @@ export function joinSexp(doc: EditableDocument, start: number = doc.selectionRig
         if (validPair(nextToken.raw[0], prevToken.raw[prevToken.raw.length - 1])) {
             return doc.model.edit([
                 new ModelEdit('changeRange', [prevEnd - 1, nextStart + 1, prevToken.type === 'close' ? " " : "", [start, start], [prevEnd, prevEnd]])
-            ], { selection: new ModelEditSelection(prevEnd), formatParent: true });
+            ], { selection: new ModelEditSelection(prevEnd), formatDepth: 2 });
         }
     }
 }
@@ -330,8 +331,8 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
             new ModelEdit('insertString', [cursor.offsetStart, close])
         ], start >= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
-            formatParent: true
-        } : { formatParent: true });
+            formatDepth: 2
+            } : { formatDepth: 2 });
     }
 }
 
@@ -351,8 +352,8 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
             new ModelEdit('deleteRange', [offset, tk.raw.length])
         ], start <= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
-            formatParent: true
-        } : { formatParent: true });
+                formatDepth: 2
+            } : { formatDepth: 2 });
     }
 }
 
@@ -367,23 +368,14 @@ export function open(doc: EditableDocument, open: string, close: string, start: 
 }
 
 export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
-    let cursor = doc.getTokenCursor();
+    const cursor = doc.getTokenCursor(start);
     cursor.forwardWhitespace(false);
     if (cursor.getToken().raw == close) {
-        doc.model.edit([
-            new ModelEdit('changeRange', [start, cursor.offsetStart, ""])
-        ], { selection: new ModelEditSelection(start + close.length) });
+        doc.selection = new ModelEditSelection(start + close.length);
     } else {
-        // one of two things are possible:
-        if (cursor.forwardList()) {
-            //   we are in a matched list, just jump to the end of it.
-            doc.selection = new ModelEditSelection(cursor.offsetEnd);
-        } else {
-            while (cursor.forwardSexp()) { }
-            doc.model.edit([
-                new ModelEdit('changeRange', [cursor.offsetEnd, cursor.offsetEnd, close])
-            ], { selection: new ModelEditSelection(cursor.offsetEnd + close.length) });
-        }
+        doc.model.edit([
+            new ModelEdit('changeRange', [start, start, close])
+        ], { selection: new ModelEditSelection(start + close.length) });
     }
 }
 
@@ -446,12 +438,24 @@ export function stringQuote(doc: EditableDocument, start: number = doc.selection
         let cursor = doc.getTokenCursor(start);
         if (cursor.withinString()) {
             // inside a string, let's be clever
-            if (cursor.offsetEnd - 1 == start && cursor.getToken().type == "str" || cursor.getToken().type == "str-end") {
-                doc.selection = new ModelEditSelection(start + 1);
+            if (cursor.getToken().type == "close") {
+                if (doc.model.getText(0, start).endsWith('\\')) {
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [start, start, '"'])
+                    ], { selection: new ModelEditSelection(start + 1) });
+                } else {
+                    close(doc, '"', start);
+                }
             } else {
-                doc.model.edit([
-                    new ModelEdit('changeRange', [start, start, '"'])
-                ], { selection: new ModelEditSelection(start + 1) });
+                if (doc.model.getText(0, start).endsWith('\\')) {
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [start, start, '"'])
+                    ], { selection: new ModelEditSelection(start + 1) });
+                } else {
+                    doc.model.edit([
+                        new ModelEdit('changeRange', [start, start, '\\"'])
+                    ], { selection: new ModelEditSelection(start + 2) });
+                }
             }
         } else {
             doc.model.edit([
@@ -510,12 +514,11 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
 export function growSelectionStack(doc: EditableDocument, range: [number, number]) {
     const [start, end] = range;
     if (doc.selectionStack.length > 0) {
-        const prev = doc.selectionStack[doc.selectionStack.length - 1];
-        if (prev.anchor === range[0] && prev.active === range[1]) {
-            return;
-        }
+        let prev = doc.selectionStack[doc.selectionStack.length - 1];
         if (!(doc.selectionLeft == prev.anchor && doc.selectionRight == prev.active)) {
-            doc.selectionStack = [doc.selection];
+            setSelectionStack(doc);
+        } else if (prev.anchor === range[0] && prev.active === range[1]) {
+            return;
         }
     } else {
         doc.selectionStack = [doc.selection];
@@ -533,10 +536,15 @@ export function shrinkSelection(doc: EditableDocument) {
     }
 }
 
+export function setSelectionStack(doc: EditableDocument, selection = doc.selection) {
+    doc.selectionStack = [selection];
+}
+
 export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     if (start == end) {
         let cursor = doc.getTokenCursor(end);
         cursor.forwardWhitespace();
+        cursor.backwardThroughAnyReader();
         let endCursor = cursor.clone();
         if (endCursor.forwardSexp()) {
             let raised = doc.model.getText(cursor.offsetStart, endCursor.offsetStart);

@@ -47,14 +47,3 @@ bar))")
 (deftest escape-regexp
   (is (= "\\.\\*"
          (sut/escape-regexp ".*"))))
-
-
-(deftest enclosing?
-  (is (= false
-         (sut/enclosing? "[][]")))
-  (is (= true
-         (sut/enclosing? "([][])")))
-  (is (= true
-         (sut/enclosing? "(\"[\")")))
-  (is (= true
-         (sut/enclosing? "(\"(\")"))))

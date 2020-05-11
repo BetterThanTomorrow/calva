@@ -2,8 +2,13 @@ import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { UndoManager, UndoStep } from "./undo";
 import { ReplReadline } from "../webview/readline";
 import { LispTokenCursor } from "./token-cursor";
+import { DebugConsoleMode } from "vscode";
 
-const scanner = new Scanner();
+let scanner: Scanner;
+
+export function initScanner(maxLength: number) {
+    scanner = new Scanner(maxLength);
+}
 
 /** A cheesy deep-equal function for matching scanner states. Good enough to compare plain old js objects. */
 function equal(x: any, y: any): boolean {
@@ -56,12 +61,12 @@ export class ModelEdit {
  * `anchor`, the start of a selection, can be left or right of, or the same as the end of the selection (active)
  * `active`, the end of a selection, where the caret is, can be left or right of, or the same as the start of the selection   (anchor)
  * `left`, the smallest of `anchor` and `active`
- * `right`, the largest of `anchor` and `active` 
+ * `right`, the largest of `anchor` and `active`
  * `backward`, movement towards the left
  * `forward`, movement towards the right
  * `up`, movement out of lists
  * `down`, movement into lists
- * 
+ *
  * This will be in line with vscode when it comes to anchor/active, but introduce our own terminology  for the span of the selection. It will also keep the tradition of paredit with backward/forward and up/down.
  */
 
@@ -100,18 +105,18 @@ export class ModelEditSelection {
 }
 
 
-export type ModelEditOptions = { 
+export type ModelEditOptions = {
     undoStopBefore?: boolean,
-    formatParent?: boolean,
+    formatDepth?: number,
     skipFormat?: boolean,
-    selection?: ModelEditSelection 
+    selection?: ModelEditSelection
 };
 
 export interface EditableModel {
     /**
      * Performs a model edit batch.
      * For some EditableModel's these are performed as one atomic set of edits.
-     * @param edits 
+     * @param edits
      */
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
 
@@ -207,7 +212,7 @@ export class LineInputModel implements EditableModel {
 
     /**
      * Mark a line as needing to be re-lexed.
-     * 
+     *
      * @param idx the index of the line which needs re-lexing (0-based)
     */
     private markDirty(idx: number) {
@@ -234,14 +239,14 @@ export class LineInputModel implements EditableModel {
                 this.changedLines.add(nextIdx);
                 this.lines[nextIdx].processLine(prevState);
                 prevState = this.lines[nextIdx].endState;
-                
+
             } while(this.lines[++nextIdx] && !(equal(this.lines[nextIdx].startState, prevState)))
         }
     }
 
     /**
      * Returns the character offset in the model to the start of a given line.
-     * 
+     *
      * @param line the line who's offset will be returned.
      */
     getOffsetForLine(line: number) {
@@ -253,7 +258,7 @@ export class LineInputModel implements EditableModel {
 
     /**
      * Returns the text between start and end as a string. These may be in any order.
-     * 
+     *
      * @param start the start offset in the text range
      * @param end the end offset in the text range
      * @param mustBeWithin if the start or end are outside the document, returns ""
@@ -294,7 +299,7 @@ export class LineInputModel implements EditableModel {
     /**
      * Returns the start and end offset of the word found for the given offset in
      * the model.
-     * 
+     *
      * @param offset The offset in the line model.
      * @returns [number, number] The start and the index of the word in the model.
      */
@@ -305,7 +310,7 @@ export class LineInputModel implements EditableModel {
               text = this.lines[row].text;
 
         if (text && text.length > 1 && column < text.length && column >= 0) {
-    
+
             if (stopChars.includes(text[column])) {
                 return [offset, offset];
             }
@@ -321,7 +326,7 @@ export class LineInputModel implements EditableModel {
                 if (stopChars.includes(text[j])) {
                     break;
                 }
-                stopIdx = j; 
+                stopIdx = j;
             }
             return [offset - (column - startIdx), offset + (stopIdx - column) + 1];
         }
@@ -331,7 +336,7 @@ export class LineInputModel implements EditableModel {
     /**
      * Returns the initial lexer state for a given line.
      * Line 0 is always { inString: false }, all lines below are equivalent to their previous line's startState.
-     * 
+     *
      * @param line the line to retrieve the lexer state.
      */
     private getStateForLine(line: number): ScannerState {
@@ -341,7 +346,7 @@ export class LineInputModel implements EditableModel {
     /**
      * Performs a model edit batch.
      * Doesn't need to be atomic in the LineInputModel.
-     * @param edits 
+     * @param edits
      */
     edit(edits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         return new Promise((resolve, reject) => {
@@ -364,16 +369,16 @@ export class LineInputModel implements EditableModel {
                 this.document.selection = options.selection;
                 const document = this.document as ReplReadline;
                 document.caretX = this.getRowCol(options.selection.active)[1];
-            } 
+            }
             resolve(true);
         })
     }
 
     /**
      * Changes the model. Deletes any text between `start` and `end`, and the inserts `text`.
-     * 
+     *
      * If provided, `oldSelection` and `newSelection` are used to manage the cursor positioning for undo support.
-     * 
+     *
      * @param start the start offset in the range to delete
      * @param end the end offset in the range to delete
      * @param text the new text to insert
@@ -381,6 +386,8 @@ export class LineInputModel implements EditableModel {
      * @param newSelection the new selection
      */
     private changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
+        const t1 = new Date();
+
         let startPos = Math.min(start, end);
         let endPos = Math.max(start, end);
         let deletedText = this.recordingUndo ? this.getText(startPos, endPos) : "";
@@ -396,7 +403,7 @@ export class LineInputModel implements EditableModel {
         let right = this.lines[endLine].text.substr(endCol);
 
         let items: TextLine[] = [];
-        
+
         // initialize the lexer state - the first line is definitely not in a string, otherwise copy the
         // end state of the previous line before the edit
         let state = this.getStateForLine(startLine)
@@ -414,7 +421,7 @@ export class LineInputModel implements EditableModel {
         }
 
         if(currentLength > replaceLines.length) {
-            // shrink the lines 
+            // shrink the lines
              this.deleteLines(startLine + replaceLines.length, currentLength - replaceLines.length);
          } else if(currentLength < replaceLines.length) {
              // extend the lines
@@ -429,18 +436,19 @@ export class LineInputModel implements EditableModel {
             this.changedLines.add(startLine + i);
             this.markDirty(startLine + i);
         }
-    
+
         if(this.recordingUndo) {
             this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
         }
+        // console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
     }
 
     /**
      * Inserts a string at the given position in the document.
-     * 
+     *
      * If recordingUndo is set, an UndoStep is inserted into the undoManager, which will record the original
      * cursor position.
-     * 
+     *
      * @param offset the offset to insert at
      * @param text the text to insert
      * @param oldCursor the [row,col] of the cursor at the start of the operation
@@ -453,7 +461,7 @@ export class LineInputModel implements EditableModel {
     /**
      * Deletes count characters starting at offset from the document.
      * If recordingUndo is set, adds an undoStep, using oldCursor and newCursor.
-     * 
+     *
      * @param offset the offset to delete from
      * @param count the number of characters to delete
      * @param oldCursor the cursor at the start of the operation
@@ -489,7 +497,7 @@ export class LineInputModel implements EditableModel {
 
 /**
  * An Editor UndoStep.
- * 
+ *
  * All Editor Undo steps contain the position of the cursor before and after the edit.
  */
 class EditorUndoStep extends UndoStep<ReplReadline> {
@@ -530,7 +538,7 @@ class EditorUndoStep extends UndoStep<ReplReadline> {
                 this.deletedText = step.deletedText + this.deletedText;
                 this.newSelection = step.newSelection;
                 return true;
-            }            
+            }
         }
         return false;
     }

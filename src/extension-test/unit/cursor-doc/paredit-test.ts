@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import * as paredit from '../../../cursor-doc/paredit';
-import { ReplReadline } from '../../../webview/readline';
-import * as mock from './mock';
+import * as mock from '../common/mock';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 /**
@@ -20,6 +19,7 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
  *   * Ranges w/o direction are denoted with `|` at the range's boundaries.
  *   * Ranges with direction are denoted with `>|` and `<|`, using the same semantics as selections.
  *   * Single position ranges are denoted with a single `|`.
+ * * Newlines are denoted with `•`
  */
 
 describe('paredit', () => {
@@ -157,6 +157,85 @@ describe('paredit', () => {
                 doc.selection = existingSelection;
                 paredit.moveToRangeLeft(doc, [defRight, defLeft]);
                 expect(doc.selection).deep.equal(new ModelEditSelection(defLeft));
+            });
+        });
+    });
+
+    describe('Reader tags', () => {
+        const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';
+        let doc: mock.MockDocument;
+
+        beforeEach(() => {
+            doc = new mock.MockDocument();
+            doc.insertString(docText);
+        });
+
+        it('rangeToForwardDownList: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(|#b •[:f :b :z])•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(5, 5);
+            const newRange = paredit.rangeToForwardDownList(doc);
+            expect(newRange).deep.equal([5, 11]);
+        });
+        it('rangeToBackwardUpList: (a(b(c•#f•(|#b •[:f :b :z])•#z•1))) => (a(b(c•|#f•(#b •[:f :b :z])•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(11, 11);
+            const newRange = paredit.rangeToBackwardUpList(doc);
+            expect(newRange).deep.equal([7, 11]);
+        });
+        it('rangeToBackwardUpList: (a(b(c•#f•(#b •|[:f :b :z])•#z•1))) => (a(b(c•<•#f•(#b •<[:f :b :z])•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(15, 15);
+            const newRange = paredit.rangeToBackwardUpList(doc);
+            expect(newRange).deep.equal([4, 15]);
+        });
+        it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•(#b •[:f :b :z])•c•#z•1)))', () => {
+            doc.selection = new ModelEditSelection(10, 10);
+            paredit.dragSexprBackward(doc);
+            expect(doc.model.getText(0, Infinity)).equal('(a(b(#f\n(#b \n[:f :b :z])\nc\n#z\n1)))');
+        });
+        it('dragSexprForward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(c•#z•1•#f•(#b •[:f :b :z]))))', () => {
+            doc.selection = new ModelEditSelection(10, 10);
+            paredit.dragSexprForward(doc);
+            expect(doc.model.getText(0, Infinity)).equal('(a(b(c\n#z\n1\n#f\n(#b \n[:f :b :z]))))');
+        });
+        describe('Stacked readers', () => {
+            const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
+            let doc: mock.MockDocument;
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+            });
+            it('dragSexprBackward: (c•#f•(#b •[:f :b :z])•#x•#y•|1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
+                doc.selection = new ModelEditSelection(30, 30);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+            });
+            it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#x•#y•1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
+                doc.selection = new ModelEditSelection(6, 6);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+            });
+        })
+        describe('Top Level Readers', () => {
+            const docText = '#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö';
+            let doc: mock.MockDocument;
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+            });
+            it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+                doc.selection = new ModelEditSelection(26, 26);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
+            });
+            it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+                doc.selection = new ModelEditSelection(3, 3);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
+            });
+            it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö', () => {
+                doc.selection = new ModelEditSelection(26, 26);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).equal('#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö');
             });
         })
     });
@@ -362,3 +441,26 @@ describe('paredit', () => {
 });
 
 
+
+    describe('edits', () => {
+        it('Closes list', () => {
+            const doc: mock.MockDocument = new mock.MockDocument(),
+                text = '(str "foo")',
+                caret = 10;
+            doc.insertString(text);
+            doc.selection = new ModelEditSelection(caret);
+            paredit.close(doc, ')');
+            expect(doc.model.getText(0, Infinity)).equal(text);
+            expect(doc.selection).deep.equal(new ModelEditSelection(caret + 1));
+        });
+        it('Closes quote at end of string', () => {
+            const doc: mock.MockDocument = new mock.MockDocument(),
+                text = '(str "foo")',
+                caret = 9;
+            doc.insertString(text);
+            doc.selection = new ModelEditSelection(caret);
+            paredit.stringQuote(doc);
+            expect(doc.model.getText(0, Infinity)).equal(text);
+            expect(doc.selection).deep.equal(new ModelEditSelection(caret + 1));
+        });
+    });

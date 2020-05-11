@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/jack-in-guide">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # Learn about Calva Jack-in
 
 *The Calva Jack-In Academy, by [@pez](https://github.com/PEZ)*

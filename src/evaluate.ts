@@ -5,10 +5,10 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
-import { activeReplWindow, getReplWindow } from './repl-window';
+import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
-import { PrettyPrintingOptions, disabledPrettyPrinter } from './printer';
+import { PrettyPrintingOptions } from './printer';
 
 function interruptAllEvaluations() {
 
@@ -70,18 +70,22 @@ async function evaluateSelection(document, options) {
         }
 
         if (code.length > 0) {
+            if (options.debug) {
+                code = '#dbg\n' + code;
+            }
             annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
             let err: string[] = [], out: string[] = [];
 
-            let res = await client.eval("(in-ns '" + util.getNamespace(doc) + ")").value;
+            const ns = util.getNamespace(doc);
+            await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
 
             try {
                 const line = codeSelection.start.line,
                     column = codeSelection.start.character,
                     filePath = doc.fileName,
-                    context = client.eval(code, {
+                    context = client.eval(code, ns, {
                         file: filePath,
                         line: line + 1,
                         column: column + 1,
@@ -136,7 +140,11 @@ async function evaluateSelection(document, options) {
             }
         }
     } else
-        vscode.window.showErrorMessage("Not connected to a REPL")
+        vscode.window.showErrorMessage("Not connected to a REPL");
+}
+
+function printWarningForError(e: any) {
+    console.warn(`Unhandled error: ${e.message}`);
 }
 
 function normalizeNewLines(strings: string[]): string {
@@ -145,27 +153,27 @@ function normalizeNewLines(strings: string[]): string {
 
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(e => console.warn(`Unhandled error: ${e.message}`));
+        .catch(printWarningForError);
 }
 
 async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
@@ -195,14 +203,14 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             } else {
                 chan.appendLine("No results from file evaluation.");
             }
-        }).catch((e) => { 
+        }).catch((e) => {
             chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
         });
     }
     if (callback) {
         try {
             callback();
-        } catch (e) { 
+        } catch (e) {
             chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
         };
     }
@@ -223,8 +231,8 @@ async function requireREPLUtilitiesCommand() {
         if (session) {
             try {
                 await util.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
-                await session.eval("(in-ns '" + ns + ")").value;
-                await session.eval(form).value;
+                await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+                await session.eval(form, ns).value;
                 chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
             } catch (e) {
                 chan.appendLine(`REPL utilities could not be acquired for namespace ${ns}: ${e}`);
@@ -240,7 +248,7 @@ async function copyLastResultCommand() {
     const replWindow = activeReplWindow();
     let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
 
-    let value = await client.eval("*1").value;
+    let value = await client.eval("*1", client.client.ns).value;
     if (value !== null) {
         vscode.env.clipboard.writeText(value);
         vscode.window.showInformationMessage("Results copied to the clipboard.");
@@ -258,6 +266,11 @@ async function togglePrettyPrint() {
     statusbar.update();
 };
 
+async function instrumentTopLevelForm() {
+    evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true})
+        .catch(printWarningForError);
+}
+
 export default {
     interruptAllEvaluations,
     loadFile,
@@ -268,5 +281,6 @@ export default {
     evaluateTopLevelFormAsComment,
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
-    togglePrettyPrint
+    togglePrettyPrint,
+    instrumentTopLevelForm
 };

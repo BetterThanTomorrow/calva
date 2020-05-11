@@ -1,24 +1,22 @@
 import * as vscode from 'vscode';
 import * as config from './config';
-import { getIndent, getDocument, getDocumentOffset } from "../../doc-mirror";
+import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror";
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 
 
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
     let editor = vscode.window.activeTextEditor;
     let pos = new vscode.Position(position.line, 0);
-    let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position));
+    let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position), config.getConfig());
     let delta = document.lineAt(position.line).firstNonWhitespaceCharacterIndex - indent;
     if (delta > 0) {
-        //return [vscode.TextEdit.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta)))];
-        editor.edit(edits => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))), { undoStopAfter: false, undoStopBefore: false });
+        return editor.edit(edits => edits.delete(new vscode.Range(pos, new vscode.Position(pos.line, delta))), { undoStopAfter: false, undoStopBefore: false });
     }
     else if (delta < 0) {
         let str = "";
         while (delta++ < 0)
             str += " ";
-        //return [vscode.TextEdit.insert(pos, str)];
-        editor.edit(edits => edits.insert(pos, str), { undoStopAfter: false, undoStopBefore: false });
+        return editor.edit(edits => edits.insert(pos, str), { undoStopAfter: false, undoStopBefore: false });
     }
 }
 
@@ -36,13 +34,27 @@ export function formatRange(document: vscode.TextDocument, range: vscode.Range) 
 }
 
 export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}) {
-    const doc: vscode.TextDocument = editor.document,
-        pos: vscode.Position = editor.selection.active,
-        index = doc.offsetAt(pos),
-        formatted: { "range-text": string, "range": number[], "new-index": number } = _formatIndex(doc.getText(), index, doc.eol == 2 ? "\r\n" : "\n", onType, extraConfig),
-        range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1])),
-        newIndex: number = doc.offsetAt(range.start) + formatted["new-index"],
-        previousText: string = doc.getText(range);
+    const doc: vscode.TextDocument = editor.document;
+    const pos: vscode.Position = editor.selection.active;
+    const index = doc.offsetAt(pos);
+    const mirroredDoc: MirroredDocument = getDocument(doc);
+    const cursor = mirroredDoc.getTokenCursor(index);
+    const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
+    let formatRange = cursor.rangeForList(formatDepth);
+    if (!formatRange) {
+        formatRange = cursor.rangeForCurrentForm(index);
+        if (!formatRange.includes(index)) {
+            return;
+        }
+    }
+    const formatted: {
+        "range-text": string,
+        "range": number[],
+        "new-index": number
+    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, extraConfig);
+    const range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1]));
+    const newIndex: number = doc.offsetAt(range.start) + formatted["new-index"];
+    const previousText: string = doc.getText(range);
     return {
         formattedText: formatted["range-text"],
         range: range,
@@ -55,7 +67,7 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
 export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
     const doc: vscode.TextDocument = editor.document,
         formattedInfo = formatPositionInfo(editor, onType, extraConfig);
-    if (formattedInfo.previousText != formattedInfo.formattedText) {
+    if (formattedInfo && formattedInfo.previousText != formattedInfo.formattedText) {
         return editor.edit(textEditorEdit => {
             textEditorEdit.replace(formattedInfo.range, formattedInfo.formattedText);
         }, { undoStopAfter: false, undoStopBefore: false }).then((onFulfilled: boolean) => {
@@ -63,12 +75,16 @@ export function formatPosition(editor: vscode.TextEditor, onType: boolean = fals
             return onFulfilled;
         });
     } else {
-        return new Promise((resolve, _reject) => {
-            if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-                editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
-            }
-            resolve(true);
-        });
+        if (formattedInfo) {
+            return new Promise((resolve, _reject) => {
+                if (formattedInfo.newIndex != formattedInfo.previousIndex) {
+                    editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
+                }
+                resolve(true);
+            });
+        } else {
+            return formatRange(doc, new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)))
+        }
     }
 }
 
@@ -80,11 +96,12 @@ export function alignPositionCommand(editor: vscode.TextEditor) {
     formatPosition(editor, true, { "align-associative?": true });
 }
 
-function _formatIndex(allText: string, index: number, eol: string, onType: boolean = false, extraConfig = {}): { "range-text": string, "range": number[], "new-index": number } {
+function _formatIndex(allText: string, range: [number, number], index: number, eol: string, onType: boolean = false, extraConfig = {}): { "range-text": string, "range": number[], "new-index": number } {
     const d = cljify({
         "all-text": allText,
         "idx": index,
         "eol": eol,
+        "range": range,
         "config": { ...config.getConfig(), ...extraConfig }
     }),
         result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));

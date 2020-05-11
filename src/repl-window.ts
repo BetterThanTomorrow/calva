@@ -42,7 +42,7 @@ export function activeReplWindow() {
 }
 
 export function isReplWindowOpen(mode: "clj" | "cljs" = "clj") {
-    // If we find `mode` in the `replWindows` 
+    // If we find `mode` in the `replWindows`
     // dictionary, then it is open.
     if (!replWindows[mode]) {
         return (false);
@@ -62,11 +62,17 @@ class REPLWindow {
 
     private disposed = false;
 
+    private _originalSession;
+    private _preDebugNamespace;
+
     constructor(public panel: vscode.WebviewPanel,
         public session: NReplSession,
         public type: "clj" | "cljs",
         public cljType: string,
         public cljsType: string) {
+
+        this._originalSession = session;
+
         this.initialized = new Promise((resolve, reject) => {
             this.panel.webview.onDidReceiveMessage(async (msg) => {
                 if (msg.type == "init") {
@@ -135,6 +141,7 @@ class REPLWindow {
             if (this.evaluation) {
                 this.evaluation.interrupt();
             }
+            this.session = this._originalSession;
             // first remove the close handler to avoid
             // sending any messages to the disposed webview.
             session.removeOnCloseHandler(this.onClose);
@@ -181,32 +188,35 @@ class REPLWindow {
         this.postMessage({ type: 'async-stderr', id: id, value: text });
     }
 
-    reconnect() {
-        // evaluate something that really test 
+    async reconnect() {
+        // evaluate something that really test
         // the ability of the connected repl.
-        let res = this.session.eval("(+ 1 1)");
-        res.value.then((v) => {
+        try {
+            const res = await this.session.eval("(+ 1 1)", this.session.client.ns).value;
+
             if (res.ns) {
                 this.ns = res.ns;
             }
             if (res.errorOutput) {
-                this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
+                await this.postMessage({ type: "reconnected", ns: this.ns, value: res.errorOutput })
             } else {
-                this.postMessage({ type: "reconnected", ns: this.ns })
+                await this.postMessage({ type: "reconnected", ns: this.ns })
             }
-        }).catch(() => {
-            this.postMessage({ type: "reconnected", ns: this.ns })
-        });
-
+        } catch (e) {
+            await this.postMessage({ type: "reconnected", ns: this.ns });
+        }
     }
 
-    postMessage(msg: any) {
+    async postMessage(msg: any): Promise<boolean> {
         if (!this.disposed) {
-            if (this.useBuffer)
+            if (this.useBuffer) {
                 this.buffer.push(msg);
-            else
-                this.panel.webview.postMessage(msg)
+                return true;
+            } else {
+                return this.panel.webview.postMessage(msg);
+            }
         }
+        return;
     }
 
     onClose = () => {
@@ -216,8 +226,8 @@ class REPLWindow {
 
     ns: string = "user";
 
-    evaluate(ns: string, text: string) {
-        this.postMessage({ type: "do-eval", value: text, ns })
+    async evaluate(ns: string, text: string) {
+        return this.postMessage({ type: "do-eval", value: text, ns })
     }
 
     async setNamespace(ns: string) {
@@ -227,9 +237,11 @@ class REPLWindow {
 
     replEval(line: string, ns: string, pprintOptions: PrettyPrintingOptions) {
 
-        this.interrupt();
+        if (!vscode.debug.activeDebugSession) {
+            this.interrupt();
+        }
 
-        let evaluation = this.session.eval(line, {
+        let evaluation = this.session.eval(line, ns, {
             stderr: m => this.postMessage({ type: "stderr", value: m }),
             stdout: m => this.postMessage({ type: "stdout", value: m }),
             stdin: () => this.getUserInput(),
@@ -305,6 +317,18 @@ class REPLWindow {
     clear() {
         this.postMessage({ type: "clear", history: this.getHistory(), ns: this.ns });
     }
+
+    async startDebugMode(debugSession: NReplSession): Promise<void> {
+        this.session = debugSession;
+        this._preDebugNamespace = this.ns;
+        this.ns = '<<debug-mode>>';
+        await this.postMessage({ type: 'start-debug-mode', ns: this.ns });
+    }
+
+    stopDebugMode(): void {
+        this.session = this._originalSession;
+        this.setNamespace(this._preDebugNamespace);
+    }
 }
 
 let ctx: vscode.ExtensionContext
@@ -356,60 +380,66 @@ export function showAsyncOutput(mode: "clj" | "cljs", id: string, text: string, 
     }
 }
 
-export async function reconnectReplWindow(mode: "clj" | "cljs") {
-    if (replWindows[mode]) {
-        replWindows[mode].reconnect();
+export async function openClojureReplWindows() {
+    try {
+        await showReplWindows("clj");
+    } catch (e) {
+        console.error(`Failed to show clj REPL window: `, e);
     }
 }
 
-export async function openClojureReplWindows() {
-    showReplWindows("clj").catch((e) => {
-        console.error(`Failed to show clj REPL window: `, e);
-    });
-}
-
 export async function openClojureScriptReplWindows() {
-    showReplWindows("cljs").catch((e) => {
+    try {
+        await showReplWindows("cljs");
+    } catch (e) {
         console.error(`Failed to show cljs REPL window: `, e);
-    });
+    }
 }
 
-async function showReplWindows(mode: "clj" | "cljs") {
+async function showReplWindows(mode: "clj" | "cljs"): Promise<void> {
 
     if (state.deref().get('connected')) {
         if (util.getSession(mode)) {
             if (!isReplWindowOpen(mode)) {
-                openReplWindow(mode, true).then(() => {
-                    reconnectReplWindow(mode).then(() => {
-                    }).catch(e => {
+                try {
+                    const replWindow = await openReplWindow(mode, true);
+                    try {
+                        await replWindow.reconnect();
+                    } catch (e) {
                         console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                    });
-                }).catch(e => {
+                    }
+                } catch (e) {
                     console.error(`Failed to open ${mode} REPL window: `, e);
-                });
+                }
             } else {
                 if (replWindows[mode]) {
                     replWindows[mode].panel.reveal();
                 }
             }
-            return;
         }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
     }
-    vscode.window.showInformationMessage("Not connected to a Clojure REPL server");
 }
 
-export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true) {
-    let session = mode == "clj" ? cljSession : cljsSession,
-        nreplClient = session.client;
+export async function openReplWindow(mode: "clj" | "cljs" = "clj", preserveFocus: boolean = true): Promise<REPLWindow> {
+    const session = mode === "clj" ? cljSession : cljsSession;
+    let replWindow = replWindows[mode];
 
-    if (!replWindows[mode]) {
-        await createReplWindow(session, mode);
-    } else if (!nreplClient.sessions[replWindows[mode].session.sessionId]) {
-        replWindows[mode].session = await session.clone();
+    if (!replWindow) {
+        replWindow = await createReplWindow(session, mode);
+        replWindow[mode] = replWindow;
+    } else if (!session.client.sessions[replWindow.session.sessionId]) {
+        replWindow.session = await session.clone();
     }
 
-    replWindows[mode].panel.reveal(getReplViewColumn(mode), preserveFocus);
-    return replWindows[mode];
+    if (vscode.debug.activeDebugSession && mode === 'clj') {
+        await replWindow.startDebugMode(session);
+    }
+
+    replWindow.panel.reveal(getReplViewColumn(mode), preserveFocus);
+
+    return replWindow;
 }
 
 export async function createReplWindow(session: NReplSession, mode: "clj" | "cljs" = "clj") {
@@ -452,22 +482,22 @@ async function setREPLNamespaceCommand() {
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
 }
 
-export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
+export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
     openReplWindow(sessionType, true)
         .then((v) => {
             let wnd = replWindows[sessionType];
             if (wnd) {
                 let inNs = ns ? ns : wnd.ns;
-                if (ns && ns !== wnd.ns) {
-                    const requireEvaluation = wnd.session.eval(`(require '${ns})`);
+                if (inNs && inNs !== wnd.ns) {
+                    const requireEvaluation = wnd.session.eval(inNs !== 'user' ? `(require '${inNs})` : 'nil', wnd.ns);
                     requireEvaluation.value
                         .then((v) => {
-                            const inNSEvaluation = wnd.session.eval(`(in-ns '${ns})`)
+                            const inNSEvaluation = wnd.session.eval(`(in-ns '${inNs})`, wnd.ns)
                             inNSEvaluation.value
                                 .then((v) => {
                                     wnd.setNamespace(inNSEvaluation.ns).then((v) => {
                                         wnd.interrupt();
-                                        wnd.evaluate(inNs, text);
+                                        return wnd.evaluate(inNs, text);
                                     }).catch((e) => {
                                         vscode.window.showErrorMessage("Error setting namespace: " + e);
                                     });
@@ -479,12 +509,13 @@ export function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, 
                         })
                 } else {
                     wnd.interrupt();
-                    wnd.evaluate(inNs, text);
+                    return wnd.evaluate(inNs, text);
                 }
             }
         }).catch((e) => {
             vscode.window.showErrorMessage("Unable to open REPL window: " + e);
         })
+    return;
 }
 
 export async function setREPLNamespace(ns: string, reload = false) {
@@ -494,7 +525,7 @@ export async function setREPLNamespace(ns: string, reload = false) {
     }
     let wnd = replWindows[util.getREPLSessionType()];
     if (wnd) {
-        await wnd.session.eval("(in-ns '" + ns + ")").value;
+        await wnd.session.eval("(in-ns '" + ns + ")", wnd.ns).value;
         wnd.setNamespace(ns).catch(() => { });
     }
 }
@@ -521,7 +552,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean) {
 }
 
 function evalCurrentFormInREPLWindowCommand() {
-    evalCurrentFormInREPLWindow(false,);
+    evalCurrentFormInREPLWindow(false);
 }
 
 function evalCurrentTopLevelFormInREPLWindowCommand() {
@@ -562,7 +593,9 @@ function sendCustomCommandSnippetToREPLCommand() {
         }).then(async (pick) => {
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
                 const command = snippetsDict[pick].snippet,
-                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : "user",
+                    editor = vscode.window.activeTextEditor,
+                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? util.getNamespace(editor.document) : undefined,
+                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
                 sendTextToREPLWindow(repl ? repl : "clj", command, ns);
             }
@@ -584,18 +617,20 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { activeReplWindow().executeCommand('new-line'); }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { 
+        activeReplWindow().executeCommand('new-line'); 
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit'); }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => {
         activeReplWindow().executeCommand('history-up');
     }, 10, true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyDown', util.debounce(() => {
         activeReplWindow().executeCommand('history-down');
     }, 10, true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorUp', util.debounce(() => {
         activeReplWindow().executeCommand('cursor-up');
     }, 10, true)));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', util.debounce(() => { 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.cursorDown', util.debounce(() => {
         activeReplWindow().executeCommand('cursor-down');
     }, 10, true)));
 }
@@ -631,3 +666,7 @@ function clearREPLWindowAndHistory(mode: "clj" | "cljs") {
         vscode.window.showInformationMessage(`No ${mode} REPL Window found.`);
     }
 }
+
+export {
+    replWindows
+};

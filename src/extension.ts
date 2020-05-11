@@ -12,17 +12,19 @@ import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import { DefinitionProvider } from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
-import evaluator from './evaluate';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
 import select from './select';
-import evaluate from "./evaluate"
+import eval from "./evaluate"
 import refresh from "./refresh";
 import * as replWindow from "./repl-window";
 import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
+import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './debugger/calva-debug';
+import * as model from './cursor-doc/model';
+import debugDecorations from './debugger/decorations';
 
 function onDidSave(document) {
     let {
@@ -41,7 +43,7 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        evaluator.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+        eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
         state.analytics().logEvent("Calva", "OnSaveLoad").send();
     }
 }
@@ -57,21 +59,23 @@ function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
+    model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
+
     const chan = state.outputChannel();
 
-    const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode'),
-        fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt'),
-        pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived'),
-        cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior'),
-        vimExtension = vscode.extensions.getExtension('vscodevim.vim'),
-        cwConfig = vscode.workspace.getConfiguration('clojureWarrior'),
-        customCljsRepl = state.config().customCljsRepl,
-        replConnectSequences = state.config().replConnectSequences,
-        BUTTON_GOTO_DOC = "Open the docs",
-        BUTTON_OK = "Got it",
-        VIM_DOC_URL = "https://calva.readthedocs.io/en/latest/vim.html",
-        VIEWED_VIM_DOCS = "viewedVimDocs",
-        CONNECT_SEQUENCES_DOC_URL = "https://calva.readthedocs.io/en/latest/connect-sequences.html"
+    const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode');
+    const fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt');
+    const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
+    const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
+    const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
+    const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
+    const customCljsRepl = state.config().customCljsRepl;
+    const replConnectSequences = state.config().replConnectSequences;
+    const BUTTON_GOTO_DOC = "Open the docs";
+    const BUTTON_OK = "Got it";
+    const VIM_DOC_URL = "https://calva.io/vim/";
+    const VIEWED_VIM_DOCS = "viewedVimDocs";
+    const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
@@ -90,17 +94,30 @@ function activate(context: vscode.ExtensionContext) {
     state.setExtensionContext(context);
 
     if (!fmtExtension) {
-        fmt.activate(context);
+        try {
+            fmt.activate(context);
+        } catch (e) {
+            console.error("Failed activating Formatter: " + e.message)
+        }
     } else {
         vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall or, disable, it before continuing using Calva.", ...["Got it. Will do!"]);
     }
     if (!pareEditExtension) {
-        paredit.activate(context);
+        try {
+            paredit.activate(context);
+        } catch (e) {
+            console.error("Failed activating Paredit: " + e.message)
+        }
     } else {
-        vscode.window.showErrorMessage("Calva Paredit extension detected, which can cause pronlems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
+        vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
     }
 
-    replWindow.activate(context);
+    try {
+        replWindow.activate(context);
+    } catch (e) {
+        console.error("Failed activating REPL Window: " + e.message)
+    }
+
 
     chan.appendLine("Calva activated.");
 
@@ -116,31 +133,30 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        evaluator.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
+        eval.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
             chan.show(true);
         }).catch((reason) => {
             chan.show(true);
         });
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', evaluator.interruptAllEvaluations));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', evaluator.evaluateCurrentForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', evaluator.evaluateTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', evaluator.evaluateSelectionReplace));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', evaluator.evaluateSelectionAsComment));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', evaluator.evaluateTopLevelFormAsComment));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', evaluator.togglePrettyPrint));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', eval.evaluateTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', eval.evaluateSelectionReplace));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', eval.evaluateSelectionAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', eval.evaluateTopLevelFormAsComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', eval.togglePrettyPrint));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', testRunner.runTestUnderCursorCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', testRunner.runNamespaceTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
-
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', evaluate.copyLastResultCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', evaluate.requireREPLUtilitiesCommand));
-
+    context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', eval.copyLastResultCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', eval.requireREPLUtilitiesCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
@@ -158,7 +174,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
-        
+
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
 
@@ -180,7 +196,7 @@ function activate(context: vscode.ExtensionContext) {
             }
         }
     }));
-    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument))
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
         connector.disconnect();
         chan.dispose();
@@ -189,6 +205,15 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((_: vscode.ConfigurationChangeEvent) => {
         statusbar.update();
     }));
+
+    // Clojure debug adapter setup
+    const provider = new CalvaDebugConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(CALVA_DEBUG_CONFIGURATION.type, provider));
+    const factory = new CalvaDebugAdapterDescriptorFactory();
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(CALVA_DEBUG_CONFIGURATION.type, factory));
+    if ('dispose' in factory) {
+        context.subscriptions.push(factory);
+    }
 
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
@@ -212,7 +237,11 @@ function activate(context: vscode.ExtensionContext) {
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 
     if (!cwExtension) {
-        highlight.activate(context);
+        try {
+            highlight.activate(context);
+        } catch (e) {
+            console.error("Failed activating Highlight: " + e.message)
+        }
     } else {
         vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.", "Will do!"]);
     }
@@ -231,10 +260,9 @@ function activate(context: vscode.ExtensionContext) {
 }
 
 function deactivate() {
-    state.analytics().logEvent("LifeCycle", "Dectivated").send();
+    state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate()
 }
-
 
 export { activate, deactivate };

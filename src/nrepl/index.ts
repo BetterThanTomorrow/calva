@@ -5,8 +5,12 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
+import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calva-debug";
+import * as vscode from 'vscode';
+import annotations from '../providers/annotations';
+import debugDecorations from '../debugger/decorations';
 
-/** An nRREPL client */
+/** An nREPL client */
 export class NReplClient {
     private _nextId = 0;
 
@@ -26,7 +30,7 @@ export class NReplClient {
     /** Tracks all sessions */
     sessions: { [id: string]: NReplSession } = {};
 
-    ns: string = "user";
+    ns: string = 'user';
 
     private constructor(socket: net.Socket) {
         this.socket = socket;
@@ -92,25 +96,34 @@ export class NReplClient {
                 let cloneId = client.nextId;
                 let describeId = client.nextId;
 
-                client.decoder.on("data", data => {
-                    //console.log("-> ", data);
-                    if (!client.describe && data["id"] == describeId) {
+                client.decoder.on("data", (data) => {
+
+                    //console.log(data['id'], data);
+
+                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
+                        annotations.clearEvaluationDecorations();
+                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+                    } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
+                        handleNeedDebugInput(data);
+                    }
+
+                    if (!client.describe && data["id"] === describeId) {
                         client.describe = data;
-                    } else if (data["id"] == nsId) {
+                    } else if (data["id"] === nsId) {
                         if (data["ns"])
-                            client.ns = data["ns"]
-                        if (data["status"] && data["status"].indexOf("done") != -1)
+                            client.ns = data["ns"];
+                        if (data["status"] && data["status"].indexOf("done") !== -1)
                             client.encoder.write({ "op": "clone", "id": cloneId });
-                    } else if (data["id"] == cloneId) {
-                        client.session = new NReplSession(data["new-session"], client)
+                    } else if (data["id"] === cloneId) {
+                        client.session = new NReplSession(data["new-session"], client);
                         client.encoder.write({ "op": "describe", id: describeId, verbose: true, session: data["new-session"] });
-                        resolve(client)
+                        resolve(client);
                     } else if (data["session"]) {
                         let session = client.sessions[data["session"]];
                         if (session)
                             session._response(data);
                     }
-                })
+                });
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
             });
@@ -256,24 +269,48 @@ export class NReplSession {
         })
     }
 
-    eval(code: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
+    private _createEvalOperationMessage(code: string, ns: string, opts: any) {
+        if (vscode.debug.activeDebugSession && this.replType === 'clj') {
+            const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
+            return {
+                id: debugResponse.id,
+                session: debugResponse.session,
+                op: 'debug-input',
+                input: `{:response :eval, :code ${code}}`,
+                key: debugResponse.key,
+                ...opts,
+            };
+        } else {
+            return {
+                id: this.client.nextId,
+                op: 'eval',
+                session: this.sessionId,
+                code,
+                ...opts
+            };
+        }
+    }
+
+    eval(code: string, ns: string, opts: { line?: number, column?: number, eval?: string, file?: string, stderr?: (x: string) => void, stdout?: (x: string) => void, stdin?: () => Promise<string>, pprintOptions: PrettyPrintingOptions } = { pprintOptions: disabledPrettyPrinter }) {
         const pprintOptions = opts.pprintOptions;
         opts["pprint"] = pprintOptions.enabled;
         delete opts.pprintOptions;
-        const id = this.client.nextId,
-            extraOpts = getServerSidePrinter(pprintOptions);
+        const extraOpts = getServerSidePrinter(pprintOptions);
+        const opMsg = this._createEvalOperationMessage(code, ns, { ...extraOpts, ...opts });
 
-        let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
-            this.messageHandlers[id] = (msg) => {
+        let evaluation = new NReplEvaluation(opMsg.id, this, opts.stderr, opts.stdout, opts.stdin, new Promise((resolve, reject) => {
+            this.messageHandlers[opMsg.id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
+                if (opts.line && opts.column && opts.file) {
+                    debugDecorations.triggerUpdateDecorations();
+                }
                 if (evaluation.onMessage(msg, pprintOptions)) {
                     return true;
                 }
             }
-            const opMsg = { op: "eval", session: this.sessionId, code, id, ...extraOpts, ...opts };
-            this.addRunningID(id);
+            this.addRunningID(opMsg.id);
             this.client.write(opMsg);
-        }))
+        }));
 
         return evaluation;
     }
@@ -306,13 +343,14 @@ export class NReplSession {
             stdout?: (x: string) => void,
             pprintOptions: PrettyPrintingOptions
         } = {
-            pprintOptions: disabledPrettyPrinter
-        }) {
+                pprintOptions: disabledPrettyPrinter
+            }) {
 
         let id = this.client.nextId;
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
+                debugDecorations.triggerUpdateDecorations();
                 if (evaluation.onMessage(msg, opts.pprintOptions)) {
                     return true;
                 }
@@ -326,13 +364,22 @@ export class NReplSession {
 
     complete(ns: string, symbol: string, context?: string) {
         return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
+            const id = this.client.nextId,
+                extraOpts = state.config().enableJSCompletions ? { "enhanced-cljs-completion?": "t" } : {};
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "complete", ns, symbol, id, session: this.sessionId, context })
-        })
+            this.client.write({
+                op: "complete",
+                ns,
+                symbol,
+                id,
+                session: this.sessionId,
+                context,
+                ...extraOpts
+            });
+        });
     }
 
     info(ns: string, symbol: string) {
@@ -477,8 +524,7 @@ export class NReplSession {
                 return true;
             }
             this.client.write({ op: "format-code", code, options })
-        })
-
+        });
     }
 
     interruptAll(): number {
@@ -497,6 +543,43 @@ export class NReplSession {
             return (ids.length);
         }
         return (0);
+    }
+
+    initDebugger(): void {
+        const id = this.client.nextId;
+        // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
+        this.client.write({ op: "init-debugger", id, session: this.sessionId });
+    }
+
+    sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
+        return new Promise<any>((resolve, _) => {
+
+            this.messageHandlers[debugResponseId] = (response) => {
+                resolve(response);
+                return true;
+            };
+
+            const data: any = {
+                id: debugResponseId,
+                op: 'debug-input',
+                input,
+                key: debugResponseKey,
+                session: this.sessionId
+            };
+
+            this.client.write(data);
+        });
+    }
+
+    listDebugInstrumentedDefs(): Promise<any> {
+        return new Promise<any>((resolve, _) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: 'debug-instrumented-defs', id, session: this.sessionId });
+        });
     }
 }
 
@@ -523,7 +606,7 @@ export class NReplEvaluation {
 
     private _msgs: any[] = [];
 
-    private _interruped: boolean = false;
+    private _interrupted: boolean = false;
 
     private _finished: boolean = false;
 
@@ -572,7 +655,7 @@ export class NReplEvaluation {
     }
 
     get interrupted() {
-        return (this._interruped);
+        return (this._interrupted);
     }
 
     get running() {
@@ -654,7 +737,7 @@ export class NReplEvaluation {
     interrupt() {
         if (!this.interrupted && this.running) {
             this.remove();
-            this._interruped = true;
+            this._interrupted = true;
             this._exception = "Evaluation was interrupted";
             this._stacktrace = {};
             this.session.interrupt(this.id).catch(() => { });
@@ -677,7 +760,7 @@ export class NReplEvaluation {
             if (msg.out) {
                 this.out(msg.out)
             }
-            if (msg.err) {
+            if (msg.err && this.msgValue !== DEBUG_QUIT_VALUE) {
                 this.err(msg.err)
             }
             if (msg.ns) {
@@ -686,8 +769,15 @@ export class NReplEvaluation {
             if (msg.ex) {
                 this._exception = msg.ex;
             }
-            if (msg.value != undefined) {
-                this._msgValue = msg.value
+            // cider-nrepl debug middleware eval error (eval error occurred during debug session)
+            if (msg.status && msg.status.indexOf('eval-error') !== -1 && msg.causes) {
+                const cause = msg.causes[0];
+                const errorMessage = `${cause.class}: ${cause.message}`;
+                this._stacktrace = { stacktrace: cause.stacktrace };
+                this.err(errorMessage);
+            }
+            if (msg.value !== undefined || msg['debug-value'] !== undefined) {
+                this._msgValue = msg.value || msg['debug-value'];
             }
             if (msg["pprint-out"]) {
                 this._pprintOut = msg["pprint-out"];
@@ -715,15 +805,19 @@ export class NReplEvaluation {
                         });
                 }
             }
-            if (msg.status && msg.status == "done") {
+            if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
                 this.remove();
-                if (this.exception) {
+                if (this.exception && this.msgValue !== DEBUG_QUIT_VALUE) {
                     this.session.stacktrace().then((stacktrace) => {
                         this._stacktrace = stacktrace;
                         this.doReject(this.exception);
                     }).catch(() => { });
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
+                } else if (this.stacktrace) {
+                    // No exception but stacktrace means likely debug eval error. Error will have been printed already from call to this.err(),
+                    // so just reject with no value so that just the stacktrace is printed.
+                    this.doReject('');
                 } else {
                     let printValue = this.msgValue;
                     if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {

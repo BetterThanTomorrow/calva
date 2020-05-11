@@ -1,5 +1,5 @@
 import { LineInputModel } from "./model";
-import { Token } from "./clojure-lexer";
+import { Token, validPair } from "./clojure-lexer";
 
 
 function tokenIsWhiteSpace(token: Token) {
@@ -112,22 +112,9 @@ export class LispTokenCursor extends TokenCursor {
         return new LispTokenCursor(this.doc, this.line, this.token);
     }
 
-    /**
-     * Moves this token past the inside of a multiline string
-     */
-    // forwardString() {
-    //     while (!this.atEnd()) {
-    //         switch (this.getToken().type) {
-    //             case "eol":
-    //             case "str-inside":
-    //             case "str-start":
-    //                 this.next();
-    //                 continue;
-    //             default:
-    //                 return;
-    //         }
-    //     }
-    // }
+    tokenBeginsMetadata(): boolean {
+        return this.getToken().raw.endsWith('^{');
+    }
 
     /**
      * Moves this token past any whitespace or comment.
@@ -179,47 +166,74 @@ export class LispTokenCursor extends TokenCursor {
 
     // Lisp navigation commands begin here.
 
+    // TODO: When f/b sexp, use the stack knowledge to ”flag” unbalance
+
     /**
      * Moves this token forward one s-expression at this level.
      * If the next non whitespace token is an open paren, skips past it's matching
      * close paren.
-     * 
+     *
      * If the next token is a form of closing paren, does not move.
-     * 
+     *
      * @returns true if the cursor was moved, false otherwise.
      */
-    forwardSexp(skipComments = true): boolean {
-        let delta = 0;
+    forwardSexp(skipComments = true, skipMetadata = false, skipIgnoredForms = false): boolean {
+        // TODO: Consider using a proper bracket stack
+        const stack = [];
+        let isMetadata = false;
         this.forwardWhitespace(skipComments);
-        if (this.getToken().type == "close") {
+        if (this.getToken().type === 'close') {
             return false;
+        }
+        if (this.tokenBeginsMetadata()) {
+            isMetadata = true;
         }
         while (!this.atEnd()) {
             this.forwardWhitespace(skipComments);
-            let tk = this.getToken();
-            switch (tk.type) {
+            const token = this.getToken();
+            switch(token.type) {
                 case 'comment':
-                    this.next(); // skip past comment
-                    this.next(); // skip past EOL.
-                    return true;
+                    this.next();
+                    this.next();
+                    break;
+                case 'ignore':
+                    if (skipIgnoredForms) {
+                        this.next();
+                        this.forwardSexp(skipComments, skipMetadata, skipIgnoredForms);
+                        break;
+                    }
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
                 case 'junk':
                 case 'str-inside':
-                    this.next();
-                    if (delta <= 0)
-                        return true;
+                    if (skipMetadata && this.getToken().raw.startsWith('^')) {
+                        this.next();
+                    } else {
+                        this.next();
+                        if (stack.length <= 0) {
+                            return true;
+                        }
+                    }
                     break;
                 case 'close':
-                    delta--;
-                    this.next();
-                    if (delta <= 0)
+                    const close = token.raw;
+                    let open: string;
+                    while (open = stack.pop()) {
+                        if (validPair(open, close)) {
+                            this.next();
+                            break;
+                        }
+                    }
+                    if (skipMetadata && isMetadata) {
+                        this.forwardSexp(skipComments, skipMetadata);
+                    }
+                    if (stack.length <= 0) {
                         return true;
+                    }
                     break;
                 case 'open':
-                    delta++;
+                    stack.push(token.raw);
                     this.next();
                     break;
                 default:
@@ -233,17 +247,13 @@ export class LispTokenCursor extends TokenCursor {
      * Moves this token backward one s-expression at this level.
      * If the previous non whitespace token is a close paren, skips past it's matching
      * open paren.
-     * 
+     *
      * If the previous token is a form of open paren, does not move.
-     * 
-     * Note. The cursor won't move when ”on” the first sexp inside a list.
-     *       TODO: Fix this. (Probably the only way is to give the cursor knowledge
-     *             about the offset it was created from.)
-     * 
+     *
      * @returns true if the cursor was moved, false otherwise.
      */
     backwardSexp(skipComments = true) {
-        let delta = 0;
+        let stack = [];
         this.backwardWhitespace(skipComments);
         if (this.getPrevToken().type === 'open') {
             return false;
@@ -255,23 +265,30 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
-                case 'punc':
+                case 'ignore':
                 case 'junk':
-                case 'kw':
                 case 'comment':
                 case 'str-inside':
                     this.previous();
-                    if (delta <= 0)
+                    this.backwardThroughAnyReader();
+                    if (stack.length <= 0)
                         return true;
                     break;
                 case 'close':
-                    delta++;
+                    stack.push(tk.raw);
                     this.previous();
                     break;
                 case 'open':
-                    delta--;
+                    const open = tk.raw;
+                    let close: string;
+                    while (close = stack.pop()) {
+                        if (validPair(open, close)) {
+                            break;
+                        }
+                    }
                     this.previous();
-                    if (delta <= 0)
+                    this.backwardThroughAnyReader();
+                    if (stack.length <= 0)
                         return true;
                     break;
                 default:
@@ -282,12 +299,46 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
+     * Moves this cursor past the previous non-ws token, if it is a `reader` token.
+     * Otherwise, this cursor is left unaffected.
+     */
+    backwardThroughAnyReader() {
+        const cursor = this.clone();
+        while (true) {
+            cursor.backwardWhitespace();
+            if (cursor.getPrevToken().type === 'reader') {
+                cursor.previous();
+                this.set(cursor);
+            } else {
+                break;
+            }
+        }
+    }
+
+    /**
+     * Moves this cursor past the next non-ws token, if it is a `reader` token.
+     * Otherwise, this cursor is left unaffected.
+     */
+    forwardThroughAnyReader() {
+        const cursor = this.clone();
+        while (true) {
+            cursor.forwardWhitespace();
+            if (cursor.getToken().type === 'reader') {
+                cursor.next();
+                this.set(cursor);
+            } else {
+                break;
+            }
+        }
+    }
+
+    /**
      * Moves this cursor to the close paren of the containing sexpr, or until the end of the document.
      */
     forwardList(): boolean {
         let cursor = this.clone();
         while (cursor.forwardSexp()) { }
-        if (cursor.getToken().type == "close") {
+        if (cursor.getToken().type === "close") {
             this.set(cursor);
             return true;
         }
@@ -340,36 +391,48 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Finds the range of the current list. If you are particular about which type of list, supply the `openingBracket`
-     * @param openingBracket 
+     * Finds the range of the current list up to `depth`.
+     * If you are particular about which type of list, supply the `openingBracket`.
+     * @param openingBracket
      */
-    rangeForList(openingBracket?: string): [number, number] {
+    rangeForList(depth: number, openingBracket?: string): [number, number] {
         const cursor = this.clone();
-        if (openingBracket === undefined) {
-            if (!(cursor.backwardList() && cursor.backwardUpList())) {
-                return undefined;
+        let range: [number, number] = undefined;
+        for (let i = 0; i < depth; i++) {
+            if (openingBracket === undefined) {
+                if (!(cursor.backwardList() && cursor.backwardUpList())) {
+                    return range;
+                }
+            } else {
+                if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
+                    return range;
+                }
             }
-        } else {
-            if (!(cursor.backwardListOfType(openingBracket) && cursor.backwardUpList())) {
-                return undefined;
+            const start = cursor.offsetStart;
+            if (!cursor.forwardSexp()) {
+                return range;
             }
+            const end = cursor.offsetStart;
+            range = [start, end];
         }
-        const start = cursor.offsetStart;
-        if (!cursor.forwardSexp()) {
-            return undefined;
-        }
-        const end = cursor.offsetEnd;
-        return [start, end]
+        return range;
     }
 
     /**
      * If possible, moves this cursor forwards past any whitespace, and then past the immediately following open-paren and returns true.
      * If the source does not match this, returns false and does not move the cursor.
      */
-    downList(): boolean {
+    downList(skipMetadata = false): boolean {
         let cursor = this.clone();
+        cursor.forwardThroughAnyReader();
         cursor.forwardWhitespace();
-        if (cursor.getToken().type == "open") {
+        if (cursor.getToken().type === 'open') {
+            if (skipMetadata) {
+                while (cursor.tokenBeginsMetadata()) {
+                    cursor.forwardSexp();
+                    cursor.forwardWhitespace();
+                }
+            }
             cursor.next();
             this.set(cursor);
             return true;
@@ -398,9 +461,11 @@ export class LispTokenCursor extends TokenCursor {
      */
     backwardUpList(): boolean {
         let cursor = this.clone();
+        cursor.backwardThroughAnyReader();
         cursor.backwardWhitespace();
         if (cursor.getPrevToken().type == "open") {
             cursor.previous();
+            cursor.backwardThroughAnyReader();
             this.set(cursor);
             return true;
         }
@@ -425,7 +490,7 @@ export class LispTokenCursor extends TokenCursor {
     /**
      * Figures out the `range` for the current form according to this priority:
      * 0. If `offset` is within a symbol, literal or keyword
-     * 1. If `offset` is adjacent after form
+     * 1. Else, if `offset` is adjacent after form
      * 2. Else, if `offset` is adjacent before a form
      * 3. Else, if the previous form is on the same line
      * 4. Else, if the next form is on the same line
@@ -437,41 +502,46 @@ export class LispTokenCursor extends TokenCursor {
      */
     rangeForCurrentForm(offset: number): [number, number] {
         if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
-            return [this.offsetStart, this.offsetEnd];
+            const cursor = this.clone();
+            cursor.backwardThroughAnyReader();
+            return [cursor.offsetStart, this.offsetEnd];
         }
-        const peekBackwards = this.clone();
-        peekBackwards.backwardWhitespace(true);
-        if (peekBackwards.offsetStart == offset) {
-            if (peekBackwards.backwardSexp()) { // 1.
-                return [peekBackwards.offsetStart, offset];
+        const afterCursor = this.clone();
+        afterCursor.backwardWhitespace(true);
+        if (afterCursor.offsetStart == offset && afterCursor.getPrevToken().type !== 'reader') {
+            if (afterCursor.backwardSexp()) { // 1.
+                return [afterCursor.offsetStart, offset];
             }
         }
-        const peekForwards = this.clone();
-        peekForwards.forwardWhitespace(true);
-        if (peekForwards.offsetStart == offset) {
-            if (peekForwards.forwardSexp()) { // 2.
-                return [offset, peekForwards.offsetStart];
+        const beforeCursor = this.clone();
+        beforeCursor.forwardThroughAnyReader();
+        beforeCursor.forwardWhitespace(true);
+        const readerCursor = beforeCursor.clone();
+        readerCursor.backwardThroughAnyReader();
+        if (beforeCursor.offsetStart == offset || readerCursor.offsetStart != beforeCursor.offsetStart) {
+            if (beforeCursor.forwardSexp()) { // 2.
+                return [readerCursor.offsetStart, beforeCursor.offsetStart];
             }
         }
-        if (peekBackwards.rowCol[0] == this.rowCol[0]) {
-            const peekBehindBackwards = peekBackwards.clone();
+        if (afterCursor.rowCol[0] == this.rowCol[0]) {
+            const peekBehindBackwards = afterCursor.clone();
             if (peekBehindBackwards.backwardSexp()) { // 3.
-                return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+                return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
             }
         }
-        if (peekForwards.rowCol[0] == this.rowCol[0]) {
-            const peekPastForwards = peekForwards.clone();
+        if (beforeCursor.rowCol[0] == this.rowCol[0]) {
+            const peekPastForwards = beforeCursor.clone();
             if (peekPastForwards.forwardSexp()) { // 4.
-                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+                return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
             }
         }
-        const peekBehindBackwards = peekBackwards.clone();
+        const peekBehindBackwards = afterCursor.clone();
         if (peekBehindBackwards.backwardSexp()) { // 5.
-            return [peekBehindBackwards.offsetStart, peekBackwards.offsetStart];
+            return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
         } else {
-            const peekPastForwards = peekForwards.clone();
+            const peekPastForwards = beforeCursor.clone();
             if (peekPastForwards.forwardSexp()) { // 6.
-                return [peekForwards.offsetStart, peekPastForwards.offsetStart];
+                return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
             } else {
                 const peekUp = this.clone();
                 if (peekUp.upList()) {
@@ -489,7 +559,7 @@ export class LispTokenCursor extends TokenCursor {
      * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
      * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
      * @param offset The ”current” position
-     * @param start From where to start examine candidate forms, should be before `offset`
+     * @param depth Controls if the cursor should consider `comment` top level (if > 0, it will not)
      */
     rangeForDefun(offset: number, depth = 0): [number, number] {
         const cursor = this.clone();
@@ -513,6 +583,18 @@ export class LispTokenCursor extends TokenCursor {
         return [offset, offset]
     }
 
+    rangesForTopLevelForms(): [number, number][] {
+        const cursor = new LispTokenCursor(this.doc, 0, 0);
+        let ranges: [number, number][] = [];
+        while (cursor.forwardSexp()) {
+            const end = cursor.offsetStart;
+            cursor.backwardSexp();
+            ranges.push([cursor.offsetStart, end]);
+            cursor.forwardSexp();
+        }
+        return ranges;
+    }
+
     isWhiteSpace(): boolean {
         return tokenIsWhiteSpace(this.getToken());
     }
@@ -529,7 +611,12 @@ export class LispTokenCursor extends TokenCursor {
      * Indicates if the current token is inside a string
      */
     withinString() {
-        return this.getToken().type == 'str-inside' || this.getPrevToken().type == 'str-inside';
+        const cursor = this.clone();
+        cursor.backwardList();
+        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw === '"') {
+            return true;
+        };
+        return false;
     }
 
     /**
@@ -563,7 +650,7 @@ export class LispTokenCursor extends TokenCursor {
         while (true) {
             cursor.forwardWhitespace();
             const start = cursor.rowCol;
-            if (cursor.getToken().raw === '#_') {
+            if (cursor.getToken().type === 'ignore') {
                 ignoreCounter++;
                 cursor.forwardSexp();
                 continue;
@@ -629,4 +716,4 @@ export function createStringCursor(s: string): LispTokenCursor {
     const model = new LineInputModel();
     model.insertString(0, s);
     return model.getTokenCursor(0);
-} 
+}

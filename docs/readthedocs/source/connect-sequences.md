@@ -1,3 +1,9 @@
+<meta http-equiv="refresh" content="0; URL=https://calva.io/connect-sequences">
+
+## Calva Doccumentation has Moved
+
+[calva.io](https://calva.io)
+
 # REPL Jack-in and Connection Sequences
 
 Many projects grow out of the template phase and call for custom developer workflows involving application start commands, customized REPLs, and what have you. Even some templates add this kind of complexity. To make Jack-in usable for a broader set of projects, Calva has a setting keyed `calva.replConnectSequences` which lets you configure one ore more connect sequences.
@@ -13,28 +19,28 @@ NB: _Connect sequence configuration affect Calva's Jack-in menu in the following
 A connect sequence configures the following:
 
 * `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
-* `projectType`: (required) This is either "Leiningen”, ”Clojure-CLI”, or ”shadow-cljs”.
+* `projectType`: (required) This is either "Leiningen”, ”Clojure-CLI”, ”shadow-cljs”, ”lein-shadow”, or ”generic".
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
 * `afterCLJReplJackInCode`: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.
 * `cljsType`: This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", or a dictionary configuring a custom type. If omitted, Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
-  * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
-  * `isStarted`: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)
-  * `startCode`: Clojure code to be evaluated to create and/or start your custom CLJS REPL.
-  * `isStartedRegExp`: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.
-  * `openUrlRegExp`: A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named `url`. E.g. "Open URL: (?\<url\>S+)"
-  * `shouldOpenUrl`: Choose if Calva should automatically open the URL for you or not.
-  * `connectCode`: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: `startCode` should be omitted.)
-  * `isConnectedRegExp`: (required) A regular expression which, when matched in the `stdout` from the `connectCode` evaluation, will tell Calva that the application is connected. The default is `To quit, type: :cljs/quit` and you should leave it at that unless you know it won't work.
-  * `printThisLineRegExp`: regular expression which, when matched in the `stdout` from any code evaluations in the `cljsType`, will make the matched text be printed to the **Calva says** Output channel.
-  * `buildsRequired`: Boolean. If the repl type requires that builds are started in order to connect to them, set this to true.
+    * `dependsOn`: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.
+    * `isStarted`: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)
+    * `startCode`: Clojure code to be evaluated to create and/or start your custom CLJS REPL.
+    * `isStartedRegExp`: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.
+    * `openUrlRegExp`: A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named `url`. E.g. "Open URL: (?\<url\>S+)"
+    * `shouldOpenUrl`: Choose if Calva should automatically open the URL for you or not.
+    * `connectCode`: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: `startCode` should be omitted.)
+    * `isConnectedRegExp`: (required) A regular expression which, when matched in the `stdout` from the `connectCode` evaluation, will tell Calva that the application is connected. The default is `To quit, type: :cljs/quit` and you should leave it at that unless you know it won't work.
+    * `printThisLineRegExp`: regular expression which, when matched in the `stdout` from any code evaluations in the `cljsType`, will make the matched text be printed to the **Calva says** Output channel.
+    * `buildsRequired`: Boolean. If the repl type requires that builds are started in order to connect to them, set this to true.
 * `menuSelections`: a dictionary with pre-filled-in selections for the Jack-in and Connect prompts, making Calva not prompt for that particular selection:
-  * `leinProfiles`: At Jack-in to a Leiningen project, use these profiles to launch the repl.
-  * `leinAlias`: At Jack-in to a Leiningen project, launch with this alias. Set to `null` to launch with Calva's default task (a headless repl), w/o prompting.
-  * `cljAliases`: At Jack-in to a Clojure CLI project, use these aliases to launch the repl.
-  * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
-  * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
+    * `leinProfiles`: At Jack-in to a Leiningen project, use these profiles to launch the repl.
+    * `leinAlias`: At Jack-in to a Leiningen project, launch with this alias. Set to `null` to launch with Calva's default task (a headless repl), w/o prompting.
+    * `cljAliases`: At Jack-in to a Clojure CLI project, use these aliases to launch the repl.
+    * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
+    * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 
-The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/master/calva/nrepl/connectSequence.ts) also uses this format, check them out to get a clearer picture of how these settings work.
+The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/master/src/nrepl/connectSequence.ts) also uses this format, check them out to get a clearer picture of how these settings work.
 
 
 ## Example Sequences
