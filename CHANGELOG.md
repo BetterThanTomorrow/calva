@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [clj-kondo exceptions thrown by debugger decorations code](https://github.com/BetterThanTomorrow/calva/issues/642)
+- Move [warning for clj-kondo not found on classpath](https://github.com/BetterThanTomorrow/calva/issues/639) to Calva says output channel instead of window warning
 
 ## [2.0.99] - 2020-05-10
 - Fix [Formatting top-level form stopped working](https://github.com/BetterThanTomorrow/calva/issues/640)
