@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.101] - 2020-05-11
 - [Paredit slurp outer form if current form is nested](https://github.com/BetterThanTomorrow/calva/issues/554)
 
 ## [2.0.100] - 2020-05-11
