@@ -287,7 +287,8 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
                 ...extraOpts
             });
         } else {
-            forwardSlurpSexp(doc, cursor.offsetStart, { formatParent: true });
+            const formatDepth = extraOpts["formatDepth"] ? extraOpts["formatDepth"] : 1;
+            forwardSlurpSexp(doc, cursor.offsetStart, { formatDepth: formatDepth + 1 });
         }
     }
 }
@@ -313,7 +314,8 @@ export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.sel
                 ...extraOpts
             });
         } else {
-            backwardSlurpSexp(doc, cursor.offsetStart, { formatParent: true })
+            const formatDepth = extraOpts["formatDepth"] ? extraOpts["formatDepth"] : 1;
+            backwardSlurpSexp(doc, cursor.offsetStart, { formatDepth: formatDepth + 1 })
         }
     }
 }
@@ -332,7 +334,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
         ], start >= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
             formatDepth: 2
-            } : { formatDepth: 2 });
+        } : { formatDepth: 2 });
     }
 }
 
@@ -352,8 +354,8 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
             new ModelEdit('deleteRange', [offset, tk.raw.length])
         ], start <= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
-                formatDepth: 2
-            } : { formatDepth: 2 });
+            formatDepth: 2
+        } : { formatDepth: 2 });
     }
 }
 
