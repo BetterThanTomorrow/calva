@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Paredit slurp outer form if current form is nested](https://github.com/BetterThanTomorrow/calva/issues/554)
 
 ## [2.0.100] - 2020-05-11
 - Fix [clj-kondo exceptions thrown by debugger decorations code](https://github.com/BetterThanTomorrow/calva/issues/642)
