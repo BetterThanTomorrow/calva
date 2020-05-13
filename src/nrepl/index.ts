@@ -545,10 +545,12 @@ export class NReplSession {
         return (0);
     }
 
-    initDebugger(): void {
+    async initDebugger(): Promise<NReplSession> {
+        const debugSession = await this.client.createSession();
         const id = this.client.nextId;
         // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
-        this.client.write({ op: "init-debugger", id, session: this.sessionId });
+        this.client.write({ op: "init-debugger", id, session: debugSession.sessionId });
+        return debugSession;
     }
 
     sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
