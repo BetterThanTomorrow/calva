@@ -5,7 +5,7 @@ import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
-import { handleNeedDebugInput, NEED_DEBUG_INPUT_STATUS, DEBUG_RESPONSE_KEY, REQUESTS, DEBUG_QUIT_VALUE } from "../debugger/calva-debug";
+import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import annotations from '../providers/annotations';
 import debugDecorations from '../debugger/decorations';
@@ -98,14 +98,7 @@ export class NReplClient {
 
                 client.decoder.on("data", (data) => {
 
-                    //console.log(data['id'], data);
-
-                    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
-                        annotations.clearAllEvaluationDecorations();
-                        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
-                    } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
-                        handleNeedDebugInput(data);
-                    }
+                    debug.onNreplMessage(data);
 
                     if (!client.describe && data["id"] === describeId) {
                         client.describe = data;
@@ -271,7 +264,7 @@ export class NReplSession {
 
     private _createEvalOperationMessage(code: string, ns: string, opts: any) {
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
-            const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
+            const debugResponse = state.deref().get(debug.DEBUG_RESPONSE_KEY);
             return {
                 id: debugResponse.id,
                 session: debugResponse.session,
@@ -762,7 +755,7 @@ export class NReplEvaluation {
             if (msg.out) {
                 this.out(msg.out)
             }
-            if (msg.err && this.msgValue !== DEBUG_QUIT_VALUE) {
+            if (msg.err && this.msgValue !== debug.DEBUG_QUIT_VALUE) {
                 this.err(msg.err)
             }
             if (msg.ns) {
@@ -809,7 +802,7 @@ export class NReplEvaluation {
             }
             if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
                 this.remove();
-                if (this.exception && this.msgValue !== DEBUG_QUIT_VALUE) {
+                if (this.exception && this.msgValue !== debug.DEBUG_QUIT_VALUE) {
                     this.session.stacktrace().then((stacktrace) => {
                         this._stacktrace = stacktrace;
                         this.doReject(this.exception);
