@@ -101,7 +101,7 @@ export class NReplClient {
                     //console.log(data['id'], data);
 
                     if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
-                        annotations.clearEvaluationDecorations();
+                        annotations.clearAllEvaluationDecorations();
                         vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
                     } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {
                         handleNeedDebugInput(data);
