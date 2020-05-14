@@ -267,7 +267,7 @@ export class NReplSession {
             const debugResponse = state.deref().get(debug.DEBUG_RESPONSE_KEY);
             return {
                 id: debugResponse.id,
-                session: debugResponse.session,
+                session: this.sessionId,
                 op: 'debug-input',
                 input: `{:response :eval, :code ${code}}`,
                 key: debugResponse.key,
@@ -538,12 +538,10 @@ export class NReplSession {
         return (0);
     }
 
-    async initDebugger(): Promise<NReplSession> {
-        const debugSession = await this.client.createSession();
+    initDebugger(): void {
         const id = this.client.nextId;
         // init-debugger op does not return immediately, but a response will be sent with the same id when a breakpoint is hit later
-        this.client.write({ op: "init-debugger", id, session: debugSession.sessionId });
-        return debugSession;
+        this.client.write({ op: "init-debugger", id, session: this.sessionId });
     }
 
     sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {

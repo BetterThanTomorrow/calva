@@ -4,7 +4,6 @@ import * as docMirror from '../doc-mirror';
 import { NReplSession } from '../nrepl';
 const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 import * as state from '../state';
-import { getDebugSession } from './calva-debug';
 
 let enabled = false;
 
@@ -55,18 +54,18 @@ async function updateDecorations() {
     const activeEditor = vscode.window.activeTextEditor;
 
     if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
-        const debugSession = getDebugSession();
+        const cljSession = util.getSession('clj');
 
-        if (debugSession) {
+        if (cljSession) {
             const document = activeEditor.document;
 
             // Get instrumented defs in current editor
             const docNamespace = util.getDocumentNamespace(document);
-            const instrumentedDefs = await debugSession.listDebugInstrumentedDefs();
+            const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
             // Get editor ranges of instrumented var definitions and usages
-            const lintAnalysis = await getLintAnalysis(debugSession, document.getText());
+            const lintAnalysis = await getLintAnalysis(cljSession, document.getText());
             const instrumentedVarDefs = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
             const instrumentedVarDefRanges = getVarDefinitionRanges(instrumentedVarDefs, document);
             const instrumentedVarUsages = lintAnalysis['var-usages'].filter(varInfo => {
@@ -101,10 +100,10 @@ function triggerUpdateDecorations() {
 }
 
 async function activate() {
-    const debugSession = getDebugSession();
+    const cljSession = util.getSession('clj');
 
     try {
-        await debugSession.eval("(require 'clj-kondo.core)", 'user').value;
+        await cljSession.eval("(require 'clj-kondo.core)", 'user').value;
         enabled = true;
         triggerUpdateDecorations();
 
