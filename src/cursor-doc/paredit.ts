@@ -267,7 +267,7 @@ export function killForwardList(doc: EditableDocument, start: number = doc.selec
     ], { selection: new ModelEditSelection(start) });
 }
 
-export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight) {
+export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight, extraOpts = {}) {
     let cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
@@ -276,27 +276,47 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
         cursor.next();
         cursor.forwardSexp();
         cursor.backwardWhitespace(false);
-        doc.model.edit([
-            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
-            new ModelEdit('deleteRange', [offset, 1])
-        ], {});
+        if (cursor.offsetStart !== offset + close.length) {
+            doc.model.edit([
+                new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
+                new ModelEdit('deleteRange', [offset, close.length])
+            ], {
+                ...{
+                    undoStopBefore: true
+                },
+                ...extraOpts
+            });
+        } else {
+            const formatDepth = extraOpts["formatDepth"] ? extraOpts["formatDepth"] : 1;
+            forwardSlurpSexp(doc, cursor.offsetStart, { formatDepth: formatDepth + 1 });
+        }
     }
 }
 
-export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight) {
+export function backwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight, extraOpts = {}) {
     let cursor = doc.getTokenCursor(start);
     cursor.backwardList();
     let tk = cursor.getPrevToken();
     if (tk.type == "open") {
         let offset = cursor.clone().previous().offsetStart;
-        let close = cursor.getPrevToken().raw;
+        let open = cursor.getPrevToken().raw;
         cursor.previous();
         cursor.backwardSexp(true);
         cursor.forwardWhitespace(false);
-        doc.model.edit([
-            new ModelEdit('deleteRange', [offset, tk.raw.length]),
-            new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close])
-        ], {});
+        if (offset !== cursor.offsetStart) {
+            doc.model.edit([
+                new ModelEdit('deleteRange', [offset, tk.raw.length]),
+                new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, open])
+            ], {
+                ...{
+                    undoStopBefore: true
+                },
+                ...extraOpts
+            });
+        } else {
+            const formatDepth = extraOpts["formatDepth"] ? extraOpts["formatDepth"] : 1;
+            backwardSlurpSexp(doc, cursor.offsetStart, { formatDepth: formatDepth + 1 })
+        }
     }
 }
 
@@ -314,7 +334,7 @@ export function forwardBarfSexp(doc: EditableDocument, start: number = doc.selec
         ], start >= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
             formatDepth: 2
-            } : { formatDepth: 2 });
+        } : { formatDepth: 2 });
     }
 }
 
@@ -334,8 +354,8 @@ export function backwardBarfSexp(doc: EditableDocument, start: number = doc.sele
             new ModelEdit('deleteRange', [offset, tk.raw.length])
         ], start <= cursor.offsetStart ? {
             selection: new ModelEditSelection(cursor.offsetStart),
-                formatDepth: 2
-            } : { formatDepth: 2 });
+            formatDepth: 2
+        } : { formatDepth: 2 });
     }
 }
 
