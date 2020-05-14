@@ -83,15 +83,21 @@ function setSelectionDecorations(editor, ranges, status) {
 }
 
 function clearEvaluationDecorations(editor?: vscode.TextEditor) {
-    if (editor === undefined) {
-        editor = vscode.window.activeTextEditor;
+    editor = editor || vscode.window.activeTextEditor;
+    if (editor) {
+        state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
+        setResultDecorations(editor, []);
+        for (const status in [AnnotationStatus.PENDING, AnnotationStatus.SUCCESS, AnnotationStatus.ERROR, AnnotationStatus.REPL_WINDOW]) {
+            state.cursor.delete(editor.document.uri + ':selectionDecorationRanges:' + status);
+            setSelectionDecorations(editor, [], status);
+        }
     }
-    state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
-    setResultDecorations(editor, []);
-    for (const status in [AnnotationStatus.PENDING, AnnotationStatus.SUCCESS, AnnotationStatus.ERROR, AnnotationStatus.REPL_WINDOW]) {
-        state.cursor.delete(editor.document.uri + ':selectionDecorationRanges:' + status);
-        setSelectionDecorations(editor, [], status);
-    }
+}
+
+function clearAllEvaluationDecorations() {
+    vscode.window.visibleTextEditors.forEach(editor => {
+        clearEvaluationDecorations(editor);
+    });
 }
 
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor: vscode.TextEditor) {
@@ -114,7 +120,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
     if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
-        const commandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(JSON.stringify([{text: resultString}]))}`,
+        const commandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(JSON.stringify([{ text: resultString }]))}`,
             commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
         let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + resultString + '\n```');
         hoverMessage.isTrusted = true;
@@ -146,6 +152,7 @@ function copyHoverTextCommand(args: { [x: string]: string; }) {
 export default {
     AnnotationStatus,
     clearEvaluationDecorations,
+    clearAllEvaluationDecorations,
     decorateResults,
     decorateSelection,
     onDidChangeTextDocument,

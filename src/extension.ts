@@ -22,9 +22,8 @@ import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
-import { CalvaDebugConfigurationProvider, CalvaDebugAdapterDescriptorFactory, CALVA_DEBUG_CONFIGURATION } from './debugger/calva-debug';
+import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import debugDecorations from './debugger/decorations';
 
 function onDidSave(document) {
     let {
@@ -188,10 +187,11 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
         status.update();
+        const editorNamespace = util.getDocumentNamespace(editor.document);
         if (editor && editor.document && editor.document.fileName) {
             const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
             if (fileExtIfClj && fileExtIfClj.length && state.config().syncReplNamespaceToCurrentFile) {
-                replWindow.setREPLNamespace(util.getDocumentNamespace(editor.document))
+                replWindow.setREPLNamespace(editorNamespace)
                     .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
             }
         }
@@ -207,10 +207,10 @@ function activate(context: vscode.ExtensionContext) {
     }));
 
     // Clojure debug adapter setup
-    const provider = new CalvaDebugConfigurationProvider();
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(CALVA_DEBUG_CONFIGURATION.type, provider));
-    const factory = new CalvaDebugAdapterDescriptorFactory();
-    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(CALVA_DEBUG_CONFIGURATION.type, factory));
+    const provider = new debug.CalvaDebugConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(debug.CALVA_DEBUG_CONFIGURATION.type, provider));
+    const factory = new debug.CalvaDebugAdapterDescriptorFactory();
+    context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory(debug.CALVA_DEBUG_CONFIGURATION.type, factory));
     if ('dispose' in factory) {
         context.subscriptions.push(factory);
     }
