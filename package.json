@@ -15,7 +15,7 @@
     },
     "license": "MIT",
     "engines": {
-        "vscode": "^1.30.0"
+        "vscode": "^1.39.0"
     },
     "categories": [
         "Programming Languages",
@@ -1761,7 +1761,7 @@
         "@types/chai": "^4.2.6",
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.7",
-        "@types/vscode": "^1.30.0",
+        "@types/vscode": "^1.39.0",
         "chai": "^4.2.0",
         "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",
@@ -1799,7 +1799,5 @@
         "webpack": "^4.43.0",
         "webpack-cli": "^3.3.11"
     },
-    "extensionDependencies": [
-        "borkdude.clj-kondo"
-    ]
+    "extensionDependencies": []
 }

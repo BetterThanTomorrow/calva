@@ -4,33 +4,32 @@ import * as fs from "fs";
 import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
-import {nClient, cljSession, cljsSession} from "../connector";
+import { nClient, cljSession, cljsSession } from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import { isReplWindowOpen} from "../repl-window";
-import { disabledPrettyPrinter } from "../printer";
-
-let JackinExecution:vscode.TaskExecution = undefined;
+import { isReplWindowOpen } from "../repl-window";
+import { JackInTaskDefinition, JackInTaskProvider } from "./task-provider";
+let JackinExecution: vscode.TaskExecution = undefined;
 
 let watcher: fs.FSWatcher;
 const TASK_NAME = "Calva Jack-in";
 
 vscode.tasks.onDidStartTask(((e) => {
-    if(e.execution.task.name == TASK_NAME) {
+    if (e.execution.task.name == TASK_NAME) {
         JackinExecution = e.execution;
     }
 }));
 
 vscode.tasks.onDidEndTask(((e) => {
-    if(e.execution.task.name == TASK_NAME) {
-       JackinExecution = undefined;
-       connector.default.disconnect();
-       // make sure everything is set back
-       // even if the task failed to connect
-       // to the repl server.
-       utilities.setLaunchingState(null);
-       statusbar.update();
+    if (e.execution.task.name == TASK_NAME) {
+        JackinExecution = undefined;
+        connector.default.disconnect();
+        // make sure everything is set back
+        // even if the task failed to connect
+        // to the repl server.
+        utilities.setLaunchingState(null);
+        statusbar.update();
     }
 }));
 
@@ -44,7 +43,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
-    const env =  Object.assign(process.env, state.config().jackInEnv) as {
+    const env = Object.assign(process.env, state.config().jackInEnv) as {
         [key: string]: string;
     };
     const execution = projectTypes.isWin ?
@@ -56,63 +55,81 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
             cwd: state.getProjectRoot(),
             env: env,
         });
-    const taskDefinition: vscode.TaskDefinition = {
-        type: projectTypes.isWin ? "process" : "shell",
-        label: "Calva: Jack-in"
+    const taskDefinition: JackInTaskDefinition = {
+        executable,
+        execution,
+        type: JackInTaskProvider.JackInType,
+        cljTypes,
+        outputChannel,
+        connectSequence
     };
+
+    // const task = new vscode.Task(taskDefinition, state.getProjectWsFolder(), TASK_NAME, "Calva", execution);
     const task = new vscode.Task(taskDefinition, state.getProjectWsFolder(), TASK_NAME, "Calva", execution);
+    // const terminalOpts: vscode.TerminalOptions = {
+    //     name: "Calva: Jack-in",
+    //     env: env
+    // };
+    // const terminal = vscode.window.createTerminal(terminalOpts);
+    // terminal.show(true);
+    // terminal.sendText([executable, ...args].join(" "));
 
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 
     // in case we have a running task present try to end it.
     calvaJackout();
 
-    vscode.tasks.executeTask(task).then((v) => {
-        // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
-        const portFileDir = path.dirname(nReplPortFile),
-            portFileBase = path.basename(nReplPortFile);
-        if (watcher != undefined) {
+    try {
+        vscode.tasks.executeTask(task).then((v) => {
+            // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
+            const portFileDir = path.dirname(nReplPortFile),
+                portFileBase = path.basename(nReplPortFile);
+            if (watcher != undefined) {
+                watcher.removeAllListeners();
+            }
+            console.log("executeTask: " + nReplPortFile);
+
+            if (!fs.existsSync(portFileDir)) {
+                // try to make the directory to allow the
+                // started process to catch up.
+                fs.mkdirSync(portFileDir);
+            }
+
+            try {
+                watcher = fs.watch(portFileDir, async (eventType, fileName) => {
+                    if (fileName == portFileBase) {
+                        if (!fs.existsSync(nReplPortFile)) {
+                            return;
+                        }
+                        const port = fs.readFileSync(nReplPortFile, 'utf8');
+                        if (!port) { // On Windows we get two events, one for file creation and one for the change of content
+                            return;  // If there is no port to be read yet, wait for the next event instead.
+                        }
+                        const chan = state.outputChannel();
+                        setTimeout(() => { chan.show() }, 1000);
+                        utilities.setLaunchingState(null);
+                        watcher.removeAllListeners();
+                        await connector.connect(connectSequence, true, true);
+                        chan.appendLine("Jack-in done.");
+                    }
+                });
+            } catch (exception) {
+                outputChannel.appendLine("Error in Jack-in: unable to read port file");
+                outputChannel.appendLine(exception);
+                outputChannel.appendLine("You may have chosen the wrong jack-in configuration for your project.");
+                vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
+                cancelJackInTask();
+            }
+        }, (reason) => {
             watcher.removeAllListeners();
-        }
-
-        if(!fs.existsSync(portFileDir)) {
-            // try to make the directory to allow the
-            // started process to catch up.
-            fs.mkdirSync(portFileDir);
-        }
-
-        try {
-            watcher = fs.watch(portFileDir, async (eventType, fileName) => {
-                if (fileName == portFileBase) {
-                    if (!fs.existsSync(nReplPortFile)) {
-                        return;
-                    }
-                    const port = fs.readFileSync(nReplPortFile, 'utf8');
-                    if (!port) { // On Windows we get two events, one for file creation and one for the change of content
-                        return;  // If there is no port to be read yet, wait for the next event instead.
-                    }
-                    const chan = state.outputChannel();
-                    setTimeout(() => { chan.show() }, 1000);
-                    utilities.setLaunchingState(null);
-                    watcher.removeAllListeners();
-                    await connector.connect(connectSequence, true, true);
-                    chan.appendLine("Jack-in done.");
-                }
-            });
-        } catch(exception) {
-            outputChannel.appendLine("Error in Jack-in: unable to read port file");
-            outputChannel.appendLine(exception);
-            outputChannel.appendLine("You may have chosen the wrong jack-in configuration for your project.");
-            vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
+            outputChannel.appendLine("Error in Jack-in: ");
+            outputChannel.appendLine(reason);
+            vscode.window.showErrorMessage("Error in Jack-in. See output channel for more information.");
             cancelJackInTask();
-        }
-    }, (reason) => {
-        watcher.removeAllListeners();
-        outputChannel.appendLine("Error in Jack-in: ");
-        outputChannel.appendLine(reason);
-        vscode.window.showErrorMessage("Error in Jack-in. See output channel for more information.");
-        cancelJackInTask();
-    });
+        });
+    } catch (exception) {
+        console.error("Failed executing task: ", exception.message);
+    }
 }
 
 export function calvaJackout() {
@@ -225,7 +242,7 @@ export async function calvaJackInOrConnect() {
         // if connected add the disconnect command and the
         // REPL window open commands if needed.
         commands["Disconnect from the REPL server"] = "calva.disconnect";
-        if(utilities.getSession("clj")) {
+        if (utilities.getSession("clj")) {
             if (!isReplWindowOpen("clj")) {
                 commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
             } else {
@@ -233,7 +250,7 @@ export async function calvaJackInOrConnect() {
             }
 
         }
-        if(utilities.getSession("cljs"))  {
+        if (utilities.getSession("cljs")) {
             if (!isReplWindowOpen("cljs")) {
                 commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
             } else {
@@ -243,7 +260,7 @@ export async function calvaJackInOrConnect() {
     }
 
     vscode.window.showQuickPick([...Object.keys(commands)]).then(v => {
-        if(commands[v]) {
+        if (commands[v]) {
             vscode.commands.executeCommand(commands[v]);
         }
     })
