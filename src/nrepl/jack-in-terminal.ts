@@ -39,7 +39,6 @@ export class JackInTerminal implements vscode.Pseudoterminal {
             this.writeEmitter.fire(`^${String.fromCharCode(charCode + 64)}`);
             if (charCode === 3) {
                 this.killProcess();
-                //this.closeEmitter.fire();
             }
         } else {
             this.writeEmitter.fire(`${data}`);
