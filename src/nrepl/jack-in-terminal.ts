@@ -13,7 +13,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     private writeEmitter = new vscode.EventEmitter<string>();
     onDidWrite: vscode.Event<string> = this.writeEmitter.event;
     private closeEmitter = new vscode.EventEmitter<void>();
-    onDidClose?: vscode.Event<void> = this.closeEmitter.event;
+    onDidClose: vscode.Event<void> = this.closeEmitter.event;
 
 
     private fileWatcher: vscode.FileSystemWatcher | undefined;
@@ -28,9 +28,21 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     }
 
     close(): void {
-        this.fileWatcher.dispose();
-        if (this.process && !this.process.killed) {
-            this.process.kill();
+        this.closeEmitter.fire();
+    }
+
+    handleInput(data: string) {
+        let charCode = data.charCodeAt(0);
+        if (data === "\r") {
+            this.writeEmitter.fire("\r\n");
+        } else if (charCode < 32) {
+            this.writeEmitter.fire(`^${String.fromCharCode(charCode + 64)}`);
+            if (charCode === 3) {
+                this.killProcess();
+                //this.closeEmitter.fire();
+            }
+        } else {
+            this.writeEmitter.fire(`${data}`);
         }
     }
 
@@ -53,5 +65,11 @@ export class JackInTerminal implements vscode.Pseudoterminal {
                 this.writeEmitter.fire(`${data}\r\n`);
             });
         });
+    }
+
+    killProcess(): void {
+        if (this.process && !this.process.killed) {
+            this.process.kill();
+        }
     }
 }
