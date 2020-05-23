@@ -9,29 +9,11 @@ import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
 import { isReplWindowOpen } from "../repl-window";
-import { JackInTaskDefinition, JackInTaskProvider } from "./task-provider";
-let JackinExecution: vscode.TaskExecution = undefined;
+import { JackInTerminal, JackInTerminalOptions } from "./jack-in-terminal";
+
+let jackInTerminal: JackInTerminal = undefined;
 
 let watcher: fs.FSWatcher;
-const TASK_NAME = "Calva Jack-in";
-
-vscode.tasks.onDidStartTask(((e) => {
-    if (e.execution.task.name == TASK_NAME) {
-        JackinExecution = e.execution;
-    }
-}));
-
-vscode.tasks.onDidEndTask(((e) => {
-    if (e.execution.task.name == TASK_NAME) {
-        JackinExecution = undefined;
-        connector.default.disconnect();
-        // make sure everything is set back
-        // even if the task failed to connect
-        // to the repl server.
-        utilities.setLaunchingState(null);
-        statusbar.update();
-    }
-}));
 
 function cancelJackInTask() {
     setTimeout(() => {
@@ -46,41 +28,21 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
     const env = Object.assign(process.env, state.config().jackInEnv) as {
         [key: string]: string;
     };
-    const execution = projectTypes.isWin ?
-        new vscode.ProcessExecution(executable, args, {
-            cwd: state.getProjectRoot(),
-            env: env,
-        }) :
-        new vscode.ShellExecution(executable, args, {
-            cwd: state.getProjectRoot(),
-            env: env,
-        });
-    const taskDefinition: JackInTaskDefinition = {
+    const terminalOptions: JackInTerminalOptions = {
+        name: `Calva Jack-in: ${connectSequence.name}`,
         executable,
-        execution,
-        type: JackInTaskProvider.JackInType,
-        cljTypes,
-        outputChannel,
-        connectSequence
+        args,
+        env,
+        cwd: state.getProjectRoot(),
     };
-
-    // const task = new vscode.Task(taskDefinition, state.getProjectWsFolder(), TASK_NAME, "Calva", execution);
-    const task = new vscode.Task(taskDefinition, state.getProjectWsFolder(), TASK_NAME, "Calva", execution);
-    // const terminalOpts: vscode.TerminalOptions = {
-    //     name: "Calva: Jack-in",
-    //     env: env
-    // };
-    // const terminal = vscode.window.createTerminal(terminalOpts);
-    // terminal.show(true);
-    // terminal.sendText([executable, ...args].join(" "));
-
-    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 
     // in case we have a running task present try to end it.
     calvaJackout();
+    state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
+
 
     try {
-        vscode.tasks.executeTask(task).then((v) => {
+        const pty = new JackInTerminal(terminalOptions, outputChannel, (p) => {
             // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
             const portFileDir = path.dirname(nReplPortFile),
                 portFileBase = path.basename(nReplPortFile);
@@ -120,20 +82,16 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
                 vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
                 cancelJackInTask();
             }
-        }, (reason) => {
-            watcher.removeAllListeners();
-            outputChannel.appendLine("Error in Jack-in: ");
-            outputChannel.appendLine(reason);
-            vscode.window.showErrorMessage("Error in Jack-in. See output channel for more information.");
-            cancelJackInTask();
         });
+        const terminal: vscode.Terminal = (<any>vscode.window).createTerminal({ name: `Calva Jack-in: ${connectSequence.name}`, pty });
+        terminal.show();
     } catch (exception) {
         console.error("Failed executing task: ", exception.message);
     }
 }
 
 export function calvaJackout() {
-    if (JackinExecution != undefined) {
+    if (jackInTerminal != undefined) {
         if (projectTypes.isWin) {
             // this is a hack under Windows to terminate the
             // repl process from the repl client because the
@@ -149,7 +107,14 @@ export function calvaJackout() {
                 nClient.session.eval("(do (.start (Thread. (fn [] (Thread/sleep 5000) (shutdown-agents) (System/exit 0)))) nil)", 'user');
             }
         }
-        JackinExecution.terminate();
+        jackInTerminal.close();
+        jackInTerminal = undefined;
+        connector.default.disconnect();
+        // make sure everything is set back
+        // even if the task failed to connect
+        // to the repl server.
+        utilities.setLaunchingState(null);
+        statusbar.update();
     }
 }
 
