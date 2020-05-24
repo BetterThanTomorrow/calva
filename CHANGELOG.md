@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix [repl hanging after disconnecting debugger while repl window focused](https://github.com/BetterThanTomorrow/calva/issues/647)
+- [Use a pseudo terminal for Jack-in - and stop (ab)using the Tasks system for this](https://github.com/BetterThanTomorrow/calva/pull/654)
 
 ## [2.0.101] - 2020-05-11
 - [Paredit slurp outer form if current form is nested](https://github.com/BetterThanTomorrow/calva/issues/554)
