@@ -109,6 +109,13 @@ Yeah, it's the only way right now, hopefully the other team members are setting 
 
 These people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
+
+### Calva Gold Fans
+
+_Companies that benefit from Calva's existence and see it as an important piece of the Clojure and ClojureScript ecosystem._
+
+[<img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="30px" alt="Liftoff"/>](https://liftoff.io)
+
 ### Calva Fans
 
 [<img src="https://avatars0.githubusercontent.com/u/103882" width="32" alt="Bozhidar Batsov">](https://github.com/bbatsov)
