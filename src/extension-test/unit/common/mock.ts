@@ -4,6 +4,7 @@ import { LispTokenCursor } from '../../../cursor-doc/token-cursor'
 model.initScanner(20000);
 
 export class MockDocument implements model.EditableDocument {
+    caretX: number;
     selectionLeft: number;
     selectionRight: number;
 

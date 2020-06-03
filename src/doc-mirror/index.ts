@@ -81,6 +81,7 @@ export class DocumentModel implements EditableModel {
 }
 export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
+    caretX: number;
 
     get selectionLeft(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.anchor);
