@@ -1,0 +1,37 @@
+{
+    "name": "@calva/clojure-cursor-doc-test-1",
+    "description": "Calva Clojure Document library",
+    "version": "0.0.1",
+    "publisher": "cospaia",
+    "author": {
+        "name": "Peter Strömberg",
+        "email": "pez@pezius.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/BetterThanTomorrow/calva.git"
+    },
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc # npm i && webpack --mode production",
+        "bump-version": "npm set git-tag-version false && npm version patch"
+    },
+    "main": "out/index.js",
+    "types": "out/index.d.ts",
+    "dependencies": {
+        "@types/node": "^7.10.9",
+        "@types/uuid": "^3.4.6",
+        "immutable-cursor": "2.0.1",
+        "lodash.isequal": "4.5.0",
+        "npm": "^6.14.4"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "concurrently": "^5.2.0",
+        "source-map-support": "^0.5.16",
+        "tslint": "^5.20.1",
+        "typescript": "^3.7.2",
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.11"
+    }
+}
