@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as config from './config';
-import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror";
+import { getIndent } from "../../cursor-doc/indent";
+import { getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror";
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 
 

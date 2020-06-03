@@ -1,7 +1,7 @@
 {
-    "name": "@calva/clojure-cursor-doc-test-1",
+    "name": "calva-clojure-cursor-doc",
     "description": "Calva Clojure Document library",
-    "version": "0.0.1",
+    "version": "0.0.1-test-4",
     "publisher": "cospaia",
     "author": {
         "name": "Peter Strömberg",

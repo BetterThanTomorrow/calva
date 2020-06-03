@@ -1,4 +1,3 @@
-export { getIndent } from "../cursor-doc/indent"
 import * as vscode from "vscode"
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
