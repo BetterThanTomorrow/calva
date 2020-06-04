@@ -5,16 +5,17 @@
 
 (deftest format-text-at-range
   (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
-         (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]})))))
+         (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}))))
+  (is (not (contains? (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}) :new-index))))
 
-
+{:eol "\n", :all-text "  (foo)\n(defn bar\n[x]\nbaz)", :range [2 26], :range-text "(foo)\n(defn bar\n  [x]\n  baz)", :range-tail "(foo)\n(defn bar\n[x]\nbaz)"}
 (def all-text "  (foo)
   (defn bar
          [x]
 
 baz)")
 
-
+{:current-line "(defn ", :config {:remove-surrounding-whitespace? false, :remove-trailing-whitespace? false, :remove-consecutive-blank-lines? false}, :on-type true, :range-tail "\n)", :new-index 6, :head "(defn ", :tail "\n)", :eol "\n", :range-text "(defn \n  )", :idx 6, :all-text "(defn \n)", :range [0 8]}
 (deftest format-text-at-idx
   (is (= "(defn bar
     [x]
