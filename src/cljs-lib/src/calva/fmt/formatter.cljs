@@ -132,8 +132,7 @@
         tail (subs range-text range-index)
         formatted-m (format-text (assoc m :range-text padded-text))]
     (-> (assoc formatted-m :range-text (subs (:range-text formatted-m) indent-before))
-        (assoc :range-tail tail)
-        (index-for-tail-in-range))))
+        (assoc :range-tail tail))))
 
 (defn format-text-at-range-bridge
   [m]
@@ -182,6 +181,7 @@
       (add-indent-token-if-empty-current-line)
       #_(enclosing-range)
       (format-text-at-range)
+      (index-for-tail-in-range)
       (remove-indent-token-if-empty-current-line)))
 
 (defn format-text-at-idx-bridge

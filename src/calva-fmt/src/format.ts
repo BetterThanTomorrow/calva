@@ -122,9 +122,9 @@ function _formatRange(rangeText: string, allText: string, range: number[], eol: 
         "range": range,
         "eol": eol,
         "config": config.getConfig()
-    },
-        cljData = cljify(d),
-        result = jsify(formatTextAtRange(cljData));
+    };
+    const cljData = cljify(d);
+    const result = jsify(formatTextAtRange(cljData));
     if (!result["error"]) {
         return result["range-text"];
     }

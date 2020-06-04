@@ -11,8 +11,7 @@ import { openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-w
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
-import { REQUESTS } from './debugger/calva-debug';
-import debugDecorations from './debugger/decorations';
+import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
 
 async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {
@@ -63,9 +62,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         status.update();
 
         // Initialize debugger
-        cljSession.initDebugger();
+        await initializeDebugger(cljSession);
         chan.appendLine('Debugger initialized');
-        debugDecorations.activate();
 
         await createAndConnectReplWindow(cljSession, "clj");
 
@@ -529,8 +527,6 @@ export default {
         if (vscode.debug.activeDebugSession) {
             vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
         }
-
-        debugDecorations.triggerUpdateDecorations();
 
         callback();
     },
