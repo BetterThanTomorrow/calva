@@ -81,7 +81,7 @@ toplevel.terminal(/#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }))
 // symbols, about anything goes!
 toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
-
+// Lexer croaks without this catch-all safe
 toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
@@ -95,6 +95,9 @@ inString.terminal(/(\\.|[^"\s])+/, (l, m) => ({ type: "str-inside" }))
 inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
 inString.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
+
+// Lexer croaks without this catch-all safe: see https://github.com/BetterThanTomorrow/calva/issues/659
+inString.terminal(/./, (l, m) => ({ type: "junk" }))
 
 
 /**
