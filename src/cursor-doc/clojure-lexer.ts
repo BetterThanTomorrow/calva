@@ -57,7 +57,7 @@ toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
 // (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*
 
 // open parens
-toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal(/(#[^\(\)\[\]\{\}'"_@~\s,]+[\s,]*)*((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
 // close parens
 toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
 
