@@ -218,6 +218,17 @@ describe('Scanner', () => {
             expect(tokens[2].type).equals('close');
             expect(tokens[2].raw).equals(')');
         });
+        it('does not treat var quote plus open token as reader tag plus open token', () => {
+            const tokens = scanner.processLine("#'foo []")
+            expect(tokens[0].type).equals('id');
+            expect(tokens[0].raw).equals("#'foo");
+            expect(tokens[1].type).equals('ws');
+            expect(tokens[1].raw).equals(' ');
+            expect(tokens[2].type).equals('open');
+            expect(tokens[2].raw).equals('[');
+            expect(tokens[3].type).equals('close');
+            expect(tokens[3].raw).equals(']');
+        });
     });
     describe('strings', () => {
         it('tokenizes words in strings', () => {
