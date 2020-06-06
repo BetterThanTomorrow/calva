@@ -22,7 +22,7 @@ function cancelJackInTask() {
     }, 1000);
 }
 
-async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
+async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, isWin: boolean, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
@@ -34,6 +34,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
         executable,
         args,
         env,
+        isWin,
         cwd: state.getProjectRoot(),
     };
 
@@ -158,7 +159,7 @@ export async function calvaJackIn() {
             // Ask the project type to build up the command line. This may prompt for further information.
             let args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
 
-            executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, outputChannel, projectConnectSequence)
+            executeJackInTask(projectType, projectConnectSequence.name, executable, args, projectTypes.isWin, cljTypes, outputChannel, projectConnectSequence)
                 .then(() => { }, () => { });
         } else {
             outputChannel.appendLine("There is no Jack-in possible for this project type.");

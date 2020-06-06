@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
+- [Use Pseudo-terminal instead of Task for Jack-in](https://github.com/BetterThanTomorrow/calva/pull/654)
 
 ## [2.0.103] - 2020-06-05
 - Fix [Stream output messages to Calva Says as they're received](https://github.com/BetterThanTomorrow/calva/issues/638)

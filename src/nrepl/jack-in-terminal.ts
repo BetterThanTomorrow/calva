@@ -6,7 +6,8 @@ export interface  JackInTerminalOptions extends vscode.TerminalOptions {
     cwd: string,
     env: { [key: string]: string },
     executable: string,
-    args: string[]
+    args: string[],
+    isWin: boolean
 };
 
 export class JackInTerminal implements vscode.Pseudoterminal {
@@ -15,8 +16,6 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     private closeEmitter = new vscode.EventEmitter<void>();
     onDidClose: vscode.Event<void> = this.closeEmitter.event;
 
-
-    private fileWatcher: vscode.FileSystemWatcher | undefined;
     private process: child.ChildProcess;
 
     constructor(private options: JackInTerminalOptions, private outputChannel: vscode.OutputChannel, private whenStarted: (p: child.ChildProcess) => void) {
@@ -54,7 +53,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
             this.process = child.spawn(this.options.executable, this.options.args, {
                 env: this.options.env,
                 cwd: this.options.cwd,
-                shell: true
+                shell: !this.options.isWin
             });
             this.whenStarted(this.process);
             this.process.on('exit', (status) => {
