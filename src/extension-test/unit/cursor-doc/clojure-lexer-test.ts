@@ -218,6 +218,17 @@ describe('Scanner', () => {
             expect(tokens[2].type).equals('close');
             expect(tokens[2].raw).equals(')');
         });
+        it('does not treat var quote plus open token as reader tag plus open token', () => {
+            const tokens = scanner.processLine("#'foo []")
+            expect(tokens[0].type).equals('id');
+            expect(tokens[0].raw).equals("#'foo");
+            expect(tokens[1].type).equals('ws');
+            expect(tokens[1].raw).equals(' ');
+            expect(tokens[2].type).equals('open');
+            expect(tokens[2].raw).equals('[');
+            expect(tokens[3].type).equals('close');
+            expect(tokens[3].raw).equals(']');
+        });
     });
     describe('strings', () => {
         it('tokenizes words in strings', () => {
@@ -290,6 +301,16 @@ describe('Scanner', () => {
             const tokens = scanner.processLine("#'foo");
             expect(tokens[0].type).equals('id');
             expect(tokens[0].raw).equals("#'foo");
+        });
+        it('does not croak on funny data in strings - #659', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/659
+            const tokens = scanner.processLine('" "'); // <- That's not a regular space
+            expect(tokens[0].type).equals('open');
+            expect(tokens[0].raw).equals('"');
+            expect(tokens[1].type).equals('junk');
+            expect(tokens[1].raw).equals(' ');
+            expect(tokens[2].type).equals('close');
+            expect(tokens[2].raw).equals('"');
         });
     });
 });
