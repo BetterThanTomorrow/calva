@@ -67,7 +67,7 @@ toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
 // literals
 toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
 
-// This seems unecessary?
+// This seems unnecessary?
 //toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
@@ -96,7 +96,7 @@ inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
 inString.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
 
-// Lexer croaks without this catch-all safe: see https://github.com/BetterThanTomorrow/calva/issues/659
+// Lexer can croak on funny data without this catch-all safe: see https://github.com/BetterThanTomorrow/calva/issues/659
 inString.terminal(/./, (l, m) => ({ type: "junk" }))
 
 
