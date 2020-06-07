@@ -185,14 +185,16 @@ function activate(context: vscode.ExtensionContext) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
-        status.update();
-        const editorNamespace = util.getDocumentNamespace(editor.document);
-        if (editor && editor.document && editor.document.fileName) {
-            const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
-            if (fileExtIfClj && fileExtIfClj.length && state.config().syncReplNamespaceToCurrentFile) {
-                replWindow.setREPLNamespace(editorNamespace)
-                    .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
+        if (editor) {
+            vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
+            status.update();
+            const editorNamespace = util.getDocumentNamespace(editor.document);
+            if (editor && editor.document && editor.document.fileName) {
+                const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
+                if (fileExtIfClj && fileExtIfClj.length && state.config().syncReplNamespaceToCurrentFile) {
+                    replWindow.setREPLNamespace(editorNamespace)
+                        .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
+                }
             }
         }
     }));
