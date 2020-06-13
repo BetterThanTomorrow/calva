@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Crash - Lexing fails on comment w/ a 20+ hashes](https://github.com/BetterThanTomorrow/calva/issues/667)
 - Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
 
 ## [2.0.103] - 2020-06-05
@@ -406,4 +407,3 @@ Changes to Calva.
     - Error message when evaluation fails
     - Pretty printing evaluation results: `ctrl+alt+v p`
     - Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
-

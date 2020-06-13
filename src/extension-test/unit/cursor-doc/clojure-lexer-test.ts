@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import * as fc from 'fast-check';
 import { Scanner } from '../../../cursor-doc/clojure-lexer';
+import { toplevel } from '../../../cursor-doc/clojure-lexer'
 
 const MAX_LINE_LENGTH = 100;
 
@@ -311,6 +312,21 @@ describe('Scanner', () => {
             expect(tokens[1].raw).equals(' ');
             expect(tokens[2].type).equals('close');
             expect(tokens[2].raw).equals('"');
+        });
+        xit('does not hang on matching open token regex against a string of hashes', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/659
+            const text = ';; ################################################# FRONTEND';
+            const rule = toplevel.rules.find(rule => rule.name === "open");
+            const x = rule.r.exec(text);
+            expect(x.length).equals(0);
+        });
+        xit('does not croak on comments with hashes - #667', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/659
+            const text = ';; ################################################# FRONTEND';
+            const tokens = scanner.processLine(text);
+            expect(tokens.length).equals(1);
+            expect(tokens[0].type).equals('comment');
+            expect(tokens[0].raw === text);
         });
     });
 });
