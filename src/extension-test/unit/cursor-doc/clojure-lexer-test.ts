@@ -1,21 +1,34 @@
 import { expect } from 'chai';
 import * as fc from 'fast-check';
 import { Scanner } from '../../../cursor-doc/clojure-lexer';
-import { toplevel } from '../../../cursor-doc/clojure-lexer'
+import { toplevel, validPair } from '../../../cursor-doc/clojure-lexer'
 
 const MAX_LINE_LENGTH = 100;
 
 // fast-check Arbritraries
 
 // TODO: single quotes are valid in real Clojure, but Calva can't handle them in symbols yet
-const wsChars = [',', ' ', '\t', '\n', '\r'],
-    openChars = ['"', '(', '[', '{'],
-    closeChars = ['"', ')', ']', '}'],
-    nonSymbolChars = [...wsChars, ...[';', '@', '~', '`'], ...openChars, ...closeChars];
+const wsChars = [',', ' ', '\t', '\n', '\r'];
+const openChars = ['"', '(', '[', '{'];
+const closeChars = ['"', ')', ']', '}'];
+const formPrefixChars = ["'", '@', '~', '`', '^', ','];
+const nonSymbolChars = [...wsChars, ...[';', '@', '~', '`'], ...openChars, ...closeChars];
 
 function symbolChar(): fc.Arbitrary<string> {
     // We need to filter away all kinds of whitespace, therefore the regex...
     return fc.unicode().filter(c => !(nonSymbolChars.includes(c) || c.match(/\s/)));
+}
+
+function formPrefixChar(): fc.Arbitrary<string> {
+    return fc.constantFrom(...formPrefixChars);
+}
+
+function open(): fc.Arbitrary<string> {
+    return fc.tuple(fc.stringOf(formPrefixChar(), 0, 3), fc.stringOf(fc.constantFrom(...[' ', '\t']), 0, 2), fc.constantFrom(...openChars)).map(([p, ws, o]) => `${p}${ws}${o}`);
+}
+
+function close(): fc.Arbitrary<string> {
+    return fc.constantFrom(...closeChars);
 }
 
 function symbolStart(): fc.Arbitrary<string> {
@@ -56,6 +69,11 @@ function quotedLiteral(): fc.Arbitrary<string> {
     return fc.tuple(fc.constantFrom('\\'), quotedLiteralChar()).map(([c, s]) => `${c}${s}`);
 }
 
+function list(): fc.Arbitrary<string> {
+    return fc.tuple(open(), symbol(), close())
+        .filter(([o, _s, c]) => { return validPair(o[o.length - 1], c) })
+        .map(([o, s, c]) => `${o}${s}${c}`);
+}
 
 
 describe('Scanner', () => {
@@ -125,17 +143,18 @@ describe('Scanner', () => {
             expect(tokens[1].type).equals('id');
             expect(tokens[1].raw).equals('foo');
         });
-        it('tokenizes opens', () => {
-            fc.assert(
-                fc.property(keyword(), data => {
-                    const tokens = scanner.processLine(data);
-                    expect(tokens[0].type).equal('kw');
-                    expect(tokens[0].raw).equal(data);
-                })
-            )
-        });
     });
     describe('lists', () => {
+        it('tokenizes list/vector/map/string', () => {
+            fc.assert(
+                fc.property(list(), data => {
+                    const tokens = scanner.processLine(data);
+                    const numTokens = tokens.length;
+                    expect(tokens[numTokens - 4].type).equal('open');
+                    expect(tokens[numTokens - 2].type).equal('close');
+                })
+            );
+        });
         it('tokenizes list', () => {
             const tokens = scanner.processLine('(foo)');
             expect(tokens[0].type).equals('open');
@@ -204,20 +223,6 @@ describe('Scanner', () => {
             const tokens = scanner.processLine('#foo');
             expect(tokens[0].type).equals('reader');
             expect(tokens[0].raw).equals('#foo');
-        });
-        it('tokenizes tagged kws', () => {
-            const tokens = scanner.processLine('#foo :bar');
-            expect(tokens[0].type).equals('kw');
-            expect(tokens[0].raw).equals('#foo :bar');
-        });
-        it('tokenizes tagged opens', () => {
-            const tokens = scanner.processLine('#foo (foo)');
-            expect(tokens[0].type).equals('open');
-            expect(tokens[0].raw).equals('#foo (');
-            expect(tokens[1].type).equals('id');
-            expect(tokens[1].raw).equals('foo');
-            expect(tokens[2].type).equals('close');
-            expect(tokens[2].raw).equals(')');
         });
         it('does not treat var quote plus open token as reader tag plus open token', () => {
             const tokens = scanner.processLine("#'foo []")
@@ -313,12 +318,20 @@ describe('Scanner', () => {
             expect(tokens[2].type).equals('close');
             expect(tokens[2].raw).equals('"');
         });
-        xit('does not hang on matching open token regex against a string of hashes', () => {
-            // https://github.com/BetterThanTomorrow/calva/issues/659
-            const text = ';; ################################################# FRONTEND';
+        it('does not hang on matching token rule regexes against a string of hashes', () => {
+            // https://github.com/BetterThanTomorrow/calva/issues/667
+            const text = '#################################################';
             const rule = toplevel.rules.find(rule => rule.name === "open");
-            const x = rule.r.exec(text);
-            expect(x.length).equals(0);
+            toplevel.rules.forEach(rule => {
+                console.log(`Testing rule: ${rule.name}`)
+                const x = rule.r.exec(text);
+                console.log(`Tested rule: ${rule.name}`)
+                if (!['reader', 'junk'].includes(rule.name)) {
+                    expect(x).null;
+                } else {
+                    expect(x.length).equals(1);
+                }
+            });
         });
         xit('does not croak on comments with hashes - #667', () => {
             // https://github.com/BetterThanTomorrow/calva/issues/659

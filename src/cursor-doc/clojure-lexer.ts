@@ -57,7 +57,8 @@ toplevel.terminal("comment", /;.*/, (l, m) => ({ type: "comment" }))
 // (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*
 
 // open parens
-toplevel.terminal("open", /(#[^\(\)\[\]\{\}'"_@~\s,]+[\s,]*)*((:?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal("open", /((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+
 // close parens
 toplevel.terminal("close", /\)|\]|\}/, (l, m) => ({ type: "close" }))
 
@@ -73,7 +74,7 @@ toplevel.terminal("lit-reserved", /(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ t
 toplevel.terminal("lit-integer", /(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
 toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal("kw", /(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 
 // data readers
 toplevel.terminal("reader", /#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
