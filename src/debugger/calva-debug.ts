@@ -96,7 +96,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = util.getSession(CLOJURE_SESSION_NAME);
-        await cljSession.eval('(set! clojure.core/*print-length* 3)', 'user').value;
 
         if (cljSession) {
             const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
