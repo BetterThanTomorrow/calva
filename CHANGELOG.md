@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix [Crash - Lexing fails on comment w/ a 20+ hashes](https://github.com/BetterThanTomorrow/calva/issues/667)
+
+## [2.0.104] - 2020-06-14
 - Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
 
 ## [2.0.103] - 2020-06-05
