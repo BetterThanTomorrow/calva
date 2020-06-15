@@ -20,7 +20,7 @@ function interruptAllEvaluations() {
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        chan.appendLine(normalizeNewLines(msgs));
+        chan.appendLine(normalizeNewLinesAndJoin(msgs));
 
         NReplSession.getInstances().forEach((session, index) => {
             session.interruptAll();
@@ -89,7 +89,10 @@ async function evaluateSelection(document, options) {
                         file: filePath,
                         line: line + 1,
                         column: column + 1,
-                        stdout: m => out.push(m),
+                        stdout: (m) => {
+                            out.push(m);
+                            chan.appendLine(normalizeNewLines(m));
+                        },
                         stderr: m => err.push(m),
                         pprintOptions: pprintOptions
                     });
@@ -109,10 +112,6 @@ async function evaluateSelection(document, options) {
                     annotations.decorateResults(value, false, codeSelection, editor);
                 }
 
-                if (out.length > 0) {
-                    chan.appendLine("stdout:");
-                    chan.appendLine(normalizeNewLines(out));
-                }
                 if (!asComment) {
                     chan.appendLine('=>');
                     chan.appendLine(value);
@@ -120,7 +119,7 @@ async function evaluateSelection(document, options) {
 
                 if (err.length > 0) {
                     chan.appendLine("Error:")
-                    chan.appendLine(normalizeNewLines(err));
+                    chan.appendLine(normalizeNewLinesAndJoin(err));
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
@@ -128,7 +127,7 @@ async function evaluateSelection(document, options) {
                 }
                 if (err.length > 0) {
                     chan.appendLine("Error:")
-                    chan.appendLine(normalizeNewLines(err));
+                    chan.appendLine(normalizeNewLinesAndJoin(err));
                 }
 
                 const message = util.stripAnsi(err.join("\n"));
@@ -147,8 +146,12 @@ function printWarningForError(e: any) {
     console.warn(`Unhandled error: ${e.message}`);
 }
 
-function normalizeNewLines(strings: string[]): string {
-    return strings.map(x => x.replace(/\n\r?$/, "")).join("\n");
+function normalizeNewLines(str: string): string {
+    return str.replace(/\n\r?$/, "");
+}
+
+function normalizeNewLinesAndJoin(strings: string[]): string {
+    return strings.map(normalizeNewLines).join("\n");
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
