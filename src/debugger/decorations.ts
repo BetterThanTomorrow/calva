@@ -21,9 +21,22 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
+async function setPrintLength(session: NReplSession, printLength: string): Promise<void> {
+    const code = `(set! clojure.core/*print-length* ${printLength})`;
+    await session.eval(code, 'user').value;
+}
+
+async function getPrintLength(session: NReplSession): Promise<string> {
+    const code = `clojure.core/*print-length*`;
+    return await session.eval(code, 'user').value;
+}
+
 async function getLintAnalysis(session: NReplSession, documentText: string): Promise<any> {
+    const printLength = await getPrintLength(session);
+    await setPrintLength(session, 'nil');
     const code = `(with-in-str ${JSON.stringify(documentText)} (:analysis (clj-kondo.core/run! {:lint ["-"] :lang :clj :config {:output {:analysis true}}})))`;
     const resEdn = await session.eval(code, 'user').value;
+    await setPrintLength(session, printLength);
     return parseEdn(resEdn);
 }
 

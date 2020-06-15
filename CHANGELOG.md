@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Debug decorations are breaking after stepping through code during debug session](https://github.com/BetterThanTomorrow/calva/issues/669)
 
 ## [2.0.104] - 2020-06-14
 - Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
