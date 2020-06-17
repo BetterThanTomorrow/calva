@@ -55,13 +55,14 @@ export function activate(context: vscode.ExtensionContext) {
       if (matchTimer) {
         clearTimeout(matchTimer);
       }
-      if (is_clojure(activeEditor))
+      if (is_clojure(activeEditor)) {
         matchTimer = setTimeout(() => {
           matchPairs();
           if (highlightActiveIndent && rainbowTypes.length) {
             decorateActiveGuides();
           }
         }, 16);
+      }
     }
   }, null, context.subscriptions);
 
