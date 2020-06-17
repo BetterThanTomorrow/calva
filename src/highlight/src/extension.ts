@@ -39,6 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
     pairsForward: Map<string, [Range, Range]> = new Map(),
     placedGuidesColor: Map<string, number> = new Map(),
     rainbowTimer = undefined,
+    matchTimer = undefined,
     dirty = false;
 
   reloadConfig();
@@ -51,10 +52,15 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor === vscode.window.activeTextEditor && is_clojure(event.textEditor)) {
-      matchPairs();
-      if (highlightActiveIndent && rainbowTypes.length) {
-        decorateActiveGuides();
-      }
+      if (matchTimer)
+      clearTimeout(matchTimer);
+    if (is_clojure(activeEditor))
+      matchTimer = setTimeout(() => {
+        matchPairs();
+        if (highlightActiveIndent && rainbowTypes.length) {
+          decorateActiveGuides();
+        }
+      }, 16);
     }
   }, null, context.subscriptions);
 
