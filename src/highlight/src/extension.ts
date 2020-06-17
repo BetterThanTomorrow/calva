@@ -52,15 +52,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidChangeTextEditorSelection(event => {
     if (event.textEditor === vscode.window.activeTextEditor && is_clojure(event.textEditor)) {
-      if (matchTimer)
-      clearTimeout(matchTimer);
-    if (is_clojure(activeEditor))
-      matchTimer = setTimeout(() => {
-        matchPairs();
-        if (highlightActiveIndent && rainbowTypes.length) {
-          decorateActiveGuides();
-        }
-      }, 16);
+      if (matchTimer) {
+        clearTimeout(matchTimer);
+      }
+      if (is_clojure(activeEditor))
+        matchTimer = setTimeout(() => {
+          matchPairs();
+          if (highlightActiveIndent && rainbowTypes.length) {
+            decorateActiveGuides();
+          }
+        }, 16);
     }
   }, null, context.subscriptions);
 
