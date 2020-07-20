@@ -45,12 +45,26 @@
                      (let [foo :bar])
                      (str foo)))
      :baz x}))
+
+
 (comment
-  (foo 2)
+  (foo "Calva")
   (Math/abs -1)
   (range 10)
   (println "I ❤️Clojure")
   ([{} () []]))
+
+    
+    (comment
+      (+ (* 2 2)
+         2)      
+      (Math/abs -1)
+      (defn hello [s]
+        (str "Hello " s))
+      (hello "Calva REPL")
+      (range 10)
+      "I ❤️Clojure")
+
 [comment]
 (foo) comment (bar)
 "(comment foo)"
