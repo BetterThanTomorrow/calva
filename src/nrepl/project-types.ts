@@ -280,7 +280,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+                useMiddleware = [...middleware, ...((cljsType && cljsType !== "shadow-cljs") ? cljsMiddleware : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
