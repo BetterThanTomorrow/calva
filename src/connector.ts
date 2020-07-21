@@ -12,6 +12,7 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
+import * as resultsOutput from './result-output'
 
 async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {
@@ -60,6 +61,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('clj', cljSession);
         state.cursor.set('cljc', cljSession);
         status.update();
+        resultsOutput.openResultsDoc(true);
 
         // Initialize debugger
         await initializeDebugger(cljSession);

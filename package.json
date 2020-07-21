@@ -86,7 +86,8 @@
                     ".clojure",
                     ".edn",
                     ".joke",
-                    ".boot"
+                    ".boot",
+                    ".calva-out"
                 ]
             }
         ],

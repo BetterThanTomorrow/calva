@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Send evaluation results and output to a file](https://github.com/BetterThanTomorrow/calva/issues/681)
 
 ## [2.0.107] - 2020-06-16
 - Fix [Flicker matching brackets as code is typed](https://github.com/BetterThanTomorrow/calva/issues/673)

@@ -250,7 +250,7 @@ function getSession(fileType = undefined): NReplSession {
     if (fileType.match(/^clj[sc]?/)) {
         return current.get(fileType);
     } else {
-        return current.get('clj');
+        return current.get('cljc');
     }
 }
 
@@ -402,7 +402,7 @@ function updateREPLSessionType() {
             sessionType = 'cljs'
         else if (fileType == 'clj' && getSession('clj') !== null)
             sessionType = 'clj'
-        else if (fileType == 'cljc' && getSession('cljc') !== null)
+        else if (getSession('cljc') !== null)
             sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
         else
             sessionType = 'clj'

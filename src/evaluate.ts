@@ -9,6 +9,9 @@ import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
+import * as resultsOutput from './result-output'
+
+
 
 function interruptAllEvaluations() {
 
@@ -92,6 +95,7 @@ async function evaluateSelection(document, options) {
                         stdout: (m) => {
                             out.push(m);
                             chan.appendLine(normalizeNewLines(m));
+                            resultsOutput.appendToResultsDoc(normalizeNewLines(m));
                         },
                         stderr: m => err.push(m),
                         pprintOptions: pprintOptions
@@ -115,11 +119,14 @@ async function evaluateSelection(document, options) {
                 if (!asComment) {
                     chan.appendLine('=>');
                     chan.appendLine(value);
+                    resultsOutput.appendToResultsDoc(value);
                 }
 
                 if (err.length > 0) {
                     chan.appendLine("Error:")
                     chan.appendLine(normalizeNewLinesAndJoin(err));
+                    resultsOutput.appendToResultsDoc(";Error:")
+                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
@@ -128,6 +135,8 @@ async function evaluateSelection(document, options) {
                 if (err.length > 0) {
                     chan.appendLine("Error:")
                     chan.appendLine(normalizeNewLinesAndJoin(err));
+                    resultsOutput.appendToResultsDoc(";Error:")
+                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
                 }
 
                 const message = util.stripAnsi(err.join("\n"));
@@ -192,6 +201,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         chan.appendLine("Evaluating file: " + fileName);
+        resultsOutput.appendToResultsDoc(";Evaluating file: " + fileName);
 
         let res = client.loadFile(doc.getText(), {
             fileName: fileName,
@@ -203,11 +213,14 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         await res.value.then((value) => {
             if (value) {
                 chan.appendLine("=> " + value);
+                resultsOutput.appendToResultsDoc(value);
             } else {
                 chan.appendLine("No results from file evaluation.");
+                resultsOutput.appendToResultsDoc(";No results from file evaluation.");
             }
         }).catch((e) => {
             chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
+            resultsOutput.appendToResultsDoc(`;Evaluation of file ${fileName} failed: ${e}`);
         });
     }
     if (callback) {
