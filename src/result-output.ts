@@ -7,7 +7,7 @@ import { highlight } from './highlight/src/extension'
 const RESULTS_DOC_NAME = 'eval-results.calva-out';
 const GREETINGS = '; This is the Calva output window.\n\
 ; Results from your code evaluations will be printed here.\n\
-; Happy coding! ♥️'
+; Happy coding!'
 
 const CALVA_TMP = path.join(os.tmpdir(), 'calva');
 const DOC_URI: vscode.Uri = vscode.Uri.parse(path.join(CALVA_TMP, RESULTS_DOC_NAME));
@@ -112,11 +112,12 @@ export async function appendToResultsDoc(text: string, reveal: boolean = false) 
                 scrollToBottom(visibleResultsEditor);
                 highlight(visibleResultsEditor);
             }
-            return success;
         } else {
-            console.log("Sad puppy")
+            setTimeout(() => {
+                appendToResultsDoc(text, reveal);
+            }, 0);
         }
-        console.log("Printed?");
+        console.log(`Printed? ${success}`);
     };
 }
 
