@@ -2,6 +2,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as state from './state';
+import { highlight } from './highlight/src/extension'
 
 const RESULTS_DOC_NAME = 'eval-results.calva-out';
 
@@ -51,19 +52,29 @@ export function appendToResultsDoc(text: string, reveal: boolean = false) {
         if (scrollToBottomSub) {
             scrollToBottomSub.dispose();
         }
-        scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
+        let visibleResultsEditor: vscode.TextEditor;
+        vscode.window.visibleTextEditors.forEach(editor => {
             if (path.basename(editor.document.fileName) === RESULTS_DOC_NAME) {
-                const lastPos = editor.document.positionAt(Infinity);
-                editor.selection = new vscode.Selection(lastPos, lastPos);
-                editor.revealRange(new vscode.Range(lastPos, lastPos));
-                console.log("Scrolled to bottom")
-                scrollToBottomSub.dispose();
+                visibleResultsEditor = editor;
             }
         });
-        state.extensionContext.subscriptions.push(scrollToBottomSub);
+        if (!visibleResultsEditor) {
+            scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
+                if (path.basename(editor.document.fileName) === RESULTS_DOC_NAME) {
+                    scrollToBottom(editor);
+                    scrollToBottomSub.dispose();
+                }
+            });
+            state.extensionContext.subscriptions.push(scrollToBottomSub);
+        }
         vscode.workspace.applyEdit(edit).then(
             success => {
-                if (!success) {
+                if (success) {
+                    if (visibleResultsEditor) {
+                        scrollToBottom(visibleResultsEditor);
+                        highlight(visibleResultsEditor);
+                    }
+                } else {
                     console.log("Sad puppy")
                 }
             },
@@ -75,6 +86,13 @@ export function appendToResultsDoc(text: string, reveal: boolean = false) {
     })
 }
 
+
+function scrollToBottom(editor: vscode.TextEditor) {
+    const lastPos = editor.document.positionAt(Infinity);
+    editor.selection = new vscode.Selection(lastPos, lastPos);
+    editor.revealRange(new vscode.Range(lastPos, lastPos));
+    console.log("Scrolled to bottom");
+}
 // function createFileWithContent(filename, content) {
 //     var newFile = vscode.Uri.parse('untitled:' + path.join(os.homedir(), filename));
 //     vscode.workspace.openTextDocument(newFile).then(function (document) {
