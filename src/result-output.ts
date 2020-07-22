@@ -10,7 +10,7 @@ const GREETINGS = '; This is the Calva output window.\n\
 ; Happy coding! ♥️'
 
 function getResultsUri(untitled: boolean): vscode.Uri {
-    return vscode.Uri.parse((untitled ? 'untitled:' : '') + path.join(os.tmpdir(), RESULTS_DOC_NAME));
+    return vscode.Uri.parse((untitled ? 'untitled:' : '') + path.join(os.tmpdir(), 'calva', RESULTS_DOC_NAME));
 }
 
 export async function openResultsDoc(clear: boolean = false): Promise<vscode.TextDocument> {
@@ -21,6 +21,14 @@ export async function openResultsDoc(clear: boolean = false): Promise<vscode.Tex
         exists = true;
     } catch {
         exists = false;
+    } finally {
+        const disableKondo = "^:replace {:linters {}}";
+        const disableKondoAb = new ArrayBuffer(disableKondo.length);
+        const disableKondoUi8a = new Uint8Array(disableKondoAb);
+        for (var i = 0, strLen = disableKondo.length; i < strLen; i++) {
+            disableKondoUi8a[i] = disableKondo.charCodeAt(i);
+        }
+        vscode.workspace.fs.writeFile(vscode.Uri.parse(path.join(os.tmpdir(), 'calva', '.clj-kondo', 'config.edn')), disableKondoUi8a);
     }
     await vscode.workspace.openTextDocument(getResultsUri(!exists)).then(async doc => {
         resultsDoc = doc;
@@ -32,6 +40,9 @@ export async function openResultsDoc(clear: boolean = false): Promise<vscode.Tex
             ), `${GREETINGS}\n`);
             const success = await vscode.workspace.applyEdit(edit);
             if (!success) {
+                doc.save();
+            }
+            else {
                 state.deref().outputChannel().appendLine('Error clearing output document.')
             }
         }
