@@ -5,6 +5,9 @@ import * as state from './state';
 import { highlight } from './highlight/src/extension'
 
 const RESULTS_DOC_NAME = 'eval-results.calva-out';
+const GREETINGS = '; This is the Calva output window.\n\
+; Results from your code evaluations will be printed here.\n\
+; Happy coding! ♥️'
 
 function getResultsUri(untitled: boolean): vscode.Uri {
     return vscode.Uri.parse((untitled ? 'untitled:' : '') + path.join(os.tmpdir(), RESULTS_DOC_NAME));
@@ -23,10 +26,10 @@ export async function openResultsDoc(clear: boolean = false): Promise<vscode.Tex
         resultsDoc = doc;
         if (clear) {
             var edit = new vscode.WorkspaceEdit();
-            edit.delete(getResultsUri(false), new vscode.Range(
+            edit.replace(getResultsUri(false), new vscode.Range(
                 new vscode.Position(0, 0),
                 doc.positionAt(doc.getText().length)
-            ));
+            ), `${GREETINGS}\n`);
             const success = await vscode.workspace.applyEdit(edit);
             if (!success) {
                 state.deref().outputChannel().appendLine('Error clearing output document.')
@@ -45,9 +48,10 @@ export function revealResultsDoc() {
 
 let scrollToBottomSub: vscode.Disposable;
 
-export function appendToResultsDoc(text: string, reveal: boolean = false) {
-    const edit = new vscode.WorkspaceEdit();
-    vscode.workspace.openTextDocument(getResultsUri(false)).then(doc => {
+export async function appendToResultsDoc(text: string, reveal: boolean = false) {
+    const doc = await vscode.workspace.openTextDocument(getResultsUri(false));
+    if (doc) {
+        const edit = new vscode.WorkspaceEdit();
         edit.insert(getResultsUri(false), doc.positionAt(Infinity), `${text}\n`);
         if (scrollToBottomSub) {
             scrollToBottomSub.dispose();
@@ -67,23 +71,18 @@ export function appendToResultsDoc(text: string, reveal: boolean = false) {
             });
             state.extensionContext.subscriptions.push(scrollToBottomSub);
         }
-        vscode.workspace.applyEdit(edit).then(
-            success => {
-                if (success) {
-                    if (visibleResultsEditor) {
-                        scrollToBottom(visibleResultsEditor);
-                        highlight(visibleResultsEditor);
-                    }
-                } else {
-                    console.log("Sad puppy")
-                }
-            },
-            reason => {
-                console.error(`Error appending output to: ${getResultsUri(false).path}`);
-                console.error(reason)
+        const success = await vscode.workspace.applyEdit(edit);
+        if (success) {
+            if (visibleResultsEditor) {
+                scrollToBottom(visibleResultsEditor);
+                highlight(visibleResultsEditor);
             }
-        );
-    })
+            return success;
+        } else {
+            console.log("Sad puppy")
+        }
+        console.log("Printed?");
+    };
 }
 
 
@@ -93,22 +92,3 @@ function scrollToBottom(editor: vscode.TextEditor) {
     editor.revealRange(new vscode.Range(lastPos, lastPos));
     console.log("Scrolled to bottom");
 }
-// function createFileWithContent(filename, content) {
-//     var newFile = vscode.Uri.parse('untitled:' + path.join(os.homedir(), filename));
-//     vscode.workspace.openTextDocument(newFile).then(function (document) {
-//         var edit = new vscode.WorkspaceEdit();
-//         edit.delete(newFile, new vscode.Range(
-//             document.positionAt(0),
-//             document.positionAt(document.getText().length - 1)
-//         ));
-//         return vscode.workspace.applyEdit(edit).then(function (success) {
-//             var edit = new vscode.WorkspaceEdit();
-//             edit.insert(newFile, new vscode.Position(0, 0), content);
-//             return vscode.workspace.applyEdit(edit).then(function (success) {
-//                 if (success) {
-//                     vscode.window.showTextDocument(document);
-//                 }
-//             });
-//         });
-//     });
-// }
