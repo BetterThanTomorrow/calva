@@ -24,6 +24,7 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
+import * as outputWindow from './result-output'
 
 function onDidSave(document) {
     let {
@@ -81,7 +82,7 @@ function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
             .then(v => {
                 if (v == BUTTON_GOTO_DOC) {
-                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => {});
+                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => { });
                 }
             })
     }
@@ -156,6 +157,8 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
+
+    context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {

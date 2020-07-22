@@ -64,6 +64,7 @@ export async function openResultsDoc(init: boolean = false): Promise<vscode.Text
                     editor.revealRange(new vscode.Range(firstPos, firstPos));
                 }
             });
+            // For some reason onDidChangeTextEditorViewColumn won't fire
             state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
                 if (isResultsDoc(event.document)) {
                     setViewColumn(event.viewColumn);

@@ -1122,6 +1122,12 @@
                 "command": "calva.replWindow.newLine",
                 "title": "Create a New Line at the REPL Window Prompt",
                 "enablement": "calva:replWindowActive"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.showOutputWindow",
+                "title": "Show Output Window",
+                "enablement": "calva:connected"
             }
         ],
         "keybindings": [
@@ -1596,6 +1602,11 @@
                 "command": "calva.replWindow.historyDown",
                 "key": "alt+down",
                 "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.showOutputWindow",
+                "key": "ctrl+alt+c o",
+                "when": "calva:connected"
             }
         ],
         "menus": {
