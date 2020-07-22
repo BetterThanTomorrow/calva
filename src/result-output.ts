@@ -9,73 +9,96 @@ const GREETINGS = '; This is the Calva output window.\n\
 ; Results from your code evaluations will be printed here.\n\
 ; Happy coding! ♥️'
 
-function getResultsUri(untitled: boolean): vscode.Uri {
-    return vscode.Uri.parse((untitled ? 'untitled:' : '') + path.join(os.tmpdir(), 'calva', RESULTS_DOC_NAME));
+const CALVA_TMP = path.join(os.tmpdir(), 'calva');
+const DOC_URI: vscode.Uri = vscode.Uri.parse(path.join(CALVA_TMP, RESULTS_DOC_NAME));
+
+function isResultsDoc(doc: vscode.TextDocument): boolean {
+    return doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
 }
 
-export async function openResultsDoc(clear: boolean = false): Promise<vscode.TextDocument> {
+function getViewColumn(): vscode.ViewColumn {
+    const column: vscode.ViewColumn = state.extensionContext.workspaceState.get(`outputWindowViewColumn`);
+    return column ? column : vscode.ViewColumn.Two;
+}
+
+function setViewColumn(column: vscode.ViewColumn) {
+    return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
+}
+
+function writeTextToFile(uri: vscode.Uri, text: string) {
+    const ab = new ArrayBuffer(text.length);
+    const ui8a = new Uint8Array(ab);
+    for (var i = 0, strLen = text.length; i < strLen; i++) {
+        ui8a[i] = text.charCodeAt(i);
+    }
+    vscode.workspace.fs.writeFile(uri, ui8a);
+}
+
+export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
     let exists: boolean = false;
     let resultsDoc: vscode.TextDocument;
-    try {
-        const stat = await vscode.workspace.fs.stat(getResultsUri(false));
-        exists = true;
-    } catch {
-        exists = false;
-    } finally {
-        const disableKondo = "^:replace {:linters {}}";
-        const disableKondoAb = new ArrayBuffer(disableKondo.length);
-        const disableKondoUi8a = new Uint8Array(disableKondoAb);
-        for (var i = 0, strLen = disableKondo.length; i < strLen; i++) {
-            disableKondoUi8a[i] = disableKondo.charCodeAt(i);
+    if (init) {
+        try {
+            const stat = await vscode.workspace.fs.stat(DOC_URI);
+            exists = true;
+        } catch {
+            exists = false;
+        } finally {
+            const disableKondo = "^:replace {:linters {}}";
+            const disableKondoAb = new ArrayBuffer(disableKondo.length);
+            const disableKondoUi8a = new Uint8Array(disableKondoAb);
+            for (var i = 0, strLen = disableKondo.length; i < strLen; i++) {
+                disableKondoUi8a[i] = disableKondo.charCodeAt(i);
+            }
+            writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
         }
-        vscode.workspace.fs.writeFile(vscode.Uri.parse(path.join(os.tmpdir(), 'calva', '.clj-kondo', 'config.edn')), disableKondoUi8a);
+        writeTextToFile(DOC_URI, `${GREETINGS}\n`);
     }
-    await vscode.workspace.openTextDocument(getResultsUri(!exists)).then(async doc => {
+    await vscode.workspace.openTextDocument(DOC_URI).then(async doc => {
         resultsDoc = doc;
-        if (clear) {
-            var edit = new vscode.WorkspaceEdit();
-            edit.replace(getResultsUri(false), new vscode.Range(
-                new vscode.Position(0, 0),
-                doc.positionAt(doc.getText().length)
-            ), `${GREETINGS}\n`);
-            const success = await vscode.workspace.applyEdit(edit);
-            if (!success) {
-                doc.save();
-            }
-            else {
-                state.deref().outputChannel().appendLine('Error clearing output document.')
-            }
+        vscode.window.showTextDocument(doc, getViewColumn(), true);
+        if (init) {
+            vscode.window.visibleTextEditors.forEach(editor => {
+                if (isResultsDoc(editor.document)) {
+                    const firstPos = editor.document.positionAt(0);
+                    editor.revealRange(new vscode.Range(firstPos, firstPos));
+                }
+            });
+            state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
+                if (isResultsDoc(event.document)) {
+                    setViewColumn(event.viewColumn);
+                }
+            }));
         }
-        vscode.window.showTextDocument(doc, 1, true);
     });
     return resultsDoc;
 }
 
-export function revealResultsDoc() {
+export function revealResultsDoc(preserveFocus: boolean = true) {
     openResultsDoc().then(doc => {
-        vscode.window.showTextDocument(doc);
+        vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
     });
 }
 
 let scrollToBottomSub: vscode.Disposable;
 
 export async function appendToResultsDoc(text: string, reveal: boolean = false) {
-    const doc = await vscode.workspace.openTextDocument(getResultsUri(false));
+    const doc = await vscode.workspace.openTextDocument(DOC_URI);
     if (doc) {
         const edit = new vscode.WorkspaceEdit();
-        edit.insert(getResultsUri(false), doc.positionAt(Infinity), `${text}\n`);
+        edit.insert(DOC_URI, doc.positionAt(Infinity), `${text}\n`);
         if (scrollToBottomSub) {
             scrollToBottomSub.dispose();
         }
         let visibleResultsEditor: vscode.TextEditor;
         vscode.window.visibleTextEditors.forEach(editor => {
-            if (path.basename(editor.document.fileName) === RESULTS_DOC_NAME) {
+            if (isResultsDoc(editor.document)) {
                 visibleResultsEditor = editor;
             }
         });
         if (!visibleResultsEditor) {
             scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
-                if (path.basename(editor.document.fileName) === RESULTS_DOC_NAME) {
+                if (isResultsDoc(editor.document)) {
                     scrollToBottom(editor);
                     scrollToBottomSub.dispose();
                 }
