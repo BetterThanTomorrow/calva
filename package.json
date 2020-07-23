@@ -715,7 +715,7 @@
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "title": "Evaluate Current Form to Result",
+                "title": "Evaluate Current Form and Replace it with the Result",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1177,12 +1177,22 @@
                 "win": "ctrl+alt+c v"
             },
             {
+                "command": "calva.evaluateSelection",
+                "key": "ctrl+enter",
+                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
+            },
+            {
                 "command": "calva.interruptAllEvaluations",
                 "key": "ctrl+alt+c ctrl+alt+d"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "ctrl+alt+c space"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "alt+enter",
+                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
