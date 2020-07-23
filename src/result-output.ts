@@ -92,7 +92,7 @@ export async function appendToResultsDoc(text: string): Promise<void> {
         const doc = await vscode.workspace.openTextDocument(DOC_URI);
         if (doc) {
             const edit = new vscode.WorkspaceEdit();
-            edit.insert(DOC_URI, doc.positionAt(Infinity), `${text}\n`);
+            edit.insert(DOC_URI, doc.positionAt(Infinity), `\n${text}`);
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
             }
