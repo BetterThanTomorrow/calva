@@ -108,9 +108,6 @@ export async function appendToResultsDoc(text: string): Promise<void> {
                     scrollToBottom(visibleResultsEditor);
                     highlight(visibleResultsEditor);
                 }
-                console.log("Printed?");
-            } else {
-                console.log("Sad puppy")
             }
         }
 
@@ -124,5 +121,4 @@ function scrollToBottom(editor: vscode.TextEditor) {
     const lastPos = editor.document.positionAt(Infinity);
     editor.selection = new vscode.Selection(lastPos, lastPos);
     editor.revealRange(new vscode.Range(lastPos, lastPos));
-    console.log("Scrolled to bottom");
 }
