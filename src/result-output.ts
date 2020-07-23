@@ -128,7 +128,7 @@ function makePrintableStackTrace(trace: StackTrace): string {
         const line = `{${file} :flags [${x.flags.map((f: string) => `:${f}`).join(' ')}]}`;
         stack.push(line);
     }
-    return `Stacktrace:\n[${stack.join('\n ')}]`;
+    return `;Stacktrace:\n[${stack.join('\n ')}]`;
 }
 
 export function printStacktrace(trace: StackTrace) {
