@@ -11,8 +11,6 @@ import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
 import * as resultsOutput from './result-output'
 
-
-
 function interruptAllEvaluations() {
 
     if (util.getConnectedState()) {
@@ -94,7 +92,6 @@ async function evaluateSelection(document, options) {
                         column: column + 1,
                         stdout: (m) => {
                             out.push(m);
-                            chan.appendLine(normalizeNewLines(m));
                             resultsOutput.appendToResultsDoc(normalizeNewLines(m));
                         },
                         stderr: m => err.push(m),
@@ -117,14 +114,10 @@ async function evaluateSelection(document, options) {
                 }
 
                 if (!asComment) {
-                    chan.appendLine('=>');
-                    chan.appendLine(value);
                     resultsOutput.appendToResultsDoc(value);
                 }
 
                 if (err.length > 0) {
-                    chan.appendLine("Error:")
-                    chan.appendLine(normalizeNewLinesAndJoin(err));
                     resultsOutput.appendToResultsDoc(";Error:")
                     resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
                 }
@@ -133,8 +126,6 @@ async function evaluateSelection(document, options) {
                     err = out;
                 }
                 if (err.length > 0) {
-                    chan.appendLine("Error:")
-                    chan.appendLine(normalizeNewLinesAndJoin(err));
                     resultsOutput.appendToResultsDoc(";Error:")
                     resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
                 }
@@ -200,7 +191,6 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
 
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        chan.appendLine("Evaluating file: " + fileName);
         resultsOutput.appendToResultsDoc(";Evaluating file: " + fileName);
 
         let res = client.loadFile(doc.getText(), {
@@ -212,14 +202,11 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         })
         await res.value.then((value) => {
             if (value) {
-                chan.appendLine("=> " + value);
                 resultsOutput.appendToResultsDoc(value);
             } else {
-                chan.appendLine("No results from file evaluation.");
                 resultsOutput.appendToResultsDoc(";No results from file evaluation.");
             }
         }).catch((e) => {
-            chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
             resultsOutput.appendToResultsDoc(`;Evaluation of file ${fileName} failed: ${e}`);
         });
     }
