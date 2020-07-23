@@ -52,7 +52,7 @@ function update() {
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
-        if (fileType == 'cljc' && util.getREPLSessionType() !== null && !activeReplWindow()) {
+        if (['cljc', 'calva-out'].includes(fileType) && util.getREPLSessionType() !== null && !activeReplWindow()) {
             typeStatus.text = "cljc/" + util.getREPLSessionType()
             if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
