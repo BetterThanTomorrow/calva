@@ -4,7 +4,9 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import { highlight } from './highlight/src/extension'
 
-const RESULTS_DOC_NAME = 'eval-results.calva-out';
+export const REPL_FILE_EXT = "calva-repl"
+
+const RESULTS_DOC_NAME = `eval-results.${REPL_FILE_EXT}`;
 const GREETINGS = '; This is the Calva output window.\n\
 ; Results from your code evaluations will be printed here.\n\
 ; Happy coding!'
@@ -35,24 +37,10 @@ function writeTextToFile(uri: vscode.Uri, text: string) {
 }
 
 export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
-    let exists: boolean = false;
     let resultsDoc: vscode.TextDocument;
     if (init) {
-        try {
-            const stat = await vscode.workspace.fs.stat(DOC_URI);
-            exists = true;
-        } catch {
-            exists = false;
-        } finally {
-            const disableKondo = "^:replace {:linters {}}";
-            const disableKondoAb = new ArrayBuffer(disableKondo.length);
-            const disableKondoUi8a = new Uint8Array(disableKondoAb);
-            for (var i = 0, strLen = disableKondo.length; i < strLen; i++) {
-                disableKondoUi8a[i] = disableKondo.charCodeAt(i);
-            }
-            writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
-        }
         writeTextToFile(DOC_URI, `${GREETINGS}\n`);
+        writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
     }
     await vscode.workspace.openTextDocument(DOC_URI).then(async doc => {
         resultsDoc = doc;
@@ -111,10 +99,10 @@ export async function appendToResultsDoc(text: string): Promise<void> {
                 });
                 state.extensionContext.subscriptions.push(scrollToBottomSub);
             }
-           
+
             const success = await vscode.workspace.applyEdit(edit);
             applyingEdit = false;
-        
+
             if (success) {
                 if (visibleResultsEditor) {
                     scrollToBottom(visibleResultsEditor);
@@ -125,11 +113,11 @@ export async function appendToResultsDoc(text: string): Promise<void> {
                 console.log("Sad puppy")
             }
         }
-    
+
         if (editQueue.length > 0) {
             appendToResultsDoc(editQueue.shift());
         }
-    }; 
+    };
 }
 
 function scrollToBottom(editor: vscode.TextEditor) {
