@@ -82,44 +82,55 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 }
 
 let scrollToBottomSub: vscode.Disposable;
-
-export async function appendToResultsDoc(text: string, reveal: boolean = false) {
-    const doc = await vscode.workspace.openTextDocument(DOC_URI);
-    if (doc) {
-        const edit = new vscode.WorkspaceEdit();
-        edit.insert(DOC_URI, doc.positionAt(Infinity), `${text}\n`);
-        if (scrollToBottomSub) {
-            scrollToBottomSub.dispose();
-        }
-        let visibleResultsEditor: vscode.TextEditor;
-        vscode.window.visibleTextEditors.forEach(editor => {
-            if (isResultsDoc(editor.document)) {
-                visibleResultsEditor = editor;
+const editQueue: string[] = [];
+let applyingEdit = false;
+export async function appendToResultsDoc(text: string): Promise<void> {
+    if (applyingEdit) {
+        editQueue.push(text);
+    } else {
+        applyingEdit = true;
+        const doc = await vscode.workspace.openTextDocument(DOC_URI);
+        if (doc) {
+            const edit = new vscode.WorkspaceEdit();
+            edit.insert(DOC_URI, doc.positionAt(Infinity), `${text}\n`);
+            if (scrollToBottomSub) {
+                scrollToBottomSub.dispose();
             }
-        });
-        if (!visibleResultsEditor) {
-            scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
+            let visibleResultsEditor: vscode.TextEditor;
+            vscode.window.visibleTextEditors.forEach(editor => {
                 if (isResultsDoc(editor.document)) {
-                    scrollToBottom(editor);
-                    scrollToBottomSub.dispose();
+                    visibleResultsEditor = editor;
                 }
             });
-            state.extensionContext.subscriptions.push(scrollToBottomSub);
-        }
-        const success = await vscode.workspace.applyEdit(edit);
-        if (success) {
-            if (visibleResultsEditor) {
-                scrollToBottom(visibleResultsEditor);
-                highlight(visibleResultsEditor);
+            if (!visibleResultsEditor) {
+                scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
+                    if (isResultsDoc(editor.document)) {
+                        scrollToBottom(editor);
+                        scrollToBottomSub.dispose();
+                    }
+                });
+                state.extensionContext.subscriptions.push(scrollToBottomSub);
             }
-            return success;
-        } else {
-            console.log("Sad puppy")
+           
+            const success = await vscode.workspace.applyEdit(edit);
+            applyingEdit = false;
+        
+            if (success) {
+                if (visibleResultsEditor) {
+                    scrollToBottom(visibleResultsEditor);
+                    highlight(visibleResultsEditor);
+                }
+                console.log("Printed?");
+            } else {
+                console.log("Sad puppy")
+            }
         }
-        console.log("Printed?");
-    };
+    
+        if (editQueue.length > 0) {
+            appendToResultsDoc(editQueue.shift());
+        }
+    }; 
 }
-
 
 function scrollToBottom(editor: vscode.TextEditor) {
     const lastPos = editor.document.positionAt(Infinity);
