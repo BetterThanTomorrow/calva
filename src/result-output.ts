@@ -27,20 +27,20 @@ function setViewColumn(column: vscode.ViewColumn) {
     return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
 }
 
-function writeTextToFile(uri: vscode.Uri, text: string) {
+function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     const ab = new ArrayBuffer(text.length);
     const ui8a = new Uint8Array(ab);
     for (var i = 0, strLen = text.length; i < strLen; i++) {
         ui8a[i] = text.charCodeAt(i);
     }
-    vscode.workspace.fs.writeFile(uri, ui8a);
+    return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
 export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
     let resultsDoc: vscode.TextDocument;
     if (init) {
-        writeTextToFile(DOC_URI, `${GREETINGS}\n`);
         writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
+        await writeTextToFile(DOC_URI, `${GREETINGS}\n`);
     }
     await vscode.workspace.openTextDocument(DOC_URI).then(async doc => {
         resultsDoc = doc;
