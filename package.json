@@ -162,7 +162,8 @@
                         "default": {
                             "enabled": true,
                             "printEngine": "pprint",
-                            "width": 120
+                            "width": 120,
+                            "maxLength": 50
                         }
                     },
                     "clojure.format.enable": {
