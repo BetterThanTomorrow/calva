@@ -90,12 +90,6 @@ const cljDefaults: ReplConnectSequence[] =
         cljsType: CljsTypes["Figwheel Main"]
     },
     {
-        name: "Clojure CLI + shadow-cljs",
-        projectType: ProjectTypes["Clojure CLI"],
-        cljsType: CljsTypes["shadow-cljs"],
-        nReplPortFile: [".shadow-cljs", "nrepl.port"]
-    },
-    {
         name: "Clojure CLI + Legacy Figwheel",
         projectType: ProjectTypes["Clojure CLI"],
         cljsType: CljsTypes["lein-figwheel"]
@@ -196,22 +190,14 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
 }
 
 /**
- * Retrieve the replConnectSequences and returns only that if only one was defined.
- * Otherwise the user defined will be combined with the defaults one to be returned.
- * @param projectType what default Sequences would be used (leiningen, clj, shadow-cljs)
+ * User defined sequences will be combined with the default sequences.
+ * @param projectType what default sequences would be used (leiningen, clj, shadow-cljs)
  */
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
-    let customSequences = getCustomConnectSequences();
-
-    if (customSequences.length) {
-        return customSequences;
-    } else {
-        let result = [];
-        for (let pType of projectTypes) {
-            result = result.concat(defaultSequences[pType]);
-        }
-        return result;
-    }
+    const customSequences = getCustomConnectSequences();
+    const defSequences = projectTypes.reduce((seqs, projecType) => seqs.concat(defaultSequences[projecType]), []);
+    const sequences = customSequences.concat(defSequences);
+    return sequences;
 }
 
 /**
@@ -227,23 +213,19 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabel: string): Promise<ReplConnectSequence> {
     // figure out what possible kinds of project we're in
     const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
-    if (sequences.length > 1) {
-        const projectConnectSequenceName = await utilities.quickPickSingle({
-            values: sequences.map(s => { return s.name }),
-            placeHolder: "Please select a project type",
-            saveAs: `${state.getProjectRoot()}/${saveAs}`,
-            autoSelect: true
-        });
-        if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
-            state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
-            return;
-        }
-        const sequence = sequences.find(seq => seq.name === projectConnectSequenceName);
-        state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
-        return sequence;
-    } else {
-        return sequences[0];
+    const projectConnectSequenceName = await utilities.quickPickSingle({
+        values: sequences.map(s => { return s.name }),
+        placeHolder: "Please select a project type",
+        saveAs: `${state.getProjectRoot()}/${saveAs}`,
+        autoSelect: true
+    });
+    if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
+        state.analytics().logEvent("REPL", logLabel, "NoProjectTypePicked").send();
+        return;
     }
+    const sequence = sequences.find(seq => seq.name === projectConnectSequenceName);
+    state.extensionContext.workspaceState.update('selectedCljTypeName', sequence.projectType);
+    return sequence;
 }
 
 export {
