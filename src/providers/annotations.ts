@@ -121,7 +121,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     decoration["range"] = codeSelection;
     if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
         const commandUri = `command:calva.showOutputWindow`,
-            commandMd = `[Show Results](${commandUri} "Open the results window")`;
+            commandMd = `[Open Results Window](${commandUri} "Open the results window")`;
         let hoverMessage = new vscode.MarkdownString(commandMd);
         hoverMessage.isTrusted = true;
         decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
