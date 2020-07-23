@@ -5,11 +5,17 @@ import * as state from './state';
 import { highlight } from './highlight/src/extension'
 
 export const REPL_FILE_EXT = "repl-file"
-
 const RESULTS_DOC_NAME = `eval-results.${REPL_FILE_EXT}`;
-const GREETINGS = '; This is the Calva output window.\n\
-; Results from your code evaluations will be printed here.\n\
-; Happy coding!'
+
+const TIPS = ['; The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.',
+    '; You can edit the contents here. Use it as a REPL if you like.\n\
+;   Use `alt+enter` to evaluate the current top level form.\n\
+;   (`ctrl+enter` evaluates the current form.)',
+    '; File URLs in stacktrace frames are peekable and clickable.',
+    '; In ClojureScript projects, use the command *Calva: Toggle REPL connection* to choose which REPL to use (clj or cljs).'];
+
+const GREETINGS = ['; This is the Calva output window. Results from your code evaluations will be printed here.',
+    '; https://calva.io is your place for Calva documentation. Happy coding!'];
 
 const CALVA_TMP = path.join(os.tmpdir(), 'calva');
 const DOC_URI: vscode.Uri = vscode.Uri.parse(path.join(CALVA_TMP, RESULTS_DOC_NAME));
@@ -40,7 +46,8 @@ export async function openResultsDoc(init: boolean = false): Promise<vscode.Text
     let resultsDoc: vscode.TextDocument;
     if (init) {
         writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
-        await writeTextToFile(DOC_URI, `${GREETINGS}\n`);
+        const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}`;
+        await writeTextToFile(DOC_URI, greetings);
     }
     await vscode.workspace.openTextDocument(DOC_URI).then(async doc => {
         resultsDoc = doc;
