@@ -192,13 +192,16 @@ const leinDependencies = {
     "clj-kondo": CLJ_KONDO_VERSION
 }
 const middleware = ["cider.nrepl/cider-middleware"];
+const cljsMiddlewareNames = {
+    wrapCljsRepl: "cider.piggieback/wrap-cljs-repl"
+};
 const cljsMiddleware: { [id: string]: string[] } = {
-    "lein-figwheel": ["cider.piggieback/wrap-cljs-repl"],
-    "Figwheel Main": ["cider.piggieback/wrap-cljs-repl"],
+    "lein-figwheel": [cljsMiddlewareNames.wrapCljsRepl],
+    "Figwheel Main": [cljsMiddlewareNames.wrapCljsRepl],
     "shadow-cljs": [],
-    "lein-shadow": ["cider.piggieback/wrap-cljs-repl"],
-    "Nashorn": ["cider.piggieback/wrap-cljs-repl"],
-    "User provided": ["cider.piggieback/wrap-cljs-repl"]
+    "lein-shadow": [cljsMiddlewareNames.wrapCljsRepl],
+    "Nashorn": [cljsMiddlewareNames.wrapCljsRepl],
+    "User provided": [cljsMiddlewareNames.wrapCljsRepl]
 };
 
 const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
