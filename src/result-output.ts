@@ -117,6 +117,25 @@ export async function appendToResultsDoc(text: string): Promise<void> {
     };
 }
 
+type StackTrace = {
+    stacktrace: any;
+};
+
+function makePrintableStackTrace(trace: StackTrace): string {
+    const stack = [];
+    for (let x of trace.stacktrace) {
+        const file = x["file-url"] && x["file-url"].length ? `:file "${x["file-url"]}:${x.line}"` : `:file "${x.file}" :line ${x.line}`;
+        const line = `{${file} :flags [${x.flags.map((f: string) => `:${f}`).join(' ')}]}`;
+        stack.push(line);
+    }
+    return `Stacktrace:\n[${stack.join('\n ')}]`;
+}
+
+export function printStacktrace(trace: StackTrace) {
+    const text = makePrintableStackTrace(trace);
+    appendToResultsDoc(text);
+}
+
 function scrollToBottom(editor: vscode.TextEditor) {
     const lastPos = editor.document.positionAt(Infinity);
     editor.selection = new vscode.Selection(lastPos, lastPos);

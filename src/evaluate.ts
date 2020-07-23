@@ -82,21 +82,22 @@ async function evaluateSelection(document, options) {
             const ns = util.getNamespace(doc);
             await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
 
+            let context: NReplEvaluation;
             try {
                 const line = codeSelection.start.line,
                     column = codeSelection.start.character,
-                    filePath = doc.fileName,
-                    context = client.eval(code, ns, {
-                        file: filePath,
-                        line: line + 1,
-                        column: column + 1,
-                        stdout: (m) => {
-                            out.push(m);
-                            resultsOutput.appendToResultsDoc(normalizeNewLines(m));
-                        },
-                        stderr: m => err.push(m),
-                        pprintOptions: pprintOptions
-                    });
+                    filePath = doc.fileName;
+                context = client.eval(code, ns, {
+                    file: filePath,
+                    line: line + 1,
+                    column: column + 1,
+                    stdout: (m) => {
+                        out.push(m);
+                        resultsOutput.appendToResultsDoc(normalizeNewLines(m));
+                    },
+                    stderr: m => err.push(m),
+                    pprintOptions: pprintOptions
+                });
                 let value = await context.value;
                 value = util.stripAnsi(context.pprintOut || value);
 
@@ -118,8 +119,12 @@ async function evaluateSelection(document, options) {
                 }
 
                 if (err.length > 0) {
+                    console.log(context.stacktrace);
                     resultsOutput.appendToResultsDoc(";Error:")
                     resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
+                    if (context.stacktrace) {
+                        resultsOutput.printStacktrace(context.stacktrace);
+                    }
                 }
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
@@ -128,6 +133,9 @@ async function evaluateSelection(document, options) {
                 if (err.length > 0) {
                     resultsOutput.appendToResultsDoc(";Error:")
                     resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
+                    if (context.stacktrace) {
+                        resultsOutput.printStacktrace(context.stacktrace);
+                    }
                 }
 
                 const message = util.stripAnsi(err.join("\n"));
