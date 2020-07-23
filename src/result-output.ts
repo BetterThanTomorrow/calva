@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import { highlight } from './highlight/src/extension'
 
-export const REPL_FILE_EXT = "calva-repl"
+export const REPL_FILE_EXT = "repl-file"
 
 const RESULTS_DOC_NAME = `eval-results.${REPL_FILE_EXT}`;
 const GREETINGS = '; This is the Calva output window.\n\
