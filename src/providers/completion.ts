@@ -40,14 +40,14 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 toplevelIsValidForm = toplevelStartCursor.withinValidList() && context != '__prefix__',
                 ns = util.getNamespace(document),
                 client = util.getSession(util.getFileType(document)),
-                res = await client.complete(util.getNamespace(document), text, toplevelIsValidForm ? context : null),
+                res = await client.complete(ns, text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];
                 if(results) {
                     results.forEach(element => {
                         if(!element['ns']) {
-                            // make sure every entry has a namespace 
+                            // make sure every entry has a namespace
                             // for the 'info' call.
-                            element['ns'] = ns; 
+                            element['ns'] = ns;
                         }
                     });
                 }

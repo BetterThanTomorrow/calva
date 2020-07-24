@@ -125,6 +125,8 @@ async function evaluateSelection(document, options) {
                         resultsOutput.printStacktrace(context.stacktrace);
                     }
                 }
+                resultsOutput.setSession(client, context.ns);
+                util.updateREPLSessionType();
             } catch (e) {
                 if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                     err = out;
@@ -134,6 +136,8 @@ async function evaluateSelection(document, options) {
                     if (context.stacktrace) {
                         resultsOutput.printStacktrace(context.stacktrace);
                     }
+                    resultsOutput.setSession(client, context.ns);
+                    util.updateREPLSessionType();
                 }
 
                 const message = util.stripAnsi(err.join("\n"));
@@ -216,6 +220,8 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         }).catch((e) => {
             resultsOutput.appendToResultsDoc(`;Evaluation of file ${fileName} failed: ${e}`);
         });
+        resultsOutput.setSession(client, res.ns);
+        util.updateREPLSessionType();
     }
     if (callback) {
         try {

@@ -62,6 +62,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('cljc', cljSession);
         status.update();
         resultsOutput.openResultsDoc(true);
+        resultsOutput.setSession(cljSession, nClient.ns);
+        util.updateREPLSessionType();
 
         // Initialize debugger
         await initializeDebugger(cljSession);
@@ -534,12 +536,18 @@ export default {
     },
     toggleCLJCSession: () => {
         let current = state.deref();
+        let newSession: NReplSession;
 
         if (current.get('connected')) {
             if (util.getSession('cljc') == util.getSession('cljs')) {
-                state.cursor.set('cljc', util.getSession('clj'));
+                newSession = util.getSession('clj');
             } else if (util.getSession('cljc') == util.getSession('clj')) {
-                state.cursor.set('cljc', util.getSession('cljs'));
+                newSession = util.getSession('cljs');
+            }
+            state.cursor.set('cljc', newSession);
+            if (resultsOutput.isResultsDoc(vscode.window.activeTextEditor.document)) {
+                resultsOutput.setSession(newSession, undefined);
+                util.updateREPLSessionType();
             }
             status.update();
         }

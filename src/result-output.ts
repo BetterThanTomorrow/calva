@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as state from './state';
 import { highlight } from './highlight/src/extension'
+import { NReplSession } from './nrepl';
 
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `eval-results.${REPL_FILE_EXT}`;
@@ -20,7 +21,40 @@ const GREETINGS = [';This is the Calva output window. Results from your code eva
 const CALVA_TMP = path.join(os.tmpdir(), 'calva');
 const DOC_URI: vscode.Uri = vscode.Uri.parse(path.join(CALVA_TMP, RESULTS_DOC_NAME));
 
-function isResultsDoc(doc: vscode.TextDocument): boolean {
+let _sessionType = "clj";
+let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
+    clj: {},
+    cljs: {}
+};
+let _prompt: string;
+
+export function getNs(): string {
+    return _sessionInfo[_sessionType].ns;
+}
+
+export function getSessionType(): string {
+    return _sessionType;
+}
+
+export function getSession(): NReplSession {
+    return _sessionInfo[_sessionType].session;
+}
+
+export function setSession(session: NReplSession, newNs: string) {
+    if (session) {
+        if (session.replType) {
+            _sessionType = session.replType;
+        }
+        _sessionInfo[_sessionType].session = session;
+    }
+    if (newNs) {
+        _sessionInfo[_sessionType].ns = newNs;
+    }
+    _prompt = `=${_sessionType}=${getNs()}=>`;
+    appendToResultsDoc(_prompt);
+}
+
+export function isResultsDoc(doc: vscode.TextDocument): boolean {
     return doc && path.basename(doc.fileName) === RESULTS_DOC_NAME;
 }
 
