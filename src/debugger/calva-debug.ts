@@ -30,7 +30,19 @@ const REQUESTS = {
 const NEED_DEBUG_INPUT_STATUS = 'need-debug-input';
 const DEBUG_RESPONSE_KEY = 'debug-response';
 const DEBUG_QUIT_VALUE = 'QUIT';
-const CLOJURE_SESSION_NAME = 'clj'
+const CLOJURE_SESSION_NAME = 'clj';
+const DEBUG_ANALYTICS = {
+    CATEGORY: 'Debugger',
+    EVENT_ACTIONS: {
+        ATTACH: "Attach",
+        CONTINUE: "Continue",
+        STEP_OVER: "StepOver",
+        STEP_IN: "StepIn",
+        STEP_OUT: "StepOut",
+        INSTRUMENT_FORM: "InstrumentForm",
+        EVALUATE_IN_DEBUG_CONTEXT: "EvaluateInDebugContext"
+    }
+};
 
 class CalvaDebugSession extends LoggingDebugSession {
 
@@ -70,6 +82,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
+        state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH).send();
     }
 
     protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments, request?: DebugProtocol.Request): Promise<void> {
@@ -86,6 +99,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
+        state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.CONTINUE).send();
     }
 
     protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request): void {
@@ -107,6 +121,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
+        state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_OVER).send();
     }
 
     protected stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments, request?: DebugProtocol.Request): void {
@@ -123,6 +138,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
+        state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_IN).send();
     }
 
     protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments, request?: DebugProtocol.Request): void {
@@ -139,6 +155,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
 
         this.sendResponse(response);
+        state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.STEP_OUT).send();
     }
 
     protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
@@ -365,6 +382,7 @@ async function initializeDebugger(cljSession: NReplSession): Promise<void> {
 
 export {
     CALVA_DEBUG_CONFIGURATION,
+    DEBUG_ANALYTICS,
     REQUESTS,
     NEED_DEBUG_INPUT_STATUS,
     DEBUG_RESPONSE_KEY,

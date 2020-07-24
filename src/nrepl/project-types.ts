@@ -192,7 +192,17 @@ const leinDependencies = {
     "clj-kondo": CLJ_KONDO_VERSION
 }
 const middleware = ["cider.nrepl/cider-middleware"];
-const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
+const cljsMiddlewareNames = {
+    wrapCljsRepl: "cider.piggieback/wrap-cljs-repl"
+};
+const cljsMiddleware: { [id: string]: string[] } = {
+    "lein-figwheel": [cljsMiddlewareNames.wrapCljsRepl],
+    "Figwheel Main": [cljsMiddlewareNames.wrapCljsRepl],
+    "shadow-cljs": [],
+    "lein-shadow": [cljsMiddlewareNames.wrapCljsRepl],
+    "Nashorn": [cljsMiddlewareNames.wrapCljsRepl],
+    "User provided": [cljsMiddlewareNames.wrapCljsRepl]
+};
 
 const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
 
@@ -280,7 +290,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
@@ -405,7 +415,7 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
         let dep = keys[i];
         out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
     }
-    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     for (let mw of useMiddleware) {
         out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
     }
