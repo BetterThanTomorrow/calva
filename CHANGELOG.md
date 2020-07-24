@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Jack-in error when choosing Clojure CLI + shadow-cljs project type](https://github.com/BetterThanTomorrow/calva/issues/675)
+- Fix [Cannot use default connect sequences when custom connect sequences added](https://github.com/BetterThanTomorrow/calva/issues/685)
 
 ## [2.0.107] - 2020-06-16
 - Fix [Flicker matching brackets as code is typed](https://github.com/BetterThanTomorrow/calva/issues/673)
