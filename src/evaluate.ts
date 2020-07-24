@@ -21,7 +21,7 @@ function interruptAllEvaluations() {
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        chan.appendLine(normalizeNewLinesAndJoin(msgs));
+        resultsOutput.appendToResultsDoc(normalizeNewLinesAndJoin(msgs));
 
         NReplSession.getInstances().forEach((session, index) => {
             session.interruptAll();
@@ -120,8 +120,7 @@ async function evaluateSelection(document, options) {
 
                 if (err.length > 0) {
                     console.log(context.stacktrace);
-                    resultsOutput.appendToResultsDoc(";Error:")
-                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
+                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
                     if (context.stacktrace) {
                         resultsOutput.printStacktrace(context.stacktrace);
                     }
@@ -131,8 +130,7 @@ async function evaluateSelection(document, options) {
                     err = out;
                 }
                 if (err.length > 0) {
-                    resultsOutput.appendToResultsDoc(";Error:")
-                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err)}`);
+                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
                     if (context.stacktrace) {
                         resultsOutput.printStacktrace(context.stacktrace);
                     }
@@ -154,12 +152,13 @@ function printWarningForError(e: any) {
     console.warn(`Unhandled error: ${e.message}`);
 }
 
-function normalizeNewLines(str: string): string {
-    return str.replace(/\n\r?$/, "");
+function normalizeNewLines(str: string, asLineComment = false): string {
+    const s = str.replace(/\n\r?$/, "");
+    return asLineComment ? s.replace(/\n\r?/, "\n;") : s;
 }
 
-function normalizeNewLinesAndJoin(strings: string[]): string {
-    return strings.map(normalizeNewLines).join("\n");
+function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): string {
+    return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? ';' : ''}`);
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
