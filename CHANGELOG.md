@@ -5,6 +5,11 @@ Changes to Calva.
 ## [Unreleased]
 - [Send evaluation results and output to a file](https://github.com/BetterThanTomorrow/calva/issues/681)
 
+## [2.0.108] - 2020-07-24
+- Fix [Jack-in error when choosing Clojure CLI + shadow-cljs project type](https://github.com/BetterThanTomorrow/calva/issues/675)
+- Fix [Cannot use default connect sequences when custom connect sequences added](https://github.com/BetterThanTomorrow/calva/issues/685)
+- Add analytics to debugger
+
 ## [2.0.107] - 2020-06-16
 - Fix [Flicker matching brackets as code is typed](https://github.com/BetterThanTomorrow/calva/issues/673)
 
