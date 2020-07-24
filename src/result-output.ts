@@ -46,7 +46,7 @@ export async function openResultsDoc(init: boolean = false): Promise<vscode.Text
     let resultsDoc: vscode.TextDocument;
     if (init) {
         writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
-        const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}`;
+        const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}\n`;
         await writeTextToFile(DOC_URI, greetings);
     }
     await vscode.workspace.openTextDocument(DOC_URI).then(async doc => {
@@ -87,7 +87,10 @@ export async function appendToResultsDoc(text: string): Promise<void> {
         const doc = await vscode.workspace.openTextDocument(DOC_URI);
         if (doc) {
             const edit = new vscode.WorkspaceEdit();
-            edit.insert(DOC_URI, doc.positionAt(Infinity), `\n${text}`);
+            const currentContent = doc.getText();
+            const lastLineEmpty = currentContent.match(/\n$/);
+            const appendText = `${lastLineEmpty ? '' : '\n'}${text}\n`;
+            edit.insert(DOC_URI, doc.positionAt(Infinity), `${appendText}`);
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
             }
