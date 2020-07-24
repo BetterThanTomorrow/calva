@@ -208,8 +208,8 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         let res = client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
-            stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
-            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
+            stdout: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
+            stderr: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
             pprintOptions: pprintOptions
         })
         await res.value.then((value) => {

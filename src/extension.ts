@@ -133,11 +133,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        eval.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
-            chan.show(true);
-        }).catch((reason) => {
-            chan.show(true);
-        });
+        eval.loadFile({}, undefined, state.config().prettyPrintingOptions);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
