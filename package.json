@@ -1179,7 +1179,7 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
+                "when": "editorTextFocus"
             },
             {
                 "command": "calva.interruptAllEvaluations",
@@ -1192,7 +1192,7 @@
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "alt+enter",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
+                "when": "editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
