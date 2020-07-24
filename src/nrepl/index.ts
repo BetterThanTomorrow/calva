@@ -7,7 +7,6 @@ import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
-import annotations from '../providers/annotations';
 import debugDecorations from '../debugger/decorations';
 
 /** An nREPL client */
@@ -265,6 +264,7 @@ export class NReplSession {
     private _createEvalOperationMessage(code: string, ns: string, opts: any) {
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
             const debugResponse = state.deref().get(debug.DEBUG_RESPONSE_KEY);
+            state.analytics().logEvent(debug.DEBUG_ANALYTICS.CATEGORY, debug.DEBUG_ANALYTICS.EVENT_ACTIONS.EVALUATE_IN_DEBUG_CONTEXT).send();
             return {
                 id: debugResponse.id,
                 session: this.sessionId,

@@ -9,6 +9,7 @@ import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
+import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 
 function interruptAllEvaluations() {
 
@@ -272,6 +273,7 @@ async function togglePrettyPrint() {
 async function instrumentTopLevelForm() {
     evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true})
         .catch(printWarningForError);
+    state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
 export default {
