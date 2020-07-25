@@ -43,8 +43,10 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
-        state.analytics().logEvent("Calva", "OnSaveLoad").send();
+        if (!outputWindow.isResultsDoc(document)) {
+            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+            state.analytics().logEvent("Calva", "OnSaveLoad").send();
+        }
     }
 }
 

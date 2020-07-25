@@ -211,7 +211,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         shortFileName = path.basename(fileName),
         dirName = path.dirname(fileName);
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && !resultsOutput.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         resultsOutput.appendToResultsDoc("; Evaluating file: " + fileName);
 
