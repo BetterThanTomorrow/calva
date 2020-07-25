@@ -43,6 +43,9 @@
     'include': '#shebang-comment'
   }
   {
+    'include': '#prompt'
+  }
+  {
     'include': '#quoted-sexp'
   }
   {
@@ -396,5 +399,18 @@
     'patterns': [
       {
         'include': '$self'
+      }
+    ]
+  'prompt':
+    'patterns': [
+      {
+        'match': '^(clj|cljs)(=)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)'
+        'captures':
+          '0':
+            'name': 'keyword.control.prompt.clojure'
+          '1':
+            'name': 'meta.var.prompt.clojure'
+          '3':
+            'name': 'meta.namespace.prompt.clojure'
       }
     ]

@@ -329,6 +329,18 @@ describe "Clojure grammar", ->
     expect(tokens[3]).toEqual value: "\"", scopes: ["source.clojure", "meta.expression.clojure", "string.quoted.double.clojure", "punctuation.definition.string.end.clojure"]
     expect(tokens[4]).toEqual value: ")", scopes: ["source.clojure", "meta.expression.clojure", "punctuation.section.expression.end.trailing.clojure"]
 
+  describe "replPrompt", ->
+    it "tokenizes repl prompt", ->
+      {tokens} = grammar.tokenizeLine "clj=foo.bar=>"
+      expect(tokens[0]).toEqual value: "clj", scopes: ["source.clojure", "keyword.control.prompt.clojure", "meta.var.prompt.clojure"]
+      expect(tokens[1]).toEqual value: "=", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[2]).toEqual value: "foo.bar", scopes: ["source.clojure", "keyword.control.prompt.clojure", "meta.namespace.prompt.clojure"]
+      expect(tokens[3]).toEqual value: "=>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+    it "does not tokenize repl prompt when prepended with anything", ->
+      {tokens} = grammar.tokenizeLine " clj=foo.bar=>"
+      expect(tokens[0]).toEqual value: " ", scopes: ["source.clojure"]
+      expect(tokens[1]).toEqual value: "clj=foo.bar=>", scopes: ["source.clojure", "meta.symbol.clojure"]
+
   describe "firstLineMatch", ->
     it "recognises interpreter directives", ->
       valid = """
