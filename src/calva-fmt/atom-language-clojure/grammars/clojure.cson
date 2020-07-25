@@ -407,12 +407,12 @@
         'match': '^(clj|cljs)(=)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)'
         'captures':
           '1':
-            'name': 'string.begin.prompt.clojure'
+            'name': 'keyword.control.prompt.clojure'
           '2':
-            'name': 'string.begin.prompt.clojure'
+            'name': 'keyword.control.prompt.clojure'
           '3':
             'name': 'meta.symbol.namespace.prompt.clojure'
           '4':
-            'name': 'string.end.prompt.clojure'
+            'name': 'keyword.control.prompt.clojure'
       }
     ]
