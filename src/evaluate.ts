@@ -78,7 +78,7 @@ async function evaluateCode(code: string, options) {
             util.updateREPLSessionType();
 
             if (err.length > 0) {
-                resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
+                resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
                     resultsOutput.printStacktrace(context.stacktrace);
                 }
@@ -89,7 +89,7 @@ async function evaluateCode(code: string, options) {
                 err = out;
             }
             if (err.length > 0) {
-                resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
+                resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
                     resultsOutput.printStacktrace(context.stacktrace);
                 }
@@ -173,7 +173,7 @@ function normalizeNewLines(str: string, asLineComment = false): string {
 }
 
 function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): string {
-    return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? ';' : ''}`);
+    return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? '; ' : ''}`);
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
@@ -213,7 +213,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
 
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        resultsOutput.appendToResultsDoc(";Evaluating file: " + fileName);
+        resultsOutput.appendToResultsDoc("; Evaluating file: " + fileName);
 
         let res = client.loadFile(doc.getText(), {
             fileName: fileName,
@@ -226,10 +226,10 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             if (value) {
                 resultsOutput.appendToResultsDoc(value);
             } else {
-                resultsOutput.appendToResultsDoc(";No results from file evaluation.");
+                resultsOutput.appendToResultsDoc("; No results from file evaluation.");
             }
         }).catch((e) => {
-            resultsOutput.appendToResultsDoc(`;Evaluation of file ${fileName} failed: ${e}`);
+            resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
         });
         resultsOutput.setSession(client, res.ns);
         util.updateREPLSessionType();

@@ -8,15 +8,16 @@ import { NReplSession } from './nrepl';
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `eval-results.${REPL_FILE_EXT}`;
 
-const TIPS = [';The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.',
-    ';You can edit the contents here. Use it as a REPL if you like.\n\
-;  Use `alt+enter` to evaluate the current top level form.\n\
-;  (`ctrl+enter` evaluates the current form.)',
-    ';File URLs in stacktrace frames are peekable and clickable.',
-    ';In ClojureScript projects, use the command *Calva: Toggle REPL connection* to choose which REPL to use (clj or cljs).'];
+const TIPS = ['; The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.',
+    '; You can edit the contents here. Use it as a REPL if you like.\n\
+;   Use `alt+enter` to evaluate the current top level form.\n\
+;   (`ctrl+enter` evaluates the current form.)',
+    '; File URLs in stacktrace frames are peekable and clickable.',
+    '; In ClojureScript projects, use the command *Calva: Toggle REPL connection* to choose which REPL to use (clj or cljs).'];
 
-const GREETINGS = [';This is the Calva output window. Results from your code evaluations will be printed here.',
-    ';https://calva.io is your place for Calva documentation. Happy coding!'];
+const GREETINGS = ['; This is the Calva evaluation results output window.\n\
+; Leave it open, please. Because quirks.',
+    '; https://calva.io is your place for Calva documentation. Happy coding!\n'];
 
 const CALVA_TMP = path.join(os.tmpdir(), 'calva');
 const DOC_URI: vscode.Uri = vscode.Uri.parse(path.join(CALVA_TMP, RESULTS_DOC_NAME));

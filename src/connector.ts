@@ -74,7 +74,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
 
         if (connectSequence.afterCLJReplJackInCode) {
             const evalPos = outputDocument.positionAt(outputDocument.getText().length);
-            await resultsOutput.appendToResultsDoc(`;Evaluating 'afterCLJReplJackInCode'\n${connectSequence.afterCLJReplJackInCode}`);
+            await resultsOutput.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'\n${connectSequence.afterCLJReplJackInCode}`);
             await evaluate.evaluateCode(connectSequence.afterCLJReplJackInCode, {
                 filePath: outputDocument.fileName,
                 session: resultsOutput.getSession(),
