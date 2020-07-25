@@ -1670,12 +1670,6 @@
                 {
                     "when": "editorLangId == clojure",
                     "enablement": "calva:connected",
-                    "command": "calva.loadNamespace",
-                    "group": "calva/b-eval"
-                },
-                {
-                    "when": "editorLangId == clojure",
-                    "enablement": "calva:connected",
                     "command": "calva.evaluateSelection",
                     "group": "calva/b-eval"
                 },
