@@ -55,6 +55,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
             status.update();
         })
         cljSession = nClient.session;
+        cljSession.replType = 'clj';
         chan.appendLine("Connected session: clj");
         util.setConnectingState(false);
         util.setConnectedState(true);
@@ -118,6 +119,8 @@ async function setUpCljsRepl(session, chan, build) {
     state.cursor.set("cljs", session);
     status.update();
     chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
+    resultsOutput.setSession(session, 'user');
+    util.updateREPLSessionType();
     createAndConnectReplWindow(session, "cljs");
 }
 
@@ -383,6 +386,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
 
     chan.appendLine("Creating cljs repl session...");
     let newCljsSession = await session.clone();
+    newCljsSession.replType = 'cljs';
     if (newCljsSession) {
         chan.show(true);
         chan.appendLine("Connecting cljs repl: " + projectTypeName + "...");
