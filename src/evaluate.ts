@@ -46,21 +46,73 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
     });
 }
 
-async function evaluateSelection(document, options) {
-    let current = state.deref(),
-        chan = state.outputChannel(),
-        doc = util.getDocument(document),
-        pprintOptions = options.pprintOptions,
-        replace = options.replace || false,
-        topLevel = options.topLevel || false,
-        asComment = options.comment || false;
-    if (current.get('connected')) {
-        let client = util.getSession(util.getFileType(doc));
-        let editor = vscode.window.activeTextEditor,
-            selection = editor.selection,
-            codeSelection: vscode.Selection = null,
-            code = "";
+async function evaluateCode(code: string, options) {
+    const pprintOptions = options.pprintOptions || state.config().prettyPrintingOptions;
+    const line = options.line;
+    const column = options.column;
+    const filePath = options.filePath;
+    const session: NReplSession = options.session;
+    const ns = options.ns;
 
+    if (code.length > 0) {
+        let err: string[] = [], out: string[] = [];
+
+        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+
+        let context: NReplEvaluation = session.eval(code, ns, {
+            file: filePath,
+            line: line + 1,
+            column: column + 1,
+            stdout: (m) => {
+                out.push(m);
+                resultsOutput.appendToResultsDoc(normalizeNewLines(m));
+            },
+            stderr: m => err.push(m),
+            pprintOptions: pprintOptions
+        });
+        try {
+            let value = await context.value;
+            value = util.stripAnsi(context.pprintOut || value);
+            resultsOutput.appendToResultsDoc(value);
+            resultsOutput.setSession(session, context.ns);
+            util.updateREPLSessionType();
+
+            if (err.length > 0) {
+                resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
+                if (context.stacktrace) {
+                    resultsOutput.printStacktrace(context.stacktrace);
+                }
+            }
+            return value;
+        } catch (e) {
+            if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
+                err = out;
+            }
+            if (err.length > 0) {
+                resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
+                if (context.stacktrace) {
+                    resultsOutput.printStacktrace(context.stacktrace);
+                }
+                resultsOutput.setSession(session, context.ns);
+                util.updateREPLSessionType();
+            }
+            throw new Error(util.stripAnsi(err.join("\n")));
+        }
+    }
+}
+
+async function evaluateSelection(document: {}, options) {
+    const current = state.deref();
+    const doc = util.getDocument(document);
+    const topLevel = options.topLevel || false;
+    const replace = options.replace || false;
+    const asComment = options.comment || false;
+
+    if (current.get('connected')) {
+        const editor = vscode.window.activeTextEditor;
+        const selection = editor.selection;
+        let code = "";
+        let codeSelection: vscode.Selection;
         if (selection.isEmpty) {
             state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
@@ -70,7 +122,11 @@ async function evaluateSelection(document, options) {
             codeSelection = selection;
             code = doc.getText(selection);
         }
-
+        const ns = util.getNamespace(doc);
+        const line = codeSelection.start.line;
+        const column = codeSelection.start.character;
+        const filePath = doc.fileName;
+        const session = util.getSession(util.getFileType(doc));
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;
@@ -78,29 +134,8 @@ async function evaluateSelection(document, options) {
             annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
-            let err: string[] = [], out: string[] = [];
-
-            const ns = util.getNamespace(doc);
-            await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
-
-            let context: NReplEvaluation;
             try {
-                const line = codeSelection.start.line,
-                    column = codeSelection.start.character,
-                    filePath = doc.fileName;
-                context = client.eval(code, ns, {
-                    file: filePath,
-                    line: line + 1,
-                    column: column + 1,
-                    stdout: (m) => {
-                        out.push(m);
-                        resultsOutput.appendToResultsDoc(normalizeNewLines(m));
-                    },
-                    stderr: m => err.push(m),
-                    pprintOptions: pprintOptions
-                });
-                let value = await context.value;
-                value = util.stripAnsi(context.pprintOut || value);
+                const value = await evaluateCode(code, { ...options, ns, line, column, filePath, session });
 
                 if (replace) {
                     const indent = `${' '.repeat(c)}`,
@@ -114,43 +149,18 @@ async function evaluateSelection(document, options) {
                     annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     annotations.decorateResults(value, false, codeSelection, editor);
                 }
-
-                if (!asComment) {
-                    resultsOutput.appendToResultsDoc(value);
-                }
-
-                if (err.length > 0) {
-                    console.log(context.stacktrace);
-                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
-                    if (context.stacktrace) {
-                        resultsOutput.printStacktrace(context.stacktrace);
-                    }
-                }
-                resultsOutput.setSession(client, context.ns);
-                util.updateREPLSessionType();
-            } catch (e) {
-                if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
-                    err = out;
-                }
-                if (err.length > 0) {
-                    resultsOutput.appendToResultsDoc(`;${normalizeNewLinesAndJoin(err, true)}`);
-                    if (context.stacktrace) {
-                        resultsOutput.printStacktrace(context.stacktrace);
-                    }
-                    resultsOutput.setSession(client, context.ns);
-                    util.updateREPLSessionType();
-                }
-
-                const message = util.stripAnsi(err.join("\n"));
-                annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                annotations.decorateResults(message, true, codeSelection, editor);
+            }
+            catch (e) {
+                annotations.decorateSelection(e, codeSelection, editor, annotations.AnnotationStatus.ERROR);
+                annotations.decorateResults(e, true, codeSelection, editor);
                 if (asComment) {
-                    addAsComment(c, message, codeSelection, editor, selection);
+                    addAsComment(c, e, codeSelection, editor, selection);
                 }
             }
         }
-    } else
+    } else {
         vscode.window.showErrorMessage("Not connected to a REPL");
+    }
 }
 
 function printWarningForError(e: any) {
@@ -297,6 +307,7 @@ export default {
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
+    evaluateCode,
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
