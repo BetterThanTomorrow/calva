@@ -123,13 +123,14 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atEnd()) {
             switch (this.getToken().type) {
                 case "comment":
+                case "prompt":
                     if (!includeComments) {
                         return;
                     }
                 case "eol":
                 case "ws":
                     this.next();
-                    if (this.getToken().type == "comment" && !includeComments) {
+                    if (["comment", "prompt"].includes(this.getToken().type) && !includeComments) {
                         this.previous();
                         return;
                     }
@@ -147,13 +148,14 @@ export class LispTokenCursor extends TokenCursor {
         while (!this.atStart()) {
             switch (this.getPrevToken().type) {
                 case "comment":
+                case "prompt":
                     if (!includeComments) {
                         return;
                     }
                 case "eol":
                 case "ws":
                     this.previous();
-                    if (this.getPrevToken().type == "comment" && !includeComments) {
+                    if (["comment", "prompt"].includes(this.getPrevToken().type) && !includeComments) {
                         this.next();
                         return;
                     }
@@ -193,6 +195,10 @@ export class LispTokenCursor extends TokenCursor {
             const token = this.getToken();
             switch(token.type) {
                 case 'comment':
+                    this.next();
+                    this.next();
+                    break;
+                case 'prompt':
                     this.next();
                     this.next();
                     break;
@@ -268,6 +274,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'ignore':
                 case 'junk':
                 case 'comment':
+                case 'prompt':
                 case 'str-inside':
                     this.previous();
                     this.backwardThroughAnyReader();

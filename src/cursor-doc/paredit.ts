@@ -391,7 +391,13 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
         doc.backspace();
     } else {
         const p = start;
-        if (doc.model.getText(p - 3, p, true) == '\\""') {
+        const prevToken = cursor.getPrevToken();
+        const token = cursor.getToken();
+        if (prevToken.type == 'prompt') {
+            return;
+        } else if (cursor.getToken().type == 'prompt') {
+            return;
+        } else if(doc.model.getText(p - 3, p, true) == '\\""') {
             doc.selection = new ModelEditSelection(p - 1);
         } else if (doc.model.getText(p - 2, p - 1, true) == '\\') {
             doc.model.edit([
