@@ -434,7 +434,7 @@
 		"prompt": {
 			"patterns": [
 				{
-					"match": "^(clj|cljs)(=)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)",
+					"match": "^([\\p{L}]+)(::)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)([ ])",
 					"captures": {
 						"1": {
 							"name": "keyword.control.prompt.clojure"

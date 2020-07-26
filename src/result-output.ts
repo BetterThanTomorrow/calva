@@ -51,7 +51,7 @@ export function setSession(session: NReplSession, newNs: string) {
     if (newNs) {
         _sessionInfo[_sessionType].ns = newNs;
     }
-    _prompt = `${_sessionType}=${getNs()}=>`;
+    _prompt = `${_sessionType}::${getNs()}=> `;
     appendToResultsDoc(_prompt);
 }
 
