@@ -119,7 +119,7 @@ async function setUpCljsRepl(session, chan, build) {
     state.cursor.set("cljs", session);
     status.update();
     chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
-    resultsOutput.setSession(session, 'user');
+    resultsOutput.setSession(session, 'cljs.user');
     util.updateREPLSessionType();
     createAndConnectReplWindow(session, "cljs");
 }
