@@ -391,9 +391,7 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
         doc.backspace();
     } else {
         const p = start;
-        const prevToken = cursor.getPrevToken();
-        const token = cursor.getToken();
-        if (prevToken.type == 'prompt') {
+        if (cursor.getPrevToken().type == 'prompt') {
             return;
         } else if (cursor.getToken().type == 'prompt') {
             return;
