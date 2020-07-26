@@ -78,9 +78,9 @@ async function evaluateCode(code: string, options) {
             util.updateREPLSessionType();
 
             if (err.length > 0) {
-                resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
-                    resultsOutput.printStacktrace(context.stacktrace);
+                    await resultsOutput.printStacktrace(context.stacktrace);
                 }
             }
             return value;
@@ -89,9 +89,9 @@ async function evaluateCode(code: string, options) {
                 err = out;
             }
             if (err.length > 0) {
-                resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
-                    resultsOutput.printStacktrace(context.stacktrace);
+                    await resultsOutput.printStacktrace(context.stacktrace);
                 }
                 resultsOutput.setSession(session, context.ns);
                 util.updateREPLSessionType();
@@ -169,7 +169,7 @@ function printWarningForError(e: any) {
 
 function normalizeNewLines(str: string, asLineComment = false): string {
     const s = str.replace(/\n\r?$/, "");
-    return asLineComment ? s.replace(/\n\r?/, "\n;") : s;
+    return asLineComment ? s.replace(/\n\r?/, "\n; ") : s;
 }
 
 function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): string {
@@ -219,7 +219,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
-            stderr: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
+            stderr: m => resultsOutput.appendToResultsDoc('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions
         })
         await res.value.then((value) => {
@@ -228,8 +228,12 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             } else {
                 resultsOutput.appendToResultsDoc("; No results from file evaluation.");
             }
-        }).catch((e) => {
-            resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
+        }).catch(async (e) => {
+            await resultsOutput.openResultsDoc();
+            await resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
+            if (res.stacktrace) {
+                await resultsOutput.printStacktrace(res.stacktrace);
+            }
         });
         resultsOutput.setSession(client, res.ns);
         util.updateREPLSessionType();

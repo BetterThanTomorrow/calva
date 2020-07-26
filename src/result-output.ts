@@ -178,9 +178,9 @@ function makePrintableStackTrace(trace: StackTrace): string {
     return `[${stack.join('\n ')}]`;
 }
 
-export function printStacktrace(trace: StackTrace) {
+export async function printStacktrace(trace: StackTrace) {
     const text = makePrintableStackTrace(trace);
-    appendToResultsDoc(text);
+    return appendToResultsDoc(text);
 }
 
 function scrollToBottom(editor: vscode.TextEditor) {
