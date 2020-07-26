@@ -19,7 +19,7 @@ const GREETINGS = ['; This is the Calva evaluation results output window.\n\
 ; Leave it open, please. Because quirks.',
     '; Please see https://calva.io/output/ for docs. Happy coding!\n'];
 
-const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva');
+const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva', 'output-window');
 const DOC_URI = () => vscode.Uri.parse(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
 let _sessionType = "clj";
