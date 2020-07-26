@@ -6,7 +6,7 @@ import { highlight } from './highlight/src/extension'
 import { NReplSession } from './nrepl';
 
 export const REPL_FILE_EXT = "repl-file"
-const RESULTS_DOC_NAME = `eval-results.${REPL_FILE_EXT}`;
+const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
 
 const TIPS = ['; The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.',
     '; You can edit the contents here. Use it as a REPL if you like.\n\
@@ -17,10 +17,10 @@ const TIPS = ['; The keyboard shortcut `ctrl+alt+c o` shows and focuses this win
 
 const GREETINGS = ['; This is the Calva evaluation results output window.\n\
 ; Leave it open, please. Because quirks.',
-    '; https://calva.io is your place for Calva documentation. Happy coding!\n'];
+    '; Please see https://calva.io/output/ for docs. Happy coding!\n'];
 
-const CALVA_TMP = path.join(os.tmpdir(), 'calva');
-const DOC_URI: vscode.Uri = vscode.Uri.parse(path.join(CALVA_TMP, RESULTS_DOC_NAME));
+const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva');
+const DOC_URI = () => vscode.Uri.parse(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
 let _sessionType = "clj";
 let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
@@ -80,11 +80,11 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
 export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
     let resultsDoc: vscode.TextDocument;
     if (init) {
-        writeTextToFile(vscode.Uri.parse(path.join(CALVA_TMP, '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
+        writeTextToFile(vscode.Uri.parse(path.join(OUTPUT_FILE_DIR(), '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
         const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}\n`;
-        await writeTextToFile(DOC_URI, greetings);
+        await writeTextToFile(DOC_URI(), greetings);
     }
-    await vscode.workspace.openTextDocument(DOC_URI).then(async doc => {
+    await vscode.workspace.openTextDocument(DOC_URI()).then(async doc => {
         resultsDoc = doc;
         vscode.window.showTextDocument(doc, getViewColumn(), true);
         if (init) {
@@ -119,13 +119,13 @@ export async function appendToResultsDoc(text: string): Promise<void> {
         editQueue.push(text);
     } else {
         applyingEdit = true;
-        const doc = await vscode.workspace.openTextDocument(DOC_URI);
+        const doc = await vscode.workspace.openTextDocument(DOC_URI());
         if (doc) {
             const edit = new vscode.WorkspaceEdit();
             const currentContent = doc.getText();
             const lastLineEmpty = currentContent.match(/\n$/);
             const appendText = `${lastLineEmpty ? '' : '\n'}${text}\n`;
-            edit.insert(DOC_URI, doc.positionAt(Infinity), `${appendText}`);
+            edit.insert(DOC_URI(), doc.positionAt(Infinity), `${appendText}`);
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
             }
