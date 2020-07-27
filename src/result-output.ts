@@ -78,30 +78,25 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
 }
 
 export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
-    let resultsDoc: vscode.TextDocument;
+    init = init && !_prompt;
     if (init) {
         writeTextToFile(vscode.Uri.parse(path.join(OUTPUT_FILE_DIR(), '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
         const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}\n`;
         await writeTextToFile(DOC_URI(), greetings);
     }
-    await vscode.workspace.openTextDocument(DOC_URI()).then(async doc => {
-        resultsDoc = doc;
-        vscode.window.showTextDocument(doc, getViewColumn(), true);
-        if (init) {
-            vscode.window.visibleTextEditors.forEach(editor => {
-                if (isResultsDoc(editor.document)) {
-                    const firstPos = editor.document.positionAt(0);
-                    editor.revealRange(new vscode.Range(firstPos, firstPos));
-                }
-            });
-            // For some reason onDidChangeTextEditorViewColumn won't fire
-            state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-                if (isResultsDoc(event.document)) {
-                    setViewColumn(event.viewColumn);
-                }
-            }));
-        }
-    });
+    const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
+    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), !init);
+    if (init) {
+        vscode.commands.executeCommand('workbench.action.files.revert');
+        const firstPos = resultsEditor.document.positionAt(0);
+        resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+        // For some reason onDidChangeTextEditorViewColumn won't fire
+        state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
+            if (isResultsDoc(event.document)) {
+                setViewColumn(event.viewColumn);
+            }
+        }));
+    }
     return resultsDoc;
 }
 
