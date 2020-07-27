@@ -15,6 +15,8 @@ import evaluate from './evaluate';
 import select from './select';
 import { PrettyPrintingOptions, disabledPrettyPrinter } from "./printer";
 
+import * as resultsOutput from './result-output'
+
 /**
  * Event fired when user input is retrieved from the REPL Window.
  */
@@ -473,13 +475,17 @@ export async function createReplWindow(session: NReplSession, mode: "clj" | "clj
 }
 
 async function loadNamespaceCommand(reload = true) {
-    await openReplWindow(util.getREPLSessionType(), reload);
+    const wnd = await openReplWindow(util.getREPLSessionType(), reload);
     await setREPLNamespace(util.getDocumentNamespace(), reload).catch(r => { console.error(r) });
+    resultsOutput.setSession(wnd.session, wnd.ns);
+    util.updateREPLSessionType();
 }
 
 async function setREPLNamespaceCommand() {
-    await openReplWindow(util.getREPLSessionType());
+    const wnd = await openReplWindow(util.getREPLSessionType());
     await setREPLNamespace(util.getDocumentNamespace(), false).catch(r => { console.error(r) });
+    resultsOutput.setSession(wnd.session, wnd.ns);
+    util.updateREPLSessionType();
 }
 
 export async function sendTextToREPLWindow(sessionType: "clj" | "cljs", text: string, ns: string) {
@@ -617,8 +623,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', sendCustomCommandSnippetToREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureREPLWindow', clearClojureREPLWindowAndHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearClojureScriptREPLWindow', clearClojureScriptREPLWindowAndHistory));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => { 
-        activeReplWindow().executeCommand('new-line'); 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.newLine', () => {
+        activeReplWindow().executeCommand('new-line');
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.submitPrompt', () => { activeReplWindow().executeCommand('submit'); }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.replWindow.historyUp', util.debounce(() => {

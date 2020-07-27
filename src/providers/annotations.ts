@@ -120,9 +120,9 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
     if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {
-        const commandUri = `command:calva.copyAnnotationHoverText?${encodeURIComponent(JSON.stringify([{ text: resultString }]))}`,
-            commandMd = `[Copy](${commandUri} "Copy results to the clipboard")`;
-        let hoverMessage = new vscode.MarkdownString(commandMd + '\n```clojure\n' + resultString + '\n```');
+        const commandUri = `command:calva.showOutputWindow`,
+            commandMd = `[Open Results Window](${commandUri} "Open the results window")`;
+        let hoverMessage = new vscode.MarkdownString(commandMd);
         hoverMessage.isTrusted = true;
         decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
     }
@@ -145,16 +145,11 @@ function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
     }
 }
 
-function copyHoverTextCommand(args: { [x: string]: string; }) {
-    vscode.env.clipboard.writeText(args["text"]);
-}
-
 export default {
     AnnotationStatus,
     clearEvaluationDecorations,
     clearAllEvaluationDecorations,
     decorateResults,
     decorateSelection,
-    onDidChangeTextDocument,
-    copyHoverTextCommand
+    onDidChangeTextDocument
 };

@@ -52,6 +52,8 @@ toplevel.terminal("ws", /[\t ,]+/, (l, m) => ({ type: "ws" }))
 toplevel.terminal("ws-nl", /(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal("comment", /;.*/, (l, m) => ({ type: "comment" }))
+// Calva repl prompt
+toplevel.terminal("comment", /^[^()[\]\{\},~@`^\"\s;]+::[^()[\]\{\},~@`^\"\s;]+=> /, (l, m) => ({ type: "prompt" }))
 
 // current idea for prefixing data reader
 // (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*

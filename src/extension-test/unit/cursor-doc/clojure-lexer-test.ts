@@ -143,6 +143,37 @@ describe('Scanner', () => {
             expect(tokens[1].type).equals('id');
             expect(tokens[1].raw).equals('foo');
         });
+        it('tokenizes the Calva repl prompt', () => {
+            const tokens = scanner.processLine('foo::bar.baz=> ()');
+            expect(tokens[0].type).equals('prompt');
+            expect(tokens[0].raw).equals('foo::bar.baz=> ');
+            expect(tokens[1].type).equals('open');
+            expect(tokens[1].raw).equals('(');
+            expect(tokens[2].type).equals('close');
+            expect(tokens[2].raw).equals(')');
+        });
+        it('only tokenizes the Calva repl prompt if it is at the start of a line', () => {
+            const tokens = scanner.processLine(' foo::bar.baz=> ()');
+            expect(tokens[0].type).equals('ws');
+            expect(tokens[0].raw).equals(' ');
+            expect(tokens[1].type).equals('id');
+            expect(tokens[1].raw).equals('foo::bar.baz=>');
+            expect(tokens[2].type).equals('ws');
+            expect(tokens[2].raw).equals(' ');
+            expect(tokens[3].type).equals('open');
+            expect(tokens[3].raw).equals('(');
+            expect(tokens[4].type).equals('close');
+            expect(tokens[4].raw).equals(')');
+        });
+        it('only tokenizes the Calva repl prompt if it ends with a space', () => {
+            const tokens = scanner.processLine('foo::bar.baz=>()');
+            expect(tokens[0].type).equals('id');
+            expect(tokens[0].raw).equals('foo::bar.baz=>');
+            expect(tokens[1].type).equals('open');
+            expect(tokens[1].raw).equals('(');
+            expect(tokens[2].type).equals('close');
+            expect(tokens[2].raw).equals(')');
+        });
     });
     describe('lists', () => {
         it('tokenizes list/vector/map/string', () => {

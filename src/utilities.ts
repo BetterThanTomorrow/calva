@@ -12,6 +12,7 @@ import * as docMirror from './doc-mirror';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import select from './select';
+import * as resultsOutput from './result-output'
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -88,6 +89,9 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getNamespace(doc: vscode.TextDocument) {
+    if (resultsOutput.isResultsDoc(doc)) {
+        return resultsOutput.getNs();
+    }
     let ns = "user";
     if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
         try {
@@ -250,7 +254,11 @@ function getSession(fileType = undefined): NReplSession {
     if (fileType.match(/^clj[sc]?/)) {
         return current.get(fileType);
     } else {
-        return current.get('clj');
+        if (resultsOutput.isResultsDoc(doc)) {
+            return resultsOutput.getSession();
+        } else {
+            return current.get('cljc');
+        }
     }
 }
 
@@ -396,16 +404,24 @@ function updateREPLSessionType() {
         let sessionType: string;
 
         let repl = activeReplWindow();
-        if (repl)
+        if (repl) {
             sessionType = repl.type;
-        else if (fileType == 'cljs' && getSession('cljs') !== null)
+        }
+        if (resultsOutput.isResultsDoc(doc)) {
+            sessionType = resultsOutput.getSessionType();
+        }
+        else if (fileType == 'cljs' && getSession('cljs') !== null) {
             sessionType = 'cljs'
-        else if (fileType == 'clj' && getSession('clj') !== null)
+        }
+        else if (fileType == 'clj' && getSession('clj') !== null) {
             sessionType = 'clj'
-        else if (fileType == 'cljc' && getSession('cljc') !== null)
+        }
+        else if (getSession('cljc') !== null) {
             sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        else
+        }
+        else {
             sessionType = 'clj'
+        }
 
         state.cursor.set('current-session-type', sessionType);
     } else {

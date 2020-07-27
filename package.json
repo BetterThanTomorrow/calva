@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.107",
+    "version": "2.0.109",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -86,7 +86,8 @@
                     ".clojure",
                     ".edn",
                     ".joke",
-                    ".boot"
+                    ".boot",
+                    ".repl-file"
                 ]
             }
         ],
@@ -161,7 +162,8 @@
                         "default": {
                             "enabled": true,
                             "printEngine": "pprint",
-                            "width": 120
+                            "width": 120,
+                            "maxLength": 50
                         }
                     },
                     "clojure.format.enable": {
@@ -327,8 +329,8 @@
                     },
                     "calva.openREPLWindowOnConnect": {
                         "type": "boolean",
-                        "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
-                        "default": true
+                        "description": "Open the REPL windows when the connection to a REPL server is established.",
+                        "default": false
                     },
                     "calva.REPLWindowPromptKeyMap": {
                         "type": "string",
@@ -713,7 +715,7 @@
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "title": "Evaluate Current Form to Result",
+                "title": "Evaluate Current Form and Replace it with the Result",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1121,6 +1123,12 @@
                 "command": "calva.replWindow.newLine",
                 "title": "Create a New Line at the REPL Window Prompt",
                 "enablement": "calva:replWindowActive"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.showOutputWindow",
+                "title": "Show Output Window",
+                "enablement": "calva:connected"
             }
         ],
         "keybindings": [
@@ -1169,12 +1177,22 @@
                 "win": "ctrl+alt+c v"
             },
             {
+                "command": "calva.evaluateSelection",
+                "key": "ctrl+enter",
+                "when": "editorTextFocus"
+            },
+            {
                 "command": "calva.interruptAllEvaluations",
                 "key": "ctrl+alt+c ctrl+alt+d"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "ctrl+alt+c space"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "alt+enter",
+                "when": "editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
@@ -1595,6 +1613,11 @@
                 "command": "calva.replWindow.historyDown",
                 "key": "alt+down",
                 "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.showOutputWindow",
+                "key": "ctrl+alt+c o",
+                "when": "calva:connected"
             }
         ],
         "menus": {
@@ -1642,12 +1665,6 @@
                     "when": "editorLangId == clojure",
                     "enablement": "calva:connected",
                     "command": "calva.loadFile",
-                    "group": "calva/b-eval"
-                },
-                {
-                    "when": "editorLangId == clojure",
-                    "enablement": "calva:connected",
-                    "command": "calva.loadNamespace",
                     "group": "calva/b-eval"
                 },
                 {
@@ -1747,10 +1764,10 @@
         "immutable": "3.8.1",
         "immutable-cursor": "2.0.1",
         "jszip": "3.1.3",
-        "lodash": "^4.17.14",
+        "lodash": "^4.17.19",
         "lodash.isequal": "4.5.0",
         "net": "1.0.2",
-        "npm": "^6.14.4",
+        "npm": "^6.14.6",
         "open": "^6.3.0",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",

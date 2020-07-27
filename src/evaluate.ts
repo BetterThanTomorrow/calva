@@ -9,6 +9,8 @@ import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
+import * as resultsOutput from './result-output';
+import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 
 function interruptAllEvaluations() {
 
@@ -20,7 +22,7 @@ function interruptAllEvaluations() {
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        chan.appendLine(normalizeNewLinesAndJoin(msgs));
+        resultsOutput.appendToResultsDoc(normalizeNewLinesAndJoin(msgs));
 
         NReplSession.getInstances().forEach((session, index) => {
             session.interruptAll();
@@ -44,21 +46,73 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
     });
 }
 
-async function evaluateSelection(document, options) {
-    let current = state.deref(),
-        chan = state.outputChannel(),
-        doc = util.getDocument(document),
-        pprintOptions = options.pprintOptions,
-        replace = options.replace || false,
-        topLevel = options.topLevel || false,
-        asComment = options.comment || false;
-    if (current.get('connected')) {
-        let client = util.getSession(util.getFileType(doc));
-        let editor = vscode.window.activeTextEditor,
-            selection = editor.selection,
-            codeSelection: vscode.Selection = null,
-            code = "";
+async function evaluateCode(code: string, options) {
+    const pprintOptions = options.pprintOptions || state.config().prettyPrintingOptions;
+    const line = options.line;
+    const column = options.column;
+    const filePath = options.filePath;
+    const session: NReplSession = options.session;
+    const ns = options.ns;
 
+    if (code.length > 0) {
+        let err: string[] = [], out: string[] = [];
+
+        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+
+        let context: NReplEvaluation = session.eval(code, ns, {
+            file: filePath,
+            line: line + 1,
+            column: column + 1,
+            stdout: (m) => {
+                out.push(m);
+                resultsOutput.appendToResultsDoc(normalizeNewLines(m));
+            },
+            stderr: m => err.push(m),
+            pprintOptions: pprintOptions
+        });
+        try {
+            let value = await context.value;
+            value = util.stripAnsi(context.pprintOut || value);
+            resultsOutput.appendToResultsDoc(value);
+            resultsOutput.setSession(session, context.ns);
+            util.updateREPLSessionType();
+
+            if (err.length > 0) {
+                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                if (context.stacktrace) {
+                    await resultsOutput.printStacktrace(context.stacktrace);
+                }
+            }
+            return value;
+        } catch (e) {
+            if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
+                err = out;
+            }
+            if (err.length > 0) {
+                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                if (context.stacktrace) {
+                    await resultsOutput.printStacktrace(context.stacktrace);
+                }
+                resultsOutput.setSession(session, context.ns);
+                util.updateREPLSessionType();
+            }
+            throw new Error(util.stripAnsi(err.join("\n")));
+        }
+    }
+}
+
+async function evaluateSelection(document: {}, options) {
+    const current = state.deref();
+    const doc = util.getDocument(document);
+    const topLevel = options.topLevel || false;
+    const replace = options.replace || false;
+    const asComment = options.comment || false;
+
+    if (current.get('connected')) {
+        const editor = vscode.window.activeTextEditor;
+        const selection = editor.selection;
+        let code = "";
+        let codeSelection: vscode.Selection;
         if (selection.isEmpty) {
             state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
@@ -68,7 +122,11 @@ async function evaluateSelection(document, options) {
             codeSelection = selection;
             code = doc.getText(selection);
         }
-
+        const ns = util.getNamespace(doc);
+        const line = codeSelection.start.line;
+        const column = codeSelection.start.character;
+        const filePath = doc.fileName;
+        const session = util.getSession(util.getFileType(doc));
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;
@@ -76,28 +134,8 @@ async function evaluateSelection(document, options) {
             annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
-            let err: string[] = [], out: string[] = [];
-
-            const ns = util.getNamespace(doc);
-            await client.eval("(in-ns '" + ns + ")", client.client.ns).value;
-
             try {
-                const line = codeSelection.start.line,
-                    column = codeSelection.start.character,
-                    filePath = doc.fileName,
-                    context = client.eval(code, ns, {
-                        file: filePath,
-                        line: line + 1,
-                        column: column + 1,
-                        stdout: (m) => {
-                            out.push(m);
-                            chan.appendLine(normalizeNewLines(m));
-                        },
-                        stderr: m => err.push(m),
-                        pprintOptions: pprintOptions
-                    });
-                let value = await context.value;
-                value = util.stripAnsi(context.pprintOut || value);
+                const value = await evaluateCode(code, { ...options, ns, line, column, filePath, session });
 
                 if (replace) {
                     const indent = `${' '.repeat(c)}`,
@@ -111,47 +149,31 @@ async function evaluateSelection(document, options) {
                     annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
                     annotations.decorateResults(value, false, codeSelection, editor);
                 }
-
-                if (!asComment) {
-                    chan.appendLine('=>');
-                    chan.appendLine(value);
-                }
-
-                if (err.length > 0) {
-                    chan.appendLine("Error:")
-                    chan.appendLine(normalizeNewLinesAndJoin(err));
-                }
-            } catch (e) {
-                if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
-                    err = out;
-                }
-                if (err.length > 0) {
-                    chan.appendLine("Error:")
-                    chan.appendLine(normalizeNewLinesAndJoin(err));
-                }
-
-                const message = util.stripAnsi(err.join("\n"));
-                annotations.decorateSelection(message, codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                annotations.decorateResults(message, true, codeSelection, editor);
+            }
+            catch (e) {
+                annotations.decorateSelection(e, codeSelection, editor, annotations.AnnotationStatus.ERROR);
+                annotations.decorateResults(e, true, codeSelection, editor);
                 if (asComment) {
-                    addAsComment(c, message, codeSelection, editor, selection);
+                    addAsComment(c, e, codeSelection, editor, selection);
                 }
             }
         }
-    } else
+    } else {
         vscode.window.showErrorMessage("Not connected to a REPL");
+    }
 }
 
 function printWarningForError(e: any) {
     console.warn(`Unhandled error: ${e.message}`);
 }
 
-function normalizeNewLines(str: string): string {
-    return str.replace(/\n\r?$/, "");
+function normalizeNewLines(str: string, asLineComment = false): string {
+    const s = str.replace(/\n\r?$/, "");
+    return asLineComment ? s.replace(/\n\r?/, "\n; ") : s;
 }
 
-function normalizeNewLinesAndJoin(strings: string[]): string {
-    return strings.map(normalizeNewLines).join("\n");
+function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): string {
+    return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? '; ' : ''}`);
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
@@ -189,26 +211,32 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
         shortFileName = path.basename(fileName),
         dirName = path.dirname(fileName);
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && !resultsOutput.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        chan.appendLine("Evaluating file: " + fileName);
+        resultsOutput.appendToResultsDoc("; Evaluating file: " + fileName);
 
         let res = client.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
-            stdout: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
-            stderr: m => chan.appendLine(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m),
+            stdout: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
+            stderr: m => resultsOutput.appendToResultsDoc('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions
         })
         await res.value.then((value) => {
             if (value) {
-                chan.appendLine("=> " + value);
+                resultsOutput.appendToResultsDoc(value);
             } else {
-                chan.appendLine("No results from file evaluation.");
+                resultsOutput.appendToResultsDoc("; No results from file evaluation.");
             }
-        }).catch((e) => {
-            chan.appendLine(`Evaluation of file ${fileName} failed: ${e}`);
+        }).catch(async (e) => {
+            await resultsOutput.openResultsDoc();
+            await resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
+            if (res.stacktrace) {
+                await resultsOutput.printStacktrace(res.stacktrace);
+            }
         });
+        resultsOutput.setSession(client, res.ns);
+        util.updateREPLSessionType();
     }
     if (callback) {
         try {
@@ -272,6 +300,7 @@ async function togglePrettyPrint() {
 async function instrumentTopLevelForm() {
     evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true})
         .catch(printWarningForError);
+    state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
 export default {
@@ -282,6 +311,7 @@ export default {
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
+    evaluateCode,
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
