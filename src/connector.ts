@@ -12,6 +12,8 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
+import * as resultsOutput from './result-output'
+import evaluate from './evaluate';
 
 async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {
@@ -53,6 +55,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
             status.update();
         })
         cljSession = nClient.session;
+        cljSession.replType = 'clj';
         chan.appendLine("Connected session: clj");
         util.setConnectingState(false);
         util.setConnectedState(true);
@@ -60,6 +63,9 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('clj', cljSession);
         state.cursor.set('cljc', cljSession);
         status.update();
+        const outputDocument = await resultsOutput.openResultsDoc(true);
+        resultsOutput.setSession(cljSession, nClient.ns);
+        util.updateREPLSessionType();
 
         // Initialize debugger
         await initializeDebugger(cljSession);
@@ -68,8 +74,15 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         await createAndConnectReplWindow(cljSession, "clj");
 
         if (connectSequence.afterCLJReplJackInCode) {
-            state.outputChannel().appendLine("Evaluating `afterCLJReplJackInCode` in CLJ REPL Window");
-            await sendTextToREPLWindow("clj", connectSequence.afterCLJReplJackInCode, null);
+            const evalPos = outputDocument.positionAt(outputDocument.getText().length);
+            await resultsOutput.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'\n${connectSequence.afterCLJReplJackInCode}`);
+            await evaluate.evaluateCode(connectSequence.afterCLJReplJackInCode, {
+                filePath: outputDocument.fileName,
+                session: resultsOutput.getSession(),
+                ns: resultsOutput.getNs(),
+                line: evalPos.line,
+                column: evalPos.character
+            });
         }
 
         let cljsSession = null,
@@ -106,6 +119,8 @@ async function setUpCljsRepl(session, chan, build) {
     state.cursor.set("cljs", session);
     status.update();
     chan.appendLine("Connected session: cljs" + (build ? ", repl: " + build : ""));
+    resultsOutput.setSession(session, 'cljs.user');
+    util.updateREPLSessionType();
     createAndConnectReplWindow(session, "cljs");
 }
 
@@ -371,6 +386,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
 
     chan.appendLine("Creating cljs repl session...");
     let newCljsSession = await session.clone();
+    newCljsSession.replType = 'cljs';
     if (newCljsSession) {
         chan.show(true);
         chan.appendLine("Connecting cljs repl: " + projectTypeName + "...");
@@ -532,12 +548,18 @@ export default {
     },
     toggleCLJCSession: () => {
         let current = state.deref();
+        let newSession: NReplSession;
 
         if (current.get('connected')) {
             if (util.getSession('cljc') == util.getSession('cljs')) {
-                state.cursor.set('cljc', util.getSession('clj'));
+                newSession = util.getSession('clj');
             } else if (util.getSession('cljc') == util.getSession('clj')) {
-                state.cursor.set('cljc', util.getSession('cljs'));
+                newSession = util.getSession('cljs');
+            }
+            state.cursor.set('cljc', newSession);
+            if (resultsOutput.isResultsDoc(vscode.window.activeTextEditor.document)) {
+                resultsOutput.setSession(newSession, undefined);
+                util.updateREPLSessionType();
             }
             status.update();
         }

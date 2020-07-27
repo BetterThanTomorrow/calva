@@ -217,28 +217,13 @@ export async function calvaJackInOrConnect() {
     if (!utilities.getConnectedState() &&
         !utilities.getConnectingState() &&
         !utilities.getLaunchingState()) {
-        // if not connected add the connect commands
         commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
         commands["Connect to a running REPL server in your project"] = "calva.connect";
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
-        // if connected add the disconnect command and the
-        // REPL window open commands if needed.
         commands["Disconnect from the REPL server"] = "calva.disconnect";
         if(utilities.getSession("clj")) {
-            if (!isReplWindowOpen("clj")) {
-                commands["Open the Clojure REPL Window"] = "calva.openCljReplWindow";
-            } else {
-                commands["Clear Clojure REPL Window + History"] = "calva.clearClojureREPLWindow";
-            }
-
-        }
-        if(utilities.getSession("cljs"))  {
-            if (!isReplWindowOpen("cljs")) {
-                commands["Open the ClojureScript REPL Window"] = "calva.openCljsReplWindow";
-            } else {
-                commands["Clear ClojureScript REPL Window + History"] = "calva.clearClojureScriptREPLWindow";
-            }
+            commands["Open the Output Window"] = "calva.showOutputWindow";
         }
     }
 

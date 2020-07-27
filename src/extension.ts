@@ -10,7 +10,7 @@ import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
 import TextDocumentContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
-import { DefinitionProvider } from './providers/definition';
+import * as definition from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
 import testRunner from './testRunner';
 import annotations from './providers/annotations';
@@ -24,6 +24,7 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
+import * as outputWindow from './result-output'
 
 function onDidSave(document) {
     let {
@@ -42,8 +43,10 @@ function onDidSave(document) {
             state.analytics().logEvent("Calva", "OnSaveTest").send();
         }
     } else if (evaluate) {
-        eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
-        state.analytics().logEvent("Calva", "OnSaveLoad").send();
+        if (!outputWindow.isResultsDoc(document)) {
+            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+            state.analytics().logEvent("Calva", "OnSaveLoad").send();
+        }
     }
 }
 
@@ -81,7 +84,7 @@ function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
             .then(v => {
                 if (v == BUTTON_GOTO_DOC) {
-                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => {});
+                    open(CONNECT_SEQUENCES_DOC_URL).catch(() => { });
                 }
             })
     }
@@ -132,11 +135,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        eval.loadFile({}, undefined, state.config().prettyPrintingOptions).then((resolved) => {
-            chan.show(true);
-        }).catch((reason) => {
-            chan.show(true);
-        });
+        eval.loadFile({}, undefined, state.config().prettyPrintingOptions);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
@@ -150,12 +149,13 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', eval.copyLastResultCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', eval.requireREPLUtilitiesCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
+
+    context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
@@ -171,7 +171,8 @@ function activate(context: vscode.ExtensionContext) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new DefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.PathDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
 
 

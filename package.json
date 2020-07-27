@@ -86,7 +86,8 @@
                     ".clojure",
                     ".edn",
                     ".joke",
-                    ".boot"
+                    ".boot",
+                    ".repl-file"
                 ]
             }
         ],
@@ -161,7 +162,8 @@
                         "default": {
                             "enabled": true,
                             "printEngine": "pprint",
-                            "width": 120
+                            "width": 120,
+                            "maxLength": 50
                         }
                     },
                     "clojure.format.enable": {
@@ -327,8 +329,8 @@
                     },
                     "calva.openREPLWindowOnConnect": {
                         "type": "boolean",
-                        "description": "Open the REPL windows when the connection to a REPL server is established. (Note that if you have code in `afterCLJReplJackInCode` the CLJ REPL window will open, regardless.)",
-                        "default": true
+                        "description": "Open the REPL windows when the connection to a REPL server is established.",
+                        "default": false
                     },
                     "calva.REPLWindowPromptKeyMap": {
                         "type": "string",
@@ -713,7 +715,7 @@
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "title": "Evaluate Current Form to Result",
+                "title": "Evaluate Current Form and Replace it with the Result",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1121,6 +1123,12 @@
                 "command": "calva.replWindow.newLine",
                 "title": "Create a New Line at the REPL Window Prompt",
                 "enablement": "calva:replWindowActive"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.showOutputWindow",
+                "title": "Show Output Window",
+                "enablement": "calva:connected"
             }
         ],
         "keybindings": [
@@ -1169,12 +1177,22 @@
                 "win": "ctrl+alt+c v"
             },
             {
+                "command": "calva.evaluateSelection",
+                "key": "ctrl+enter",
+                "when": "editorTextFocus"
+            },
+            {
                 "command": "calva.interruptAllEvaluations",
                 "key": "ctrl+alt+c ctrl+alt+d"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "ctrl+alt+c space"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "alt+enter",
+                "when": "editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
@@ -1595,6 +1613,11 @@
                 "command": "calva.replWindow.historyDown",
                 "key": "alt+down",
                 "when": "calva:replWindowActive && config.calva.REPLWindowPromptKeyMap == multi-line"
+            },
+            {
+                "command": "calva.showOutputWindow",
+                "key": "ctrl+alt+c o",
+                "when": "calva:connected"
             }
         ],
         "menus": {
@@ -1642,12 +1665,6 @@
                     "when": "editorLangId == clojure",
                     "enablement": "calva:connected",
                     "command": "calva.loadFile",
-                    "group": "calva/b-eval"
-                },
-                {
-                    "when": "editorLangId == clojure",
-                    "enablement": "calva:connected",
-                    "command": "calva.loadNamespace",
                     "group": "calva/b-eval"
                 },
                 {
