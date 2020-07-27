@@ -247,6 +247,21 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     }
 }
 
+async function evaluateUser(code: string) {
+    const fileType = util.getFileType(util.getDocument({})),
+        session = util.getSession(fileType);
+    if (session) {
+        try {
+            await session.eval(code, session.client.ns).value;
+        } catch (e) {
+            const chan = state.outputChannel();
+            chan.appendLine(`Eval failure: ${e}`);
+        }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a REPL server");
+    }
+}
+
 async function requireREPLUtilitiesCommand() {
 
     if (util.getConnectedState()) {
@@ -312,6 +327,7 @@ export default {
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
     evaluateCode,
+    evaluateUser,
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
