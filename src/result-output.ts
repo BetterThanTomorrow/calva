@@ -129,13 +129,13 @@ export async function appendToResultsDoc(text: string): Promise<void> {
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
             }
-            let visibleResultsEditor: vscode.TextEditor;
+            let visibleResultsEditors: vscode.TextEditor[] = [];
             vscode.window.visibleTextEditors.forEach(editor => {
                 if (isResultsDoc(editor.document)) {
-                    visibleResultsEditor = editor;
+                    visibleResultsEditors.push(editor);
                 }
             });
-            if (!visibleResultsEditor) {
+            if (visibleResultsEditors.length == 0) {
                 scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
                     if (isResultsDoc(editor.document)) {
                         scrollToBottom(editor);
@@ -149,9 +149,11 @@ export async function appendToResultsDoc(text: string): Promise<void> {
             applyingEdit = false;
 
             if (success) {
-                if (visibleResultsEditor) {
-                    scrollToBottom(visibleResultsEditor);
-                    highlight(visibleResultsEditor);
+                if (visibleResultsEditors.length > 0) {
+                    visibleResultsEditors.forEach(editor => {
+                        scrollToBottom(editor);
+                        highlight(editor);
+                    });
                 }
             }
         }
