@@ -223,7 +223,7 @@ function activate(context: vscode.ExtensionContext) {
     if (vimExtension) {
         chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
         if (!context.globalState.get(VIEWED_VIM_DOCS)) {
-            vscode.window.showErrorMessage("VIM Extension detected. There be dragons. Please view the docs for tips (and to stop this info box from appearing).", ...[BUTTON_GOTO_DOC])
+            vscode.window.showErrorMessage("VIM Extension detected. Please view the docs for tips (and to stop this info box from appearing).", ...[BUTTON_GOTO_DOC])
                 .then(v => {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
@@ -244,7 +244,7 @@ function activate(context: vscode.ExtensionContext) {
             console.error("Failed activating Highlight: " + e.message)
         }
     } else {
-        vscode.window.showErrorMessage("Clojure Warrior extension detected. Please uninstall it before continuing to use Calva.", ...["Got it.", "Will do!"]);
+        vscode.window.showErrorMessage("Clojure Warrior extension detected. This will not work well together with Calva's highlighting (which is an improvement on Clojure Warrior). Please uninstall ut before continuing to use Calva.", ...["Got it.", "Will do!"]);
     }
 
     for (const config of ["enableBracketColors", "bracketColors", "cycleBracketColors", "misplacedBracketStyle", "matchedBracketStyle", "commentFormStyle", "ignoredFormStyle"]) {
