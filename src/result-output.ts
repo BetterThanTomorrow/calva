@@ -142,6 +142,7 @@ export async function appendToResultsDoc(text: string): Promise<void> {
 
             const success = await vscode.workspace.applyEdit(edit);
             applyingEdit = false;
+            doc.save();
 
             if (success) {
                 if (visibleResultsEditors.length > 0) {
