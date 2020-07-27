@@ -3,7 +3,9 @@
 Changes to Calva.
 
 ## [Unreleased]
-- [Send evaluation results and output to a file](https://github.com/BetterThanTomorrow/calva/issues/681)
+
+## [2.0.109] - 2020-07-27
+- [New output/REPL window introduced](https://github.com/BetterThanTomorrow/calva/issues/681)
 
 ## [2.0.108] - 2020-07-24
 - Fix [Jack-in error when choosing Clojure CLI + shadow-cljs project type](https://github.com/BetterThanTomorrow/calva/issues/675)
