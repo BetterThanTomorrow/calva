@@ -9,7 +9,7 @@ import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as resultsOutput from './result-output'
+import * as resultsOutput from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 
 function interruptAllEvaluations() {
