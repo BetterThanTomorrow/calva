@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.110] - 2020-07-28
+- [Fix Connect Fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/694)
+
 ## [2.0.109] - 2020-07-27
 - [New output/REPL window introduced](https://github.com/BetterThanTomorrow/calva/issues/681)
 
