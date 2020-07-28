@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import { highlight } from './highlight/src/extension'
 import { NReplSession } from './nrepl';
-import * as ansiRegex from 'ansi-regex';
+import * as util from './utilities';
 
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
@@ -70,7 +70,7 @@ function setViewColumn(column: vscode.ViewColumn) {
 }
 
 function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
-    const croped_text = text.replace(ansiRegex() ,"");
+    const croped_text = util.stripAnsi(text);
     const ab = new ArrayBuffer(croped_text.length);
     const ui8a = new Uint8Array(ab);
     for (var i = 0, strLen = croped_text.length; i < strLen; i++) {
