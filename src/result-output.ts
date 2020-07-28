@@ -120,11 +120,12 @@ export async function appendToResultsDoc(text: string): Promise<void> {
     } else {
         applyingEdit = true;
         const doc = await vscode.workspace.openTextDocument(DOC_URI());
+        const croped_text = util.stripAnsi(text);
         if (doc) {
             const edit = new vscode.WorkspaceEdit();
             const currentContent = doc.getText();
             const lastLineEmpty = currentContent.match(/\n$/);
-            const appendText = `${lastLineEmpty ? '' : '\n'}${text}\n`;
+            const appendText = `${lastLineEmpty ? '' : '\n'}${croped_text}\n`;
             edit.insert(DOC_URI(), doc.positionAt(Infinity), `${appendText}`);
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
