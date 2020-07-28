@@ -1758,6 +1758,7 @@
         "@types/universal-analytics": "^0.4.2",
         "@types/uuid": "^3.4.6",
         "acorn": "^6.4.1",
+        "ansi-regex": "^5.0.0",
         "ansi-to-html": "^0.6.13",
         "escape-html": "^1.0.3",
         "find": "0.2.9",
