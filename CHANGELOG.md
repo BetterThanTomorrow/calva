@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Handling ansi code by croping](https://github.com/BetterThanTomorrow/calva/issues/696)
 
 ## [2.0.110] - 2020-07-28
 - [Fix Connect Fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/694)
