@@ -20,7 +20,7 @@ const GREETINGS = ['; This is the Calva evaluation results output window.\n\
     '; Please see https://calva.io/output/ for docs. Happy coding!\n'];
 
 const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva', 'output-window');
-const DOC_URI = () => vscode.Uri.parse(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
+const DOC_URI = () => vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
 let _sessionType = "clj";
 let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
@@ -80,8 +80,11 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
 export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
     init = init && !_prompt;
     if (init) {
-        writeTextToFile(vscode.Uri.parse(path.join(OUTPUT_FILE_DIR(), '.clj-kondo', 'config.edn')), "^:replace {:linters {}}")
+        const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
+        await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
+        await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}")
         const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}\n`;
+        await vscode.workspace.fs.createDirectory(vscode.Uri.file(OUTPUT_FILE_DIR()));
         await writeTextToFile(DOC_URI(), greetings);
     }
     const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
