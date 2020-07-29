@@ -122,7 +122,7 @@ function activate(context: vscode.ExtensionContext) {
 
 
     chan.appendLine("Calva activated.");
-
+    outputWindow.initResultsDoc();
     status.update();
 
     // COMMANDS
@@ -233,8 +233,6 @@ function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    chan.appendLine("Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.")
-    chan.appendLine("Default keybinding for Jack-in: ctrl+alt+c ctrl+alt+j");
     state.analytics().logPath("/activated").logEvent("LifeCycle", "Activated").send();
 
     if (!cwExtension) {
