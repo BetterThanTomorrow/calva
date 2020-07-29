@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.111] - 2020-07-29
 - [Handling ansi code by stripping it](https://github.com/BetterThanTomorrow/calva/issues/696)
 - Fix: [Output window sometimes getting out of synch, needing overwrite](https://github.com/BetterThanTomorrow/calva/issues/699)
 - Fix: [The *Calva says* panel + output window opening at startup gets a bit too much](https://github.com/BetterThanTomorrow/calva/issues/702)
