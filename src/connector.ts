@@ -85,7 +85,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
                 });
             }
             catch (e) {
-                chan.appendLine("Evaluation of afterCLJReplJackInCode failed. See the output window.")
+                resultsOutput.appendToResultsDoc("; Evaluation of afterCLJReplJackInCode failed.")
             }
         }
 
