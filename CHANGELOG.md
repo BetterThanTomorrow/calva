@@ -6,7 +6,7 @@ Changes to Calva.
 - [Handling ansi code by stripping it](https://github.com/BetterThanTomorrow/calva/issues/696)
 - Fix: [Output window sometimes getting out of synch, needing overwrite](https://github.com/BetterThanTomorrow/calva/issues/699)
 - Fix: [The *Calva says* panel + output window opening at startup gets a bit too much](https://github.com/BetterThanTomorrow/calva/issues/702)
-
+- Fix: [Repl connection fails if afterCLJJackInCode errors](https://github.com/BetterThanTomorrow/calva/issues/703)
 
 ## [2.0.110] - 2020-07-28
 - [Fix Connect Fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/694)
