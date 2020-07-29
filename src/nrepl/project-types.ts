@@ -153,7 +153,6 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
 const NREPL_VERSION = "0.6.0",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
-    FIGWHEEL_MAIN_VERSION = "0.2.3",
     CLJ_KONDO_VERSION = "2020.04.05";
 
 const cliDependencies = {
@@ -167,8 +166,7 @@ const cljsDependencies: { [id: string]: Object } = {
         "cider/piggieback": PIGGIEBACK_VERSION
     },
     "Figwheel Main": {
-        "cider/piggieback": PIGGIEBACK_VERSION,
-        "com.bhauman/figwheel-main": FIGWHEEL_MAIN_VERSION
+        "cider/piggieback": PIGGIEBACK_VERSION
     },
     "shadow-cljs": {
         "cider/cider-nrepl": CIDER_NREPL_VERSION,
