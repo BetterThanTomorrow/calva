@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Handling ansi code by stripping it](https://github.com/BetterThanTomorrow/calva/issues/696)
+- Fix [Repl connection fails if afterCLJJackInCode errors](https://github.com/BetterThanTomorrow/calva/issues/703)
 
 ## [2.0.110] - 2020-07-28
 - [Fix Connect Fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/694)
