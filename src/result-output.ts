@@ -1,4 +1,3 @@
-import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as state from './state';
@@ -9,16 +8,23 @@ import * as util from './utilities';
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
 
-const TIPS = ['; The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.',
-    '; You can edit the contents here. Use it as a REPL if you like.\n\
-;   Use `alt+enter` to evaluate the current top level form.\n\
-;   (`ctrl+enter` evaluates the current form.)',
-    '; File URLs in stacktrace frames are peekable and clickable.',
-    '; In ClojureScript projects, use the command *Calva: Toggle REPL connection* to choose which REPL to use (clj or cljs).'];
+const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
+; Leave it open, please. Because quirks.\n\
+; The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.\n\
+; Please see https://calva.io/output/ for more info.\n\n\
+; Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.\n\
+;    Default keybinding for REPL Jack-in: `ctrl+alt+c ctrl+alt+j`\n\
+;    Or connect to a running REPL using `ctrl+alt+c ctrl+alt+c`\n\
+; Happy coding! ♥️';
 
-const GREETINGS = ['; This is the Calva evaluation results output window.\n\
-; Leave it open, please. Because quirks.',
-    '; Please see https://calva.io/output/ for docs. Happy coding!\n'];
+export const CLJ_CONNECT_GREETINGS = '; You can edit the contents here. Use it as a REPL if you like.\n\
+;   Use `alt+enter` to evaluate the current top level form.\n\
+;   (`ctrl+enter` evaluates the current form.)\n\
+;   File URLs in stacktrace frames are peekable and clickable.';
+
+export const CLJS_CONNECT_GREETINGS = '; You can choose which REPL to use (clj or cljs):\n\
+;    *Calva: Toggle REPL connection*\n\
+;    (There is a button in the status bar for this)';
 
 const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva', 'output-window');
 const DOC_URI = () => vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
@@ -78,29 +84,44 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
-export async function openResultsDoc(init: boolean = false): Promise<vscode.TextDocument> {
-    init = init && !_prompt;
-    if (init) {
-        const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
-        await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
-        await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}")
-        const greetings = `${GREETINGS[0]}\n${TIPS[Math.floor(Math.random() * TIPS.length)]}\n${GREETINGS[1]}\n`;
-        await vscode.workspace.fs.createDirectory(vscode.Uri.file(OUTPUT_FILE_DIR()));
-        await writeTextToFile(DOC_URI(), greetings);
+export async function initResultsDoc(): Promise<vscode.TextDocument> {
+    await state.initProjectDir();
+    const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
+    await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
+    await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}");
+
+    await vscode.workspace.fs.createDirectory(vscode.Uri.file(OUTPUT_FILE_DIR()));
+    let resultsDoc: vscode.TextDocument;
+    try {
+        resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
+    } catch (e) {
+        await writeTextToFile(DOC_URI(), '');
+        resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
     }
+    const greetings = `${START_GREETINGS}\n\n`;
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
+    edit.replace(DOC_URI(), fullRange, greetings);
+    const success = await vscode.workspace.applyEdit(edit);
+    resultsDoc.save();
+
+    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
+    const firstPos = resultsEditor.document.positionAt(0);
+    const lastPos = resultsDoc.positionAt(Infinity);
+    resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
+    resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+    // For some reason onDidChangeTextEditorViewColumn won't fire
+    state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
+        if (isResultsDoc(event.document)) {
+            setViewColumn(event.viewColumn);
+        }
+    }));
+    return resultsDoc;
+}
+
+export async function openResultsDoc(): Promise<vscode.TextDocument> {
     const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), !init);
-    if (init) {
-        vscode.commands.executeCommand('workbench.action.files.revert');
-        const firstPos = resultsEditor.document.positionAt(0);
-        resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
-        // For some reason onDidChangeTextEditorViewColumn won't fire
-        state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-            if (isResultsDoc(event.document)) {
-                setViewColumn(event.viewColumn);
-            }
-        }));
-    }
+    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), false);
     return resultsDoc;
 }
 
