@@ -57,7 +57,7 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 
 ### Demo: Evaluate top level forms inside `(comment...)`
 
-![Top level comment eval](/assets/howto/top-level-comment-eval.gif)
+![Top level comment eval](assets/howto/top-level-comment-eval.gif)
 
 The gif demos several more features, apart from the in-comment evaluation, like:
 
@@ -74,19 +74,19 @@ It is pretty educational using the signature help hover to see which argument yo
 
 ### Demo: Syntax highlighting, rainbow parens and guides
 
-![Dimming ignored forms](/assets/howto/rainbow-guides.gif)
+![Dimming ignored forms](assets/howto/rainbow-guides.gif)
 
 ### Demo: Syntax highlighting, dimming ignored forms
 
-![Dimming ignored forms](/assets/howto/dimming-ignores.gif)
+![Dimming ignored forms](assets/howto/dimming-ignores.gif)
 
 ### Demo: Peek at definitions, etcetera
 
-![Features](/assets/howto/features.gif)
+![Features](assets/howto/features.gif)
 
 ### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files
 
-![CLJC repl switching](/assets/howto/cljc-clj-cljs.gif)
+![CLJC repl switching](assets/howto/cljc-clj-cljs.gif)
 
 ## How to contribute
 
@@ -121,16 +121,13 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 ### Calva Fans
 
 [<img src="https://avatars0.githubusercontent.com/u/103882" width="32" alt="Bozhidar Batsov">](https://github.com/bbatsov)
-[<img src="https://avatars0.githubusercontent.com/u/133385" width="32" alt="Adam Feldman">](https://github.com/adamfeldman)
-[<img src="https://avatars2.githubusercontent.com/u/585191" width="32" alt="Pedro Girardi">](https://github.com/pedrorgirardi)
 [<img src="https://avatars2.githubusercontent.com/u/6115204" width="32" alt="Clay Hopperdietzel">](https://github.com/Gnurdle)
 [<img src="https://avatars2.githubusercontent.com/u/891" width="32" alt="Matthew Lyon">](https://github.com/mattly)
 [<img src="https://avatars0.githubusercontent.com/u/636651" width="32" alt="Brian Scaturro">](https://github.com/brianium)
-[<img src="https://avatars0.githubusercontent.com/u/95657" width="32" alt="Steven Harms">](https://github.com/sharms)
 
 ### Calva Friends
-
 [<img src="https://avatars3.githubusercontent.com/u/97496" width="32" alt="Martin Klepsch">](https://github.com/martinklepsch)
+[<img src="https://avatars2.githubusercontent.com/u/585191" width="32" alt="Pedro Girardi">](https://github.com/pedrorgirardi)
 [<img src="https://avatars1.githubusercontent.com/u/1461719" width="32" alt="Byron Miller">](https://github.com/supernovae)
 [<img src="https://avatars2.githubusercontent.com/u/6209" width="32" alt="Terje">](https://github.com/terjesb)
 [<img src="https://avatars0.githubusercontent.com/u/11434205" width="32" alt="JC">](https://github.com/dijonkitchen)
@@ -141,6 +138,11 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars0.githubusercontent.com/u/19359748" width="32" alt="Sergei Udris">](https://github.com/sergeiudris)
 [<img src="https://avatars1.githubusercontent.com/u/4200280" width="32" alt="Janne Sauvala">](https://github.com/sauvala)
 [<img src="https://avatars1.githubusercontent.com/u/4172079" width="32" alt="Filipe Silva">](https://github.com/filipesilva)
+[<img src="https://avatars0.githubusercontent.com/u/22004226" width="32" alt="glebovmaksim">](https://github.com/glebovmaksim)
+[<img src="https://avatars3.githubusercontent.com/u/124385" width="32" alt="Chris Smothers">](https://github.com/smothers)
+[<img src="https://avatars2.githubusercontent.com/u/781014" width="32" alt="Snorre Magnus Davøen">](https://github.com/snorremd)
+[<img src="https://avatars1.githubusercontent.com/u/11031952" width="32" alt="Alid Lorenzo">](https://github.com/alidlorenzo)
+[<img src="https://avatars2.githubusercontent.com/u/505737" width="32" alt="ikrima">](https://github.com/ikrima)
 
 ## The Calva Team
 
@@ -149,12 +151,12 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 ### Current Maintainers
 
 * [Peter Strömberg](https://github.com/PEZ)
-* [Kevin Ahlbrecht](https://github.com/kstehn)
-* [Christian Fehse](https://github.com/cfehse)
 * [Brandon Ringe](https://github.com/bpringe)
+* [Kevin Ahlbrecht](https://github.com/kstehn)
 
 ### Alumni
 
+* [Christian Fehse](https://github.com/cfehse)
 * [Matt Seddon](https://github.com/mseddon)
 * [Pedro Girardi](https://github.com/pedrorgirardi)
 * [Stian Sivertsen](https://github.com/sivertsenstian) (Creator of Visual:Clojure)
