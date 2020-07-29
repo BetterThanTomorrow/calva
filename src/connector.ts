@@ -15,7 +15,7 @@ import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
 import * as resultsOutput from './result-output'
 import evaluate from './evaluate';
 
-async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs", ): Promise<void> {
+async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs"): Promise<void> {
     if (state.config().openREPLWindowOnConnect) {
         return createReplWindow(session, mode).then(w => {
             return openReplWindow(mode, true).then(w => {
@@ -76,13 +76,18 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         if (connectSequence.afterCLJReplJackInCode) {
             const evalPos = outputDocument.positionAt(outputDocument.getText().length);
             await resultsOutput.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'\n${connectSequence.afterCLJReplJackInCode}`);
-            await evaluate.evaluateCode(connectSequence.afterCLJReplJackInCode, {
-                filePath: outputDocument.fileName,
-                session: resultsOutput.getSession(),
-                ns: resultsOutput.getNs(),
-                line: evalPos.line,
-                column: evalPos.character
-            });
+            try {
+                await evaluate.evaluateCode(connectSequence.afterCLJReplJackInCode, {
+                    filePath: outputDocument.fileName,
+                    session: resultsOutput.getSession(),
+                    ns: resultsOutput.getNs(),
+                    line: evalPos.line,
+                    column: evalPos.character
+                });
+            }
+            catch (e) {
+                chan.appendLine("Evaluation of afterCLJReplJackInCode failed. See the output window.")
+            }
         }
 
         let cljsSession = null,
