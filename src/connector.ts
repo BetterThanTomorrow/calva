@@ -458,7 +458,7 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-export async function connect(connectSequence: ReplConnectSequence, isAutoConnect, isJackIn) {
+export async function connect(connectSequence: ReplConnectSequence, isAutoConnect: boolean) {
     const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
@@ -497,7 +497,7 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
         const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
         outputWindow.appendToResultsDoc(`; Connecting ...`);
         state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
-        connect(connectSequence, false, false).catch(() => { });
+        connect(connectSequence, false).catch(() => { });
     }
     else {
         outputWindow.appendToResultsDoc("; Aborting connect, error determining connect sequence.");
