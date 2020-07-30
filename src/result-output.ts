@@ -10,19 +10,16 @@ const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
 
 const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
 ; Leave it open, please. Because quirks.\n\
-; The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.\n\
-; Please see https://calva.io/output/ for more info.\n\n\
-; Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.\n\
-;    Default keybinding for REPL Jack-in: `ctrl+alt+c ctrl+alt+j`\n\
-;    Or connect to a running REPL using `ctrl+alt+c ctrl+alt+c`\n\
+; TIPS: The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.\n\
+; Please see https://calva.io/output/ for more info.\n\
 ; Happy coding! ♥️';
 
-export const CLJ_CONNECT_GREETINGS = '; You can edit the contents here. Use it as a REPL if you like.\n\
+export const CLJ_CONNECT_GREETINGS = '; TIPS: You can edit the contents here. Use it as a REPL if you like.\n\
 ;   Use `alt+enter` to evaluate the current top level form.\n\
 ;   (`ctrl+enter` evaluates the current form.)\n\
 ;   File URLs in stacktrace frames are peekable and clickable.';
 
-export const CLJS_CONNECT_GREETINGS = '; You can choose which REPL to use (clj or cljs):\n\
+export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
 
@@ -85,7 +82,7 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
-    await state.initProjectDir();
+    // await state.initProjectDir();
     const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
     await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
     await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}");

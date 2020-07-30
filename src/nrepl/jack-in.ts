@@ -10,6 +10,7 @@ import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connect
 import * as projectTypes from './project-types';
 import { isReplWindowOpen} from "../repl-window";
 import { disabledPrettyPrinter } from "../printer";
+import * as outputWindow from '../result-output';
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -40,7 +41,7 @@ function cancelJackInTask() {
     }, 1000);
 }
 
-async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], outputChannel: vscode.OutputChannel, connectSequence: ReplConnectSequence) {
+async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], connectSequence: ReplConnectSequence) {
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
     const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
@@ -91,25 +92,23 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
                     if (!port) { // On Windows we get two events, one for file creation and one for the change of content
                         return;  // If there is no port to be read yet, wait for the next event instead.
                     }
-                    const chan = state.outputChannel();
-                    setTimeout(() => { chan.show() }, 1000);
                     utilities.setLaunchingState(null);
                     watcher.removeAllListeners();
-                    await connector.connect(connectSequence, true, true);
-                    chan.appendLine("Jack-in done.");
+                    await connector.connect(connectSequence, true);
+                    outputWindow.appendToResultsDoc("; Jack-in done.");
                 }
             });
         } catch(exception) {
-            outputChannel.appendLine("Error in Jack-in: unable to read port file");
-            outputChannel.appendLine(exception);
-            outputChannel.appendLine("You may have chosen the wrong jack-in configuration for your project.");
+            outputWindow.appendToResultsDoc("; Error in Jack-in: unable to read port file");
+            outputWindow.appendToResultsDoc("; " + exception);
+            outputWindow.appendToResultsDoc("; You may have chosen the wrong jack-in configuration for your project.");
             vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
             cancelJackInTask();
         }
     }, (reason) => {
         watcher.removeAllListeners();
-        outputChannel.appendLine("Error in Jack-in: ");
-        outputChannel.appendLine(reason);
+        outputWindow.appendToResultsDoc("; Error in Jack-in: ");
+        outputWindow.appendToResultsDoc("; " + reason);
         vscode.window.showErrorMessage("Error in Jack-in. See output channel for more information.");
         cancelJackInTask();
     });
@@ -137,13 +136,14 @@ export function calvaJackout() {
 }
 
 export async function calvaJackIn() {
-    const outputChannel = state.outputChannel();
     try {
         await state.initProjectDir();
     } catch {
         return;
     }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
+    await outputWindow.initResultsDoc();
+    const outputDocument = await outputWindow.openResultsDoc();
 
     const cljTypes: string[] = await projectTypes.detectProjectTypes();
     if (cljTypes.length > 1) {
@@ -151,11 +151,11 @@ export async function calvaJackIn() {
 
         if (!projectConnectSequence) {
             state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
-            outputChannel.appendLine("Aborting Jack-in, since no project type was selected.");
+            outputWindow.appendToResultsDoc("; Aborting Jack-in, since no project type was selected.");
             return;
         }
         if (projectConnectSequence.projectType !== 'generic') {
-            outputChannel.appendLine("Jacking in...");
+            outputWindow.appendToResultsDoc("; Jacking in...");
 
             const projectTypeName: string = projectConnectSequence.projectType;
             let selectedCljsType: CljsTypes;
@@ -171,13 +171,13 @@ export async function calvaJackIn() {
             // Ask the project type to build up the command line. This may prompt for further information.
             let args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
 
-            executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, outputChannel, projectConnectSequence)
+            executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, projectConnectSequence)
                 .then(() => { }, () => { });
         } else {
-            outputChannel.appendLine("There is no Jack-in possible for this project type.");
+            outputWindow.appendToResultsDoc("; There is no Jack-in possible for this project type.");
         }
     } else { // Only 'generic' type left
-        outputChannel.appendLine("No Jack-in possible.");
+        outputWindow.appendToResultsDoc("; No Jack-in possible.");
         vscode.window.showInformationMessage('No supported Jack-in project types detected. Maybe try starting your project manually and use the Connect command?')
     }
 
@@ -196,14 +196,12 @@ export async function calvaDisconnect() {
             { modal: true },
             ...["Ok"]).then((value) => {
                 if (value == 'Ok') {
-                    const outputChannel = state.outputChannel();
                     calvaJackout();
                     connector.default.disconnect();
                     utilities.setLaunchingState(null);
                     utilities.setConnectingState(false);
                     statusbar.update();
-                    outputChannel.appendLine("Interrupting Jack-in process.");
-                    outputChannel.show();
+                    outputWindow.appendToResultsDoc("; Interrupting Jack-in process.");
                 }
             });
         return;
