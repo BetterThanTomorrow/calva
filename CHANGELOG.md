@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.112] - 2020-07-30
 - Fix: [Don't open output window until connect starts](https://github.com/BetterThanTomorrow/calva/issues/707)
 
 ## [2.0.111] - 2020-07-29
