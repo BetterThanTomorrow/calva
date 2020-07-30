@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
+import annotations from './annotations';
 
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
@@ -42,5 +43,15 @@ export class PathDefinitionProvider implements vscode.DefinitionProvider {
       const pos = new vscode.Position(line - 1, column ? column : 0);
       return new vscode.Location(vscode.Uri.parse(path, true), pos);
     }
+  }
+}
+
+export class ResultsDefinitionProvider implements vscode.DefinitionProvider {
+  state: any;
+  constructor() {
+    this.state = state;
+  }
+  async provideDefinition(document, position, token) {
+    return annotations.getResultsLocation(position);
   }
 }

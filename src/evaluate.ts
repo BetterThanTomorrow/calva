@@ -11,6 +11,7 @@ import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
 import * as resultsOutput from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
+import { string } from 'fast-check/*';
 
 function interruptAllEvaluations() {
 
@@ -73,7 +74,7 @@ async function evaluateCode(code: string, options) {
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
-            resultsOutput.appendToResultsDoc(value);
+            const insertLocation = await resultsOutput.appendToResultsDoc(value);
             resultsOutput.setSession(session, context.ns);
             util.updateREPLSessionType();
 
@@ -83,20 +84,18 @@ async function evaluateCode(code: string, options) {
                     await resultsOutput.printStacktrace(context.stacktrace);
                 }
             }
-            return value;
+            return [value, insertLocation, true];
         } catch (e) {
             if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                 err = out;
             }
-            if (err.length > 0) {
-                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
-                if (context.stacktrace) {
-                    await resultsOutput.printStacktrace(context.stacktrace);
-                }
-                resultsOutput.setSession(session, context.ns);
-                util.updateREPLSessionType();
+            const insertLocation = await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+            if (context.stacktrace) {
+                await resultsOutput.printStacktrace(context.stacktrace);
             }
-            throw new Error(util.stripAnsi(err.join("\n")));
+            resultsOutput.setSession(session, context.ns);
+            util.updateREPLSessionType();
+            return [util.stripAnsi(err.join("\n")), insertLocation, false];
         }
     }
 }
@@ -131,12 +130,11 @@ async function evaluateSelection(document: {}, options) {
             if (options.debug) {
                 code = '#dbg\n' + code;
             }
-            annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
+            annotations.decorateSelection("", codeSelection, editor, undefined, annotations.AnnotationStatus.PENDING);
             let c = codeSelection.start.character
 
-            try {
-                const value = await evaluateCode(code, { ...options, ns, line, column, filePath, session });
-
+            const [value, insertLocation, success] = await evaluateCode(code, { ...options, ns, line, column, filePath, session });
+            if (success) {
                 if (replace) {
                     const indent = `${' '.repeat(c)}`,
                         edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
@@ -146,15 +144,14 @@ async function evaluateSelection(document: {}, options) {
                 } else if (asComment) {
                     addAsComment(c, value, codeSelection, editor, selection);
                 } else {
-                    annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
+                    annotations.decorateSelection(value, codeSelection, editor, insertLocation, annotations.AnnotationStatus.SUCCESS);
                     annotations.decorateResults(value, false, codeSelection, editor);
                 }
-            }
-            catch (e) {
-                annotations.decorateSelection(e, codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                annotations.decorateResults(e, true, codeSelection, editor);
+            } else {
+                annotations.decorateSelection(value, codeSelection, editor, insertLocation, annotations.AnnotationStatus.ERROR);
+                annotations.decorateResults(value, true, codeSelection, editor);
                 if (asComment) {
-                    addAsComment(c, e, codeSelection, editor, selection);
+                    addAsComment(c, value, codeSelection, editor, selection);
                 }
             }
         }

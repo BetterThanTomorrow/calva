@@ -61,7 +61,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('clj', cljSession);
         state.cursor.set('cljc', cljSession);
         status.update();
-        outputWindow.appendToResultsDoc(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
+        await outputWindow.appendToResultsDoc(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
         outputWindow.setSession(cljSession, nClient.ns);
         util.updateREPLSessionType();
 
@@ -121,7 +121,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
 async function setUpCljsRepl(session, build) {
     state.cursor.set("cljs", session);
     status.update();
-    outputWindow.appendToResultsDoc(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
+    await outputWindow.appendToResultsDoc(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
     outputWindow.setSession(session, 'cljs.user');
     util.updateREPLSessionType();
     createAndConnectReplWindow(session, "cljs");

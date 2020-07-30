@@ -546,7 +546,7 @@ function evalCurrentFormInREPLWindow(topLevel: boolean) {
 
     if (selection.isEmpty) {
         codeSelection = select.getFormSelection(doc, selection.active, topLevel);
-        annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.REPL_WINDOW);
+        annotations.decorateSelection("", codeSelection, editor, undefined, annotations.AnnotationStatus.REPL_WINDOW);
         code = doc.getText(codeSelection);
     } else {
         codeSelection = selection;

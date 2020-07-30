@@ -131,7 +131,7 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 let scrollToBottomSub: vscode.Disposable;
 const editQueue: string[] = [];
 let applyingEdit = false;
-export async function appendToResultsDoc(text: string): Promise<void> {
+export async function appendToResultsDoc(text: string): Promise<vscode.Location> {
     if (applyingEdit) {
         editQueue.push(text);
     } else {
@@ -143,7 +143,8 @@ export async function appendToResultsDoc(text: string): Promise<void> {
             const currentContent = doc.getText();
             const lastLineEmpty = currentContent.match(/\n$/);
             const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
-            edit.insert(DOC_URI(), doc.positionAt(Infinity), `${appendText}`);
+            const insertPos = doc.positionAt(Infinity);
+            edit.insert(DOC_URI(), insertPos, `${appendText}`);
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
             }
@@ -174,11 +175,12 @@ export async function appendToResultsDoc(text: string): Promise<void> {
                         highlight(editor);
                     });
                 }
+                return new vscode.Location(DOC_URI(), insertPos);
             }
         }
 
         if (editQueue.length > 0) {
-            appendToResultsDoc(editQueue.shift());
+            return appendToResultsDoc(editQueue.shift());
         }
     };
 }
