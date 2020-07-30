@@ -114,7 +114,8 @@ function config() {
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
-        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean
+        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
+        openCalvaSaysOnStart: configOptions.get("openCalvaSaysOnStart") as boolean
     };
 }
 

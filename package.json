@@ -512,6 +512,11 @@
                         "type": "boolean",
                         "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
                         "default": true
+                    },
+                    "calva.openCalvaSaysOnStart": {
+                        "type": "boolean",
+                        "markdownDescription": "By default, the **Calva says** window opens on startup.",
+                        "default": true
                     }
                 }
             },
