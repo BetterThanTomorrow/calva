@@ -72,6 +72,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         await createAndConnectReplWindow(cljSession, "clj");
 
         if (connectSequence.afterCLJReplJackInCode) {
+            const outputDocument = await outputWindow.openResultsDoc();
             const evalPos = outputDocument.positionAt(outputDocument.getText().length);
             await outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'\n${connectSequence.afterCLJReplJackInCode}`);
             try {
