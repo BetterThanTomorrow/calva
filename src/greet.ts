@@ -6,4 +6,7 @@ export function activationGreetings(chan) {
     chan.appendLine("* #calva at the Clojurians Slack: https://clojurians.slack.com/messages/calva/");
     chan.appendLine("* Bug reports: https://github.com/BetterThanTomorrow/calva/issues");
     chan.appendLine("--");
+    chan.appendLine('Start the REPL with the command *Start Project REPL and connect (aka Jack-in)*.');
+    chan.appendLine('  Default keybinding for REPL Jack-in: `ctrl+alt+c ctrl+alt+j`');
+    chan.appendLine('  Or connect to a running REPL using `ctrl+alt+c ctrl+alt+c`');
 }

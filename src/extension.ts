@@ -122,7 +122,6 @@ function activate(context: vscode.ExtensionContext) {
 
 
     chan.appendLine("Calva activated.");
-    outputWindow.initResultsDoc();
     status.update();
 
     // COMMANDS
