@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add vscode command for to eval code given as args](https://github.com/BetterThanTomorrow/calva/issues/690)
+- [Move custom REPL snippets to new output/repl window](https://github.com/BetterThanTomorrow/calva/issues/713)
 
 ## [2.0.112] - 2020-07-30
 - Fix: [Don't open output window until connect starts](https://github.com/BetterThanTomorrow/calva/issues/707)
