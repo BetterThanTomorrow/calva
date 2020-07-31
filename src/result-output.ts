@@ -45,7 +45,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string) {
+export async function setSession(session: NReplSession, newNs: string) {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -56,7 +56,7 @@ export function setSession(session: NReplSession, newNs: string) {
         _sessionInfo[_sessionType].ns = newNs;
     }
     _prompt = `${_sessionType}::${getNs()}=> `;
-    appendToResultsDoc(_prompt);
+    return await appendToResultsDoc(_prompt);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {

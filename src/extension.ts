@@ -141,6 +141,7 @@ function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateUser', eval.evaluateUser));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', eval.evaluateTopLevelForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', eval.evaluateSelectionReplace));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', eval.evaluateSelectionAsComment));
@@ -157,6 +158,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', eval.evaluateCustomCommandSnippetCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
 
     // Temporary command to teach new default keyboard shortcut chording key

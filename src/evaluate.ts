@@ -243,6 +243,21 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     }
 }
 
+async function evaluateUser(code: string) {
+    const fileType = util.getFileType(util.getDocument({})),
+        session = util.getSession(fileType);
+    if (session) {
+        try {
+            await session.eval(code, session.client.ns).value;
+        } catch (e) {
+            const chan = state.outputChannel();
+            chan.appendLine(`Eval failure: ${e}`);
+        }
+    } else {
+        vscode.window.showInformationMessage("Not connected to a REPL server");
+    }
+}
+
 async function requireREPLUtilitiesCommand() {
 
     if (util.getConnectedState()) {
@@ -299,6 +314,74 @@ async function instrumentTopLevelForm() {
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
+async function evaluateInOutputWindow(code: string, sessionType: string, ns: string) {
+    const outputDocument = await resultsOutput.openResultsDoc();
+    const evalPos = outputDocument.positionAt(outputDocument.getText().length);
+    try {
+        const session = util.getSession(sessionType);
+        await resultsOutput.setSession(session, ns);
+        util.updateREPLSessionType();
+        await resultsOutput.appendToResultsDoc(code);
+        await evaluateCode(code, {
+            filePath: outputDocument.fileName,
+            session,
+            ns,
+            line: evalPos.line,
+            column: evalPos.character
+        });
+    }
+    catch (e) {
+        resultsOutput.appendToResultsDoc("; Evaluation failed.")
+    }
+}
+
+export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
+
+function evaluateCustomCommandSnippetCommand() {
+    let pickCounter = 1,
+        configErrors: { "name": string, "keys": string[] }[] = [];
+    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
+        snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
+            const undefs = ["name", "snippet", "repl"].filter(k => {
+                return !c[k];
+            })
+            if (undefs.length > 0) {
+                configErrors.push({ "name": c.name, "keys": undefs });
+            }
+            return `${pickCounter++}: ${c.name} (${c.repl})`;
+        }),
+        snippetsDict = {};
+    pickCounter = 1;
+
+    if (configErrors.length > 0) {
+        vscode.window.showErrorMessage("Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: " + JSON.stringify(configErrors), "OK");
+        return;
+    }
+    snippets.forEach((c: customREPLCommandSnippet) => {
+        snippetsDict[`${pickCounter++}: ${c.name} (${c.repl})`] = c;
+    });
+
+    if (snippets && snippets.length > 0) {
+        util.quickPickSingle({
+            values: snippetPicks,
+            placeHolder: "Choose a command to run at the REPL",
+            saveAs: "runCustomREPLCommand"
+        }).then(async (pick) => {
+            if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
+                const command = snippetsDict[pick].snippet,
+                    editor = vscode.window.activeTextEditor,
+                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? util.getNamespace(editor.document) : undefined,
+                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
+                    repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
+                evaluateInOutputWindow(command, repl ? repl : "clj", ns);
+            }
+        }).catch(() => { });
+    } else {
+        vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
+    }
+}
+
+
 export default {
     interruptAllEvaluations,
     loadFile,
@@ -308,8 +391,11 @@ export default {
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
     evaluateCode,
+    evaluateUser,
     copyLastResultCommand,
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
-    instrumentTopLevelForm
+    instrumentTopLevelForm,
+    evaluateInOutputWindow,
+    evaluateCustomCommandSnippetCommand
 };

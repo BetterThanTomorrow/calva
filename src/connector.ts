@@ -72,21 +72,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         await createAndConnectReplWindow(cljSession, "clj");
 
         if (connectSequence.afterCLJReplJackInCode) {
-            const outputDocument = await outputWindow.openResultsDoc();
-            const evalPos = outputDocument.positionAt(outputDocument.getText().length);
-            await outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'\n${connectSequence.afterCLJReplJackInCode}`);
-            try {
-                await evaluate.evaluateCode(connectSequence.afterCLJReplJackInCode, {
-                    filePath: outputDocument.fileName,
-                    session: outputWindow.getSession(),
-                    ns: outputWindow.getNs(),
-                    line: evalPos.line,
-                    column: evalPos.character
-                });
-            }
-            catch (e) {
-                outputWindow.appendToResultsDoc("; Evaluation of afterCLJReplJackInCode failed.")
-            }
+            await outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'`);
+            await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
         }
 
         let cljsSession = null,
