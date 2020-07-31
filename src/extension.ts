@@ -158,6 +158,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', eval.evaluateCustomCommandSnippetCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
 
     // Temporary command to teach new default keyboard shortcut chording key

@@ -6,7 +6,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fs from 'fs';
-import { customREPLCommandSnippet } from './repl-window';
+import { customREPLCommandSnippet } from './evaluate';
 import { PrettyPrintingOptions } from './printer';
 
 let extensionContext: vscode.ExtensionContext;
