@@ -11,7 +11,6 @@ import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
 import * as resultsOutput from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
-import { string } from 'fast-check/*';
 
 function interruptAllEvaluations() {
 

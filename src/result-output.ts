@@ -118,7 +118,6 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
 export async function openResultsDoc(): Promise<vscode.TextDocument> {
     const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), false);
     return resultsDoc;
 }
 
