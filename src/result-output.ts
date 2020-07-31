@@ -132,6 +132,7 @@ let scrollToBottomSub: vscode.Disposable;
 const editQueue: string[] = [];
 let applyingEdit = false;
 export async function appendToResultsDoc(text: string): Promise<vscode.Location> {
+    let insertPos: vscode.Position;
     if (applyingEdit) {
         editQueue.push(text);
     } else {
@@ -143,7 +144,7 @@ export async function appendToResultsDoc(text: string): Promise<vscode.Location>
             const currentContent = doc.getText();
             const lastLineEmpty = currentContent.match(/\n$/);
             const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
-            const insertPos = doc.positionAt(Infinity);
+            insertPos = doc.positionAt(Infinity);
             edit.insert(DOC_URI(), insertPos, `${appendText}`);
             if (scrollToBottomSub) {
                 scrollToBottomSub.dispose();
@@ -175,13 +176,13 @@ export async function appendToResultsDoc(text: string): Promise<vscode.Location>
                         highlight(editor);
                     });
                 }
-                return new vscode.Location(DOC_URI(), insertPos);
             }
         }
-
+        
         if (editQueue.length > 0) {
-            return appendToResultsDoc(editQueue.shift());
+            return await appendToResultsDoc(editQueue.shift());
         }
+        return new vscode.Location(DOC_URI(), insertPos);
     };
 }
 
