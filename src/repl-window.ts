@@ -565,52 +565,6 @@ function evalCurrentTopLevelFormInREPLWindowCommand() {
     evalCurrentFormInREPLWindow(true);
 }
 
-export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
-
-function sendCustomCommandSnippetToREPLCommand() {
-    let pickCounter = 1,
-        configErrors: { "name": string, "keys": string[] }[] = [];
-    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
-        snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
-            const undefs = ["name", "snippet", "repl"].filter(k => {
-                return !c[k];
-            })
-            if (undefs.length > 0) {
-                configErrors.push({ "name": c.name, "keys": undefs });
-            }
-            return `${pickCounter++}: ${c.name} (${c.repl})`;
-        }),
-        snippetsDict = {};
-    pickCounter = 1;
-
-    if (configErrors.length > 0) {
-        vscode.window.showErrorMessage("Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: " + JSON.stringify(configErrors), "OK");
-        return;
-    }
-    snippets.forEach((c: customREPLCommandSnippet) => {
-        snippetsDict[`${pickCounter++}: ${c.name} (${c.repl})`] = c;
-    });
-
-    if (snippets && snippets.length > 0) {
-        util.quickPickSingle({
-            values: snippetPicks,
-            placeHolder: "Choose a command to run at the REPL",
-            saveAs: "runCustomREPLCommand"
-        }).then(async (pick) => {
-            if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
-                const command = snippetsDict[pick].snippet,
-                    editor = vscode.window.activeTextEditor,
-                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? util.getNamespace(editor.document) : undefined,
-                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
-                    repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                sendTextToREPLWindow(repl ? repl : "clj", command, ns);
-            }
-        }).catch(() => { });
-    } else {
-        vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
-    }
-}
-
 export function activate(context: vscode.ExtensionContext) {
     ctx = context;
     initReplViewColumns();
