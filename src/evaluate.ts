@@ -230,7 +230,6 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
                 resultsOutput.appendToResultsDoc("; No results from file evaluation.");
             }
         }).catch(async (e) => {
-            await resultsOutput.openResultsDoc();
             await resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
                 await resultsOutput.printStacktrace(res.stacktrace);
