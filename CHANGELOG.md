@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.113] - 2020-08-1
 - [Add vscode command for to eval code given as args](https://github.com/BetterThanTomorrow/calva/issues/690)
 - [Move custom REPL snippets to new output/repl window](https://github.com/BetterThanTomorrow/calva/issues/713)
 - Fix: [Continuously evaluating in infinite loop](https://github.com/BetterThanTomorrow/calva/issues/712)
