@@ -8,6 +8,11 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 (*) Calva is short for Calvados, a liquid gifted to humanity from God.
 
+## Users Like it 😍
+
+Crispin Bennett's review:
+> This is great, and makes VS Code a truly viable IDE/editor for clojure development. It has great REPL support (including inline evaluation), an extensive Paredit implementation, and excellent linting (care of the bundled clj-kondo). Calva is being improved on at an impressive clip by maintainers who appear solidly committed to its ongoing development. It's well-documented, and manages to be both approachable and capable. A no-brainer if you're already a VS Code user, and well worth a look if you're not.
+
 ## There is Documentation
 
 Head over to https://calva.io/ to learn more about how to use Calva. The most important stuff would be:

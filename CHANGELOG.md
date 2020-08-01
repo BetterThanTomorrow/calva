@@ -4,8 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)
+
+## [2.0.113] - 2020-08-1
 - [Add vscode command for to eval code given as args](https://github.com/BetterThanTomorrow/calva/issues/690)
 - [Move custom REPL snippets to new output/repl window](https://github.com/BetterThanTomorrow/calva/issues/713)
+- Fix: [Continuously evaluating in infinite loop](https://github.com/BetterThanTomorrow/calva/issues/712)
 
 ## [2.0.112] - 2020-07-30
 - Fix: [Don't open output window until connect starts](https://github.com/BetterThanTomorrow/calva/issues/707)

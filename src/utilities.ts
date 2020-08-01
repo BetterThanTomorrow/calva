@@ -12,7 +12,7 @@ import * as docMirror from './doc-mirror';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import select from './select';
-import * as resultsOutput from './result-output'
+import * as outputWindow from './result-output'
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -89,8 +89,8 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getNamespace(doc: vscode.TextDocument) {
-    if (resultsOutput.isResultsDoc(doc)) {
-        return resultsOutput.getNs();
+    if (outputWindow.isResultsDoc(doc)) {
+        return outputWindow.getNs();
     }
     let ns = "user";
     if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
@@ -254,8 +254,8 @@ function getSession(fileType = undefined): NReplSession {
     if (fileType.match(/^clj[sc]?/)) {
         return current.get(fileType);
     } else {
-        if (resultsOutput.isResultsDoc(doc)) {
-            return resultsOutput.getSession();
+        if (outputWindow.isResultsDoc(doc)) {
+            return outputWindow.getSession();
         } else {
             return current.get('cljc');
         }
@@ -321,12 +321,10 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    let chan = state.outputChannel();
-
-    chan.appendLine(error.reason);
+    outputWindow.appendToResultsDoc('; ' + error.reason);
     if (error.line !== undefined && error.line !== null &&
         error.column !== undefined && error.column !== null) {
-        chan.appendLine("at line: " + error.line + " and column: " + error.column)
+        outputWindow.appendToResultsDoc(";   at line: " + error.line + " and column: " + error.column)
     }
 }
 
@@ -358,13 +356,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    let chan = state.outputChannel();
-    chan.appendLine(warning.reason);
+    outputWindow.appendToResultsDoc('; ' + warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
-            chan.appendLine("at line: " + warning.line + " and column: " + warning.column)
+            outputWindow.appendToResultsDoc(";   at line: " + warning.line + " and column: " + warning.column)
         } else {
-            chan.appendLine("at line: " + warning.line)
+            outputWindow.appendToResultsDoc(";   at line: " + warning.line)
         }
     }
 }
@@ -407,8 +404,8 @@ function updateREPLSessionType() {
         if (repl) {
             sessionType = repl.type;
         }
-        if (resultsOutput.isResultsDoc(doc)) {
-            sessionType = resultsOutput.getSessionType();
+        if (outputWindow.isResultsDoc(doc)) {
+            sessionType = outputWindow.getSessionType();
         }
         else if (fileType == 'cljs' && getSession('cljs') !== null) {
             sessionType = 'cljs'
