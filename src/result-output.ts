@@ -45,7 +45,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export async function setSession(session: NReplSession, newNs: string) {
+export function setSession(session: NReplSession, newNs: string): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -56,7 +56,7 @@ export async function setSession(session: NReplSession, newNs: string) {
         _sessionInfo[_sessionType].ns = newNs;
     }
     _prompt = `${_sessionType}::${getNs()}=> `;
-    return await appendToResultsDoc(_prompt);
+    appendToResultsDoc(_prompt, null);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -136,7 +136,9 @@ let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
    we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere 
    are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
-   apply edits one after another without issues. */
+   apply edits one after another without issues.
+   
+   If something must be done after a particular edit, use the onResultAppended callback. */
 export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppendedCallback): void {
     let insertPosition: vscode.Position;
     if (applyingEdit) {

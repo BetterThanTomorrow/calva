@@ -226,9 +226,9 @@ async function loadFile(document, callback: () => {}, pprintOptions: PrettyPrint
             }
         }).catch(async (e) => {
             await resultsOutput.openResultsDoc();
-            await resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
+            resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
-                await resultsOutput.printStacktrace(res.stacktrace);
+                resultsOutput.printStacktrace(res.stacktrace);
             }
         });
         resultsOutput.setSession(client, res.ns);
@@ -319,7 +319,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
         const session = util.getSession(sessionType);
-        await resultsOutput.setSession(session, ns);
+        resultsOutput.setSession(session, ns);
         util.updateREPLSessionType();
         resultsOutput.appendToResultsDoc(code);
         await evaluateCode(code, {
