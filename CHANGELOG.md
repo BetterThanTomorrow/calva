@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Stop popping up output window when load file has errors](https://github.com/BetterThanTomorrow/calva/issues/717)
 
 ## [2.0.113] - 2020-08-1
 - [Add vscode command for to eval code given as args](https://github.com/BetterThanTomorrow/calva/issues/690)
