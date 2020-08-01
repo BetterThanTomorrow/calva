@@ -68,6 +68,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         await initializeDebugger(cljSession);
         outputWindow.appendToResultsDoc('; Debugger initialized');
 
+        outputWindow.setSession(cljSession, nClient.ns);
+
         await createAndConnectReplWindow(cljSession, "clj");
 
         if (connectSequence.afterCLJReplJackInCode) {
@@ -100,7 +102,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
-    outputWindow.setSession(cljSession, nClient.ns);
+    
     return true;
 }
 
