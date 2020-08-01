@@ -69,9 +69,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             stderr: m => err.push(m),
             pprintOptions: pprintOptions
         });
-        resultsOutput.setSession(session, context.ns);
-        util.updateREPLSessionType();
-
+        
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
@@ -119,6 +117,9 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             });
         }
+
+        resultsOutput.setSession(session, context.ns);
+        util.updateREPLSessionType();
     }
 }
 
