@@ -4,13 +4,15 @@ import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
+import * as outputWindow from './result-output';
+import { type } from 'os';
+import { NReplSession } from './nrepl';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function reportTests(results, errorStr, log = true) {
-    let chan = state.outputChannel(),
-        diagnostics = {},
-        total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
+    let diagnostics = {};
+    let total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
     diagnosticCollection.clear();
     if (results.err || results.ex) {
         util.logError({
@@ -23,24 +25,41 @@ function reportTests(results, errorStr, log = true) {
                 let resultSet = result.results[ns];
                 for (const test in resultSet) {
                     for (const a of resultSet[test]) {
+                        for (const prop in a) {
+                            if (typeof (a[prop]) === 'string') {
+                                a[prop] = a[prop].replace(/\r?\n$/, "");
+                            }
+                        }
                         const resultMessage = (resultItem) => {
                           let msg = [];
                           if(!_.isEmpty(resultItem.context) && resultItem.context !== "false")
                             msg.push(resultItem.context);
                           if(resultItem.message)
                             msg.push(resultItem.message);
-                          return `${msg.join(": ")}${(msg.length > 0 ? "\n" : "")}`;
+                            return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
                         }
-                        if (a.type == "error" && log)
-                          chan.appendLine(`ERROR in ${ns}/${test} (line ${a.line}):\n${resultMessage(a)}   error: ${a.error} (${a.file})\nexpected: ${a.expected}`);
+                        if (a.type == "error" && log) {
+                            const rMsg = resultMessage(a);
+                            outputWindow.appendToResultsDoc(`; ERROR in ${ns}/${test} (line ${a.line}):`);
+                            if (rMsg !== '') {
+                                outputWindow.appendToResultsDoc(`; ${resultMessage(a)}`);
+                            }
+                            outputWindow.appendToResultsDoc(`;   error: ${a.error} (${a.file})\n;   expected: ${a.expected}`);
+                        }
                         if (a.type == "fail") {
+                            const rMsg = resultMessage(a);
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
                             if (!diagnostics[a.file])
                                 diagnostics[a.file] = [];
                             diagnostics[a.file].push(err);
-                            if (log)
-                              chan.appendLine(`FAIL in ${ns}/${test} (${a.file}:${a.line}):\n${resultMessage(a)}expected: ${a.expected}  actual: ${a.actual}`);
+                            if (log) {
+                                outputWindow.appendToResultsDoc(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
+                                if (rMsg !== '') {
+                                    outputWindow.appendToResultsDoc(`; ${resultMessage(a)}`);
+                                }
+                                outputWindow.appendToResultsDoc(`;   expected: ${a.expected}\n;   actual: ${a.actual}`);
+                            }
                         }
                     }
                 }
@@ -55,7 +74,7 @@ function reportTests(results, errorStr, log = true) {
         if (total_summary !== null) {
             let hasProblems = total_summary.error + total_summary.fail > 0;
             if (log) {
-                chan.appendLine("\n" + (total_summary.test > 0 ?
+                outputWindow.appendToResultsDoc("; " + (total_summary.test > 0 ?
                     total_summary.test + " tests finished, " +
                     (!hasProblems ? "all passing 👍" :
                         "problems found. 😭" +
@@ -84,9 +103,12 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    let client = util.getSession(util.getFileType(document));
-    state.outputChannel().appendLine("Running all project tests…");
-    reportTests([await client.testAll()], "Running all tests");
+    const session = util.getSession(util.getFileType(document));
+    outputWindow.appendToResultsDoc("; Running all project tests…");
+    outputWindow.setSession(session, session.client.ns);
+    util.updateREPLSessionType();
+    reportTests([await session.testAll()], "Running all tests");
+    outputWindow.setSession(session, session.client.ns);
 }
 
 function runAllTestsCommand() {
@@ -94,13 +116,13 @@ function runAllTestsCommand() {
     runAllTests().catch(() => {});
 }
 
-async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
+async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
     if (!ns.endsWith('-test')) {
-        let testNS = ns + '-test',
-            testFilePath = await client.nsPath(testNS).path;
+        const testNS = ns + '-test';
+        const testFilePath = (await session.nsPath(testNS)).path;
         if (`${testFilePath}` != "") {
             let loadForms = `(load-file "${testFilePath}")`;
-            await client.eval(loadForms);
+            await session.eval(loadForms, testNS).value;
         }
         nss.push(testNS);
         return nss;
@@ -109,31 +131,32 @@ async function considerTestNS(ns: string, client: any, nss: string[]): Promise<s
 }
 
 function runNamespaceTests(document = {}) {
-    let client = util.getSession(util.getFileType(document)),
-        doc = util.getDocument(document),
-        ns = util.getNamespace(doc),
-        nss = [ns];
-
-    evaluate.loadFile({}, async () => {
-        state.outputChannel().appendLine("Running namespace tests…");
-        nss = await considerTestNS(ns, client, nss);
-        let resultPromises = [client.testNs(nss[0])];
-        if (nss.length > 1)
-            resultPromises.push(client.testNs(nss[1]));
-        let results = await Promise.all(resultPromises);
-        reportTests(results, "Running tests");
-    }, disabledPrettyPrinter).catch(() => {});
+    const session = util.getSession(util.getFileType(document));
+    const doc = util.getDocument(document);
+    const ns = util.getNamespace(doc);
+    let nss = [ns];
+    if (!outputWindow.isResultsDoc(doc)) {
+        evaluate.loadFile({}, async () => {
+            outputWindow.appendToResultsDoc("; Running namespace tests…");
+            nss = await considerTestNS(ns, session, nss);
+            const resultPromises = [session.testNs(nss[0])];
+            if (nss.length > 1)
+                resultPromises.push(session.testNs(nss[1]));
+            const results = await Promise.all(resultPromises);
+            reportTests(results, "Running tests");
+        }, disabledPrettyPrinter).catch(() => { });
+    }
 }
 
 async function runTestUnderCursor() {
     const doc = util.getDocument({}),
-        client = util.getSession(util.getFileType(doc)),
+        session = util.getSession(util.getFileType(doc)),
         ns = util.getNamespace(doc),
         test = util.getTestUnderCursor();
 
     evaluate.loadFile(doc, async () => {
-        state.outputChannel().appendLine(`Running test: ${test}…`);
-        const results = [await client.test(ns, [test])];
+        outputWindow.appendToResultsDoc(`; Running test: ${test}…`);
+        const results = [await session.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
     }, disabledPrettyPrinter).catch(() => {});
 }
@@ -149,10 +172,10 @@ function runNamespaceTestsCommand() {
 }
 
 function rerunTests(document = {}) {
-    let client = util.getSession(util.getFileType(document))
+    let session = util.getSession(util.getFileType(document))
     evaluate.loadFile({}, async () => {
-        state.outputChannel().appendLine("Running previously failed tests…");
-        reportTests([await client.retest()], "Retesting");
+        outputWindow.appendToResultsDoc("; Running previously failed tests…");
+        reportTests([await session.retest()], "Retesting");
     }, disabledPrettyPrinter).catch(() => {});
 }
 

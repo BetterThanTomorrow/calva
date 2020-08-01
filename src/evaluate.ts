@@ -202,20 +202,21 @@ function evaluateCurrentForm(document = {}, options = {}) {
 }
 
 async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
-    let current = state.deref(),
-        doc = util.getDocument(document),
-        fileName = util.getFileName(doc),
-        fileType = util.getFileType(doc),
-        client = util.getSession(util.getFileType(doc)),
-        chan = state.outputChannel(),
-        shortFileName = path.basename(fileName),
-        dirName = path.dirname(fileName);
+    const current = state.deref();
+    const doc = util.getDocument(document);
+    const fileName = util.getFileName(doc);
+    const fileType = util.getFileType(doc);
+    const ns = util.getNamespace(doc);
+    const session = util.getSession(util.getFileType(doc));
+    const chan = state.outputChannel();
+    const shortFileName = path.basename(fileName);
+    const dirName = path.dirname(fileName);
 
     if (doc && !resultsOutput.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         resultsOutput.appendToResultsDoc("; Evaluating file: " + fileName);
 
-        let res = client.loadFile(doc.getText(), {
+        let res = session.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
@@ -235,7 +236,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
                 await resultsOutput.printStacktrace(res.stacktrace);
             }
         });
-        resultsOutput.setSession(client, res.ns);
+        resultsOutput.setSession(session, res.ns ? res.ns : ns);
         util.updateREPLSessionType();
     }
     if (callback) {
