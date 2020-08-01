@@ -128,16 +128,19 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 }
 
 let scrollToBottomSub: vscode.Disposable;
-const editQueue: [string, (insertLocation: vscode.Location) => any][] = [];
+interface OnResultAppendedCallback {
+    (insertLocation: vscode.Location): any
+}
+const editQueue: [string, OnResultAppendedCallback][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
-   we should never await it, because that await could possible not return until way later, after edits that came in from elsewhere 
+   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere 
    are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
    apply edits one after another without issues. */
-export function appendToResultsDoc(text: string, callback?: (insertLocation: vscode.Location) => any): void {
+export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppendedCallback): void {
     let insertPosition: vscode.Position;
     if (applyingEdit) {
-        editQueue.push([text, callback]);
+        editQueue.push([text, onResultAppended]);
     } else {
         applyingEdit = true;
         vscode.workspace.openTextDocument(DOC_URI()).then(doc => {
@@ -181,8 +184,8 @@ export function appendToResultsDoc(text: string, callback?: (insertLocation: vsc
                         }
                     }
 
-                    if (callback) {
-                        callback(new vscode.Location(DOC_URI(), insertPosition));
+                    if (onResultAppended) {
+                        onResultAppended(new vscode.Location(DOC_URI(), insertPosition));
                     }
 
                     if (editQueue.length > 0) {
@@ -210,9 +213,9 @@ function makePrintableStackTrace(trace: StackTrace): string {
     return `[${stack.join('\n ')}]`;
 }
 
-export async function printStacktrace(trace: StackTrace) {
+export function printStacktrace(trace: StackTrace):void {
     const text = makePrintableStackTrace(trace);
-    return appendToResultsDoc(text);
+    appendToResultsDoc(text);
 }
 
 function scrollToBottom(editor: vscode.TextEditor) {
@@ -220,3 +223,7 @@ function scrollToBottom(editor: vscode.TextEditor) {
     editor.selection = new vscode.Selection(lastPos, lastPos);
     editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
+
+export {
+    OnResultAppendedCallback
+};
