@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as config from './config';
 import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror";
-const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
+const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, formatText, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 
 
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
@@ -94,6 +94,22 @@ export function formatPositionCommand(editor: vscode.TextEditor) {
 
 export function alignPositionCommand(editor: vscode.TextEditor) {
     formatPosition(editor, true, { "align-associative?": true });
+}
+
+export function formatCode(code: string, eol: number) {
+    const d = cljify({
+        "range-text": code,
+        "eol": eol == 2 ? "\r\n" : "\n",
+        "config": config.getConfig()
+    });
+    const result = jsify(formatText(d));
+    if (!result["error"]) {
+        return result["range-text"];
+    }
+    else {
+        console.error("Error in `formatCode`:", result["error"]);
+        return code;
+    }
 }
 
 function _formatIndex(allText: string, range: [number, number], index: number, eol: string, onType: boolean = false, extraConfig = {}): { "range-text": string, "range": number[], "new-index": number } {
