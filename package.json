@@ -1140,6 +1140,18 @@
                 "title": "Switch Namespace in Output Window to Current Namespace",
                 "enablement": "calva:connected",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.sendCurrentFormToOutputWindow",
+                "title": "Send Current Form to Output/REPL Window",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.sendCurrentTopLevelFormToOutputWindow",
+                "title": "Send Current Top Level Form to Output/REPL Window",
+                "enablement": "calva:connected",
+                "category": "Calva"
             }
         ],
         "keybindings": [
@@ -1252,15 +1264,6 @@
             {
                 "command": "calva.loadNamespace",
                 "key": "ctrl+alt+c ctrl+alt+n"
-            },
-            {
-                "command": "calva.evalCurrentFormInREPLWindow",
-                "key": "ctrl+alt+c ctrl+alt+e",
-                "win": "ctrl+alt+c ctrl+alt+v"
-            },
-            {
-                "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-                "key": "ctrl+alt+c ctrl+alt+space"
             },
             {
                 "command": "calva.runCustomREPLCommand",
@@ -1630,6 +1633,17 @@
                 "command": "calva.setOutputWindowNamespace",
                 "key": "ctrl+alt+c alt+n",
                 "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+            },
+            {
+                "command": "calva.sendCurrentFormToOutputWindow",
+                "key": "ctrl+alt+c ctrl+alt+e",
+                "win": "ctrl+alt+c ctrl+alt+v",
+                "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+            },
+            {
+                "command": "calva.sendCurrentTopLevelFormToOutputWindow",
+                "key": "ctrl+alt+c ctrl+alt+space",
+                "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
             }
         ],
         "menus": {
@@ -1752,11 +1766,11 @@
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",
-        "watch": "tsc -watch -p ./tsconfig.json",
+        "watch": "concurrently \"webpack --mode development --watch\" \"tsc -watch -p ./tsconfig.json\"",
         "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
-        "compile-test": "tsc -p ./",
+        "compile-test": "tsc -p ./ && webpack --mode development",
         "postrelease": "",
         "vscode:prepublish": "npm run release",
         "bump-version": "npm set git-tag-version false && npm version patch",

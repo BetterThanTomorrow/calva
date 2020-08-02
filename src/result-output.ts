@@ -4,6 +4,8 @@ import * as state from './state';
 import { highlight } from './highlight/src/extension'
 import { NReplSession } from './nrepl';
 import * as util from './utilities';
+import select from './select';
+import { formatCode } from './calva-fmt/src/format';
 
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
@@ -136,6 +138,37 @@ export function setNamespaceFromCurrentFile() {
         revealResultsDoc(false);
         util.updateREPLSessionType();
     });
+}
+
+function appendFormGrabbingSessionAndNS(topLevel: boolean) {
+    const session = util.getSession();
+    const ns = util.getNamespace(util.getDocument({}));
+    const editor = vscode.window.activeTextEditor;
+    const doc = editor.document;
+    const selection = editor.selection;
+    let code = "";
+    if (selection.isEmpty) {
+        const formSelection = select.getFormSelection(doc, selection.active, topLevel);
+        code = formatCode(doc.getText(formSelection), doc.eol);
+    } else {
+        code = formatCode(doc.getText(selection), doc.eol);
+    }
+    if (code != "") {
+        setSession(session, ns, _ => {
+            util.updateREPLSessionType();
+            appendToResultsDoc(code, _ => {
+                revealResultsDoc(false);
+            });
+        });
+    }
+}
+
+export function appendCurrentForm() {
+    appendFormGrabbingSessionAndNS(false);
+}
+
+export function appendCurrentTopLevelForm() {
+    appendFormGrabbingSessionAndNS(true);
 }
 
 let scrollToBottomSub: vscode.Disposable;
