@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)
 
 ## [2.0.114] - 2020-08-2
 - Fix: [Stop popping up output window when load file has errors](https://github.com/BetterThanTomorrow/calva/issues/717)

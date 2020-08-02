@@ -32,6 +32,16 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
+let resultsLocations: [vscode.Range, vscode.Location][] = [];
+
+function getResultsLocation(pos: vscode.Position): vscode.Location {
+    for (const [range, location] of resultsLocations) {
+        if (range.contains(pos)) {
+            return location;
+        }
+    }
+}
+
 function evaluated(contentText, hoverText, hasError) {
     return {
         renderOptions: {
@@ -92,6 +102,7 @@ function clearEvaluationDecorations(editor?: vscode.TextEditor) {
             setSelectionDecorations(editor, [], status);
         }
     }
+    resultsLocations = [];
 }
 
 function clearAllEvaluationDecorations() {
@@ -112,7 +123,7 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, status: AnnotationStatus) {
+function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, resultsLocation, status: AnnotationStatus) {
     const uri = editor.document.uri,
         key = uri + ':selectionDecorationRanges:' + status;
     let decoration = {},
@@ -132,6 +143,9 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     setSelectionDecorations(editor, [], status);
     decorationRanges.push(decoration);
     setSelectionDecorations(editor, decorationRanges, status);
+    if (status == AnnotationStatus.SUCCESS || status == AnnotationStatus.ERROR) {
+        resultsLocations.push([codeSelection, resultsLocation]);
+    }
 }
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
@@ -151,5 +165,6 @@ export default {
     clearAllEvaluationDecorations,
     decorateResults,
     decorateSelection,
-    onDidChangeTextDocument
+    onDidChangeTextDocument,
+    getResultsLocation
 };

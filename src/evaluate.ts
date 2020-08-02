@@ -15,7 +15,6 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 function interruptAllEvaluations() {
 
     if (util.getConnectedState()) {
-        let chan = state.outputChannel();
         let msgs: string[] = [];
 
 
@@ -46,7 +45,7 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
     });
 }
 
-async function evaluateCode(code: string, options) {
+async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
     const pprintOptions = options.pprintOptions || state.config().prettyPrintingOptions;
     const line = options.line;
     const column = options.column;
@@ -70,34 +69,57 @@ async function evaluateCode(code: string, options) {
             stderr: m => err.push(m),
             pprintOptions: pprintOptions
         });
+        
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
-            resultsOutput.appendToResultsDoc(value);
-            resultsOutput.setSession(session, context.ns);
-            util.updateREPLSessionType();
-
+            resultsOutput.appendToResultsDoc(value, (resultLocation) => {
+                if (selection) {
+                    const c = selection.start.character;
+                    const editor = vscode.window.activeTextEditor;
+                    if (options.replace) {
+                        const indent = `${' '.repeat(c)}`,
+                            edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, "\n" + indent)),
+                            wsEdit = new vscode.WorkspaceEdit();
+                        wsEdit.set(editor.document.uri, [edit]);
+                        vscode.workspace.applyEdit(wsEdit);
+                    } else if (options.asComment) {
+                        addAsComment(c, value, selection, editor, selection);
+                    } else {
+                        annotations.decorateSelection(value, selection, editor, resultLocation, annotations.AnnotationStatus.SUCCESS);
+                        annotations.decorateResults(value, false, selection, editor);
+                    }
+                }
+            });
+            // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
             if (err.length > 0) {
-                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
-                    await resultsOutput.printStacktrace(context.stacktrace);
+                    resultsOutput.printStacktrace(context.stacktrace);
                 }
             }
-            return value;
         } catch (e) {
             if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                 err = out;
             }
-            if (err.length > 0) {
-                await resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
-                if (context.stacktrace) {
-                    await resultsOutput.printStacktrace(context.stacktrace);
+            resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
+                if (selection) {
+                    const editor = vscode.window.activeTextEditor;
+                    const error = util.stripAnsi(err.join("\n"));
+                    annotations.decorateSelection(error, selection, editor, resultLocation, annotations.AnnotationStatus.ERROR);
+                    annotations.decorateResults(error, true, selection, editor);
+                    if (options.asComment) {
+                        addAsComment(selection.start.character, error, selection, editor, selection);
+                    }
                 }
-                resultsOutput.setSession(session, context.ns);
-                util.updateREPLSessionType();
-            }
-            throw new Error(util.stripAnsi(err.join("\n")));
+                if (context.stacktrace) {
+                    resultsOutput.printStacktrace(context.stacktrace);
+                }
+            });
         }
+
+        resultsOutput.setSession(session, context.ns);
+        util.updateREPLSessionType();
     }
 }
 
@@ -105,8 +127,6 @@ async function evaluateSelection(document: {}, options) {
     const current = state.deref();
     const doc = util.getDocument(document);
     const topLevel = options.topLevel || false;
-    const replace = options.replace || false;
-    const asComment = options.comment || false;
 
     if (current.get('connected')) {
         const editor = vscode.window.activeTextEditor;
@@ -131,32 +151,8 @@ async function evaluateSelection(document: {}, options) {
             if (options.debug) {
                 code = '#dbg\n' + code;
             }
-            annotations.decorateSelection("", codeSelection, editor, annotations.AnnotationStatus.PENDING);
-            let c = codeSelection.start.character
-
-            try {
-                const value = await evaluateCode(code, { ...options, ns, line, column, filePath, session });
-
-                if (replace) {
-                    const indent = `${' '.repeat(c)}`,
-                        edit = vscode.TextEdit.replace(codeSelection, value.replace(/\n/gm, "\n" + indent)),
-                        wsEdit = new vscode.WorkspaceEdit();
-                    wsEdit.set(editor.document.uri, [edit]);
-                    vscode.workspace.applyEdit(wsEdit);
-                } else if (asComment) {
-                    addAsComment(c, value, codeSelection, editor, selection);
-                } else {
-                    annotations.decorateSelection(value, codeSelection, editor, annotations.AnnotationStatus.SUCCESS);
-                    annotations.decorateResults(value, false, codeSelection, editor);
-                }
-            }
-            catch (e) {
-                annotations.decorateSelection(e, codeSelection, editor, annotations.AnnotationStatus.ERROR);
-                annotations.decorateResults(e, true, codeSelection, editor);
-                if (asComment) {
-                    addAsComment(c, e, codeSelection, editor, selection);
-                }
-            }
+            annotations.decorateSelection("", codeSelection, editor, undefined, annotations.AnnotationStatus.PENDING);
+            await evaluateCode(code, { ...options, ns, line, column, filePath, session }, codeSelection);
         }
     } else {
         vscode.window.showErrorMessage("Not connected to a REPL");
@@ -230,9 +226,9 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
                 resultsOutput.appendToResultsDoc("; No results from file evaluation.");
             }
         }).catch(async (e) => {
-            await resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
+            resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
-                await resultsOutput.printStacktrace(res.stacktrace);
+                resultsOutput.printStacktrace(res.stacktrace);
             }
         });
         resultsOutput.setSession(session, res.ns ? res.ns : ns);
@@ -307,13 +303,13 @@ async function togglePrettyPrint() {
     const config = vscode.workspace.getConfiguration('calva'),
         pprintConfigKey = 'prettyPrintingOptions',
         pprintOptions = config.get(pprintConfigKey) as PrettyPrintingOptions;
-        pprintOptions.enabled = !pprintOptions.enabled;
+    pprintOptions.enabled = !pprintOptions.enabled;
     await config.update(pprintConfigKey, pprintOptions, vscode.ConfigurationTarget.Global);
     statusbar.update();
 };
 
 async function instrumentTopLevelForm() {
-    evaluateSelection({}, {topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true})
+    evaluateSelection({}, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true })
         .catch(printWarningForError);
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
@@ -323,9 +319,9 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
         const session = util.getSession(sessionType);
-        await resultsOutput.setSession(session, ns);
+        resultsOutput.setSession(session, ns);
         util.updateREPLSessionType();
-        await resultsOutput.appendToResultsDoc(code);
+        resultsOutput.appendToResultsDoc(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
             session,

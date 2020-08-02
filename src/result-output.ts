@@ -45,7 +45,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export async function setSession(session: NReplSession, newNs: string) {
+export function setSession(session: NReplSession, newNs: string): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -56,7 +56,7 @@ export async function setSession(session: NReplSession, newNs: string) {
         _sessionInfo[_sessionType].ns = newNs;
     }
     _prompt = `${_sessionType}::${getNs()}=> `;
-    return await appendToResultsDoc(_prompt);
+    appendToResultsDoc(_prompt, null);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -118,7 +118,6 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
 
 export async function openResultsDoc(): Promise<vscode.TextDocument> {
     const resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), false);
     return resultsDoc;
 }
 
@@ -129,57 +128,74 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 }
 
 let scrollToBottomSub: vscode.Disposable;
-const editQueue: string[] = [];
+interface OnResultAppendedCallback {
+    (insertLocation: vscode.Location): any
+}
+const editQueue: [string, OnResultAppendedCallback][] = [];
 let applyingEdit = false;
-export async function appendToResultsDoc(text: string): Promise<void> {
+/* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
+   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere 
+   are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
+   apply edits one after another without issues.
+   
+   If something must be done after a particular edit, use the onResultAppended callback. */
+export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppendedCallback): void {
+    let insertPosition: vscode.Position;
     if (applyingEdit) {
-        editQueue.push(text);
+        editQueue.push([text, onResultAppended]);
     } else {
         applyingEdit = true;
-        const doc = await vscode.workspace.openTextDocument(DOC_URI());
-        const ansiStrippedText = util.stripAnsi(text);
-        if (doc) {
-            const edit = new vscode.WorkspaceEdit();
-            const currentContent = doc.getText();
-            const lastLineEmpty = currentContent.match(/\n$/);
-            const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
-            edit.insert(DOC_URI(), doc.positionAt(Infinity), `${appendText}`);
-            if (scrollToBottomSub) {
-                scrollToBottomSub.dispose();
-            }
-            let visibleResultsEditors: vscode.TextEditor[] = [];
-            vscode.window.visibleTextEditors.forEach(editor => {
-                if (isResultsDoc(editor.document)) {
-                    visibleResultsEditors.push(editor);
+        vscode.workspace.openTextDocument(DOC_URI()).then(doc => {
+            const ansiStrippedText = util.stripAnsi(text);
+            if (doc) {
+                const edit = new vscode.WorkspaceEdit();
+                const currentContent = doc.getText();
+                const lastLineEmpty = currentContent.match(/\n$/);
+                const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
+                insertPosition = doc.positionAt(Infinity);
+                edit.insert(DOC_URI(), insertPosition, `${appendText}`);
+                if (scrollToBottomSub) {
+                    scrollToBottomSub.dispose();
                 }
-            });
-            if (visibleResultsEditors.length == 0) {
-                scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
+                let visibleResultsEditors: vscode.TextEditor[] = [];
+                vscode.window.visibleTextEditors.forEach(editor => {
                     if (isResultsDoc(editor.document)) {
-                        scrollToBottom(editor);
-                        scrollToBottomSub.dispose();
+                        visibleResultsEditors.push(editor);
                     }
                 });
-                state.extensionContext.subscriptions.push(scrollToBottomSub);
-            }
-
-            const success = await vscode.workspace.applyEdit(edit);
-            applyingEdit = false;
-            doc.save();
-
-            if (success) {
-                if (visibleResultsEditors.length > 0) {
-                    visibleResultsEditors.forEach(editor => {
-                        scrollToBottom(editor);
-                        highlight(editor);
+                if (visibleResultsEditors.length == 0) {
+                    scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
+                        if (isResultsDoc(editor.document)) {
+                            scrollToBottom(editor);
+                            scrollToBottomSub.dispose();
+                        }
                     });
+                    state.extensionContext.subscriptions.push(scrollToBottomSub);
                 }
-            }
-        }
 
-        if (editQueue.length > 0) {
-            appendToResultsDoc(editQueue.shift());
-        }
+                vscode.workspace.applyEdit(edit).then(success => {
+                    applyingEdit = false;
+                    doc.save();
+
+                    if (success) {
+                        if (visibleResultsEditors.length > 0) {
+                            visibleResultsEditors.forEach(editor => {
+                                scrollToBottom(editor);
+                                highlight(editor);
+                            });
+                        }
+                    }
+
+                    if (onResultAppended) {
+                        onResultAppended(new vscode.Location(DOC_URI(), insertPosition));
+                    }
+
+                    if (editQueue.length > 0) {
+                        return appendToResultsDoc.apply(null, editQueue.shift());
+                    }
+                });
+            }
+        });
     };
 }
 
@@ -199,9 +215,9 @@ function makePrintableStackTrace(trace: StackTrace): string {
     return `[${stack.join('\n ')}]`;
 }
 
-export async function printStacktrace(trace: StackTrace) {
+export function printStacktrace(trace: StackTrace):void {
     const text = makePrintableStackTrace(trace);
-    return appendToResultsDoc(text);
+    appendToResultsDoc(text);
 }
 
 function scrollToBottom(editor: vscode.TextEditor) {
@@ -209,3 +225,7 @@ function scrollToBottom(editor: vscode.TextEditor) {
     editor.selection = new vscode.Selection(lastPos, lastPos);
     editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
+
+export {
+    OnResultAppendedCallback
+};

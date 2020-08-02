@@ -62,17 +62,18 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('cljc', cljSession);
         status.update();
         outputWindow.appendToResultsDoc(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
-        outputWindow.setSession(cljSession, nClient.ns);
         util.updateREPLSessionType();
 
         // Initialize debugger
         await initializeDebugger(cljSession);
         outputWindow.appendToResultsDoc('; Debugger initialized');
 
+        outputWindow.setSession(cljSession, nClient.ns);
+
         await createAndConnectReplWindow(cljSession, "clj");
 
         if (connectSequence.afterCLJReplJackInCode) {
-            await outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'`);
+            outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'`);
             await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
         }
 
@@ -101,7 +102,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
-
+    
     return true;
 }
 
