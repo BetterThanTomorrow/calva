@@ -1134,6 +1134,12 @@
                 "command": "calva.showOutputWindow",
                 "title": "Show Output Window",
                 "enablement": "calva:connected"
+            },
+            {
+                "command": "calva.setOutputWindowNamespace",
+                "title": "Switch Namespace in Output Window to Current Namespace",
+                "enablement": "calva:connected",
+                "category": "Calva"
             }
         ],
         "keybindings": [
@@ -1246,10 +1252,6 @@
             {
                 "command": "calva.loadNamespace",
                 "key": "ctrl+alt+c ctrl+alt+n"
-            },
-            {
-                "command": "calva.setREPLNamespace",
-                "key": "ctrl+alt+c alt+n"
             },
             {
                 "command": "calva.evalCurrentFormInREPLWindow",
@@ -1622,7 +1624,12 @@
             {
                 "command": "calva.showOutputWindow",
                 "key": "ctrl+alt+c o",
-                "when": "calva:connected"
+                "when": "calva:connected && !calva.outputWindowActive"
+            },
+            {
+                "command": "calva.setOutputWindowNamespace",
+                "key": "ctrl+alt+c alt+n",
+                "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
             }
         ],
         "menus": {

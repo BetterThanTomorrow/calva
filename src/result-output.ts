@@ -45,7 +45,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string): void {
+export function setSession(session: NReplSession, newNs: string, onPromptAdded: OnResultAppendedCallback = null): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -56,7 +56,7 @@ export function setSession(session: NReplSession, newNs: string): void {
         _sessionInfo[_sessionType].ns = newNs;
     }
     _prompt = `${_sessionType}::${getNs()}=> `;
-    appendToResultsDoc(_prompt, null);
+    appendToResultsDoc(_prompt, onPromptAdded);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -109,7 +109,9 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-        if (isResultsDoc(event.document)) {
+        const isOutputWindow = isResultsDoc(event.document);
+        vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isOutputWindow);
+        if (isOutputWindow) {
             setViewColumn(event.viewColumn);
         }
     }));
@@ -124,6 +126,15 @@ export async function openResultsDoc(): Promise<vscode.TextDocument> {
 export function revealResultsDoc(preserveFocus: boolean = true) {
     openResultsDoc().then(doc => {
         vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
+    });
+}
+
+export function setNamespaceFromCurrentFile() {
+    const session = util.getSession();
+    const ns = util.getNamespace(util.getDocument({}));
+    setSession(session, ns, _ => {
+        revealResultsDoc(false);
+        util.updateREPLSessionType();
     });
 }
 
