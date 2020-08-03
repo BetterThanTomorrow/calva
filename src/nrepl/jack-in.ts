@@ -4,12 +4,10 @@ import * as fs from "fs";
 import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
-import {nClient, cljSession, cljsSession} from "../connector";
+import { nClient } from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import { isReplWindowOpen} from "../repl-window";
-import { disabledPrettyPrinter } from "../printer";
 import * as outputWindow from '../result-output';
 
 let JackinExecution:vscode.TaskExecution = undefined;

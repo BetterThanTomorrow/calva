@@ -7,29 +7,12 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from "./nrepl";
-import { openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './result-output'
 import evaluate from './evaluate';
-
-async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs"): Promise<void> {
-    if (state.config().openREPLWindowOnConnect) {
-        return createReplWindow(session, mode).then(w => {
-            return openReplWindow(mode, true).then(w => {
-                return w.reconnect().catch(e => {
-                    console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                });
-            }).catch(e => {
-                console.error(`Failed to open ${mode} REPL window: `, e);
-            });
-        }).catch(e => {
-            console.error(`Failed to create ${mode} REPL window: `, e);
-        });
-    }
-}
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -69,8 +52,6 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         outputWindow.appendToResultsDoc('; Debugger initialized');
 
         outputWindow.setSession(cljSession, nClient.ns);
-
-        await createAndConnectReplWindow(cljSession, "clj");
 
         if (connectSequence.afterCLJReplJackInCode) {
             outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'`);
@@ -112,7 +93,6 @@ async function setUpCljsRepl(session, build) {
     outputWindow.appendToResultsDoc(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
     outputWindow.setSession(session, 'cljs.user');
     util.updateREPLSessionType();
-    createAndConnectReplWindow(session, "cljs");
 }
 
 function getFigwheelMainBuilds() {

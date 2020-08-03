@@ -97,16 +97,6 @@ Some keybindings to make it easier for Emacs users
         "when": "calva:activated"
     },
     {
-        "key": "ctrl+x ctrl+e",
-        "command": "calva.evalCurrentTopLevelFormInREPLWindow",
-        "when": "calva:activated"
-    },
-    {
-        "key": "ctrl+alt+c ctrl+alt+space",
-        "command": "-calva.evalCurrentTopLevelFormInREPLWindow",
-        "when": "calva:activated"
-    },
-    {
         "key": "ctrl+x ctrl+s",
         "command": "workbench.action.files.save"
     },

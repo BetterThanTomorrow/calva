@@ -5,7 +5,6 @@ import annotations from './providers/annotations';
 import * as path from 'path';
 import select from './select';
 import * as util from './utilities';
-import { activeReplWindow } from './repl-window';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
@@ -287,10 +286,9 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
-    const replWindow = activeReplWindow();
-    let client = replWindow ? replWindow.session : util.getSession(util.getFileType(util.getDocument({})));
+    let session = util.getSession(util.getFileType(util.getDocument({})));
 
-    let value = await client.eval("*1", client.client.ns).value;
+    let value = await session.eval("*1", session.client.ns).value;
     if (value !== null) {
         vscode.env.clipboard.writeText(value);
         vscode.window.showInformationMessage("Results copied to the clipboard.");

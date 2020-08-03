@@ -5,7 +5,6 @@ import * as state from './state';
 import * as fs from 'fs';
 import * as path from 'path';
 import { NReplSession } from './nrepl';
-import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import * as docMirror from './doc-mirror';
@@ -400,10 +399,6 @@ function updateREPLSessionType() {
     if (current.get('connected')) {
         let sessionType: string;
 
-        let repl = activeReplWindow();
-        if (repl) {
-            sessionType = repl.type;
-        }
         if (outputWindow.isResultsDoc(doc)) {
             sessionType = outputWindow.getSessionType();
         }

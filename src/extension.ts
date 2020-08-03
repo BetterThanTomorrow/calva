@@ -17,7 +17,6 @@ import annotations from './providers/annotations';
 import select from './select';
 import eval from "./evaluate"
 import refresh from "./refresh";
-import * as replWindow from "./repl-window";
 import * as greetings from "./greet";
 import Analytics from './analytics';
 import * as open from 'open';
@@ -114,13 +113,6 @@ function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
     }
 
-    try {
-        replWindow.activate(context);
-    } catch (e) {
-        console.error("Failed activating REPL Window: " + e.message)
-    }
-
-
     chan.appendLine("Calva activated.");
     if (state.config().openCalvaSaysOnStart) {
         chan.show(true);
@@ -170,7 +162,6 @@ function activate(context: vscode.ExtensionContext) {
     }));
 
     // Initial set of the provided contexts
-    vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
     vscode.commands.executeCommand("setContext", "calva:outputWindowActive", false);
     vscode.commands.executeCommand("setContext", "calva:launching", false);
     vscode.commands.executeCommand("setContext", "calva:connected", false);
@@ -195,16 +186,7 @@ function activate(context: vscode.ExtensionContext) {
         onDidSave(document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
-        vscode.commands.executeCommand("setContext", "calva:replWindowActive", false);
         status.update();
-        const editorNamespace = util.getDocumentNamespace(editor.document);
-        if (editor && editor.document && editor.document.fileName) {
-            const fileExtIfClj = editor.document.fileName.match(/\.clj[cs]?/);
-            if (fileExtIfClj && fileExtIfClj.length && state.config().syncReplNamespaceToCurrentFile) {
-                replWindow.setREPLNamespace(editorNamespace)
-                    .catch(reasons => { console.warn(`Namespace sync failed, because: ${reasons}`) });
-            }
-        }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
