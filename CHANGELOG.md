@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)
 - [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)
 
 ## [2.0.115] - 2020-08-2

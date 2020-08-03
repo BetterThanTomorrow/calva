@@ -21,10 +21,16 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
 }
 
 export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Range): vscode.TextEdit[] {
-    const text: string = document.getText(range),
-        rangeTuple: number[] = [document.offsetAt(range.start), document.offsetAt(range.end)],
-        newText: string = _formatRange(text, document.getText(), rangeTuple, document.eol == 2 ? "\r\n" : "\n");
-    return [vscode.TextEdit.replace(range, newText)];
+    const text: string = document.getText(range);
+    const mirroredDoc: MirroredDocument = getDocument(document);
+    const startIndex = document.offsetAt(range.start);
+    const endIndex = document.offsetAt(range.start);
+    const cursor = mirroredDoc.getTokenCursor(startIndex);
+    if (!cursor.withinString()) {
+        const rangeTuple: number[] = [startIndex, endIndex];
+        const newText: string = _formatRange(text, document.getText(), rangeTuple, document.eol == 2 ? "\r\n" : "\n");
+        return [vscode.TextEdit.replace(range, newText)];
+    }
 }
 
 export function formatRange(document: vscode.TextDocument, range: vscode.Range) {
