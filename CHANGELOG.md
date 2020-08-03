@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)
 
 ## [2.0.115] - 2020-08-2
 - [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)
