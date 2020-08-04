@@ -82,7 +82,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                             wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
-                    } else if (options.asComment) {
+                    } else if (options.comment) {
                         addAsComment(c, value, selection, editor, selection);
                     } else {
                         annotations.decorateSelection(value, selection, editor, resultLocation, annotations.AnnotationStatus.SUCCESS);
