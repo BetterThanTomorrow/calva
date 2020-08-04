@@ -55,8 +55,6 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     if (code.length > 0) {
         let err: string[] = [], out: string[] = [];
 
-        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
-
         let context: NReplEvaluation = session.eval(code, ns, {
             file: filePath,
             line: line + 1,
