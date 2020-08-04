@@ -9,8 +9,10 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
     this.state = state;
   }
 
-  async provideDefinition(document, position, token) {
-    if (util.getConnectedState()) {
+  async provideDefinition(document, position: vscode.Position, token) {
+    const evalPos = annotations.getEvaluationPosition(position);
+    const posIsEvalPos = evalPos && position.isEqual(evalPos);
+    if (util.getConnectedState() && !posIsEvalPos) {
       const text = util.getWordAtPosition(document, position);
       const client = util.getSession(util.getFileType(document));
       const info = await client.info(util.getNamespace(document), text);

@@ -85,7 +85,8 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                     } else if (options.comment) {
                         addAsComment(c, value, selection, editor, selection);
                     } else {
-                        annotations.decorateSelection(value, selection, editor, resultLocation, annotations.AnnotationStatus.SUCCESS);
+                        const currentCursorPos = editor.selection.active;
+                        annotations.decorateSelection(value, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.SUCCESS);
                         annotations.decorateResults(value, false, selection, editor);
                     }
                 }
@@ -105,7 +106,8 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const error = util.stripAnsi(err.join("\n"));
-                    annotations.decorateSelection(error, selection, editor, resultLocation, annotations.AnnotationStatus.ERROR);
+                    const currentCursorPos = editor.selection.active;
+                    annotations.decorateSelection(error, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
                     annotations.decorateResults(error, true, selection, editor);
                     if (options.asComment) {
                         addAsComment(selection.start.character, error, selection, editor, selection);
@@ -150,7 +152,7 @@ async function evaluateSelection(document: {}, options) {
             if (options.debug) {
                 code = '#dbg\n' + code;
             }
-            annotations.decorateSelection("", codeSelection, editor, undefined, annotations.AnnotationStatus.PENDING);
+            annotations.decorateSelection("", codeSelection, editor, undefined, undefined, annotations.AnnotationStatus.PENDING);
             await evaluateCode(code, { ...options, ns, line, column, filePath, session }, codeSelection);
         }
     } else {
