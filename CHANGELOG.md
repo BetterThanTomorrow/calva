@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)
+- Fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
 
 ## [2.0.115] - 2020-08-2
 - [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)

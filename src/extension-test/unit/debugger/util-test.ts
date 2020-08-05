@@ -36,7 +36,8 @@ describe('Debugger Util', async () => {
 
         function expectBreakpointToBeFound(fileName: string) {
             const docText = getTestFileText(fileName);
-            debugResponse.coor = getCoordinates(docText);
+            // Add extra coor to account for surrounding code added by Calva
+            debugResponse.coor = [2, ...getCoordinates(docText)];
             doc.insertString(docText);
             const tokenCursor = doc.getTokenCursor(0);
             moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
