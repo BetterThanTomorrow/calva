@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Paste is broken in 2.0.116](https://github.com/BetterThanTomorrow/calva/issues/730)
 
 ## [2.0.116] - 2020-08-05
 - Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)

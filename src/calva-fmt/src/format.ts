@@ -24,7 +24,7 @@ export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Ra
     const text: string = document.getText(range);
     const mirroredDoc: MirroredDocument = getDocument(document);
     const startIndex = document.offsetAt(range.start);
-    const endIndex = document.offsetAt(range.start);
+    const endIndex = document.offsetAt(range.end);
     const cursor = mirroredDoc.getTokenCursor(startIndex);
     if (!cursor.withinString()) {
         const rangeTuple: number[] = [startIndex, endIndex];
