@@ -79,7 +79,6 @@ async function updateDecorations(decorationsSession: NReplSession) {
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
             // Get editor ranges of instrumented var definitions and usages
-            // TODO: Don't run getLintAnalysis if instrumentedDefsInEditor.length === 0
             const lintAnalysis = await getLintAnalysis(decorationsSession, document.getText());
             const instrumentedVarDefs = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
             const instrumentedVarDefRanges = getVarDefinitionRanges(instrumentedVarDefs, document);
