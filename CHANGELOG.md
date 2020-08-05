@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.117] - 2020-08-05
 - Fix: [Paste is broken in 2.0.116](https://github.com/BetterThanTomorrow/calva/issues/730)
 
 ## [2.0.116] - 2020-08-05
