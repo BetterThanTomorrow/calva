@@ -9,7 +9,6 @@ import * as state from '../state';
 import { basename } from 'path';
 import * as docMirror from '../doc-mirror';
 import * as vscode from 'vscode';
-import { replWindows } from '../repl-window';
 import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
@@ -75,11 +74,6 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
         const cljSession = util.getSession(CLOJURE_SESSION_NAME);
-
-        const cljReplWindow = replWindows['clj'];
-        if (cljReplWindow) {
-            await cljReplWindow.startDebugMode(cljSession);
-        }
 
         this.sendResponse(response);
         state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH).send();
@@ -254,12 +248,6 @@ class CalvaDebugSession extends LoggingDebugSession {
         if (cljSession) {
             const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':quit', id, key);
-        }
-
-        const cljReplWindow = replWindows['clj'];
-
-        if (cljReplWindow) {
-            cljReplWindow.stopDebugMode();
         }
 
         debugDecorations.triggerUpdateDecorations();

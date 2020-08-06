@@ -52,24 +52,9 @@ See [Formatting] for information on how to configure this.
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
 
-## The REPL Window
+## Calva says
 
-If you don't want the REPL window to open automatically on jack-in/connect, set `calva.openREPLWindowOnConnect` to `false`. Please note, that if the [Connect Sequence](connect-sequences.md) you are using has `afterCLJReplJackInCode`, then the CLJ REPL window will open anyway in order to evaluate that code for you in a visible way.
-
-### Default Key Bindings
-
-The REPL Window prompt is a multi line editor, and the keyboard shortcuts facilitate this by default. The shortcuts can be configured however you like, and there are two preconfigured maps for it as well. You set this via the `calva.REPLWindowPromptKeyMap` setting:
-
-| Prompt command | multi-line | single-line
-| -------------- | ---------- | -----------
-| **Submit** | <kbd>alt+enter</kbd> | <kbd>enter</kbd>
-| **New line** | <kbd>enter</kbd> | <kbd>alt+enter</kbd>
-| **Cursor Up** | <kbd>up</kbd> | <kbd>alt+up</kbd>
-| **Cursor Down** | <kbd>down</kbd> | <kbd>alt+down</kbd>
-| **History Up** | <kbd>alt+up</kbd> | <kbd>up</kbd>
-| **History Down** | <kbd>alt+down</kbd> | <kbd>down</kbd>
-
-As you might see, the simple pattern here is that in multi-line mode you move the cursor and enter new lines as in the regular editor, and use `alt` modifier to navigate the history and submit evaluations. In single-line mode it is the other way around.
+If you don't want the **Calva says** output panel to open automatically when Calva starts, you can disable that in settings.
 
 ## Pretty Printing
 

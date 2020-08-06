@@ -32,12 +32,20 @@ const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
     rangeBehavior: vscode.DecorationRangeBehavior.ClosedOpen
 });
 
-let resultsLocations: [vscode.Range, vscode.Location][] = [];
+let resultsLocations: [vscode.Range, vscode.Position, vscode.Location][] = [];
 
 function getResultsLocation(pos: vscode.Position): vscode.Location {
-    for (const [range, location] of resultsLocations) {
+    for (const [range, _evaluatePosition, location] of resultsLocations) {
         if (range.contains(pos)) {
             return location;
+        }
+    }
+}
+
+function getEvaluationPosition(pos: vscode.Position): vscode.Position {
+    for (const [range, evaluatePosition, _location] of resultsLocations) {
+        if (range.contains(pos)) {
+            return evaluatePosition;
         }
     }
 }
@@ -123,7 +131,7 @@ function decorateResults(resultString, hasError, codeSelection: vscode.Range, ed
     setResultDecorations(editor, decorationRanges);
 }
 
-function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, resultsLocation, status: AnnotationStatus) {
+function decorateSelection(resultString: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, evaluatePosition: vscode.Position, resultsLocation, status: AnnotationStatus) {
     const uri = editor.document.uri,
         key = uri + ':selectionDecorationRanges:' + status;
     let decoration = {},
@@ -144,7 +152,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     decorationRanges.push(decoration);
     setSelectionDecorations(editor, decorationRanges, status);
     if (status == AnnotationStatus.SUCCESS || status == AnnotationStatus.ERROR) {
-        resultsLocations.push([codeSelection, resultsLocation]);
+        resultsLocations.push([codeSelection, evaluatePosition, resultsLocation]);
     }
 }
 
@@ -166,5 +174,6 @@ export default {
     decorateResults,
     decorateSelection,
     onDidChangeTextDocument,
-    getResultsLocation
+    getResultsLocation,
+    getEvaluationPosition
 };

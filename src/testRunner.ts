@@ -40,11 +40,11 @@ function reportTests(results, errorStr, log = true) {
                         }
                         if (a.type == "error" && log) {
                             const rMsg = resultMessage(a);
-                            outputWindow.appendToResultsDoc(`; ERROR in ${ns}/${test} (line ${a.line}):`);
+                            outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
                             if (rMsg !== '') {
-                                outputWindow.appendToResultsDoc(`; ${resultMessage(a)}`);
+                                outputWindow.append(`; ${resultMessage(a)}`);
                             }
-                            outputWindow.appendToResultsDoc(`;   error: ${a.error} (${a.file})\n;   expected: ${a.expected}`);
+                            outputWindow.append(`;   error: ${a.error} (${a.file})\n;   expected: ${a.expected}`);
                         }
                         if (a.type == "fail") {
                             const rMsg = resultMessage(a);
@@ -54,11 +54,11 @@ function reportTests(results, errorStr, log = true) {
                                 diagnostics[a.file] = [];
                             diagnostics[a.file].push(err);
                             if (log) {
-                                outputWindow.appendToResultsDoc(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
+                                outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
                                 if (rMsg !== '') {
-                                    outputWindow.appendToResultsDoc(`; ${resultMessage(a)}`);
+                                    outputWindow.append(`; ${resultMessage(a)}`);
                                 }
-                                outputWindow.appendToResultsDoc(`;   expected: ${a.expected}\n;   actual: ${a.actual}`);
+                                outputWindow.append(`;   expected: ${a.expected}\n;   actual: ${a.actual}`);
                             }
                         }
                     }
@@ -74,7 +74,7 @@ function reportTests(results, errorStr, log = true) {
         if (total_summary !== null) {
             let hasProblems = total_summary.error + total_summary.fail > 0;
             if (log) {
-                outputWindow.appendToResultsDoc("; " + (total_summary.test > 0 ?
+                outputWindow.append("; " + (total_summary.test > 0 ?
                     total_summary.test + " tests finished, " +
                     (!hasProblems ? "all passing 👍" :
                         "problems found. 😭" +
@@ -104,7 +104,7 @@ function reportTests(results, errorStr, log = true) {
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
     const session = util.getSession(util.getFileType(document));
-    outputWindow.appendToResultsDoc("; Running all project tests…");
+    outputWindow.append("; Running all project tests…");
     outputWindow.setSession(session, session.client.ns);
     util.updateREPLSessionType();
     reportTests([await session.testAll()], "Running all tests");
@@ -137,7 +137,7 @@ function runNamespaceTests(document = {}) {
     let nss = [ns];
     if (!outputWindow.isResultsDoc(doc)) {
         evaluate.loadFile({}, async () => {
-            outputWindow.appendToResultsDoc("; Running namespace tests…");
+            outputWindow.append("; Running namespace tests…");
             nss = await considerTestNS(ns, session, nss);
             const resultPromises = [session.testNs(nss[0])];
             if (nss.length > 1)
@@ -155,7 +155,7 @@ async function runTestUnderCursor() {
         test = util.getTestUnderCursor();
 
     evaluate.loadFile(doc, async () => {
-        outputWindow.appendToResultsDoc(`; Running test: ${test}…`);
+        outputWindow.append(`; Running test: ${test}…`);
         const results = [await session.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
     }, disabledPrettyPrinter).catch(() => {});
@@ -174,7 +174,7 @@ function runNamespaceTestsCommand() {
 function rerunTests(document = {}) {
     let session = util.getSession(util.getFileType(document))
     evaluate.loadFile({}, async () => {
-        outputWindow.appendToResultsDoc("; Running previously failed tests…");
+        outputWindow.append("; Running previously failed tests…");
         reportTests([await session.retest()], "Retesting");
     }, disabledPrettyPrinter).catch(() => {});
 }

@@ -4,12 +4,10 @@ import * as fs from "fs";
 import * as path from "path";
 import * as state from "../state"
 import * as connector from "../connector";
-import {nClient, cljSession, cljsSession} from "../connector";
+import { nClient } from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import { isReplWindowOpen} from "../repl-window";
-import { disabledPrettyPrinter } from "../printer";
 import * as outputWindow from '../result-output';
 
 let JackinExecution:vscode.TaskExecution = undefined;
@@ -95,20 +93,20 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
                     utilities.setLaunchingState(null);
                     watcher.removeAllListeners();
                     await connector.connect(connectSequence, true);
-                    outputWindow.appendToResultsDoc("; Jack-in done.");
+                    outputWindow.append("; Jack-in done.");
                 }
             });
         } catch(exception) {
-            outputWindow.appendToResultsDoc("; Error in Jack-in: unable to read port file");
-            outputWindow.appendToResultsDoc("; " + exception);
-            outputWindow.appendToResultsDoc("; You may have chosen the wrong jack-in configuration for your project.");
+            outputWindow.append("; Error in Jack-in: unable to read port file");
+            outputWindow.append("; " + exception);
+            outputWindow.append("; You may have chosen the wrong jack-in configuration for your project.");
             vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output channel for more information.");
             cancelJackInTask();
         }
     }, (reason) => {
         watcher.removeAllListeners();
-        outputWindow.appendToResultsDoc("; Error in Jack-in: ");
-        outputWindow.appendToResultsDoc("; " + reason);
+        outputWindow.append("; Error in Jack-in: ");
+        outputWindow.append("; " + reason);
         vscode.window.showErrorMessage("Error in Jack-in. See output channel for more information.");
         cancelJackInTask();
     });
@@ -151,11 +149,11 @@ export async function calvaJackIn() {
 
         if (!projectConnectSequence) {
             state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
-            outputWindow.appendToResultsDoc("; Aborting Jack-in, since no project type was selected.");
+            outputWindow.append("; Aborting Jack-in, since no project type was selected.");
             return;
         }
         if (projectConnectSequence.projectType !== 'generic') {
-            outputWindow.appendToResultsDoc("; Jacking in...");
+            outputWindow.append("; Jacking in...");
 
             const projectTypeName: string = projectConnectSequence.projectType;
             let selectedCljsType: CljsTypes;
@@ -174,10 +172,10 @@ export async function calvaJackIn() {
             executeJackInTask(projectType, projectConnectSequence.name, executable, args, cljTypes, projectConnectSequence)
                 .then(() => { }, () => { });
         } else {
-            outputWindow.appendToResultsDoc("; There is no Jack-in possible for this project type.");
+            outputWindow.append("; There is no Jack-in possible for this project type.");
         }
     } else { // Only 'generic' type left
-        outputWindow.appendToResultsDoc("; No Jack-in possible.");
+        outputWindow.append("; No Jack-in possible.");
         vscode.window.showInformationMessage('No supported Jack-in project types detected. Maybe try starting your project manually and use the Connect command?')
     }
 
@@ -201,7 +199,7 @@ export async function calvaDisconnect() {
                     utilities.setLaunchingState(null);
                     utilities.setConnectingState(false);
                     statusbar.update();
-                    outputWindow.appendToResultsDoc("; Interrupting Jack-in process.");
+                    outputWindow.append("; Interrupting Jack-in process.");
                 }
             });
         return;

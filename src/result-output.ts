@@ -4,6 +4,8 @@ import * as state from './state';
 import { highlight } from './highlight/src/extension'
 import { NReplSession } from './nrepl';
 import * as util from './utilities';
+import select from './select';
+import { formatCode } from './calva-fmt/src/format';
 
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
@@ -45,7 +47,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string): void {
+export function setSession(session: NReplSession, newNs: string, onPromptAdded: OnResultAppendedCallback = null): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -56,7 +58,7 @@ export function setSession(session: NReplSession, newNs: string): void {
         _sessionInfo[_sessionType].ns = newNs;
     }
     _prompt = `${_sessionType}::${getNs()}=> `;
-    appendToResultsDoc(_prompt, null);
+    append(_prompt, onPromptAdded);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -109,7 +111,9 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-        if (isResultsDoc(event.document)) {
+        const isOutputWindow = isResultsDoc(event.document);
+        vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isOutputWindow);
+        if (isOutputWindow) {
             setViewColumn(event.viewColumn);
         }
     }));
@@ -127,6 +131,46 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
     });
 }
 
+export function setNamespaceFromCurrentFile() {
+    const session = util.getSession();
+    const ns = util.getNamespace(util.getDocument({}));
+    setSession(session, ns, _ => {
+        revealResultsDoc(false);
+        util.updateREPLSessionType();
+    });
+}
+
+function appendFormGrabbingSessionAndNS(topLevel: boolean) {
+    const session = util.getSession();
+    const ns = util.getNamespace(util.getDocument({}));
+    const editor = vscode.window.activeTextEditor;
+    const doc = editor.document;
+    const selection = editor.selection;
+    let code = "";
+    if (selection.isEmpty) {
+        const formSelection = select.getFormSelection(doc, selection.active, topLevel);
+        code = formatCode(doc.getText(formSelection), doc.eol);
+    } else {
+        code = formatCode(doc.getText(selection), doc.eol);
+    }
+    if (code != "") {
+        setSession(session, ns, _ => {
+            util.updateREPLSessionType();
+            append(code, _ => {
+                revealResultsDoc(false);
+            });
+        });
+    }
+}
+
+export function appendCurrentForm() {
+    appendFormGrabbingSessionAndNS(false);
+}
+
+export function appendCurrentTopLevelForm() {
+    appendFormGrabbingSessionAndNS(true);
+}
+
 let scrollToBottomSub: vscode.Disposable;
 interface OnResultAppendedCallback {
     (insertLocation: vscode.Location): any
@@ -139,7 +183,7 @@ let applyingEdit = false;
    apply edits one after another without issues.
    
    If something must be done after a particular edit, use the onResultAppended callback. */
-export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppendedCallback): void {
+export function append(text: string, onResultAppended?: OnResultAppendedCallback): void {
     let insertPosition: vscode.Position;
     if (applyingEdit) {
         editQueue.push([text, onResultAppended]);
@@ -191,7 +235,7 @@ export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppe
                     }
 
                     if (editQueue.length > 0) {
-                        return appendToResultsDoc.apply(null, editQueue.shift());
+                        return append.apply(null, editQueue.shift());
                     }
                 });
             }
@@ -217,7 +261,7 @@ function makePrintableStackTrace(trace: StackTrace): string {
 
 export function printStacktrace(trace: StackTrace):void {
     const text = makePrintableStackTrace(trace);
-    appendToResultsDoc(text);
+    append(text);
 }
 
 function scrollToBottom(editor: vscode.TextEditor) {

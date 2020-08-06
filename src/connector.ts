@@ -7,29 +7,12 @@ import * as open from 'open';
 import status from './status';
 import * as projectTypes from './nrepl/project-types';
 import { NReplClient, NReplSession } from "./nrepl";
-import { openReplWindow, sendTextToREPLWindow, createReplWindow } from './repl-window';
 import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, askForConnectSequence } from './nrepl/connectSequence';
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './result-output'
 import evaluate from './evaluate';
-
-async function createAndConnectReplWindow(session: NReplSession, mode: "clj" | "cljs"): Promise<void> {
-    if (state.config().openREPLWindowOnConnect) {
-        return createReplWindow(session, mode).then(w => {
-            return openReplWindow(mode, true).then(w => {
-                return w.reconnect().catch(e => {
-                    console.error(`Failed reconnecting ${mode} REPL window: `, e);
-                });
-            }).catch(e => {
-                console.error(`Failed to open ${mode} REPL window: `, e);
-            });
-        }).catch(e => {
-            console.error(`Failed to create ${mode} REPL window: `, e);
-        });
-    }
-}
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -43,14 +26,14 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
     util.setConnectingState(true);
     status.update();
     try {
-        outputWindow.appendToResultsDoc("; Hooking up nREPL sessions...");
+        outputWindow.append("; Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
         nClient = await NReplClient.create({ host: hostname, port: +port })
         nClient.addOnCloseHandler(c => {
             util.setConnectedState(false);
             util.setConnectingState(false);
             if (!c["silent"]) // we didn't deliberately close this session, mention this fact.
-                outputWindow.appendToResultsDoc("; nREPL Connection was closed");
+                outputWindow.append("; nREPL Connection was closed");
             status.update();
         })
         cljSession = nClient.session;
@@ -61,19 +44,17 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('clj', cljSession);
         state.cursor.set('cljc', cljSession);
         status.update();
-        outputWindow.appendToResultsDoc(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
+        outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
         util.updateREPLSessionType();
 
         // Initialize debugger
         await initializeDebugger(cljSession);
-        outputWindow.appendToResultsDoc('; Debugger initialized');
+        outputWindow.append('; Debugger initialized');
 
         outputWindow.setSession(cljSession, nClient.ns);
 
-        await createAndConnectReplWindow(cljSession, "clj");
-
         if (connectSequence.afterCLJReplJackInCode) {
-            outputWindow.appendToResultsDoc(`; Evaluating 'afterCLJReplJackInCode'`);
+            outputWindow.append(`; Evaluating 'afterCLJReplJackInCode'`);
             await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
         }
 
@@ -92,13 +73,13 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
                 await setUpCljsRepl(cljsSession, cljsBuild);
             }
         } catch (e) {
-            outputWindow.appendToResultsDoc("; Error while connecting cljs REPL: " + e);
+            outputWindow.append("; Error while connecting cljs REPL: " + e);
         }
         status.update();
     } catch (e) {
         util.setConnectingState(false);
         util.setConnectedState(false);
-        outputWindow.appendToResultsDoc("; Failed connecting.");
+        outputWindow.append("; Failed connecting.");
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
@@ -109,10 +90,9 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
 async function setUpCljsRepl(session, build) {
     state.cursor.set("cljs", session);
     status.update();
-    outputWindow.appendToResultsDoc(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
+    outputWindow.append(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
     outputWindow.setSession(session, 'cljs.user');
     util.updateREPLSessionType();
-    createAndConnectReplWindow(session, "cljs");
 }
 
 function getFigwheelMainBuilds() {
@@ -120,8 +100,8 @@ function getFigwheelMainBuilds() {
     let builds = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
     if (builds.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel build files (.cljs.edn) in the project directory.");
-        outputWindow.appendToResultsDoc("; There are no figwheel build files (.cljs.edn) in the project directory.");
-        outputWindow.appendToResultsDoc("; Connection to Figwheel Main aborted.");
+        outputWindow.append("; There are no figwheel build files (.cljs.edn) in the project directory.");
+        outputWindow.append("; Connection to Figwheel Main aborted.");
         throw "Aborted";
     }
     return builds;
@@ -216,7 +196,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
     const printThisPrinter: processOutputFn = x => {
             if (cljsType.printThisLineRegExp) {
                 if (x.search(cljsType.printThisLineRegExp) >= 0) {
-                    outputWindow.appendToResultsDoc('; ' + x.replace(/\s*$/, ""));
+                    outputWindow.append('; ' + x.replace(/\s*$/, ""));
                 }
             }
         },
@@ -236,32 +216,32 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
             // When the app is ready to start, say so.
             if (!haveShownStartMessage && cljsType.isReadyToStartRegExp) {
                 if (x.search(cljsType.isReadyToStartRegExp) >= 0) {
-                    outputWindow.appendToResultsDoc("; CLJS REPL ready to connect. Please, start your ClojureScript app.");
+                    outputWindow.append("; CLJS REPL ready to connect. Please, start your ClojureScript app.");
                     haveShownStartMessage = true;
                 }
             }
             // If we have an appURL to go with the ”start now” message, say so
             if (appURL && haveShownStartMessage && !haveShownAppURL) {
                 if (cljsType.shouldOpenUrl) {
-                    outputWindow.appendToResultsDoc(`; Opening ClojureScript app in the browser at: ${appURL} ...`);
+                    outputWindow.append(`; Opening ClojureScript app in the browser at: ${appURL} ...`);
                     open(appURL).catch(reason => {
-                        outputWindow.appendToResultsDoc("; Error opening ClojureScript app in the browser: " + reason);
+                        outputWindow.append("; Error opening ClojureScript app in the browser: " + reason);
                     });
                 } else {
-                    outputWindow.appendToResultsDoc(";   Open the app on this URL: " + appURL);
+                    outputWindow.append(";   Open the app on this URL: " + appURL);
                 }
                 haveShownAppURL = true;
             }
             // Wait for any appURL to be printed before we round of the ”start now” message.
             // (If we do not have the regexp for extracting the appURL, do not wait for appURL.)
             if (!haveShownStartSuffix && (haveShownAppURL || (haveShownStartMessage && !cljsType.openUrlRegExp))) {
-                outputWindow.appendToResultsDoc(";   The CLJS REPL will connect when your app is running.");
+                outputWindow.append(";   The CLJS REPL will connect when your app is running.");
                 haveShownStartSuffix = true;
             }
         },
         // This processor prints everything. We use it for stderr below.
         allPrinter: processOutputFn = x => {
-            outputWindow.appendToResultsDoc('; ' + util.stripAnsi(x).replace(/\s*$/, ""));
+            outputWindow.append('; ' + util.stripAnsi(x).replace(/\s*$/, ""));
         }
 
     let replType: ReplType = {
@@ -330,7 +310,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         });
                     }
                     if (builds) {
-                        outputWindow.appendToResultsDoc("; Starting cljs repl for: " + projectTypeName + "...");
+                        outputWindow.append("; Starting cljs repl for: " + projectTypeName + "...");
                         state.extensionContext.workspaceState.update('cljsReplTypeHasBuilds', true);
                         startCode = startCode.replace("%BUILDS%", builds.map(x => { return `"${x}"` }).join(" "));
                         const result = evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
@@ -339,11 +319,11 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         }
                         return result;
                     } else {
-                        outputWindow.appendToResultsDoc("; Aborted starting cljs repl.");
+                        outputWindow.append("; Aborted starting cljs repl.");
                         throw "Aborted";
                     }
                 } else {
-                    outputWindow.appendToResultsDoc("; Starting cljs repl for: " + projectTypeName + "...");
+                    outputWindow.append("; Starting cljs repl for: " + projectTypeName + "...");
                     return evalConnectCode(session, startCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
                 }
             } else {
@@ -371,20 +351,20 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
 }
 
 async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: string) {
-    outputWindow.appendToResultsDoc("; Creating cljs repl session...");
+    outputWindow.append("; Creating cljs repl session...");
     let newCljsSession = await session.clone();
     newCljsSession.replType = 'cljs';
     if (newCljsSession) {
-        outputWindow.appendToResultsDoc("; Connecting cljs repl: " + projectTypeName + "...");
-        outputWindow.appendToResultsDoc(";   The Calva Connection Log might have more connection progress information.");
+        outputWindow.append("; Connecting cljs repl: " + projectTypeName + "...");
+        outputWindow.append(";   The Calva Connection Log might have more connection progress information.");
         if (repl.start != undefined) {
             if (await repl.start(newCljsSession, repl.name, repl.started)) {
                 state.analytics().logEvent("REPL", "StartedCLJS", repl.name).send();
-                outputWindow.appendToResultsDoc("; Cljs builds started");
+                outputWindow.append("; Cljs builds started");
                 newCljsSession = await session.clone();
             } else {
                 state.analytics().logEvent("REPL", "FailedStartingCLJS", repl.name).send();
-                outputWindow.appendToResultsDoc("; Failed starting cljs repl");
+                outputWindow.append("; Failed starting cljs repl");
                 state.cursor.set('cljsBuild', null);
                 return [null, null];
             }
@@ -397,7 +377,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
             let build = state.deref().get('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
             let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.` : "");
-            outputWindow.appendToResultsDoc(`; ${failed}`);
+            outputWindow.append(`; ${failed}`);
             state.cursor.set('cljsBuild', null);
             vscode.window.showInformationMessage(
                 failed,
@@ -431,7 +411,7 @@ async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSeq
             state.cursor.set("port", parsedPort);
             await connectToHost(hostname, parsedPort, connectSequence);
         } else {
-            outputWindow.appendToResultsDoc("; Bad url: " + url);
+            outputWindow.append("; Bad url: " + url);
             util.setConnectingState(false);
             status.update();
         }
@@ -468,7 +448,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
                 await promptForNreplUrlAndConnect(port, connectSequence);
             }
         } else {
-            outputWindow.appendToResultsDoc('; No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
+            outputWindow.append('; No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
             await promptForNreplUrlAndConnect(port, connectSequence);
         }
     } else {
@@ -483,12 +463,12 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
 
     if (connectSequence) {
         const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
-        outputWindow.appendToResultsDoc(`; Connecting ...`);
+        outputWindow.append(`; Connecting ...`);
         state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
         connect(connectSequence, false).catch(() => { });
     }
     else {
-        outputWindow.appendToResultsDoc("; Aborting connect, error determining connect sequence.");
+        outputWindow.append("; Aborting connect, error determining connect sequence.");
     }
 }
 

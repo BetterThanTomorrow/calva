@@ -1,7 +1,6 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
-import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
@@ -207,14 +206,7 @@ export class NReplSession {
             const outputChan = state.config().asyncOutputDestination;
             let msgText = msgValue.replace(/\n\r?$/, "");
 
-            if (outputChan == "REPL Window") {
-                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
-            } else if (outputChan == "Calva says") {
-                state.outputChannel().appendLine(msgText);
-            } else if (outputChan == "Both") {
-                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
-                state.outputChannel().appendLine(msgText);
-            }
+            state.outputChannel().appendLine(msgText);
         }
     }
 
