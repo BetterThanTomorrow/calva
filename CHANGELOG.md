@@ -3,13 +3,19 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)
 - [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)
 
-## [2.0.115] - 2020-08-2
+## [2.0.117] - 2020-08-05
+- Fix: [Paste is broken in 2.0.116](https://github.com/BetterThanTomorrow/calva/issues/730)
+
+## [2.0.116] - 2020-08-05
+- Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)
+- Fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
+
+## [2.0.115] - 2020-08-02
 - [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)
 
-## [2.0.114] - 2020-08-2
+## [2.0.114] - 2020-08-02
 - Fix: [Stop popping up output window when load file has errors](https://github.com/BetterThanTomorrow/calva/issues/717)
 
 ## [2.0.113] - 2020-08-1

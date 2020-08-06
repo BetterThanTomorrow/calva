@@ -24,7 +24,8 @@ function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse
     const [_, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
     let inSyntaxQuote = false;
 
-    const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state
+    // Remove first coor to account for surrounding code added to user code by Calva
+    const coor = debugResponse.coor.slice(1);
 
     for (let i = 0; i < coor.length; i++) {
         while (!tokenCursor.downList(true)) {

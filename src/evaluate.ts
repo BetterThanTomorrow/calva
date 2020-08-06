@@ -55,7 +55,10 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     if (code.length > 0) {
         let err: string[] = [], out: string[] = [];
 
-        let context: NReplEvaluation = session.eval(code, ns, {
+        // If the added surrounding code here is changed, check that the debugger still finds breakpoints correctly
+        const codeWithInNsCall = `(do (in-ns '${ns}) ${code})`;
+
+        let context: NReplEvaluation = session.eval(codeWithInNsCall, ns, {
             file: filePath,
             line: line + 1,
             column: column + 1,
