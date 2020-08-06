@@ -58,7 +58,7 @@ export function setSession(session: NReplSession, newNs: string, onPromptAdded: 
         _sessionInfo[_sessionType].ns = newNs;
     }
     _prompt = `${_sessionType}::${getNs()}=> `;
-    appendToResultsDoc(_prompt, onPromptAdded);
+    append(_prompt, onPromptAdded);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -156,7 +156,7 @@ function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     if (code != "") {
         setSession(session, ns, _ => {
             util.updateREPLSessionType();
-            appendToResultsDoc(code, _ => {
+            append(code, _ => {
                 revealResultsDoc(false);
             });
         });
@@ -183,7 +183,7 @@ let applyingEdit = false;
    apply edits one after another without issues.
    
    If something must be done after a particular edit, use the onResultAppended callback. */
-export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppendedCallback): void {
+export function append(text: string, onResultAppended?: OnResultAppendedCallback): void {
     let insertPosition: vscode.Position;
     if (applyingEdit) {
         editQueue.push([text, onResultAppended]);
@@ -235,7 +235,7 @@ export function appendToResultsDoc(text: string, onResultAppended?: OnResultAppe
                     }
 
                     if (editQueue.length > 0) {
-                        return appendToResultsDoc.apply(null, editQueue.shift());
+                        return append.apply(null, editQueue.shift());
                     }
                 });
             }
@@ -261,7 +261,7 @@ function makePrintableStackTrace(trace: StackTrace): string {
 
 export function printStacktrace(trace: StackTrace):void {
     const text = makePrintableStackTrace(trace);
-    appendToResultsDoc(text);
+    append(text);
 }
 
 function scrollToBottom(editor: vscode.TextEditor) {

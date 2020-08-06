@@ -20,7 +20,7 @@ function interruptAllEvaluations() {
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        resultsOutput.appendToResultsDoc(normalizeNewLinesAndJoin(msgs));
+        resultsOutput.append(normalizeNewLinesAndJoin(msgs));
 
         NReplSession.getInstances().forEach((session, index) => {
             session.interruptAll();
@@ -64,7 +64,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             column: column + 1,
             stdout: (m) => {
                 out.push(m);
-                resultsOutput.appendToResultsDoc(normalizeNewLines(m));
+                resultsOutput.append(normalizeNewLines(m));
             },
             stderr: m => err.push(m),
             pprintOptions: pprintOptions
@@ -73,7 +73,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
-            resultsOutput.appendToResultsDoc(value, (resultLocation) => {
+            resultsOutput.append(value, (resultLocation) => {
                 if (selection) {
                     const c = selection.start.character;
                     const editor = vscode.window.activeTextEditor;
@@ -94,7 +94,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             });
             // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
             if (err.length > 0) {
-                resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                resultsOutput.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
                     resultsOutput.printStacktrace(context.stacktrace);
                 }
@@ -103,7 +103,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                 err = out;
             }
-            resultsOutput.appendToResultsDoc(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
+            resultsOutput.append(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const error = util.stripAnsi(err.join("\n"));
@@ -212,23 +212,23 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
 
     if (doc && !resultsOutput.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        resultsOutput.appendToResultsDoc("; Evaluating file: " + fileName);
+        resultsOutput.append("; Evaluating file: " + fileName);
 
         let res = session.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
-            stdout: m => resultsOutput.appendToResultsDoc(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
-            stderr: m => resultsOutput.appendToResultsDoc('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
+            stdout: m => resultsOutput.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
+            stderr: m => resultsOutput.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions
         })
         await res.value.then((value) => {
             if (value) {
-                resultsOutput.appendToResultsDoc(value);
+                resultsOutput.append(value);
             } else {
-                resultsOutput.appendToResultsDoc("; No results from file evaluation.");
+                resultsOutput.append("; No results from file evaluation.");
             }
         }).catch(async (e) => {
-            resultsOutput.appendToResultsDoc(`; Evaluation of file ${fileName} failed: ${e}`);
+            resultsOutput.append(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
                 resultsOutput.printStacktrace(res.stacktrace);
             }
@@ -322,7 +322,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
         const session = util.getSession(sessionType);
         resultsOutput.setSession(session, ns);
         util.updateREPLSessionType();
-        resultsOutput.appendToResultsDoc(code);
+        resultsOutput.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
             session,
@@ -332,7 +332,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
         });
     }
     catch (e) {
-        resultsOutput.appendToResultsDoc("; Evaluation failed.")
+        resultsOutput.append("; Evaluation failed.")
     }
 }
 

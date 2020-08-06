@@ -320,10 +320,10 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    outputWindow.appendToResultsDoc('; ' + error.reason);
+    outputWindow.append('; ' + error.reason);
     if (error.line !== undefined && error.line !== null &&
         error.column !== undefined && error.column !== null) {
-        outputWindow.appendToResultsDoc(";   at line: " + error.line + " and column: " + error.column)
+        outputWindow.append(";   at line: " + error.line + " and column: " + error.column)
     }
 }
 
@@ -355,12 +355,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    outputWindow.appendToResultsDoc('; ' + warning.reason);
+    outputWindow.append('; ' + warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
-            outputWindow.appendToResultsDoc(";   at line: " + warning.line + " and column: " + warning.column)
+            outputWindow.append(";   at line: " + warning.line + " and column: " + warning.column)
         } else {
-            outputWindow.appendToResultsDoc(";   at line: " + warning.line)
+            outputWindow.append(";   at line: " + warning.line)
         }
     }
 }
