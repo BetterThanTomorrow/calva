@@ -55,10 +55,9 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     if (code.length > 0) {
         let err: string[] = [], out: string[] = [];
 
-        // If the added surrounding code here is changed, check that the debugger still finds breakpoints correctly
-        const codeWithInNsCall = `(do (in-ns '${ns}) ${code})`;
+        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
-        let context: NReplEvaluation = session.eval(codeWithInNsCall, ns, {
+        let context: NReplEvaluation = session.eval(code, ns, {
             file: filePath,
             line: line + 1,
             column: column + 1,
@@ -213,6 +212,8 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     if (doc && !resultsOutput.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         resultsOutput.append("; Evaluating file: " + fileName);
+
+        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
         let res = session.loadFile(doc.getText(), {
             fileName: fileName,
