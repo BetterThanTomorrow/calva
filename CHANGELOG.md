@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.118] - 2020-08-06
 - [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)
 
 ## [2.0.117] - 2020-08-05
