@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.119] - 2020-08-07
 - Really fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
 
 ## [2.0.118] - 2020-08-06
