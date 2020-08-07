@@ -131,16 +131,19 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
     });
 }
 
-export function setNamespaceFromCurrentFile() {
+export async function setNamespaceFromCurrentFile() {
     const session = util.getSession();
     const ns = util.getNamespace(util.getDocument({}));
+    if (getNs() !== ns) {
+        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+    }
     setSession(session, ns, _ => {
         revealResultsDoc(false);
         util.updateREPLSessionType();
     });
 }
 
-function appendFormGrabbingSessionAndNS(topLevel: boolean) {
+async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
     const session = util.getSession();
     const ns = util.getNamespace(util.getDocument({}));
     const editor = vscode.window.activeTextEditor;
@@ -154,6 +157,9 @@ function appendFormGrabbingSessionAndNS(topLevel: boolean) {
         code = formatCode(doc.getText(selection), doc.eol);
     }
     if (code != "") {
+        if (getNs() !== ns) {
+            await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+        }
         setSession(session, ns, _ => {
             util.updateREPLSessionType();
             append(code, _ => {
@@ -259,7 +265,7 @@ function makePrintableStackTrace(trace: StackTrace): string {
     return `[${stack.join('\n ')}]`;
 }
 
-export function printStacktrace(trace: StackTrace):void {
+export function printStacktrace(trace: StackTrace): void {
     const text = makePrintableStackTrace(trace);
     append(text);
 }

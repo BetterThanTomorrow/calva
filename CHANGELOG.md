@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Really fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
 
 ## [2.0.118] - 2020-08-06
 - [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)

@@ -8,7 +8,7 @@ import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as resultsOutput from './result-output';
+import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 
 function interruptAllEvaluations() {
@@ -20,7 +20,7 @@ function interruptAllEvaluations() {
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        resultsOutput.append(normalizeNewLinesAndJoin(msgs));
+        outputWindow.append(normalizeNewLinesAndJoin(msgs));
 
         NReplSession.getInstances().forEach((session, index) => {
             session.interruptAll();
@@ -55,7 +55,9 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     if (code.length > 0) {
         let err: string[] = [], out: string[] = [];
 
-        await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+        if (outputWindow.getNs() !== ns) {
+            await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
+        }
 
         let context: NReplEvaluation = session.eval(code, ns, {
             file: filePath,
@@ -63,7 +65,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             column: column + 1,
             stdout: (m) => {
                 out.push(m);
-                resultsOutput.append(normalizeNewLines(m));
+                outputWindow.append(normalizeNewLines(m));
             },
             stderr: m => err.push(m),
             pprintOptions: pprintOptions
@@ -72,7 +74,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
-            resultsOutput.append(value, (resultLocation) => {
+            outputWindow.append(value, (resultLocation) => {
                 if (selection) {
                     const c = selection.start.character;
                     const editor = vscode.window.activeTextEditor;
@@ -93,16 +95,16 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             });
             // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
             if (err.length > 0) {
-                resultsOutput.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
-                    resultsOutput.printStacktrace(context.stacktrace);
+                    outputWindow.printStacktrace(context.stacktrace);
                 }
             }
         } catch (e) {
             if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
                 err = out;
             }
-            resultsOutput.append(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
+            outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const error = util.stripAnsi(err.join("\n"));
@@ -114,12 +116,12 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                     }
                 }
                 if (context.stacktrace) {
-                    resultsOutput.printStacktrace(context.stacktrace);
+                    outputWindow.printStacktrace(context.stacktrace);
                 }
             });
         }
 
-        resultsOutput.setSession(session, context.ns);
+        outputWindow.setSession(session, context.ns);
         util.updateREPLSessionType();
     }
 }
@@ -209,32 +211,32 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     const shortFileName = path.basename(fileName);
     const dirName = path.dirname(fileName);
 
-    if (doc && !resultsOutput.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && !outputWindow.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        resultsOutput.append("; Evaluating file: " + fileName);
+        outputWindow.append("; Evaluating file: " + fileName);
 
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
         let res = session.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
-            stdout: m => resultsOutput.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
-            stderr: m => resultsOutput.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
+            stdout: m => outputWindow.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
+            stderr: m => outputWindow.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions
         })
         await res.value.then((value) => {
             if (value) {
-                resultsOutput.append(value);
+                outputWindow.append(value);
             } else {
-                resultsOutput.append("; No results from file evaluation.");
+                outputWindow.append("; No results from file evaluation.");
             }
         }).catch(async (e) => {
-            resultsOutput.append(`; Evaluation of file ${fileName} failed: ${e}`);
+            outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
-                resultsOutput.printStacktrace(res.stacktrace);
+                outputWindow.printStacktrace(res.stacktrace);
             }
         });
-        resultsOutput.setSession(session, res.ns ? res.ns : ns);
+        outputWindow.setSession(session, res.ns ? res.ns : ns);
         util.updateREPLSessionType();
     }
     if (callback) {
@@ -317,13 +319,13 @@ async function instrumentTopLevelForm() {
 }
 
 async function evaluateInOutputWindow(code: string, sessionType: string, ns: string) {
-    const outputDocument = await resultsOutput.openResultsDoc();
+    const outputDocument = await outputWindow.openResultsDoc();
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
         const session = util.getSession(sessionType);
-        resultsOutput.setSession(session, ns);
+        outputWindow.setSession(session, ns);
         util.updateREPLSessionType();
-        resultsOutput.append(code);
+        outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
             session,
@@ -333,7 +335,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
         });
     }
     catch (e) {
-        resultsOutput.append("; Evaluation failed.")
+        outputWindow.append("; Evaluation failed.")
     }
 }
 
