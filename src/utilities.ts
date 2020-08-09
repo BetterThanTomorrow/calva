@@ -2,14 +2,9 @@ import * as vscode from 'vscode';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import * as _ from 'lodash';
 import * as state from './state';
-import * as fs from 'fs';
 import * as path from 'path';
-import { NReplSession } from './nrepl';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
-import * as docMirror from './doc-mirror';
-import { LispTokenCursor } from './cursor-doc/token-cursor';
-import { Token } from './cursor-doc/clojure-lexer';
 import select from './select';
 import * as outputWindow from './result-output'
 
@@ -87,61 +82,6 @@ function getShadowCljsReplStartCode(build) {
     return '(shadow.cljs.devtools.api/nrepl-select ' + build + ')';
 }
 
-function getNamespace(doc: vscode.TextDocument) {
-    if (outputWindow.isResultsDoc(doc)) {
-        return outputWindow.getNs();
-    }
-    let ns = "user";
-    if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
-        try {
-            const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0);
-            cursor.forwardWhitespace(true);
-            let token: Token = null,
-                foundNsToken: boolean = false,
-                foundNsId: boolean = false;
-            do {
-                cursor.downList();
-                if (token && token.offset == cursor.getToken().offset) {
-                    cursor.next();
-                }
-                token = cursor.getToken();
-                foundNsToken = token.type == "id" && token.raw == "ns";
-            } while (!foundNsToken && !cursor.atEnd());
-            if (foundNsToken) {
-                do {
-                    cursor.next();
-                    token = cursor.getToken();
-                    foundNsId = token.type == "id";
-                } while (!foundNsId && !cursor.atEnd());
-                if (foundNsId) {
-                    ns = token.raw;
-                } else {
-                    console.log("Error getting the ns name from the ns form.");
-                }
-            } else {
-                console.log("No ns form found.");
-            }
-        } catch (e) {
-            console.log("Error getting ns form of this file using docMirror, trying with cljs.reader: " + e);
-            try {
-                const forms = parseForms(doc.getText());
-                if (forms !== undefined) {
-                    const nsFormArray = forms.filter(x => x[0] == "ns");
-                    if (nsFormArray != undefined && nsFormArray.length > 0) {
-                        const nsForm = nsFormArray[0].filter(x => typeof (x) == "string");
-                        if (nsForm != undefined) {
-                            ns = nsForm[1];
-                        }
-                    }
-                }
-            } catch (e) {
-                console.log("Error parsing ns form of this file. " + e);
-            }
-        }
-    }
-    return ns;
-}
-
 function getTestUnderCursor() {
     const doc = getDocument(null);
     if (doc) {
@@ -192,24 +132,6 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-async function createNamespaceFromDocumentIfNotExists(doc) {
-
-    if (getConnectedState()) {
-        let document = getDocument(doc);
-        if (document) {
-            let ns = getNamespace(document);
-            let client = getSession(getFileType(document));
-            if (client) {
-                let nsList = await client.listNamespaces([]);
-                if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
-                    return;
-                }
-                await client.eval("(ns " + ns + ")", client.client.ns).value;
-            }
-        }
-    }
-}
-
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
@@ -235,30 +157,6 @@ function getFileType(document) {
 
 function getFileName(document) {
     return path.basename(document.fileName);
-}
-
-function getDocumentNamespace(document = {}) {
-    let doc = getDocument(document);
-
-    return getNamespace(doc);
-}
-
-function getSession(fileType = undefined): NReplSession {
-    let doc = getDocument({}),
-        current = state.deref();
-
-    if (fileType === undefined) {
-        fileType = getFileType(doc);
-    }
-    if (fileType.match(/^clj[sc]?/)) {
-        return current.get(fileType);
-    } else {
-        if (outputWindow.isResultsDoc(doc)) {
-            return outputWindow.getSession();
-        } else {
-            return current.get('cljc');
-        }
-    }
 }
 
 function getLaunchingState() {
@@ -390,42 +288,6 @@ function markWarning(warning) {
     diagnostic.set(editor.document.uri, warnings);
 }
 
-
-function updateREPLSessionType() {
-    let current = state.deref(),
-        doc = getDocument({}),
-        fileType = getFileType(doc);
-
-    if (current.get('connected')) {
-        let sessionType: string;
-
-        if (outputWindow.isResultsDoc(doc)) {
-            sessionType = outputWindow.getSessionType();
-        }
-        else if (fileType == 'cljs' && getSession('cljs') !== null) {
-            sessionType = 'cljs'
-        }
-        else if (fileType == 'clj' && getSession('clj') !== null) {
-            sessionType = 'clj'
-        }
-        else if (getSession('cljc') !== null) {
-            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        }
-        else {
-            sessionType = 'clj'
-        }
-
-        state.cursor.set('current-session-type', sessionType);
-    } else {
-        state.cursor.set('current-session-type', null);
-    }
-}
-
-function getREPLSessionType() {
-    let current = state.deref();
-    return current.get('current-session-type');
-}
-
 async function promptForUserInputString(prompt: string): Promise<string> {
     return vscode.window.showInputBox({
         prompt: prompt,
@@ -460,15 +322,11 @@ function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], 
 }
 
 export {
-    getNamespace,
     getStartExpression,
     getWordAtPosition,
-    createNamespaceFromDocumentIfNotExists,
     getDocument,
-    getDocumentNamespace,
     getFileType,
     getFileName,
-    getSession,
     getLaunchingState,
     setLaunchingState,
     getConnectedState,
@@ -482,8 +340,6 @@ export {
     logWarning,
     markWarning,
     logSuccess,
-    updateREPLSessionType,
-    getREPLSessionType,
     getCljsReplStartCode,
     getShadowCljsReplStartCode,
     quickPick,

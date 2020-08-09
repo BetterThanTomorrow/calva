@@ -6,6 +6,7 @@ import { NReplSession } from './nrepl';
 import * as util from './utilities';
 import select from './select';
 import { formatCode } from './calva-fmt/src/format';
+import * as namespace from './namespace';
 
 export const REPL_FILE_EXT = "repl-file"
 const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
@@ -132,20 +133,20 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 }
 
 export async function setNamespaceFromCurrentFile() {
-    const session = util.getSession();
-    const ns = util.getNamespace(util.getDocument({}));
+    const session = namespace.getSession();
+    const ns = namespace.getNamespace(util.getDocument({}));
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
     setSession(session, ns, _ => {
         revealResultsDoc(false);
-        util.updateREPLSessionType();
+        namespace.updateREPLSessionType();
     });
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
-    const session = util.getSession();
-    const ns = util.getNamespace(util.getDocument({}));
+    const session = namespace.getSession();
+    const ns = namespace.getNamespace(util.getDocument({}));
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;
     const selection = editor.selection;
@@ -161,7 +162,7 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
             await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
         }
         setSession(session, ns, _ => {
-            util.updateREPLSessionType();
+            namespace.updateREPLSessionType();
             append(code, _ => {
                 revealResultsDoc(false);
             });

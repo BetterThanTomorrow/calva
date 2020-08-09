@@ -1,8 +1,8 @@
-import * as util from './utilities';
+import * as namespace from './namespace';
 import statusbar from './statusbar';
 
 function update() {
-    util.updateREPLSessionType();
+    namespace.updateREPLSessionType();
     statusbar.update();
 }
 

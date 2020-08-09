@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as util from '../utilities';
+import * as namespace from '../namespace';
 import * as docMirror from '../doc-mirror';
 import { NReplSession } from '../nrepl';
 const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
@@ -68,13 +68,13 @@ async function updateDecorations(decorationsSession: NReplSession) {
     const activeEditor = vscode.window.activeTextEditor;
 
     if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
-        const cljSession = util.getSession('clj');
+        const cljSession = namespace.getSession('clj');
 
         if (cljSession) {
             const document = activeEditor.document;
 
             // Get instrumented defs in current editor
-            const docNamespace = util.getDocumentNamespace(document);
+            const docNamespace = namespace.getDocumentNamespace(document);
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
@@ -114,7 +114,7 @@ function triggerUpdateDecorations() {
 }
 
 async function activate() {
-    const cljSession = util.getSession('clj');
+    const cljSession = namespace.getSession('clj');
     decorationsSession = await cljSession.clone();
 
     try {

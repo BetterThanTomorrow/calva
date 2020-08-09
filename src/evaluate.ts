@@ -10,6 +10,7 @@ import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
 import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
+import * as namespace from './namespace';
 
 function interruptAllEvaluations() {
 
@@ -122,7 +123,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
         }
 
         outputWindow.setSession(session, context.ns);
-        util.updateREPLSessionType();
+        namespace.updateREPLSessionType();
     }
 }
 
@@ -145,11 +146,11 @@ async function evaluateSelection(document: {}, options) {
             codeSelection = selection;
             code = doc.getText(selection);
         }
-        const ns = util.getNamespace(doc);
+        const ns = namespace.getNamespace(doc);
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;
         const filePath = doc.fileName;
-        const session = util.getSession(util.getFileType(doc));
+        const session = namespace.getSession(util.getFileType(doc));
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;
@@ -205,8 +206,8 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
     const doc = util.getDocument(document);
     const fileName = util.getFileName(doc);
     const fileType = util.getFileType(doc);
-    const ns = util.getNamespace(doc);
-    const session = util.getSession(util.getFileType(doc));
+    const ns = namespace.getNamespace(doc);
+    const session = namespace.getSession(util.getFileType(doc));
     const chan = state.outputChannel();
     const shortFileName = path.basename(fileName);
     const dirName = path.dirname(fileName);
@@ -237,7 +238,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             }
         });
         outputWindow.setSession(session, res.ns ? res.ns : ns);
-        util.updateREPLSessionType();
+        namespace.updateREPLSessionType();
     }
     if (callback) {
         try {
@@ -250,7 +251,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
 
 async function evaluateUser(code: string) {
     const fileType = util.getFileType(util.getDocument({})),
-        session = util.getSession(fileType);
+        session = namespace.getSession(fileType);
     if (session) {
         try {
             await session.eval(code, session.client.ns).value;
@@ -267,17 +268,17 @@ async function requireREPLUtilitiesCommand() {
 
     if (util.getConnectedState()) {
         const chan = state.outputChannel(),
-            ns = util.getDocumentNamespace(util.getDocument({})),
+            ns = namespace.getDocumentNamespace(util.getDocument({})),
             CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
             CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
-            sessionType = util.getREPLSessionType(),
+            sessionType = namespace.getREPLSessionType(),
             form = sessionType == "cljs" ? CLJS_FORM : CLJ_FORM,
             fileType = util.getFileType(util.getDocument({})),
-            session = util.getSession(fileType);
+            session = namespace.getSession(fileType);
 
         if (session) {
             try {
-                await util.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
+                await namespace.createNamespaceFromDocumentIfNotExists(util.getDocument({}));
                 await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
                 await session.eval(form, ns).value;
                 chan.appendLine(`REPL utilities are now available in namespace ${ns}.`);
@@ -292,7 +293,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
-    let session = util.getSession(util.getFileType(util.getDocument({})));
+    let session = namespace.getSession(util.getFileType(util.getDocument({})));
 
     let value = await session.eval("*1", session.client.ns).value;
     if (value !== null) {
@@ -322,9 +323,9 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     const outputDocument = await outputWindow.openResultsDoc();
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
-        const session = util.getSession(sessionType);
+        const session = namespace.getSession(sessionType);
         outputWindow.setSession(session, ns);
-        util.updateREPLSessionType();
+        namespace.updateREPLSessionType();
         outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
@@ -374,7 +375,7 @@ function evaluateCustomCommandSnippetCommand() {
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
                 const command = snippetsDict[pick].snippet,
                     editor = vscode.window.activeTextEditor,
-                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? util.getNamespace(editor.document) : undefined,
+                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined,
                     ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
                 evaluateInOutputWindow(command, repl ? repl : "clj", ns);
