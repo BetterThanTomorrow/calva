@@ -7,6 +7,7 @@ import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } fr
 import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
+import * as outputWinow from '../result-output';
 
 /** An nREPL client */
 export class NReplClient {
@@ -206,7 +207,7 @@ export class NReplSession {
             const outputChan = state.config().asyncOutputDestination;
             let msgText = msgValue.replace(/\n\r?$/, "");
 
-            state.outputChannel().appendLine(msgText);
+            outputWinow.append(msgText);
         }
     }
 
