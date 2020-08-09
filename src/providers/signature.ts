@@ -3,17 +3,18 @@ import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import * as docMirror from '../doc-mirror';
+import * as namespace from '../namespace';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
     async provideSignatureHelp(document: TextDocument, position: Position, _token: CancellationToken): Promise<SignatureHelp> {
         if (util.getConnectedState()) {
-            const ns = util.getNamespace(document),
+            const ns = namespace.getNamespace(document),
                 idx = document.offsetAt(position),
                 symbol = this.getSymbol(document, idx);
             if (symbol) {
-                const client = util.getSession(util.getFileType(document));
+                const client = namespace.getSession(util.getFileType(document));
                 if (client) {
-                    await util.createNamespaceFromDocumentIfNotExists(document);
+                    await namespace.createNamespaceFromDocumentIfNotExists(document);
                     const res = await client.info(ns, symbol),
                         signatures = infoparser.getSignatures(res, symbol);
                     if (signatures) {
