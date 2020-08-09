@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
 import annotations from './annotations';
+import * as namespace from '../namespace';
 
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
@@ -14,8 +15,8 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
     const posIsEvalPos = evalPos && position.isEqual(evalPos);
     if (util.getConnectedState() && !posIsEvalPos) {
       const text = util.getWordAtPosition(document, position);
-      const client = util.getSession(util.getFileType(document));
-      const info = await client.info(util.getNamespace(document), text);
+      const client = namespace.getSession(util.getFileType(document));
+      const info = await client.info(namespace.getNamespace(document), text);
       if (info.file && info.file.length > 0) {
         const pos = new vscode.Position(info.line - 1, info.column);
         try {

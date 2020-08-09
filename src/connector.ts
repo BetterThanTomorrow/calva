@@ -13,6 +13,7 @@ import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './result-output'
 import evaluate from './evaluate';
+import * as namespace from './namespace';
 
 async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -45,7 +46,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.cursor.set('cljc', cljSession);
         status.update();
         outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
-        util.updateREPLSessionType();
+        namespace.updateREPLSessionType();
 
         // Initialize debugger
         await initializeDebugger(cljSession);
@@ -92,7 +93,7 @@ async function setUpCljsRepl(session, build) {
     status.update();
     outputWindow.append(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
     outputWindow.setSession(session, 'cljs.user');
-    util.updateREPLSessionType();
+    namespace.updateREPLSessionType();
 }
 
 function getFigwheelMainBuilds() {
@@ -516,21 +517,21 @@ export default {
         let newSession: NReplSession;
 
         if (current.get('connected')) {
-            if (util.getSession('cljc') == util.getSession('cljs')) {
-                newSession = util.getSession('clj');
-            } else if (util.getSession('cljc') == util.getSession('clj')) {
-                newSession = util.getSession('cljs');
+            if (namespace.getSession('cljc') == namespace.getSession('cljs')) {
+                newSession = namespace.getSession('clj');
+            } else if (namespace.getSession('cljc') == namespace.getSession('clj')) {
+                newSession = namespace.getSession('cljs');
             }
             state.cursor.set('cljc', newSession);
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
                 outputWindow.setSession(newSession, undefined);
-                util.updateREPLSessionType();
+                namespace.updateREPLSessionType();
             }
             status.update();
         }
     },
     switchCljsBuild: async () => {
-        let cljSession = util.getSession('clj');
+        let cljSession = namespace.getSession('clj');
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
             cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
         state.analytics().logEvent("REPL", "switchCljsBuild", cljsTypeName).send();

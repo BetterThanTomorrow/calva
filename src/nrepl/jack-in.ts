@@ -9,6 +9,7 @@ import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
 import * as outputWindow from '../result-output';
+import * as namespace from "../namespace";
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -218,7 +219,7 @@ export async function calvaJackInOrConnect() {
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
         commands["Disconnect from the REPL server"] = "calva.disconnect";
-        if(utilities.getSession("clj")) {
+        if(namespace.getSession("clj")) {
             commands["Open the Output Window"] = "calva.showOutputWindow";
         }
     }

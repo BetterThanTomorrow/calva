@@ -5,8 +5,8 @@ import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './result-output';
-import { type } from 'os';
 import { NReplSession } from './nrepl';
+import * as namespace from './namespace';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -103,10 +103,10 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    const session = util.getSession(util.getFileType(document));
+    const session = namespace.getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
     outputWindow.setSession(session, session.client.ns);
-    util.updateREPLSessionType();
+    namespace.updateREPLSessionType();
     reportTests([await session.testAll()], "Running all tests");
     outputWindow.setSession(session, session.client.ns);
 }
@@ -131,9 +131,9 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
 }
 
 function runNamespaceTests(document = {}) {
-    const session = util.getSession(util.getFileType(document));
+    const session = namespace.getSession(util.getFileType(document));
     const doc = util.getDocument(document);
-    const ns = util.getNamespace(doc);
+    const ns = namespace.getNamespace(doc);
     let nss = [ns];
     if (!outputWindow.isResultsDoc(doc)) {
         evaluate.loadFile({}, async () => {
@@ -150,8 +150,8 @@ function runNamespaceTests(document = {}) {
 
 async function runTestUnderCursor() {
     const doc = util.getDocument({}),
-        session = util.getSession(util.getFileType(doc)),
-        ns = util.getNamespace(doc),
+        session = namespace.getSession(util.getFileType(doc)),
+        ns = namespace.getNamespace(doc),
         test = util.getTestUnderCursor();
 
     evaluate.loadFile(doc, async () => {
@@ -172,7 +172,7 @@ function runNamespaceTestsCommand() {
 }
 
 function rerunTests(document = {}) {
-    let session = util.getSession(util.getFileType(document))
+    let session = namespace.getSession(util.getFileType(document))
     evaluate.loadFile({}, async () => {
         outputWindow.append("; Running previously failed tests…");
         reportTests([await session.retest()], "Retesting");
