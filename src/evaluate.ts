@@ -12,24 +12,21 @@ import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 
 function interruptAllEvaluations() {
-
     if (util.getConnectedState()) {
         let msgs: string[] = [];
-
-
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        outputWindow.append(normalizeNewLinesAndJoin(msgs));
-
-        NReplSession.getInstances().forEach((session, index) => {
+        if (msgs.length) {
+            outputWindow.append(normalizeNewLinesAndJoin(msgs));
+        }
+        NReplSession.getInstances().forEach((session, _index) => {
             session.interruptAll();
         });
-
-        if (nums < 1) {
-            vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
+        if (nums > 0) {
+            vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
         } else {
-            vscode.window.showInformationMessage(`Interupted ${nums} running evaluation(s).`);
+            vscode.window.showInformationMessage('Interruption command finished (unknown results)');
         }
         return;
     }
@@ -101,10 +98,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             }
         } catch (e) {
-            if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
-                err = out;
-            }
-            outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
+            outputWindow.append(err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : '', (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const error = util.stripAnsi(err.join("\n"));
@@ -115,7 +109,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                         addAsComment(selection.start.character, error, selection, editor, selection);
                     }
                 }
-                if (context.stacktrace) {
+                if (context.stacktrace && context.stacktrace.trace) {
                     outputWindow.printStacktrace(context.stacktrace);
                 }
             });
