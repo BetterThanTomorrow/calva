@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as child from 'child_process';
+import * as outputWindow from '../result-output';
 
 export interface  JackInTerminalOptions extends vscode.TerminalOptions {
     name: string,
@@ -18,11 +19,11 @@ export class JackInTerminal implements vscode.Pseudoterminal {
 
     private process: child.ChildProcess;
 
-    constructor(private options: JackInTerminalOptions, private outputChannel: vscode.OutputChannel, private whenStarted: (p: child.ChildProcess) => void) {
+    constructor(private options: JackInTerminalOptions, private whenStarted: (p: child.ChildProcess) => void) {
     }
 
     open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-        this.outputChannel.appendLine(`Starting Jack-in Terminal: ${this.options.executable} ${this.options.args.join(' ')}`);
+        outputWindow.append(`; Starting Jack-in Terminal: ${this.options.executable} ${this.options.args.join(' ')}`);
         this.startClojureProgram();
     }
 
