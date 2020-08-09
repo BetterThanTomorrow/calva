@@ -17,6 +17,7 @@ export interface Token {
  * A Lexical rule for a terminal. Consists of a RegExp and an action.
  */
 export interface Rule {
+    name: string,
     r: RegExp;
     fn: (Lexer, RegExpExecArray) => any
 }
@@ -85,8 +86,9 @@ export class LexicalGrammar {
      *        this terminal.  An additional "offset" property containing the token source position
      *        will also be added, as well as a "raw" property, containing the raw string match.
      */
-    terminal(pattern: string | RegExp, fn: (T, RegExpExecArray) => any): void {
+    terminal(name: string, pattern: string | RegExp, fn: (T, RegExpExecArray) => any): void {
         this.rules.push({
+            name,
             // This is b/c the RegExp constructor seems to not like our union type (unknown reasons why)
             r: pattern instanceof RegExp ? new RegExp(pattern, "g") : new RegExp(pattern, "g"),
             fn: fn

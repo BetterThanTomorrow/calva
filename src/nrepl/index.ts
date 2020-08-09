@@ -1,13 +1,11 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
-import * as replWindow from './../repl-window';
 import * as util from '../utilities';
 import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
-import annotations from '../providers/annotations';
 import debugDecorations from '../debugger/decorations';
 
 /** An nREPL client */
@@ -208,14 +206,7 @@ export class NReplSession {
             const outputChan = state.config().asyncOutputDestination;
             let msgText = msgValue.replace(/\n\r?$/, "");
 
-            if (outputChan == "REPL Window") {
-                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
-            } else if (outputChan == "Calva says") {
-                state.outputChannel().appendLine(msgText);
-            } else if (outputChan == "Both") {
-                replWindow.showAsyncOutput(this.replType, msdId, msgValue, isError);
-                state.outputChannel().appendLine(msgText);
-            }
+            state.outputChannel().appendLine(msgText);
         }
     }
 
@@ -265,6 +256,7 @@ export class NReplSession {
     private _createEvalOperationMessage(code: string, ns: string, opts: any) {
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
             const debugResponse = state.deref().get(debug.DEBUG_RESPONSE_KEY);
+            state.analytics().logEvent(debug.DEBUG_ANALYTICS.CATEGORY, debug.DEBUG_ANALYTICS.EVENT_ACTIONS.EVALUATE_IN_DEBUG_CONTEXT).send();
             return {
                 id: debugResponse.id,
                 session: this.sessionId,

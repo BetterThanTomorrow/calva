@@ -1,8 +1,5 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
-import { UndoManager, UndoStep } from "./undo";
-import { ReplReadline } from "../webview/readline";
 import { LispTokenCursor } from "./token-cursor";
-import { DebugConsoleMode } from "vscode";
 
 let scanner: Scanner;
 
@@ -154,9 +151,6 @@ export class LineInputModel implements EditableModel {
 
     /** Lines which must be deleted. */
     deletedLines: Set<[number, number]> = new Set();
-
-    /** Handles undo/redo support */
-    undoManager = new UndoManager<ReplReadline>();
 
     /** When set, insertString and deleteRange will be added to the undo history. */
     recordingUndo: boolean = false;
@@ -367,8 +361,6 @@ export class LineInputModel implements EditableModel {
             }
             if (this.document && options.selection) {
                 this.document.selection = options.selection;
-                const document = this.document as ReplReadline;
-                document.caretX = this.getRowCol(options.selection.active)[1];
             }
             resolve(true);
         })
@@ -437,9 +429,6 @@ export class LineInputModel implements EditableModel {
             this.markDirty(startLine + i);
         }
 
-        if(this.recordingUndo) {
-            this.undoManager.addUndoStep(new EditorUndoStep("Edit", startPos, text, deletedText, oldSelection, newSelection))
-        }
         // console.log("Parsing took: ", new Date().valueOf() - t1.valueOf());
     }
 
@@ -495,51 +484,4 @@ export class LineInputModel implements EditableModel {
     }
 }
 
-/**
- * An Editor UndoStep.
- *
- * All Editor Undo steps contain the position of the cursor before and after the edit.
- */
-class EditorUndoStep extends UndoStep<ReplReadline> {
-    constructor(public name: string, public start: number, public insertedText: string, public deletedText: string, public oldSelection?: [number, number], public newSelection?: [number, number]) {
-        super();
-    }
 
-    undo(c: ReplReadline) {
-        c.model.edit(
-            [new ModelEdit('changeRange', [this.start, this.start+this.insertedText.length, this.deletedText])
-        ], this.oldSelection ? { selection: { anchor: this.oldSelection[0], active: this.oldSelection[1]}} : {});
-    }
-
-    redo(c: ReplReadline) {
-        c.model.edit([
-            new ModelEdit('changeRange', [this.start, this.start+this.deletedText.length, this.insertedText])
-        ], this.newSelection ? { selection: { anchor: this.newSelection[0], active: this.newSelection[1]}} : {});
-    }
-
-    coalesce(step: EditorUndoStep) {
-        if(this.deletedText === ""  && step.deletedText === "" && this.insertedText !== "" && step.insertedText !== "") {
-            if(this.start + this.insertedText.length == step.start) {
-                this.insertedText += step.insertedText;
-                this.newSelection = step.newSelection;
-                return true;
-            }
-        } else if(this.deletedText !== "" && step.deletedText !== "" && this.insertedText === "" && step.insertedText === "") {
-            // repeated delete key
-            if(this.start == step.start) {
-                this.deletedText += step.deletedText;
-                this.newSelection = step.newSelection;
-                return true;
-            }
-
-            // repeated backspace key
-            if(this.start - step.deletedText.length == step.start) {
-                this.start = step.start;
-                this.deletedText = step.deletedText + this.deletedText;
-                this.newSelection = step.newSelection;
-                return true;
-            }
-        }
-        return false;
-    }
-}

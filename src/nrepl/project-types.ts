@@ -153,7 +153,6 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
 const NREPL_VERSION = "0.6.0",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
-    FIGWHEEL_MAIN_VERSION = "0.2.3",
     CLJ_KONDO_VERSION = "2020.04.05";
 
 const cliDependencies = {
@@ -167,8 +166,7 @@ const cljsDependencies: { [id: string]: Object } = {
         "cider/piggieback": PIGGIEBACK_VERSION
     },
     "Figwheel Main": {
-        "cider/piggieback": PIGGIEBACK_VERSION,
-        "com.bhauman/figwheel-main": FIGWHEEL_MAIN_VERSION
+        "cider/piggieback": PIGGIEBACK_VERSION
     },
     "shadow-cljs": {
         "cider/cider-nrepl": CIDER_NREPL_VERSION,
@@ -192,7 +190,17 @@ const leinDependencies = {
     "clj-kondo": CLJ_KONDO_VERSION
 }
 const middleware = ["cider.nrepl/cider-middleware"];
-const cljsMiddleware = ["cider.piggieback/wrap-cljs-repl"];
+const cljsMiddlewareNames = {
+    wrapCljsRepl: "cider.piggieback/wrap-cljs-repl"
+};
+const cljsMiddleware: { [id: string]: string[] } = {
+    "lein-figwheel": [cljsMiddlewareNames.wrapCljsRepl],
+    "Figwheel Main": [cljsMiddlewareNames.wrapCljsRepl],
+    "shadow-cljs": [],
+    "lein-shadow": [cljsMiddlewareNames.wrapCljsRepl],
+    "Nashorn": [cljsMiddlewareNames.wrapCljsRepl],
+    "User provided": [cljsMiddlewareNames.wrapCljsRepl]
+};
 
 const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
 
@@ -280,7 +288,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
             const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
             let aliasHasMain: boolean = false;
             for (let ali in aliases) {
@@ -405,7 +413,7 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
         let dep = keys[i];
         out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
     }
-    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware : [])];
+    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     for (let mw of useMiddleware) {
         out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
     }

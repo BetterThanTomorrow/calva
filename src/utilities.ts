@@ -5,13 +5,13 @@ import * as state from './state';
 import * as fs from 'fs';
 import * as path from 'path';
 import { NReplSession } from './nrepl';
-import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import * as docMirror from './doc-mirror';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import select from './select';
+import * as outputWindow from './result-output'
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -88,6 +88,9 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getNamespace(doc: vscode.TextDocument) {
+    if (outputWindow.isResultsDoc(doc)) {
+        return outputWindow.getNs();
+    }
     let ns = "user";
     if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
         try {
@@ -250,7 +253,11 @@ function getSession(fileType = undefined): NReplSession {
     if (fileType.match(/^clj[sc]?/)) {
         return current.get(fileType);
     } else {
-        return current.get('clj');
+        if (outputWindow.isResultsDoc(doc)) {
+            return outputWindow.getSession();
+        } else {
+            return current.get('cljc');
+        }
     }
 }
 
@@ -313,12 +320,10 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    let chan = state.outputChannel();
-
-    chan.appendLine(error.reason);
+    outputWindow.append('; ' + error.reason);
     if (error.line !== undefined && error.line !== null &&
         error.column !== undefined && error.column !== null) {
-        chan.appendLine("at line: " + error.line + " and column: " + error.column)
+        outputWindow.append(";   at line: " + error.line + " and column: " + error.column)
     }
 }
 
@@ -350,13 +355,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    let chan = state.outputChannel();
-    chan.appendLine(warning.reason);
+    outputWindow.append('; ' + warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
-            chan.appendLine("at line: " + warning.line + " and column: " + warning.column)
+            outputWindow.append(";   at line: " + warning.line + " and column: " + warning.column)
         } else {
-            chan.appendLine("at line: " + warning.line)
+            outputWindow.append(";   at line: " + warning.line)
         }
     }
 }
@@ -395,17 +399,21 @@ function updateREPLSessionType() {
     if (current.get('connected')) {
         let sessionType: string;
 
-        let repl = activeReplWindow();
-        if (repl)
-            sessionType = repl.type;
-        else if (fileType == 'cljs' && getSession('cljs') !== null)
+        if (outputWindow.isResultsDoc(doc)) {
+            sessionType = outputWindow.getSessionType();
+        }
+        else if (fileType == 'cljs' && getSession('cljs') !== null) {
             sessionType = 'cljs'
-        else if (fileType == 'clj' && getSession('clj') !== null)
+        }
+        else if (fileType == 'clj' && getSession('clj') !== null) {
             sessionType = 'clj'
-        else if (fileType == 'cljc' && getSession('cljc') !== null)
+        }
+        else if (getSession('cljc') !== null) {
             sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        else
+        }
+        else {
             sessionType = 'clj'
+        }
 
         state.cursor.set('current-session-type', sessionType);
     } else {

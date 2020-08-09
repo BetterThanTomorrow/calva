@@ -48,89 +48,11 @@ const CALVA_MAIN = {
   }
 }
 
-const REPL_WINDOW = {
-  // vscode extensions run in a Node.js-context
-  // 📖 -> https://webpack.js.org/configuration/node/
-  target: 'node',
-  // the entry point of this webview,
-  // 📖 -> https://webpack.js.org/configuration/entry-context/
-  entry: path.resolve(__dirname, 'src/webview.ts'),
-  // the bundle is stored in the 'html' folder.
-  // 📖 -> https://webpack.js.org/configuration/output/
-  output: {
-    filename: 'webview.js',
-    path: path.resolve(__dirname, 'out'),
-    publicPath: './'
-  },
-  // Webpack dev server settings.
-  // 📖 -> https://webpack.js.org/configuration/dev-server/
-  devServer: {
-    historyApiFallback: true,
-    host: "0.0.0.0",
-    compress: true,
-    contentBase: path.join(__dirname, 'out'),
-    proxy: {
-      '/api': 'http://localhost:3000',
-    }
-  },
-  devtool: 'source-map',
-  resolve: {
-    // support reading TypeScript and JavaScript files,
-    // 📖 -> https://github.com/TypeStrong/ts-loader
-    extensions: ['.tsx', '.ts', '.js']
-  },
-  performance: {
-    // These options allows you to control how webpack notifies you
-    // of assets and entry points that exceed a specific file limit.
-    // 📖 -> https://webpack.js.org/configuration/performance/
-    maxEntrypointSize: 1024000,
-    maxAssetSize: 1024000,
-  },
-  // Watch options for the webview.
-  // 📖 -> https://webpack.js.org/configuration/watch/
-  watchOptions: {
-    aggregateTimeout: 200,
-    poll: 500,
-    ignored: /node_modules/
-  },
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        loader: 'ts-loader',
-        options: {
-          transpileOnly: true,
-          experimentalWatchApi: true,
-          configFile: path.resolve(__dirname, 'src/webview/tsconfig.json')
-        },
-      },
-      {
-        test: /\.scss$/,
-        use: ['style-loader', 'css-loader', 'sass-loader']
-      },
-      {
-        test: /\.(eot|woff|woff2|ttf|svg|png|jpg)$/,
-        loader: 'url-loader',
-        options: {
-          emitFile: false
-        }
-      }
-    ]
-  }
-}
-
 // Build the configuration based on production
 // or development mode. The extension is only
 // webpacked for production.
 function buildConfig(isProduction) {
-  if (!isProduction) {
-    // if not production set devtool to
-    // 'eval-source-map' to make the webview
-    // debugable in the vscode Webview Development
-    // tools.
-    REPL_WINDOW.devtool = "eval-source-map";
-  }
-  let configs = [REPL_WINDOW];
+  const configs = [];
   if (isProduction) {
     configs.unshift(CALVA_MAIN)
   }

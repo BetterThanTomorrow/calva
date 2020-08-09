@@ -76,3 +76,4 @@ report.*
 
 # clojure-lsp
 .lsp
+.calva/output-window/

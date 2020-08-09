@@ -3,6 +3,61 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.119] - 2020-08-07
+- Really fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
+
+## [2.0.118] - 2020-08-06
+- [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)
+
+## [2.0.117] - 2020-08-05
+- Fix: [Paste is broken in 2.0.116](https://github.com/BetterThanTomorrow/calva/issues/730)
+
+## [2.0.116] - 2020-08-05
+- Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)
+- Fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
+
+## [2.0.115] - 2020-08-02
+- [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)
+
+## [2.0.114] - 2020-08-02
+- Fix: [Stop popping up output window when load file has errors](https://github.com/BetterThanTomorrow/calva/issues/717)
+
+## [2.0.113] - 2020-08-1
+- [Add vscode command for to eval code given as args](https://github.com/BetterThanTomorrow/calva/issues/690)
+- [Move custom REPL snippets to new output/repl window](https://github.com/BetterThanTomorrow/calva/issues/713)
+- Fix: [Continuously evaluating in infinite loop](https://github.com/BetterThanTomorrow/calva/issues/712)
+
+## [2.0.112] - 2020-07-30
+- Fix: [Don't open output window until connect starts](https://github.com/BetterThanTomorrow/calva/issues/707)
+
+## [2.0.111] - 2020-07-29
+- [Handling ansi code by stripping it](https://github.com/BetterThanTomorrow/calva/issues/696)
+- Fix: [Output window sometimes getting out of synch, needing overwrite](https://github.com/BetterThanTomorrow/calva/issues/699)
+- Fix: [The *Calva says* panel + output window opening at startup gets a bit too much](https://github.com/BetterThanTomorrow/calva/issues/702)
+- Fix: [Repl connection fails if afterCLJJackInCode errors](https://github.com/BetterThanTomorrow/calva/issues/703)
+
+## [2.0.110] - 2020-07-28
+- [Fix Connect Fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/694)
+
+## [2.0.109] - 2020-07-27
+- [New output/REPL window introduced](https://github.com/BetterThanTomorrow/calva/issues/681)
+
+## [2.0.108] - 2020-07-24
+- Fix [Jack-in error when choosing Clojure CLI + shadow-cljs project type](https://github.com/BetterThanTomorrow/calva/issues/675)
+- Fix [Cannot use default connect sequences when custom connect sequences added](https://github.com/BetterThanTomorrow/calva/issues/685)
+- Add analytics to debugger
+
+## [2.0.107] - 2020-06-16
+- Fix [Flicker matching brackets as code is typed](https://github.com/BetterThanTomorrow/calva/issues/673)
+
+## [2.0.106] - 2020-06-16
+- Fix [Crash - Lexing fails on comment w/ a 20+ hashes](https://github.com/BetterThanTomorrow/calva/issues/667)
+
+## [2.0.105] - 2020-06-15
+- Fix [Debug decorations are breaking after stepping through code during debug session](https://github.com/BetterThanTomorrow/calva/issues/669)
+
+## [2.0.104] - 2020-06-14
 - Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
 - [Use Pseudo-terminal instead of Task for Jack-in](https://github.com/BetterThanTomorrow/calva/pull/654)
 
@@ -408,4 +463,3 @@ Changes to Calva.
     - Error message when evaluation fails
     - Pretty printing evaluation results: `ctrl+alt+v p`
     - Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
-

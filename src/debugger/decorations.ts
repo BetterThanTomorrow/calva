@@ -6,6 +6,7 @@ const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 import * as state from '../state';
 
 let enabled = false;
+let decorationsSession: NReplSession = null;
 
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderStyle: 'solid',
@@ -21,9 +22,22 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
+async function setPrintLength(session: NReplSession, printLength: string): Promise<void> {
+    const code = `(set! clojure.core/*print-length* ${printLength})`;
+    await session.eval(code, 'user').value;
+}
+
+async function getPrintLength(session: NReplSession): Promise<string> {
+    const code = `clojure.core/*print-length*`;
+    return await session.eval(code, 'user').value;
+}
+
 async function getLintAnalysis(session: NReplSession, documentText: string): Promise<any> {
+    const printLength = await getPrintLength(session);
+    await setPrintLength(session, 'nil');
     const code = `(with-in-str ${JSON.stringify(documentText)} (:analysis (clj-kondo.core/run! {:lint ["-"] :lang :clj :config {:output {:analysis true}}})))`;
     const resEdn = await session.eval(code, 'user').value;
+    await setPrintLength(session, printLength);
     return parseEdn(resEdn);
 }
 
@@ -50,7 +64,7 @@ function getVarUsageRanges(usages: any[], document: vscode.TextDocument): [numbe
     });
 }
 
-async function updateDecorations() {
+async function updateDecorations(decorationsSession: NReplSession) {
     const activeEditor = vscode.window.activeTextEditor;
 
     if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
@@ -65,7 +79,7 @@ async function updateDecorations() {
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
             // Get editor ranges of instrumented var definitions and usages
-            const lintAnalysis = await getLintAnalysis(cljSession, document.getText());
+            const lintAnalysis = await getLintAnalysis(decorationsSession, document.getText());
             const instrumentedVarDefs = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
             const instrumentedVarDefRanges = getVarDefinitionRanges(instrumentedVarDefs, document);
             const instrumentedVarUsages = lintAnalysis['var-usages'].filter(varInfo => {
@@ -95,19 +109,20 @@ function triggerUpdateDecorations() {
         timeout = undefined;
     }
     if (enabled) {
-        timeout = setTimeout(updateDecorations, 50);
+        timeout = setTimeout(() => updateDecorations(decorationsSession), 50);
     }
 }
 
 async function activate() {
     const cljSession = util.getSession('clj');
+    decorationsSession = await cljSession.clone();
 
     try {
         await cljSession.eval("(require 'clj-kondo.core)", 'user').value;
         enabled = true;
         triggerUpdateDecorations();
 
-        vscode.window.onDidChangeActiveTextEditor(editor => {
+        vscode.window.onDidChangeActiveTextEditor(_ => {
             triggerUpdateDecorations();
         });
 

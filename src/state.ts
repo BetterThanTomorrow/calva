@@ -6,7 +6,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fs from 'fs';
-import { customREPLCommandSnippet } from './repl-window';
+import { customREPLCommandSnippet } from './evaluate';
 import { PrettyPrintingOptions } from './printer';
 
 let extensionContext: vscode.ExtensionContext;
@@ -103,18 +103,17 @@ function config() {
         evaluate: configOptions.get("evalOnSave"),
         test: configOptions.get("testOnSave"),
         showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
-        syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
-        openREPLWindowOnConnect: configOptions.get("openREPLWindowOnConnect") as boolean,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
-        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean
+        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
+        openCalvaSaysOnStart: configOptions.get("openCalvaSaysOnStart") as boolean
     };
 }
 
