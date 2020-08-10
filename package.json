@@ -87,7 +87,7 @@
                     ".edn",
                     ".joke",
                     ".boot",
-                    ".repl-file"
+                    ".repl"
                 ]
             }
         ],
@@ -1066,7 +1066,7 @@
             {
                 "command": "calva.showPreviousReplHistoryEntry",
                 "title": "Show Previous REPL History Entry",
-                "enablement": "calva:connected && calva:replFileActive",
+                "enablement": "calva:connected && resourceExtname == .repl",
                 "category": "Calva"
             }
         ],
@@ -1510,7 +1510,7 @@
                 },
                 {
                     "command": "calva.showPreviousReplHistoryEntry",
-                    "when": "calva:connected && calva.outputWindowActive"
+                    "when": "calva:connected && resourceExtname == .repl"
                 }
             ],
             "editor/title": [

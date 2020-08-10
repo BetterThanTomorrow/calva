@@ -12,6 +12,7 @@ import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import { pushToReplHistory } from './repl-history';
+import config from './config';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -147,7 +148,7 @@ async function evaluateSelection(document: {}, options) {
         const filePath = doc.fileName;
         
         const fileExtension = filePath.split('.').pop();
-        if (['repl', 'repl-file'].includes(fileExtension)) {
+        if (fileExtension === config.REPL_FILE_EXT) {
             pushToReplHistory(filePath, code);
         }
 

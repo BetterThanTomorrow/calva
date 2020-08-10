@@ -44,7 +44,7 @@ function onDidSave(document) {
         }
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => { });
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
     }
@@ -175,7 +175,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.PathDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
@@ -220,7 +220,7 @@ function activate(context: vscode.ExtensionContext) {
                 .then(v => {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
-                        open(VIM_DOC_URL).catch(() => {});
+                        open(VIM_DOC_URL).catch(() => { });
                     }
                 })
         }
