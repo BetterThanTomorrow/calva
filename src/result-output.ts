@@ -8,6 +8,7 @@ import select from './select';
 import { formatCode } from './calva-fmt/src/format';
 import * as namespace from './namespace';
 import config from './config';
+import type { ReplType } from './config';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -29,7 +30,7 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva', 'output-window');
 const DOC_URI = () => vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
-let _sessionType = "clj";
+let _sessionType: ReplType = "clj";
 let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
     clj: {},
     cljs: {}
@@ -40,7 +41,7 @@ export function getNs(): string {
     return _sessionInfo[_sessionType].ns;
 }
 
-export function getSessionType(): string {
+export function getSessionType(): ReplType {
     return _sessionType;
 }
 

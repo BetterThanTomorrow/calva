@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import { ReplType } from './config';
+import { isResultsDoc, getSessionType } from './result-output';
+
+let historyIndex = -1;
 
 function getHistory(replType: ReplType): Array<string> {
     let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
@@ -20,6 +23,7 @@ function addToHistory(replType: ReplType, line: string) {
             state.extensionContext.workspaceState.update(this.type + "-history", history);
         }
     }
+    historyIndex = history.length - 1;
 }
 
 function clearHistory(replType: ReplType) {
@@ -27,6 +31,16 @@ function clearHistory(replType: ReplType) {
 }
 
 function showPreviousReplHistoryEntryInEditor(): void {
+    const editor = vscode.window.activeTextEditor;
+    const doc = editor.document;
+    if (isResultsDoc(doc)) {
+        if (historyIndex === -1) {
+            return;
+        }
+        historyIndex--;
+        const history = getHistory(getSessionType());
+        const previousEntry = history[historyIndex] || "";
+    }
 }
 
 
