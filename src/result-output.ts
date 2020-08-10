@@ -7,9 +7,9 @@ import * as util from './utilities';
 import select from './select';
 import { formatCode } from './calva-fmt/src/format';
 import * as namespace from './namespace';
+import config from './config';
 
-export const REPL_FILE_EXT = "repl-file"
-const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
+const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
 const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
 ; Leave it open, please. Because quirks.\n\
