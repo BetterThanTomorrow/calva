@@ -1062,6 +1062,12 @@
                 "title": "Send Current Top Level Form to Output/REPL Window",
                 "enablement": "calva:connected",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.showPreviousReplHistoryEntry",
+                "title": "Show Previous REPL History Entry",
+                "enablement": "calva:connected && calva:replFileActive",
+                "category": "Calva"
             }
         ],
         "keybindings": [
@@ -1501,6 +1507,10 @@
                 {
                     "command": "calva.debug.instrument",
                     "when": "editorLangId == clojure && calva:connected"
+                },
+                {
+                    "command": "calva.showPreviousReplHistoryEntry",
+                    "when": "calva:connected && calva.outputWindowActive"
                 }
             ],
             "editor/title": [

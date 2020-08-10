@@ -173,13 +173,8 @@ function getConnectedState() {
 }
 
 function setConnectedState(value: Boolean) {
-    if (value) {
-        vscode.commands.executeCommand("setContext", "calva:connected", true);
-        state.cursor.set('connected', true);
-    } else {
-        vscode.commands.executeCommand("setContext", "calva:connected", false);
-        state.cursor.set('connected', false);
-    }
+    vscode.commands.executeCommand("setContext", "calva:connected", value);
+    state.cursor.set('connected', value);
 }
 
 function getConnectingState() {
