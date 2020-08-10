@@ -11,7 +11,7 @@ import { PrettyPrintingOptions } from './printer';
 import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
-import { pushToReplHistory } from './repl-history';
+import { addToHistory } from './repl-history';
 import config from './config';
 
 function interruptAllEvaluations() {
@@ -146,13 +146,12 @@ async function evaluateSelection(document: {}, options) {
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;
         const filePath = doc.fileName;
-        
-        const fileExtension = filePath.split('.').pop();
-        if (fileExtension === config.REPL_FILE_EXT) {
-            pushToReplHistory(filePath, code);
+        const session = namespace.getSession(util.getFileType(doc));
+
+        if (outputWindow.isResultsDoc(doc)) {
+            addToHistory(session.replType, code);
         }
 
-        const session = namespace.getSession(util.getFileType(doc));
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;

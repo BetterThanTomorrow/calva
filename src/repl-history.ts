@@ -1,35 +1,36 @@
 import * as vscode from 'vscode';
 import * as state from './state';
+import { ReplType } from './config';
 
-// HISTORY TODO: Add more defined type to this
-// Should this be stored in global/central state?
-const replHistory: any = {};
-
-function pushToReplHistory(filePath: string, code: string): void {
-    const history = replHistory[filePath] || []
-    history.push(code)
-    if (history.length > 2) {
-        history.shift();
-    }
-    replHistory[filePath] = history;
+function getHistory(replType: ReplType): Array<string> {
+    let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
+    return history;
 }
 
-function popFromReplHistory(filePath: string): string | null {
-    const history = replHistory[filePath];
-    if (history) {
-        return history.pop();
-    } else {
-        return null;
+function addToHistory(replType: ReplType, line: string) {
+    let entry = line.trim();
+    if (line !== "") {
+        let history = (state.extensionContext.workspaceState.get(replType+ "-history") || []) as Array<string>;
+        let last = "";
+        if (history.length > 0) {
+            last = history[history.length - 1];
+        }
+        if (last !== line) {
+            history.push(entry);
+            state.extensionContext.workspaceState.update(this.type + "-history", history);
+        }
     }
+}
+
+function clearHistory(replType: ReplType) {
+    state.extensionContext.workspaceState.update(replType + "-history", []);
 }
 
 function showPreviousReplHistoryEntryInEditor(): void {
-    console.log(replHistory);
-    const connected = state.cursor.get('connected');
 }
 
+
 export {
-    pushToReplHistory,
-    popFromReplHistory,
+    addToHistory,
     showPreviousReplHistoryEntryInEditor
 };
