@@ -133,7 +133,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     if (isResultsDoc(vscode.window.activeTextEditor.document)) {
         setContextForOutputWindowActive(true);
     }
-    replHistory.reset();
+    replHistory.resetState();
     return resultsDoc;
 }
 

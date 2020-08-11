@@ -7,34 +7,44 @@ import { isResultsDoc, getSessionType, getPrompt, append } from './result-output
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
-function reset(): void {
+function resetState(): void {
     historyIndex = null;
     lastTextAtPrompt = null;
 }
 
+function getHistoryKey(replType: ReplType): string {
+    return `calva-repl-${replType}-history`;
+}
+
 function getHistory(replType: ReplType): Array<string> {
-    let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
+    const key = getHistoryKey(replType);
+    let history = state.extensionContext.workspaceState.get(key, []);
     return history;
 }
 
 function addToHistory(replType: ReplType, line: string) {
     const entry = line.trim();
     if (line !== "") {
-        const history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
+        const history = getHistory(replType);
         let last = "";
         if (history.length > 0) {
             last = history[history.length - 1];
         }
         if (last !== line) {
             history.push(entry);
-            state.extensionContext.workspaceState.update(replType + "-history", history);
+            state.extensionContext.workspaceState.update(getHistoryKey(replType), history);
         }
-        reset();
+        resetState();
     }
 }
 
-function clearHistory(replType: ReplType) {
-    state.extensionContext.workspaceState.update(replType + "-history", []);
+function clearHistory() {
+    const replType = getSessionType();
+    const key = getHistoryKey(replType);
+    state.extensionContext.workspaceState.update(key, []);
+    resetState();
+    append('; REPL history cleared');
+    append(getPrompt());
 }
 
 function showReplHistoryEntry(historyEntry: string, resultsEditor: vscode.TextEditor): void {
@@ -78,11 +88,11 @@ function addNewline(text: string) {
 function showPreviousReplHistoryEntry(): void {
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;
-    if (!isResultsDoc(doc) || historyIndex === 0) {
-        return;
-    }
     const replType = getSessionType();
     const history = getHistory(replType);
+    if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
+        return;
+    }
     if (historyIndex === null) {
         historyIndex = history.length;
     }
@@ -114,5 +124,6 @@ export {
     addToHistory,
     showPreviousReplHistoryEntry,
     showNextReplHistoryEntry,
-    reset
+    resetState,
+    clearHistory
 };

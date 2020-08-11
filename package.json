@@ -1074,6 +1074,12 @@
                 "title": "Show Next REPL History Entry",
                 "enablement": "calva:connected && calva:outputWindowActive",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.clearReplHistory",
+                "title": "Clear REPL History",
+                "enablement": "calva:connected",
+                "category": "Calva"
             }
         ],
         "keybindings": [
