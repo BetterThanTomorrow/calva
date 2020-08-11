@@ -81,7 +81,7 @@ function saveTextAtPrompt(docText: string): void {
     lastTextAtPrompt = docText.substring(indexOfEndOfPrompt);
 }
 
-function addNewline(text: string) {
+function prependNewline(text: string) {
     return `\n${text}`;
 }
 
@@ -100,7 +100,7 @@ function showPreviousReplHistoryEntry(): void {
         saveTextAtPrompt(doc.getText());
     }
     historyIndex--;
-    showReplHistoryEntry(addNewline(history[historyIndex]), editor);
+    showReplHistoryEntry(prependNewline(history[historyIndex]), editor);
 }
 
 function showNextReplHistoryEntry(): void {
@@ -116,7 +116,7 @@ function showNextReplHistoryEntry(): void {
         historyIndex = null;
         showReplHistoryEntry(lastTextAtPrompt, editor);
     } else {
-        showReplHistoryEntry(addNewline(history[historyIndex]), editor);
+        showReplHistoryEntry(prependNewline(history[historyIndex]), editor);
     }
 }
 
