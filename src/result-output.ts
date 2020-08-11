@@ -37,6 +37,10 @@ let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
 };
 let _prompt: string;
 
+export function getPrompt(): string {
+    return _prompt;
+}
+
 export function getNs(): string {
     return _sessionInfo[_sessionType].ns;
 }
