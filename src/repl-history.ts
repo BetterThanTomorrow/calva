@@ -4,6 +4,7 @@ import { ReplType } from './config';
 import { isResultsDoc, getSessionType, getPrompt } from './result-output';
 
 let historyIndex = null;
+let lastTextAtPrompt = null;
 
 function getHistory(replType: ReplType): Array<string> {
     let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
@@ -23,6 +24,7 @@ function addToHistory(replType: ReplType, line: string) {
             state.extensionContext.workspaceState.update(replType + "-history", history);
         }
         historyIndex = null;
+        lastTextAtPrompt = null;
     }
 }
 
@@ -39,9 +41,22 @@ function showReplHistoryEntry(historyEntry: string, resultsDoc: vscode.TextDocum
     const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
     const entry = historyEntry || "";
     const edit = new vscode.WorkspaceEdit();
-    const editText = `\n${entry}`;
-    edit.replace(resultsDoc.uri, range, editText);
+    edit.replace(resultsDoc.uri, range, entry);
     vscode.workspace.applyEdit(edit);
+}
+
+function saveTextAtPrompt(docText: string): void {
+    const prompt = getPrompt();
+    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
+    if (lastIndexOfPrompt === -1) {
+        return;
+    }
+    const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
+    lastTextAtPrompt = docText.substring(indexOfEndOfPrompt);
+}
+
+function addNewline(text: string) {
+    return `\n${text}`;
 }
 
 function showPreviousReplHistoryEntry(): void {
@@ -54,19 +69,26 @@ function showPreviousReplHistoryEntry(): void {
     if (!historyIndex) {
         historyIndex = history.length;
     }
+    if (historyIndex === history.length) {
+        saveTextAtPrompt(doc.getText());
+    }
     historyIndex--;
-    showReplHistoryEntry(history[historyIndex], doc);
+    showReplHistoryEntry(addNewline(history[historyIndex]), doc);
 }
 
 function showNextReplHistoryEntry(): void {
     const doc = vscode.window.activeTextEditor.document;
     const replType = getSessionType();
     const history = getHistory(replType);
-    if (!isResultsDoc(doc) || !historyIndex || historyIndex === history.length - 1) {
+    if (!isResultsDoc(doc) || !historyIndex) {
         return;
     }
     historyIndex++;
-    showReplHistoryEntry(history[historyIndex], doc);
+    if (historyIndex = history.length) {
+        showReplHistoryEntry(lastTextAtPrompt, doc);
+    } else {
+        showReplHistoryEntry(addNewline(history[historyIndex]), doc);
+    }
 }
 
 export {
