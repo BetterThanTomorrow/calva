@@ -233,7 +233,7 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
                 if (visibleResultsEditors.length == 0) {
                     scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
                         if (isResultsDoc(editor.document)) {
-                            scrollToBottom(editor);
+                            util.scrollToBottom(editor);
                             scrollToBottomSub.dispose();
                         }
                     });
@@ -247,7 +247,7 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
                             visibleResultsEditors.forEach(editor => {
-                                scrollToBottom(editor);
+                                util.scrollToBottom(editor);
                                 highlight(editor);
                             });
                         }
@@ -287,12 +287,6 @@ export function printStacktrace(trace: StackTrace): void {
     append(text);
 }
 
-function scrollToBottom(editor: vscode.TextEditor) {
-    const lastPos = editor.document.positionAt(Infinity);
-    editor.selection = new vscode.Selection(lastPos, lastPos);
-    editor.revealRange(new vscode.Range(lastPos, lastPos));
-}
-
 export {
-    OnResultAppendedCallback
+    OnResultAppendedCallback,
 };

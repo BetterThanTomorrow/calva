@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as state from './state';
+import * as util from './utilities';
 import type { ReplType } from './config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './result-output';
 
@@ -36,14 +37,15 @@ function clearHistory(replType: ReplType) {
     state.extensionContext.workspaceState.update(replType + "-history", []);
 }
 
-function showReplHistoryEntry(historyEntry: string, resultsDoc: vscode.TextDocument): void {
+function showReplHistoryEntry(historyEntry: string, resultsEditor: vscode.TextEditor): void {
     const prompt = getPrompt();
+    const resultsDoc = resultsEditor.document;
     const docText = resultsDoc.getText();
     const indexOfLastPrompt = docText.lastIndexOf(prompt);
     if (indexOfLastPrompt === -1) {
         // Prompt not found in results doc, so append a prompt and re-run this function
         append(getPrompt(), _ => {
-            showReplHistoryEntry(historyEntry, resultsDoc);
+            showReplHistoryEntry(historyEntry, resultsEditor);
         });
         return;
     }
@@ -53,7 +55,10 @@ function showReplHistoryEntry(historyEntry: string, resultsDoc: vscode.TextDocum
     const entry = historyEntry || "\n";
     const edit = new vscode.WorkspaceEdit();
     edit.replace(resultsDoc.uri, range, entry);
-    vscode.workspace.applyEdit(edit).then(_ => resultsDoc.save());
+    vscode.workspace.applyEdit(edit).then(_ => {
+        resultsDoc.save();
+        util.scrollToBottom(resultsEditor);
+    });
 }
 
 function saveTextAtPrompt(docText: string): void {
@@ -71,7 +76,8 @@ function addNewline(text: string) {
 }
 
 function showPreviousReplHistoryEntry(): void {
-    const doc = vscode.window.activeTextEditor.document;
+    const editor = vscode.window.activeTextEditor;
+    const doc = editor.document;
     if (!isResultsDoc(doc) || historyIndex === 0) {
         return;
     }
@@ -84,11 +90,12 @@ function showPreviousReplHistoryEntry(): void {
         saveTextAtPrompt(doc.getText());
     }
     historyIndex--;
-    showReplHistoryEntry(addNewline(history[historyIndex]), doc);
+    showReplHistoryEntry(addNewline(history[historyIndex]), editor);
 }
 
 function showNextReplHistoryEntry(): void {
-    const doc = vscode.window.activeTextEditor.document;
+    const editor = vscode.window.activeTextEditor;
+    const doc = editor.document;
     const replType = getSessionType();
     const history = getHistory(replType);
     if (!isResultsDoc(doc) || historyIndex === null) {
@@ -97,9 +104,9 @@ function showNextReplHistoryEntry(): void {
     historyIndex++;
     if (historyIndex >= history.length) {
         historyIndex = null;
-        showReplHistoryEntry(lastTextAtPrompt, doc);
+        showReplHistoryEntry(lastTextAtPrompt, editor);
     } else {
-        showReplHistoryEntry(addNewline(history[historyIndex]), doc);
+        showReplHistoryEntry(addNewline(history[historyIndex]), editor);
     }
 }
 

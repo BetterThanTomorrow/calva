@@ -316,6 +316,12 @@ function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], 
     return filtered;
 }
 
+function scrollToBottom(editor: vscode.TextEditor) {
+    const lastPos = editor.document.positionAt(Infinity);
+    editor.selection = new vscode.Selection(lastPos, lastPos);
+    editor.revealRange(new vscode.Range(lastPos, lastPos));
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -343,5 +349,6 @@ export {
     getTestUnderCursor,
     promptForUserInputString,
     debounce,
-    filterVisibleRanges
+    filterVisibleRanges,
+    scrollToBottom
 };
