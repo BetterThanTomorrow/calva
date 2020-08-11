@@ -90,6 +90,10 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
+function setContextForOutputWindowActive(isActive: boolean): void {
+    vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
+}
+
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // await state.initProjectDir();
     const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
@@ -119,12 +123,17 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
         const isOutputWindow = isResultsDoc(event.document);
-        vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isOutputWindow);
+        setContextForOutputWindowActive(isOutputWindow);
         if (isOutputWindow) {
             setViewColumn(event.viewColumn);
         }
     }));
-    replHistory.initializeHistory();
+    // If the output window is active when initResultsDoc is run, this context won't be set properly without the below
+    // until the next time it's focused
+    if (isResultsDoc(vscode.window.activeTextEditor.document)) {
+        setContextForOutputWindowActive(true);
+    }
+    replHistory.reset();
     return resultsDoc;
 }
 
@@ -208,7 +217,7 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
             if (doc) {
                 const edit = new vscode.WorkspaceEdit();
                 const currentContent = doc.getText();
-                const lastLineEmpty = currentContent.match(/\n$/);
+                const lastLineEmpty = currentContent.match(/\n$/) || currentContent === '';
                 const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
                 insertPosition = doc.positionAt(Infinity);
                 edit.insert(DOC_URI(), insertPosition, `${appendText}`);

@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as state from './state';
-import { ReplType } from './config';
-import { isResultsDoc, getSessionType, getPrompt } from './result-output';
+import type { ReplType } from './config';
+import { isResultsDoc, getSessionType, getPrompt, append } from './result-output';
 
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
-function initializeHistory(): void {
+function reset(): void {
     historyIndex = null;
     lastTextAtPrompt = null;
 }
@@ -28,8 +28,7 @@ function addToHistory(replType: ReplType, line: string) {
             history.push(entry);
             state.extensionContext.workspaceState.update(replType + "-history", history);
         }
-        historyIndex = null;
-        lastTextAtPrompt = null;
+        reset();
     }
 }
 
@@ -40,23 +39,30 @@ function clearHistory(replType: ReplType) {
 function showReplHistoryEntry(historyEntry: string, resultsDoc: vscode.TextDocument): void {
     const prompt = getPrompt();
     const docText = resultsDoc.getText();
-    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
-    const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
-    const startPosition = resultsDoc.positionAt(indexOfEndOfPrompt);
+    const indexOfLastPrompt = docText.lastIndexOf(prompt);
+    if (indexOfLastPrompt === -1) {
+        // Prompt not found in results doc, so append a prompt and re-run this function
+        append(getPrompt(), _ => {
+            showReplHistoryEntry(historyEntry, resultsDoc);
+        });
+        return;
+    }
+    let insertOffset = indexOfLastPrompt + prompt.length;
+    const startPosition = resultsDoc.positionAt(insertOffset);
     const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
-    const entry = historyEntry || "";
+    const entry = historyEntry || "\n";
     const edit = new vscode.WorkspaceEdit();
     edit.replace(resultsDoc.uri, range, entry);
-    vscode.workspace.applyEdit(edit);
+    vscode.workspace.applyEdit(edit).then(_ => resultsDoc.save());
 }
 
 function saveTextAtPrompt(docText: string): void {
     const prompt = getPrompt();
-    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
-    if (lastIndexOfPrompt === -1) {
+    const indexOfLastPrompt = docText.lastIndexOf(prompt);
+    if (indexOfLastPrompt === -1) {
         return;
     }
-    const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
+    const indexOfEndOfPrompt = indexOfLastPrompt + prompt.length;
     lastTextAtPrompt = docText.substring(indexOfEndOfPrompt);
 }
 
@@ -101,5 +107,5 @@ export {
     addToHistory,
     showPreviousReplHistoryEntry,
     showNextReplHistoryEntry,
-    initializeHistory
+    reset
 };

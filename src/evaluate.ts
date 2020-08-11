@@ -12,7 +12,6 @@ import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import { addToHistory } from './repl-history';
-import config from './config';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
