@@ -84,7 +84,8 @@ function showNextReplHistoryEntry(): void {
         return;
     }
     historyIndex++;
-    if (historyIndex = history.length) {
+    if (historyIndex >= history.length) {
+        historyIndex = null;
         showReplHistoryEntry(lastTextAtPrompt, doc);
     } else {
         showReplHistoryEntry(addNewline(history[historyIndex]), doc);
