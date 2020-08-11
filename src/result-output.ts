@@ -124,6 +124,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
             setViewColumn(event.viewColumn);
         }
     }));
+    replHistory.initializeHistory();
     return resultsDoc;
 }
 

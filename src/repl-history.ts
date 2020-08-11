@@ -6,6 +6,11 @@ import { isResultsDoc, getSessionType, getPrompt } from './result-output';
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
+function initializeHistory(): void {
+    historyIndex = null;
+    lastTextAtPrompt = null;
+}
+
 function getHistory(replType: ReplType): Array<string> {
     let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
     return history;
@@ -66,7 +71,7 @@ function showPreviousReplHistoryEntry(): void {
     }
     const replType = getSessionType();
     const history = getHistory(replType);
-    if (!historyIndex) {
+    if (historyIndex === null) {
         historyIndex = history.length;
     }
     if (historyIndex === history.length) {
@@ -80,7 +85,7 @@ function showNextReplHistoryEntry(): void {
     const doc = vscode.window.activeTextEditor.document;
     const replType = getSessionType();
     const history = getHistory(replType);
-    if (!isResultsDoc(doc) || !historyIndex) {
+    if (!isResultsDoc(doc) || historyIndex === null) {
         return;
     }
     historyIndex++;
@@ -96,4 +101,5 @@ export {
     addToHistory,
     showPreviousReplHistoryEntry,
     showNextReplHistoryEntry,
+    initializeHistory
 };

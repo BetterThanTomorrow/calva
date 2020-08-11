@@ -1066,13 +1066,13 @@
             {
                 "command": "calva.showPreviousReplHistoryEntry",
                 "title": "Show Previous REPL History Entry",
-                "enablement": "calva:connected && resourceExtname == .repl",
+                "enablement": "calva:connected && calva:outputWindowActive",
                 "category": "Calva"
             },
             {
                 "command": "calva.showNextReplHistoryEntry",
                 "title": "Show Next REPL History Entry",
-                "enablement": "calva:connected && resourceExtname == .repl",
+                "enablement": "calva:connected && calva:outputWindowActive",
                 "category": "Calva"
             }
         ],
@@ -1502,6 +1502,16 @@
                 "command": "calva.sendCurrentTopLevelFormToOutputWindow",
                 "key": "ctrl+alt+c ctrl+alt+space",
                 "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+            },
+            {
+                "command": "calva.showPreviousReplHistoryEntry",
+                "key": "alt+up",
+                "when": "editorLangId == clojure && calva:connected && calva:outputWindowActive"
+            },
+            {
+                "command": "calva.showNextReplHistoryEntry",
+                "key": "alt+down",
+                "when": "editorLangId == clojure && calva:connected && calva:outputWindowActive"
             }
         ],
         "menus": {
@@ -1516,7 +1526,11 @@
                 },
                 {
                     "command": "calva.showPreviousReplHistoryEntry",
-                    "when": "calva:connected && resourceExtname == .repl"
+                    "when": "calva:connected && calva:outputWindowActive"
+                },
+                {
+                    "command": "calva.showNextReplHistoryEntry",
+                    "when": "calva:connected && calva:outputWindowActive"
                 }
             ],
             "editor/title": [
