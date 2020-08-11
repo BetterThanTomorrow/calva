@@ -3,12 +3,7 @@ import * as state from './state';
 import { ReplType } from './config';
 import { isResultsDoc, getSessionType, getPrompt } from './result-output';
 
-const historyIndexes = {};
-
-function initializeReplHistory(): void {
-    historyIndexes['clj'] = getHistory('clj').length;
-    historyIndexes['cljs'] = getHistory('cljs').length;
-}
+let historyIndex = -1;
 
 function getHistory(replType: ReplType): Array<string> {
     let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
@@ -27,7 +22,7 @@ function addToHistory(replType: ReplType, line: string) {
             history.push(entry);
             state.extensionContext.workspaceState.update(replType + "-history", history);
         }
-        historyIndexes[replType] = history.length;
+        historyIndex = -1;
     }
 }
 
@@ -35,40 +30,42 @@ function clearHistory(replType: ReplType) {
     state.extensionContext.workspaceState.update(replType + "-history", []);
 }
 
-function showPreviousReplHistoryEntryInEditor(): void {
+function showPreviousReplHistoryEntry(): void {
     const doc = vscode.window.activeTextEditor.document;
-    const replType = getSessionType();
-    const history = getHistory(replType);
-    let historyIndex = historyIndexes[replType];
-
-    if (!isResultsDoc(doc) || historyIndex < 0) {
+    if (!isResultsDoc(doc) || historyIndex === 0) {
         return;
     }
-
+    const replType = getSessionType();
+    const history = getHistory(replType);
+    if (historyIndex < 0) {
+        historyIndex = history.length;
+    }
+    historyIndex--;
     const prompt = getPrompt();
     const docText = doc.getText();
     const lastIndexOfPrompt = docText.lastIndexOf(prompt);
     const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
-
-    if (historyIndex === history.length) {
-        // User is beginning a traversal up from the most recent item. We need to save their current work at the prompt.
-        const textAfterPrompt = docText.substring(indexOfEndOfPrompt);
-        addToHistory(replType, textAfterPrompt);
-        historyIndex--;
-    }
-    historyIndex--;
+    const startPosition = doc.positionAt(indexOfEndOfPrompt);
+    const range = new vscode.Range(startPosition, doc.positionAt(Infinity));
     const previousEntry = history[historyIndex] || "";
     const edit = new vscode.WorkspaceEdit();
-    // edit.insert(doc.uri, doc.positionAt(Infinity), previousEntry);
-    // vscode.workspace.applyEdit(edit);
+    const editText = `\n${previousEntry}`;
+    edit.replace(doc.uri, range, editText);
+    vscode.workspace.applyEdit(edit);
+}
 
-    const position = doc.positionAt(indexOfEndOfPrompt);
-
-    console.log(position);
+function showNextReplHistoryEntry(): void {
+    const doc = vscode.window.activeTextEditor.document;
+    const replType = getSessionType();
+    const history = getHistory(replType);
+    if (!isResultsDoc(doc) || historyIndex === history.length - 1) {
+        return;
+    }
+    
 }
 
 export {
     addToHistory,
-    showPreviousReplHistoryEntryInEditor,
-    initializeReplHistory
+    showPreviousReplHistoryEntry,
+    showNextReplHistoryEntry,
 };
