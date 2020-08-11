@@ -9,6 +9,7 @@ import { formatCode } from './calva-fmt/src/format';
 import * as namespace from './namespace';
 import config from './config';
 import type { ReplType } from './config';
+import * as replHistory from './repl-history';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -123,6 +124,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
             setViewColumn(event.viewColumn);
         }
     }));
+    replHistory.initializeReplHistory();
     return resultsDoc;
 }
 

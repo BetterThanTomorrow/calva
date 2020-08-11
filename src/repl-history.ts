@@ -3,7 +3,12 @@ import * as state from './state';
 import { ReplType } from './config';
 import { isResultsDoc, getSessionType, getPrompt } from './result-output';
 
-let historyIndex = -1;
+const historyIndexes = {};
+
+function initializeReplHistory(): void {
+    historyIndexes['clj'] = getHistory('clj').length;
+    historyIndexes['cljs'] = getHistory('cljs').length;
+}
 
 function getHistory(replType: ReplType): Array<string> {
     let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
@@ -22,7 +27,7 @@ function addToHistory(replType: ReplType, line: string) {
             history.push(entry);
             state.extensionContext.workspaceState.update(replType + "-history", history);
         }
-        historyIndex = history.length;
+        historyIndexes[replType] = history.length;
     }
 }
 
@@ -31,26 +36,39 @@ function clearHistory(replType: ReplType) {
 }
 
 function showPreviousReplHistoryEntryInEditor(): void {
-    const editor = vscode.window.activeTextEditor;
-    const doc = editor.document;
-    historyIndex--;
+    const doc = vscode.window.activeTextEditor.document;
+    const replType = getSessionType();
+    const history = getHistory(replType);
+    let historyIndex = historyIndexes[replType];
+
     if (!isResultsDoc(doc) || historyIndex < 0) {
         return;
     }
-    const history = getHistory(getSessionType());
+
+    const prompt = getPrompt();
+    const docText = doc.getText();
+    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
+    const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
+
+    if (historyIndex === history.length) {
+        // User is beginning a traversal up from the most recent item. We need to save their current work at the prompt.
+        const textAfterPrompt = docText.substring(indexOfEndOfPrompt);
+        addToHistory(replType, textAfterPrompt);
+        historyIndex--;
+    }
+    historyIndex--;
     const previousEntry = history[historyIndex] || "";
     const edit = new vscode.WorkspaceEdit();
     // edit.insert(doc.uri, doc.positionAt(Infinity), previousEntry);
     // vscode.workspace.applyEdit(edit);
 
-    const prompt = getPrompt();
-    const docText = doc.getText();
-    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
-    const position = doc.positionAt(lastIndexOfPrompt);
+    const position = doc.positionAt(indexOfEndOfPrompt);
+
     console.log(position);
 }
 
 export {
     addToHistory,
-    showPreviousReplHistoryEntryInEditor
+    showPreviousReplHistoryEntryInEditor,
+    initializeReplHistory
 };
