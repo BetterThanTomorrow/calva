@@ -3,7 +3,7 @@ import * as state from './state';
 import { ReplType } from './config';
 import { isResultsDoc, getSessionType, getPrompt } from './result-output';
 
-let historyIndex = -1;
+let historyIndex = null;
 
 function getHistory(replType: ReplType): Array<string> {
     let history = (state.extensionContext.workspaceState.get(replType + "-history") || []) as Array<string>;
@@ -22,12 +22,26 @@ function addToHistory(replType: ReplType, line: string) {
             history.push(entry);
             state.extensionContext.workspaceState.update(replType + "-history", history);
         }
-        historyIndex = -1;
+        historyIndex = null;
     }
 }
 
 function clearHistory(replType: ReplType) {
     state.extensionContext.workspaceState.update(replType + "-history", []);
+}
+
+function showReplHistoryEntry(historyEntry: string, resultsDoc: vscode.TextDocument): void {
+    const prompt = getPrompt();
+    const docText = resultsDoc.getText();
+    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
+    const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
+    const startPosition = resultsDoc.positionAt(indexOfEndOfPrompt);
+    const range = new vscode.Range(startPosition, resultsDoc.positionAt(Infinity));
+    const entry = historyEntry || "";
+    const edit = new vscode.WorkspaceEdit();
+    const editText = `\n${entry}`;
+    edit.replace(resultsDoc.uri, range, editText);
+    vscode.workspace.applyEdit(edit);
 }
 
 function showPreviousReplHistoryEntry(): void {
@@ -37,31 +51,22 @@ function showPreviousReplHistoryEntry(): void {
     }
     const replType = getSessionType();
     const history = getHistory(replType);
-    if (historyIndex < 0) {
+    if (!historyIndex) {
         historyIndex = history.length;
     }
     historyIndex--;
-    const prompt = getPrompt();
-    const docText = doc.getText();
-    const lastIndexOfPrompt = docText.lastIndexOf(prompt);
-    const indexOfEndOfPrompt = lastIndexOfPrompt + prompt.length;
-    const startPosition = doc.positionAt(indexOfEndOfPrompt);
-    const range = new vscode.Range(startPosition, doc.positionAt(Infinity));
-    const previousEntry = history[historyIndex] || "";
-    const edit = new vscode.WorkspaceEdit();
-    const editText = `\n${previousEntry}`;
-    edit.replace(doc.uri, range, editText);
-    vscode.workspace.applyEdit(edit);
+    showReplHistoryEntry(history[historyIndex], doc);
 }
 
 function showNextReplHistoryEntry(): void {
     const doc = vscode.window.activeTextEditor.document;
     const replType = getSessionType();
     const history = getHistory(replType);
-    if (!isResultsDoc(doc) || historyIndex === history.length - 1) {
+    if (!isResultsDoc(doc) || !historyIndex || historyIndex === history.length - 1) {
         return;
     }
-    
+    historyIndex++;
+    showReplHistoryEntry(history[historyIndex], doc);
 }
 
 export {
