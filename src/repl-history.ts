@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import type { ReplType } from './config';
+import type { ReplSessionType } from './config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './result-output';
 
 const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
@@ -28,27 +28,27 @@ function resetState(): void {
     lastTextAtPrompt = null;
 }
 
-function getHistoryKey(replType: ReplType): string {
-    return `calva-repl-${replType}-history`;
+function getHistoryKey(replSessionType: ReplSessionType): string {
+    return `calva-repl-${replSessionType}-history`;
 }
 
-function getHistory(replType: ReplType): Array<string> {
-    const key = getHistoryKey(replType);
+function getHistory(replSessionType: ReplSessionType): Array<string> {
+    const key = getHistoryKey(replSessionType);
     let history = state.extensionContext.workspaceState.get(key, []);
     return history;
 }
 
-function addToHistory(replType: ReplType, line: string) {
+function addToHistory(replSessionType: ReplSessionType, line: string) {
     const entry = line.trim();
     if (line !== "") {
-        const history = getHistory(replType);
+        const history = getHistory(replSessionType);
         let last = "";
         if (history.length > 0) {
             last = history[history.length - 1];
         }
         if (last !== line) {
             history.push(entry);
-            state.extensionContext.workspaceState.update(getHistoryKey(replType), history);
+            state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), history);
         }
         resetState();
     }

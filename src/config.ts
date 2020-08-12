@@ -2,10 +2,10 @@ const config = {
     REPL_FILE_EXT: 'repl'
 };
 
-type ReplType = 'clj' | 'cljs';
+type ReplSessionType = 'clj' | 'cljs';
 
 export {
-    ReplType
+    ReplSessionType
 }
 
 export default config;
