@@ -15,7 +15,7 @@ function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
         const prompt = getPrompt();
         const indexOfLastPrompt = document.getText().indexOf(prompt);
         const positionOfLastPrompt = document.positionAt(indexOfLastPrompt);
-        if (indexOfLastPrompt !== -1 && selection.start.isAfterOrEqual(positionOfLastPrompt)) {
+        if (indexOfLastPrompt === -1 || selection.start.isAfterOrEqual(positionOfLastPrompt)) {
             vscode.commands.executeCommand("setContext", replHistoryCommandsActiveContext, true);
             return;
         }

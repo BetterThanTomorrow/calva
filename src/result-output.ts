@@ -132,6 +132,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // until the next time it's focused
     if (isResultsDoc(vscode.window.activeTextEditor.document)) {
         setContextForOutputWindowActive(true);
+        replHistory.setReplHistoryCommandsActiveContext(vscode.window.activeTextEditor);
     }
     replHistory.resetState();
     return resultsDoc;
