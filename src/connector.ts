@@ -48,9 +48,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
         namespace.updateREPLSessionType();
 
-        // Initialize debugger
         await initializeDebugger(cljSession);
-        outputWindow.append('; Debugger initialized');
 
         outputWindow.setSession(cljSession, nClient.ns);
 

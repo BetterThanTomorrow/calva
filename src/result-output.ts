@@ -19,10 +19,12 @@ const START_GREETINGS = '; This is the Calva evaluation results output window.\n
 ; Please see https://calva.io/output/ for more info.\n\
 ; Happy coding! ♥️';
 
-export const CLJ_CONNECT_GREETINGS = '; TIPS: You can edit the contents here. Use it as a REPL if you like.\n\
-;   Use `alt+enter` to evaluate the current top level form.\n\
-;   (`ctrl+enter` evaluates the current form.)\n\
-;   File URLs in stacktrace frames are peekable and clickable.';
+export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
+;   - You can edit the contents here. Use it as a REPL if you like.\n\
+;   - `alt+enter` evaluates the current top level form.\n\
+;   - `ctrl+enter` evaluates the current form.\n\
+;   - `alt+up` and `alt+down` traverse up and down the REPL command history.\n\
+;   - File URLs in stacktrace frames are peekable and clickable.';
 
 export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
 ;    *Calva: Toggle REPL connection*\n\
