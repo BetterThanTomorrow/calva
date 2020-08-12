@@ -1043,7 +1043,7 @@
                 "category": "Calva",
                 "command": "calva.showOutputWindow",
                 "title": "Show Output Window",
-                "enablement": "calva:connected"
+                "enablement": "calva:connected && !calva.outputWindowActive"
             },
             {
                 "command": "calva.setOutputWindowNamespace",
@@ -1066,13 +1066,13 @@
             {
                 "command": "calva.showPreviousReplHistoryEntry",
                 "title": "Show Previous REPL History Entry",
-                "enablement": "calva:connected && calva:outputWindowActive",
+                "enablement": "calva:connected && calva:outputWindowActive && calva:replHistoryCommandsActive",
                 "category": "Calva"
             },
             {
                 "command": "calva.showNextReplHistoryEntry",
                 "title": "Show Next REPL History Entry",
-                "enablement": "calva:connected && calva:outputWindowActive",
+                "enablement": "calva:connected && calva:outputWindowActive && calva:replHistoryCommandsActive",
                 "category": "Calva"
             },
             {
@@ -1491,7 +1491,7 @@
             {
                 "command": "calva.showOutputWindow",
                 "key": "ctrl+alt+c o",
-                "when": "calva:connected && !calva.outputWindowActive"
+                "when": "calva:connected && !calva:outputWindowActive"
             },
             {
                 "command": "calva.setOutputWindowNamespace",
@@ -1537,6 +1537,10 @@
                 {
                     "command": "calva.showNextReplHistoryEntry",
                     "when": "calva:connected && calva:outputWindowActive"
+                },
+                {
+                    "command": "calva.showOutputWindow",
+                    "when": "calva:connected && !calva:outputWindowActive"
                 }
             ],
             "editor/title": [

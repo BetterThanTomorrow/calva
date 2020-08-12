@@ -191,6 +191,7 @@ function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
+        replHistory.setReplHistoryCommandsActiveContext(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
@@ -200,6 +201,9 @@ function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((_: vscode.ConfigurationChangeEvent) => {
         statusbar.update();
+    }));
+    context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
+        replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
     }));
 
     // Clojure debug adapter setup
