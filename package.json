@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.120",
+    "version": "2.0.120-fix-740-allow-default-esc-keybind",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -1120,7 +1120,7 @@
             {
                 "command": "calva.clearInlineResults",
                 "key": "escape",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
+                "when": "editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && editorLangId == 'clojure'"
             },
             {
                 "command": "calva.evaluateSelection",
@@ -1719,8 +1719,5 @@
         "vscode-test": "^1.3.0",
         "webpack": "^4.43.0",
         "webpack-cli": "^3.3.11"
-    },
-    "extensionDependencies": [
-        "borkdude.clj-kondo"
-    ]
+    }
 }
