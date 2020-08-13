@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import * as state from './state';
-import * as util from './utilities';
-import { getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring } from './util/string';
-import type { ReplSessionType } from './config';
-import { isResultsDoc, getSessionType, getPrompt, append } from './result-output';
+import * as state from '../state';
+import * as util from '../utilities';
+import { getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring } from '../util/string';
+import type { ReplSessionType } from '../config';
+import { isResultsDoc, getSessionType, getPrompt, append } from './results-doc';
 
 const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
 let historyIndex = null;

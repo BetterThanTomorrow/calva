@@ -4,7 +4,7 @@ import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
-import * as outputWindow from './result-output';
+import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
 

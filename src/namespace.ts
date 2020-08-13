@@ -7,7 +7,7 @@ const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import * as docMirror from './doc-mirror';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc'
 import * as utilities from './utilities'
 
 export function getNamespace(doc: vscode.TextDocument) {

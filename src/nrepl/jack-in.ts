@@ -8,7 +8,7 @@ import { nClient } from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import * as outputWindow from '../result-output';
+import * as outputWindow from '../results-output/results-doc';
 import * as namespace from "../namespace";
 
 let JackinExecution:vscode.TaskExecution = undefined;

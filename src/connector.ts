@@ -11,7 +11,7 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc'
 import evaluate from './evaluate';
 import * as namespace from './namespace';
 

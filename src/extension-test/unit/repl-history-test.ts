@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import * as replHistory from '../../repl-history';
+import * as replHistory from '../../results-output/repl-history';
 
 describe('repl-history', () => {
     describe('addToHistory', () => {

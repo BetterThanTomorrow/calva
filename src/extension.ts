@@ -23,8 +23,8 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './result-output';
-import * as replHistory from './repl-history';
+import * as outputWindow from './results-output/results-doc';
+import * as replHistory from './results-output/repl-history';
 
 function onDidSave(document) {
     let {

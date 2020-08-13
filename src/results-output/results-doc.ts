@@ -1,14 +1,14 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as state from './state';
-import { highlight } from './highlight/src/extension'
-import { NReplSession } from './nrepl';
-import * as util from './utilities';
-import select from './select';
-import { formatCode } from './calva-fmt/src/format';
-import * as namespace from './namespace';
-import config from './config';
-import type { ReplSessionType } from './config';
+import * as state from '../state';
+import { highlight } from '../highlight/src/extension'
+import { NReplSession } from '../nrepl';
+import * as util from '../utilities';
+import select from '../select';
+import { formatCode } from '../calva-fmt/src/format';
+import * as namespace from '../namespace';
+import config from '../config';
+import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
