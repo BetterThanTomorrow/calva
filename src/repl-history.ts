@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
+import { getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring } from './util/string';
 import type { ReplSessionType } from './config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './result-output';
 
@@ -8,18 +9,11 @@ const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
-// UNIT TEST
-function getIndexAfterLastNoneWhitespace(text: string): number {
-    const textTrimmed = text.trim();
-    const lastNonWhitespaceOrEolChar = textTrimmed[textTrimmed.length - 1];
-    return text.lastIndexOf(lastNonWhitespaceOrEolChar) + 1;
-}
-
 function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
     const document = editor.document;
     if (util.getConnectedState() && isResultsDoc(document)) {
         const selection = editor.selection;
-        const positionAtEndOfContent = document.positionAt(getIndexAfterLastNoneWhitespace(document.getText()));
+        const positionAtEndOfContent = document.positionAt(getIndexAfterLastNonWhitespace(document.getText()));
         if (selection.start.isAfterOrEqual(positionAtEndOfContent)) {
             vscode.commands.executeCommand("setContext", replHistoryCommandsActiveContext, true);
             return;
@@ -106,16 +100,6 @@ function prependNewline(text: string) {
     return `\n${text}`;
 }
 
-// UNIT TEST
-function getTextAtPrompt(documentText: string, replPrompt: string): string {
-    const indexOfLastPrompt = documentText.lastIndexOf(replPrompt);
-    if (indexOfLastPrompt === -1) {
-        return null;
-    }
-    const indexOfEndOfPrompt = indexOfLastPrompt + replPrompt.length;
-    return documentText.substring(indexOfEndOfPrompt);
-}
-
 function showPreviousReplHistoryEntry(): void {
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;
@@ -124,7 +108,7 @@ function showPreviousReplHistoryEntry(): void {
     if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
         return;
     }
-    const textAtPrompt = getTextAtPrompt(doc.getText(), getPrompt());
+    const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
     if (historyIndex === null) {
         historyIndex = history.length;
         lastTextAtPrompt = textAtPrompt;
@@ -147,7 +131,7 @@ function showNextReplHistoryEntry(): void {
         historyIndex = null;
         showReplHistoryEntry(lastTextAtPrompt, editor);
     } else {
-        const textAtPrompt = getTextAtPrompt(doc.getText(), getPrompt());
+        const textAtPrompt = getTextAfterLastOccurrenceOfSubstring(doc.getText(), getPrompt());
         updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
         historyIndex++
         const nextHistoryEntry = history[historyIndex];
