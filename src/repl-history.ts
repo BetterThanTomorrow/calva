@@ -140,6 +140,7 @@ function showNextReplHistoryEntry(): void {
 }
 
 export {
+    addToHistory,
     addToReplHistory,
     showPreviousReplHistoryEntry,
     showNextReplHistoryEntry,
