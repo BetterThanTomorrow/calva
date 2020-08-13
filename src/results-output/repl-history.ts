@@ -4,6 +4,7 @@ import * as util from '../utilities';
 import { getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring } from '../util/string';
 import type { ReplSessionType } from '../config';
 import { isResultsDoc, getSessionType, getPrompt, append } from './results-doc';
+import { addToHistory } from './util';
 
 const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
 let historyIndex = null;
@@ -34,21 +35,6 @@ function getHistoryKey(replSessionType: ReplSessionType): string {
 function getHistory(replSessionType: ReplSessionType): Array<string> {
     const key = getHistoryKey(replSessionType);
     let history = state.extensionContext.workspaceState.get(key, []);
-    return history;
-}
-
-// UNIT TEST
-function addToHistory(history: string[], content: string): string[] {
-    const entry = content.trim();
-    if (content !== "") {
-        let last = "";
-        if (history.length > 0) {
-            last = history[history.length - 1];
-        }
-        if (last !== entry) {
-            history.push(entry);
-        }
-    }
     return history;
 }
 
