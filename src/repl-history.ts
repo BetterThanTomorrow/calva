@@ -110,19 +110,28 @@ function prependNewline(text: string) {
     return `\n${text}`;
 }
 
+// UNIT TEST
+function getTextAtPrompt(documentText: string, replPrompt: string): string {
+    const indexOfLastPrompt = documentText.lastIndexOf(replPrompt);
+    if (indexOfLastPrompt === -1) {
+        return null;
+    }
+    const indexOfEndOfPrompt = indexOfLastPrompt + replPrompt.length;
+    return documentText.substring(indexOfEndOfPrompt);
+}
+
 function showPreviousReplHistoryEntry(): void {
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;
-    const replType = getSessionType();
-    const history = getHistory(replType);
+    const replSessionType = getSessionType();
+    const history = getHistory(replSessionType);
     if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
         return;
     }
     if (historyIndex === null) {
         historyIndex = history.length;
-    }
-    if (historyIndex === history.length) {
-        saveTextAtPrompt(doc.getText());
+        const textAtPrompt = getTextAtPrompt(doc.getText(), getPrompt());
+        lastTextAtPrompt = textAtPrompt;
     }
     historyIndex--;
     showReplHistoryEntry(prependNewline(history[historyIndex]), editor);
