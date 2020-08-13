@@ -131,7 +131,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
             setViewColumn(event.viewColumn);
         }
     }));
-    // If the output window is active when initResultsDoc is run, this context won't be set properly without the below
+    // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
     if (isResultsDoc(vscode.window.activeTextEditor.document)) {
         setContextForOutputWindowActive(true);

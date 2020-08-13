@@ -8,14 +8,18 @@ const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
+function getIndexAfterLastNoneWhitespace(text: string): number {
+    const textTrimmed = text.trim();
+    const lastNonWhitespaceOrEolChar = textTrimmed[textTrimmed.length - 1];
+    return text.lastIndexOf(lastNonWhitespaceOrEolChar) + 1;
+}
+
 function setReplHistoryCommandsActiveContext(editor: vscode.TextEditor): void {
     const document = editor.document;
     if (util.getConnectedState() && isResultsDoc(document)) {
         const selection = editor.selection;
-        const prompt = getPrompt();
-        const indexOfLastPrompt = document.getText().indexOf(prompt);
-        const positionOfLastPrompt = document.positionAt(indexOfLastPrompt);
-        if (indexOfLastPrompt === -1 || selection.start.isAfterOrEqual(positionOfLastPrompt)) {
+        const positionAtEndOfContent = document.positionAt(getIndexAfterLastNoneWhitespace(document.getText()));
+        if (selection.start.isAfterOrEqual(positionAtEndOfContent)) {
             vscode.commands.executeCommand("setContext", replHistoryCommandsActiveContext, true);
             return;
         }
