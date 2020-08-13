@@ -58,6 +58,12 @@ function addToHistory(history: string[], content: string): string[] {
     return history;
 }
 
+function updateReplHistory(replSessionType: ReplSessionType, history: string[], content: string, index: number) {
+    const newHistory = [...history];
+    newHistory[index] = content.trim();
+    state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), newHistory);
+}
+
 function addToReplHistory(replSessionType: ReplSessionType, content: string) {
     const newHistory = addToHistory(getHistory(replSessionType), content);
     state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), newHistory);
@@ -96,16 +102,6 @@ function showReplHistoryEntry(historyEntry: string, resultsEditor: vscode.TextEd
     });
 }
 
-function saveTextAtPrompt(docText: string): void {
-    const prompt = getPrompt();
-    const indexOfLastPrompt = docText.lastIndexOf(prompt);
-    if (indexOfLastPrompt === -1) {
-        return;
-    }
-    const indexOfEndOfPrompt = indexOfLastPrompt + prompt.length;
-    lastTextAtPrompt = docText.substring(indexOfEndOfPrompt);
-}
-
 function prependNewline(text: string) {
     return `\n${text}`;
 }
@@ -128,10 +124,12 @@ function showPreviousReplHistoryEntry(): void {
     if (!isResultsDoc(doc) || historyIndex === 0 || history.length === 0) {
         return;
     }
+    const textAtPrompt = getTextAtPrompt(doc.getText(), getPrompt());
     if (historyIndex === null) {
         historyIndex = history.length;
-        const textAtPrompt = getTextAtPrompt(doc.getText(), getPrompt());
         lastTextAtPrompt = textAtPrompt;
+    } else {
+        updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
     }
     historyIndex--;
     showReplHistoryEntry(prependNewline(history[historyIndex]), editor);
@@ -140,17 +138,20 @@ function showPreviousReplHistoryEntry(): void {
 function showNextReplHistoryEntry(): void {
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;
-    const replType = getSessionType();
-    const history = getHistory(replType);
+    const replSessionType = getSessionType();
+    const history = getHistory(replSessionType);
     if (!isResultsDoc(doc) || historyIndex === null) {
         return;
     }
-    historyIndex++;
-    if (historyIndex >= history.length) {
+    if (historyIndex === history.length - 1) {
         historyIndex = null;
         showReplHistoryEntry(lastTextAtPrompt, editor);
     } else {
-        showReplHistoryEntry(prependNewline(history[historyIndex]), editor);
+        const textAtPrompt = getTextAtPrompt(doc.getText(), getPrompt());
+        updateReplHistory(replSessionType, history, textAtPrompt, historyIndex);
+        historyIndex++
+        const nextHistoryEntry = history[historyIndex];
+        showReplHistoryEntry(prependNewline(nextHistoryEntry), editor);
     }
 }
 
