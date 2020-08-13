@@ -8,6 +8,7 @@ const replHistoryCommandsActiveContext = "calva:replHistoryCommandsActive";
 let historyIndex = null;
 let lastTextAtPrompt = null;
 
+// UNIT TEST
 function getIndexAfterLastNoneWhitespace(text: string): number {
     const textTrimmed = text.trim();
     const lastNonWhitespaceOrEolChar = textTrimmed[textTrimmed.length - 1];
@@ -42,20 +43,24 @@ function getHistory(replSessionType: ReplSessionType): Array<string> {
     return history;
 }
 
-function addToHistory(replSessionType: ReplSessionType, line: string) {
-    const entry = line.trim();
-    if (line !== "") {
-        const history = getHistory(replSessionType);
+// UNIT TEST
+function addToHistory(history: string[], content: string): string[] {
+    const entry = content.trim();
+    if (content !== "") {
         let last = "";
         if (history.length > 0) {
             last = history[history.length - 1];
         }
-        if (last !== line) {
+        if (last !== entry) {
             history.push(entry);
-            state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), history);
         }
-        resetState();
     }
+    return history;
+}
+
+function addToReplHistory(replSessionType: ReplSessionType, content: string) {
+    const newHistory = addToHistory(getHistory(replSessionType), content);
+    state.extensionContext.workspaceState.update(getHistoryKey(replSessionType), newHistory);
 }
 
 function clearHistory() {
@@ -141,7 +146,7 @@ function showNextReplHistoryEntry(): void {
 }
 
 export {
-    addToHistory,
+    addToReplHistory,
     showPreviousReplHistoryEntry,
     showNextReplHistoryEntry,
     resetState,

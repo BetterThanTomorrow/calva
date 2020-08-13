@@ -11,7 +11,7 @@ import { PrettyPrintingOptions } from './printer';
 import * as outputWindow from './result-output';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
-import { addToHistory } from './repl-history';
+import * as replHistory from './repl-history';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -148,7 +148,8 @@ async function evaluateSelection(document: {}, options) {
         const session = namespace.getSession(util.getFileType(doc));
 
         if (outputWindow.isResultsDoc(doc)) {
-            addToHistory(session.replType, code);
+            replHistory.addToReplHistory(session.replType, code);
+            replHistory.resetState();
         }
 
         if (code.length > 0) {
