@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import { REPL_FILE_EXT } from './result-output';
+import config from './config';
 import * as namespace from './namespace';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -53,7 +53,7 @@ function update() {
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
-        if (['cljc', REPL_FILE_EXT].includes(fileType) && namespace.getREPLSessionType() !== null) {
+        if (['cljc', config.REPL_FILE_EXT].includes(fileType) && namespace.getREPLSessionType() !== null) {
             typeStatus.text = "cljc/" + namespace.getREPLSessionType()
             if (namespace.getSession('clj') !== null && namespace.getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";

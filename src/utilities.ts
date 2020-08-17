@@ -6,7 +6,7 @@ import * as path from 'path';
 const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import select from './select';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc'
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -173,13 +173,8 @@ function getConnectedState() {
 }
 
 function setConnectedState(value: Boolean) {
-    if (value) {
-        vscode.commands.executeCommand("setContext", "calva:connected", true);
-        state.cursor.set('connected', true);
-    } else {
-        vscode.commands.executeCommand("setContext", "calva:connected", false);
-        state.cursor.set('connected', false);
-    }
+    vscode.commands.executeCommand("setContext", "calva:connected", value);
+    state.cursor.set('connected', value);
 }
 
 function getConnectingState() {
@@ -321,6 +316,12 @@ function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], 
     return filtered;
 }
 
+function scrollToBottom(editor: vscode.TextEditor) {
+    const lastPos = editor.document.positionAt(Infinity);
+    editor.selection = new vscode.Selection(lastPos, lastPos);
+    editor.revealRange(new vscode.Range(lastPos, lastPos));
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -348,5 +349,6 @@ export {
     getTestUnderCursor,
     promptForUserInputString,
     debounce,
-    filterVisibleRanges
+    filterVisibleRanges,
+    scrollToBottom
 };

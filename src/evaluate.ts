@@ -8,9 +8,10 @@ import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as outputWindow from './result-output';
+import * as outputWindow from './results-output/results-doc';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
+import * as replHistory from './results-output/repl-history';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -145,6 +146,12 @@ async function evaluateSelection(document: {}, options) {
         const column = codeSelection.start.character;
         const filePath = doc.fileName;
         const session = namespace.getSession(util.getFileType(doc));
+
+        if (outputWindow.isResultsDoc(doc)) {
+            replHistory.addToReplHistory(session.replType, code);
+            replHistory.resetState();
+        }
+
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;

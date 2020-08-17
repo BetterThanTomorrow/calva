@@ -23,7 +23,8 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc';
+import * as replHistory from './results-output/repl-history';
 
 function onDidSave(document) {
     let {
@@ -43,7 +44,7 @@ function onDidSave(document) {
         }
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => { });
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
     }
@@ -155,6 +156,9 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.setOutputWindowNamespace', outputWindow.setNamespaceFromCurrentFile));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentFormToOutputWindow', outputWindow.appendCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentTopLevelFormToOutputWindow', outputWindow.appendCurrentTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.showPreviousReplHistoryEntry', replHistory.showPreviousReplHistoryEntry));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.showNextReplHistoryEntry', replHistory.showNextReplHistoryEntry));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.clearReplHistory', replHistory.clearHistory));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
@@ -173,7 +177,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.PathDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
@@ -187,6 +191,7 @@ function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
+        replHistory.setReplHistoryCommandsActiveContext(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
@@ -196,6 +201,9 @@ function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((_: vscode.ConfigurationChangeEvent) => {
         statusbar.update();
+    }));
+    context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
+        replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
     }));
 
     // Clojure debug adapter setup
@@ -218,7 +226,7 @@ function activate(context: vscode.ExtensionContext) {
                 .then(v => {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
-                        open(VIM_DOC_URL).catch(() => {});
+                        open(VIM_DOC_URL).catch(() => { });
                     }
                 })
         }

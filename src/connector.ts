@@ -11,7 +11,7 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc'
 import evaluate from './evaluate';
 import * as namespace from './namespace';
 
@@ -48,9 +48,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
         namespace.updateREPLSessionType();
 
-        // Initialize debugger
         await initializeDebugger(cljSession);
-        outputWindow.append('; Debugger initialized');
 
         outputWindow.setSession(cljSession, nClient.ns);
 

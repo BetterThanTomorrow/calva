@@ -7,7 +7,8 @@ import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } fr
 import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
-import * as outputWinow from '../result-output';
+import * as outputWinow from '../results-output/results-doc';
+import type { ReplSessionType } from '../config';
 
 /** An nREPL client */
 export class NReplClient {
@@ -161,7 +162,7 @@ export class NReplSession {
     }
 
     messageHandlers: { [id: string]: (msg: any) => boolean } = {};
-    replType: "clj" | "cljs" = null;
+    replType: ReplSessionType = null;
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })

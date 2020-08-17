@@ -1,26 +1,31 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as state from './state';
-import { highlight } from './highlight/src/extension'
-import { NReplSession } from './nrepl';
-import * as util from './utilities';
-import select from './select';
-import { formatCode } from './calva-fmt/src/format';
-import * as namespace from './namespace';
+import * as state from '../state';
+import { highlight } from '../highlight/src/extension'
+import { NReplSession } from '../nrepl';
+import * as util from '../utilities';
+import select from '../select';
+import { formatCode } from '../calva-fmt/src/format';
+import * as namespace from '../namespace';
+import config from '../config';
+import type { ReplSessionType } from '../config';
+import * as replHistory from './repl-history';
 
-export const REPL_FILE_EXT = "repl-file"
-const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
+const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
 const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
 ; Leave it open, please. Because quirks.\n\
-; TIPS: The keyboard shortcut `ctrl+alt+c o` shows and focuses this window.\n\
+; TIPS: The keyboard shortcut `ctrl+alt+c o` shows and focuses this window\n\
+;   when connected to a REPL session.\n\
 ; Please see https://calva.io/output/ for more info.\n\
 ; Happy coding! ♥️';
 
-export const CLJ_CONNECT_GREETINGS = '; TIPS: You can edit the contents here. Use it as a REPL if you like.\n\
-;   Use `alt+enter` to evaluate the current top level form.\n\
-;   (`ctrl+enter` evaluates the current form.)\n\
-;   File URLs in stacktrace frames are peekable and clickable.';
+export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
+;   - You can edit the contents here. Use it as a REPL if you like.\n\
+;   - `alt+enter` evaluates the current top level form.\n\
+;   - `ctrl+enter` evaluates the current form.\n\
+;   - `alt+up` and `alt+down` traverse up and down the REPL command history.\n\
+;   - File URLs in stacktrace frames are peekable and clickable.';
 
 export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
 ;    *Calva: Toggle REPL connection*\n\
@@ -29,18 +34,22 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva', 'output-window');
 const DOC_URI = () => vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
-let _sessionType = "clj";
+let _sessionType: ReplSessionType = "clj";
 let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
     clj: {},
     cljs: {}
 };
 let _prompt: string;
 
+export function getPrompt(): string {
+    return _prompt;
+}
+
 export function getNs(): string {
     return _sessionInfo[_sessionType].ns;
 }
 
-export function getSessionType(): string {
+export function getSessionType(): ReplSessionType {
     return _sessionType;
 }
 
@@ -84,6 +93,10 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
+function setContextForOutputWindowActive(isActive: boolean): void {
+    vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
+}
+
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // await state.initProjectDir();
     const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
@@ -113,11 +126,18 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
         const isOutputWindow = isResultsDoc(event.document);
-        vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isOutputWindow);
+        setContextForOutputWindowActive(isOutputWindow);
         if (isOutputWindow) {
             setViewColumn(event.viewColumn);
         }
     }));
+    // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
+    // until the next time it's focused
+    if (isResultsDoc(vscode.window.activeTextEditor.document)) {
+        setContextForOutputWindowActive(true);
+        replHistory.setReplHistoryCommandsActiveContext(vscode.window.activeTextEditor);
+    }
+    replHistory.resetState();
     return resultsDoc;
 }
 
@@ -201,7 +221,7 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
             if (doc) {
                 const edit = new vscode.WorkspaceEdit();
                 const currentContent = doc.getText();
-                const lastLineEmpty = currentContent.match(/\n$/);
+                const lastLineEmpty = currentContent.match(/\n$/) || currentContent === '';
                 const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
                 insertPosition = doc.positionAt(Infinity);
                 edit.insert(DOC_URI(), insertPosition, `${appendText}`);
@@ -217,7 +237,7 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
                 if (visibleResultsEditors.length == 0) {
                     scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
                         if (isResultsDoc(editor.document)) {
-                            scrollToBottom(editor);
+                            util.scrollToBottom(editor);
                             scrollToBottomSub.dispose();
                         }
                     });
@@ -231,7 +251,7 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
                             visibleResultsEditors.forEach(editor => {
-                                scrollToBottom(editor);
+                                util.scrollToBottom(editor);
                                 highlight(editor);
                             });
                         }
@@ -271,12 +291,6 @@ export function printStacktrace(trace: StackTrace): void {
     append(text);
 }
 
-function scrollToBottom(editor: vscode.TextEditor) {
-    const lastPos = editor.document.positionAt(Infinity);
-    editor.selection = new vscode.Selection(lastPos, lastPos);
-    editor.revealRange(new vscode.Range(lastPos, lastPos));
-}
-
 export {
-    OnResultAppendedCallback
+    OnResultAppendedCallback,
 };
