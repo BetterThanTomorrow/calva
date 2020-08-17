@@ -24,7 +24,8 @@ export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
 ;   - You can edit the contents here. Use it as a REPL if you like.\n\
 ;   - `alt+enter` evaluates the current top level form.\n\
 ;   - `ctrl+enter` evaluates the current form.\n\
-;   - `alt+up` and `alt+down` traverse up and down the REPL command history.\n\
+;   - `alt+up` and `alt+down` traverse up and down the REPL command history\n\
+;      when the cursor is after the last contents at the prompt\n\
 ;   - File URLs in stacktrace frames are peekable and clickable.';
 
 export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
