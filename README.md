@@ -35,7 +35,7 @@ We also hope that Calva will contribute to making it easier to pick up Clojure a
 
 ## Getting Started with Calva
 
-Go to the [documentation](https://calva.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from the same repository as Calva. So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR.
+Go to the [documentation](https://calva.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from a separate repository than Calva, called [calva-docs](https://github.com/BetterThanTomorrow/calva-docs). So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR in that repository.
 
 ## Features
 
@@ -69,6 +69,7 @@ The gif demos several more features, apart from the in-comment evaluation, like:
 * signature help while typing function calls
 * evaluation result display is a bit sticky (so you can examine several evaluations at once)
 * there is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
+  * Edit: This feature has been removed in favor of using peek definition. See [here](https://calva.io/output/#peek-at-results). This decision was made due to high memory usage from storing results, but may be added back at some point if it's desired by many users over the peek definition feature.
 * some [structural editing](https://calva.io/paredit/)
 
 ### Demo: Signature Help, while Typing
@@ -101,7 +102,7 @@ I'm glad you are reading this section! There are many ways and you are welcome t
   * Via [#calva](https://clojurians.slack.com/messages/calva/) at the Clojurians Slack.
   * Via filing issues.
 * Fix issues. PRs welcome! Calva is built using a combination of TypeScript and ClojureScript. The ClojureScript part uses the [shadow-cljs](http://shadow-cljs.org) tool chain. See the [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) page on the wiki for instructions on how to hack on Calva. TL;DR _It is super easy to get started!_
-* Fix typos. In the UI and in the docs. It might seem like a small enough thing to not bother about it, but really, typos get in the way of comprehension. Typos are bad, uhm?
+* Fix typos in the UI and in the docs. It might seem like a small enough thing to not bother about it, but really, typos get in the way of comprehension. Typos are bad, uhm?
 * Become a GitHub sponsor. Read on.
 
 ## Calva Sponsors ❤️
@@ -112,8 +113,7 @@ A considerable amount of time, creativity, energy, worries, sweat, and tears (we
 
 Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
 
-These people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
-
+The following people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
 ### Calva Gold Sponsors
 
