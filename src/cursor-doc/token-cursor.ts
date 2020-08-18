@@ -508,7 +508,7 @@ export class LispTokenCursor extends TokenCursor {
      * @param offset the current cursor (caret) offset in the document
      */
     rangeForCurrentForm(offset: number): [number, number] {
-        if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset != this.offsetStart) { // 0
+        if (['id', 'kw', 'lit', 'str-inside'].includes(this.getToken().type) && offset !== this.offsetStart) { // 0
             const cursor = this.clone();
             cursor.backwardThroughAnyReader();
             return [cursor.offsetStart, this.offsetEnd];
@@ -525,18 +525,18 @@ export class LispTokenCursor extends TokenCursor {
         beforeCursor.forwardWhitespace(true);
         const readerCursor = beforeCursor.clone();
         readerCursor.backwardThroughAnyReader();
-        if ((offset >= beforeCursor.offsetStart && offset <= beforeCursor.offsetEnd) || readerCursor.offsetStart != beforeCursor.offsetStart) {
+        if ((offset >= beforeCursor.offsetStart && offset <= beforeCursor.offsetEnd) || readerCursor.offsetStart !== beforeCursor.offsetStart) {
             if (beforeCursor.forwardSexp()) { // 2.
                 return [readerCursor.offsetStart, beforeCursor.offsetStart];
             }
         }
-        if (afterCursor.rowCol[0] == this.rowCol[0]) {
+        if (afterCursor.rowCol[0] === this.rowCol[0]) {
             const peekBehindBackwards = afterCursor.clone();
             if (peekBehindBackwards.backwardSexp()) { // 3.
                 return [peekBehindBackwards.offsetStart, afterCursor.offsetStart];
             }
         }
-        if (beforeCursor.rowCol[0] == this.rowCol[0]) {
+        if (beforeCursor.rowCol[0] === this.rowCol[0]) {
             const peekPastForwards = beforeCursor.clone();
             if (peekPastForwards.forwardSexp()) { // 4.
                 return [beforeCursor.offsetStart, peekPastForwards.offsetStart];
