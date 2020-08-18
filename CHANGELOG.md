@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: ["Go to definition" command fails](https://github.com/BetterThanTomorrow/calva/issues/636)
 
 ## [2.0.120] - 2020-08-17
 - Fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
