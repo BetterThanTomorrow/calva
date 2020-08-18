@@ -525,7 +525,7 @@ export class LispTokenCursor extends TokenCursor {
         beforeCursor.forwardWhitespace(true);
         const readerCursor = beforeCursor.clone();
         readerCursor.backwardThroughAnyReader();
-        if (beforeCursor.offsetStart == offset || readerCursor.offsetStart != beforeCursor.offsetStart) {
+        if ((offset >= beforeCursor.offsetStart && offset <= beforeCursor.offsetEnd) || readerCursor.offsetStart != beforeCursor.offsetStart) {
             if (beforeCursor.forwardSexp()) { // 2.
                 return [readerCursor.offsetStart, beforeCursor.offsetStart];
             }
