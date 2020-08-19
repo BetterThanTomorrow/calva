@@ -14,6 +14,7 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import * as namespace from '../namespace';
+import { removeFileSchemeFromUri } from '../util/string';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -176,7 +177,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const filePath = debugResponse.file.replace(/^(file:)/, '');
+        const filePath = removeFileSchemeFromUri(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(filePath);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);

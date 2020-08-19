@@ -7,6 +7,7 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
+import { removeFileSchemeFromUri } from './util/string';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -120,8 +121,9 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
     if (!ns.endsWith('-test')) {
         const testNS = ns + '-test';
         const testFilePath = (await session.nsPath(testNS)).path;
-        if (`${testFilePath}` != "") {
-            let loadForms = `(load-file "${testFilePath}")`;
+        if (testFilePath && testFilePath !== "") {
+            const filePath = removeFileSchemeFromUri(testFilePath);
+            let loadForms = `(load-file "${filePath}")`;
             await session.eval(loadForms, testNS).value;
         }
         nss.push(testNS);
@@ -140,8 +142,9 @@ function runNamespaceTests(document = {}) {
             outputWindow.append("; Running namespace tests…");
             nss = await considerTestNS(ns, session, nss);
             const resultPromises = [session.testNs(nss[0])];
-            if (nss.length > 1)
+            if (nss.length > 1) {
                 resultPromises.push(session.testNs(nss[1]));
+            }
             const results = await Promise.all(resultPromises);
             reportTests(results, "Running tests");
         }, disabledPrettyPrinter).catch(() => { });
