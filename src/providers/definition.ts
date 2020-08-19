@@ -18,7 +18,7 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
       const client = namespace.getSession(util.getFileType(document));
       const info = await client.info(namespace.getNamespace(document), text);
       if (info.file && info.file.length > 0) {
-        const pos = new vscode.Position(info.line - 1, info.column);
+        const pos = new vscode.Position(info.line - 1, info.column || 0);
         try {
           return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
         } catch(e) { /* ignore */ }

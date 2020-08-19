@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.121] - 2020-08-19
+- Fix: ["Go to definition" command fails](https://github.com/BetterThanTomorrow/calva/issues/636)
+- Fix: [Weird expand selection behavior near an anonymous function](https://github.com/BetterThanTomorrow/calva/issues/600)
+- Fix: [Backspace is not working properly in the output window](https://github.com/BetterThanTomorrow/calva/issues/700)
+- Fix: [Cannot read property 'includes' of undefined](https://github.com/BetterThanTomorrow/calva/issues/753)
+
 ## [2.0.120] - 2020-08-17
 - Fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
 - Add REPL history to new output/REPL window

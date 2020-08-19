@@ -46,6 +46,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
 1. Add the CHANGELOG entries from `[Unreleased]`, **NB** There should be no newline between the header and the entries.
 1. Commit.
 1. Tag with `v<VERSION>` (and you must provide a tag message, else the CI pipeline won't pick it up correctly)
+   * e.g. `git tag -a v<version-number> -m "<message>"`
 1. Push `dev` (Using `--follow-tags`).
    * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace + `open-vsx.org`. **Note:** There is an approval step in the CircleCI pipeline. The release and VSIX will not be published until the Approve button is clicked in CircleCI.
    * You'll get an e-mail when it is published. (Or maybe only @pez gets that, not sure).
