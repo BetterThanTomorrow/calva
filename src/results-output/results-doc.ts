@@ -294,4 +294,5 @@ export function printStacktrace(trace: StackTrace): void {
 
 export {
     OnResultAppendedCallback,
+    setContextForOutputWindowActive
 };
