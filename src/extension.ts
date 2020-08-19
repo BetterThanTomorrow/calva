@@ -166,7 +166,7 @@ function activate(context: vscode.ExtensionContext) {
     }));
 
     // Initial set of the provided contexts
-    vscode.commands.executeCommand("setContext", "calva:outputWindowActive", false);
+    outputWindow.setContextForOutputWindowActive(false);
     vscode.commands.executeCommand("setContext", "calva:launching", false);
     vscode.commands.executeCommand("setContext", "calva:connected", false);
     vscode.commands.executeCommand("setContext", "calva:connecting", false);
@@ -204,6 +204,16 @@ function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
         replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
+    }));
+    context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(document => {
+        if (outputWindow.isResultsDoc(document)) {
+            outputWindow.setContextForOutputWindowActive(false);
+        }
+    }));
+    context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(editors => {
+        if (!editors.some(editor => outputWindow.isResultsDoc(editor.document))) {
+            outputWindow.setContextForOutputWindowActive(false);
+        }
     }));
 
     // Clojure debug adapter setup
