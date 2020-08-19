@@ -50,7 +50,7 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
     let formatRange = cursor.rangeForList(formatDepth);
     if (!formatRange) {
         formatRange = cursor.rangeForCurrentForm(index);
-        if (!formatRange.includes(index)) {
+        if (!formatRange || !formatRange.includes(index)) {
             return;
         }
     }
