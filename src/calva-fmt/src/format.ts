@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as config from './config';
+import * as outputWindow from '../../results-output/results-doc'
 import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror";
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, formatText, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 
@@ -80,18 +81,21 @@ export function formatPosition(editor: vscode.TextEditor, onType: boolean = fals
             editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex))
             return onFulfilled;
         });
-    } else {
-        if (formattedInfo) {
-            return new Promise((resolve, _reject) => {
-                if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-                    editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
-                }
-                resolve(true);
-            });
-        } else {
-            return formatRange(doc, new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)))
-        }
     }
+    if (formattedInfo) {
+        return new Promise((resolve, _reject) => {
+            if (formattedInfo.newIndex != formattedInfo.previousIndex) {
+                editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
+            }
+            resolve(true);
+        });
+    }
+    if (!onType && !outputWindow.isResultsDoc(doc)) {
+        return formatRange(doc, new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)))
+    }
+    return new Promise((resolve, _reject) => {
+        resolve(true);
+    });
 }
 
 export function formatPositionCommand(editor: vscode.TextEditor) {

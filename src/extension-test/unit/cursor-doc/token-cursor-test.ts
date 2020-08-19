@@ -240,6 +240,20 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = doc.getTokenCursor(1);
             expect(cursor.rangeForCurrentForm(1)).deep.equal([0, 2]);
         });
+        it('2: selects anonymous function when cursor is before #', () => {
+            const doc = new mock.MockDocument();
+            doc.insertString('(map #(println %) [1 2])');
+            const cursor = doc.getTokenCursor(5);
+            const range = cursor.rangeForCurrentForm(5);
+            expect(range).deep.equal([5, 17]);
+        });
+        it('2: selects anonymous function when cursor is after # and before (', () => {
+            const doc = new mock.MockDocument();
+            doc.insertString('(map #(println %) [1 2])');
+            const cursor = doc.getTokenCursor(6);
+            const range = cursor.rangeForCurrentForm(6);
+            expect(range).deep.equal([5, 17]);
+        });
     });
     describe('Location State', () => {
         it('Knows when inside string', () => {
