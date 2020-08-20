@@ -110,8 +110,7 @@ I'm glad you are reading this section! There are many ways and you are welcome t
 A considerable amount of time, creativity, energy, worries, sweat, and tears (well, no tears, but anyway 😄), is being spent on Calva. Please consider sponsoring us to show us that extra level of appreciation. Here are the ways you can do it:
 
 * [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
-
-Yeah, it's the only way right now, hopefully the other team members are setting up sponsoring as well.
+* [Brandon Ringe's Github Sponsors Profile](https://github.com/sponsors/bpringe)
 
 The following people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
 
