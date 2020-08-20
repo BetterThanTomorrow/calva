@@ -117,7 +117,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             });
         }
 
-        outputWindow.setSession(session, context.ns);
+        outputWindow.setSession(session, ns);
         namespace.updateREPLSessionType();
     }
 }
