@@ -30,15 +30,15 @@ describe('addToHistory', () => {
     });
 });
 
-describe('formatError', () => {
+describe('formatAsLineComments', () => {
     it('should add "; " to beginning of each line that contains content', () => {
         const error = 'hello\nworld\n';
-        const formattedError = util.formatError(error);
+        const formattedError = util.formatAsLineComments(error);
         expect(formattedError).equal('; hello\n; world');
     });
     it('should account for \\n\\r line endings', () => {
         const error = 'hello\n\rworld\n\r';
-        const formattedError = util.formatError(error);
+        const formattedError = util.formatAsLineComments(error);
         expect(formattedError).equal('; hello\n; world');
     });
 });

@@ -8,7 +8,7 @@ import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../results-output/results-doc';
-import { formatError } from '../results-output/util';
+import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 
 /** An nREPL client */
@@ -206,7 +206,7 @@ export class NReplSession {
                 const out = msgData.out.replace(/\n\r?$/, "");
                 outputWindow.append(out);
             } else if (msgData.err) {
-                const err = formatError(msgData.err);
+                const err = formatAsLineComments(msgData.err);
                 outputWindow.append(err, _ => {
                     outputWindow.append(outputWindow.getPrompt());
                 });

@@ -10,11 +10,11 @@ function addToHistory(history: string[], content: string): string[] {
     return history;
 }
 
-function formatError(error: string): string {
+function formatAsLineComments(error: string): string {
     return `; ${error.trim().replace(/\n\r?/, '\n; ')}`;
 }
 
 export {
     addToHistory,
-    formatError
+    formatAsLineComments
 };

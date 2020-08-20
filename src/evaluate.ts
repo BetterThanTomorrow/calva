@@ -12,6 +12,7 @@ import * as outputWindow from './results-output/results-doc';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
+import { formatAsLineComments } from './results-output/util';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -100,7 +101,8 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             }
         } catch (e) {
-            outputWindow.append(err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : '', (resultLocation) => {
+            const error = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
+            outputWindow.append(error, (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const error = util.stripAnsi(err.join("\n"));
@@ -117,7 +119,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             });
         }
 
-        outputWindow.setSession(session, ns);
+        outputWindow.setSession(session, context.ns || ns);
         namespace.updateREPLSessionType();
     }
 }
