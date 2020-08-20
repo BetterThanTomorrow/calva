@@ -32,7 +32,8 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
 
-const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), '.calva', 'output-window');
+
+const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), ".calva", "output-window")
 const DOC_URI = () => vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
 let _sessionType: ReplSessionType = "clj";
@@ -134,7 +135,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     }));
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
-    if (isResultsDoc(vscode.window.activeTextEditor.document)) {
+    if (vscode.window.activeTextEditor && isResultsDoc(vscode.window.activeTextEditor.document)) {
         setContextForOutputWindowActive(true);
         replHistory.setReplHistoryCommandsActiveContext(vscode.window.activeTextEditor);
     }
