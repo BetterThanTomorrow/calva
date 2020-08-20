@@ -87,7 +87,7 @@
                     ".edn",
                     ".joke",
                     ".boot",
-                    ".repl"
+                    ".calva-repl"
                 ]
             }
         ],
