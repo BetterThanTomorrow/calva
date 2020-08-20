@@ -5,7 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 
 ## [2.0.122] - 2020-08-20
-- Fix: [Can't jack-in to a fresh clj-new project](https://github.com/BetterThanTomorrow/calva/issues/734)
+- Fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
 - Fix: [Fix stacktraces not showing in output](https://github.com/BetterThanTomorrow/calva/pull/759)
 
 ## [2.0.121] - 2020-08-19
