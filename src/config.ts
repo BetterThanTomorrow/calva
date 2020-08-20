@@ -1,5 +1,5 @@
 const config = {
-    REPL_FILE_EXT: 'repl'
+    REPL_FILE_EXT: 'calva-repl'
 };
 
 type ReplSessionType = 'clj' | 'cljs';
