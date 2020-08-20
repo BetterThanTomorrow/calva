@@ -101,16 +101,16 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             }
         } catch (e) {
-            const error = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
-            outputWindow.append(error, (resultLocation) => {
+            const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
+            outputWindow.append(outputWindowError, (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
-                    const error = util.stripAnsi(err.join("\n"));
+                    const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
                     const currentCursorPos = editor.selection.active;
-                    annotations.decorateSelection(error, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
-                    annotations.decorateResults(error, true, selection, editor);
+                    annotations.decorateSelection(editorError, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
+                    annotations.decorateResults(editorError, true, selection, editor);
                     if (options.asComment) {
-                        addAsComment(selection.start.character, error, selection, editor, selection);
+                        addAsComment(selection.start.character, editorError, selection, editor, selection);
                     }
                 }
                 if (context.stacktrace && context.stacktrace.stacktrace) {
