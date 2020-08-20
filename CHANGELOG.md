@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Change output/repl window extension to .calva-repl](https://github.com/BetterThanTomorrow/calva/issues/754)
 
 ## [2.0.122] - 2020-08-20
 - Fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
