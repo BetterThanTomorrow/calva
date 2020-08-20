@@ -111,7 +111,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                         addAsComment(selection.start.character, error, selection, editor, selection);
                     }
                 }
-                if (context.stacktrace && context.stacktrace.trace) {
+                if (context.stacktrace) {
                     outputWindow.printStacktrace(context.stacktrace);
                 }
             });
