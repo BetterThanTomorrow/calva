@@ -282,12 +282,13 @@ function makePrintableStackTrace(stacktrace: any[]): string {
     return `[${lines.join('\n ')}]`;
 }
 
-export function printStacktrace(stacktrace: any[]): void {
+function printStacktrace(stacktrace: any[]): void {
     const text = makePrintableStackTrace(stacktrace);
     append(text);
 }
 
 export {
     OnResultAppendedCallback,
-    setContextForOutputWindowActive
+    setContextForOutputWindowActive,
+    printStacktrace
 };
