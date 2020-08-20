@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - FIX: ["Can't jack-in to a fresh clj-new project"](https://github.com/BetterThanTomorrow/calva/issues/734)
+- Fix: [Fix stacktraces not showing in output](https://github.com/BetterThanTomorrow/calva/pull/759)
 
 ## [2.0.121] - 2020-08-19
 - Fix: ["Go to definition" command fails](https://github.com/BetterThanTomorrow/calva/issues/636)
