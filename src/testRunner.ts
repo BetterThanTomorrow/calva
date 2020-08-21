@@ -106,14 +106,12 @@ function reportTests(results, errorStr, log = true) {
 async function runAllTests(document = {}) {
     const session = namespace.getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
-    outputWindow.setSession(session, session.client.ns);
-    namespace.updateREPLSessionType();
     reportTests([await session.testAll()], "Running all tests");
     outputWindow.setSession(session, session.client.ns);
+    namespace.updateREPLSessionType();
 }
 
 function runAllTestsCommand() {
-    state.outputChannel().show(true);
     runAllTests().catch(() => {});
 }
 
@@ -147,6 +145,7 @@ function runNamespaceTests(document = {}) {
             }
             const results = await Promise.all(resultPromises);
             reportTests(results, "Running tests");
+            outputWindow.appendPrompt();
         }, disabledPrettyPrinter).catch(() => { });
     }
 }
@@ -165,12 +164,10 @@ async function runTestUnderCursor() {
 }
 
 function runTestUnderCursorCommand() {
-    state.outputChannel().show(true);
     runTestUnderCursor().catch(() => {});
 }
 
 function runNamespaceTestsCommand() {
-    state.outputChannel().show(true);
     runNamespaceTests();
 }
 
@@ -183,7 +180,6 @@ function rerunTests(document = {}) {
 }
 
 function rerunTestsCommand() {
-    state.outputChannel().show(true);
     rerunTests();
 }
 

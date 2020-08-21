@@ -238,7 +238,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
                 outputWindow.printStacktrace(res.stacktrace);
             }
         });
-        outputWindow.setSession(session, res.ns ? res.ns : ns);
+        outputWindow.setSession(session, res.ns || ns);
         namespace.updateREPLSessionType();
     }
     if (callback) {

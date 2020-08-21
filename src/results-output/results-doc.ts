@@ -59,7 +59,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string, onPromptAdded: OnResultAppendedCallback = null): void {
+export function setSession(session: NReplSession, newNs: string, onPromptAdded: OnAppendedCallback = null): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -201,10 +201,10 @@ export function appendCurrentTopLevelForm() {
 }
 
 let scrollToBottomSub: vscode.Disposable;
-interface OnResultAppendedCallback {
+interface OnAppendedCallback {
     (insertLocation: vscode.Location): any
 }
-const editQueue: [string, OnResultAppendedCallback][] = [];
+const editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
    we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere 
@@ -212,10 +212,10 @@ let applyingEdit = false;
    apply edits one after another without issues.
    
    If something must be done after a particular edit, use the onResultAppended callback. */
-export function append(text: string, onResultAppended?: OnResultAppendedCallback): void {
+export function append(text: string, onAppended?: OnAppendedCallback): void {
     let insertPosition: vscode.Position;
     if (applyingEdit) {
-        editQueue.push([text, onResultAppended]);
+        editQueue.push([text, onAppended]);
     } else {
         applyingEdit = true;
         vscode.workspace.openTextDocument(DOC_URI()).then(doc => {
@@ -259,8 +259,8 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
                         }
                     }
 
-                    if (onResultAppended) {
-                        onResultAppended(new vscode.Location(DOC_URI(), insertPosition));
+                    if (onAppended) {
+                        onAppended(new vscode.Location(DOC_URI(), insertPosition));
                     }
 
                     if (editQueue.length > 0) {
@@ -293,7 +293,12 @@ export function printStacktrace(trace: StackTrace): void {
     append(text);
 }
 
+function appendPrompt(onAppended?: OnAppendedCallback) {
+    append(_prompt, onAppended);
+}
+
 export {
-    OnResultAppendedCallback,
-    setContextForOutputWindowActive
+    OnAppendedCallback as OnResultAppendedCallback,
+    setContextForOutputWindowActive,
+    appendPrompt
 };
