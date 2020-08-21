@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
@@ -32,11 +31,11 @@ function reportTests(results, errorStr, log = true) {
                             }
                         }
                         const resultMessage = (resultItem) => {
-                          let msg = [];
-                          if(!_.isEmpty(resultItem.context) && resultItem.context !== "false")
-                            msg.push(resultItem.context);
-                          if(resultItem.message)
-                            msg.push(resultItem.message);
+                            let msg = [];
+                            if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+                                msg.push(resultItem.context);
+                            if (resultItem.message)
+                                msg.push(resultItem.message);
                             return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
                         }
                         if (a.type == "error" && log) {
@@ -107,12 +106,12 @@ async function runAllTests(document = {}) {
     const session = namespace.getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
     reportTests([await session.testAll()], "Running all tests");
-    outputWindow.setSession(session, session.client.ns);
     namespace.updateREPLSessionType();
+    outputWindow.appendPrompt();
 }
 
 function runAllTestsCommand() {
-    runAllTests().catch(() => {});
+    runAllTests().catch(() => { });
 }
 
 async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
@@ -145,7 +144,8 @@ function runNamespaceTests(document = {}) {
             }
             const results = await Promise.all(resultPromises);
             reportTests(results, "Running tests");
-            outputWindow.appendPrompt();
+            outputWindow.setSession(session, ns);
+            namespace.updateREPLSessionType();
         }, disabledPrettyPrinter).catch(() => { });
     }
 }
@@ -160,11 +160,11 @@ async function runTestUnderCursor() {
         outputWindow.append(`; Running test: ${test}…`);
         const results = [await session.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
-    }, disabledPrettyPrinter).catch(() => {});
+    }, disabledPrettyPrinter).catch(() => { });
 }
 
 function runTestUnderCursorCommand() {
-    runTestUnderCursor().catch(() => {});
+    runTestUnderCursor().catch(() => { });
 }
 
 function runNamespaceTestsCommand() {
@@ -176,7 +176,7 @@ function rerunTests(document = {}) {
     evaluate.loadFile({}, async () => {
         outputWindow.append("; Running previously failed tests…");
         reportTests([await session.retest()], "Retesting");
-    }, disabledPrettyPrinter).catch(() => {});
+    }, disabledPrettyPrinter).catch(() => { });
 }
 
 function rerunTestsCommand() {
