@@ -272,28 +272,23 @@ export function append(text: string, onResultAppended?: OnResultAppendedCallback
     };
 }
 
-type StackTrace = {
-    stacktrace: any;
-};
-
-function makePrintableStackTrace(trace: StackTrace): string {
-    const stack = [];
-    for (let x of trace.stacktrace) {
+function makePrintableStackTrace(stacktrace: any[]): string {
+    const lines = stacktrace.map(x => {
         const file = x["file-url"] && x["file-url"].length ? `:file "${x["file-url"]}:${x.line}"` : `:file "${x.file}" :line ${x.line}`;
         const fn = x.fn ? ` :fn "${x.fn}" ` : '';
         const method = x.method ? ` :method "${x.method}" ` : '';
-        const line = `{${file}${fn}${method}:flags [${x.flags.map((f: string) => `:${f}`).join(' ')}]}`;
-        stack.push(line);
-    }
-    return `[${stack.join('\n ')}]`;
+        return `{${file}${fn}${method}:flags [${x.flags.map((f: string) => `:${f}`).join(' ')}]}`;
+    });
+    return `[${lines.join('\n ')}]`;
 }
 
-export function printStacktrace(trace: StackTrace): void {
-    const text = makePrintableStackTrace(trace);
+function printStacktrace(stacktrace: any[]): void {
+    const text = makePrintableStackTrace(stacktrace);
     append(text);
 }
 
 export {
     OnResultAppendedCallback,
-    setContextForOutputWindowActive
+    setContextForOutputWindowActive,
+    printStacktrace
 };
