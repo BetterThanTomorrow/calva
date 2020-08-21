@@ -160,6 +160,7 @@ async function runTestUnderCursor() {
         outputWindow.append(`; Running test: ${test}…`);
         const results = [await session.test(ns, [test])];
         reportTests(results, `Running test: ${test}`);
+        outputWindow.appendPrompt();
     }, disabledPrettyPrinter).catch(() => { });
 }
 
