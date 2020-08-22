@@ -177,6 +177,7 @@ function rerunTests(document = {}) {
     evaluate.loadFile({}, async () => {
         outputWindow.append("; Running previously failed tests…");
         reportTests([await session.retest()], "Retesting");
+        outputWindow.appendPrompt();
     }, disabledPrettyPrinter).catch(() => { });
 }
 
