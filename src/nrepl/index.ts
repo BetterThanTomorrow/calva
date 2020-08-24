@@ -395,6 +395,9 @@ export class NReplSession {
                 id,
                 session: this.sessionId,
                 "var-query": {
+                    "ns-query": {
+                        exactly: [ns]
+                    },
                     search: test,
                     "search-property": "name"
                 }
