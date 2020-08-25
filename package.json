@@ -713,7 +713,7 @@
             },
             {
                 "command": "calva.rerunTests",
-                "title": "Run Failing Tests again",
+                "title": "Run Failing Tests Again",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
