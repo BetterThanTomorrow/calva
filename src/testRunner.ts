@@ -168,7 +168,7 @@ async function runTestUnderCursor() {
             outputWindow.appendPrompt();
         }, disabledPrettyPrinter).catch(() => { });
     } else {
-        outputWindow.append('; No testable function found at cursor');
+        outputWindow.append('; No test found at cursor');
         outputWindow.appendPrompt();
     }
 }
