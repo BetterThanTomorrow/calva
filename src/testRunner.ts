@@ -140,7 +140,7 @@ function runNamespaceTests(document = {}) {
     let nss = [ns];
     if (!outputWindow.isResultsDoc(doc)) {
         evaluate.loadFile({}, async () => {
-            outputWindow.append(`; Running tests for ${ns} namespace...`);
+            outputWindow.append(`; Running tests for ${ns}...`);
             nss = await considerTestNS(ns, session, nss);
             const resultPromises = [session.testNs(nss[0])];
             if (nss.length > 1) {
