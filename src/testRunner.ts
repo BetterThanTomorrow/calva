@@ -134,24 +134,29 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
 }
 
 function runNamespaceTests(document = {}) {
-    const session = namespace.getSession(util.getFileType(document));
     const doc = util.getDocument(document);
+    if (outputWindow.isResultsDoc(doc)) {
+        return;
+    }
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    const session = namespace.getSession(util.getFileType(document));
     const ns = namespace.getNamespace(doc);
     let nss = [ns];
-    if (!outputWindow.isResultsDoc(doc)) {
-        evaluate.loadFile({}, async () => {
-            outputWindow.append(`; Running tests for ${ns}...`);
-            nss = await considerTestNS(ns, session, nss);
-            const resultPromises = [session.testNs(nss[0])];
-            if (nss.length > 1) {
-                resultPromises.push(session.testNs(nss[1]));
-            }
-            const results = await Promise.all(resultPromises);
-            reportTests(results, "Running tests");
-            outputWindow.setSession(session, ns);
-            namespace.updateREPLSessionType();
-        }, disabledPrettyPrinter).catch(() => { });
-    }
+    evaluate.loadFile({}, async () => {
+        outputWindow.append(`; Running tests for ${ns}...`);
+        nss = await considerTestNS(ns, session, nss);
+        const resultPromises = [session.testNs(nss[0])];
+        if (nss.length > 1) {
+            resultPromises.push(session.testNs(nss[1]));
+        }
+        const results = await Promise.all(resultPromises);
+        reportTests(results, "Running tests");
+        outputWindow.setSession(session, ns);
+        namespace.updateREPLSessionType();
+    }, disabledPrettyPrinter).catch(() => { });
 }
 
 async function runTestUnderCursor() {
@@ -159,7 +164,7 @@ async function runTestUnderCursor() {
     const session = namespace.getSession(util.getFileType(doc));
     const ns = namespace.getNamespace(doc);
     const test = util.getTestUnderCursor();
-    
+
     if (test) {
         evaluate.loadFile(doc, async () => {
             outputWindow.append(`; Running test: ${test}…`);
@@ -209,7 +214,6 @@ function rerunTestsCommand() {
 export default {
     runNamespaceTests,
     runNamespaceTestsCommand,
-    runAllTests,
     runAllTestsCommand,
     rerunTestsCommand,
     runTestUnderCursorCommand

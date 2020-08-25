@@ -179,7 +179,7 @@
                     "calva.testOnSave": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Run namespace tests when opening a new file and on file save"
+                        "description": "Run namespace tests on file save"
                     },
                     "calva.showDocstringInParameterHelp": {
                         "type": "boolean",
