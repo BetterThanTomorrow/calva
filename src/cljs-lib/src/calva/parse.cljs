@@ -36,8 +36,7 @@
   (let [pbr (rt/string-push-back-reader s)]
     (loop [parsed-forms []]
       (let [parsed-form (tr/read {:eof 'CALVA-EOF
-                                  :read-cond :preserve
-                                  :default #(str "#" %1 %2)} pbr)]
+                                  :read-cond :preserve} pbr)]
         (if (= parsed-form 'CALVA-EOF)
           parsed-forms
           (recur (conj parsed-forms parsed-form)))))))

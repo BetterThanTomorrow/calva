@@ -151,17 +151,22 @@ function runNamespaceTests(document = {}) {
 }
 
 async function runTestUnderCursor() {
-    const doc = util.getDocument({}),
-        session = namespace.getSession(util.getFileType(doc)),
-        ns = namespace.getNamespace(doc),
-        test = util.getTestUnderCursor();
-
-    evaluate.loadFile(doc, async () => {
-        outputWindow.append(`; Running test: ${test}…`);
-        const results = [await session.test(ns, test)];
-        reportTests(results, `Running test: ${test}`);
+    const doc = util.getDocument({});
+    const session = namespace.getSession(util.getFileType(doc));
+    const ns = namespace.getNamespace(doc);
+    const test = util.getTestUnderCursor();
+    
+    if (test) {
+        evaluate.loadFile(doc, async () => {
+            outputWindow.append(`; Running test: ${test}…`);
+            const results = [await session.test(ns, test)];
+            reportTests(results, `Running test: ${test}`);
+            outputWindow.appendPrompt();
+        }, disabledPrettyPrinter).catch(() => { });
+    } else {
+        outputWindow.append('; No testable function found at cursor');
         outputWindow.appendPrompt();
-    }, disabledPrettyPrinter).catch(() => { });
+    }
 }
 
 function runTestUnderCursorCommand() {

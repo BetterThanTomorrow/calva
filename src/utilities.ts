@@ -4,9 +4,9 @@ import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';
 const syntaxQuoteSymbol = "`";
-const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import select from './select';
-import * as outputWindow from './results-output/results-doc'
+import * as outputWindow from './results-output/results-doc';
+import * as docMirror from './doc-mirror';
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -83,25 +83,25 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getTestUnderCursor() {
-    const doc = getDocument(null);
-    if (doc) {
-        try {
-            const topLevelFormRange = select.getFormSelection(doc, vscode.window.activeTextEditor.selection.active, true),
-                topLevelForm = doc.getText(topLevelFormRange);
-            const forms = parseForms(topLevelForm);
-            if (forms !== undefined) {
-                const formArray = forms.filter(x => x[0].startsWith("def"));
-                if (formArray !== undefined && formArray.length > 0) {
-                    const form = formArray[0].filter(x => typeof (x) === "string");
-                    if (form !== undefined) {
-                        return form[1];
-                    }
-                }
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+        const document = editor.document;
+        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
+        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
+        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
+        while (tokenCursor.downList()) {
+            tokenCursor.forwardWhitespace();
+            if (['def', 'defn', 'deftest'].includes(tokenCursor.getToken().raw)) {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
+                return tokenCursor.getToken().raw;
+            } else {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
             }
-        } catch (e) {
-            console.log("Error parsing deftest form under cursor." + e);
         }
     }
+    return undefined;
 }
 
 function getStartExpression(text) {
