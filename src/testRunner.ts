@@ -111,6 +111,10 @@ async function runAllTests(document = {}) {
 }
 
 function runAllTestsCommand() {
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     runAllTests().catch(() => { });
 }
 
@@ -170,10 +174,18 @@ async function runTestUnderCursor() {
 }
 
 function runTestUnderCursorCommand() {
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     runTestUnderCursor().catch(() => { });
 }
 
 function runNamespaceTestsCommand() {
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     runNamespaceTests();
 }
 
@@ -187,6 +199,10 @@ function rerunTests(document = {}) {
 }
 
 function rerunTestsCommand() {
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     rerunTests();
 }
 
