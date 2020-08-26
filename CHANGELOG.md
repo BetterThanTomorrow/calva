@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.123] - 2020-08-26
 - [Change output/repl window extension to .calva-repl](https://github.com/BetterThanTomorrow/calva/issues/754)
 - Re-fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
 - [Fix/enhance test runner](https://github.com/BetterThanTomorrow/calva/issues/764)
