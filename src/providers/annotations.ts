@@ -146,7 +146,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
         decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
     }
     // for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
-    //     setSelectionDecorations(editor, [], s);
+    //     setSelectionDecorations(editor, [], s);.
     // }
     setSelectionDecorations(editor, [], status);
     decorationRanges.push(decoration);

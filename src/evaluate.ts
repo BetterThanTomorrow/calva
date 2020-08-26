@@ -12,6 +12,7 @@ import * as outputWindow from './results-output/results-doc';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
+import { formatAsLineComments } from './results-output/util';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -100,24 +101,25 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             }
         } catch (e) {
-            outputWindow.append(err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : '', (resultLocation) => {
+            const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
+            outputWindow.append(outputWindowError, (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
-                    const error = util.stripAnsi(err.join("\n"));
+                    const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
                     const currentCursorPos = editor.selection.active;
-                    annotations.decorateSelection(error, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
-                    annotations.decorateResults(error, true, selection, editor);
+                    annotations.decorateSelection(editorError, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
+                    annotations.decorateResults(editorError, true, selection, editor);
                     if (options.asComment) {
-                        addAsComment(selection.start.character, error, selection, editor, selection);
+                        addAsComment(selection.start.character, editorError, selection, editor, selection);
                     }
                 }
-                if (context.stacktrace) {
-                    outputWindow.printStacktrace(context.stacktrace);
+                if (context.stacktrace && context.stacktrace.stacktrace) {
+                    outputWindow.printStacktrace(context.stacktrace.stacktrace);
                 }
             });
         }
 
-        outputWindow.setSession(session, context.ns);
+        outputWindow.setSession(session, context.ns || ns);
         namespace.updateREPLSessionType();
     }
 }
@@ -238,7 +240,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
                 outputWindow.printStacktrace(res.stacktrace);
             }
         });
-        outputWindow.setSession(session, res.ns ? res.ns : ns);
+        outputWindow.setSession(session, res.ns || ns);
         namespace.updateREPLSessionType();
     }
     if (callback) {
