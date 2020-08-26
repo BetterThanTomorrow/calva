@@ -382,17 +382,27 @@ export class NReplSession {
         })
     }
 
-    test(ns: string, tests?: string[]) {
+    test(ns: string, test: string) {
         return new Promise<any>((resolve, reject) => {
-            let id = this.client.nextId;
+            const id = this.client.nextId;
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;
-            }
+            };
             this.client.write({
-                op: "test", ns, id, session: this.sessionId, "tests": tests, "load?": true
+                op: "test-var-query",
+                ns,
+                id,
+                session: this.sessionId,
+                "var-query": {
+                    "ns-query": {
+                        exactly: [ns]
+                    },
+                    search: test,
+                    "search-property": "name"
+                }
             });
-        })
+        });
     }
 
     testNs(ns: string) {
