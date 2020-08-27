@@ -33,7 +33,11 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 ;    (There is a button in the status bar for this)';
 
 
-const OUTPUT_FILE_DIR = () => path.join(state.getProjectRoot(), ".calva", "output-window")
+const OUTPUT_FILE_DIR = () => {
+    const projectRoot = state.getProjectRoot();
+    return path.join(projectRoot, ".calva", "output-window")
+}
+
 const DOC_URI = () => vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 
 let _sessionType: ReplSessionType = "clj";
