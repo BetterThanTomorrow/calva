@@ -207,7 +207,7 @@ export async function initProjectDir(): Promise<void> {
         cursor.set(PROJECT_DIR_KEY, rootPath);
         let d = null;
         let prev = null;
-        if (doc) {
+        if (doc && path.dirname(doc.uri.fsPath) !== '.') {
             d = path.dirname(doc.uri.fsPath);
         } else {
             d = workspaceFolder.uri.fsPath;
