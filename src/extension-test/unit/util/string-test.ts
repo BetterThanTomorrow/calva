@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import { keywordize, unKeywordize, getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring } from '../../../util/string';
+import { keywordize, unKeywordize, getIndexAfterLastNonWhitespace, getTextAfterLastOccurrenceOfSubstring,
+  removeFileSchemeFromUri } from '../../../util/string';
 
 
 describe('string', () => {
@@ -45,6 +46,15 @@ describe('string', () => {
     });
     it('returns text after last occurrenc of substring without trimming whitespace or eol characters', () => {
       expect('\n\t foo \n\t').equal(getTextAfterLastOccurrenceOfSubstring('hello > world >\n\t foo \n\t', '>'));
+    });
+  });
+
+  describe('removeFileSchemeFromUri', () => {
+    it('removes "file:" from the beginning of a uri', () => {
+      expect(removeFileSchemeFromUri('file:/some/path')).equal('/some/path');
+    });
+    it ('returns same uri if it does not start with "file:"', () => {
+      expect(removeFileSchemeFromUri('/some/path')).equal('/some/path');
     });
   });
 });

@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
+import { removeFileSchemeFromUri } from './util/string';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -31,11 +31,11 @@ function reportTests(results, errorStr, log = true) {
                             }
                         }
                         const resultMessage = (resultItem) => {
-                          let msg = [];
-                          if(!_.isEmpty(resultItem.context) && resultItem.context !== "false")
-                            msg.push(resultItem.context);
-                          if(resultItem.message)
-                            msg.push(resultItem.message);
+                            let msg = [];
+                            if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+                                msg.push(resultItem.context);
+                            if (resultItem.message)
+                                msg.push(resultItem.message);
                             return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
                         }
                         if (a.type == "error" && log) {
@@ -105,23 +105,26 @@ function reportTests(results, errorStr, log = true) {
 async function runAllTests(document = {}) {
     const session = namespace.getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
-    outputWindow.setSession(session, session.client.ns);
-    namespace.updateREPLSessionType();
     reportTests([await session.testAll()], "Running all tests");
-    outputWindow.setSession(session, session.client.ns);
+    namespace.updateREPLSessionType();
+    outputWindow.appendPrompt();
 }
 
 function runAllTestsCommand() {
-    state.outputChannel().show(true);
-    runAllTests().catch(() => {});
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    runAllTests().catch(() => { });
 }
 
 async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
     if (!ns.endsWith('-test')) {
         const testNS = ns + '-test';
         const testFilePath = (await session.nsPath(testNS)).path;
-        if (`${testFilePath}` != "") {
-            let loadForms = `(load-file "${testFilePath}")`;
+        if (testFilePath && testFilePath !== "") {
+            const filePath = removeFileSchemeFromUri(testFilePath);
+            let loadForms = `(load-file "${filePath}")`;
             await session.eval(loadForms, testNS).value;
         }
         nss.push(testNS);
@@ -131,43 +134,63 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
 }
 
 function runNamespaceTests(document = {}) {
-    const session = namespace.getSession(util.getFileType(document));
     const doc = util.getDocument(document);
+    if (outputWindow.isResultsDoc(doc)) {
+        return;
+    }
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    const session = namespace.getSession(util.getFileType(document));
     const ns = namespace.getNamespace(doc);
     let nss = [ns];
-    if (!outputWindow.isResultsDoc(doc)) {
-        evaluate.loadFile({}, async () => {
-            outputWindow.append("; Running namespace tests…");
-            nss = await considerTestNS(ns, session, nss);
-            const resultPromises = [session.testNs(nss[0])];
-            if (nss.length > 1)
-                resultPromises.push(session.testNs(nss[1]));
-            const results = await Promise.all(resultPromises);
-            reportTests(results, "Running tests");
-        }, disabledPrettyPrinter).catch(() => { });
-    }
+    evaluate.loadFile({}, async () => {
+        outputWindow.append(`; Running tests for ${ns}...`);
+        nss = await considerTestNS(ns, session, nss);
+        const resultPromises = [session.testNs(nss[0])];
+        if (nss.length > 1) {
+            resultPromises.push(session.testNs(nss[1]));
+        }
+        const results = await Promise.all(resultPromises);
+        reportTests(results, "Running tests");
+        outputWindow.setSession(session, ns);
+        namespace.updateREPLSessionType();
+    }, disabledPrettyPrinter).catch(() => { });
 }
 
 async function runTestUnderCursor() {
-    const doc = util.getDocument({}),
-        session = namespace.getSession(util.getFileType(doc)),
-        ns = namespace.getNamespace(doc),
-        test = util.getTestUnderCursor();
+    const doc = util.getDocument({});
+    const session = namespace.getSession(util.getFileType(doc));
+    const ns = namespace.getNamespace(doc);
+    const test = util.getTestUnderCursor();
 
-    evaluate.loadFile(doc, async () => {
-        outputWindow.append(`; Running test: ${test}…`);
-        const results = [await session.test(ns, [test])];
-        reportTests(results, `Running test: ${test}`);
-    }, disabledPrettyPrinter).catch(() => {});
+    if (test) {
+        evaluate.loadFile(doc, async () => {
+            outputWindow.append(`; Running test: ${test}…`);
+            const results = [await session.test(ns, test)];
+            reportTests(results, `Running test: ${test}`);
+            outputWindow.appendPrompt();
+        }, disabledPrettyPrinter).catch(() => { });
+    } else {
+        outputWindow.append('; No test found at cursor');
+        outputWindow.appendPrompt();
+    }
 }
 
 function runTestUnderCursorCommand() {
-    state.outputChannel().show(true);
-    runTestUnderCursor().catch(() => {});
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    runTestUnderCursor().catch(() => { });
 }
 
 function runNamespaceTestsCommand() {
-    state.outputChannel().show(true);
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     runNamespaceTests();
 }
 
@@ -176,18 +199,21 @@ function rerunTests(document = {}) {
     evaluate.loadFile({}, async () => {
         outputWindow.append("; Running previously failed tests…");
         reportTests([await session.retest()], "Retesting");
-    }, disabledPrettyPrinter).catch(() => {});
+        outputWindow.appendPrompt();
+    }, disabledPrettyPrinter).catch(() => { });
 }
 
 function rerunTestsCommand() {
-    state.outputChannel().show(true);
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     rerunTests();
 }
 
 export default {
     runNamespaceTests,
     runNamespaceTestsCommand,
-    runAllTests,
     runAllTestsCommand,
     rerunTestsCommand,
     runTestUnderCursorCommand

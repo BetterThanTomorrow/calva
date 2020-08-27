@@ -30,18 +30,15 @@ function onDidSave(document) {
     let {
         evaluate,
         test,
-        prettyPrintingOptions
     } = state.config();
 
     if (document.languageId !== 'clojure') {
         return;
     }
 
-    if (test) {
-        if (test) {
-            testRunner.runNamespaceTests(document);
-            state.analytics().logEvent("Calva", "OnSaveTest").send();
-        }
+    if (test && util.getConnectedState()) {
+        testRunner.runNamespaceTests(document);
+        state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
             eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => { });

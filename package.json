@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.122",
+    "version": "2.0.124",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -87,7 +87,7 @@
                     ".edn",
                     ".joke",
                     ".boot",
-                    ".repl"
+                    ".calva-repl"
                 ]
             }
         ],
@@ -179,7 +179,7 @@
                     "calva.testOnSave": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Run namespace tests when opening a new file and on file save"
+                        "description": "Run namespace tests on file save"
                     },
                     "calva.showDocstringInParameterHelp": {
                         "type": "boolean",
@@ -713,7 +713,7 @@
             },
             {
                 "command": "calva.rerunTests",
-                "title": "Run Failing Tests again",
+                "title": "Run Failing Tests Again",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
