@@ -135,10 +135,13 @@ function getWordAtPosition(document, position) {
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
-    } else if (vscode.window.activeTextEditor) {
+    } else if (vscode.window.activeTextEditor && 
+        vscode.window.activeTextEditor.document && 
+        vscode.window.activeTextEditor.document.languageId !== 'Log') {
         return vscode.window.activeTextEditor.document;
     } else if (vscode.window.visibleTextEditors.length > 0) {
-        return vscode.window.visibleTextEditors[0].document;
+        const editor = vscode.window.visibleTextEditors.find(editor => editor.document && editor.document.languageId !== 'Log');
+        return editor ? editor.document : null;
     } else {
         return null;
     }
