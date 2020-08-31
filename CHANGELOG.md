@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
+- Fix: [Inline evaluation result dissapears after a second](https://github.com/BetterThanTomorrow/calva/issues/774)
 
 ## [2.0.123] - 2020-08-26
 - [Change output/repl window extension to .calva-repl](https://github.com/BetterThanTomorrow/calva/issues/754)
