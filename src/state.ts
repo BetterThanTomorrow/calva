@@ -198,46 +198,40 @@ export async function initProjectDir(): Promise<void> {
             workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Please open a file in your Clojure project and try again. Aborting.");
-        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no document opened in the workspace. Aborting.";
+    let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
+    cursor.set(PROJECT_DIR_KEY, rootPath);
+    let d = null;
+    let prev = null;
+    if (doc && path.dirname(doc.uri.fsPath) !== '.') {
+        d = path.dirname(doc.uri.fsPath);
     } else {
-        let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        cursor.set(PROJECT_DIR_KEY, rootPath);
-        let d = null;
-        let prev = null;
-        if (doc) {
-            d = path.dirname(doc.uri.fsPath);
-        } else {
-            d = workspaceFolder.uri.fsPath;
-        }
-        while (d != prev) {
-            for (let projectFile in projectFileNames) {
-                const p = path.resolve(d, projectFileNames[projectFile]);
-                if (fs.existsSync(p)) {
-                    rootPath = d;
-                    break;
-                }
-            }
-            if (d == rootPath) {
+        d = workspaceFolder.uri.fsPath;
+    }
+    while (d != prev) {
+        for (let projectFile in projectFileNames) {
+            const p = path.resolve(d, projectFileNames[projectFile]);
+            if (fs.existsSync(p)) {
+                rootPath = d;
                 break;
             }
-            prev = d;
-            d = path.resolve(d, "..");
         }
-
-        // at least be sure the the root folder contains a
-        // supported project.
-        for (let projectFile in projectFileNames) {
-            const p = path.resolve(rootPath, projectFileNames[projectFile]);
-            if (fs.existsSync(p)) {
-                cursor.set(PROJECT_DIR_KEY, rootPath);
-                return;
-            }
+        if (d == rootPath) {
+            break;
         }
-        return;
+        prev = d;
+        d = path.resolve(d, "..");
     }
+
+    // at least be sure the the root folder contains a
+    // supported project.
+    for (let projectFile in projectFileNames) {
+        const p = path.resolve(rootPath, projectFileNames[projectFile]);
+        if (fs.existsSync(p)) {
+            cursor.set(PROJECT_DIR_KEY, rootPath);
+            return;
+        }
+    }
+    return;
 }
 
 /**

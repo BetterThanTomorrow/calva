@@ -14,7 +14,6 @@ import * as replHistory from './repl-history';
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
 const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
-; Leave it open, please. Because quirks.\n\
 ; TIPS: The keyboard shortcut `ctrl+alt+c o` shows and focuses this window\n\
 ;   when connected to a REPL session.\n\
 ; Please see https://calva.io/output/ for more info.\n\
