@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.124] - 2020-08-31
 - Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
 - [Fix getDocument function to not return a Log document](https://github.com/BetterThanTomorrow/calva/issues/771)
 - Fix: [Inline evaluation result dissapears after a second](https://github.com/BetterThanTomorrow/calva/issues/774)
