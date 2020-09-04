@@ -1,9 +1,9 @@
 (ns calva.parse
-  (:require [cljfmt.core :as cljfmt]
-            [cljs.reader]
+  (:require [cljs.reader]
             [cljs.tools.reader :as tr]
             [cljs.tools.reader.reader-types :as rt]
             [cljs.test :refer [is]]
+            [clojure.string :as str]
             [calva.js-utils :refer [jsify]]))
 
 (defn- parse-edn
@@ -30,10 +30,12 @@
   {:test (fn []
            (is (= (parse-forms ":a {:foo [bar] :bar foo}")
                   [:a {:foo ['bar] :bar 'foo}]))
-           (is (thrown? js/Error (parse-forms ":a {:foo ['bar] :bar 'foo}  #=(+ 1 2)")
-                        [:a {:foo ['bar] :bar 'foo}])))}
+           (is (= (parse-forms ":a {:foo ['bar] :bar 'foo} #=(+ 1 2)")
+                  [:a {:foo ['(quote bar)] :bar '(quote foo)} nil]))
+           (is (= (parse-forms "{:a #=(1 + 2)}")
+                  [{:a nil}])))}
   [s]
-  (let [pbr (rt/string-push-back-reader s)]
+  (let [pbr (rt/string-push-back-reader (str/replace s #"#=\(" "nil #_("))]
     (loop [parsed-forms []]
       (let [parsed-form (tr/read {:eof 'CALVA-EOF
                                   :read-cond :preserve} pbr)]
