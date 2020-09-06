@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
 
 ## [2.0.124] - 2020-08-31
 - Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
