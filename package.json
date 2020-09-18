@@ -648,7 +648,7 @@
             },
             {
                 "command": "calva.interruptAllEvaluations",
-                "title": "Interrupt running Evaluations",
+                "title": "Interrupt Running Evaluations",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
