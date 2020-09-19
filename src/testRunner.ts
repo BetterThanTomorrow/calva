@@ -38,15 +38,15 @@ function reportTests(results, errorStr, log = true) {
                                 msg.push(resultItem.message);
                             return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
                         }
-                        if (a.type == "error" && log) {
+                        if (a.type === "error" && log) {
                             const rMsg = resultMessage(a);
                             outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
                             if (rMsg !== '') {
                                 outputWindow.append(`; ${resultMessage(a)}`);
                             }
-                            outputWindow.append(`;   error: ${a.error} (${a.file})\n;   expected: ${a.expected}`);
+                            outputWindow.append(`; error: ${a.error} (${a.file})\n; expected:\n${a.expected}`);
                         }
-                        if (a.type == "fail") {
+                        if (a.type === "fail") {
                             const rMsg = resultMessage(a);
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
@@ -58,7 +58,7 @@ function reportTests(results, errorStr, log = true) {
                                 if (rMsg !== '') {
                                     outputWindow.append(`; ${resultMessage(a)}`);
                                 }
-                                outputWindow.append(`;   expected: ${a.expected}\n;   actual: ${a.actual}`);
+                                outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
                             }
                         }
                     }
