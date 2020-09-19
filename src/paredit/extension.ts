@@ -7,7 +7,12 @@ import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror';
 import { EditableDocument } from '../cursor-doc/model';
 
-let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
+export type KeyMapConfig = {
+    keyMap: String,
+    keybindingsEnabled: boolean
+};
+
+let onPareditKeyMapChangedEmitter = new EventEmitter<KeyMapConfig>();
 
 const languages = new Set(["clojure", "lisp", "scheme"]);
 let enabled = true;
@@ -276,15 +281,18 @@ function wrapPareditCommand(command: PareditCommand) {
     }
 }
 
-export function getKeyMapConf(): String {
+export function getKeyMapConf(): KeyMapConfig {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
-    return (String(keyMap));
+    let keybindingsEnabled = workspace.getConfiguration().get('calva.paredit.keybindingsEnabled');
+    return { keyMap: String(keyMap), keybindingsEnabled: Boolean(keybindingsEnabled) };
 }
 
 function setKeyMapConf() {
-    let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+    let keyMapConfig = getKeyMapConf();
+    let { keyMap, keybindingsEnabled } = keyMapConfig;
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
-    onPareditKeyMapChangedEmitter.fire(String(keyMap));
+    commands.executeCommand('setContext', 'paredit:keybindingsEnabled', keybindingsEnabled);
+    onPareditKeyMapChangedEmitter.fire(keyMapConfig);
 }
 setKeyMapConf();
 
@@ -303,9 +311,13 @@ export function activate(context: ExtensionContext) {
                 workspace.getConfiguration().update('calva.paredit.defaultKeyMap', 'original', vscode.ConfigurationTarget.Global);
             }
         }),
+        commands.registerCommand('paredit.toggleKeybindingsEnabled', () => {
+            let keybindingsEnabled = workspace.getConfiguration().get('calva.paredit.keybindingsEnabled');
+            workspace.getConfiguration().update('calva.paredit.keybindingsEnabled', !keybindingsEnabled, vscode.ConfigurationTarget.Global);
+        }),
         window.onDidChangeActiveTextEditor((e) => e && e.document && languages.has(e.document.languageId)),
         workspace.onDidChangeConfiguration((e: ConfigurationChangeEvent) => {
-            if (e.affectsConfiguration('calva.paredit.defaultKeyMap')) {
+            if (e.affectsConfiguration('calva.paredit.defaultKeyMap') || e.affectsConfiguration('calva.paredit.keybindingsEnabled')) {
                 setKeyMapConf();
             }
         }),
@@ -316,4 +328,4 @@ export function activate(context: ExtensionContext) {
 export function deactivate() {
 }
 
-export const onPareditKeyMapChanged: Event<String> = onPareditKeyMapChangedEmitter.event;
+export const onPareditKeyMapChanged: Event<KeyMapConfig> = onPareditKeyMapChangedEmitter.event;

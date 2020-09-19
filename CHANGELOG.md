@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
 - Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)
+- [Allow toggling Paredit function independently of mode](https://github.com/BetterThanTomorrow/calva/issues/784)
 
 ## [2.0.124] - 2020-08-31
 - Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)

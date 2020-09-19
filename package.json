@@ -504,6 +504,12 @@
                             "none"
                         ],
                         "scope": "window"
+                    },
+                    "calva.paredit.keybindingsEnabled": {
+                        "type": "boolean",
+                        "description": "Activate Paredit keybindings.",
+                        "default": true,
+                        "scope": "window"
                     }
                 }
             },
@@ -753,6 +759,11 @@
                 "title": "Toggle Paredit Mode",
                 "when": "paredit:keyMap =~ /original|strict/",
                 "enablement": "paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.toggleKeybindingsEnabled",
+                "title": "Toggle Paredit Keybindings Enabled"
             },
             {
                 "category": "Calva Paredit",
@@ -1199,269 +1210,273 @@
                 "when": "paredit:keyMap =~ /original|strict/"
             },
             {
+                "command": "paredit.toggleKeybindingsEnabled",
+                "key": "ctrl+alt+p ctrl+alt+e"
+            },
+            {
                 "command": "paredit.forwardSexp",
                 "key": "ctrl+alt+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardSexp",
                 "key": "ctrl+alt+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardDownSexp",
                 "key": "ctrl+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardDownSexp",
                 "key": "ctrl+alt+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardUpSexp",
                 "key": "ctrl+alt+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardUpSexp",
                 "key": "ctrl+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.closeList",
                 "key": "ctrl+end",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.openList",
                 "key": "ctrl+home",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardSexp",
                 "key": "ctrl+shift+alt+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardSexp",
                 "key": "ctrl+shift+alt+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardDownSexp",
                 "key": "ctrl+shift+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardDownSexp",
                 "key": "ctrl+shift+alt+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardUpSexp",
                 "key": "ctrl+shift+alt+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardUpSexp",
                 "key": "ctrl+shift+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectCloseList",
                 "key": "ctrl+shift+end",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectOpenList",
                 "key": "ctrl+shift+home",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rangeForDefun",
                 "key": "ctrl+alt+w space",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeExpansion",
                 "key": "ctrl+w",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeContraction",
                 "key": "ctrl+shift+w",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpForward",
                 "key": "ctrl+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpBackward",
                 "key": "ctrl+shift+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpForward",
                 "key": "ctrl+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpBackward",
                 "key": "ctrl+shift+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexp",
                 "key": "ctrl+alt+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.splitSexp",
                 "key": "ctrl+shift+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.joinSexp",
                 "key": "ctrl+shift+j",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.raiseSexp",
                 "key": "ctrl+alt+p ctrl+alt+r",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.transpose",
                 "key": "ctrl+alt+t",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprBackward",
                 "key": "ctrl+shift+alt+b",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprForward",
                 "key": "ctrl+shift+alt+f",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprBackwardUp",
                 "key": "ctrl+shift+alt+u",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprForwardDown",
                 "key": "ctrl+shift+alt+d",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprForwardUp",
                 "key": "ctrl+shift+alt+k",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprBackwardDown",
                 "key": "ctrl+shift+alt+j",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.convolute",
                 "key": "ctrl+shift+c",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpForward",
                 "key": "ctrl+shift+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpBackward",
                 "key": "ctrl+alt+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killListForward",
                 "key": "ctrl+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killListBackward",
                 "key": "ctrl+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillForward",
                 "key": "ctrl+alt+shift+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillBackward",
                 "key": "ctrl+alt+shift+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundParens",
                 "key": "ctrl+alt+shift+p",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundSquare",
                 "key": "ctrl+alt+shift+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundCurly",
                 "key": "ctrl+alt+shift+c",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundQuote",
                 "key": "ctrl+alt+shift+q",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapParens",
                 "key": "ctrl+alt+r ctrl+alt+p",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapSquare",
                 "key": "ctrl+alt+r ctrl+alt+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapCurly",
                 "key": "ctrl+alt+r ctrl+alt+c",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapQuote",
                 "key": "ctrl+alt+r ctrl+alt+q",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.forceDeleteForward",
                 "key": "alt+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.forceDeleteBackward",
                 "key": "alt+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "editorLangId == clojure && editorTextFocus && paredit:keybindingsEnabled && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",
