@@ -91,7 +91,7 @@ function getTestUnderCursor() {
         const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
         while (tokenCursor.downList()) {
             tokenCursor.forwardWhitespace();
-            if (['def', 'defn', 'deftest'].includes(tokenCursor.getToken().raw)) {
+            if (tokenCursor.getToken().raw.startsWith('def')) {
                 tokenCursor.forwardSexp();
                 tokenCursor.forwardWhitespace();
                 return tokenCursor.getToken().raw;
