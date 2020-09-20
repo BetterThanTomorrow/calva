@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.125] - 2020-09-20
+- [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
+- Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)
+- Fix: [Test runner output only partially commented](https://github.com/BetterThanTomorrow/calva/issues/787)
+
 ## [2.0.124] - 2020-08-31
 - Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
 - [Fix getDocument function to not return a Log document](https://github.com/BetterThanTomorrow/calva/issues/771)

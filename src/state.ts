@@ -80,7 +80,6 @@ function analytics(): Analytics {
     }
 }
 
-
 function reset() {
     data = Immutable.fromJS(initialData);
 }
