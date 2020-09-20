@@ -1,6 +1,7 @@
 version: 2
 jobs:
-  general: 
-    branches:
-      ignore:
-        - gh-pages
+  build:
+    general: 
+      branches:
+        ignore:
+          - gh-pages
