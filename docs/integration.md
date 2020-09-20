@@ -54,6 +54,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
    * If the Marketplace version works:
      1. Merge `dev` onto `master`
      1. Push
+     1. Run `mkdocs gh-deploy` to publish any changes to the docs
      1. Checkout `dev` and `$ npm run bump-version`
      1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
      1. Push.

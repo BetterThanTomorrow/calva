@@ -1,4 +1,4 @@
-# Home
+# Welcome!
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
