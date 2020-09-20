@@ -1,8 +1,4 @@
 version: 2
-general: 
-  branches:
-    ignore:
-      - gh-pages
 jobs:
   build:
     docker:
