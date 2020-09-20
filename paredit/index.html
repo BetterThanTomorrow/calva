@@ -1,0 +1,1255 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.">
+      
+      
+        <link rel="canonical" href="https://calva.io/paredit/">
+      
+      
+      <link rel="shortcut icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.0.1">
+    
+    
+      
+        <title>Paredit – a Visual Guide - Calva User Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.c3000690.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#paredit-a-visual-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://calva.io" title="Calva User Guide" class="md-header-nav__button md-logo" aria-label="Calva User Guide">
+      
+  <img src="../img/calva-symbol-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Calva User Guide
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              Paredit – a Visual Guide
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" /></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" /></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Calva
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://calva.io" title="Calva User Guide" class="md-nav__button md-logo" aria-label="Calva User Guide">
+      
+  <img src="../img/calva-symbol-white.svg" alt="logo">
+
+    </a>
+    Calva User Guide
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Calva
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../connect/" title="Connect Calva to Your Project" class="md-nav__link">
+      Connect Calva to Your Project
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../try-first/" title="Something to Try First (After Connecting)" class="md-nav__link">
+      Something to Try First (After Connecting)
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../finding-commands/" title="Finding Calva Commands" class="md-nav__link">
+      Finding Calva Commands
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../eval-tips/" title="Code Evaluation Tips" class="md-nav__link">
+      Code Evaluation Tips
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../commands-top10/" title="The Top 10 Calva Commands" class="md-nav__link">
+      The Top 10 Calva Commands
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../output/" title="The Output/REPL Window/File" class="md-nav__link">
+      The Output/REPL Window/File
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../formatting/" title="Formatting" class="md-nav__link">
+      Formatting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Paredit – a Visual Guide
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Paredit – a Visual Guide" class="md-nav__link md-nav__link--active">
+      Paredit – a Visual Guide
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-paredit" class="md-nav__link">
+    What is Paredit?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strict-mode" class="md-nav__link">
+    Strict Mode
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strings-are-not-lists-but-anyway" class="md-nav__link">
+    Strings are not Lists, but Anyway...
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navigating" class="md-nav__link">
+    Navigating
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selecting" class="md-nav__link">
+    Selecting
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing" class="md-nav__link">
+    Editing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about-the-keyboard-shortcuts" class="md-nav__link">
+    About the Keyboard Shortcuts
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../debugger/" title="Debugger" class="md-nav__link">
+      Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../pprint/" title="Pretty Printing" class="md-nav__link">
+      Pretty Printing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../test-runner/" title="Test Runner" class="md-nav__link">
+      Test Runner
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../connect-sequences/" title="REPL Jack-in and Connection Sequences" class="md-nav__link">
+      REPL Jack-in and Connection Sequences
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../custom-commands/" title="Running Custom REPL Commands" class="md-nav__link">
+      Running Custom REPL Commands
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../linting/" title="Linting" class="md-nav__link">
+      Linting
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../customizing/" title="Customizing Calva" class="md-nav__link">
+      Customizing Calva
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Using Calva with X
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Using Calva with X" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Using Calva with X
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../rebl/" title="How to Use Calva and REBL Together" class="md-nav__link">
+      How to Use Calva and REBL Together
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../vim/" title="Calva and the VIM Extension" class="md-nav__link">
+      Calva and the VIM Extension
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../wsl/" title="Calva ❤️ WSL" class="md-nav__link">
+      Calva ❤️ WSL
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../remote-development/" title="Using Calva with Remote Development" class="md-nav__link">
+      Using Calva with Remote Development
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../luminus/" title="How to Use Calva with Luminus" class="md-nav__link">
+      How to Use Calva with Luminus
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../re-frame-template/" title="How to Use Calva With the re-frame Template" class="md-nav__link">
+      How to Use Calva With the re-frame Template
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Etcetera
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Etcetera" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Etcetera
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../workspace-layouts/" title="Workspace Layouts" class="md-nav__link">
+      Workspace Layouts
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../quirks/" title="Quirks" class="md-nav__link">
+      Quirks
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      In Depth
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="In Depth" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        In Depth
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../jack-in-guide/" title="Learn about Calva Jack-in" class="md-nav__link">
+      Learn about Calva Jack-in
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../sponsors/" title="Calva Sponsors" class="md-nav__link">
+      Calva Sponsors
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-paredit" class="md-nav__link">
+    What is Paredit?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strict-mode" class="md-nav__link">
+    Strict Mode
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#strings-are-not-lists-but-anyway" class="md-nav__link">
+    Strings are not Lists, but Anyway...
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#navigating" class="md-nav__link">
+    Navigating
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selecting" class="md-nav__link">
+    Selecting
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing" class="md-nav__link">
+    Editing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about-the-keyboard-shortcuts" class="md-nav__link">
+    About the Keyboard Shortcuts
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/dev/docs/site/paredit.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="paredit-a-visual-guide">Paredit – a Visual Guide</h1>
+<p>Structural editing and navigation for Clojure.</p>
+<h2 id="what-is-paredit">What is Paredit?</h2>
+<p>Calva Paredit helps you navigate, select and edit Clojure code in a structural way. LISP isn't line or character oriented, it is based around <a href="https://en.wikipedia.org/wiki/S-expression">S-expressions</a>, a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.</p>
+<p>If you are new to Paredit, consider starting with learning the <strong>Slurp Forward</strong> (pull in the next form into this form) and <strong>Barf Forward</strong> (push the last form out of this form). It will take you quite far.</p>
+<h2 id="strict-mode">Strict Mode</h2>
+<p>To protect the integrity of your code, <strong>Strict mode</strong> is enabled by default.</p>
+<table>
+<thead>
+<tr>
+<th>Strict mode keybinding</th>
+<th>Action</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>backspace</code></td>
+<td><strong>Delete Backward</strong></td>
+<td>Deletes one character backwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. If the list is empty, it will remove both open and close brackets. <br> <img alt="" src="../images/paredit/strict-backspace.gif" /></td>
+</tr>
+<tr>
+<td><code>delete</code></td>
+<td><strong>Delete Forward</strong></td>
+<td>Deletes one character forwards, unless it will unbalance a form. Otherwise moves past the character instead of deleting it. If the list is empty, it is removed. <br> <img alt="" src="../images/paredit/strict-delete.gif" /></td>
+</tr>
+<tr>
+<td><code>alt+backspace</code></td>
+<td><strong>Force Delete Backward</strong></td>
+<td>Deletes one character backwards, even if it will unbalance a form. <br> <img alt="" src="../images/paredit/force-backspace.gif" /></td>
+</tr>
+<tr>
+<td><code>alt+delete</code></td>
+<td><strong>Force Delete Forward</strong></td>
+<td>Deletes one character forwards, even if it will unbalance a form. <br> <img alt="" src="../images/paredit/force-delete.gif" /></td>
+</tr>
+</tbody>
+</table>
+<p><em>Disable at your own peril.</em> Strict mode can be toggled on/off using the <strong>Toggle Paredit Mode</strong> command, and there is a status bar indicator telling you:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Indicator</th>
+<th>Paredit Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><code>[λ]</code></td>
+<td>Strict</td>
+</tr>
+<tr>
+<td align="center"><code>(λ)</code></td>
+<td>Cave Man (strict mode off)</td>
+</tr>
+<tr>
+<td align="center"><code>λ</code></td>
+<td>No default key bindings</td>
+</tr>
+</tbody>
+</table>
+<p>Toggle bewteen Strict and Cave Man using: <code>ctrl+alt+p ctrl+alt+m</code></p>
+<h2 id="commands">Commands</h2>
+<p>The Paredit commands are sorted into <strong>Navigation</strong>, <strong>Selection</strong>, and <strong>Edit</strong>. As mentioned, <strong>Slurp</strong> and <strong>Barf</strong> are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.</p>
+<p>To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.</p>
+<h3 id="strings-are-not-lists-but-anyway">Strings are not Lists, but Anyway...</h3>
+<p>In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing <strong>Slurp</strong> and <strong>Barf</strong>, <strong>Forward/Backward List</strong>, and <strong>Grow Selection</strong>.</p>
+<p><img alt="" src="../images/paredit/string-as-list.gif" /></p>
+<h3 id="navigating">Navigating</h3>
+<p>(Modify these with <code>shift</code> to select rather than move, see below.)</p>
+<table>
+<thead>
+<tr>
+<th>Default keybinding</th>
+<th>Action</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ctrl+alt+right</code></td>
+<td><strong>Forward Sexp</strong></td>
+<td>Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> <img alt="" src="../images/paredit/forward-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+left</code></td>
+<td><strong>Backward Sexp</strong></td>
+<td>Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Will not move out of lists.<br> <img alt="" src="../images/paredit/backward-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+down</code></td>
+<td><strong>Forward Down Sexp</strong></td>
+<td>Moves the cursor into the following list.<br> <img alt="" src="../images/paredit/forward-down-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+up</code></td>
+<td><strong>Backward Down Sexp</strong></td>
+<td>Moves the cursor into the preceding list.<br> <img alt="" src="../images/paredit/backward-down-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+down</code></td>
+<td><strong>Forward Up Sexp</strong></td>
+<td>Moves the cursor forwards, out of the current list.<br> <img alt="" src="../images/paredit/forward-up-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+up</code></td>
+<td><strong>Backward Up Sexp</strong></td>
+<td>Moves the cursor backwards, out of the current list.<br> <img alt="" src="../images/paredit/backward-up-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+end</code></td>
+<td><strong>Forward to List End/Close</strong></td>
+<td>Moves the cursor forwards, staying within the current list.<br> <img alt="" src="../images/paredit/close-list.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+home</code></td>
+<td><strong>Backward to List Start/Open</strong></td>
+<td>Moves the cursor backwards, staying within the current list.<br> <img alt="" src="../images/paredit/open-list.gif" /></td>
+</tr>
+</tbody>
+</table>
+<h3 id="selecting">Selecting</h3>
+<p>Most of these commands are selecting ”versions” of the navigation commands above. Repeated use will grow the current selection step by step.</p>
+<table>
+<thead>
+<tr>
+<th>Default keybinding</th>
+<th>Action</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ctrl+w</code></td>
+<td><strong>Expand Selection</strong></td>
+<td>Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> <img alt="" src="../images/paredit/grow-selection.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+w</code></td>
+<td><strong>Shrink Selection</strong></td>
+<td>Contracts back from an expanded selection performed by any Paredit selection command.<br> <img alt="" src="../images/paredit/shrink-selection.gif" /><br>(In the animation the selection is first grown using a combination of <strong>Grow Selection</strong> and some lateral selection commands, then shrunk all the way back down to no selection.)</td>
+</tr>
+<tr>
+<td><code>ctrl+alt+w space</code></td>
+<td><strong>Select Top Level Form</strong></td>
+<td>Top level in a structural sence. Typically where your<code>(def ...)</code>/<code>(defn ...)</code> type forms. Please note that<code>(comment ...)</code> forms create a new top level. <br> <img alt="" src="../images/paredit/select-top-level-form.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+alt+right</code></td>
+<td><strong>Select Forward Sexp</strong></td>
+<td><img alt="" src="../images/paredit/select-forward-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+alt+left</code></td>
+<td><strong>Select Backward Sexp</strong></td>
+<td><img alt="" src="../images/paredit/select-backward-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+down</code></td>
+<td><strong>Select Forward Down Sexp</strong></td>
+<td><img alt="" src="../images/paredit/select-forward-down-sexp.gif" /> <br>(You probably do not need to select like this, but you can!)</td>
+</tr>
+<tr>
+<td><code>ctrl+shift+alt+up</code></td>
+<td><strong>Select Backward Down Sexp</strong></td>
+<td><img alt="" src="../images/paredit/select-backward-down-sexp.gif" /> <br>(You probably do not need to select like this, but you can!)</td>
+</tr>
+<tr>
+<td><code>ctrl+shift+alt+down</code></td>
+<td><strong>Select Forward Up Sexp</strong></td>
+<td><img alt="" src="../images/paredit/select-forward-up-sexp.gif" /> <br>(You probably do not need to select like this, but you can!)</td>
+</tr>
+<tr>
+<td><code>ctrl+shift+up</code></td>
+<td><strong>Select Backward Up Sexp</strong></td>
+<td><img alt="" src="../images/paredit/select-backward-up-sexp.gif" /> <br>(You probably do not need to select like this, but you can!)</td>
+</tr>
+<tr>
+<td><code>ctrl+shift+end</code></td>
+<td><strong>Select Forward to List End/Close</strong></td>
+<td><img alt="" src="../images/paredit/select-close-list.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+home</code></td>
+<td><strong>Select Backward to List Start/Open</strong></td>
+<td><img alt="" src="../images/paredit/select-open-list.gif" /></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>Many implementations of Paredit have commands for copying/cutting while deleting. In Calva there are instead the above selection commands, and you can choose to copy/cut once you have the selection.</p>
+<h3 id="editing">Editing</h3>
+<table>
+<thead>
+<tr>
+<th>Default keybinding</th>
+<th>Action</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ctrl+right</code><br><strong>NB</strong> On Mac this keybinding might need your attention, see <a href="../quirks/">Quirks</a>.</td>
+<td><strong>Slurp Forward</strong></td>
+<td>Moves the <em>closing</em> bracket <em>forward</em>, <em>away</em> from the cursor, past the following form, if any. <br> <img alt="" src="../images/paredit/slurp-forward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+left</code> <br><strong>NB</strong> On Mac this keybinding might need your attention, see <a href="../quirks/">Quirks</a>.</td>
+<td><strong>Barf Forward</strong></td>
+<td>Moves the <em>closing</em> bracket <em>backward</em>, <em>towards</em> the cursor, past the preceding form. <br> <img alt="" src="../images/paredit/barf-forward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+left</code></td>
+<td><strong>Slurp Backward</strong></td>
+<td>Moves the <em>opening</em> bracket <em>backward</em>, <em>away</em> from the cursor, past the preceding form, if any. <br> <img alt="" src="../images/paredit/slurp-backward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+right</code></td>
+<td><strong>Barf Backward</strong></td>
+<td>Moves the <em>opening</em> bracket <em>forward</em>, <em>towards</em> the cursor, past the following form. <br> <img alt="" src="../images/paredit/barf-backward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+s</code></td>
+<td><strong>Splice Sexp</strong></td>
+<td>Remove enclosing brackets. <br> <img alt="" src="../images/paredit/splice.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+s</code></td>
+<td><strong>Split Sexp</strong></td>
+<td>Splits a string, or a list, into two strings, or lists of the same type as the current. <br> <img alt="" src="../images/paredit/split.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+j</code></td>
+<td><strong>Join Sexps/Forms</strong></td>
+<td>Joins two strings, or two lists of the same type, into one form (string/list). <br> <img alt="" src="../images/paredit/join.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+p ctrl+alt+r</code></td>
+<td><strong>Raise Sexp</strong></td>
+<td>Replaces the enclosing list with the current form. <br> <img alt="" src="../images/paredit/raise.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+t</code></td>
+<td><strong>Transpose Sexps/Forms</strong></td>
+<td>Swaps place of the two forms surrounding the cursor. <br> <img alt="" src="../images/paredit/transpose.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift</code> <code>b</code><br> <code>ctrl+alt+shift</code> <code>f</code></td>
+<td><strong>Drag Sexp Backward/Forward</strong></td>
+<td>Moves the current form to the behind/in front of the previous/next one. <br> <img alt="" src="../images/paredit/drag-backward-forward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift</code> <code>u</code><br><code>ctrl+alt+shift</code> <code>d</code></td>
+<td><strong>Drag Sexp Backward Up</strong><br><strong>Drag Sexp Forward Down</strong></td>
+<td>Moves the current form up/out of the current list, <em>backwards</em>, and down/in to the following list, <em>forwards</em>, keeping the cursor within the sexpr being dragged.<br> <img alt="" src="../images/paredit/drag-backward-up-forward-down.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift</code> <code>k</code><br><code>ctrl+alt+shift</code> <code>j</code></td>
+<td><strong>Drag Sexp Forward Up</strong><br><strong>Drag Sexp Backward Down</strong></td>
+<td>Moves the current form up/out of the current list, <em>forwards</em>, and down/in to the preceding list, <em>backwards</em>, keeping the cursor within the sexpr being dragged.<br> <img alt="" src="../images/paredit/drag-forward-up-backward-down.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+c</code></td>
+<td><strong>Convolute</strong></td>
+<td>¯\_(ツ)_/¯ <br> <img alt="" src="../images/paredit/convolute.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+shift+delete</code></td>
+<td><strong>Kill Sexp Forward</strong></td>
+<td>Deletes the next form in the same enclosing form as the cursor.<br> <img alt="" src="../images/paredit/kill-forward-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+backspace</code></td>
+<td><strong>Kill Sexp Backward</strong></td>
+<td>Deletes the previous form in the same enclosing form as the cursor.<br> <img alt="" src="../images/paredit/kill-backward-sexp.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+delete</code></td>
+<td><strong>Kill List Forward</strong></td>
+<td>Deletes everything from the cursor to the closing of the current enclosing form.<br> <img alt="" src="../images/paredit/kill-close-list.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+backspace</code></td>
+<td><strong>Kill List Backward</strong></td>
+<td>Deletes everything from the cursor to the opening of the current enclosing form.<br> <img alt="" src="../images/paredit/kill-open-list.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift+delete</code></td>
+<td><strong>Splice Killing Forward</strong></td>
+<td>Delete forward to end of the list, then Splice. <br> <img alt="" src="../images/paredit/splice-killing-forward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift+backspace</code></td>
+<td><strong>Splice Killing Backwards</strong></td>
+<td>Delete backward to the start of the list, then Splice. <br> <img alt="" src="../images/paredit/splice-killing-backward.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift+p</code></td>
+<td><strong>Wrap Around ()</strong></td>
+<td>Wraps the current form, or selection, with parens. <br> <img alt="" src="../images/paredit/wrap-around-parens.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift+s</code></td>
+<td><strong>Wrap Around []</strong></td>
+<td>Wraps the current form, or selection, with square brackets. <br> <img alt="" src="../images/paredit/wrap-around-brackets.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift+c</code></td>
+<td><strong>Wrap Around {}</strong></td>
+<td>Wraps the current form, or selection, with curlies. <br> <img alt="" src="../images/paredit/wrap-around-curlies.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+shift+q</code></td>
+<td><strong>Wrap Around ""</strong></td>
+<td>Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> <img alt="" src="../images/paredit/wrap-around-quotes.gif" /></td>
+</tr>
+<tr>
+<td><code>ctrl+alt+r</code><br><code>ctrl+alt+p</code>/<code>s</code>/<code>c</code>/<code>q</code></td>
+<td><strong>Rewrap</strong></td>
+<td>Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> <img alt="" src="../images/paredit/rewrap.gif" /></td>
+</tr>
+</tbody>
+</table>
+<h2 id="about-the-keyboard-shortcuts">About the Keyboard Shortcuts</h2>
+<p>Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.</p>
+<p>Note: You can choose to disable all default key bindings by configuring <code>calva.paredit.defaultKeyMap</code> to <code>none</code>. (Then you probably also want to register your own shortcuts for the commands you often use.)</p>
+<p>Happy Editing! ❤️</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../formatting/" title="Formatting" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Formatting
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../debugger/" title="Debugger" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Debugger
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.f45d2d8d.min.js"></script>
+      <script src="../assets/javascripts/bundle.74d0b805.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.7f7c8775.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>

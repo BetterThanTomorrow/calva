@@ -1,0 +1,1047 @@
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.">
+      
+      
+        <link rel="canonical" href="https://calva.io/output/">
+      
+      
+      <link rel="shortcut icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.0.1">
+    
+    
+      
+        <title>The Output/REPL Window/File - Calva User Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.c3000690.min.css">
+      
+      
+    
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>body,input{font-family:"Roboto",-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono",SFMono-Regular,Consolas,Menlo,monospace}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-outputrepl-windowfile" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid" aria-label="Header">
+    <a href="https://calva.io" title="Calva User Guide" class="md-header-nav__button md-logo" aria-label="Calva User Guide">
+      
+  <img src="../img/calva-symbol-white.svg" alt="logo">
+
+    </a>
+    <label class="md-header-nav__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" /></svg>
+    </label>
+    <div class="md-header-nav__title" data-md-component="header-title">
+      
+        <div class="md-header-nav__ellipsis">
+          <span class="md-header-nav__topic md-ellipsis">
+            Calva User Guide
+          </span>
+          <span class="md-header-nav__topic md-ellipsis">
+            
+              The Output/REPL Window/File
+            
+          </span>
+        </div>
+      
+    </div>
+    
+      <label class="md-header-nav__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" /></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active">
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" /></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" data-md-component="search-reset" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header-nav__source">
+        
+<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Calva
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+        
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://calva.io" title="Calva User Guide" class="md-nav__button md-logo" aria-label="Calva User Guide">
+      
+  <img src="../img/calva-symbol-white.svg" alt="logo">
+
+    </a>
+    Calva User Guide
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Calva
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+    
+    <label class="md-nav__link" for="nav-2">
+      Getting Started
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+      <label class="md-nav__title" for="nav-2">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Getting Started
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../connect/" title="Connect Calva to Your Project" class="md-nav__link">
+      Connect Calva to Your Project
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../try-first/" title="Something to Try First (After Connecting)" class="md-nav__link">
+      Something to Try First (After Connecting)
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../finding-commands/" title="Finding Calva Commands" class="md-nav__link">
+      Finding Calva Commands
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../eval-tips/" title="Code Evaluation Tips" class="md-nav__link">
+      Code Evaluation Tips
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+    
+    <label class="md-nav__link" for="nav-3">
+      Features
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Features" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Features
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../commands-top10/" title="The Top 10 Calva Commands" class="md-nav__link">
+      The Top 10 Calva Commands
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        The Output/REPL Window/File
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="The Output/REPL Window/File" class="md-nav__link md-nav__link--active">
+      The Output/REPL Window/File
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-code" class="md-nav__link">
+    Evaluating code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repl-history" class="md-nav__link">
+    REPL History
+  </a>
+  
+    <nav class="md-nav" aria-label="REPL History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#navigate-repl-history" class="md-nav__link">
+    Navigate REPL History
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clear-repl-history" class="md-nav__link">
+    Clear REPL History
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peek-at-results" class="md-nav__link">
+    Peek at Results
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stacktraces" class="md-nav__link">
+    Stacktraces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-the-outputrepl-window" class="md-nav__link">
+    Find the Output/REPL Window
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paredit-enabled" class="md-nav__link">
+    Paredit Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugger-enabled" class="md-nav__link">
+    Debugger Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#it-is-ephemeral" class="md-nav__link">
+    It is Ephemeral
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-clj-or-cljs-repl-connection" class="md-nav__link">
+    Choose CLJ or CLJS REPL Connection
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-quirks" class="md-nav__link">
+    Known Quirks
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../formatting/" title="Formatting" class="md-nav__link">
+      Formatting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../paredit/" title="Paredit – a Visual Guide" class="md-nav__link">
+      Paredit – a Visual Guide
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../debugger/" title="Debugger" class="md-nav__link">
+      Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../pprint/" title="Pretty Printing" class="md-nav__link">
+      Pretty Printing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../test-runner/" title="Test Runner" class="md-nav__link">
+      Test Runner
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../connect-sequences/" title="REPL Jack-in and Connection Sequences" class="md-nav__link">
+      REPL Jack-in and Connection Sequences
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../custom-commands/" title="Running Custom REPL Commands" class="md-nav__link">
+      Running Custom REPL Commands
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../linting/" title="Linting" class="md-nav__link">
+      Linting
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../customizing/" title="Customizing Calva" class="md-nav__link">
+      Customizing Calva
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      Using Calva with X
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Using Calva with X" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Using Calva with X
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../rebl/" title="How to Use Calva and REBL Together" class="md-nav__link">
+      How to Use Calva and REBL Together
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../vim/" title="Calva and the VIM Extension" class="md-nav__link">
+      Calva and the VIM Extension
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../wsl/" title="Calva ❤️ WSL" class="md-nav__link">
+      Calva ❤️ WSL
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../remote-development/" title="Using Calva with Remote Development" class="md-nav__link">
+      Using Calva with Remote Development
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../luminus/" title="How to Use Calva with Luminus" class="md-nav__link">
+      How to Use Calva with Luminus
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../re-frame-template/" title="How to Use Calva With the re-frame Template" class="md-nav__link">
+      How to Use Calva With the re-frame Template
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Etcetera
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="Etcetera" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        Etcetera
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../workspace-layouts/" title="Workspace Layouts" class="md-nav__link">
+      Workspace Layouts
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../quirks/" title="Quirks" class="md-nav__link">
+      Quirks
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7">
+    
+    <label class="md-nav__link" for="nav-7">
+      In Depth
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+      </span>
+    </label>
+    <nav class="md-nav" aria-label="In Depth" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+        </span>
+        In Depth
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../jack-in-guide/" title="Learn about Calva Jack-in" class="md-nav__link">
+      Learn about Calva Jack-in
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../sponsors/" title="Calva Sponsors" class="md-nav__link">
+      Calva Sponsors
+    </a>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-code" class="md-nav__link">
+    Evaluating code
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repl-history" class="md-nav__link">
+    REPL History
+  </a>
+  
+    <nav class="md-nav" aria-label="REPL History">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#navigate-repl-history" class="md-nav__link">
+    Navigate REPL History
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clear-repl-history" class="md-nav__link">
+    Clear REPL History
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peek-at-results" class="md-nav__link">
+    Peek at Results
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stacktraces" class="md-nav__link">
+    Stacktraces
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-the-outputrepl-window" class="md-nav__link">
+    Find the Output/REPL Window
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paredit-enabled" class="md-nav__link">
+    Paredit Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugger-enabled" class="md-nav__link">
+    Debugger Enabled
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#it-is-ephemeral" class="md-nav__link">
+    It is Ephemeral
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choose-clj-or-cljs-repl-connection" class="md-nav__link">
+    Choose CLJ or CLJS REPL Connection
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-quirks" class="md-nav__link">
+    Known Quirks
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/dev/docs/site/output.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="the-outputrepl-windowfile">The Output/REPL Window/File</h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As of version <strong>v2.0.109</strong> the old REPL Window was replaced by the new one described below. Read <a href="https://clojureverse.org/t/calva-summer-of-bugs-2020/">this article on ClojureVerse</a> for some of the rationale behind the change.</p>
+</div>
+<p>When Calva evaluates Clojure/ClojureScript code, the results are displayed inline as well as printed to the results output window/file. This file is created and opened when Calva is connected to a REPL.</p>
+<p>In ClojureScript projects the window will be associated with the <code>cljs</code> REPL once this one is connected. It will then look something like so:</p>
+<p><img alt="Output Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
+<p>The first prompt is from when the <code>clj</code> REPL is connected, the second when Calva has a <code>cljs</code> REPL connection. The first part of the prompt tells you which REPL type the window is currently connected to. This gets important when the file/window is used as an interactive REPL.</p>
+<h2 id="evaluating-code">Evaluating code</h2>
+<p>The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a <code>clj</code> file with the namespace <code>fresh-reagent.handler</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">mount-target</span>
+  <span class="p">[</span><span class="ss">:div#app</span>
+   <span class="p">[</span><span class="ss">:h2</span> <span class="s">&quot;Welcome to fresh-reagent&quot;</span><span class="p">]</span>
+   <span class="p">[</span><span class="ss">:p</span> <span class="s">&quot;please wait while Figwheel is waking up ...&quot;</span><span class="p">]</span>
+   <span class="p">[</span><span class="ss">:p</span> <span class="s">&quot;(Check the js console for hints if nothing exciting happens.)&quot;</span><span class="p">]])</span>
+</code></pre></div>
+
+
+<p>The output window will print the defined var and then a new prompt reflecting the current REPL connection and namespace:</p>
+<p><img alt="eval-results-1" src="../images/howto/output/eval-results-1.png" /></p>
+<p>If you then switch to the output window (<code>ctrl+alt+c o</code>), and enter this at the prompt:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">mount-target</span>
+</code></pre></div>
+
+
+<p>then evaluate it using <code>alt+enter</code>, you'll get:</p>
+<p><img alt="eval-results-2" src="../images/howto/output/eval-results-2.png" /></p>
+<p>This, since the namespace ”followed” the first evaluation over to the output window.</p>
+<h2 id="repl-history">REPL History</h2>
+<p>Recently evaluated forms in the REPL file are persisted and can easily be shown again for modifying and re-evaluating.</p>
+<h3 id="navigate-repl-history">Navigate REPL History</h3>
+<p>You can navigate up and down the last forms evaluated in the REPL file by using <code>alt+up</code> and <code>alt+down</code>, provided your cursor is at the end of the last form after the prompt. If the cursor is not at the end of the last form, then <code>alt+up</code> and <code>alt+down</code> will do what they are mapped to, which is by default "Move Line Up" and "Move Line Down," respectively.</p>
+<p>If you have typed some text after the prompt before you start traversing up the history, this text will be preserved and will display when you traverse back down the history. If you modify some text in the history while traversing, the modification will be saved at that location in history.</p>
+<h3 id="clear-repl-history">Clear REPL History</h3>
+<p>You can clear the repl history by running the command "Clear REPL History" from the command palette.</p>
+<h2 id="peek-at-results">Peek at Results</h2>
+<p>On smaller screens (or just depending on your taste) you might not have the output window visible side-by-side with your code, but rather in a tab in the same editor group.</p>
+<p>Then your immediate feedback will be the inline display, which is limited to the first line of the results. All is not lost, however, you can peek at the full results using VS Code's command <strong>Peek Definition</strong>. Calva adds a definition pointer ”in” to the evaluated code in the output window.</p>
+<p><img alt="Peek at results" src="../images/howto/output/peek-last-result.gif" /></p>
+<p>(On Mac the default keyboard shortcut for the peek command is <code>alt+f12</code>.)</p>
+<p>In the demo gif we utilize two things about this peek widget:</p>
+<ol>
+<li>It stays open until you close it. So you can keep evaluating different versions of your form and see the results get printed.</li>
+<li>The widget displays a ”full” Calva editor, so you can use Paredit to conveniently select forms.</li>
+</ol>
+<h2 id="stacktraces">Stacktraces</h2>
+<p>When an evaluation produces an error, the output window will automatically print the stacktrace (when available). It will be printed as an EDN structure. And when source locations are available you will be able to navigate to them by <code>command+click</code> (Mac) or <code>ctrl+click</code> (Windows and Linux).</p>
+<h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
+<p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+c o</code>.</p>
+<h2 id="paredit-enabled">Paredit Enabled</h2>
+<p>The output window is mostly a regular Calva Clojure/ClojureScript file, which make everything that works in a regular file work in this file, including <a href="../paredit/">Paredit</a>. This makes it easy to navigate the input and output. For instance, to select the last evaluation results you can press <code>ctrl+w</code>:</p>
+<p><img alt="Paredit select current form" src="../images/howto/output/select-last-result.png" /></p>
+<h2 id="debugger-enabled">Debugger Enabled</h2>
+<p>The output window is mostly a regular... (you get it), which means you also have the <a href="../debugger/">Calva debugger</a> at your command at the REPL prompt (only for <code>clj</code> sessions, so far). So instead of evaluating a function definition using <code>alt+enter</code> you can evaluate it and instrument it for debugging using <code>ctrl+alt+c i</code>. Then call the function.</p>
+<p><img alt="repl-file debugger" src="../images/howto/output/repl-file-debugger.png" /></p>
+<h2 id="it-is-ephemeral">It is Ephemeral</h2>
+<p>The contents of the output/REPL window is written to a file named <code>output.repl</code> in the <code>.calva/output-window</code> directory of your project. The file is recreated at every new session. And you should copy anything you want to keep from this file to wherever you want to keep it.</p>
+<p>You probably want to add <code>.calva/output-window/</code> to your <code>.&lt;something&gt;ignore</code> files. (There are some more files in that directory that you shouldn't keep under source control.)</p>
+<h2 id="choose-clj-or-cljs-repl-connection">Choose CLJ or CLJS REPL Connection</h2>
+<p>In full stack projects, you will probably use the window as a REPL for both <code>clj</code> and <code>cljs</code>. You can toggle which REPL the window is connected to using the command <strong>Calva: Toggle REPL Connection for CLJC files</strong>. There is a button for this in the status bar:</p>
+<p><img alt="Toggle CLJC" src="../images/howto/cljc-toggle-button.png" /></p>
+<h2 id="known-quirks">Known Quirks</h2>
+<p>Due to limitations in the VS Code API it is hard for Calva to know if the output file is opened, and also if it is opened more than once. Make it a habit to leave this window opened. And if it is opened in several tabs, expect evaluation printouts to be a bit unpredictable.</p>
+<p>If you save the output/REPL file (which most often does not make much sense, but anyway) you will sometimes be presented with a message about VS Code being confused about the file contents being out of sync. Just choose to <em>Overwrite</em> the currently saved version and you should be fine.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../commands-top10/" title="The Top 10 Calva Commands" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                The Top 10 Calva Commands
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../formatting/" title="Formatting" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Formatting
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/vendor.f45d2d8d.min.js"></script>
+      <script src="../assets/javascripts/bundle.74d0b805.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      
+      <script>
+        app = initialize({
+          base: "..",
+          features: [],
+          search: Object.assign({
+            worker: "../assets/javascripts/worker/search.7f7c8775.min.js"
+          }, typeof search !== "undefined" && search)
+        })
+      </script>
+      
+    
+  </body>
+</html>
