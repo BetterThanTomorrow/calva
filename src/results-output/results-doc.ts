@@ -156,7 +156,9 @@ export async function openResultsDoc(): Promise<vscode.TextDocument> {
 
 export function revealResultsDoc(preserveFocus: boolean = true) {
     openResultsDoc().then(doc => {
-        vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus);
+        vscode.window.showTextDocument(doc, getViewColumn(), preserveFocus).then(editor => {
+            util.scrollToBottom(editor);    
+        })
     });
 }
 
@@ -206,7 +208,6 @@ export function appendCurrentTopLevelForm() {
     appendFormGrabbingSessionAndNS(true);
 }
 
-let scrollToBottomSub: vscode.Disposable;
 interface OnAppendedCallback {
     (insertLocation: vscode.Location): any
 }
@@ -231,27 +232,16 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                 const currentContent = doc.getText();
                 const lastLineEmpty = currentContent.match(/\n$/) || currentContent === '';
                 const appendText = `${lastLineEmpty ? '' : '\n'}${ansiStrippedText}\n`;
+                
                 insertPosition = doc.positionAt(Infinity);
                 edit.insert(DOC_URI(), insertPosition, `${appendText}`);
-                if (scrollToBottomSub) {
-                    scrollToBottomSub.dispose();
-                }
+                
                 let visibleResultsEditors: vscode.TextEditor[] = [];
                 vscode.window.visibleTextEditors.forEach(editor => {
                     if (isResultsDoc(editor.document)) {
                         visibleResultsEditors.push(editor);
                     }
                 });
-                if (visibleResultsEditors.length == 0) {
-                    scrollToBottomSub = vscode.window.onDidChangeActiveTextEditor((editor) => {
-                        if (isResultsDoc(editor.document)) {
-                            util.scrollToBottom(editor);
-                            scrollToBottomSub.dispose();
-                        }
-                    });
-                    state.extensionContext.subscriptions.push(scrollToBottomSub);
-                }
-
                 vscode.workspace.applyEdit(edit).then(success => {
                     applyingEdit = false;
                     doc.save();

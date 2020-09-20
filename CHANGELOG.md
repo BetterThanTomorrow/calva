@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Show the REPL/output with cursor at the bottom](https://github.com/BetterThanTomorrow/calva/issues/792)
 - [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
 - Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)
 - Fix: [Test runner output only partially commented](https://github.com/BetterThanTomorrow/calva/issues/787)
