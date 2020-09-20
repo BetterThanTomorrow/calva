@@ -8,7 +8,7 @@ Generally:
 
 * Don't forget about `README.md`. (It might not need to be updated, but anyway.)
 * If a change warrants updates to `CHANGELOG.md`, put these under `[Unreleased]`.
-* If a change warrants updates the the [Calva User Guide](https://github.com/BetterThanTomorrow/calva-docs), make those changes in a branch with the same name as your feature branch in the `calva` repo.
+* If a change warrants updates the the Calva User Guide, make your changes where necessary in `docs/site`. 
 
 Bigger changes:
 
