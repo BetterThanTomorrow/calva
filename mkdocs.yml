@@ -11,7 +11,7 @@ site_url: https://calva.io
 site_description: Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.
 repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
-edit_uri: edit/dev/docs/site
+edit_uri: edit/master/docs/site
 strict: true
 markdown_extensions:
   - admonition
