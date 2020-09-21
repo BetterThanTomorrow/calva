@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Move docs into repo](https://github.com/BetterThanTomorrow/calva/issues/788)
 
 ## [2.0.125] - 2020-09-20
 - [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
