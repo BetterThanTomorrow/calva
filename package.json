@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.125",
+    "version": "2.0.126",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -1648,7 +1648,8 @@
         }
     },
     "scripts": {
-        "watch-docs": "echo \"Run `mkdocs serve` in the calva-docs repo.\"",
+        "watch-docs": "mkdocs serve",
+        "deploy-docs": "mkdocs gh-deploy -m \"[skip ci]\"",
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run compile-cljs",

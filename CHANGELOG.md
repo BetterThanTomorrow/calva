@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [no new version] - 2020-09-21
+- [Move docs into repo](https://github.com/BetterThanTomorrow/calva/issues/788)
+
 ## [2.0.125] - 2020-09-20
 - [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
 - Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)

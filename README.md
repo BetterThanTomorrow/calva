@@ -35,7 +35,7 @@ We also hope that Calva will contribute to making it easier to pick up Clojure a
 
 ## Getting Started with Calva
 
-Go to the [documentation](https://calva.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from a separate repository than Calva, called [calva-docs](https://github.com/BetterThanTomorrow/calva-docs). So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR in that repository.
+Go to the [documentation](https://calva.io/) to find info on how to connect Calva to your project and start evaluating code and such. The documentation is built from this repository, and the source files are located in `docs/site`. So if you know about workarounds or gotchas or anything that is good to know about when using Calva, please edit the appropriate page (or create a new page) by PR.
 
 ## Features
 
