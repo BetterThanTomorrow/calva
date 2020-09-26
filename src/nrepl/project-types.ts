@@ -150,7 +150,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
     return { profiles, alias };
 }
 
-const NREPL_VERSION = "0.6.0",
+const NREPL_VERSION = "0.8.2",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
     CLJ_KONDO_VERSION = "2020.04.05";
