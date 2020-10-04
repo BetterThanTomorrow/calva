@@ -37,8 +37,6 @@ const OUTPUT_FILE_DIR = () => {
     return path.join(projectRoot, ".calva", "output-window");
 };
 const DOC_URI = () => {
-    const outputFileDirectory = OUTPUT_FILE_DIR();
-    const p = path.join(outputFileDirectory);
     return vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
 };
 
