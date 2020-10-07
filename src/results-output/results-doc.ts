@@ -33,11 +33,12 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 
 
 const OUTPUT_FILE_DIR = () => {
-    const projectRoot = state.getProjectRoot();
-    return path.join(projectRoot, ".calva", "output-window");
+    const projectRoot = state.getProjectRootUri();
+    return vscode.Uri.joinPath(projectRoot, ".calva", "output-window")
 };
+
 const DOC_URI = () => {
-    return vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
+    return vscode.Uri.joinPath(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME);
 };
 
 let _sessionType: ReplSessionType = "clj";
@@ -105,11 +106,11 @@ function setContextForOutputWindowActive(isActive: boolean): void {
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // await state.initProjectDir();
-    const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
-    await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}");
+    const kondoPath = vscode.Uri.joinPath(OUTPUT_FILE_DIR(), '.clj-kondo')
+    await vscode.workspace.fs.createDirectory(kondoPath);
+    await writeTextToFile(vscode.Uri.joinPath(kondoPath, 'config.edn'), "^:replace {:linters {}}");
 
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(OUTPUT_FILE_DIR()));
+    await vscode.workspace.fs.createDirectory(OUTPUT_FILE_DIR());
     let resultsDoc: vscode.TextDocument;
     try {
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
