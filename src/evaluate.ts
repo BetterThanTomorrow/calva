@@ -53,7 +53,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     const ns = options.ns;
 
     if (code.length > 0) {
-        let err: string[] = [], out: string[] = [];
+        let err: string[] = [];
 
         if (outputWindow.getNs() !== ns) {
             await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
@@ -64,7 +64,6 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             line: line + 1,
             column: column + 1,
             stdout: (m) => {
-                out.push(m);
                 outputWindow.append(normalizeNewLines(m));
             },
             stderr: m => err.push(m),
@@ -102,7 +101,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             }
         } catch (e) {
             const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
-            outputWindow.append(outputWindowError, (resultLocation) => {
+            outputWindow.append(outputWindowError, async (resultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
@@ -114,7 +113,16 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                     }
                 }
                 if (context.stacktrace && context.stacktrace.stacktrace) {
-                    outputWindow.printStacktrace(context.stacktrace.stacktrace);
+                    //outputWindow.printStacktrace(context.stacktrace.stacktrace);
+                    const errorLines = [];
+                    const evaluation = session.eval(`(clojure.repl/pst)`, ns, {
+                        stderr: e => {
+                            errorLines.push(e);
+                        },
+                        pprintOptions
+                    });
+                    await evaluation.value;
+                    outputWindow.append(normalizeNewLinesAndJoin(errorLines), _ => outputWindow.appendPrompt());
                 }
             });
         }
