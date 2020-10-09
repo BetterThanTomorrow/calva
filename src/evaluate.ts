@@ -86,9 +86,10 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                     } else if (options.comment) {
                         addAsComment(c, value, selection, editor, selection);
                     } else {
-                        const currentCursorPos = editor.selection.active;
-                        annotations.decorateSelection(value, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.SUCCESS);
-                        annotations.decorateResults(value, false, selection, editor);
+                        if (!outputWindow.isResultsDoc(editor.document)) {
+                            annotations.decorateSelection(value, selection, editor, editor.selection.active, resultLocation, annotations.AnnotationStatus.SUCCESS);
+                            annotations.decorateResults(value, false, selection, editor);
+                        }
                     }
                 }
             });
@@ -106,28 +107,31 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                     const editor = vscode.window.activeTextEditor;
                     const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
                     const currentCursorPos = editor.selection.active;
-                    annotations.decorateSelection(editorError, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
-                    annotations.decorateResults(editorError, true, selection, editor);
+                    if (!outputWindow.isResultsDoc(editor.document)) {
+                        annotations.decorateSelection(editorError, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
+                        annotations.decorateResults(editorError, true, selection, editor);
+                    }
                     if (options.asComment) {
                         addAsComment(selection.start.character, editorError, selection, editor, selection);
                     }
                 }
-                if (context.stacktrace && context.stacktrace.stacktrace) {
-                    //outputWindow.printStacktrace(context.stacktrace.stacktrace);
-                    const errorLines = [];
-                    const evaluation = session.eval(`(clojure.repl/pst)`, ns, {
-                        stderr: e => {
-                            errorLines.push(e);
-                        },
-                        pprintOptions
-                    });
-                    await evaluation.value;
-                    outputWindow.append(normalizeNewLinesAndJoin(errorLines), _ => outputWindow.appendPrompt());
-                }
             });
+            if (context.stacktrace && context.stacktrace.stacktrace) {
+                //outputWindow.printStacktrace(context.stacktrace.stacktrace);
+                const errorLines = [];
+                const evaluation = session.eval(`(clojure.repl/pst)`, ns, {
+                    stderr: e => {
+                        errorLines.push(e);
+                    },
+                    pprintOptions
+                });
+                await evaluation.value;
+                outputWindow.append(normalizeNewLinesAndJoin(errorLines));
+            }
         }
 
         outputWindow.setSession(session, context.ns || ns);
+        outputWindow.appendPrompt();
         namespace.updateREPLSessionType();
     }
 }
@@ -258,6 +262,7 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
             chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
         };
     }
+    outputWindow.appendPrompt();
 }
 
 async function evaluateUser(code: string) {

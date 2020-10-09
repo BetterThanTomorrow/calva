@@ -464,7 +464,8 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
         const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
         outputWindow.append(`; Connecting ...`);
         state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
-        connect(connectSequence, false).catch(() => { });
+        await connect(connectSequence, false).catch(() => { });
+        outputWindow.appendPrompt();
     }
     else {
         outputWindow.append("; Aborting connect, error determining connect sequence.");

@@ -47,10 +47,9 @@ let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
     clj: {},
     cljs: {}
 };
-let _prompt: string;
 
 export function getPrompt(): string {
-    return _prompt;
+    return `${_sessionType}::${getNs()}=> `;
 }
 
 export function getNs(): string {
@@ -65,7 +64,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string, onPromptAdded: OnAppendedCallback = null): void {
+export function setSession(session: NReplSession, newNs: string): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -75,8 +74,6 @@ export function setSession(session: NReplSession, newNs: string, onPromptAdded: 
     if (newNs) {
         _sessionInfo[_sessionType].ns = newNs;
     }
-    _prompt = `${_sessionType}::${getNs()}=> `;
-    append(_prompt, onPromptAdded);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -106,7 +103,6 @@ function setContextForOutputWindowActive(isActive: boolean): void {
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
-    // await state.initProjectDir();
     const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
     await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
     await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}");
@@ -123,7 +119,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     const edit = new vscode.WorkspaceEdit();
     const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
     edit.replace(DOC_URI(), fullRange, greetings);
-    const success = await vscode.workspace.applyEdit(edit);
+    await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
     const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
@@ -166,10 +162,9 @@ export async function setNamespaceFromCurrentFile() {
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
-    setSession(session, ns, _ => {
-        revealResultsDoc(false);
-        namespace.updateREPLSessionType();
-    });
+    setSession(session, ns);
+    appendPrompt(_ => revealResultsDoc(false));
+    namespace.updateREPLSessionType();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
@@ -189,12 +184,8 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
         if (getNs() !== ns) {
             await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
         }
-        setSession(session, ns, _ => {
-            namespace.updateREPLSessionType();
-            append(code, _ => {
-                revealResultsDoc(false);
-            });
-        });
+        setSession(session, ns);
+        append(code, _ => revealResultsDoc(false));
     }
 }
 
@@ -254,7 +245,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
 
                 vscode.workspace.applyEdit(edit).then(success => {
                     applyingEdit = false;
-                    doc.save();
+                    doc.save(); 
 
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
@@ -294,7 +285,7 @@ function printStacktrace(stacktrace: any[]): void {
 }
 
 function appendPrompt(onAppended?: OnAppendedCallback) {
-    append(_prompt, onAppended);
+    append(getPrompt(), onAppended);
 }
 
 export {
