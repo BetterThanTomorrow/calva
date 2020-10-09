@@ -129,9 +129,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 outputWindow.append(normalizeNewLinesAndJoin(errorLines));
             }
         }
-
         outputWindow.setSession(session, context.ns || ns);
-        outputWindow.appendPrompt();
         namespace.updateREPLSessionType();
     }
 }
@@ -172,6 +170,7 @@ async function evaluateSelection(document: {}, options) {
             }
             annotations.decorateSelection("", codeSelection, editor, undefined, undefined, annotations.AnnotationStatus.PENDING);
             await evaluateCode(code, { ...options, ns, line, column, filePath, session }, codeSelection);
+            outputWindow.appendPrompt();
         }
     } else {
         vscode.window.showErrorMessage("Not connected to a REPL");
@@ -344,7 +343,7 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
         });
     }
     catch (e) {
-        outputWindow.append("; Evaluation failed.")
+        outputWindow.append("; Evaluation failed.");
     }
 }
 
@@ -386,7 +385,7 @@ function evaluateCustomCommandSnippetCommand() {
                     editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined,
                     ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
                     repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                evaluateInOutputWindow(command, repl ? repl : "clj", ns);
+                await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
         }).catch(() => { });
     } else {
