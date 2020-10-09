@@ -216,14 +216,13 @@ function evaluateCurrentForm(document = {}, options = {}) {
         .catch(printWarningForError);
 }
 
-async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
+async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const current = state.deref();
     const doc = util.getDocument(document);
     const fileName = util.getFileName(doc);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
     const session = namespace.getSession(util.getFileType(doc));
-    const chan = state.outputChannel();
     const shortFileName = path.basename(fileName);
     const dirName = path.dirname(fileName);
 
@@ -233,36 +232,29 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
 
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
-        let res = session.loadFile(doc.getText(), {
+        const res = session.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => outputWindow.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
             stderr: m => outputWindow.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions
-        })
-        await res.value.then((value) => {
+        });
+        try {
+            const value = await res.value;
             if (value) {
                 outputWindow.append(value);
             } else {
                 outputWindow.append("; No results from file evaluation.");
             }
-        }).catch(async (e) => {
+        } catch (e) {
             outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
                 outputWindow.printStacktrace(res.stacktrace);
             }
-        });
+        }
         outputWindow.setSession(session, res.ns || ns);
         namespace.updateREPLSessionType();
     }
-    if (callback) {
-        try {
-            callback();
-        } catch (e) {
-            chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
-        };
-    }
-    outputWindow.appendPrompt();
 }
 
 async function evaluateUser(code: string) {

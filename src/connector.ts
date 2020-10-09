@@ -458,7 +458,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
 async function standaloneConnect(connectSequence: ReplConnectSequence) {
     await outputWindow.initResultsDoc();
-    const outputDocument = await outputWindow.openResultsDoc();
+    await outputWindow.openResultsDoc();
 
     if (connectSequence) {
         const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
