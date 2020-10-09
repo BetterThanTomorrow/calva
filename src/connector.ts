@@ -393,8 +393,6 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
 }
 
 async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSequence) {
-    let current = state.deref();
-
     let url = await vscode.window.showInputBox({
         placeHolder: "Enter existing nREPL hostname:port here...",
         prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",

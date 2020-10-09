@@ -154,8 +154,8 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', () => {
-        eval.evaluateCustomCommandSnippetCommand();
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', async () => {
+        await eval.evaluateCustomCommandSnippetCommand();
         outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
