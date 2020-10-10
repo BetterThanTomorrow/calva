@@ -29,7 +29,12 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
     try {
         outputWindow.append("; Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
-        nClient = await NReplClient.create({ host: hostname, port: +port })
+        nClient = await NReplClient.create({ host: hostname, port: +port, onError: e => {
+            const scheme = state.getProjectRootUri().scheme
+            if (scheme == "vsls") {
+                outputWindow.append("; nREPL connection failed; did the host share the nREPL port?")
+            }
+        }})
         nClient.addOnCloseHandler(c => {
             util.setConnectedState(false);
             util.setConnectingState(false);
@@ -82,7 +87,7 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
-    
+
     return true;
 }
 
@@ -431,13 +436,13 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
     state.analytics().logEvent("REPL", "ConnectInitiated", cljsTypeName).send();
 
-    const portFile = projectTypes.nreplPortFile(connectSequence);
+    const portFile = projectTypes.nreplPortFileUri(connectSequence);
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
     state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
 
-    if (fs.existsSync(portFile)) {
-        let port = fs.readFileSync(portFile, 'utf8');
+    try {
+        let port = await vscode.workspace.fs.readFile(portFile);
         if (port) {
             if (isAutoConnect) {
                 state.cursor.set("hostname", "localhost");
@@ -450,10 +455,12 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
             outputWindow.append('; No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
             await promptForNreplUrlAndConnect(port, connectSequence);
         }
-    } else {
+    } catch (e) {
+        console.log(e)
         await promptForNreplUrlAndConnect(null, connectSequence);
     }
     return true;
+
 }
 
 async function standaloneConnect(connectSequence: ReplConnectSequence) {

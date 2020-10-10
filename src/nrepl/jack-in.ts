@@ -43,7 +43,7 @@ function cancelJackInTask() {
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, cljTypes: string[], connectSequence: ReplConnectSequence) {
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
-    const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
+    const nReplPortFile = projectTypes.nreplPortFileLocalPath(connectSequence);
     const env =  Object.assign(process.env, state.config().jackInEnv) as {
         [key: string]: string;
     };
@@ -230,5 +230,3 @@ export async function calvaJackInOrConnect() {
         }
     })
 }
-
-

@@ -21,23 +21,41 @@ export type ProjectType = {
     nReplPortFile: string[];
 };
 
-export function nreplPortFile(connectSequence: ReplConnectSequence): string {
-    let subPath: string = ".nrepl-port";
+function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string {
+    let subPath: string;
     if (connectSequence.nReplPortFile) {
         subPath = path.join(...connectSequence.nReplPortFile);
     } else {
         const projectType: ProjectType | string = connectSequence.projectType;
         subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile)
     }
-    const projectRoot = state.getProjectRoot();
+    return subPath;
+}
+
+export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
+    const relativePath = nreplPortFileRelativePath(connectSequence)
+    const projectRoot = state.getProjectRoot()
     if (projectRoot) {
         try {
-            return path.resolve(projectRoot, subPath);
+            return path.resolve(projectRoot, relativePath);
         } catch (e) {
             console.log(e);
         }
     }
-    return subPath;
+    return relativePath;
+}
+
+export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
+    const relativePath = nreplPortFileRelativePath(connectSequence)
+    const projectRoot = state.getProjectRootUri();
+    if (projectRoot) {
+        try {
+            return vscode.Uri.joinPath(projectRoot, relativePath);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    return vscode.Uri.file(relativePath);
 }
 
 export function shadowConfigFile() {
@@ -435,11 +453,13 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
     const rootDir = state.getProjectRoot(),
+        rootUri = state.getProjectRootUri(),
         cljProjTypes = ['generic'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
-                fs.accessSync(path.resolve(rootDir, projectTypes[clj].useWhenExists));
+                // fs.accessSync(path.resolve(rootDir, projectTypes[clj].useWhenExists));
+                await vscode.workspace.fs.readFile(vscode.Uri.joinPath(rootUri, projectTypes[clj].useWhenExists))
                 cljProjTypes.push(clj);
             } catch (_e) { }
         }
