@@ -103,8 +103,9 @@ async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBui
     return { selectedBuilds, args };
 }
 
-function leinDefProject(): any {
-    const data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
+async function leinDefProject(): Promise<any> {
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "project.clj"))
+    const data = new TextDecoder("utf-8").decode(bytes)
     try {
         const parsed = parseForms(data);
         return parsed.find(x => x[0] == "defproject");
@@ -422,7 +423,7 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
         ...serverPrinterDependencies
     };
     let keys = Object.keys(dependencies);
-    const defproject = leinDefProject();
+    const defproject = await leinDefProject();
     const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
     if (isWin) {
         out.push("/d", "/c", "lein");
