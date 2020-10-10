@@ -140,6 +140,11 @@ export async function calvaJackIn() {
     } catch {
         return;
     }
+    if (state.getProjectRootUri().scheme == "vsls") {
+        outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
+        outputWindow.append("; Please use this command instead: Connect to a running REPL server in the project.");
+        return
+    }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     await outputWindow.initResultsDoc();
     const outputDocument = await outputWindow.openResultsDoc();
@@ -214,7 +219,9 @@ export async function calvaJackInOrConnect() {
     if (!utilities.getConnectedState() &&
         !utilities.getConnectingState() &&
         !utilities.getLaunchingState()) {
-        commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
+        if (vscode.workspace.workspaceFolders[0].uri.scheme != "vsls") {
+            commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
+        }
         commands["Connect to a running REPL server in your project"] = "calva.connect";
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
