@@ -262,7 +262,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                     build = await util.quickPickSingle({
                         values: startedBuilds ? startedBuilds : figwheelOrShadowBuilds(cljsTypeName),
                         placeHolder: "Select which build to connect to",
-                        saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`,
+                        saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(" ", "-")}-build`,
                         autoSelect: true
                     });
                 }
@@ -310,7 +310,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
                             values: allBuilds,
                             placeHolder: "Please select which builds to start",
-                            saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-builds`
+                            saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(" ", "-")}-builds`
                         });
                     }
                     if (builds) {

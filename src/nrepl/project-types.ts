@@ -92,8 +92,8 @@ export function leinShadowBuilds(defproject: any): string[] {
 async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBuilds: string[]): Promise<{ selectedBuilds: string[], args: string[] }> {
     const menuSelections = connectSequence.menuSelections, selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
         values: foundBuilds.filter(x => x[0] == ":"),
-        placeHolder: "Select builds to start", saveAs: `
-                    ${state.getProjectRoot()}/shadow-cljs-jack-in`
+        placeHolder: "Select builds to start",
+        saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`
     }), aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
     let args: string[] = [];
@@ -136,7 +136,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
                         aliases.unshift("No alias");
                         alias = await utilities.quickPickSingle({
                             values: aliases,
-                            saveAs: `${state.getProjectRoot()}/lein-cli-alias`,
+                            saveAs: `${state.getProjectRootUri().toString()}/lein-cli-alias`,
                             placeHolder: "Choose alias to launch with"
                         });
                         alias = (alias == "No alias") ? undefined : alias;
@@ -164,7 +164,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
                 if (profiles.length) {
                     profiles = await utilities.quickPickMulti({
                         values: profiles,
-                        saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
+                        saveAs: `${state.getProjectRootUri().toString()}/lein-cli-profiles`,
                         placeHolder: "Pick any profiles to launch with"
                     });
                 }
@@ -301,7 +301,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 if (projectAliases.length) {
                     aliases = await utilities.quickPickMulti({
                         values: projectAliases.map(keywordize),
-                        saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
+                        saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
                         placeHolder: "Pick any aliases to launch with"
                     });
                 }
