@@ -64,12 +64,13 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
     return vscode.Uri.file(relativePath);
 }
 
-export function shadowConfigFile() {
-    return state.getProjectRoot() + '/shadow-cljs.edn';
+export function shadowConfigFile(): vscode.Uri {
+    return vscode.Uri.joinPath(state.getProjectRootUri(), 'shadow-cljs.edn');
 }
 
-export function shadowBuilds(): string[] {
-    const parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString());
+export async function shadowBuilds(): Promise<string[]> {
+    const data = await vscode.workspace.fs.readFile(shadowConfigFile());
+    const parsed = parseEdn(new TextDecoder("utf-8").decode(data));
     return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 

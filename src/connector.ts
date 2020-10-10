@@ -163,11 +163,11 @@ export interface ReplType {
 
 let translatedReplType: ReplType;
 
-function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
+async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[]> {
     if (cljsTypeName.includes("Figwheel Main")) {
         return getFigwheelMainBuilds();
     } else if (cljsTypeName.includes("shadow-cljs")) {
-        return projectTypes.shadowBuilds();
+        return await projectTypes.shadowBuilds();
     }
 }
 
@@ -260,7 +260,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
             } else {
                 if ((typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
                     build = await util.quickPickSingle({
-                        values: startedBuilds ? startedBuilds : figwheelOrShadowBuilds(cljsTypeName),
+                        values: startedBuilds ? startedBuilds : await figwheelOrShadowBuilds(cljsTypeName),
                         placeHolder: "Select which build to connect to",
                         saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(" ", "-")}-build`,
                         autoSelect: true
@@ -306,7 +306,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         builds = menuSelections.cljsLaunchBuilds;
                     }
                     else {
-                        const allBuilds = figwheelOrShadowBuilds(cljsTypeName);
+                        const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                         builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
                             values: allBuilds,
                             placeHolder: "Please select which builds to start",
