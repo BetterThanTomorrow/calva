@@ -32,6 +32,12 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
     return subPath;
 }
 
+/**
+ * If you know that you're using the local machine to access the nREPL port file,
+ * you can use this method. It returns an absolute path to the right file. In case
+ * you may be dealing with a remote scenario (e.g. live share), you should use
+ * `nreplPortFileUri()` instead.
+ */
 export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
     const relativePath = nreplPortFileRelativePath(connectSequence)
     const projectRoot = state.getProjectRoot()
@@ -452,13 +458,11 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-    const rootDir = state.getProjectRoot(),
-        rootUri = state.getProjectRootUri(),
+    const rootUri = state.getProjectRootUri(),
         cljProjTypes = ['generic'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
-                // fs.accessSync(path.resolve(rootDir, projectTypes[clj].useWhenExists));
                 await vscode.workspace.fs.readFile(vscode.Uri.joinPath(rootUri, projectTypes[clj].useWhenExists))
                 cljProjTypes.push(clj);
             } catch (_e) { }
