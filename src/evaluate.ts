@@ -97,7 +97,8 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             if (err.length > 0) {
                 outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
-                    outputWindow.printStacktrace(context.stacktrace);
+                    outputWindow.saveStacktrace(context.stacktrace);
+                    outputWindow.printLastStacktrace();
                 }
             }
         } catch (e) {
@@ -117,7 +118,8 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             });
             if (context.stacktrace && context.stacktrace.stacktrace) {
-                //outputWindow.printStacktrace(context.stacktrace.stacktrace);
+                outputWindow.saveStacktrace(context.stacktrace.stacktrace);
+                outputWindow.printLastStacktrace();
                 const errorLines = [];
                 const evaluation = session.eval(`(clojure.repl/pst)`, ns, {
                     stderr: e => {
@@ -248,7 +250,8 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
         } catch (e) {
             outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
-                outputWindow.printStacktrace(res.stacktrace);
+                outputWindow.saveStacktrace(res.stacktrace);
+                outputWindow.printLastStacktrace();
             }
         }
         outputWindow.setSession(session, res.ns || ns);

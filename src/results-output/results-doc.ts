@@ -98,7 +98,7 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
-function setContextForOutputWindowActive(isActive: boolean): void {
+export function setContextForOutputWindowActive(isActive: boolean): void {
     vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
 }
 
@@ -198,7 +198,7 @@ export function appendCurrentTopLevelForm() {
 }
 
 let scrollToBottomSub: vscode.Disposable;
-interface OnAppendedCallback {
+export interface OnAppendedCallback {
     (insertLocation: vscode.Location): any
 }
 const editQueue: [string, OnAppendedCallback][] = [];
@@ -269,28 +269,41 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
     };
 }
 
-function makePrintableStackTrace(stacktrace: any[]): string {
-    const lines = stacktrace.map(x => {
-        const file = x["file-url"] && x["file-url"].length ? `:file "${x["file-url"]}:${x.line}"` : `:file "${x.file}" :line ${x.line}`;
-        const fn = x.fn ? ` :fn "${x.fn}" ` : '';
-        const method = x.method ? ` :method "${x.method}" ` : '';
-        return `{${file}${fn}${method}:flags [${x.flags.map((f: string) => `:${f}`).join(' ')}]}`;
-    });
-    return `[${lines.join('\n ')}]`;
+export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
+
+let _lastStacktrace: any[] = [];
+export let _stacktraceEntries = {} as OutputStacktraceEntry;
+
+
+export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
+    return _stacktraceEntries[key];
 }
 
-function printStacktrace(stacktrace: any[]): void {
-    const text = makePrintableStackTrace(stacktrace);
+export function saveStacktrace(stacktrace: any[]): void {
+    _lastStacktrace = [];
+    stacktrace.forEach((entry) => {
+        if (!(entry.flags && entry.flags.dup)) {
+            const type = entry.type;
+            const name = entry.var ? entry.var : entry.name;
+            const key: string = `${name}:${entry["line"]}:${type}`;
+            entry["print-this"] = key;
+            _lastStacktrace.push(entry);
+            const fileUrl = entry["file-url"];
+            if (fileUrl) {
+                _stacktraceEntries[key] = {
+                    uri: vscode.Uri.parse(fileUrl),
+                    line: entry.line
+                };
+            }
+        }
+    });
+}
+
+export function printLastStacktrace(): void {
+    const text = _lastStacktrace.map(entry => entry["print-this"]).join("\n");
     append(text);
 }
 
-function appendPrompt(onAppended?: OnAppendedCallback) {
+export function appendPrompt(onAppended?: OnAppendedCallback) {
     append(getPrompt(), onAppended);
 }
-
-export {
-    OnAppendedCallback,
-    appendPrompt,
-    setContextForOutputWindowActive,
-    printStacktrace
-};

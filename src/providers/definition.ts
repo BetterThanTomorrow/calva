@@ -3,6 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import annotations from './annotations';
 import * as namespace from '../namespace';
+import * as outputWindow from '../results-output/results-doc';
 
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
@@ -45,6 +46,22 @@ export class PathDefinitionProvider implements vscode.DefinitionProvider {
       }
       const pos = new vscode.Position(line - 1, column ? column : 0);
       return new vscode.Location(vscode.Uri.parse(path, true), pos);
+    }
+  }
+}
+
+export class StackTraceDefinitionProvider implements vscode.DefinitionProvider {
+  state: any;
+  constructor() {
+    this.state = state;
+  }
+
+  async provideDefinition(document: vscode.TextDocument, position: vscode.Position, _token) {
+    const text = document.getText(new vscode.Range(position.with(position.line, 0), position.with(position.line, Infinity)));
+    const entry = outputWindow.getStacktraceEntryForKey(text);
+    if (entry) {
+      const pos = new vscode.Position(entry.line - 1, 0);
+      return new vscode.Location(entry.uri, pos);
     }
   }
 }
