@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Live Share: sharing REPL port doesn't work](https://github.com/BetterThanTomorrow/calva/issues/803)
 
 ## [2.0.126] - 2020-10-11
 - Fix: [Can't Jack-In to new Luminus template (+re-frame +shadow-cljs)](https://github.com/BetterThanTomorrow/calva/issues/777)
