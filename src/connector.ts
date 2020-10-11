@@ -15,7 +15,7 @@ import * as outputWindow from './results-output/results-doc'
 import evaluate from './evaluate';
 import * as namespace from './namespace';
 
-async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
+async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
 
     if (nClient) {
@@ -450,7 +450,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
             if (isAutoConnect) {
                 state.cursor.set("hostname", "localhost");
                 state.cursor.set("port", port);
-                await connectToHost("localhost", port, connectSequence);
+                await connectToHost("localhost", parseInt(port), connectSequence);
             } else {
                 await promptForNreplUrlAndConnect(port, connectSequence);
             }
