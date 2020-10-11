@@ -10,6 +10,7 @@ import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connect
 import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
 import * as namespace from "../namespace";
+import * as liveShareSupport from '../liveShareSupport';
 
 let JackinExecution:vscode.TaskExecution = undefined;
 
@@ -132,11 +133,14 @@ export function calvaJackout() {
         }
         JackinExecution.terminate();
     }
+
+    liveShareSupport.didJackOut();
 }
 
 export async function calvaJackIn() {
     try {
         await state.initProjectDir();
+        await liveShareSupport.setupLiveShareListener();
     } catch {
         return;
     }
@@ -185,6 +189,7 @@ export async function calvaJackIn() {
         vscode.window.showInformationMessage('No supported Jack-in project types detected. Maybe try starting your project manually and use the Connect command?')
     }
 
+    liveShareSupport.didJackIn();
 }
 
 export async function calvaDisconnect() {

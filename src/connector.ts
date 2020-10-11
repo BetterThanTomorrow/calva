@@ -14,6 +14,7 @@ import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
 import * as outputWindow from './results-output/results-doc'
 import evaluate from './evaluate';
 import * as namespace from './namespace';
+import * as liveShareSupport from './liveShareSupport';
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -87,6 +88,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
+
+    liveShareSupport.didConnectRepl(port);
 
     return true;
 }
@@ -490,6 +493,7 @@ export default {
         // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();
+            await liveShareSupport.setupLiveShareListener();
         } catch {
             // Could be a bae file, user makes the call
             vscode.commands.executeCommand('calva.jackInOrConnect');
@@ -515,6 +519,7 @@ export default {
                 // the REPL client was connected.
                 nClient.close();
             }
+            liveShareSupport.didDisconnectRepl()
             nClient = undefined
         }
 
