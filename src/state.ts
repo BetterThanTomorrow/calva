@@ -149,7 +149,7 @@ function getViewColumnFromString(value: string): vscode.ViewColumn {
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
-export function getProjectRoot(useCache = true): string {
+export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
         return deref().get(PROJECT_DIR_KEY);
     }

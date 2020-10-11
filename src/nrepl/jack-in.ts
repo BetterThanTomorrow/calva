@@ -49,11 +49,11 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
     };
     const execution = projectTypes.isWin ?
         new vscode.ProcessExecution(executable, args, {
-            cwd: state.getProjectRoot(),
+            cwd: state.getProjectRootLocal(),
             env: env,
         }) :
         new vscode.ShellExecution(executable, args, {
-            cwd: state.getProjectRoot(),
+            cwd: state.getProjectRootLocal(),
             env: env,
         });
     const taskDefinition: vscode.TaskDefinition = {
