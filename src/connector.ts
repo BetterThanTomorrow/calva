@@ -99,9 +99,11 @@ async function setUpCljsRepl(session, build) {
     namespace.updateREPLSessionType();
 }
 
-function getFigwheelMainBuilds() {
-    let res = fs.readdirSync(state.getProjectRoot());
-    let builds = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
+async function getFigwheelMainBuilds() {
+    let res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri())
+    let builds = res
+        .filter(([name, type]) => type != vscode.FileType.Directory && name.match(/\.cljs\.edn/))
+        .map(([name, _]) => name.replace(/\.cljs\.edn$/, ""));
     if (builds.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel build files (.cljs.edn) in the project directory.");
         outputWindow.append("; There are no figwheel build files (.cljs.edn) in the project directory.");
@@ -165,7 +167,7 @@ let translatedReplType: ReplType;
 
 async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[]> {
     if (cljsTypeName.includes("Figwheel Main")) {
-        return getFigwheelMainBuilds();
+        return await getFigwheelMainBuilds();
     } else if (cljsTypeName.includes("shadow-cljs")) {
         return await projectTypes.shadowBuilds();
     }
