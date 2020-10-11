@@ -83,6 +83,10 @@ export class NReplClient {
         for (let id in this.sessions) {
             this.sessions[id].close();
         }
+        this.disconnect();
+    }
+
+    disconnect() {
         this.socket.destroy();
     }
 
