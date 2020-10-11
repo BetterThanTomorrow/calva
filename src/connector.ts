@@ -442,7 +442,8 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
 
     try {
-        let port = await vscode.workspace.fs.readFile(portFile);
+        let bytes = await vscode.workspace.fs.readFile(portFile);
+        let port = new TextDecoder("utf-8").decode(bytes);
         if (port) {
             if (isAutoConnect) {
                 state.cursor.set("hostname", "localhost");
