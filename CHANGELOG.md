@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Can't Jack-In to new Luminus template (+re-frame +shadow-cljs)](https://github.com/BetterThanTomorrow/calva/issues/777)
+- Fix: [Wrong `(in-ns ...)` sent for files with `.bb` extension](https://github.com/BetterThanTomorrow/calva/issues/812)
 
 ## [no new version] - 2020-09-21
 - [Move docs into repo](https://github.com/BetterThanTomorrow/calva/issues/788)
