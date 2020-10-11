@@ -8,7 +8,7 @@ Generally:
 
 * Don't forget about `README.md`. (It might not need to be updated, but anyway.)
 * If a change warrants updates to `CHANGELOG.md`, put these under `[Unreleased]`.
-* If a change warrants updates the the [Calva User Guide](https://github.com/BetterThanTomorrow/calva-docs), make those changes in a branch with the same name as your feature branch in the `calva` repo.
+* If a change warrants updates the the Calva User Guide, make your changes where necessary in `docs/site`. 
 
 Bigger changes:
 
@@ -54,6 +54,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
    * If the Marketplace version works:
      1. Merge `dev` onto `master`
      1. Push
+     1. Run `npm run deploy-docs` to publish any changes to the docs
      1. Checkout `dev` and `$ npm run bump-version`
      1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
      1. Push.

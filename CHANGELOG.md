@@ -4,10 +4,18 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.126] - 2020-10-11
+- Fix: [Can't Jack-In to new Luminus template (+re-frame +shadow-cljs)](https://github.com/BetterThanTomorrow/calva/issues/777)
+- Fix: [Wrong `(in-ns ...)` sent for files with `.bb` extension](https://github.com/BetterThanTomorrow/calva/issues/812)
+
+## [no new version] - 2020-09-21
+- [Move docs into repo](https://github.com/BetterThanTomorrow/calva/issues/788)
+
 ## [2.0.125] - 2020-09-20
 - [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
 - Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)
 - Fix: [Test runner output only partially commented](https://github.com/BetterThanTomorrow/calva/issues/787)
+- [Allow toggling keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/784)
 
 ## [2.0.124] - 2020-08-31
 - Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)

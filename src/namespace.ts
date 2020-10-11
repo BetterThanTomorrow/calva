@@ -15,7 +15,7 @@ export function getNamespace(doc: vscode.TextDocument) {
         return outputWindow.getNs();
     }
     let ns = "user";
-    if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
+    if (doc && doc.languageId == 'clojure') {
         try {
             const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0);
             cursor.forwardWhitespace(true);
