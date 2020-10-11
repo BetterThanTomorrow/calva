@@ -281,7 +281,8 @@ const projectTypes: { [id: string]: ProjectType } = {
          */
         commandLine: async (connectSequence, cljsType) => {
             let out: string[] = [];
-            let data = fs.readFileSync(path.join(state.getProjectRoot(), "deps.edn"), 'utf8').toString();
+            let bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "deps.edn"));
+            let data = new TextDecoder("utf-8").decode(bytes);
             let parsed;
             try {
                 parsed = parseEdn(data);
