@@ -515,6 +515,7 @@ export default {
                 // the REPL client was connected.
                 nClient.close();
             }
+            nClient = undefined
         }
 
         // If an active debug session exists, terminate it
