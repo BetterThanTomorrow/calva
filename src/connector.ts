@@ -508,9 +508,13 @@ export default {
         status.update();
 
         if (nClient) {
-            // the connection may be ended before
-            // the REPL client was connected.
-            nClient.close();
+            if (state.getProjectRootUri().scheme == "vsls") {
+                nClient.disconnect();
+            } else {
+                // the connection may be ended before
+                // the REPL client was connected.
+                nClient.close();
+            }
         }
 
         // If an active debug session exists, terminate it
