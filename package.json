@@ -1721,7 +1721,8 @@
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
-        "vscode-extension-telemetry": "0.0.15"
+        "vscode-extension-telemetry": "0.0.15",
+        "vsls": "^1.0.2594"
     },
     "devDependencies": {
         "@types/chai": "^4.2.6",
