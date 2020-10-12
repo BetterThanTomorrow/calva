@@ -39,8 +39,8 @@ function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string
  * `nreplPortFileUri()` instead.
  */
 export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
-    const relativePath = nreplPortFileRelativePath(connectSequence)
-    const projectRoot = state.getProjectRootLocal()
+    const relativePath = nreplPortFileRelativePath(connectSequence);
+    const projectRoot = state.getProjectRootLocal();
     if (projectRoot) {
         try {
             return path.resolve(projectRoot, relativePath);
@@ -52,7 +52,7 @@ export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): st
 }
 
 export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
-    const relativePath = nreplPortFileRelativePath(connectSequence)
+    const relativePath = nreplPortFileRelativePath(connectSequence);
     const projectRoot = state.getProjectRootUri();
     if (projectRoot) {
         try {
@@ -105,8 +105,8 @@ async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBui
 }
 
 async function leinDefProject(): Promise<any> {
-    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "project.clj"))
-    const data = new TextDecoder("utf-8").decode(bytes)
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "project.clj"));
+    const data = new TextDecoder("utf-8").decode(bytes);
     try {
         const parsed = parseForms(data);
         return parsed.find(x => x[0] == "defproject");
@@ -466,7 +466,7 @@ export async function detectProjectTypes(): Promise<string[]> {
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
-                await vscode.workspace.fs.readFile(vscode.Uri.joinPath(rootUri, projectTypes[clj].useWhenExists))
+                await vscode.workspace.fs.readFile(vscode.Uri.joinPath(rootUri, projectTypes[clj].useWhenExists));
                 cljProjTypes.push(clj);
             } catch (_e) { }
         }

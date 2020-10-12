@@ -11,7 +11,7 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './results-output/results-doc'
+import * as outputWindow from './results-output/results-doc';
 import evaluate from './evaluate';
 import * as namespace from './namespace';
 import * as liveShareSupport from './liveShareSupport';
@@ -31,9 +31,9 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         outputWindow.append("; Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
         nClient = await NReplClient.create({ host: hostname, port: +port, onError: e => {
-            const scheme = state.getProjectRootUri().scheme
-            if (scheme == "vsls") {
-                outputWindow.append("; nREPL connection failed; did the host share the nREPL port?")
+            const scheme = state.getProjectRootUri().scheme;
+            if (scheme === "vsls") {
+                outputWindow.append("; nREPL connection failed; did the host share the nREPL port?");
             }
         }})
         nClient.addOnCloseHandler(c => {
@@ -103,9 +103,9 @@ async function setUpCljsRepl(session, build) {
 }
 
 async function getFigwheelMainBuilds() {
-    let res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri())
+    let res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri());
     let builds = res
-        .filter(([name, type]) => type != vscode.FileType.Directory && name.match(/\.cljs\.edn/))
+        .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
         .map(([name, _]) => name.replace(/\.cljs\.edn$/, ""));
     if (builds.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel build files (.cljs.edn) in the project directory.");
@@ -462,7 +462,7 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
             await promptForNreplUrlAndConnect(port, connectSequence);
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         await promptForNreplUrlAndConnect(null, connectSequence);
     }
     return true;
@@ -512,15 +512,15 @@ export default {
         status.update();
 
         if (nClient) {
-            if (state.getProjectRootUri().scheme == "vsls") {
+            if (state.getProjectRootUri().scheme === "vsls") {
                 nClient.disconnect();
             } else {
                 // the connection may be ended before
                 // the REPL client was connected.
                 nClient.close();
             }
-            liveShareSupport.didDisconnectRepl()
-            nClient = undefined
+            liveShareSupport.didDisconnectRepl();
+            nClient = undefined;
         }
 
         // If an active debug session exists, terminate it

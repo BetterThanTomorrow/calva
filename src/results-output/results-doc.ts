@@ -34,7 +34,7 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 
 const OUTPUT_FILE_DIR = () => {
     const projectRoot = state.getProjectRootUri();
-    return vscode.Uri.joinPath(projectRoot, ".calva", "output-window")
+    return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
 };
 
 const DOC_URI = () => {
@@ -106,7 +106,7 @@ function setContextForOutputWindowActive(isActive: boolean): void {
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
     // await state.initProjectDir();
-    const kondoPath = vscode.Uri.joinPath(OUTPUT_FILE_DIR(), '.clj-kondo')
+    const kondoPath = vscode.Uri.joinPath(OUTPUT_FILE_DIR(), '.clj-kondo');
     await vscode.workspace.fs.createDirectory(kondoPath);
     await writeTextToFile(vscode.Uri.joinPath(kondoPath, 'config.edn'), "^:replace {:linters {}}");
 
@@ -212,10 +212,10 @@ interface OnAppendedCallback {
 const editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
-   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere 
+   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
    are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
    apply edits one after another without issues.
-   
+
    If something must be done after a particular edit, use the onResultAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
     let insertPosition: vscode.Position;

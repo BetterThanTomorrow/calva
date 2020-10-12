@@ -38,7 +38,7 @@ export class NReplClient {
         this.socket.on("error", e => {
             console.error(e);
             state.connectionLogChannel().appendLine(e.message);
-            onError(e)
+            onError(e);
         })
         this.socket.on("close", e => {
             console.log("Socket closed")

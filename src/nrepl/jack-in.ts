@@ -144,7 +144,7 @@ export async function calvaJackIn() {
     } catch {
         return;
     }
-    if (state.getProjectRootUri().scheme == "vsls") {
+    if (state.getProjectRootUri().scheme === "vsls") {
         outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
         outputWindow.append("; Please use this command instead: Connect to a running REPL server in the project.");
         return
