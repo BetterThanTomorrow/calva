@@ -465,7 +465,6 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
         outputWindow.append(`; Connecting ...`);
         state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
         await connect(connectSequence, false).catch(() => { });
-        outputWindow.appendPrompt();
     }
     else {
         outputWindow.append("; Aborting connect, error determining connect sequence.");
@@ -525,6 +524,7 @@ export default {
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
                 outputWindow.setSession(newSession, undefined);
                 namespace.updateREPLSessionType();
+                outputWindow.appendPrompt();
             }
             status.update();
         }
