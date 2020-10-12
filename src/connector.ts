@@ -57,6 +57,8 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
             await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
         }
 
+        outputWindow.appendPrompt();
+
         let cljsSession = null,
             cljsBuild = null;
         try {
