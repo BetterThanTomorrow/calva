@@ -1,8 +1,12 @@
 import { Disposable } from 'vscode';
 import * as vsls from 'vsls';
 
+// Keeps hold of the LiveShare API instance, so that it is requested only once.
 let liveShare: vsls.LiveShare = null;
+
+// Keeps hold of the LiveShare listener, to prevent it from being disposed immediately.
 let liveShareListener: Disposable = null;
+
 let connectedPort: number = null;
 let jackedIn = false;
 let sharedPorts: Map<number, Disposable> = new Map();
