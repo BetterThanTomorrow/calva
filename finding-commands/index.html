@@ -284,6 +284,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#toggling-keyboard-shortcuts-onoff" class="md-nav__link">
+    Toggling Keyboard Shortcuts On/Off
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -712,6 +719,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#toggling-keyboard-shortcuts-onoff" class="md-nav__link">
+    Toggling Keyboard Shortcuts On/Off
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -737,15 +751,17 @@
 <p>To leverage this, all Calva commands are prefixed with <code>Calva</code>. As an example, say you want to evaluate a form and pretty print it. Then you can do this:</p>
 <ol>
 <li>Open the command palette</li>
-<li>Type <code>calevpr</code> </li>
+<li>Type <code>calevpr</code></li>
 </ol>
 <p>VS Code will match <code>cal</code> to ”<strong>Cal</strong>va”, <code>ev</code> to ”<strong>Ev</strong>aluate”, and <code>pr</code> to ”<strong>pr</strong>etty” in ”<strong>pr</strong>etty print”. It looks like so:</p>
 <p><img src="https://user-images.githubusercontent.com/30010/59421711-5a0c1a00-8dcf-11e9-953d-64fe6c77598c.png" width=601px></p>
 <p>As you can see on the screenshot, VS Code will also reveal the keyboard shortcut for the command. My advice is to make it a habit to try to remember those shortcuts and use them for a more effective workflow.</p>
 <p>Now might be a good time to see <a href="../commands-top10/">Calva Top 10 Commands</a></p>
 <h2 id="all-the-settings-and-commands">All the Settings and Commands</h2>
-<p>Did you know? There is a complete list of Calva settings and commands in the <em>Contributions</em> tab of the Calva entry in the <em>Extensions</em> pane in VS Code. </p>
+<p>Did you know? There is a complete list of Calva settings and commands in the <em>Contributions</em> tab of the Calva entry in the <em>Extensions</em> pane in VS Code.</p>
 <p><img alt="The Calva Contributions Tab" src="https://user-images.githubusercontent.com/30010/66733740-c754b800-ee60-11e9-877b-962f6b920cd7.png" /></p>
+<h2 id="toggling-keyboard-shortcuts-onoff">Toggling Keyboard Shortcuts On/Off</h2>
+<p>The command <code>calva.toggleKeybindingsEnabled</code> can be used to quickly enable and disable (almost) all keyboard shortcuts. By default it is bound to <code>ctrl+alt+c ctrl+alt+k</code>, and this shortcut is the only one which will not be disabled. This allows you to quickly toggle between Calva keybindings and other keybindings which would otherwise not be available when Calva is enabled. This is particularly useful with the Paredit keyboard shortcuts, whose default shortcuts conflict with the default VS Code shortcuts for textual (non-structural) editing.</p>
                 
               
               

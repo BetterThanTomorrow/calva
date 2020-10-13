@@ -524,6 +524,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#my-breakpoint-in-a-test-isnt-being-hit" class="md-nav__link">
+    My breakpoint in a test isn't being hit
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -993,6 +1000,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#my-breakpoint-in-a-test-isnt-being-hit" class="md-nav__link">
+    My breakpoint in a test isn't being hit
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1126,6 +1140,10 @@
 
 
 <p>Another possible issue is that you're loading the file again after setting breakpoints, which unsets them. See <a href="#loading-the-file-and-eval-on-save">Loading the File and "Eval On Save"</a> under Caveats.</p>
+<h3 id="my-breakpoint-in-a-test-isnt-being-hit">My breakpoint in a test isn't being hit</h3>
+<p>If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.</p>
+<p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
+<p><img alt="Hitting a breakpoint in a test" src="../images/debugger/breakpoint-in-test.png" title="Hitting a breakpoint in a test" /></p>
                 
               
               
