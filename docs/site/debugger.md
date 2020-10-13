@@ -144,3 +144,11 @@ It's likely that your breakpoint is in a place that cider-nrepl does not see as 
 ```
 
 Another possible issue is that you're loading the file again after setting breakpoints, which unsets them. See [Loading the File and "Eval On Save"](#loading-the-file-and-eval-on-save) under Caveats.
+
+### My breakpoint in a test isn't being hit
+
+If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.
+
+If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.
+
+![Hitting a breakpoint in a test](images/debugger/breakpoint-in-test.png "Hitting a breakpoint in a test")
