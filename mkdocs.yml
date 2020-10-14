@@ -35,13 +35,14 @@ nav:
     - custom-commands.md
     - linting.md
   - customizing.md
-  - Using Calva with X:
+  - Using Calva with ...:
     - rebl.md
     - vim.md
     - wsl.md
     - remote-development.md
     - luminus.md
     - re-frame-template.md
+    - live-share.md
   - Etcetera:
     - workspace-layouts.md
     - quirks.md
