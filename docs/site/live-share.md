@@ -1,4 +1,4 @@
-# ... Live Share
+# Using Calva with Live Share
 
 One of the plugins that Microsoft offers for VSCode, is called [Live
 Share][liveshare]. Live Share is great for remote pair programming, for example.
@@ -14,9 +14,9 @@ keyboard shortcuts, etc.
 
 When using Calva, you can use Live Share as well. Editing works exactly the same
 as for any other programming language. What makes Calva a bit special, is the
-REPL. So from version 2.0.127 Calva allows the host to share the REPL with
-guests as well. If you use any of the supported configuration, this will be
-pretty much automatic.
+REPL. When using Live Share, Calva allows the host to share the REPL with guests
+as well. If you use any of the supported configuration, this will be pretty much
+automatic.
 
 This is what a typical scenario looks like:
 
@@ -45,8 +45,10 @@ form, the contents can be this:
 
 ```json
 {
-    "$schema": "http://json.schemastore.org/vsls",
-    "gitignore":"none"
+  "$schema": "http://json.schemastore.org/vsls",
+  "hideFiles": [
+    "!.calva"
+  ]
 }
 ```
 
@@ -60,7 +62,7 @@ visibility][visibility] of the Live Share documentation.
 * As a guest, you're connected to a REPL running on the host's machine. With
   power comes responsibility; **be nice, and be careful**!
 * There is only one `output.calva-repl` file, which all participants are
-  sharing. It may work better to **evaluate things from your source code files**
+  sharing. It may work better to **evaluate things in the source code editors**
   instead of from the REPL window. Otherwise you will end up in a situation
   where one person is typing something in the `output.calva-repl` window, and
   somebody else is evaluating something (hence sending the output there) at the
