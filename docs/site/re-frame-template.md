@@ -1,4 +1,4 @@
-# ... Re-Frame Template
+# How to Use Calva With the re-frame Template
 
 To make it easy to start the app created by the [re-frame template](https://github.com/day8/re-frame-template) use the `+calva` option when creating your project. In its plainest form that becomes:
 
