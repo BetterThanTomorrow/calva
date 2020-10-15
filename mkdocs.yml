@@ -40,6 +40,7 @@ nav:
     - vim.md
     - wsl.md
     - remote-development.md
+    - live-share.md
     - luminus.md
     - re-frame-template.md
   - Etcetera:
