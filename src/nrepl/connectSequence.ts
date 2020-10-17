@@ -223,7 +223,7 @@ async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabe
     const projectConnectSequenceName = await utilities.quickPickSingle({
         values: sequences.map(s => { return s.name }),
         placeHolder: "Please select a project type",
-        saveAs: `${state.getProjectRoot()}/${saveAs}`,
+        saveAs: `${state.getProjectRootUri().toString()}/${saveAs}`,
         autoSelect: true
     });
     if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
