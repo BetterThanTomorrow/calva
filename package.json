@@ -15,7 +15,7 @@
     },
     "license": "MIT",
     "engines": {
-        "vscode": "^1.30.0"
+        "vscode": "^1.45.0"
     },
     "categories": [
         "Programming Languages",
@@ -1721,13 +1721,14 @@
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
-        "vscode-extension-telemetry": "0.0.15"
+        "vscode-extension-telemetry": "0.0.15",
+        "vsls": "^1.0.2594"
     },
     "devDependencies": {
         "@types/chai": "^4.2.6",
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.7",
-        "@types/vscode": "^1.30.0",
+        "@types/vscode": "^1.45.0",
         "chai": "^4.2.0",
         "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",

@@ -33,11 +33,12 @@ export class NReplClient {
 
     ns: string = 'user';
 
-    private constructor(socket: net.Socket) {
+    private constructor(socket: net.Socket, onError: (e) => void) {
         this.socket = socket;
         this.socket.on("error", e => {
             console.error(e);
             state.connectionLogChannel().appendLine(e.message);
+            onError(e);
         })
         this.socket.on("close", e => {
             console.log("Socket closed")
@@ -82,13 +83,17 @@ export class NReplClient {
         for (let id in this.sessions) {
             this.sessions[id].close();
         }
+        this.disconnect();
+    }
+
+    disconnect() {
         this.socket.destroy();
     }
 
     /**
      * Create a new NRepl client
      */
-    static create(opts: { host: string, port: number }) {
+    static create(opts: { host: string, port: number, onError: (e) => void }) {
         return new Promise<NReplClient>((resolve, reject) => {
 
             let socket = net.createConnection(opts, () => {
@@ -121,7 +126,7 @@ export class NReplClient {
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
             });
-            let client = new NReplClient(socket);
+            let client = new NReplClient(socket, opts.onError);
         });
     }
 }
