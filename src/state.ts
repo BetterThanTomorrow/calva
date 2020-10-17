@@ -147,10 +147,17 @@ function getViewColumnFromString(value: string): vscode.ViewColumn {
 }
 
 const PROJECT_DIR_KEY = "connect.projectDir";
+const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
-export function getProjectRoot(useCache = true): string {
+export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
         return deref().get(PROJECT_DIR_KEY);
+    }
+}
+
+export function getProjectRootUri(useCache = true): vscode.Uri {
+    if (useCache) {
+        return deref().get(PROJECT_DIR_URI_KEY);
     }
 }
 
@@ -199,6 +206,8 @@ export async function initProjectDir(): Promise<void> {
     }
     let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
     cursor.set(PROJECT_DIR_KEY, rootPath);
+    cursor.set(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+
     let d = null;
     let prev = null;
     if (doc && path.dirname(doc.uri.fsPath) !== '.') {

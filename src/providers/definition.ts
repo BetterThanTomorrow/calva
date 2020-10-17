@@ -42,7 +42,10 @@ export class PathDefinitionProvider implements vscode.DefinitionProvider {
       if (!path.match(/^([a-z]+:|\/)/)) {
         return null;
         // Doesn't work yet...
-        // path = `file:${state.getProjectRoot()}/${path}`;
+        // path = `file:${state.getProjectRootLocal()}/${path}`;
+        // 2020-10-10: note that this should be done in a remote-compatible
+        //             (e.g. Live Share) manner, so use the Uri, don't assume
+        //             it's a local file.
       }
       const pos = new vscode.Position(line - 1, column ? column : 0);
       return new vscode.Location(vscode.Uri.parse(path, true), pos);

@@ -33,13 +33,12 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 
 
 const OUTPUT_FILE_DIR = () => {
-    const projectRoot = state.getProjectRoot();
-    return path.join(projectRoot, ".calva", "output-window");
+    const projectRoot = state.getProjectRootUri();
+    return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
 };
+
 const DOC_URI = () => {
-    const outputFileDirectory = OUTPUT_FILE_DIR();
-    const p = path.join(outputFileDirectory);
-    return vscode.Uri.file(path.join(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME));
+    return vscode.Uri.joinPath(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME);
 };
 
 let _sessionType: ReplSessionType = "clj";
@@ -103,11 +102,12 @@ export function setContextForOutputWindowActive(isActive: boolean): void {
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
-    const kondoPath = path.join(OUTPUT_FILE_DIR(), '.clj-kondo')
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(kondoPath));
-    await writeTextToFile(vscode.Uri.file(path.join(kondoPath, 'config.edn')), "^:replace {:linters {}}");
+    // await state.initProjectDir();
+    const kondoPath = vscode.Uri.joinPath(OUTPUT_FILE_DIR(), '.clj-kondo');
+    await vscode.workspace.fs.createDirectory(kondoPath);
+    await writeTextToFile(vscode.Uri.joinPath(kondoPath, 'config.edn'), "^:replace {:linters {}}");
 
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(OUTPUT_FILE_DIR()));
+    await vscode.workspace.fs.createDirectory(OUTPUT_FILE_DIR());
     let resultsDoc: vscode.TextDocument;
     try {
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
@@ -204,10 +204,10 @@ export interface OnAppendedCallback {
 const editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
-   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere 
+   we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
    are also applied, causing it to wait for several edits after the one awaited. This is due to the recursion and edit queue, which help
    apply edits one after another without issues.
-   
+
    If something must be done after a particular edit, use the onResultAppended callback. */
 export function append(text: string, onAppended?: OnAppendedCallback): void {
     let insertPosition: vscode.Position;
