@@ -1,13 +1,14 @@
 # Using Calva with Live Share
 
-One of the plugins that Microsoft offers for VSCode, is called [Live
-Share][liveshare]. Live Share is great for remote pair programming, for example.
-It basically allows you to share the workspace that you have open in your
+[Live Share][liveshare] is a Microsoft provided VS Code extension. 
+It allows you to share the workspace that you have open in your
 computer with somebody else. Everybody is then working on the same source code
 files, namely those on your computer. You can edit files at the same time,
 everyone has their own caret. You can follow each other (i.e. when someone
-switches to a different file, you will as well). And the nice thing is that each
-participant is using their own VSCode configuration, including fonts, colors,
+switches to a different file, you will as well). This is great for remote pair
+programming, for example.
+
+An extra nice thing is that each participant is using their own VSCode configuration, including fonts, colors,
 keyboard shortcuts, etc.
 
 ## Calva Supports Live Share
