@@ -15,11 +15,14 @@ export async function setupLiveShareListener() {
   if (liveShareListener !== null) { return; }
 
   liveShare = await vsls.getApi();
-  liveShareListener = liveShare.onDidChangeSession(async (e: vsls.SessionChangeEvent) => {
-    if (e.session.role === vsls.Role.Host) {
-      await shareReplServerIfPossible();
-    }
-  })
+
+  if (liveShare) {
+    liveShareListener = liveShare.onDidChangeSession(async (e: vsls.SessionChangeEvent) => {
+      if (e.session.role === vsls.Role.Host) {
+        await shareReplServerIfPossible();
+      }
+    });
+  }
 }
 
 export async function didJackIn() {
@@ -51,10 +54,12 @@ async function getLiveShare() {
 
 async function shareReplServerIfPossible() {
   const ls = await getLiveShare();
-  if (connectedPort !== null && ls.session && ls.session.role === vsls.Role.Host) {
-    sharedPorts.set(
-      connectedPort,
-      await ls.shareServer({ port: connectedPort, displayName: "nREPL server" }));
+  if (ls) {
+    if (connectedPort !== null && ls.session && ls.session.role === vsls.Role.Host) {
+      sharedPorts.set(
+        connectedPort,
+        await ls.shareServer({ port: connectedPort, displayName: "nREPL server" }));
+    }
   }
 }
 
