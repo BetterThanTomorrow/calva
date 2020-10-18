@@ -141,9 +141,14 @@ export function calvaJackout() {
 export async function calvaJackIn() {
     try {
         await state.initProjectDir();
-        await liveShareSupport.setupLiveShareListener();
-    } catch {
+    } catch (e) {
+        console.error("An error occurred while initializing project directory.", e);
         return;
+    }
+    try {
+        await liveShareSupport.setupLiveShareListener();
+    } catch (e) {
+        console.error("An error occurred while setting up Live Share listener.", e);
     }
     if (state.getProjectRootUri().scheme === "vsls") {
         outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
@@ -152,6 +157,7 @@ export async function calvaJackIn() {
     }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     await outputWindow.initResultsDoc();
+    outputWindow.append("; Jacking in...");
     const outputDocument = await outputWindow.openResultsDoc();
 
     const cljTypes: string[] = await projectTypes.detectProjectTypes();
@@ -164,8 +170,6 @@ export async function calvaJackIn() {
             return;
         }
         if (projectConnectSequence.projectType !== 'generic') {
-            outputWindow.append("; Jacking in...");
-
             const projectTypeName: string = projectConnectSequence.projectType;
             let selectedCljsType: CljsTypes;
 
