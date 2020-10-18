@@ -10,6 +10,7 @@ import * as namespace from '../namespace';
 import config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
+import { StackFrame } from 'vscode-debugadapter';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -245,7 +246,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
 
                 vscode.workspace.applyEdit(edit).then(success => {
                     applyingEdit = false;
-                    doc.save(); 
+                    doc.save();
 
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
@@ -281,20 +282,18 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
 
 export function saveStacktrace(stacktrace: any[]): void {
     _lastStacktrace = [];
-    stacktrace.forEach(frame => {
-        if (!frame.flags.includes('dup')) {
-            const type = frame.type;
-            const name = frame.var ? frame.var : frame.name;
-            const key: string = `${name}:${frame["line"]}:${type}`;
-            frame["print-this"] = key;
-            _lastStacktrace.push(frame);
-            const fileUrl = frame["file-url"];
-            if (fileUrl) {
-                _stacktraceEntries[key] = {
-                    uri: vscode.Uri.parse(fileUrl),
-                    line: frame.line
-                };
-            }
+    stacktrace.filter(frame => !frame.flags.includes('dup')).forEach(frame => {
+        const type = frame.type;
+        const name = frame.var ? frame.var : frame.name;
+        const key: string = `${name}:${frame["line"]}:${type}`;
+        frame["print-this"] = key;
+        _lastStacktrace.push(frame);
+        const fileUrl = frame["file-url"];
+        if (fileUrl) {
+            _stacktraceEntries[key] = {
+                uri: vscode.Uri.parse(fileUrl),
+                line: frame.line
+            };
         }
     });
 }
