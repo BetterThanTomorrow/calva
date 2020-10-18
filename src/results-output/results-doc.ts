@@ -10,7 +10,6 @@ import * as namespace from '../namespace';
 import config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
-import { StackFrame } from 'vscode-debugadapter';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -273,33 +272,38 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
 export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
 
 let _lastStacktrace: any[] = [];
-export let _stacktraceEntries = {} as OutputStacktraceEntry;
-
+const _stacktraceEntries = {} as OutputStacktraceEntry;
 
 export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
     return _stacktraceEntries[key];
 }
 
+function stackEntryString(entry: any): string {
+    const type = entry.type;
+    const name = entry.var || entry.name;
+    return `${name}:${entry.line}:${type}`;
+}
+
 export function saveStacktrace(stacktrace: any[]): void {
     _lastStacktrace = [];
-    stacktrace.filter(frame => !frame.flags.includes('dup')).forEach(frame => {
-        const type = frame.type;
-        const name = frame.var ? frame.var : frame.name;
-        const key: string = `${name}:${frame["line"]}:${type}`;
-        frame["print-this"] = key;
-        _lastStacktrace.push(frame);
-        const fileUrl = frame["file-url"];
+    stacktrace.filter(entry => {
+        return !entry.flags.includes('dup')
+            && !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(entry.class);
+    }).forEach(entry => {
+        entry.string = stackEntryString(entry);
+        _lastStacktrace.push(entry);
+        const fileUrl = entry['file-url'];
         if (fileUrl) {
-            _stacktraceEntries[key] = {
+            _stacktraceEntries[entry.string] = {
                 uri: vscode.Uri.parse(fileUrl),
-                line: frame.line
+                line: entry.line
             };
         }
     });
 }
 
 export function printLastStacktrace(): void {
-    const text = _lastStacktrace.map(frame => frame["print-this"]).join("\n");
+    const text = _lastStacktrace.map(entry => entry.string).join("\n");
     append(text);
 }
 
