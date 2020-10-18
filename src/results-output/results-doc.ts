@@ -281,18 +281,18 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
 
 export function saveStacktrace(stacktrace: any[]): void {
     _lastStacktrace = [];
-    stacktrace.forEach((entry) => {
-        if (!(entry.flags && entry.flags.dup)) {
-            const type = entry.type;
-            const name = entry.var ? entry.var : entry.name;
-            const key: string = `${name}:${entry["line"]}:${type}`;
-            entry["print-this"] = key;
-            _lastStacktrace.push(entry);
-            const fileUrl = entry["file-url"];
+    stacktrace.forEach(frame => {
+        if (!frame.flags.includes('dup')) {
+            const type = frame.type;
+            const name = frame.var ? frame.var : frame.name;
+            const key: string = `${name}:${frame["line"]}:${type}`;
+            frame["print-this"] = key;
+            _lastStacktrace.push(frame);
+            const fileUrl = frame["file-url"];
             if (fileUrl) {
                 _stacktraceEntries[key] = {
                     uri: vscode.Uri.parse(fileUrl),
-                    line: entry.line
+                    line: frame.line
                 };
             }
         }
@@ -300,7 +300,7 @@ export function saveStacktrace(stacktrace: any[]): void {
 }
 
 export function printLastStacktrace(): void {
-    const text = _lastStacktrace.map(entry => entry["print-this"]).join("\n");
+    const text = _lastStacktrace.map(frame => frame["print-this"]).join("\n");
     append(text);
 }
 
