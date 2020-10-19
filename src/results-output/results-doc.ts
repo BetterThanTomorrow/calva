@@ -25,12 +25,11 @@ export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
 ;   - `ctrl+enter` evaluates the current form.\n\
 ;   - `alt+up` and `alt+down` traverse up and down the REPL command history\n\
 ;      when the cursor is after the last contents at the prompt\n\
-;   - File URLs in stacktrace frames are peekable and clickable.';
+;   - Clojure lines in stack traces are peekable and clickable.';
 
 export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
-
 
 const OUTPUT_FILE_DIR = () => {
     const projectRoot = state.getProjectRootUri();
@@ -284,22 +283,32 @@ function stackEntryString(entry: any): string {
     return `${name}:${entry.line}:${type}`;
 }
 
-export function saveStacktrace(stacktrace: any[]): void {
+export async function saveStacktrace(stacktrace: any[]): Promise<void> {
+    const session = namespace.getSession();
     _lastStacktrace = [];
-    stacktrace.filter(entry => {
+    const filteredEntries = stacktrace.filter(entry => {
         return !entry.flags.includes('dup')
             && !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(entry.class);
-    }).forEach(entry => {
+    });
+    let entry: any;
+    // Using a for loop here instead of forEach in order to keep the awaited call to session.nsPath
+    // at the top level context of this function, so execution does not return to the caller until
+    // after all logic here is complete, provided the caller used await when calling saveStackTrace
+    for (let i = 0; i < filteredEntries.length; i++) {
+        entry = filteredEntries[i];
         entry.string = stackEntryString(entry);
         _lastStacktrace.push(entry);
-        const fileUrl = entry['file-url'];
+        let fileUrl = entry['file-url'];
+        if (entry.file === 'NO_SOURCE_FILE') {
+            fileUrl = (await session.nsPath(entry.ns)).path;
+        }
         if (typeof fileUrl === 'string') {
             _stacktraceEntries[entry.string] = {
                 uri: vscode.Uri.parse(fileUrl),
                 line: entry.line
             };
         }
-    });
+    }
 }
 
 export function printLastStacktrace(): void {
