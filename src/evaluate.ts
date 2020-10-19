@@ -97,7 +97,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             if (err.length > 0) {
                 outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
                 if (context.stacktrace) {
-                    await outputWindow.saveStacktrace(context.stacktrace);
+                    outputWindow.saveStacktrace(context.stacktrace);
                     outputWindow.printLastStacktrace();
                 }
             }
@@ -118,7 +118,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                 }
             });
             if (context.stacktrace && context.stacktrace.stacktrace) {
-                await outputWindow.saveStacktrace(context.stacktrace.stacktrace);
+                outputWindow.saveStacktrace(context.stacktrace.stacktrace);
                 outputWindow.printLastStacktrace();
             }
         }
@@ -241,7 +241,7 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
         } catch (e) {
             outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
-                await outputWindow.saveStacktrace(res.stacktrace);
+                outputWindow.saveStacktrace(res.stacktrace);
                 outputWindow.printLastStacktrace();
             }
         }
