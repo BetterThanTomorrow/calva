@@ -293,7 +293,7 @@ export function saveStacktrace(stacktrace: any[]): void {
         entry.string = stackEntryString(entry);
         _lastStacktrace.push(entry);
         const fileUrl = entry['file-url'];
-        if (fileUrl) {
+        if (typeof fileUrl === 'string') {
             _stacktraceEntries[entry.string] = {
                 uri: vscode.Uri.parse(fileUrl),
                 line: entry.line
