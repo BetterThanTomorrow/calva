@@ -280,7 +280,7 @@ export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
 function stackEntryString(entry: any): string {
     const type = entry.type;
     const name = entry.var || entry.name;
-    return `${name}:${entry.line}:${type}`;
+    return `${name} (${entry.file}:${entry.line})`;
 }
 
 export async function saveStacktrace(stacktrace: any[]): Promise<void> {

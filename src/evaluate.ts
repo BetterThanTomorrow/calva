@@ -120,15 +120,6 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             if (context.stacktrace && context.stacktrace.stacktrace) {
                 await outputWindow.saveStacktrace(context.stacktrace.stacktrace);
                 outputWindow.printLastStacktrace();
-                const errorLines = [];
-                const evaluation = session.eval(`(clojure.repl/pst)`, ns, {
-                    stderr: e => {
-                        errorLines.push(e);
-                    },
-                    pprintOptions
-                });
-                await evaluation.value;
-                outputWindow.append(normalizeNewLinesAndJoin(errorLines));
             }
         }
         outputWindow.setSession(session, context.ns || ns);
