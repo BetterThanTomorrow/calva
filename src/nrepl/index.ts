@@ -258,7 +258,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "stacktrace", id, session: this.sessionId })
+            this.client.write({ op: "stacktrace", id, session: this.sessionId });
         })
     }
 

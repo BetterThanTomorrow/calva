@@ -3,6 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import annotations from './annotations';
 import * as namespace from '../namespace';
+import * as outputWindow from '../results-output/results-doc';
 
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
@@ -27,27 +28,18 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   }
 }
 
-export class PathDefinitionProvider implements vscode.DefinitionProvider {
+export class StackTraceDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
   constructor() {
     this.state = state;
   }
 
-  async provideDefinition(document, position, token) {
-    const text = util.getWordAtPosition(document, position);
-    const pattern = new RegExp(/(.*\.[a-z]+):(\d+)(?::(\d)+)?$/);
-    if (text.match(pattern)) {
-      let [_, path, line, column] = text.match(pattern);
-      if (!path.match(/^([a-z]+:|\/)/)) {
-        return null;
-        // Doesn't work yet...
-        // path = `file:${state.getProjectRootLocal()}/${path}`;
-        // 2020-10-10: note that this should be done in a remote-compatible
-        //             (e.g. Live Share) manner, so use the Uri, don't assume
-        //             it's a local file.
-      }
-      const pos = new vscode.Position(line - 1, column ? column : 0);
-      return new vscode.Location(vscode.Uri.parse(path, true), pos);
+  async provideDefinition(document: vscode.TextDocument, position: vscode.Position, _token) {
+    const text = document.getText(new vscode.Range(position.with(position.line, 0), position.with(position.line, Infinity)));
+    const entry = outputWindow.getStacktraceEntryForKey(text);
+    if (entry) {
+      const pos = new vscode.Position(entry.line - 1, 0);
+      return new vscode.Location(entry.uri, pos);
     }
   }
 }

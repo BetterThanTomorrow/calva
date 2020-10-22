@@ -68,9 +68,9 @@ In the demo gif we utilize two things about this peek widget:
 1. It stays open until you close it. So you can keep evaluating different versions of your form and see the results get printed.
 2. The widget displays a ”full” Calva editor, so you can use Paredit to conveniently select forms.
 
-## Stacktraces
+## Stack Traces
 
-When an evaluation produces an error, the output window will automatically print the stacktrace (when available). It will be printed as an EDN structure. And when source locations are available you will be able to navigate to them by `command+click` (Mac) or `ctrl+click` (Windows and Linux).
+When an evaluation produces an error, the output window will automatically print the stack trace (when available). And when source locations are available you will be able to navigate to them by pressing `command+click` (Mac) or `ctrl+click` (Windows and Linux) on the file name.
 
 ## Find the Output/REPL Window
 

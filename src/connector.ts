@@ -59,9 +59,11 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         outputWindow.setSession(cljSession, nClient.ns);
 
         if (connectSequence.afterCLJReplJackInCode) {
-            outputWindow.append(`; Evaluating 'afterCLJReplJackInCode'`);
+            outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
             await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
         }
+
+        outputWindow.appendPrompt();
 
         let cljsSession = null,
             cljsBuild = null;
@@ -403,8 +405,6 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
 }
 
 async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSequence) {
-    let current = state.deref();
-
     let url = await vscode.window.showInputBox({
         placeHolder: "Enter existing nREPL hostname:port here...",
         prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
@@ -471,13 +471,13 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
 
 async function standaloneConnect(connectSequence: ReplConnectSequence) {
     await outputWindow.initResultsDoc();
-    const outputDocument = await outputWindow.openResultsDoc();
+    await outputWindow.openResultsDoc();
 
     if (connectSequence) {
         const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
         outputWindow.append(`; Connecting ...`);
         state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
-        connect(connectSequence, false).catch(() => { });
+        await connect(connectSequence, false).catch(() => { });
     }
     else {
         outputWindow.append("; Aborting connect, error determining connect sequence.");
@@ -544,6 +544,7 @@ export default {
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
                 outputWindow.setSession(newSession, undefined);
                 namespace.updateREPLSessionType();
+                outputWindow.appendPrompt();
             }
             status.update();
         }
