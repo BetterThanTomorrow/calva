@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.129] - 2020-10-17
 - [Improve stack trace output](https://github.com/BetterThanTomorrow/calva/pull/806)
 - Fix: [Jack-in is broken for multi-project workspaces](https://github.com/BetterThanTomorrow/calva/issues/821)
 
