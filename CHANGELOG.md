@@ -4,9 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Improve stack trace output](https://github.com/BetterThanTomorrow/calva/pull/806)
+- Fix: [Jack-in is broken for multi-project workspaces](https://github.com/BetterThanTomorrow/calva/issues/821)
 
 ## [2.0.128] - 2020-10-17
-- Fix: [Jack-in is broken](https://github.com/BetterThanTomorrow/calva/issues/821)
+- Fix: [Jack-in is broken if live share extension is not installed](https://github.com/BetterThanTomorrow/calva/issues/821)
 
 ## [2.0.127] - 2020-10-17
 - [Live Share Support](https://github.com/BetterThanTomorrow/calva/issues/803)
