@@ -70,7 +70,9 @@ In the demo gif we utilize two things about this peek widget:
 
 ## Stack Traces
 
-When an evaluation produces an error, the output window will automatically print the stack trace (when available). And when source locations are available you will be able to navigate to them by pressing `command+click` (Mac) or `ctrl+click` (Windows and Linux) on the file name.
+When an evaluation produces an error, the output window will automatically print the stack trace (when available). And when source locations are available (Clojure files) you will be able to navigate to them by pressing `ctrl+click` (`cmd+click` on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and `ctrl+click` (`cmd+click` on Mac) the symbol to Peek Definition.
+
+![Stack trace clicking and peeking definition](images/howto/output/stack-traces.gif "Stack trace clicking and peeking definition")
 
 ## Find the Output/REPL Window
 
