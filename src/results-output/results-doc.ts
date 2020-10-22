@@ -25,12 +25,11 @@ export const CLJ_CONNECT_GREETINGS = '; TIPS: \n\
 ;   - `ctrl+enter` evaluates the current form.\n\
 ;   - `alt+up` and `alt+down` traverse up and down the REPL command history\n\
 ;      when the cursor is after the last contents at the prompt\n\
-;   - File URLs in stacktrace frames are peekable and clickable.';
+;   - Clojure lines in stack traces are peekable and clickable.';
 
 export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use (clj or cljs):\n\
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
-
 
 const OUTPUT_FILE_DIR = () => {
     const projectRoot = state.getProjectRootUri();
@@ -46,10 +45,9 @@ let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
     clj: {},
     cljs: {}
 };
-let _prompt: string;
 
 export function getPrompt(): string {
-    return _prompt;
+    return `${_sessionType}::${getNs()}=> `;
 }
 
 export function getNs(): string {
@@ -64,7 +62,7 @@ export function getSession(): NReplSession {
     return _sessionInfo[_sessionType].session;
 }
 
-export function setSession(session: NReplSession, newNs: string, onPromptAdded: OnAppendedCallback = null): void {
+export function setSession(session: NReplSession, newNs: string): void {
     if (session) {
         if (session.replType) {
             _sessionType = session.replType;
@@ -74,8 +72,6 @@ export function setSession(session: NReplSession, newNs: string, onPromptAdded: 
     if (newNs) {
         _sessionInfo[_sessionType].ns = newNs;
     }
-    _prompt = `${_sessionType}::${getNs()}=> `;
-    append(_prompt, onPromptAdded);
 }
 
 export function isResultsDoc(doc: vscode.TextDocument): boolean {
@@ -100,7 +96,7 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
-function setContextForOutputWindowActive(isActive: boolean): void {
+export function setContextForOutputWindowActive(isActive: boolean): void {
     vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
 }
 
@@ -122,7 +118,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     const edit = new vscode.WorkspaceEdit();
     const fullRange = new vscode.Range(resultsDoc.positionAt(0), resultsDoc.positionAt(Infinity));
     edit.replace(DOC_URI(), fullRange, greetings);
-    const success = await vscode.workspace.applyEdit(edit);
+    await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
     const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
@@ -165,10 +161,9 @@ export async function setNamespaceFromCurrentFile() {
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
-    setSession(session, ns, _ => {
-        revealResultsDoc(false);
-        namespace.updateREPLSessionType();
-    });
+    setSession(session, ns);
+    appendPrompt(_ => revealResultsDoc(false));
+    namespace.updateREPLSessionType();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
@@ -188,12 +183,8 @@ async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
         if (getNs() !== ns) {
             await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
         }
-        setSession(session, ns, _ => {
-            namespace.updateREPLSessionType();
-            append(code, _ => {
-                revealResultsDoc(false);
-            });
-        });
+        setSession(session, ns);
+        append(code, _ => revealResultsDoc(false));
     }
 }
 
@@ -206,7 +197,7 @@ export function appendCurrentTopLevelForm() {
 }
 
 let scrollToBottomSub: vscode.Disposable;
-interface OnAppendedCallback {
+export interface OnAppendedCallback {
     (insertLocation: vscode.Location): any
 }
 const editQueue: [string, OnAppendedCallback][] = [];
@@ -277,28 +268,44 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
     };
 }
 
-function makePrintableStackTrace(stacktrace: any[]): string {
-    const lines = stacktrace.map(x => {
-        const file = x["file-url"] && x["file-url"].length ? `:file "${x["file-url"]}:${x.line}"` : `:file "${x.file}" :line ${x.line}`;
-        const fn = x.fn ? ` :fn "${x.fn}" ` : '';
-        const method = x.method ? ` :method "${x.method}" ` : '';
-        return `{${file}${fn}${method}:flags [${x.flags.map((f: string) => `:${f}`).join(' ')}]}`;
-    });
-    return `[${lines.join('\n ')}]`;
+export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
+
+let _lastStacktrace: any[] = [];
+const _stacktraceEntries = {} as OutputStacktraceEntry;
+
+export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
+    return _stacktraceEntries[key];
 }
 
-function printStacktrace(stacktrace: any[]): void {
-    const text = makePrintableStackTrace(stacktrace);
+function stackEntryString(entry: any): string {
+    const type = entry.type;
+    const name = entry.var || entry.name;
+    return `${name} (${entry.file}:${entry.line})`;
+}
+
+export async function saveStacktrace(stacktrace: any[]): Promise<void> {
+    _lastStacktrace = [];
+    stacktrace.filter(entry => {
+        return !entry.flags.includes('dup')
+            && !['clojure.lang.RestFn', 'clojure.lang.AFn'].includes(entry.class);
+    }).forEach(entry => {
+        entry.string = stackEntryString(entry);
+        _lastStacktrace.push(entry);
+        const fileUrl = entry['file-url'];
+        if (typeof fileUrl === 'string') {
+            _stacktraceEntries[entry.string] = {
+                uri: vscode.Uri.parse(fileUrl),
+                line: entry.line
+            };
+        }
+    });
+}
+
+export function printLastStacktrace(): void {
+    const text = _lastStacktrace.map(entry => entry.string).join("\n");
     append(text);
 }
 
-function appendPrompt(onAppended?: OnAppendedCallback) {
-    append(_prompt, onAppended);
+export function appendPrompt(onAppended?: OnAppendedCallback) {
+    append(getPrompt(), onAppended);
 }
-
-export {
-    OnAppendedCallback,
-    appendPrompt,
-    setContextForOutputWindowActive,
-    printStacktrace
-};

@@ -133,7 +133,7 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
     return nss;
 }
 
-function runNamespaceTests(document = {}) {
+async function runNamespaceTests(document = {}) {
     const doc = util.getDocument(document);
     if (outputWindow.isResultsDoc(doc)) {
         return;
@@ -145,18 +145,18 @@ function runNamespaceTests(document = {}) {
     const session = namespace.getSession(util.getFileType(document));
     const ns = namespace.getNamespace(doc);
     let nss = [ns];
-    evaluate.loadFile({}, async () => {
-        outputWindow.append(`; Running tests for ${ns}...`);
-        nss = await considerTestNS(ns, session, nss);
-        const resultPromises = [session.testNs(nss[0])];
-        if (nss.length > 1) {
-            resultPromises.push(session.testNs(nss[1]));
-        }
-        const results = await Promise.all(resultPromises);
-        reportTests(results, "Running tests");
-        outputWindow.setSession(session, ns);
-        namespace.updateREPLSessionType();
-    }, disabledPrettyPrinter).catch(() => { });
+    await evaluate.loadFile({}, disabledPrettyPrinter);
+    outputWindow.append(`; Running tests for ${ns}...`);
+    nss = await considerTestNS(ns, session, nss);
+    const resultPromises = [session.testNs(nss[0])];
+    if (nss.length > 1) {
+        resultPromises.push(session.testNs(nss[1]));
+    }
+    const results = await Promise.all(resultPromises);
+    reportTests(results, "Running tests");
+    outputWindow.setSession(session, ns);
+    namespace.updateREPLSessionType();
+    outputWindow.appendPrompt();
 }
 
 async function runTestUnderCursor() {
@@ -166,16 +166,14 @@ async function runTestUnderCursor() {
     const test = util.getTestUnderCursor();
 
     if (test) {
-        evaluate.loadFile(doc, async () => {
-            outputWindow.append(`; Running test: ${test}…`);
-            const results = [await session.test(ns, test)];
-            reportTests(results, `Running test: ${test}`);
-            outputWindow.appendPrompt();
-        }, disabledPrettyPrinter).catch(() => { });
+        await evaluate.loadFile(doc, disabledPrettyPrinter);
+        outputWindow.append(`; Running test: ${test}…`);
+        const results = [await session.test(ns, test)];
+        reportTests(results, `Running test: ${test}`);
     } else {
         outputWindow.append('; No test found at cursor');
-        outputWindow.appendPrompt();
     }
+    outputWindow.appendPrompt();
 }
 
 function runTestUnderCursorCommand() {
@@ -194,13 +192,12 @@ function runNamespaceTestsCommand() {
     runNamespaceTests();
 }
 
-function rerunTests(document = {}) {
+async function rerunTests(document = {}) {
     let session = namespace.getSession(util.getFileType(document))
-    evaluate.loadFile({}, async () => {
-        outputWindow.append("; Running previously failed tests…");
-        reportTests([await session.retest()], "Retesting");
-        outputWindow.appendPrompt();
-    }, disabledPrettyPrinter).catch(() => { });
+    await evaluate.loadFile({}, disabledPrettyPrinter);
+    outputWindow.append("; Running previously failed tests…");
+    reportTests([await session.retest()], "Retesting");
+    outputWindow.appendPrompt();
 }
 
 function rerunTestsCommand() {

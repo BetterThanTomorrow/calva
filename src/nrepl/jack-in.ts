@@ -95,7 +95,8 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
                     utilities.setLaunchingState(null);
                     watcher.removeAllListeners();
                     await connector.connect(connectSequence, true);
-                    outputWindow.append("; Jack-in done.");
+                    outputWindow.append("\n; Jack-in done.");
+                    outputWindow.appendPrompt();
                 }
             });
         } catch(exception) {

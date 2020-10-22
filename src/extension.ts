@@ -27,7 +27,7 @@ import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 
-function onDidSave(document) {
+async function onDidSave(document) {
     let {
         evaluate,
         test,
@@ -42,7 +42,8 @@ function onDidSave(document) {
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => { });
+            await eval.loadFile(document, state.config().prettyPrintingOptions);
+            outputWindow.appendPrompt();
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
     }
@@ -131,8 +132,9 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        eval.loadFile({}, undefined, state.config().prettyPrintingOptions);
+    context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', async () => {
+        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
@@ -152,8 +154,10 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', eval.evaluateCustomCommandSnippetCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', async () => {
+        await eval.evaluateCustomCommandSnippetCommand();
+        outputWindow.appendPrompt();
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setOutputWindowNamespace', outputWindow.setNamespaceFromCurrentFile));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentFormToOutputWindow', outputWindow.appendCurrentForm));
@@ -182,7 +186,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.PathDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.StackTraceDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
