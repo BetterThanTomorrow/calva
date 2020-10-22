@@ -461,12 +461,14 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-    const rootUri = state.getProjectRootUri(),
-        cljProjTypes = ['generic'];
+    const rootUri = state.getProjectRootUri();
+    const cljProjTypes = ['generic'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
-                await vscode.workspace.fs.readFile(vscode.Uri.joinPath(rootUri, projectTypes[clj].useWhenExists));
+                const projectFileName = projectTypes[clj].useWhenExists;
+                const uri = vscode.Uri.joinPath(rootUri, projectFileName);
+                await vscode.workspace.fs.readFile(uri);
                 cljProjTypes.push(clj);
             } catch (_e) { }
         }

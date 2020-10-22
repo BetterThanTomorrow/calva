@@ -215,7 +215,7 @@ export async function initProjectDir(): Promise<void> {
     } else {
         d = workspaceFolder.uri.fsPath;
     }
-    while (d != prev) {
+    while (d !== prev) {
         for (let projectFile in projectFileNames) {
             const p = path.resolve(d, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
@@ -223,7 +223,7 @@ export async function initProjectDir(): Promise<void> {
                 break;
             }
         }
-        if (d == rootPath) {
+        if (d === rootPath) {
             break;
         }
         prev = d;
@@ -236,6 +236,7 @@ export async function initProjectDir(): Promise<void> {
         const p = path.resolve(rootPath, projectFileNames[projectFile]);
         if (fs.existsSync(p)) {
             cursor.set(PROJECT_DIR_KEY, rootPath);
+            cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.parse(rootPath));
             return;
         }
     }
