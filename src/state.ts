@@ -236,7 +236,7 @@ export async function initProjectDir(): Promise<void> {
         const p = path.resolve(rootPath, projectFileNames[projectFile]);
         if (fs.existsSync(p)) {
             cursor.set(PROJECT_DIR_KEY, rootPath);
-            cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.parse(rootPath));
+            cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
             return;
         }
     }
