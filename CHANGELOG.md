@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.130] - 2020-10-25
 - Fix: [Jack-in broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/827)
 
 ## [2.0.129] - 2020-10-17
