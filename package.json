@@ -1718,6 +1718,7 @@
         "net": "1.0.2",
         "npm": "^6.14.6",
         "open": "^6.3.0",
+        "ovsx": "0.1.0-next.e000fdb",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
