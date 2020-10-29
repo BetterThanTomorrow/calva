@@ -1,0 +1,51 @@
+site_name: Calva User Guide
+docs_dir: docs/site
+theme:
+  name: material
+  custom_dir: docs/site/theming
+  favicon: img/favicon.ico
+  logo: img/calva-symbol-white.svg
+extra_css:
+  - stylesheets/extra.css
+site_url: https://calva.io
+site_description: Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.
+repo_name: Calva
+repo_url: https://github.com/BetterThanTomorrow/calva
+edit_uri: edit/master/docs/site
+strict: true
+markdown_extensions:
+  - admonition
+  - codehilite
+nav:
+  - index.md
+  - Getting Started:
+    - connect.md
+    - try-first.md
+    - finding-commands.md
+    - eval-tips.md
+  - Features:
+    - commands-top10.md
+    - output.md
+    - formatting.md
+    - paredit.md
+    - debugger.md
+    - pprint.md
+    - test-runner.md
+    - connect-sequences.md
+    - custom-commands.md
+    - linting.md
+  - customizing.md
+  - Using Calva with X:
+    - rebl.md
+    - vim.md
+    - wsl.md
+    - remote-development.md
+    - live-share.md
+    - luminus.md
+    - re-frame-template.md
+  - Etcetera:
+    - workspace-layouts.md
+    - quirks.md
+  - In Depth:
+    - jack-in-guide.md
+  - sponsors.md

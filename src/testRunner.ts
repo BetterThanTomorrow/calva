@@ -1,16 +1,18 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from './state';
 import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
+import * as outputWindow from './results-output/results-doc';
+import { NReplSession } from './nrepl';
+import * as namespace from './namespace';
+import { removeFileSchemeFromUri } from './util/string';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
 function reportTests(results, errorStr, log = true) {
-    let chan = state.outputChannel(),
-        diagnostics = {},
-        total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
+    let diagnostics = {};
+    let total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
     diagnosticCollection.clear();
     if (results.err || results.ex) {
         util.logError({
@@ -23,24 +25,41 @@ function reportTests(results, errorStr, log = true) {
                 let resultSet = result.results[ns];
                 for (const test in resultSet) {
                     for (const a of resultSet[test]) {
-                        const resultMessage = (resultItem) => {
-                          let msg = [];
-                          if(!_.isEmpty(resultItem.context) && resultItem.context !== "false")
-                            msg.push(resultItem.context);
-                          if(resultItem.message)
-                            msg.push(resultItem.message);
-                          return `${msg.join(": ")}${(msg.length > 0 ? "\n" : "")}`;
+                        for (const prop in a) {
+                            if (typeof (a[prop]) === 'string') {
+                                a[prop] = a[prop].replace(/\r?\n$/, "");
+                            }
                         }
-                        if (a.type == "error" && log)
-                          chan.appendLine(`ERROR in ${ns}/${test} (line ${a.line}):\n${resultMessage(a)}   error: ${a.error} (${a.file})\nexpected: ${a.expected}`);
-                        if (a.type == "fail") {
+                        const resultMessage = (resultItem) => {
+                            let msg = [];
+                            if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+                                msg.push(resultItem.context);
+                            if (resultItem.message)
+                                msg.push(resultItem.message);
+                            return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
+                        }
+                        if (a.type === "error" && log) {
+                            const rMsg = resultMessage(a);
+                            outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
+                            if (rMsg !== '') {
+                                outputWindow.append(`; ${resultMessage(a)}`);
+                            }
+                            outputWindow.append(`; error: ${a.error} (${a.file})\n; expected:\n${a.expected}`);
+                        }
+                        if (a.type === "fail") {
+                            const rMsg = resultMessage(a);
                             let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                                 err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
                             if (!diagnostics[a.file])
                                 diagnostics[a.file] = [];
                             diagnostics[a.file].push(err);
-                            if (log)
-                              chan.appendLine(`FAIL in ${ns}/${test} (${a.file}:${a.line}):\n${resultMessage(a)}expected: ${a.expected}  actual: ${a.actual}`);
+                            if (log) {
+                                outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
+                                if (rMsg !== '') {
+                                    outputWindow.append(`; ${resultMessage(a)}`);
+                                }
+                                outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
+                            }
                         }
                     }
                 }
@@ -55,7 +74,7 @@ function reportTests(results, errorStr, log = true) {
         if (total_summary !== null) {
             let hasProblems = total_summary.error + total_summary.fail > 0;
             if (log) {
-                chan.appendLine("\n" + (total_summary.test > 0 ?
+                outputWindow.append("; " + (total_summary.test > 0 ?
                     total_summary.test + " tests finished, " +
                     (!hasProblems ? "all passing 👍" :
                         "problems found. 😭" +
@@ -84,23 +103,29 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    let client = util.getSession(util.getFileType(document));
-    state.outputChannel().appendLine("Running all project tests…");
-    reportTests([await client.testAll()], "Running all tests");
+    const session = namespace.getSession(util.getFileType(document));
+    outputWindow.append("; Running all project tests…");
+    reportTests([await session.testAll()], "Running all tests");
+    namespace.updateREPLSessionType();
+    outputWindow.appendPrompt();
 }
 
 function runAllTestsCommand() {
-    state.outputChannel().show(true);
-    runAllTests().catch(() => {});
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    runAllTests().catch(() => { });
 }
 
-async function considerTestNS(ns: string, client: any, nss: string[]): Promise<string[]> {
+async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
     if (!ns.endsWith('-test')) {
-        let testNS = ns + '-test',
-            testFilePath = await client.nsPath(testNS).path;
-        if (`${testFilePath}` != "") {
-            let loadForms = `(load-file "${testFilePath}")`;
-            await client.eval(loadForms);
+        const testNS = ns + '-test';
+        const testFilePath = (await session.nsPath(testNS)).path;
+        if (testFilePath && testFilePath !== "") {
+            const filePath = removeFileSchemeFromUri(testFilePath);
+            let loadForms = `(load-file "${filePath}")`;
+            await session.eval(loadForms, testNS).value;
         }
         nss.push(testNS);
         return nss;
@@ -108,63 +133,84 @@ async function considerTestNS(ns: string, client: any, nss: string[]): Promise<s
     return nss;
 }
 
-function runNamespaceTests(document = {}) {
-    let client = util.getSession(util.getFileType(document)),
-        doc = util.getDocument(document),
-        ns = util.getNamespace(doc),
-        nss = [ns];
-
-    evaluate.loadFile({}, async () => {
-        state.outputChannel().appendLine("Running namespace tests…");
-        nss = await considerTestNS(ns, client, nss);
-        let resultPromises = [client.testNs(nss[0])];
-        if (nss.length > 1)
-            resultPromises.push(client.testNs(nss[1]));
-        let results = await Promise.all(resultPromises);
-        reportTests(results, "Running tests");
-    }, disabledPrettyPrinter).catch(() => {});
+async function runNamespaceTests(document = {}) {
+    const doc = util.getDocument(document);
+    if (outputWindow.isResultsDoc(doc)) {
+        return;
+    }
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    const session = namespace.getSession(util.getFileType(document));
+    const ns = namespace.getNamespace(doc);
+    let nss = [ns];
+    await evaluate.loadFile({}, disabledPrettyPrinter);
+    outputWindow.append(`; Running tests for ${ns}...`);
+    nss = await considerTestNS(ns, session, nss);
+    const resultPromises = [session.testNs(nss[0])];
+    if (nss.length > 1) {
+        resultPromises.push(session.testNs(nss[1]));
+    }
+    const results = await Promise.all(resultPromises);
+    reportTests(results, "Running tests");
+    outputWindow.setSession(session, ns);
+    namespace.updateREPLSessionType();
+    outputWindow.appendPrompt();
 }
 
 async function runTestUnderCursor() {
-    const doc = util.getDocument({}),
-        client = util.getSession(util.getFileType(doc)),
-        ns = util.getNamespace(doc),
-        test = util.getTestUnderCursor();
+    const doc = util.getDocument({});
+    const session = namespace.getSession(util.getFileType(doc));
+    const ns = namespace.getNamespace(doc);
+    const test = util.getTestUnderCursor();
 
-    evaluate.loadFile(doc, async () => {
-        state.outputChannel().appendLine(`Running test: ${test}…`);
-        const results = [await client.test(ns, [test])];
+    if (test) {
+        await evaluate.loadFile(doc, disabledPrettyPrinter);
+        outputWindow.append(`; Running test: ${test}…`);
+        const results = [await session.test(ns, test)];
         reportTests(results, `Running test: ${test}`);
-    }, disabledPrettyPrinter).catch(() => {});
+    } else {
+        outputWindow.append('; No test found at cursor');
+    }
+    outputWindow.appendPrompt();
 }
 
 function runTestUnderCursorCommand() {
-    state.outputChannel().show(true);
-    runTestUnderCursor().catch(() => {});
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
+    runTestUnderCursor().catch(() => { });
 }
 
 function runNamespaceTestsCommand() {
-    state.outputChannel().show(true);
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     runNamespaceTests();
 }
 
-function rerunTests(document = {}) {
-    let client = util.getSession(util.getFileType(document))
-    evaluate.loadFile({}, async () => {
-        state.outputChannel().appendLine("Running previously failed tests…");
-        reportTests([await client.retest()], "Retesting");
-    }, disabledPrettyPrinter).catch(() => {});
+async function rerunTests(document = {}) {
+    let session = namespace.getSession(util.getFileType(document))
+    await evaluate.loadFile({}, disabledPrettyPrinter);
+    outputWindow.append("; Running previously failed tests…");
+    reportTests([await session.retest()], "Retesting");
+    outputWindow.appendPrompt();
 }
 
 function rerunTestsCommand() {
-    state.outputChannel().show(true);
+    if (!util.getConnectedState()) {
+        vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
+        return;
+    }
     rerunTests();
 }
 
 export default {
     runNamespaceTests,
     runNamespaceTestsCommand,
-    runAllTests,
     runAllTestsCommand,
     rerunTestsCommand,
     runTestUnderCursorCommand

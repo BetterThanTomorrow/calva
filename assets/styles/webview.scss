@@ -159,7 +159,7 @@ input[class*="userinput"]:focus {
 }
 
 .documentation .name {
-  color: var(--vscode-list-highlightForeground);
+  color: var(--vscode-editorSuggestWidget-highlightForeground);
 }
 
 .documentation .arglist {
@@ -180,11 +180,11 @@ input[class*="userinput"]:focus {
 }
 
 .completion > .active {
-  background-color: var(--vscode-list-activeSelectionBackground);
+  background-color: var(--vscode-editorSuggestWidget-selectedBackground);
 }
 
 .completion .completed {
-  color: var(--vscode-list-highlightForeground);
+  color: var(--vscode-editorSuggestWidget-highlightForeground);
 }
 
 .completion .icon {

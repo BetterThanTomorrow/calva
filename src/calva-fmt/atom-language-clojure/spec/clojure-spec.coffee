@@ -84,9 +84,42 @@ describe "Clojure grammar", ->
       for bool in bools
         {tokens} = grammar.tokenizeLine bool
         expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine " " + bool
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine bool + " "
+        expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine "," + bool
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine bool + ","
+        expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+        {tokens} = grammar.tokenizeLine "(not " + bool + ")"
+        expect(tokens[3]).toEqual value: bool, scopes: ["source.clojure", "meta.expression.clojure", scope]
+        {tokens} = grammar.tokenizeLine "[" + bool + "]"
+        expect(tokens[1]).toEqual value: bool, scopes: ["source.clojure", "meta.vector.clojure", scope]
+        {tokens} = grammar.tokenizeLine "{:a " + bool + "}"
+        expect(tokens[3]).toEqual value: bool, scopes: ["source.clojure", "meta.map.clojure", scope]
+        {tokens} = grammar.tokenizeLine bool + "^{:hi 1}[]"
+        expect(tokens[0]).toEqual value: bool, scopes: ["source.clojure", scope]
+
 
   it "tokenizes nil", ->
     {tokens} = grammar.tokenizeLine "nil"
+    expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine " nil"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "nil "
+    expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine ",nil"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "nil,"
+    expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "(conj nil)"
+    expect(tokens[3]).toEqual value: "nil", scopes: ["source.clojure", "meta.expression.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "[nil]"
+    expect(tokens[1]).toEqual value: "nil", scopes: ["source.clojure", "meta.vector.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "{:a nil}"
+    expect(tokens[3]).toEqual value: "nil", scopes: ["source.clojure", "meta.map.clojure", "constant.language.nil.clojure"]
+    {tokens} = grammar.tokenizeLine "nil^{:hi 1}[]"
     expect(tokens[0]).toEqual value: "nil", scopes: ["source.clojure", "constant.language.nil.clojure"]
 
   it "tokenizes keywords", ->
@@ -295,6 +328,21 @@ describe "Clojure grammar", ->
     expect(tokens[2]).toEqual value: "foo)", scopes: ["source.clojure", "meta.expression.clojure", "string.quoted.double.clojure"]
     expect(tokens[3]).toEqual value: "\"", scopes: ["source.clojure", "meta.expression.clojure", "string.quoted.double.clojure", "punctuation.definition.string.end.clojure"]
     expect(tokens[4]).toEqual value: ")", scopes: ["source.clojure", "meta.expression.clojure", "punctuation.section.expression.end.trailing.clojure"]
+
+  describe "replPrompt", ->
+    it "tokenizes repl prompt", ->
+      {tokens} = grammar.tokenizeLine "foo::bar.baz=> "
+      expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[1]).toEqual value: "::", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[2]).toEqual value: "bar.baz", scopes: ["source.clojure", "meta.symbol.namespace.prompt.clojure"]
+      expect(tokens[3]).toEqual value: "=>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+    it "does not tokenize repl prompt when prepended with anything", ->
+      {tokens} = grammar.tokenizeLine " foo::bar.baz=>"
+      expect(tokens[0]).toEqual value: " ", scopes: ["source.clojure"]
+      expect(tokens[1]).toEqual value: "foo::bar.baz=>", scopes: ["source.clojure", "meta.symbol.clojure"]
+    it "does not tokenize repl prompt when not followed by space", ->
+      {tokens} = grammar.tokenizeLine "foo::bar.baz=>"
+      expect(tokens[0]).toEqual value: "foo::bar.baz=>", scopes: ["source.clojure", "meta.symbol.clojure"]
 
   describe "firstLineMatch", ->
     it "recognises interpreter directives", ->

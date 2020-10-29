@@ -4,6 +4,7 @@ import * as util from '../utilities';
 import select from '../select';
 import * as docMirror from '../doc-mirror';
 import * as infoparser from './infoparser';
+import * as namespace from '../namespace';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -38,16 +39,16 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 contextEnd = toplevel.substring(wordEndLocalOffset),
                 context = `${contextStart}__prefix__${contextEnd}`,
                 toplevelIsValidForm = toplevelStartCursor.withinValidList() && context != '__prefix__',
-                ns = util.getNamespace(document),
-                client = util.getSession(util.getFileType(document)),
-                res = await client.complete(util.getNamespace(document), text, toplevelIsValidForm ? context : null),
+                ns = namespace.getNamespace(document),
+                client = namespace.getSession(util.getFileType(document)),
+                res = await client.complete(ns, text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];
                 if(results) {
                     results.forEach(element => {
                         if(!element['ns']) {
-                            // make sure every entry has a namespace 
+                            // make sure every entry has a namespace
                             // for the 'info' call.
-                            element['ns'] = ns; 
+                            element['ns'] = ns;
                         }
                     });
                 }
@@ -64,9 +65,9 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
 
         if (util.getConnectedState()) {
-            let client = util.getSession(util.getFileType(window.activeTextEditor.document));
+            let client = namespace.getSession(util.getFileType(window.activeTextEditor.document));
             if (client) {
-                await util.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
+                await namespace.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
                 let result = await client.info(item.insertText["ns"], item.label)
                 let [doc, details] = infoparser.getCompletion(result);
                 item.documentation = doc;

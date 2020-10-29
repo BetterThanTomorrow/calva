@@ -1,6 +1,5 @@
 (ns calva.fmt.util
   (:require [clojure.string]
-            ["paredit.js" :as paredit]
             [calva.js-utils :refer [cljify jsify]]))
 
 
@@ -38,19 +37,3 @@
   [s]
   (clojure.string/split s #"\r?\n" -1))
 
-
-(defn enclosing? [text]
-  (let [ast (cljify (paredit/parse text))
-        children (:children ast)]
-    (and (= 1 (count children))
-         (= "list" (:type (first children))))))
-
-(comment
-  (enclosing? "[][]")
-  (enclosing? "([][])")
-  (enclosing? "([)")
-  (enclosing? "[\"[\"]")
-  (enclosing? "(\"[\")")
-  (enclosing? "\"foo\"")
-  (enclosing? "\"([.*+?^${}()\n|\\[\\]\\])\"")
-  (enclosing? "\"([.*+?^${}()\\n|\\\\[\\\\]\\\\])\""))

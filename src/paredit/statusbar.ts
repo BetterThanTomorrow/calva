@@ -5,7 +5,6 @@ import * as paredit from './extension';
 
 export class StatusBar {
 
-    private _enabled: Boolean;
     private _visible: Boolean;
     private _keyMap: String;
 
@@ -16,13 +15,12 @@ export class StatusBar {
         this._toggleBarItem.text = "(λ)";
         this._toggleBarItem.tooltip = "";
         this._toggleBarItem.command = 'paredit.togglemode';
-        this._enabled = false;
         this._visible = false;
         this.keyMap = keymap;
 
         paredit.onPareditKeyMapChanged((keymap) => {
             this.keyMap = keymap;
-        }) 
+        })
     }
 
     get keyMap() {
@@ -30,42 +28,29 @@ export class StatusBar {
     }
 
     set keyMap(keymap: String) {
-        
-        switch (keymap.trim().toLowerCase()) {
+        this._keyMap = keymap;
+        this.updateUIState();
+    }
+
+    updateUIState() {
+        switch (this.keyMap.trim().toLowerCase()) {
             case 'original':
-                this._keyMap = 'original';
-                this.enabled = true;
                 this.visible = true;
                 this._toggleBarItem.text = "(λ)";
-                this._toggleBarItem.tooltip = "Toggle to strict Mode"
+                this._toggleBarItem.tooltip = "Toggle to Strict Mode";
+                this._toggleBarItem.color = undefined;
                 break;
             case 'strict':
-                this._keyMap = 'strict';
-                this.enabled = true;
                 this.visible = true;
                 this._toggleBarItem.text = "[λ]";
-                this._toggleBarItem.tooltip = "Toggle to original Mode"
+                this._toggleBarItem.tooltip = "Toggle to Original Mode";
+                this._toggleBarItem.color = undefined;
                 break;
             default:
-                this._keyMap = 'none';
-                this.enabled = false;
                 this.visible = true;
                 this._toggleBarItem.text = "λ";
                 this._toggleBarItem.tooltip = "Calva Paredit Keymap is set to none, Toggle to Strict Mode is Disabled"
-        }
-    }
-
-    get enabled() {
-        return this._enabled;
-    }
-
-    set enabled(value: Boolean) {
-        this._enabled = value;
-
-        if (this._enabled) {
-            this._toggleBarItem.color = undefined;
-        } else {
-            this._toggleBarItem.color = statusbar.color.inactive;
+                this._toggleBarItem.color = statusbar.color.inactive;
         }
     }
 

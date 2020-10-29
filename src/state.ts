@@ -6,7 +6,7 @@ import { ReplConnectSequence } from './nrepl/connectSequence';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fs from 'fs';
-import { customREPLCommandSnippet } from './repl-window';
+import { customREPLCommandSnippet } from './evaluate';
 import { PrettyPrintingOptions } from './printer';
 
 let extensionContext: vscode.ExtensionContext;
@@ -80,7 +80,6 @@ function analytics(): Analytics {
     }
 }
 
-
 function reset() {
     data = Immutable.fromJS(initialData);
 }
@@ -103,18 +102,17 @@ function config() {
         evaluate: configOptions.get("evalOnSave"),
         test: configOptions.get("testOnSave"),
         showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
-        syncReplNamespaceToCurrentFile: configOptions.get("syncReplNamespaceToCurrentFile"),
         jackInEnv: configOptions.get("jackInEnv"),
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
-        openREPLWindowOnConnect: configOptions.get("openREPLWindowOnConnect") as boolean,
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
-        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean
+        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
+        openCalvaSaysOnStart: configOptions.get("openCalvaSaysOnStart") as boolean
     };
 }
 
@@ -149,16 +147,32 @@ function getViewColumnFromString(value: string): vscode.ViewColumn {
 }
 
 const PROJECT_DIR_KEY = "connect.projectDir";
+const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
-export function getProjectRoot(useCache = true): string {
+export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
         return deref().get(PROJECT_DIR_KEY);
     }
 }
 
+export function getProjectRootUri(useCache = true): vscode.Uri {
+    if (useCache) {
+        return deref().get(PROJECT_DIR_URI_KEY);
+    }
+}
+
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
     const doc = util.getDocument({});
-    return doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
+    if (doc) {
+        const folder = vscode.workspace.getWorkspaceFolder(doc.uri);
+        if (folder) {
+            return folder;
+        }
+    }
+    if (vscode.workspace.workspaceFolders) {
+        return vscode.workspace.workspaceFolders[0];
+    }
+    return undefined;
 }
 
 /**
@@ -166,7 +180,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * Also stores the WorkSpace folder for the project to be used
  * when executing the Task and get proper vscode reporting.
  *
- * 1. If there is no file open in single-rooted workspaced use
+ * 1. If there is no file open in single-rooted workspace use
  *    the workspace folder as a starting point. In multi-rooted
  *    workspaces stop and complain.
  * 2. If there is a file open, use it to determine the project root
@@ -178,59 +192,67 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-          workspace = vscode.workspace.workspaceFolders![0],
-          doc = util.getDocument({});
+        workspace = vscode.workspace.workspaceFolders![0],
+        doc = util.getDocument({});
 
     // first try the workplace folder
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
     if (!workspaceFolder) {
-        if(vscode.workspace.workspaceFolders.length == 1) {
-           // this is only save in a one directory workspace
-           // (aks "Open Folder") environment.
-           workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
+        if (vscode.workspace.workspaceFolders.length == 1) {
+            // this is only save in a one directory workspace
+            // (aks "Open Folder") environment.
+            workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Please open a file in your Clojure project and try again. Aborting.");
-        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no document opened in the workspace. Aborting.";
+    let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
+    cursor.set(PROJECT_DIR_KEY, rootPath);
+    cursor.set(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+
+    let d = null;
+    let prev = null;
+    if (doc && path.dirname(doc.uri.fsPath) !== '.') {
+        d = path.dirname(doc.uri.fsPath);
     } else {
-        let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        let d = null;
-        let prev = null;
-        if(doc) {
-            d = path.dirname(doc.uri.fsPath);
-        } else {
-            d = workspaceFolder.uri.fsPath;
-        }
-        while (d != prev) {
-            for (let projectFile in projectFileNames) {
-                const p = path.resolve(d, projectFileNames[projectFile]);
-                if (fs.existsSync(p)) {
-                    rootPath = d;
-                    break;
-                }
-            }
-            if (d == rootPath) {
+        d = workspaceFolder.uri.fsPath;
+    }
+    while (d !== prev) {
+        for (let projectFile in projectFileNames) {
+            const p = path.resolve(d, projectFileNames[projectFile]);
+            if (fs.existsSync(p)) {
+                rootPath = d;
                 break;
             }
-            prev = d;
-            d = path.resolve(d, "..");
         }
-
-        // at least be sure the the root folder contains a
-        // supported project.
-        for (let projectFile in projectFileNames) {
-            const p = path.resolve(rootPath, projectFileNames[projectFile]);
-            if (fs.existsSync(p)) {
-                cursor.set(PROJECT_DIR_KEY, rootPath);
-                return;
-            }
+        if (d === rootPath) {
+            break;
         }
-        vscode.window.showErrorMessage("There was no valid project configuration found in the workspace. Please open a file in your Clojure project and try again. Aborting.");
-        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There was no valid project configuration found in the workspace. Aborting.";
+        prev = d;
+        d = path.resolve(d, "..");
     }
+
+    // at least be sure the the root folder contains a
+    // supported project.
+    for (let projectFile in projectFileNames) {
+        const p = path.resolve(rootPath, projectFileNames[projectFile]);
+        if (fs.existsSync(p)) {
+            cursor.set(PROJECT_DIR_KEY, rootPath);
+            cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
+            return;
+        }
+    }
+    return;
+}
+
+/**
+ * Tries to resolve absolute path in relation to project root
+ * @param filePath - absolute or relative to the project
+ */
+export function resolvePath(filePath?: string) {
+    const root = getProjectWsFolder();
+    if (filePath && path.isAbsolute(filePath)) {
+        return filePath;
+    }
+    return filePath && root && path.resolve(root.uri.fsPath, filePath);
 }
 
 export {

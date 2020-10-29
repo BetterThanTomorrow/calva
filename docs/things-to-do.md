@@ -21,7 +21,6 @@ The major themes are:
   * Make it super easy to use Calva with REBL
 
 ## The Right Features
-* Support clj-fmt indent settings.
 * Enable using nrepl in streaming mode
   * Use this for the test runner
 * Add some basic refactoring support
@@ -36,8 +35,6 @@ The major themes are:
 * Write an issues template
 
 ## Code Maintainability
-* We have two formatters, cljs-lib ormatter and the one in docmirror.
-  * It might make sense to keep both for different purposes, but we should fix whatever it is that makes us still keep the `newIndentEngine` setting.
 * Organize Calva functionality in ”components”, more like we do with calva-fmt, ParEdit, and Clojure Warrior.
 * Get better control of Calva state.
 * Clean up extra messy parts of the code. Candidates:

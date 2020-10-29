@@ -1,17 +1,44 @@
 (ns calva.fmt.formatter
   (:require [cljfmt.core :as cljfmt]
             #_[zprint.core :refer [zprint-str]]
-            ["paredit.js" :as paredit]
-            [calva.js-utils :refer [cljify]]
+            [calva.js-utils :refer [jsify]]
             [calva.fmt.util :as util]
+            [calva.parse :refer [parse-clj-edn]]
             [clojure.string]))
 
+(defn- merge-default-indents
+  "Merges onto default-indents.
+   The :replace metadata hint allows to replace defaults."
+  [indents]
+  (if (:replace (meta indents))
+    indents
+    (merge cljfmt/default-indents indents)))
+
+(defn- read-cljfmt
+  [s]
+  #_ (println "*** parsing config")
+  (try
+    (-> s
+        (parse-clj-edn) 
+        (update :indents merge-default-indents))
+    (catch js/Error e
+      {:error (.-message e)})))
+
+(defn read-cljfmt-js-bridge
+  [s]
+  (-> s read-cljfmt jsify))
+
+(defn- cljfmt-options
+  [{:as config :keys [cljfmt-string]}]
+  (-> cljfmt-string
+      (read-cljfmt)
+      (merge config)))
 
 (defn format-text
   [{:keys [range-text eol config] :as m}]
   (try
     (let [formatted-text (-> range-text
-                             (cljfmt/reformat-string config)
+                             (cljfmt/reformat-string (cljfmt-options config))
                              (clojure.string/replace #"\r?\n" eol))]
       (assoc m :range-text formatted-text))
     (catch js/Error e
@@ -51,52 +78,6 @@
           (last)
           (count)))))
 
-
-(defn enclosing-range
-  "Expands the range from `idx` up to any enclosing list/vector/map/string"
-  [{:keys [all-text idx config] :as m}]
-  (assoc m :range
-         (let [parent? (:calva-fmt/use-enclosing-parent? config)
-               ast (paredit/parse all-text)
-               up-idx ((.. paredit -navigator -backwardUpSexp) ast idx)
-               up-idx-parent ((.. paredit -navigator -backwardUpSexp) ast up-idx)
-               enclosing ((.. paredit -navigator -sexpRange) ast (if parent? up-idx-parent up-idx))
-               enclosing (loop [enclosing enclosing]
-                           (let [expanded-range ((.. paredit -navigator -sexpRangeExpansion) ast (first enclosing) (last enclosing))]
-                             (if (some? expanded-range)
-                               (let [text (apply subs all-text expanded-range)]
-                                 (if (and (not= expanded-range enclosing) (re-find #"^['`#?_@]" text))
-                                   (recur expanded-range)
-                                   enclosing))
-                               enclosing)))]
-           (cljify (or enclosing [idx idx])))))
-
-
-(comment
-  (remove nil? '(nil 1 2 nil 3))
-  (enclosing-range {:all-text "  ([]\n[])"
-                    :idx 6})
-  (enclosing-range {:all-text "   (foo)"
-                    :idx 4})
-  (enclosing-range {:all-text "  \"(foo)\""
-                    :idx 4})
-  (enclosing-range {:all-text "  ((foo))"
-                    :idx 4})
-  (enclosing-range {:all-text "  (#{foo})"
-                    :idx 5})
-  (enclosing-range {:all-text "[:foo\n\n(foo)(bar)]" 
-                    :idx 6})
-  (def s "(foo \"([\\[\\]\\])\")")
-  (count s)
-  (enclosing-range {:all-text s
-                    :idx 4})
-  (pr-str s)
-  (def s " (\"([\\[\\]\\])\")")
-  (cljfmt/reformat-string (pr-str s)
-                          {:remove-surrounding-whitespace? false
-                           :remove-trailing-whitespace? false
-                           :remove-consecutive-blank-lines? false
-                           :align-associative? true}))
 
 (defn add-head-and-tail
   "Splits `:all-text` at `:idx` in `:head` and `:tail`"
@@ -151,8 +132,7 @@
         tail (subs range-text range-index)
         formatted-m (format-text (assoc m :range-text padded-text))]
     (-> (assoc formatted-m :range-text (subs (:range-text formatted-m) indent-before))
-        (assoc :range-tail tail)
-        (index-for-tail-in-range))))
+        (assoc :range-tail tail))))
 
 (defn format-text-at-range-bridge
   [m]
@@ -174,10 +154,12 @@
 
 (defn add-indent-token-if-empty-current-line
   "If `:current-line` is empty add an indent token at `:idx`"
-  [{:keys [head tail] :as m}]
+  [{:keys [head tail range] :as m}]
   (let [indent-token "0"]
     (if (current-line-empty? m)
-      (assoc m :all-text (str head indent-token tail))
+      (assoc m 
+             :all-text (str head indent-token tail)
+             :range [(first range) (inc (last range))])
       m)))
 
 
@@ -197,8 +179,9 @@
       (add-head-and-tail)
       (add-current-line)
       (add-indent-token-if-empty-current-line)
-      (enclosing-range)
+      #_(enclosing-range)
       (format-text-at-range)
+      (index-for-tail-in-range)
       (remove-indent-token-if-empty-current-line)))
 
 (defn format-text-at-idx-bridge

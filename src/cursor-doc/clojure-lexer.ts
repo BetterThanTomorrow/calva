@@ -19,7 +19,7 @@ import { LexicalGrammar, Token as LexerToken } from "./lexer"
  * The 'toplevel' lexical grammar. This grammar contains all normal tokens. Strings are identified as
  * "open", and trigger the lexer to switch to the 'inString' lexical grammar.
  */
-let toplevel = new LexicalGrammar()
+export let toplevel = new LexicalGrammar()
 
 
 /**
@@ -47,53 +47,60 @@ export interface Token extends LexerToken {
 }
 
 // whitespace, excluding newlines
-toplevel.terminal(/[\t ,]+/, (l, m) => ({ type: "ws" }))
+toplevel.terminal("ws", /[\t ,]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
-toplevel.terminal(/(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
+toplevel.terminal("ws-nl", /(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
 // comments
-toplevel.terminal(/;.*/, (l, m) => ({ type: "comment" }))
+toplevel.terminal("comment", /;.*/, (l, m) => ({ type: "comment" }))
+// Calva repl prompt
+toplevel.terminal("comment", /^[^()[\]\{\},~@`^\"\s;]+::[^()[\]\{\},~@`^\"\s;]+=> /, (l, m) => ({ type: "prompt" }))
 
 // current idea for prefixing data reader
 // (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*
 
 // open parens
-toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+toplevel.terminal("open", /((?<=(^|[\(\)\[\]\{\}\s,]))['`~#@?^]\s*)*['`~#@?^]*[\(\[\{"]/, (l, m) => ({ type: "open" }))
+
 // close parens
-toplevel.terminal(/\)|\]|\}/, (l, m) => ({ type: "close" }))
+toplevel.terminal("close", /\)|\]|\}/, (l, m) => ({ type: "close" }))
 
 // ignores
-toplevel.terminal(/#_/, (l, m) => ({ type: "ignore" }))
+toplevel.terminal("ignore", /#_/, (l, m) => ({ type: "ignore" }))
 
 // literals
-toplevel.terminal(/(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-quoted-brackets", /(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
 
-// This seems unecessary?
+// This seems unnecessary?
 //toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal(/(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-reserved", /(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-integer", /(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
 
-toplevel.terminal(/(#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
+toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 
 // data readers
-toplevel.terminal(/#[^\(\)\[\]\{\}"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
+toplevel.terminal("reader", /#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
 
 // symbols, about anything goes!
-toplevel.terminal(/(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal("id", /(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
-toplevel.terminal(/./, (l, m) => ({ type: "junk" }))
+// Lexer croaks without this catch-all safe
+toplevel.terminal("junk", /./, (l, m) => ({ type: "junk" }))
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
 let inString = new LexicalGrammar()
 // end a string
-inString.terminal(/"/, (l, m) => ({ type: "close" }))
+inString.terminal("close", /"/, (l, m) => ({ type: "close" }))
 // still within a string
-inString.terminal(/(\\.|[^\\"\t\r\n ])+/, (l, m) => ({ type: "str-inside" }))
+inString.terminal("str-inside", /(\\.|[^"\s])+/, (l, m) => ({ type: "str-inside" }))
 // whitespace, excluding newlines
-inString.terminal(/[\t ]+/, (l, m) => ({ type: "ws" }))
+inString.terminal("ws", /[\t ]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
-inString.terminal(/(\r?\n)/, (l, m) => ({ type: "ws" }))
+inString.terminal("ws-nl", /(\r?\n)/, (l, m) => ({ type: "ws" }))
+
+// Lexer can croak on funny data without this catch-all safe: see https://github.com/BetterThanTomorrow/calva/issues/659
+inString.terminal("junk", /./, (l, m) => ({ type: "junk" }))
 
 
 /**

@@ -1,9 +1,207 @@
 # Change Log
+
 Changes to Calva.
 
 ## [Unreleased]
-- Fix so that Calva treats symbol containing the quote character correctly.
+
+## [2.0.130] - 2020-10-25
+- Fix: [Jack-in broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/827)
+
+## [2.0.129] - 2020-10-17
+- [Improve stack trace output](https://github.com/BetterThanTomorrow/calva/pull/806)
+- Fix: [Jack-in is broken for multi-project workspaces](https://github.com/BetterThanTomorrow/calva/issues/821)
+
+## [2.0.128] - 2020-10-17
+- Fix: [Jack-in is broken if live share extension is not installed](https://github.com/BetterThanTomorrow/calva/issues/821)
+
+## [2.0.127] - 2020-10-17
+- [Live Share Support](https://github.com/BetterThanTomorrow/calva/issues/803)
+
+## [2.0.126] - 2020-10-11
+- Fix: [Can't Jack-In to new Luminus template (+re-frame +shadow-cljs)](https://github.com/BetterThanTomorrow/calva/issues/777)
+- Fix: [Wrong `(in-ns ...)` sent for files with `.bb` extension](https://github.com/BetterThanTomorrow/calva/issues/812)
+
+## [no new version] - 2020-09-21
+- [Move docs into repo](https://github.com/BetterThanTomorrow/calva/issues/788)
+
+## [2.0.125] - 2020-09-20
+- [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
+- Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)
+- Fix: [Test runner output only partially commented](https://github.com/BetterThanTomorrow/calva/issues/787)
+- [Allow toggling keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/784)
+
+## [2.0.124] - 2020-08-31
+- Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
+- [Fix getDocument function to not return a Log document](https://github.com/BetterThanTomorrow/calva/issues/771)
+- Fix: [Inline evaluation result disappears after a second](https://github.com/BetterThanTomorrow/calva/issues/774)
+
+## [2.0.123] - 2020-08-26
+- [Change output/repl window extension to .calva-repl](https://github.com/BetterThanTomorrow/calva/issues/754)
+- Re-fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
+- [Fix/enhance test runner](https://github.com/BetterThanTomorrow/calva/issues/764)
+
+## [2.0.122] - 2020-08-20
+- Fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
+- Fix: [Fix stacktraces not showing in output](https://github.com/BetterThanTomorrow/calva/pull/759)
+
+## [2.0.121] - 2020-08-19
+- Fix: ["Go to definition" command fails](https://github.com/BetterThanTomorrow/calva/issues/636)
+- Fix: [Weird expand selection behavior near an anonymous function](https://github.com/BetterThanTomorrow/calva/issues/600)
+- Fix: [Backspace is not working properly in the output window](https://github.com/BetterThanTomorrow/calva/issues/700)
+- Fix: [Cannot read property 'includes' of undefined](https://github.com/BetterThanTomorrow/calva/issues/753)
+
+## [2.0.120] - 2020-08-17
+- Fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
+- Add REPL history to new output/REPL window
+- Fix: [Calva's ESC keybinding overrides VS Code's (useful) default](https://github.com/BetterThanTomorrow/calva/issues/740)
+
+## [2.0.119] - 2020-08-07
+- Really fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
+
+## [2.0.118] - 2020-08-06
+- [Remove old REPL Window](https://github.com/BetterThanTomorrow/calva/issues/711)
+
+## [2.0.117] - 2020-08-05
+- Fix: [Paste is broken in 2.0.116](https://github.com/BetterThanTomorrow/calva/issues/730)
+
+## [2.0.116] - 2020-08-05
+- Fix: [Format-on-paste should not operate inside string literals](https://github.com/BetterThanTomorrow/calva/issues/720)
+- Fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
+
+## [2.0.115] - 2020-08-02
+- [Add hover to display results for eval as window into output file](https://github.com/BetterThanTomorrow/calva/issues/693)
+
+## [2.0.114] - 2020-08-02
+- Fix: [Stop popping up output window when load file has errors](https://github.com/BetterThanTomorrow/calva/issues/717)
+
+## [2.0.113] - 2020-08-1
+- [Add vscode command for to eval code given as args](https://github.com/BetterThanTomorrow/calva/issues/690)
+- [Move custom REPL snippets to new output/repl window](https://github.com/BetterThanTomorrow/calva/issues/713)
+- Fix: [Continuously evaluating in infinite loop](https://github.com/BetterThanTomorrow/calva/issues/712)
+
+## [2.0.112] - 2020-07-30
+- Fix: [Don't open output window until connect starts](https://github.com/BetterThanTomorrow/calva/issues/707)
+
+## [2.0.111] - 2020-07-29
+- [Handling ansi code by stripping it](https://github.com/BetterThanTomorrow/calva/issues/696)
+- Fix: [Output window sometimes getting out of synch, needing overwrite](https://github.com/BetterThanTomorrow/calva/issues/699)
+- Fix: [The *Calva says* panel + output window opening at startup gets a bit too much](https://github.com/BetterThanTomorrow/calva/issues/702)
+- Fix: [Repl connection fails if afterCLJJackInCode errors](https://github.com/BetterThanTomorrow/calva/issues/703)
+
+## [2.0.110] - 2020-07-28
+- [Fix Connect Fails on Windows](https://github.com/BetterThanTomorrow/calva/issues/694)
+
+## [2.0.109] - 2020-07-27
+- [New output/REPL window introduced](https://github.com/BetterThanTomorrow/calva/issues/681)
+
+## [2.0.108] - 2020-07-24
+- Fix [Jack-in error when choosing Clojure CLI + shadow-cljs project type](https://github.com/BetterThanTomorrow/calva/issues/675)
+- Fix [Cannot use default connect sequences when custom connect sequences added](https://github.com/BetterThanTomorrow/calva/issues/685)
+- Add analytics to debugger
+
+## [2.0.107] - 2020-06-16
+- Fix [Flicker matching brackets as code is typed](https://github.com/BetterThanTomorrow/calva/issues/673)
+
+## [2.0.106] - 2020-06-16
+- Fix [Crash - Lexing fails on comment w/ a 20+ hashes](https://github.com/BetterThanTomorrow/calva/issues/667)
+
+## [2.0.105] - 2020-06-15
+- Fix [Debug decorations are breaking after stepping through code during debug session](https://github.com/BetterThanTomorrow/calva/issues/669)
+
+## [2.0.104] - 2020-06-14
+- Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
+
+## [2.0.103] - 2020-06-05
+- Fix [Stream output messages to Calva Says as they're received](https://github.com/BetterThanTomorrow/calva/issues/638)
+- Fix [highlighting of var quote before open token](https://github.com/BetterThanTomorrow/calva/issues/663)
+
+## [2.0.102] - 2020-06-04
+- Fix [Format Document sometimes causes Calva to stop working](https://github.com/BetterThanTomorrow/calva/issues/651)
+- Fix [repl hanging after disconnecting debugger while repl window focused](https://github.com/BetterThanTomorrow/calva/issues/647)
+
+## [2.0.101] - 2020-05-11
+- [Paredit slurp outer form if current form is nested](https://github.com/BetterThanTomorrow/calva/issues/554)
+
+## [2.0.100] - 2020-05-11
+- Fix [clj-kondo exceptions thrown by debugger decorations code](https://github.com/BetterThanTomorrow/calva/issues/642)
+- Move [warning for clj-kondo not found on classpath](https://github.com/BetterThanTomorrow/calva/issues/639) to Calva says output channel instead of window warning
+
+## [2.0.99] - 2020-05-10
+- Fix [Formatting top-level form stopped working](https://github.com/BetterThanTomorrow/calva/issues/640)
+
+## [2.0.98] - 2020-05-04
+- Fix [Problems Editing a Bare file (instead of directory)](https://github.com/BetterThanTomorrow/calva/issues/622)
+
+## [2.0.97] - 2020-05-02
+- Fix: [The New Indent engine doesn't follow block rules in ns :require #633](https://github.com/BetterThanTomorrow/calva/issues/633)
+- Make the new indent engine the default
+- Remove dependency on `paredit.js` from `calva-lib`
+
+## [2.0.96] - 2020-04-29
+- [Fix colors in suggestion popup (REPL window)](https://github.com/BetterThanTomorrow/calva/issues/623)
+- Add "Instrument Top Level Form for Debugging" command and decorations for instrumented functions
+- [Remove duplicate paredit.selectOpenList command in package.json](https://github.com/BetterThanTomorrow/calva/issues/629)
+
+## [2.0.95] - 2020-04-25
+- [Separate setting for highlighting current indent guide](https://github.com/BetterThanTomorrow/calva/issues/625)
+- [Fix: Problems with v2.0.94 rendering performance ](https://github.com/BetterThanTomorrow/calva/issues/626)
+
+## [2.0.94] - 2020-04-24
+- [Rainbow indent guides](https://github.com/BetterThanTomorrow/calva/issues/620)
+
+## [2.0.93] - 2020-04-21
+- [Unclutter editor context menu when not in clojure files](https://github.com/BetterThanTomorrow/calva/issues/615)
+
+## [2.0.92] - 2020-04-15
+- [Changed all documentation links from https://calva.readthedocs.io/ to https://calva.io/](https://github.com/BetterThanTomorrow/calva/issues/604)
+- Add step over, step into, and step out debugger features
+- Add annotations for debugging to show debug values as the cursor moves to each breakpoint
+- Fix debugger disconnect to show quit value instead of cider-nrepl exception
+- Use visible editor if one exists with code being debugged, instead of opening a new one
+
+## [2.0.91] - 2020-04-07
+- [Add debugger](https://github.com/BetterThanTomorrow/calva/issues/469)
+
+## [2.0.90] - 2020-04-06
+- nREPL `eval` should always send along the `ns` parameter
+
+## [2.0.89] - 2020-03-29
+- [Add support for connecting to generic project types](https://github.com/BetterThanTomorrow/calva/issues/595)
+
+## [2.0.88] - 2020-03-22
+- [Change all references to `#calva-dev` so that they now point to the `#calva` Slack channel](https://clojurians.slack.com/messages/calva/)
+
+## [2.0.87] - 2020-03-21
+- [Fix: Two CLJ REPL Windows open on connect when `afterCLJReplJackInCode`is used](https://github.com/BetterThanTomorrow/calva/issues/593)
+- [Add info to docs about how to get around `command not found` Jack-in problems](https://github.com/BetterThanTomorrow/calva/issues/591)
+
+## [2.0.86] - 2020-03-19
+- [Fix: REPL Window Paredit does not close strings properly](https://github.com/BetterThanTomorrow/calva/issues/587)
+
+## [2.0.85] - 2020-03-15
+- Fix: Make lein-shadow project type use lein injections
+
+## [2.0.84] - 2020-03-15
+- [Support projects using lein-shadow](https://github.com/BetterThanTomorrow/calva/issues/585)
+- [Add documentation for how to use Calva with Luminus](https://calva.io/luminus/)
+
+## [2.0.83] - 2020-03-13
+- When format config fails to parse, fall back on defaults rather than crash
+- [Fix: Var quoted symbols are treated as reader tags](https://github.com/BetterThanTomorrow/calva/issues/584)
+
+## [2.0.82] - 2020-03-11
+- Fix bug with bad formatting defaults when no config file
+
+## [2.0.81] - 2020-03-11
+- [Fix: Structural editing is a bit broken when reader tags are involved](https://github.com/BetterThanTomorrow/calva/issues/581)
+- [Add cljfmt indent rules](https://github.com/BetterThanTomorrow/calva/issues/80)
+
+## [2.0.80] - 2020-03-07
+- Fix so that Paredit treats symbols containing the quote character correctly.
 - [Fix: Parameter hints popup should be off by default](https://github.com/BetterThanTomorrow/calva/issues/574)
+- [Fix: `nil` followed by comma not highlighted correctly](https://github.com/BetterThanTomorrow/calva/issues/577)
+- [Fix: The syntax highlightning fails with symbols named truesomething/falsesomething](https://github.com/BetterThanTomorrow/calva/issues/578)
+- Fix so that Paredit does not consider `^` to be part of a symbol name.
 
 ## [2.0.79] - 2020-03-01
 - Use scope `variable.other.constant` for keywords, making them highlight nicely
@@ -83,7 +281,7 @@ Changes to Calva.
 - Fix: [Tokenization errors with quotes, derefs, etcetera](https://github.com/BetterThanTomorrow/calva/issues/467)
 - Fix: [Glitch in current form highlight in the REPL window when cursor is to the right of a form](https://github.com/BetterThanTomorrow/calva/issues/472)
 - Now using the same Paredit implementation for the editor as for the REPL Window.
-  - A much more complete set of Paredit commands, and [all documented](https://calva.readthedocs.io/en/latest/paredit.html), in beautiful GIF animations.
+  - A much more complete set of Paredit commands, and [all documented](https://calva.io/paredit/), in beautiful GIF animations.
   - List based Paredit commands work on strings as well. (Limited by that strings don't have sub lists/strings).
   - Lots of fixes for Paredit commands.
 - Fix: [Paredit not activated until focused moved from and back to the editor again](https://github.com/BetterThanTomorrow/calva/issues/454)
@@ -94,7 +292,7 @@ Changes to Calva.
 - Improvements for Commands using the **Current form** and **Current top level form**:
   - Fix: [Form selection fails on things like '(1)](https://github.com/BetterThanTomorrow/calva/issues/418)
   - Less precision needed for the right form to be selected.
-  - All commands for this use the same implemengtion (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
+  - All commands for this use the same implementation (so, you can use e.g. **Select Current Form** to know what **Evaluate Current Form** will evaluate).
 - Fix: ["Load current Namespace in REPL Window" command not working](https://github.com/BetterThanTomorrow/calva/issues/477)
 - Theme compatible status bar indicators for pprint and paredit
 
@@ -314,4 +512,3 @@ Changes to Calva.
     - Error message when evaluation fails
     - Pretty printing evaluation results: `ctrl+alt+v p`
     - Support for `cljc` files (this was supposed to be supported by the original extension, but bug)
-

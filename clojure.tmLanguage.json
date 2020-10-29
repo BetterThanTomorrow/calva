@@ -12,6 +12,9 @@
 			"include": "#shebang-comment"
 		},
 		{
+			"include": "#prompt"
+		},
+		{
 			"include": "#quoted-sexp"
 		},
 		{
@@ -68,11 +71,11 @@
 		"constants": {
 			"patterns": [
 				{
-					"match": "(nil)(?=(\\s|\\)|\\]|\\}))",
+					"match": "(?<=^|\\s|,|\\(|\\[|\\{)(nil)(?=(\\s|,|\\)|\\]|\\}|\\^))",
 					"name": "constant.language.nil.clojure"
 				},
 				{
-					"match": "(true|false)",
+					"match": "(?<=^|\\s|,|\\(|\\[|\\{)(true|false)(?=(\\s|,|\\)|\\]|\\}|\\^))",
 					"name": "constant.language.boolean.clojure"
 				},
 				{
@@ -425,6 +428,27 @@
 			"patterns": [
 				{
 					"include": "$self"
+				}
+			]
+		},
+		"prompt": {
+			"patterns": [
+				{
+					"match": "^([\\p{L}]+)(::)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)([ ])",
+					"captures": {
+						"1": {
+							"name": "keyword.control.prompt.clojure"
+						},
+						"2": {
+							"name": "keyword.control.prompt.clojure"
+						},
+						"3": {
+							"name": "meta.symbol.namespace.prompt.clojure"
+						},
+						"4": {
+							"name": "keyword.control.prompt.clojure"
+						}
+					}
 				}
 			]
 		}

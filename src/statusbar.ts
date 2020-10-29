@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { activeReplWindow } from './repl-window';
 import * as state from './state';
 import * as util from './utilities';
+import config from './config';
+import * as namespace from './namespace';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -12,10 +13,9 @@ const color = {
     inactive: "#b3b3b3"
 };
 
-function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration):string {
+function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
     let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
-
-    return workspaceFolderValue || workspaceValue || globalValue || defaultValue;
+    return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
 }
 
 function update() {
@@ -26,6 +26,11 @@ function update() {
         doc = util.getDocument({}),
         fileType = util.getFileType(doc),
         cljsBuild = current.get('cljsBuild');
+
+    const replTypeNames = {
+        clj: "Clojure",
+        cljs: "ClojureScript"
+    };
 
     //let disconnectedColor = "rgb(192,192,192)";
 
@@ -49,29 +54,26 @@ function update() {
 
     if (current.get('connected')) {
         connectionStatus.text = "nREPL $(zap)";
-        connectionStatus.color = colorValue("connectedSatusColor", currentConf);
+        connectionStatus.color = colorValue("connectedStatusColor", currentConf);
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
-        if (fileType == 'cljc' && util.getREPLSessionType() !== null && !activeReplWindow()) {
-            typeStatus.text = "cljc/" + util.getREPLSessionType()
-            if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
+        const replType = namespace.getREPLSessionType();
+        if (replType !== null) {
+            typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
+            if (namespace.getSession('clj') !== null && namespace.getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
-                typeStatus.tooltip = `Click to use ${(util.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
+                typeStatus.tooltip = `Click to use ${(replType === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
+            } else {
+                typeStatus.tooltip = `Connected to ${replTypeNames[replType]} REPL`;
             }
-        } else if (util.getREPLSessionType() === 'cljs') {
-            typeStatus.text = "cljs";
-            typeStatus.tooltip = "Connected to ClojureScript REPL";
-        } else if (util.getREPLSessionType() === 'clj') {
-            typeStatus.text = "clj"
-            typeStatus.tooltip = "Connected to Clojure REPL";
         }
-        if (util.getREPLSessionType() === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
-            if (cljsBuild !== null && util.getREPLSessionType() === 'cljs') {
+        if (replType === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
+            if (cljsBuild !== null && replType === 'cljs') {
                 cljsBuildStatus.text = cljsBuild;
                 cljsBuildStatus.tooltip = "Click to switch CLJS build REPL";
             } else if (cljsBuild === null) {
-                cljsBuildStatus.text = "no build connected"
+                cljsBuildStatus.text = "No build connected"
                 cljsBuildStatus.tooltip = "Click to connect to a CLJS build REPL";
             }
         }

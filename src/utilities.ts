@@ -2,16 +2,11 @@ import * as vscode from 'vscode';
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import * as _ from 'lodash';
 import * as state from './state';
-import * as fs from 'fs';
 import * as path from 'path';
-import { NReplSession } from './nrepl';
-import { activeReplWindow } from './repl-window';
 const syntaxQuoteSymbol = "`";
-const { parseForms } = require('../out/cljs-lib/cljs-lib');
-import * as docMirror from './doc-mirror';
-import { LispTokenCursor } from './cursor-doc/token-cursor';
-import { Token } from './cursor-doc/clojure-lexer';
 import select from './select';
+import * as outputWindow from './results-output/results-doc';
+import * as docMirror from './doc-mirror';
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -87,78 +82,26 @@ function getShadowCljsReplStartCode(build) {
     return '(shadow.cljs.devtools.api/nrepl-select ' + build + ')';
 }
 
-function getNamespace(doc: vscode.TextDocument) {
-    let ns = "user";
-    if (doc && doc.fileName.match(/\.clj[cs]?$/)) {
-        try {
-            const cursor: LispTokenCursor = docMirror.getDocument(doc).getTokenCursor(0);
-            cursor.forwardWhitespace(true);
-            let token: Token = null,
-                foundNsToken: boolean = false,
-                foundNsId: boolean = false;
-            do {
-                cursor.downList();
-                if (token && token.offset == cursor.getToken().offset) {
-                    cursor.next();
-                }
-                token = cursor.getToken();
-                foundNsToken = token.type == "id" && token.raw == "ns";
-            } while (!foundNsToken && !cursor.atEnd());
-            if (foundNsToken) {
-                do {
-                    cursor.next();
-                    token = cursor.getToken();
-                    foundNsId = token.type == "id";
-                } while (!foundNsId && !cursor.atEnd());
-                if (foundNsId) {
-                    ns = token.raw;
-                } else {
-                    console.log("Error getting the ns name from the ns form.");
-                }
-            } else {
-                console.log("No ns form found.");
-            }
-        } catch (e) {
-            console.log("Error getting ns form of this file using docMirror, trying with cljs.reader: " + e);
-            try {
-                const forms = parseForms(doc.getText());
-                if (forms !== undefined) {
-                    const nsFormArray = forms.filter(x => x[0] == "ns");
-                    if (nsFormArray != undefined && nsFormArray.length > 0) {
-                        const nsForm = nsFormArray[0].filter(x => typeof (x) == "string");
-                        if (nsForm != undefined) {
-                            ns = nsForm[1];
-                        }
-                    }
-                }
-            } catch (e) {
-                console.log("Error parsing ns form of this file. " + e);
-            }
-        }
-    }
-    return ns;
-}
-
 function getTestUnderCursor() {
-    const doc = getDocument(null);
-    if (doc) {
-        try {
-            const topLevelFormRange = select.getFormSelection(doc, vscode.window.activeTextEditor.selection.active, true),
-                topLevelForm = doc.getText(topLevelFormRange);
-            const forms = parseForms(topLevelForm);
-            if (forms !== undefined) {
-                const formArray = forms.filter(x => x[0].startsWith("def"));
-                if (formArray != undefined && formArray.length > 0) {
-                    const form = formArray[0].filter(x => typeof (x) == "string");
-                    if (form != undefined) {
-                        return form[1];
-                    }
-                }
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+        const document = editor.document;
+        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
+        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
+        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
+        while (tokenCursor.downList()) {
+            tokenCursor.forwardWhitespace();
+            if (tokenCursor.getToken().raw.startsWith('def')) {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
+                return tokenCursor.getToken().raw;
+            } else {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
             }
-        } catch (e) {
-            console.log("Error parsing deftest form under cursor." + e);
         }
     }
+    return undefined;
 }
 
 function getStartExpression(text) {
@@ -189,31 +132,16 @@ function getWordAtPosition(document, position) {
     return text;
 }
 
-async function createNamespaceFromDocumentIfNotExists(doc) {
-
-    if (getConnectedState()) {
-        let document = getDocument(doc);
-        if (document) {
-            let ns = getNamespace(document);
-            let client = getSession(getFileType(document));
-            if (client) {
-                let nsList = await client.listNamespaces([]);
-                if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
-                    return;
-                }
-                await client.eval("(ns " + ns + ")").value;
-            }
-        }
-    }
-}
-
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
-    } else if (vscode.window.activeTextEditor) {
+    } else if (vscode.window.activeTextEditor && 
+        vscode.window.activeTextEditor.document && 
+        vscode.window.activeTextEditor.document.languageId !== 'Log') {
         return vscode.window.activeTextEditor.document;
     } else if (vscode.window.visibleTextEditors.length > 0) {
-        return vscode.window.visibleTextEditors[0].document;
+        const editor = vscode.window.visibleTextEditors.find(editor => editor.document && editor.document.languageId !== 'Log');
+        return editor ? editor.document : null;
     } else {
         return null;
     }
@@ -234,26 +162,6 @@ function getFileName(document) {
     return path.basename(document.fileName);
 }
 
-function getDocumentNamespace(document = {}) {
-    let doc = getDocument(document);
-
-    return getNamespace(doc);
-}
-
-function getSession(fileType = undefined): NReplSession {
-    let doc = getDocument({}),
-        current = state.deref();
-
-    if (fileType === undefined) {
-        fileType = getFileType(doc);
-    }
-    if (fileType.match(/^clj[sc]?/)) {
-        return current.get(fileType);
-    } else {
-        return current.get('clj');
-    }
-}
-
 function getLaunchingState() {
     return state.deref().get('launching');
 }
@@ -268,13 +176,8 @@ function getConnectedState() {
 }
 
 function setConnectedState(value: Boolean) {
-    if (value) {
-        vscode.commands.executeCommand("setContext", "calva:connected", true);
-        state.cursor.set('connected', true);
-    } else {
-        vscode.commands.executeCommand("setContext", "calva:connected", false);
-        state.cursor.set('connected', false);
-    }
+    vscode.commands.executeCommand("setContext", "calva:connected", value);
+    state.cursor.set('connected', value);
 }
 
 function getConnectingState() {
@@ -313,12 +216,10 @@ function logSuccess(results) {
 }
 
 function logError(error) {
-    let chan = state.outputChannel();
-
-    chan.appendLine(error.reason);
+    outputWindow.append('; ' + error.reason);
     if (error.line !== undefined && error.line !== null &&
         error.column !== undefined && error.column !== null) {
-        chan.appendLine("at line: " + error.line + " and column: " + error.column)
+        outputWindow.append(";   at line: " + error.line + " and column: " + error.column)
     }
 }
 
@@ -350,13 +251,12 @@ function markError(error) {
 }
 
 function logWarning(warning) {
-    let chan = state.outputChannel();
-    chan.appendLine(warning.reason);
+    outputWindow.append('; ' + warning.reason);
     if (warning.line !== null) {
         if (warning.column !== null) {
-            chan.appendLine("at line: " + warning.line + " and column: " + warning.column)
+            outputWindow.append(";   at line: " + warning.line + " and column: " + warning.column)
         } else {
-            chan.appendLine("at line: " + warning.line)
+            outputWindow.append(";   at line: " + warning.line)
         }
     }
 }
@@ -384,38 +284,6 @@ function markWarning(warning) {
     let warnings = (existing !== undefined && existing.length > 0) ? [...existing, warn] :
         [warn];
     diagnostic.set(editor.document.uri, warnings);
-}
-
-
-function updateREPLSessionType() {
-    let current = state.deref(),
-        doc = getDocument({}),
-        fileType = getFileType(doc);
-
-    if (current.get('connected')) {
-        let sessionType: string;
-
-        let repl = activeReplWindow();
-        if (repl)
-            sessionType = repl.type;
-        else if (fileType == 'cljs' && getSession('cljs') !== null)
-            sessionType = 'cljs'
-        else if (fileType == 'clj' && getSession('clj') !== null)
-            sessionType = 'clj'
-        else if (fileType == 'cljc' && getSession('cljc') !== null)
-            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        else
-            sessionType = 'clj'
-
-        state.cursor.set('current-session-type', sessionType);
-    } else {
-        state.cursor.set('current-session-type', null);
-    }
-}
-
-function getREPLSessionType() {
-    let current = state.deref();
-    return current.get('current-session-type');
 }
 
 async function promptForUserInputString(prompt: string): Promise<string> {
@@ -451,16 +319,18 @@ function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], 
     return filtered;
 }
 
+function scrollToBottom(editor: vscode.TextEditor) {
+    const lastPos = editor.document.positionAt(Infinity);
+    editor.selection = new vscode.Selection(lastPos, lastPos);
+    editor.revealRange(new vscode.Range(lastPos, lastPos));
+}
+
 export {
-    getNamespace,
     getStartExpression,
     getWordAtPosition,
-    createNamespaceFromDocumentIfNotExists,
     getDocument,
-    getDocumentNamespace,
     getFileType,
     getFileName,
-    getSession,
     getLaunchingState,
     setLaunchingState,
     getConnectedState,
@@ -474,8 +344,6 @@ export {
     logWarning,
     markWarning,
     logSuccess,
-    updateREPLSessionType,
-    getREPLSessionType,
     getCljsReplStartCode,
     getShadowCljsReplStartCode,
     quickPick,
@@ -484,5 +352,6 @@ export {
     getTestUnderCursor,
     promptForUserInputString,
     debounce,
-    filterVisibleRanges
+    filterVisibleRanges,
+    scrollToBottom
 };
