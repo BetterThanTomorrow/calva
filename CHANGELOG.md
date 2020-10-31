@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Syntax highlighting error when repl prompt shows ns containing digits](https://github.com/BetterThanTomorrow/calva/issues/834)
 
 ## [2.0.130] - 2020-10-25
 - Fix: [Jack-in broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/827)
