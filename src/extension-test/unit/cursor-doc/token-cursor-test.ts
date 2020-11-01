@@ -75,6 +75,34 @@ describe('Token Cursor', () => {
             cursor.forwardSexp(true, true, true);
             expect(cursor.offsetStart).equal(14);
         });
+
+        it('should not skip past `invalid` tokens', () => {
+            scratchDoc.insertString('0xg 1');
+            const cursor = scratchDoc.getTokenCursor(0);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).equal(3);
+        });
+    });
+
+    describe('backardSexp', () => {
+        it('backwardSexp x4: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
+            const cursor: LispTokenCursor = doc.getTokenCursor(31);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).equal(27);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).equal(7);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).equal(5);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).equal(5);
+        });
+
+        it('should not skip past `invalid` tokens', () => {
+            scratchDoc.insertString('1 0xg');
+            const cursor = scratchDoc.getTokenCursor(5);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).equal(2);
+        });
     });
 
     describe('downList', () => {
@@ -122,17 +150,6 @@ describe('Token Cursor', () => {
         });
     });
 
-    it('backwardSexp x4: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(31);
-        cursor.backwardSexp();
-        expect(cursor.offsetStart).equal(27);
-        cursor.backwardSexp();
-        expect(cursor.offsetStart).equal(7);
-        cursor.backwardSexp();
-        expect(cursor.offsetStart).equal(5);
-        cursor.backwardSexp();
-        expect(cursor.offsetStart).equal(5);
-    });
     it('forwardList: (a(b(c•#|f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
         const cursor: LispTokenCursor = doc.getTokenCursor(8);
         cursor.forwardList();

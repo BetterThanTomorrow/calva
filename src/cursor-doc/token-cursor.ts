@@ -211,6 +211,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'id':
                 case 'lit':
                 case 'kw':
+                case 'invalid':
                 case 'junk':
                 case 'str-inside':
                     if (skipMetadata && this.getToken().raw.startsWith('^')) {
@@ -272,6 +273,7 @@ export class LispTokenCursor extends TokenCursor {
                 case 'lit':
                 case 'kw':
                 case 'ignore':
+                case 'invalid':
                 case 'junk':
                 case 'comment':
                 case 'prompt':
