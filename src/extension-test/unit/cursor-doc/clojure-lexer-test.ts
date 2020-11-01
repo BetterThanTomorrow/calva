@@ -31,14 +31,22 @@ function close(): fc.Arbitrary<string> {
     return fc.constantFrom(...closeChars);
 }
 
-function symbolStart(): fc.Arbitrary<string> {
+function symbolStartIncludingDigit(): fc.Arbitrary<string> {
     return fc.tuple(symbolChar(), symbolChar(), symbolChar())
         .map(([c1, c2, c3]) => `${c1}${c2}${c3}`)
-        .filter(s => !!s.match(/^(?:[^#:\d]|#'[^'])/));
+        .filter(s => !!s.match(/^(?:[^#:]|#'[^'])/));
+}
+
+function symbolStart(): fc.Arbitrary<string> {
+    return symbolStartIncludingDigit().filter(s => !s.match(/^\d/));
 }
 
 function symbol(): fc.Arbitrary<string> {
     return fc.tuple(symbolStart(), fc.stringOf(symbolChar(), 1, 5)).map(([c, s]) => `${c}${s}`);
+}
+
+function underscoreSymbol(): fc.Arbitrary<string> {
+    return fc.tuple(fc.constant('_'), symbolStartIncludingDigit(), fc.stringOf(symbolChar(), 1, 5)).map(([c, s]) => `${c}${s}`);
 }
 
 function keyword(): fc.Arbitrary<string> {
@@ -84,14 +92,30 @@ describe('Scanner', () => {
     });
 
     describe('simple', () => {
-        it('tokenizes symbol', () => {
-            fc.assert(
-                fc.property(symbol(), data => {
-                    const tokens = scanner.processLine(data);
-                    expect(tokens[0].type).equal('id');
-                    expect(tokens[0].raw).equal(data);
-                })
-            )
+        describe('symbols', () => {
+            it('tokenizes any symbol', () => {
+                fc.assert(
+                    fc.property(symbol(), data => {
+                        const tokens = scanner.processLine(data);
+                        expect(tokens[0].type).equal('id');
+                        expect(tokens[0].raw).equal(data);
+                    })
+                )
+            });
+            it('tokenizes symbols starting with _', () => {
+                fc.assert(
+                    fc.property(underscoreSymbol(), data => {
+                        const tokens = scanner.processLine(data);
+                        expect(tokens[0].type).equal('id');
+                        expect(tokens[0].raw).equal(data);
+                    })
+                )
+            });
+            it('tokenizes _ as a symbol', () => {
+                const tokens = scanner.processLine('_');
+                expect(tokens[0].type).equals('id');
+                expect(tokens[0].raw).equals('_');
+            });
         });
         it('tokenizes whitespace', () => {
             fc.assert(
