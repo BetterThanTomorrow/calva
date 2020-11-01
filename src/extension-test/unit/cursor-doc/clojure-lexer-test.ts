@@ -34,7 +34,7 @@ function close(): fc.Arbitrary<string> {
 function symbolStart(): fc.Arbitrary<string> {
     return fc.tuple(symbolChar(), symbolChar(), symbolChar())
         .map(([c1, c2, c3]) => `${c1}${c2}${c3}`)
-        .filter(s => !!s.match(/^(?:[^#:]|#'[^'])/));
+        .filter(s => !!s.match(/^(?:[^#:\d]|#'[^'])/));
 }
 
 function symbol(): fc.Arbitrary<string> {
@@ -136,12 +136,48 @@ describe('Scanner', () => {
             expect(tokens[0].type).equals('comment');
             expect(tokens[0].raw).equals('; foo');
         });
-        it('tokenizes ignores', () => {
-            const tokens = scanner.processLine('#_foo');
-            expect(tokens[0].type).equals('ignore');
-            expect(tokens[0].raw).equals('#_');
-            expect(tokens[1].type).equals('id');
-            expect(tokens[1].raw).equals('foo');
+        describe('tokenizes ignores', () => {
+            it('sole, no ws', () => {
+                const tokens = scanner.processLine('#_foo');
+                expect(tokens[0].type).equals('ignore');
+                expect(tokens[0].raw).equals('#_');
+                expect(tokens[1].type).equals('id');
+                expect(tokens[1].raw).equals('foo');
+            });
+            it('sole, trailing ws', () => {
+                const tokens = scanner.processLine('#_ foo');
+                expect(tokens[0].type).equals('ignore');
+                expect(tokens[0].raw).equals('#_');
+                expect(tokens[1].type).equals('ws');
+                expect(tokens[1].raw).equals(' ');
+                expect(tokens[2].type).equals('id');
+                expect(tokens[2].raw).equals('foo');
+            });
+            it('sole, leading symbol/id, no ws', () => {
+                const tokens = scanner.processLine('foo#_bar');
+                expect(tokens[0].type).equals('id');
+                expect(tokens[0].raw).equals('foo#_bar');
+            });
+            it('sole, leading number, no ws', () => {
+                const tokens = scanner.processLine('1.2#_foo');
+                expect(tokens[0].type).equals('lit');
+                expect(tokens[0].raw).equals('1.2');
+                expect(tokens[1].type).equals('ignore');
+                expect(tokens[1].raw).equals('#_');
+                expect(tokens[2].type).equals('id');
+                expect(tokens[2].raw).equals('foo');
+            });
+            it('many, no ws', () => {
+                const tokens = scanner.processLine('#_#_#_foo');
+                expect(tokens[0].type).equals('ignore');
+                expect(tokens[0].raw).equals('#_');
+                expect(tokens[1].type).equals('ignore');
+                expect(tokens[1].raw).equals('#_');
+                expect(tokens[2].type).equals('ignore');
+                expect(tokens[2].raw).equals('#_');
+                expect(tokens[3].type).equals('id');
+                expect(tokens[3].raw).equals('foo');
+            });
         });
         it('tokenizes the Calva repl prompt', () => {
             const tokens = scanner.processLine('foo::bar.baz=> ()');

@@ -82,7 +82,7 @@ toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ t
 toplevel.terminal("reader", /#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
 
 // symbols, about anything goes!
-toplevel.terminal("id", /(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+toplevel.terminal("id", /(['`~#^@]\s*)*([^\d_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
 
 // Lexer croaks without this catch-all safe
 toplevel.terminal("junk", /./, (l, m) => ({ type: "junk" }))
