@@ -144,16 +144,16 @@
       }
     ]
   'keyword':
-    'match': '(?<=(\\s|\\(|\\[|\\{)):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
+    'match': '(?<=^|\\s|\\(|\\[|\\{):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
     'name': 'variable.other.constant.clojure'
   'keyfn':
     'patterns': [
       {
-        'match': '(?<=(\\s|\\(|\\[|\\{))(if(-[-\\p{Ll}\\?]*)?|when(-[-\\p{Ll}]*)?|for(-[-\\p{Ll}]*)?|cond|do|let(-[-\\p{Ll}\\?]*)?|binding|loop|recur|fn|throw[\\p{Ll}\\-]*|try|catch|finally|([\\p{Ll}]*case))(?=(\\s|\\)|\\]|\\}))'
+        'match': '(?<=^|\\s|\\(|\\[|\\{)(if(-[-\\p{Ll}\\?]*)?|when(-[-\\p{Ll}]*)?|for(-[-\\p{Ll}]*)?|cond|do|let(-[-\\p{Ll}\\?]*)?|binding|loop|recur|fn|throw[\\p{Ll}\\-]*|try|catch|finally|([\\p{Ll}]*case))(?=(\\s|\\)|\\]|\\}))'
         'name': 'storage.control.clojure'
       }
       {
-        'match': '(?<=(\\s|\\(|\\[|\\{))(declare-?|(in-)?ns|import|use|require|load|compile|(def(?!ault)[\\p{Ll}\\-]*))(?=(\\s|\\)|\\]|\\}))'
+        'match': '(?<=^|\\s|\\(|\\[|\\{)(declare-?|(in-)?ns|import|use|require|load|compile|(def(?!ault)[\\p{Ll}\\-]*))(?=(\\s|\\)|\\]|\\}))'
         'name': 'keyword.control.clojure'
       }
     ]
@@ -382,7 +382,7 @@
       }
     ]
   'var':
-    'match': '(?<=(\\s|\\(|\\[|\\{)\\#)\'[\\w\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}))'
+    'match': '(?<=^\\#|[\\s\\(\\[\\{]\\#)\'[\\w\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}))'
     'name': 'meta.var.clojure'
   'vector':
     'begin': '(\\[)'
@@ -404,7 +404,7 @@
   'prompt':
     'patterns': [
       {
-        'match': '^([\\p{L}]+)(::)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)([ ])'
+        'match': '^([\\p{L}0-9]+)(::)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*0-9]+)(=>)([ ])'
         'captures':
           '1':
             'name': 'keyword.control.prompt.clojure'
