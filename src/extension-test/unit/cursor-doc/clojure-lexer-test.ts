@@ -215,14 +215,36 @@ describe('Scanner', () => {
                 })
             )
         });
-        it('tokenizes literal character', () => {
-            fc.assert(
-                fc.property(quotedLiteral(), data => {
-                    const tokens = scanner.processLine(data);
-                    expect(tokens[0].type).equal('lit');
-                    expect(tokens[0].raw).equal(data);
-                })
-            )
+        describe('tokenizes literal character', () => {
+            it('tokenizes literal character', () => {
+                fc.assert(
+                    fc.property(quotedLiteral(), data => {
+                        const tokens = scanner.processLine(data);
+                        expect(tokens[0].type).equal('lit');
+                        expect(tokens[0].raw).equal(data);
+                    })
+                )
+            });
+            it('tokenizes named literals', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["\\space", "\\space,", "\\space;", "\\space ", "\\space\\newline"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals('\\space');
+                    })
+                )
+            });
+            it('tokenizes named literals with comments appended', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["\\newline;", "\\space;comment", "\\space; comment"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text.substr(0, text.indexOf(';')));
+                        expect(tokens[1].type).equals('comment');
+                        expect(tokens[1].raw).equals(text.substr(text.indexOf(';')));
+                    })
+                )
+            });
         });
         it('tokenizes literal named character', () => {
             const tokens = scanner.processLine('\\space');
