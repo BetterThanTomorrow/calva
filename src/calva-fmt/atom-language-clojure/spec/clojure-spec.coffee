@@ -70,6 +70,8 @@ describe "Clojure grammar", ->
       "constant.numeric.double.clojure": ["123.45", "123.45e6", "123.45E6"]
       "constant.numeric.bigint.clojure": ["123N"]
       "constant.numeric.long.clojure": ["123", "12321"]
+      "constant.numeric.invalid.clojure": ["0xg", "0Xg", "0XG", "0Xg"]
+      "constant.numeric.invalid.clojure": ["08", "09"]
 
     for scope, nums of numbers
       for num in nums
