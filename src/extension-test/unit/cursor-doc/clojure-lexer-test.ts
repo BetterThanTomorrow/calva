@@ -116,6 +116,14 @@ describe('Scanner', () => {
                 expect(tokens[0].type).equals('id');
                 expect(tokens[0].raw).equals('_');
             });
+            it('does not tokenize something with leading digit as a symbol', () => {
+                const tokens = scanner.processLine('1foo');
+                expect(tokens[0].type).equals('lit');
+                expect(tokens[0].raw).equals('1');
+                expect(tokens[1].type).equals('id');
+                expect(tokens[1].raw).equals('foo');
+            });
+
         });
         it('tokenizes whitespace', () => {
             fc.assert(
