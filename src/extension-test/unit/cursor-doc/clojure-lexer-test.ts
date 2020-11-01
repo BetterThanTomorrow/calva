@@ -12,7 +12,7 @@ const wsChars = [',', ' ', '\t', '\n', '\r'];
 const openChars = ['"', '(', '[', '{'];
 const closeChars = ['"', ')', ']', '}'];
 const formPrefixChars = ["'", '@', '~', '`', '^', ','];
-const nonSymbolChars = [...wsChars, ...[';', '@', '~', '`'], ...openChars, ...closeChars];
+const nonSymbolChars = [...wsChars, ...[';', '@', '~', '`', '^'], ...openChars, ...closeChars];
 
 function symbolChar(): fc.Arbitrary<string> {
     // We need to filter away all kinds of whitespace, therefore the regex...
