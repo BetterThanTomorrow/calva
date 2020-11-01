@@ -70,11 +70,13 @@ toplevel.terminal("ignore", /#_/, (l, m) => ({ type: "ignore" }))
 // literals
 toplevel.terminal("lit-quoted-brackets", /(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
 
-// This seems unnecessary?
-//toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
 toplevel.terminal("lit-reserved", /(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal("lit-integer", /(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-integer", /(['`~#]\s*)*[-+]?(0|[1-9]+[0-9]*)([rR][0-9a-zA-Z]+)*/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?(0|[1-9]+[0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-hex-integer", /(['`~#]\s*)*[-+]?0[xX][0-9a-fA-F]+/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-invalid-hex-integer", /(['`~#]\s*)*[-+]?0x[g-zG-Z]+/, (l, m) => ({ type: "invalid" }))
+toplevel.terminal("lit-octal-integer", /(['`~#]\s*)*[-+]?0[0-7]+/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-invalid-octal-integer", /(['`~#]\s*)*[-+]?0[89]+/, (l, m) => ({ type: "invalid" }))
 
 toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 

@@ -140,6 +140,50 @@ describe('Scanner', () => {
             expect(tokens[1].type).equals('ws');
             expect(tokens[1].raw).equals('   ');
         });
+        describe('numbers', () => {
+            it('tokenizes ints', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["42", "0", "+42", "-0", "-42", "+3r11", "-25Rn"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
+            });
+            it('tokenizes floats', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["4.2", "0.0", "+42.78", "-0.0", "42.0"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
+            });
+            it('tokenizes legal hex', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["0xf", "0xCafeBabe", "0x0", "+0X0", "-0xFAF", "0x3B85110"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
+            });
+            it('tokenizes invalid hex as invalid', () => {
+                const tokens = scanner.processLine('0xg');
+                expect(tokens[0].type).equals('invalid');
+                expect(tokens[0].raw).equals('0xg');
+            })
+            it('tokenizes legal octal', () => {
+                const tokens = scanner.processLine('+07');
+                expect(tokens[0].type).equals('lit');
+                expect(tokens[0].raw).equals('+07');
+            })
+            it('tokenizes invalid octal as invalid', () => {
+                const tokens = scanner.processLine('08');
+                expect(tokens[0].type).equals('invalid');
+                expect(tokens[0].raw).equals('08');
+            })
+        });
         it('tokenizes keyword', () => {
             fc.assert(
                 fc.property(keyword(), data => {
