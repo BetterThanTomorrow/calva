@@ -201,6 +201,15 @@ describe('Scanner', () => {
                     })
                 )
             });
+            it('tokenizes symbolic values', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["##Inf", "##-Inf", "##,, Inf", "## Inf", "## -Inf", "##NaN", "##  NaN"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
+            });
         });
         it('tokenizes keyword', () => {
             fc.assert(
