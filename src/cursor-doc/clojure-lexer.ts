@@ -78,6 +78,10 @@ toplevel.terminal("lit-hex-integer", /(['`~#]\s*)*[-+]?0[xX][0-9a-fA-F]+/, (l, m
 toplevel.terminal("lit-invalid-hex-integer", /(['`~#]\s*)*[-+]?0x[g-zG-Z]+/, (l, m) => ({ type: "invalid" }))
 toplevel.terminal("lit-octal-integer", /(['`~#]\s*)*[-+]?0[0-7]+[nN]?/, (l, m) => ({ type: "lit" }))
 toplevel.terminal("lit-invalid-octal-integer", /(['`~#]\s*)*[-+]?0[89]+/, (l, m) => ({ type: "invalid" }))
+toplevel.terminal("lit-ratio", /(['`~#]\s*)*[-+]?\d+\/\d+/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-invalid-ratio-n", /(['`~#]\s*)*[-+]?\d+([rR]\d+|[NM])\/\d+/, (l, m) => ({ type: "invalid" }))
+toplevel.terminal("lit-invalid-ratio-d1", /(['`~#]\s*)*[-+]?\d+\/\d+([rR]\d+|[NM])/, (l, m) => ({ type: "invalid" }))
+toplevel.terminal("lit-invalid-ratio-d2", /(['`~#]\s*)*[-+]?\d+\/[+-]\d+/, (l, m) => ({ type: "invalid" }))
 
 toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 

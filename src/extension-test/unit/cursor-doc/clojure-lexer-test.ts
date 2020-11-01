@@ -187,6 +187,24 @@ describe('Scanner', () => {
                 expect(tokens[0].type).equals('invalid');
                 expect(tokens[0].raw).equals('08');
             })
+            it('tokenizes ratios', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["1/2", "01/02", "-100/200", "+1/0"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
+            });
+            it('tokenizes invalid ratios as invalid', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["1N/2", "01R2/02", "100/-200", "1M/2"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('invalid');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
+            });
         });
         it('tokenizes keyword', () => {
             fc.assert(
