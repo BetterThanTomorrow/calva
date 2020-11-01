@@ -143,23 +143,23 @@ describe('Scanner', () => {
         describe('numbers', () => {
             it('tokenizes ints', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["42", "0", "+42", "-0", "-42", "+3r11", "-25Rn"]), (text) => {
+                    fc.property(fc.constantFrom(...["42", "0", "+42", "-0", "-42", "+3r11", "-25Rn", "00M"]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text);
                     })
                 )
             });
-            it('tokenizes floats', () => {
+            it('tokenizes decimals', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["4.2", "0.0", "+42.78", "-0.0", "42.0"]), (text) => {
+                    fc.property(fc.constantFrom(...["4.2", "0.0", "+42.78", "-0.0", "42.0", "+18998.18998e+18998M", "-01.18e+18M", "-61E-19471M"]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text);
                     })
                 )
             });
-            it('tokenizes legal hex', () => {
+            it('tokenizes hex', () => {
                 fc.assert(
                     fc.property(fc.constantFrom(...["0xf", "0xCafeBabe", "0x0", "+0X0", "-0xFAF", "0x3B85110"]), (text) => {
                         const tokens = scanner.processLine(text);
@@ -173,10 +173,14 @@ describe('Scanner', () => {
                 expect(tokens[0].type).equals('invalid');
                 expect(tokens[0].raw).equals('0xg');
             })
-            it('tokenizes legal octal', () => {
-                const tokens = scanner.processLine('+07');
-                expect(tokens[0].type).equals('lit');
-                expect(tokens[0].raw).equals('+07');
+            it('tokenizes octal', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["07", "007", "+01", "-01234567", "-0344310433453N"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
             })
             it('tokenizes invalid octal as invalid', () => {
                 const tokens = scanner.processLine('08');
