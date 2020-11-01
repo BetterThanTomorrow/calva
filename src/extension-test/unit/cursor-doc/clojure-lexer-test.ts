@@ -525,11 +525,11 @@ describe('Scanner', () => {
                 }
             });
         });
-        xit('does not croak on comments with hashes - #667', () => {
+        it('does not croak on comments with hashes - #667', () => {
             // https://github.com/BetterThanTomorrow/calva/issues/659
             const text = ';; ################################################# FRONTEND';
             const tokens = scanner.processLine(text);
-            expect(tokens.length).equals(1);
+            expect(tokens.length).equals(2);
             expect(tokens[0].type).equals('comment');
             expect(tokens[0].raw === text);
         });
