@@ -69,12 +69,8 @@ function nonWs(): fc.Arbitrary<string> {
     return fc.stringOf(nonWsChar(), 1, 3);
 }
 
-function quotedLiteralChar(): fc.Arbitrary<string> {
-    return fc.unicode().filter(c => !([...wsChars, ...openChars, ...closeChars].includes(c) || c.match(/\s/)));
-}
-
 function quotedLiteral(): fc.Arbitrary<string> {
-    return fc.tuple(fc.constantFrom('\\'), quotedLiteralChar()).map(([c, s]) => `${c}${s}`);
+    return fc.tuple(fc.constantFrom('\\'), fc.unicode()).map(([c, s]) => `${c}${s}`);
 }
 
 function list(): fc.Arbitrary<string> {
