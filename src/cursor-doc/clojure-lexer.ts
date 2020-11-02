@@ -50,6 +50,9 @@ export interface Token extends LexerToken {
 toplevel.terminal("ws", /[\t ,]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
 toplevel.terminal("ws-nl", /(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
+// lots of other things are considered whitespace
+// https://github.com/sogaiu/tree-sitter-clojure/blob/f8006afc91296b0cdb09bfa04e08a6b3347e5962/grammar.js#L6-L32
+toplevel.terminal("ws-other", /[\f\u000B\u001C\u001D\u001E\u001F\u2028\u2029\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2008\u2009\u200a\u205f\u3000]+/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal("comment", /;.*/, (l, m) => ({ type: "comment" }))
 // Calva repl prompt
@@ -94,7 +97,7 @@ toplevel.terminal("reader", /#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "r
 toplevel.terminal("id", /(['`~#^@]\s*)*(((?<!#)_|[+-](?!\d)|[^-+\d_()[\]\{\}#,~@'`^\"\s:;\\])[^()[\]\{\},~@`^\"\s;\\]*)/, (l, m) => ({ type: "id" }))
 
 // Lexer croaks without this catch-all safe
-toplevel.terminal("junk", /./, (l, m) => ({ type: "junk" }))
+toplevel.terminal("junk", /[\u0000-\uffff]/, (l, m) => ({ type: "junk" }))
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
@@ -109,7 +112,7 @@ inString.terminal("ws", /[\t ]+/, (l, m) => ({ type: "ws" }))
 inString.terminal("ws-nl", /(\r?\n)/, (l, m) => ({ type: "ws" }))
 
 // Lexer can croak on funny data without this catch-all safe: see https://github.com/BetterThanTomorrow/calva/issues/659
-inString.terminal("junk", /./, (l, m) => ({ type: "junk" }))
+inString.terminal("junk", /[\u0000-\uffff]/, (l, m) => ({ type: "junk" }))
 
 
 /**

@@ -8,7 +8,8 @@ const MAX_LINE_LENGTH = 100;
 // fast-check Arbritraries
 
 // TODO: single quotes are valid in real Clojure, but Calva can't handle them in symbols yet
-const wsChars = [',', ' ', '\t', '\n', '\r'];
+const wsChars = [',', ' ', '\t', '\n', '\r', '\f',
+    ...'\u000B\u001C\u001D\u001E\u001F\u2028\u2029\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2008\u2009\u200a\u205f\u3000'];
 const openChars = ['"', '(', '[', '{'];
 const closeChars = ['"', ')', ']', '}'];
 const formPrefixChars = ["'", '@', '~', '`', '^', ','];
