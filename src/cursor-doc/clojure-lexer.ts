@@ -68,7 +68,7 @@ toplevel.terminal("close", /\)|\]|\}/, (l, m) => ({ type: "close" }))
 toplevel.terminal("ignore", /#_/, (l, m) => ({ type: "ignore" }))
 
 // literals
-toplevel.terminal("lit-quoted-ws", /\\./, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-quoted-ws", /\\(.|[\n\r])/, (l, m) => ({ type: "lit" }));
 toplevel.terminal("lit-quoted", /\\[^\(\)\[\]\{\}\s;,\\]+/, (l, m) => ({ type: "lit" }));
 toplevel.terminal("lit-quoted-brackets", /\\[\(\)\[\]\{\}]/, (l, m) => ({ type: "lit" }));
 toplevel.terminal("lit-symbolic-values", /##[\s,]*(NaN|-?Inf)/, (l, m) => ({ type: "lit" }));

@@ -69,7 +69,7 @@ function nonWs(): fc.Arbitrary<string> {
     return fc.stringOf(nonWsChar(), 1, 3);
 }
 
-function quotedLiteral(): fc.Arbitrary<string> {
+function quotedUnicode(): fc.Arbitrary<string> {
     return fc.tuple(fc.constantFrom('\\'), fc.unicode()).map(([c, s]) => `${c}${s}`);
 }
 
@@ -220,15 +220,28 @@ describe('Scanner', () => {
                 })
             )
         });
-        describe('tokenizes literal character', () => {
-            it('tokenizes literal character', () => {
+        describe('tokenizes literal characters', () => {
+            it('tokenizes literal unicode characters', () => {
                 fc.assert(
-                    fc.property(quotedLiteral(), data => {
+                    fc.property(quotedUnicode(), data => {
                         const tokens = scanner.processLine(data);
                         expect(tokens[0].type).equal('lit');
                         expect(tokens[0].raw).equal(data);
                     })
                 )
+            });
+            it('tokenizes literal whitespace and control characters', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...[' ', '\b', '\t', '\r', '\n', '\f', '\0'].map(c => `\\${c}`)), data => {
+                        const tokens = scanner.processLine(data);
+                        expect(tokens[0].type).equal('lit');
+                        expect(tokens[0].raw).equal(data);
+                    })
+                )
+                const data = '\\\b'
+                const tokens = scanner.processLine(data);
+                expect(tokens[0].type).equal('lit');
+                expect(tokens[0].raw).equal(data);
             });
             it('tokenizes named literals', () => {
                 fc.assert(
