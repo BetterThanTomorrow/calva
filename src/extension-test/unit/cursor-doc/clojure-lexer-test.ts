@@ -252,14 +252,31 @@ describe('Scanner', () => {
                     })
                 )
             });
-            it('tokenizes named literals with comments appended', () => {
+            it('tokenizes literals with comments appended', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["\\newline;", "\\space;comment", "\\space; comment"]), (text) => {
+                    fc.property(fc.constantFrom(...[
+                        "\\newline;", "\\space;comment", "\\space; comment",
+                        "1;", "+1;"
+                    ]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text.substr(0, text.indexOf(';')));
                         expect(tokens[1].type).equals('comment');
                         expect(tokens[1].raw).equals(text.substr(text.indexOf(';')));
+                    })
+                )
+            });
+            it('tokenizes literals with ignores appended', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...[
+                        "\\newline#_", "\\space#_ignore",
+                        "1#_", "+1#_", "-12#_"
+                    ]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text.substr(0, text.indexOf('#_')));
+                        expect(tokens[1].type).equals('ignore');
+                        expect(tokens[1].raw).equals('#_');
                     })
                 )
             });
