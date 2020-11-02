@@ -269,10 +269,7 @@ describe('Scanner', () => {
             });
             it('tokenizes literals with ignores appended', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...[
-                        "\\newline#_", "\\space#_ignore",
-                        "1#_", "+1#_", "-12#_"
-                    ]), (text) => {
+                    fc.property(fc.constantFrom(...["1#_", "+1#_", "-12#_"]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text.substr(0, text.indexOf('#_')));
@@ -333,6 +330,14 @@ describe('Scanner', () => {
                 expect(tokens[2].raw).equals('#_');
                 expect(tokens[3].type).equals('id');
                 expect(tokens[3].raw).equals('foo');
+            });
+            it('adjacent after literals it is part of the token', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...["\\c#_"]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].raw).equals(text);
+                    })
+                )
             });
         });
         it('tokenizes the Calva repl prompt', () => {
