@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import * as expect from 'expect';
 import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
 import * as mock from '../common/mock';
 import * as fs from "fs";
@@ -40,7 +40,7 @@ describe('Debugger Util', async () => {
             doc.insertString(docText);
             const tokenCursor = doc.getTokenCursor(0);
             moveTokenCursorToBreakpoint(tokenCursor, debugResponse);
-            expect(tokenCursor.getPrevToken().raw.endsWith('|')).equals(true);
+            expect(tokenCursor.getPrevToken().raw.endsWith('|')).toBe(true);
         }
 
         it('simple example', () => {
