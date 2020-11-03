@@ -116,7 +116,7 @@
         'name': 'constant.numeric.arbitrary-radix.clojure'
       }
       {
-        'match': '([-+]?0[xX][0-9a-fA-F]+)'
+        'match': '([-+]?0[xX][0-9a-fA-F]+N?)'
         'name': 'constant.numeric.hexadecimal.clojure'
       }
       {
@@ -124,7 +124,11 @@
         'name': 'constant.numeric.invalid.clojure'
       }
       {
-        'match': '([-+]?0[0-7]+)'
+        'match': '([-+]?\\d+M)'
+        'name': 'constant.numeric.bigdecimal.clojure'
+      }
+      {
+        'match': '([-+]?0[0-7]+N?)'
         'name': 'constant.numeric.octal.clojure'
       }
       {
