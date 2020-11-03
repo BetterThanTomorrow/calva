@@ -80,6 +80,14 @@ function list(): fc.Arbitrary<string> {
         .map(([o, s, c]) => `${o}${s}${c}`);
 }
 
+function selectKeysTypeRaw(tokens: any[]) {
+    return tokens.slice(0, tokens.length - 1)
+        .map(t => { return { type: t.type, raw: t.raw } });
+}
+
+function testTokens(data) {
+    return data.map(d => { return { type: d[0], raw: d[1] } });
+}
 
 describe('Scanner', () => {
     let scanner: Scanner;
@@ -298,10 +306,10 @@ describe('Scanner', () => {
                 fc.assert(
                     fc.property(fc.constantFrom(...["1#_", "+1#_", "-12#_", "4.2#_", "42.2#_"]), (text) => {
                         const tokens = scanner.processLine(text);
-                        expect(tokens[0].type).toBe('lit');
-                        expect(tokens[0].raw).toBe(text.substr(0, text.indexOf('#_')));
-                        expect(tokens[1].type).toBe('ignore');
-                        expect(tokens[1].raw).toBe('#_');
+                        expect(selectKeysTypeRaw(tokens)).toEqual(testTokens([
+                            ['lit', text.substr(0, text.indexOf('#_'))],
+                            ['ignore', '#_']
+                        ]));
                     })
                 )
             });
