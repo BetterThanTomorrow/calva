@@ -140,7 +140,9 @@ describe('Scanner', () => {
         describe('numbers', () => {
             it('tokenizes ints', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["42", "0", "+42", "-0", "-42", "+3r11", "-25Rn", "00M"]), (text) => {
+                    fc.property(fc.constantFrom(...["42", "0", "-007", "+42", "-0",
+                        "-42", "+3r11", "-25Rn", "00M"
+                    ]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text);
@@ -149,7 +151,10 @@ describe('Scanner', () => {
             });
             it('tokenizes decimals', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["4.2", "0.0", "+42.78", "-0.0", "42.0", "+18998.18998e+18998M", "-01.18e+18M", "-61E-19471M"]), (text) => {
+                    fc.property(fc.constantFrom(...[
+                        "4.2", "0.0", "+42.78", "-0.0", "42.0", "0042.0",
+                        "+18998.18998e+18998M", "-01.18e+18M", "-61E-19471M"
+                    ]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text);
@@ -158,46 +163,33 @@ describe('Scanner', () => {
             });
             it('tokenizes hex', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["0xf", "0xCafeBabe", "0x0", "+0X0", "-0xFAF", "0x3B85110"]), (text) => {
+                    fc.property(fc.constantFrom(...[
+                        "0xf", "0xCafeBabe", "0x0", "+0X0", "-0xFAF", "0x3B85110",
+                        "0xfN", "0xCafeBabeN", "0x0N", "+0X0N", "-0xFAFN", "0x3B85110N"
+                    ]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text);
                     })
                 )
             });
-            it('tokenizes invalid hex as invalid', () => {
-                const tokens = scanner.processLine('0xg');
-                expect(tokens[0].type).equals('invalid');
-                expect(tokens[0].raw).equals('0xg');
-            })
             it('tokenizes octal', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["07", "007", "+01", "-01234567", "-0344310433453N"]), (text) => {
+                    fc.property(fc.constantFrom(...[
+                        "07", "007", "+01", "-01234567", "-0344310433453",
+                        "07N", "007N", "+01N", "-01234567N", "-0344310433453N"
+                    ]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text);
                     })
                 )
-            })
-            it('tokenizes invalid octal as invalid', () => {
-                const tokens = scanner.processLine('08');
-                expect(tokens[0].type).equals('invalid');
-                expect(tokens[0].raw).equals('08');
-            })
+            });
             it('tokenizes ratios', () => {
                 fc.assert(
                     fc.property(fc.constantFrom(...["1/2", "01/02", "-100/200", "+1/0"]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
-                        expect(tokens[0].raw).equals(text);
-                    })
-                )
-            });
-            it('tokenizes invalid ratios as invalid', () => {
-                fc.assert(
-                    fc.property(fc.constantFrom(...["1N/2", "01R2/02", "100/-200", "1M/2"]), (text) => {
-                        const tokens = scanner.processLine(text);
-                        expect(tokens[0].type).equals('invalid');
                         expect(tokens[0].raw).equals(text);
                     })
                 )

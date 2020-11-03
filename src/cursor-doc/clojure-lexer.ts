@@ -77,17 +77,11 @@ toplevel.terminal("lit-quoted", /\\[^\(\)\[\]\{\}\s;,\\][^\(\)\[\]\{\}\s;,\\]+/,
 toplevel.terminal("lit-quoted-brackets", /\\[\(\)\[\]\{\}]/, (l, m) => ({ type: "lit" }));
 toplevel.terminal("lit-symbolic-values", /##[\s,]*(NaN|-?Inf)/, (l, m) => ({ type: "lit" }));
 toplevel.terminal("lit-reserved", /(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-integer", /(['`~#]\s*)*[-+]?(0|[1-9]+[0-9]*)([rR][0-9a-zA-Z]+|[N])*/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?(0|[1-9]+[0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-number-bigdec-sci", /(['`~#]\s*)*([-+]?\d+(\.[0-9]+)?([eE][-+]?[0-9]+)?M)/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-hex-integer", /(['`~#]\s*)*[-+]?0[xX][0-9a-fA-F]+/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-invalid-hex-integer", /(['`~#]\s*)*[-+]?0x[g-zG-Z]+/, (l, m) => ({ type: "invalid" }));
-toplevel.terminal("lit-octal-integer", /(['`~#]\s*)*[-+]?0[0-7]+[nN]?/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-invalid-octal-integer", /(['`~#]\s*)*[-+]?0[89]+/, (l, m) => ({ type: "invalid" }));
+toplevel.terminal("lit-integer", /(['`~#]\s*)*[-+]?(0+|[1-9]+[0-9]*)([rR][0-9a-zA-Z]+|[N])*/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?(0+[0-9]*|[1-9]+[0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?)M?/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-hex-integer", /(['`~#]\s*)*[-+]?0[xX][0-9a-zA-Z]+/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-octal-integer", /(['`~#]\s*)*[-+]?0[0-9]+[nN]?/, (l, m) => ({ type: "lit" }));
 toplevel.terminal("lit-ratio", /(['`~#]\s*)*[-+]?\d+\/\d+/, (l, m) => ({ type: "lit" }));
-toplevel.terminal("lit-invalid-ratio-n", /(['`~#]\s*)*[-+]?\d+([rR]\d+|[NM])\/\d+/, (l, m) => ({ type: "invalid" }));
-toplevel.terminal("lit-invalid-ratio-d1", /(['`~#]\s*)*[-+]?\d+\/\d+([rR]\d+|[NM])/, (l, m) => ({ type: "invalid" }));
-toplevel.terminal("lit-invalid-ratio-d2", /(['`~#]\s*)*[-+]?\d+\/[+-]\d+/, (l, m) => ({ type: "invalid" }));
 
 toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 

@@ -76,12 +76,6 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).equal(14);
         });
 
-        it('should not skip past `invalid` tokens', () => {
-            scratchDoc.insertString('0xg 1');
-            const cursor = scratchDoc.getTokenCursor(0);
-            cursor.forwardSexp();
-            expect(cursor.offsetStart).equal(3);
-        });
     });
 
     describe('backardSexp', () => {
@@ -97,12 +91,6 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).equal(5);
         });
 
-        it('should not skip past `invalid` tokens', () => {
-            scratchDoc.insertString('1 0xg');
-            const cursor = scratchDoc.getTokenCursor(5);
-            cursor.backwardSexp();
-            expect(cursor.offsetStart).equal(2);
-        });
     });
 
     describe('downList', () => {
