@@ -211,6 +211,32 @@ describe('Scanner', () => {
                     })
                 )
             });
+            it('tokenizes symbolic values with comments appended', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...[
+                        "##Inf;", "##-Inf;comment", "## -Inf; comment",
+                        "##NaN;", "## NaN;comment"
+                    ]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text.substr(0, text.indexOf(';')));
+                        expect(tokens[1].type).equals('comment');
+                        expect(tokens[1].raw).equals(text.substr(text.indexOf(';')));
+                    })
+                )
+            });
+            it('tokenizes symbolic values with backslash appended', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...[
+                        "##Inf\\", "##-Inf\\comment", "## -Inf\\ comment",
+                        "##NaN\\", "## NaN\\comment"
+                    ]), (text) => {
+                        const tokens = scanner.processLine(text);
+                        expect(tokens[0].type).equals('lit');
+                        expect(tokens[0].raw).equals(text.substr(0, text.indexOf('\\')));
+                    })
+                )
+            });
         });
         it('tokenizes keyword', () => {
             fc.assert(
@@ -231,9 +257,18 @@ describe('Scanner', () => {
                     })
                 )
             });
+            it('tokenizes backslash', () => {
+                fc.assert(
+                    fc.property(fc.constantFrom(...['\\']), data => {
+                        const tokens = scanner.processLine(data);
+                        expect(tokens[0].type).equal('lit');
+                        expect(tokens[0].raw).equal(data);
+                    })
+                )
+            });
             it('tokenizes literal whitespace and control characters', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...[' ', '\b', '\t', '\r', '\n', '\f', '\0'].map(c => `\\${c}`)), data => {
+                    fc.property(fc.constantFrom(...[' ', '\b', '\t', '\r', '\n', '\f', '\0', '\\'].map(c => `\\${c}`)), data => {
                         const tokens = scanner.processLine(data);
                         expect(tokens[0].type).equal('lit');
                         expect(tokens[0].raw).equal(data);
@@ -267,9 +302,9 @@ describe('Scanner', () => {
                     })
                 )
             });
-            it('tokenizes literals with ignores appended', () => {
+            it('tokenizes numeric literals with ignores appended', () => {
                 fc.assert(
-                    fc.property(fc.constantFrom(...["1#_", "+1#_", "-12#_"]), (text) => {
+                    fc.property(fc.constantFrom(...["1#_", "+1#_", "-12#_", "4.2#_", "42.2#_"]), (text) => {
                         const tokens = scanner.processLine(text);
                         expect(tokens[0].type).equals('lit');
                         expect(tokens[0].raw).equals(text.substr(0, text.indexOf('#_')));
