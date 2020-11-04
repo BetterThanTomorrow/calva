@@ -50,6 +50,9 @@ export interface Token extends LexerToken {
 toplevel.terminal("ws", /[\t ,]+/, (l, m) => ({ type: "ws" }))
 // newlines, we want each one as a token of its own
 toplevel.terminal("ws-nl", /(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
+// lots of other things are considered whitespace
+// https://github.com/sogaiu/tree-sitter-clojure/blob/f8006afc91296b0cdb09bfa04e08a6b3347e5962/grammar.js#L6-L32
+toplevel.terminal("ws-other", /[\f\u000B\u001C\u001D\u001E\u001F\u2028\u2029\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2008\u2009\u200a\u205f\u3000]+/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal("comment", /;.*/, (l, m) => ({ type: "comment" }))
 // Calva repl prompt
@@ -68,24 +71,28 @@ toplevel.terminal("close", /\)|\]|\}/, (l, m) => ({ type: "close" }))
 toplevel.terminal("ignore", /#_/, (l, m) => ({ type: "ignore" }))
 
 // literals
-toplevel.terminal("lit-quoted-brackets", /(\\[^\(\)\[\]\{\}\s]+|\\[\(\)\[\]\{\}])/, (l, m) => ({ type: "lit" }))
-
-// This seems unnecessary?
-//toplevel.terminal(/(['`~#]\s*)*\\\"/, (l, m) => ({ type: "lit" }))
-toplevel.terminal("lit-reserved", /(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal("lit-integer", /(['`~#]\s*)*([0-9]+[rR][0-9a-zA-Z]+)/, (l, m) => ({ type: "lit" }))
-toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?)/, (l, m) => ({ type: "lit" }))
+toplevel.terminal("lit-quoted-ws", /\\[\n\r\t ]/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-quoted-chars", /\\.?/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-quoted", /\\[^\(\)\[\]\{\}\s;,\\][^\(\)\[\]\{\}\s;,\\]+/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-quoted-brackets", /\\[\(\)\[\]\{\}]/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-symbolic-values", /##[\s,]*(NaN|-?Inf)/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-reserved", /(['`~#]\s*)*(true|false|nil)/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-integer", /(['`~#]\s*)*[-+]?(0+|[1-9]+[0-9]*)([rR][0-9a-zA-Z]+|[N])*/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-number-sci", /(['`~#]\s*)*([-+]?(0+[0-9]*|[1-9]+[0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?)M?/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-hex-integer", /(['`~#]\s*)*[-+]?0[xX][0-9a-zA-Z]+/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-octal-integer", /(['`~#]\s*)*[-+]?0[0-9]+[nN]?/, (l, m) => ({ type: "lit" }));
+toplevel.terminal("lit-ratio", /(['`~#]\s*)*[-+]?\d+\/\d+/, (l, m) => ({ type: "lit" }));
 
 toplevel.terminal("kw", /(['`~^]\s*)*(:[^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "kw" }))
 
 // data readers
-toplevel.terminal("reader", /#[^\(\)\[\]\{\}'"_@~\s,]+/, (_l, _m) => ({ type: "reader" }));
+toplevel.terminal("reader", /#[^\(\)\[\]\{\}'"_@~\s,;\\]+/, (_l, _m) => ({ type: "reader" }));
 
-// symbols, about anything goes!
-toplevel.terminal("id", /(['`~#^@]\s*)*([^_()[\]\{\}#,~@'`^\"\s:;][^()[\]\{\},~@`^\"\s;]*)/, (l, m) => ({ type: "id" }))
+// symbols, allows quite a lot, but can't start with `#_`, anything numeric, or a selection of chars
+toplevel.terminal("id", /(['`~#^@]\s*)*(((?<!#)_|[+-](?!\d)|[^-+\d_()[\]\{\}#,~@'`^\"\s:;\\])[^()[\]\{\},~@`^\"\s;\\]*)/, (l, m) => ({ type: "id" }))
 
 // Lexer croaks without this catch-all safe
-toplevel.terminal("junk", /./, (l, m) => ({ type: "junk" }))
+toplevel.terminal("junk", /[\u0000-\uffff]/, (l, m) => ({ type: "junk" }))
 
 /** This is inside-string string grammar. It spits out 'close' once it is time to switch back to the 'toplevel' grammar,
  * and 'str-inside' for the words in the string. */
@@ -100,7 +107,7 @@ inString.terminal("ws", /[\t ]+/, (l, m) => ({ type: "ws" }))
 inString.terminal("ws-nl", /(\r?\n)/, (l, m) => ({ type: "ws" }))
 
 // Lexer can croak on funny data without this catch-all safe: see https://github.com/BetterThanTomorrow/calva/issues/659
-inString.terminal("junk", /./, (l, m) => ({ type: "junk" }))
+inString.terminal("junk", /[\u0000-\uffff]/, (l, m) => ({ type: "junk" }))
 
 
 /**
