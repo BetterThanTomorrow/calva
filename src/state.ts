@@ -192,10 +192,6 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(): Promise<void> {
     const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
-    await findLocalProjectRoot(projectFileNames);
-}
-
-async function findLocalProjectRoot(projectFileNames): Promise<void> {
     const workspace = vscode.workspace.workspaceFolders![0];
     const doc = util.getDocument({});
 
@@ -208,6 +204,12 @@ async function findLocalProjectRoot(projectFileNames): Promise<void> {
             workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
+
+    await findLocalProjectRoot(projectFileNames, doc, workspaceFolder);
+    await findProjectRootUri(projectFileNames, doc, workspaceFolder);
+}
+
+async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
     let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
     cursor.set(PROJECT_DIR_KEY, rootPath);
     cursor.set(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
@@ -247,7 +249,28 @@ async function findLocalProjectRoot(projectFileNames): Promise<void> {
     return;
 }
 
+async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promise<void> {
+    let searchUri = doc?.uri || workspaceFolder?.uri;
+    let prev = null;
+    while (searchUri != prev) {
+        for (let projectFile in projectFileNames) {
+            const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
+            try {
+                const stat = await vscode.workspace.fs.stat(u);
+                if (stat) {
+                    cursor.set(PROJECT_DIR_URI_KEY, searchUri);
+                    return;
+                }
+            }
+            catch (_) { }
+        }
+        prev = searchUri;
+        searchUri = vscode.Uri.joinPath(searchUri, "..");
+    }
+}
+
 /**
+ *
  * Tries to resolve absolute path in relation to project root
  * @param filePath - absolute or relative to the project
  */
