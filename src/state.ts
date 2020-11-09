@@ -191,9 +191,13 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * If there is no project file found, throw an exception.
  */
 export async function initProjectDir(): Promise<void> {
-    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-        workspace = vscode.workspace.workspaceFolders![0],
-        doc = util.getDocument({});
+    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
+    await findLocalProjectRoot(projectFileNames);
+}
+
+async function findLocalProjectRoot(projectFileNames): Promise<void> {
+    const workspace = vscode.workspace.workspaceFolders![0];
+    const doc = util.getDocument({});
 
     // first try the workplace folder
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
