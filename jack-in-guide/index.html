@@ -1003,7 +1003,7 @@
 <p>Because reasons, Calva can't yet read the <code>stdout</code> of the shell command it has issued, so to know when the REPL server is started, and on which port, Calva monitors the filesystem for the <code>.nrepl-port</code> file. (This file is not always named like that. shadow-cljs, for instance, creates the file <code>.shadow-cljs/nrepl.port</code>.)</p>
 <p>When the port file is created, Calva picks up the port number from it and connects to the nREPL server. At this point you have a Clojure REPL backing your Calva session, providing all sorts of nice IDE help for you.</p>
 <h2 id="starting-your-clojure-app">Starting Your Clojure App</h2>
-<p>Once you have the Clojure REPL connected you can start your Clojure app/server. See <a href="connect-sequences">Custom Connect Sequences</a> for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-In process. It can be brought down to a single <strong>Jack-In</strong> command/action, even for a full stack Clojure and ClojureScript application.</p>
+<p>Once you have the Clojure REPL connected you can start your Clojure app/server. See <a href="../connect-sequences/">Custom Connect Sequences</a> for how to let Calva do this for you automatically. See the same article for ways to automate more of the Jack-In process. It can be brought down to a single <strong>Jack-In</strong> command/action, even for a full stack Clojure and ClojureScript application.</p>
 <h2 id="clojurescript">ClojureScript</h2>
 <p>For ClojureScript, things are not done yet, though, far from it. It turns out that cooking the command line was the easy part.</p>
 <p>In order for Calva to provide REPL power for ClojureScript projects, several things need to happen:</p>
@@ -1026,7 +1026,7 @@
 <p>What Calva does instead is to monitor the output of the commands it uses for starting the compilation, looking for information that the app is ready to be requested/started. It then tells the user this, providing a URL, in case it is a browser app. (There are also settings that tell Calva to open the URL automatically for you, regardless what the project settings are.)</p>
 <h3 id="connecting_1">Connecting</h3>
 <p>Meanwhile, Calva is monitoring the output and when it sees that the app is started, it continues to hook up the REPL connection to the editor.</p>
-<p>This whole connection sequence is quite configurable, using <a href="connect-sequences">Custom Connect Sequences</a>. In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and Nashorn) are all built using those same settings mechanisms.</p>
+<p>This whole connection sequence is quite configurable, using <a href="../connect-sequences/">Custom Connect Sequences</a>. In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and Nashorn) are all built using those same settings mechanisms.</p>
 <h4 id="shadow-cljs-is-less-managed-by-calva">shadow-cljs is Less Managed by Calva</h4>
 <p><strong>NB:</strong> The managed way in which Calva creates and connects the ClojureScript REPL breaks apart a bit for shadow-cljs, which works a bit differently and also outputs most of the information Calva is looking for on the <code>stdout</code> of the REPL start command (where Calva can't see it, remember?). We'll figure out a better way to support shadow-cljs, but for now, the user needs to do more of this figuring out than is needed with Figwheel projects.</p>
 <h3 id="hack-away">Hack Away</h3>
