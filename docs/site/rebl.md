@@ -30,7 +30,7 @@ Add the following aliases to your deps.edn file. Use the deps.edn file in the `~
 
 ;; nREBL
 :nrebl {:extra-deps {rickmoynihan/nrebl.middleware {:mvn/version "0.2.0"}}
-            :main-opts ["-e" "((requiring-resolve,'cognitect.rebl/ui))" "-m""nrepl.    cmdline" "--middleware" "[nrebl.middleware/wrap-nrebl]" "-I"]}
+            :main-opts ["-e" "((requiring-resolve,'cognitect.rebl/ui))" "-m" "nrepl.cmdline" "--middleware" "[nrebl.middleware/wrap-nrebl]" "-I"]}
 ```
 
 Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REPL Connect Sequences](connect-sequences.md) if you haven't.) Add the following to your vscode settings.json:
