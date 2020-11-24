@@ -34,6 +34,7 @@ nav:
     - connect-sequences.md
     - custom-commands.md
     - linting.md
+    - ns-form-deriving.md
   - customizing.md
   - Using Calva with X:
     - rebl.md
