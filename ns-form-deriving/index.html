@@ -11,7 +11,7 @@
         <meta name="description" content="Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.">
       
       
-        <link rel="canonical" href="https://calva.io/custom-commands/">
+        <link rel="canonical" href="https://calva.io/ns-form-deriving/">
       
       
       <link rel="shortcut icon" href="../img/favicon.ico">
@@ -19,7 +19,7 @@
     
     
       
-        <title>Running Custom REPL Commands - Calva User Guide</title>
+        <title>NS Name Deriving - Calva User Guide</title>
       
     
     
@@ -54,7 +54,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#running-custom-repl-commands" class="md-skip">
+        <a href="#ns-name-deriving" class="md-skip">
           Skip to content
         </a>
       
@@ -81,7 +81,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Running Custom REPL Commands
+              NS Name Deriving
             
           </span>
         </div>
@@ -391,20 +391,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-    <a href="./" title="Running Custom REPL Commands" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../custom-commands/" title="Running Custom REPL Commands" class="md-nav__link">
       Running Custom REPL Commands
     </a>
-    
   </li>
 
         
@@ -424,11 +415,66 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../ns-form-deriving/" title="NS Name Deriving" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        NS Name Deriving
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="NS Name Deriving" class="md-nav__link md-nav__link--active">
       NS Name Deriving
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    How It Works
+  </a>
+  
+    <nav class="md-nav" aria-label="How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fallback" class="md-nav__link">
+    Fallback
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -688,6 +734,36 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    How It Works
+  </a>
+  
+    <nav class="md-nav" aria-label="How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fallback" class="md-nav__link">
+    Fallback
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -698,7 +774,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/master/docs/site/custom-commands.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/master/docs/site/ns-form-deriving.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
                   </a>
                 
@@ -706,42 +782,19 @@
                   
                 
                 
-                <h1 id="running-custom-repl-commands">Running Custom REPL Commands</h1>
-<p>Calva supports configuration of custom command snippets that you can execute in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting <code>calva.customREPLCommandSnippets</code> to configure it and then use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</p>
-<p>The <code>calva.customREPLCommandSnippets</code> is an array of objects with the following fields:</p>
-<ul>
-<li><code>name</code>: The name of the snippet as it will appear in the picker menu</li>
-<li><code>snippet</code>: The code that will be evaluated</li>
-<li><code>ns</code>: (optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.</li>
-<li><code>repl</code>: Which repl session to use for the evaluation. Either <code>"clj"</code> or <code>"cljs"</code></li>
-</ul>
-<p>E.g. with these settings:</p>
-<div class="codehilite"><pre><span></span><code><span class="err">    &quot;calva.customREPLCommandSnippets&quot;: [</span>
-<span class="err">        {</span>
-<span class="err">            &quot;name&quot;: &quot;Foo&quot;,</span>
-<span class="err">            &quot;snippet&quot;: &quot;(println :foo)&quot;,</span>
-<span class="err">            &quot;ns&quot;: &quot;acme.test.foo-test&quot;,</span>
-<span class="err">            &quot;repl&quot;: &quot;cljs&quot;</span>
-<span class="err">        },</span>
-<span class="err">        {</span>
-<span class="err">            &quot;name&quot;: &quot;Bar&quot;,</span>
-<span class="err">            &quot;snippet&quot;: &quot;(println :bar)&quot;,</span>
-<span class="err">            &quot;ns&quot;: &quot;acme.test.bar-test&quot;,</span>
-<span class="err">            &quot;repl&quot;: &quot;clj&quot;</span>
-<span class="err">        },</span>
-<span class="err">        {</span>
-<span class="err">            &quot;name&quot;: &quot;Refresh&quot;,</span>
-<span class="err">            &quot;snippet&quot;: &quot;(refresh)&quot;,</span>
-<span class="err">            &quot;repl&quot;: &quot;clj&quot;</span>
-<span class="err">        }</span>
-<span class="err">    ]</span>
-</code></pre></div>
-
-
-<p>You will get this menu.</p>
-<p><img width="601" alt="image" src="https://user-images.githubusercontent.com/30010/66232206-9bab3280-e6e8-11e9-872b-22fd50baef25.png"></p>
-<p>The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd>, <kbd>.</kbd>. Which means that to execute the <strong>Refresh</strong> command, <code>(refresh)</code>, in the <code>clj</code> REPL, you could do:</p>
-<p><kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd>, <kbd>.</kbd>, <kbd>3</kbd>, <kbd>ENTER</kbd>.</p>
+                <h1 id="ns-name-deriving">NS Name Deriving</h1>
+<p>When you create a new clojure file, a file with <code>.clj</code>, <code>.cljc</code> or <code>.cljs</code> extension, Calva tries to derive namespace name for it and put an appropriate ns form in a place.</p>
+<p><img alt="Example of ns form autocreation." src="../images/ns-form/ns-form-autocreation.gif" /></p>
+<p>Note the cursor is placed right before the closing parenthesis. So if you want to require something, just hit the Enter and start typing it.</p>
+<h2 id="how-it-works">How It Works</h2>
+<p>Currently to build a namespace name Calva relies on the classpath. So to get a full namespace name, 2 conditions should be met:</p>
+<ol>
+<li>You are connected to a nREPL server (Jack-In).</li>
+<li>A source path under which you're creating a file is included in the classpath.</li>
+</ol>
+<p>The latter means if you have a <code>test</code> alias in your <code>deps.edn</code> and it has <code>test</code> extra path in it, then you need to make sure you picked this alias during Jack-In process.</p>
+<h3 id="fallback">Fallback</h3>
+<p>If one of the conditions above is not met, Calva still adds a namespace to the new file. However, in this case it could be inaccurate. For example, if you create a file <code>your-app/test/app/core_test.clj</code> and <code>your-app/test</code> directory is not in your classpath, you will get simply <code>(ns core-test)</code> instead of <code>(ns app.core-test)</code>.</p>
                 
               
               
@@ -760,7 +813,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../connect-sequences/" title="REPL Jack-in and Connection Sequences" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../linting/" title="Linting" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
             </div>
@@ -769,19 +822,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                REPL Jack-in and Connection Sequences
+                Linting
               </div>
             </div>
           </a>
         
         
-          <a href="../linting/" title="Linting" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../customizing/" title="Customizing Calva" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Linting
+                Customizing Calva
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
