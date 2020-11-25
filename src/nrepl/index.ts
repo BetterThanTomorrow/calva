@@ -386,6 +386,17 @@ export class NReplSession {
             this.client.write({ op: "info", ns, symbol, id, session: this.sessionId })
         })
     }
+    
+    classpath() {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "classpath", id, session: this.sessionId })
+        })
+    }
 
     test(ns: string, test: string) {
         return new Promise<any>((resolve, reject) => {

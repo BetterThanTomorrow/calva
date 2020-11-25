@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Add [ns name deriving](https://github.com/BetterThanTomorrow/calva/issues/844)
 
 ## [2.0.132] - 2020-11-16
 - Fix: [[Live Share] connecting to REPL as guest doesn't work in multi-project workspace](https://github.com/BetterThanTomorrow/calva/issues/831)
