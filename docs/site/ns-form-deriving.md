@@ -17,4 +17,4 @@ The latter means if you have a `test` alias in your `deps.edn` and it has `test`
 
 ### Fallback
 
-If one of the conditions above is not met, Calva is still add a namespace to the new file. However, in this case it could be inaccurate. For example, if you create a file `your-app/test/app/core_test.clj` and `your-app/test` directory is not in your classpath, you will get simply `(ns core-test)` instead of `(ns app.core-test)`.
+If one of the conditions above is not met, Calva still adds a namespace to the new file. However, in this case it could be inaccurate. For example, if you create a file `your-app/test/app/core_test.clj` and `your-app/test` directory is not in your classpath, you will get simply `(ns core-test)` instead of `(ns app.core-test)`.
