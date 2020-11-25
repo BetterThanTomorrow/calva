@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.133] - 2020-11-25
 - Add [ns name deriving](https://github.com/BetterThanTomorrow/calva/issues/844)
 
 ## [2.0.132] - 2020-11-16
