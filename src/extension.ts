@@ -30,7 +30,7 @@ import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
 
-let client: LanguageClient;
+let clojureLanguageClient: LanguageClient;
 
 async function onDidSave(document) {
     let {
@@ -77,21 +77,21 @@ function activateLSP(context: vscode.ExtensionContext) {
         }
     };
 
-    client = new LanguageClient(
+    clojureLanguageClient = new LanguageClient(
         'clojureLSP',
         'Clojure Language Client',
         serverOptions,
         clientOptions
     );
 
-    context.subscriptions.push(client.start());
+    context.subscriptions.push(clojureLanguageClient.start());
 
     const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
     const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
     const provider = {
         onDidChange: jarEventEmitter.event,
         provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
-            const v = await client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
+            const v = await clojureLanguageClient.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
                 { uri: decodeURIComponent(uri.toString()) },
                 token);
             return v || '';
@@ -335,8 +335,8 @@ function deactivate() {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate()
-    if (client) {
-        return client.stop();
+    if (clojureLanguageClient) {
+        return clojureLanguageClient.stop();
     }
 }
 
