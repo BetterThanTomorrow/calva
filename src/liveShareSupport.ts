@@ -35,7 +35,7 @@ export async function didJackOut() {
   jackedIn = false;
 }
 
-export async function didConnectRepl(port: number) {
+export async function didConnectRepl(port: number): Promise<void> {
   connectedPort = port;
   await shareReplServerIfPossible();
 }
