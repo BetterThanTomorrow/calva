@@ -25,16 +25,12 @@ import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
 import * as path from 'path';
-
-const isWin = /^win/.test(process.platform);
-let jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
-let contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
-
-let client: LanguageClient;
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
+
+let client: LanguageClient;
 
 async function onDidSave(document) {
     let {
@@ -65,14 +61,12 @@ function onDidOpen(document) {
 }
 
 function activateLSP(context: vscode.ExtensionContext) {
-    let jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
-
-    let serverOptions: ServerOptions = {
+    const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
+    const serverOptions: ServerOptions = {
         run: { command: 'java', args: ['-jar', jarPath] },
         debug: { command: 'java', args: ['-jar', jarPath] },
-    }
-
-    let clientOptions: LanguageClientOptions = {
+    };
+    const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'clojure' }],
         synchronize: {
             configurationSection: 'clojure-lsp',
@@ -92,21 +86,21 @@ function activateLSP(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(client.start());
 
-    let provider = {
+    const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
+    const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
+    const provider = {
         onDidChange: jarEventEmitter.event,
-        provideTextDocumentContent: (uri: vscode.Uri, token: vscode.CancellationToken): Thenable<string> => {
-            return client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
+        provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
+            const v = await client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
                 { uri: decodeURIComponent(uri.toString()) },
-                token).then((v: string) => {
-                    return v || '';
-                });
+                token);
+            return v || '';
         }
     };
     context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', provider));
-
     console.log('clojure-lsp started');
 }
-    
+
 function setKeybindingsEnabledContext() {
     let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
     vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
@@ -341,7 +335,7 @@ function deactivate() {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate()
-    if (client !== undefined) {
+    if (client) {
         return client.stop();
     }
 }
