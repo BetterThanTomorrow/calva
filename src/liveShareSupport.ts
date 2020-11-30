@@ -65,8 +65,8 @@ async function shareReplServerIfPossible() {
 
 async function unshareReplServer() {
   if (connectedPort !== null) {
-    const disposable = sharedPorts.get(connectedPort);
-    disposable.dispose();
+    const sharedPort = sharedPorts.get(connectedPort);
+    sharedPort?.dispose();
     sharedPorts.delete(connectedPort);
     connectedPort = null;
   }
