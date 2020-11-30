@@ -64,12 +64,14 @@ describe "Clojure grammar", ->
     numbers =
       "constant.numeric.ratio.clojure": ["1/2", "123/456"]
       "constant.numeric.arbitrary-radix.clojure": ["2R1011", "16rDEADBEEF", "56råäöÅÄÖπ"]
-      "constant.numeric.hexadecimal.clojure": ["0xDEADBEEF", "0XDEADBEEF"]
-      "constant.numeric.octal.clojure": ["0123"]
-      "constant.numeric.bigdecimal.clojure": ["123.456M"]
+      "constant.numeric.hexadecimal.clojure": ["0xDEADBEEF", "0XDEADBEEF", "0xCafeBabeN", "-0xCafeBabeN"]
+      "constant.numeric.octal.clojure": ["0123", "0123N", "+0123", "-0123N"]
+      "constant.numeric.bigdecimal.clojure": ["123.456M", "123M", "0123M", "-0123M"]
       "constant.numeric.double.clojure": ["123.45", "123.45e6", "123.45E6"]
       "constant.numeric.bigint.clojure": ["123N"]
       "constant.numeric.long.clojure": ["123", "12321"]
+      "constant.numeric.invalid.clojure": ["0xg", "0Xg", "0XG", "0Xg"]
+      "constant.numeric.invalid.clojure": ["08", "09"]
 
     for scope, nums of numbers
       for num in nums
@@ -331,18 +333,18 @@ describe "Clojure grammar", ->
 
   describe "replPrompt", ->
     it "tokenizes repl prompt", ->
-      {tokens} = grammar.tokenizeLine "foo::bar.baz=> "
+      {tokens} = grammar.tokenizeLine "foo::bar.baz-2=> "
       expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
       expect(tokens[1]).toEqual value: "::", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
-      expect(tokens[2]).toEqual value: "bar.baz", scopes: ["source.clojure", "meta.symbol.namespace.prompt.clojure"]
+      expect(tokens[2]).toEqual value: "bar.baz-2", scopes: ["source.clojure", "meta.symbol.namespace.prompt.clojure"]
       expect(tokens[3]).toEqual value: "=>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
     it "does not tokenize repl prompt when prepended with anything", ->
-      {tokens} = grammar.tokenizeLine " foo::bar.baz=>"
+      {tokens} = grammar.tokenizeLine " foo::bar.baz-2=> "
       expect(tokens[0]).toEqual value: " ", scopes: ["source.clojure"]
-      expect(tokens[1]).toEqual value: "foo::bar.baz=>", scopes: ["source.clojure", "meta.symbol.clojure"]
+      expect(tokens[1]).toEqual value: "foo::bar.baz-2=>", scopes: ["source.clojure", "meta.symbol.clojure"]
     it "does not tokenize repl prompt when not followed by space", ->
-      {tokens} = grammar.tokenizeLine "foo::bar.baz=>"
-      expect(tokens[0]).toEqual value: "foo::bar.baz=>", scopes: ["source.clojure", "meta.symbol.clojure"]
+      {tokens} = grammar.tokenizeLine "foo::bar.baz-2=>"
+      expect(tokens[0]).toEqual value: "foo::bar.baz-2=>", scopes: ["source.clojure", "meta.symbol.clojure"]
 
   describe "firstLineMatch", ->
     it "recognises interpreter directives", ->

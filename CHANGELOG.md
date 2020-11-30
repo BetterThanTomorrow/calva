@@ -4,6 +4,17 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.133] - 2020-11-25
+- Add [ns name deriving](https://github.com/BetterThanTomorrow/calva/issues/844)
+
+## [2.0.132] - 2020-11-16
+- Fix: [[Live Share] connecting to REPL as guest doesn't work in multi-project workspace](https://github.com/BetterThanTomorrow/calva/issues/831)
+
+## [2.0.131] - 2020-11-05
+- Fix: [Syntax highlighting error when repl prompt shows ns containing digits](https://github.com/BetterThanTomorrow/calva/issues/834)
+- Fix: [Syntax highlighting errors with tokens at the start of a line](https://github.com/BetterThanTomorrow/calva/issues/835)
+- Fix: [Various parsing issues](https://github.com/BetterThanTomorrow/calva/issues/802)
+
 ## [2.0.130] - 2020-10-25
 - Fix: [Jack-in broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/827)
 

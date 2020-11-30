@@ -76,3 +76,6 @@ report.*
 
 # MkDocs
 /site/
+
+# Calva dev
+clojure.tmLanguage.json
