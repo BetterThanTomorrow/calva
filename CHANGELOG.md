@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Live share jackout error](https://github.com/BetterThanTomorrow/calva/issues/856)
+- Fix: [Cannot read property 'document' of undefined](https://github.com/BetterThanTomorrow/calva/issues/846)
 
 ## [2.0.133] - 2020-11-25
 - Add [ns name deriving](https://github.com/BetterThanTomorrow/calva/issues/844)
