@@ -217,8 +217,24 @@ function activate(context: vscode.ExtensionContext) {
         vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
     }));
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
-    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', () => {
-        console.log('get references here');
+    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (params) => {
+        const selectionLine = vscode.window.activeTextEditor.selection.start.line;
+        // const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
+        // const references = await clojureLanguageClient.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
+        //     { uri: decodeURIComponent(uri.toString()) },
+        //     token);
+        const references = await clojureLanguageClient.sendRequest('textDocument/references', 
+            { 
+                textDocument: { uri: "file:///home/brandon/development/clojure-test/src/core.clj"},
+                position: {
+                    line: 63,
+                    character: 12
+                },
+                context: {
+                    includeDeclaration: true
+                }
+            });
+        console.log('selectionLine', selectionLine);
     }));
 
     // Temporary command to teach new default keyboard shortcut chording key
