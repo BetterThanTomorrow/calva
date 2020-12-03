@@ -78,7 +78,7 @@ function activateLSP(context: vscode.ExtensionContext) {
     };
 
     clojureLanguageClient = new LanguageClient(
-        'clojureLSP',
+        'clojure',
         'Clojure Language Client',
         serverOptions,
         clientOptions
