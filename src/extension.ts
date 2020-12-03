@@ -23,14 +23,14 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
-import * as path from 'path';
+import { LanguageClient } from 'vscode-languageclient';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
+import lsp from './lsp';
 
-let clojureLanguageClient: LanguageClient;
+let lspClient: LanguageClient;
 
 async function onDidSave(document) {
     let {
@@ -60,57 +60,13 @@ function onDidOpen(document) {
     }
 }
 
-function activateLSP(context: vscode.ExtensionContext) {
-    const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
-    const serverOptions: ServerOptions = {
-        run: { command: 'java', args: ['-jar', jarPath] },
-        debug: { command: 'java', args: ['-jar', jarPath] },
-    };
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'clojure' }],
-        synchronize: {
-            configurationSection: 'clojure-lsp',
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-        },
-        initializationOptions: {
-            "dependency-scheme": "jar"
-        }
-    };
-
-    clojureLanguageClient = new LanguageClient(
-        'clojure',
-        'Clojure Language Client',
-        serverOptions,
-        clientOptions
-    );
-
-    context.subscriptions.push(clojureLanguageClient.start());
-
-    const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
-    const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
-    // LSP-TODO: Move content provider implementations into providers directory?
-    const textDocumentContentProvider = {
-        // LSP-TODO: Remove this onDidChange and see if still works. If add TextDocumentContentProvider type declaration above,
-        //       TS complains that onDidChange does not exist on the type (it's an Event in the docs, but not a method or property)
-        onDidChange: jarEventEmitter.event,
-        provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
-            const v = await clojureLanguageClient.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
-                { uri: decodeURIComponent(uri.toString()) },
-                token);
-            return v || '';
-        }
-    };
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', textDocumentContentProvider));
-    console.log('clojure-lsp started');
-}
-
 function setKeybindingsEnabledContext() {
     let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
     vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
 }
 
 function activate(context: vscode.ExtensionContext) {
-    activateLSP(context);
+    lspClient = lsp.activate(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -218,11 +174,6 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleKeybindingsEnabled', () => {
         let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
         vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
-    }));
-    // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
-    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (docUri, line, character) => {
-        vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
-        await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
     }));
 
     // Temporary command to teach new default keyboard shortcut chording key
@@ -342,9 +293,9 @@ function activate(context: vscode.ExtensionContext) {
 function deactivate() {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
-    paredit.deactivate()
-    if (clojureLanguageClient) {
-        return clojureLanguageClient.stop();
+    paredit.deactivate();
+    if (lspClient) {
+        lspClient.stop();
     }
 }
 
