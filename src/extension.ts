@@ -216,6 +216,10 @@ function activate(context: vscode.ExtensionContext) {
         let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
         vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
     }));
+    // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
+    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', () => {
+        console.log('get references here');
+    }));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
