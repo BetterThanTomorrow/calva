@@ -88,7 +88,10 @@ function activateLSP(context: vscode.ExtensionContext) {
 
     const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
     const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
-    const provider = {
+    // LSP-TODO: Move content provider implementations into providers directory?
+    const textDocumentContentProvider = {
+        // LSP-TODO: Remove this onDidChange and see if still works. If add TextDocumentContentProvider type declaration above,
+        //       TS complains that onDidChange does not exist on the type (it's an Event in the docs, but not a method or property)
         onDidChange: jarEventEmitter.event,
         provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
             const v = await clojureLanguageClient.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
@@ -97,7 +100,7 @@ function activateLSP(context: vscode.ExtensionContext) {
             return v || '';
         }
     };
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', provider));
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', textDocumentContentProvider));
     console.log('clojure-lsp started');
 }
 
@@ -217,24 +220,9 @@ function activate(context: vscode.ExtensionContext) {
         vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
     }));
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
-    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (params) => {
-        const selectionLine = vscode.window.activeTextEditor.selection.start.line;
-        // const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
-        // const references = await clojureLanguageClient.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
-        //     { uri: decodeURIComponent(uri.toString()) },
-        //     token);
-        const references = await clojureLanguageClient.sendRequest('textDocument/references', 
-            { 
-                textDocument: { uri: "file:///home/brandon/development/clojure-test/src/core.clj"},
-                position: {
-                    line: 63,
-                    character: 12
-                },
-                context: {
-                    includeDeclaration: true
-                }
-            });
-        console.log('selectionLine', selectionLine);
+    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (docUri, line, character) => {
+        vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
+        await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
     }));
 
     // Temporary command to teach new default keyboard shortcut chording key
