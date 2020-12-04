@@ -59,9 +59,6 @@
         "onDebugResolve:type"
     ],
     "main": "./out/extension",
-    "extensionPack": [
-        "borkdude.clj-kondo"
-    ],
     "contributes": {
         "debuggers": [
             {
