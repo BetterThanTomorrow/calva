@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.134 - 2020-12-05]
 - Fix: [Live share jackout error](https://github.com/BetterThanTomorrow/calva/issues/856)
 - Fix: [Cannot read property 'document' of undefined](https://github.com/BetterThanTomorrow/calva/issues/846)
 
