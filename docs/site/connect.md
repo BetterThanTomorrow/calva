@@ -40,7 +40,9 @@ There are also these settings:
 
 ### Troubleshooting
 
-I'm sure there are troubles we should mention here...
+#### Environment Variables Are Not Readable From REPL
+
+If you've added environment variables in your OS, such as in your `~/.bashrc` file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run `echo $SOME_VAR` and see the value there, then open VS Code from that terminal with `code <project path>`.
 
 ## Connecting w/o Jack-in
 
