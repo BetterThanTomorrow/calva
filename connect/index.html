@@ -280,6 +280,19 @@
     Troubleshooting
   </a>
   
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-are-not-readable-from-repl" class="md-nav__link">
+    Environment Variables Are Not Readable From REPL
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -790,6 +803,19 @@
     Troubleshooting
   </a>
   
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-are-not-readable-from-repl" class="md-nav__link">
+    Environment Variables Are Not Readable From REPL
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -854,7 +880,8 @@
 <li><code>calva.openBrowserWhenFigwheelStarted</code>: <em>For Legacy Figwheel only.</em> A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to <code>true</code>.</li>
 </ul>
 <h3 id="troubleshooting">Troubleshooting</h3>
-<p>I'm sure there are troubles we should mention here...</p>
+<h4 id="environment-variables-are-not-readable-from-repl">Environment Variables Are Not Readable From REPL</h4>
+<p>If you've added environment variables in your OS, such as in your <code>~/.bashrc</code> file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run <code>echo $SOME_VAR</code> and see the value there, then open VS Code from that terminal with <code>code &lt;project path&gt;</code>.</p>
 <h2 id="connecting-wo-jack-in">Connecting w/o Jack-in</h2>
 <p>If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned <strong>Connect to a running REPL</strong> is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.</p>
 <p>However, just as before it can be tricky to get the dependencies right. Consider using <strong>Jack in</strong> to inform yourself on how to start your REPL to Calva's satisfaction. When you use Jack in, Calva starts a VS Code task for it and the command line used is displayed in the terminal pane used to handle the task. Reading that command line tells you what dependencies are needed for your project.</p>
