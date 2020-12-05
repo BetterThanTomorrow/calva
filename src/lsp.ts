@@ -14,8 +14,10 @@ function createClient(jarPath: string): LanguageClient {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
         },
         initializationOptions: {
-            "dependency-scheme": "jar"
-        }
+            "dependency-scheme": "jar",
+            // LSP-TODO: Use lsp's feature and remove Calva's feature for this 
+            "auto-add-ns-to-new-files?": false
+        },
     };
     return new LanguageClient(
         'clojure',
