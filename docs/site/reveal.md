@@ -21,4 +21,5 @@ uses JavaFX. Depending on your setup, you may need to make sure it is available.
 
 _TODO: this needs to be figured out too. Probably going by the [Reveal
 instructions](https://vlaaad.github.io/reveal/#nrepl-based-editors) will do the
-trick_.
+trick. Please [submit a PR](https://github.com/BetterThanTomorrow/calva/pulls)
+if you know how to do this!_
