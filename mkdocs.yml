@@ -38,6 +38,7 @@ nav:
   - customizing.md
   - Using Calva with X:
     - rebl.md
+    - reveal.md
     - vim.md
     - wsl.md
     - remote-development.md
