@@ -31,6 +31,10 @@ function createClient(jarPath: string): LanguageClient {
                     return await next(codeLens, token);
                 }
                 return null;
+            },
+            handleDiagnostics(uri, diagnostics, next) {
+                // Disable diagnostics from clojure-lsp
+                return;
             }
         }
     };
@@ -45,8 +49,7 @@ function createClient(jarPath: string): LanguageClient {
 function activate(context: vscode.ExtensionContext): LanguageClient {
     const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
     const client = createClient(jarPath);
-    client.start();
-
+    context.subscriptions.push(client.start());
 
     const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
     const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
@@ -72,44 +75,17 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
             const visibleFileEditors = vscode.window.visibleTextEditors.filter(editor => {
                 return editor.document.uri.scheme === 'file';
             });
-            
+
             for (let editor of visibleFileEditors) {
-                // Opening and closing doesn't seem to trigger codeLens requests
-
-                // client.sendNotification('textDocument/didClose', {
-                //     textDocument: {
-                //         uri: document.uri.toString()
-                //     }
-                // });
-                // client.sendNotification('textDocument/didOpen', {
-                //     textDocument: {
-                //         uri: document.uri.toString(),
-                //         languageId: document.languageId,
-                //         version: document.version,
-                //         text: document.getText()
-                //     }
-                // });
-               
-                // Sending textDocument/documentSymbol does not trigger codeLens
-
-
+                // Hacky solution for triggering codeLens refresh
+                // Could not find a better way, aside from possibly changes to clojure-lsp
+                // https://github.com/microsoft/vscode-languageserver-node/issues/705
                 const edit1 = new vscode.WorkspaceEdit();
                 edit1.insert(editor.document.uri, new vscode.Position(0, 0), '\n');
                 await vscode.workspace.applyEdit(edit1);
                 const edit2 = new vscode.WorkspaceEdit();
                 edit2.delete(editor.document.uri, new vscode.Range(0, 0, 1, 0));
                 await vscode.workspace.applyEdit(edit2);
-
-                
-                // const codeLensResults = await client.sendRequest('textDocument/codeLens', {
-                //     textDocument: {
-                //         uri: editor.document.uri.toString()
-                //     }
-                // });
-
-                // await client.sendRequest('codeLens/resolve', codeLensResults[0]);
-
-                // console.log('done');
             }
         }
     }));

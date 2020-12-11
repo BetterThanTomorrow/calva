@@ -79,7 +79,6 @@ function activate(context: vscode.ExtensionContext) {
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
     const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
-    const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
     const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
     const customCljsRepl = state.config().customCljsRepl;
     const replConnectSequences = state.config().replConnectSequences;
@@ -97,10 +96,6 @@ function activate(context: vscode.ExtensionContext) {
                     open(CONNECT_SEQUENCES_DOC_URL).catch(() => { });
                 }
             })
-    }
-
-    if (cljKondoExtension) {
-        vscode.window.showWarningMessage('clj-kondo extension detected. This will cause duplicate linting reports since Calva provides linting on its own. Please uninstall or disable the clj-kondo extension.', 'Got it!');
     }
 
     if (legacyExtension) {
