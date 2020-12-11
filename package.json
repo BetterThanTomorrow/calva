@@ -163,6 +163,11 @@
                             "maxLength": 50
                         }
                     },
+                    "calva.referencesCodeLens.enabled": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Enable/disable references CodeLens in Clojure(Script) files. "
+                    },
                     "clojure.format.enable": {
                         "type": "boolean",
                         "default": true,
