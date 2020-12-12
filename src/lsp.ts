@@ -35,6 +35,16 @@ function createClient(jarPath: string): LanguageClient {
             handleDiagnostics(uri, diagnostics, next) {
                 // Disable diagnostics from clojure-lsp
                 return;
+            },
+            provideDocumentRangeFormattingEdits(document, range, options, token, next) {
+                return next(document, range, options, token);
+            },
+            provideHover(document, position, token, next) {
+                // Disable hovers from clojure-lsp
+                // Main issue is Java hovers: https://github.com/snoe/clojure-lsp/issues/204
+                // We could possibly make Calva hover provider provide only Java hovers,
+                // and clojure-lsp provide only non-Java hovers
+                return null;
             }
         }
     };
