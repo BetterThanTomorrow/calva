@@ -131,7 +131,7 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars2.githubusercontent.com/u/6115204" width="32" alt="Clay Hopperdietzel">](https://github.com/Gnurdle)
 [<img src="https://avatars2.githubusercontent.com/u/891" width="32" alt="Matthew Lyon">](https://github.com/mattly)
 [<img src="https://avatars0.githubusercontent.com/u/636651" width="32" alt="Brian Scaturro">](https://github.com/brianium)
-
+[<img src="https://avatars2.githubusercontent.com/u/522318" width="32" alt="Jochen Bedersdorfer">](https://github.com/beders)
 
 ### Calva Friends
 [<img src="https://avatars3.githubusercontent.com/u/97496" width="32" alt="Martin Klepsch">](https://github.com/martinklepsch)
