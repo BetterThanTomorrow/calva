@@ -169,7 +169,11 @@
                     "clojure.trace.server": {
                         "type": "string",
                         "default": "off",
-                        "enum": ["off", "messages", "verbose"],
+                        "enum": [
+                            "off",
+                            "messages",
+                            "verbose"
+                        ],
                         "description": "Trace communication between Calva and the Clojure language server, clojure-lsp. Trace messages are displayed in the Clojure Language Client output channel."
                     },
                     "calva.referencesCodeLens.enabled": {
