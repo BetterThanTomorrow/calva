@@ -118,7 +118,10 @@ The following people are helping to keep Calva maintained and improved by sponso
 
 _Companies that benefit from Calva's existence and see it as an important piece of the Clojure and ClojureScript ecosystem._
 
-[<img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="30px" alt="Liftoff"/>](https://liftoff.io)
+[<img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="40px" alt="Liftoff"/>](https://liftoff.io)
+   [<img src="assets/images/cognitect-logo.jpg" height="40px" alt="Cognitect"/>](https://cognitect.com)
+
+Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
 
 Gold sponsors are also displayed here: https://calva.io/#sponsors.
 
@@ -135,8 +138,6 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars2.githubusercontent.com/u/585191" width="32" alt="Pedro Girardi">](https://github.com/pedrorgirardi)
 [<img src="https://avatars1.githubusercontent.com/u/1461719" width="32" alt="Byron Miller">](https://github.com/supernovae)
 [<img src="https://avatars2.githubusercontent.com/u/6209" width="32" alt="Terje">](https://github.com/terjesb)
-[<img src="https://avatars0.githubusercontent.com/u/11434205" width="32" alt="JC">](https://github.com/dijonkitchen)
-[<img src="https://avatars1.githubusercontent.com/u/13815" width="32" alt="Ullrich Schäfer">](https://github.com/stigi)
 [<img src="https://avatars3.githubusercontent.com/u/703980" width="32" alt="Scott Archer">](https://github.com/scarcher2)
 [<img src="https://avatars0.githubusercontent.com/u/3316334" width="32" alt="Norman Eckstein">](https://github.com/ITSecMedia)
 [<img src="https://avatars0.githubusercontent.com/u/1081640" width="32" alt="David Brear">](https://github.com/DavidBrear)
@@ -148,6 +149,7 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars2.githubusercontent.com/u/781014" width="32" alt="Snorre Magnus Davøen">](https://github.com/snorremd)
 [<img src="https://avatars1.githubusercontent.com/u/11031952" width="32" alt="Alid Lorenzo">](https://github.com/alidlorenzo)
 [<img src="https://avatars2.githubusercontent.com/u/505737" width="32" alt="ikrima">](https://github.com/ikrima)
+[<img src="https://avatars0.githubusercontent.com/u/583120" width="32" alt="nnichols">](https://github.com/nnichols)
 
 ## The Calva Team
 

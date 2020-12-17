@@ -21,9 +21,23 @@ I'm glad you asked! Please see the [Calva Development Wiki](https://github.com/B
 
 ### Calva Gold Sponsors ♥️
 
-<a href="https://liftoff.io" title="Scale your growth on mobile"><img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="45px" alt="Liftoff"/></a>
+<div style="display:flex; flex: 1; flex-direction: row; justify-content: flex-start; margin-bottom: 16px;">
 
-See [Sponsors](sponsors.md) for more information about this.
+<div style="margin-right: 30px">
+<div><a href="https://liftoff.io" title="Scale your growth on mobile"><img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="45px" alt="Liftoff"/></a></div>
+<div>Scale your growth on mobile</div>
+</div>
+
+<div>
+<div><a href="https://cognitect.com" title="MAKE. DO. SHIP."><img src="https://cognitect.com/assets/cognitect-logo-horizontal.svg" height="45px" alt="Cognitect"/></a></div>
+<div>MAKE. DO. SHIP.</div>
+</div>
+
+</div>
+
+Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
+
+See [Sponsors](sponsors.md) for information about sponsoring Calva.
 
 If your Company benefits from Calva's existence and you see it as an important in the Clojure and ClojureScript ecosystem. please consider sponsoring!
 
