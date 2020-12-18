@@ -38,13 +38,14 @@ function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse
             inSyntaxQuote = true;
         }
 
+
+        // A syntax quote is ending - this happens if ~ or ~@ precedes a form
+        if (previousToken.raw.match(/~@?/)) {
+            inSyntaxQuote = false;
+        }
+
         if (inSyntaxQuote) {
             i++; // Ignore this coor and move to the next
-
-            // A syntax quote is ending - this happens if ~ or ~@ precedes a form
-            if (previousToken.raw.match(/~@?/)) {
-                inSyntaxQuote = false;
-            }
         }
 
         if (inSyntaxQuote) {
@@ -54,7 +55,8 @@ function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse
                 i++;
             }
             // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
-            coor[i]--;
+            i++;
+            //coor[i]--;
         }
 
         // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
