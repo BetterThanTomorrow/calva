@@ -383,9 +383,9 @@ async function evaluateCustomCommandSnippetCommand(): Promise<void> {
                 const ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS;
                 const repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
                 const command = snippetsDict[pick].snippet.
-                     replace("$line",currentLine).
-                     replace("$column",currentColumn).
-                     replace("$file",currentFilename);
+                     replace("$line", currentLine).
+                     replace("$column", currentColumn).
+                     replace("$file", currentFilename);
                 await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
         } catch (e) {
