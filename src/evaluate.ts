@@ -375,11 +375,17 @@ async function evaluateCustomCommandSnippetCommand(): Promise<void> {
                 saveAs: "runCustomREPLCommand"
             });
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
-                const command = snippetsDict[pick].snippet;
                 const editor = vscode.window.activeTextEditor;
+                const currentLine = editor.selection.active.line;
+                const currentColumn = editor.selection.active.character;
+                const currentFilename = editor.document.fileName;
                 const editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
                 const ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS;
                 const repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
+                const command = snippetsDict[pick].snippet.
+                     replace("$line",currentLine).
+                     replace("$column",currentColumn).
+                     replace("$file",currentFilename);
                 await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
         } catch (e) {
