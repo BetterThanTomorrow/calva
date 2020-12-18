@@ -10,8 +10,11 @@ import * as namespace from '../namespace';
 import config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
+import * as docMirror from '../doc-mirror'
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
+
+const PROMPT_HINT = '; Use `alt+enter` to evaluate';
 
 const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
 ; TIPS: The keyboard shortcut `ctrl+alt+c o` shows and focuses this window\n\
@@ -45,9 +48,18 @@ let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
     clj: {},
     cljs: {}
 };
+let showPrompt: { [id: string]: boolean } = {
+    clj: true,
+    cljs: true
+};
 
 export function getPrompt(): string {
-    return `${_sessionType}::${getNs()}=> `;
+    let prompt = `${_sessionType}::${getNs()}=> `;
+    if (showPrompt[_sessionType]) {
+        showPrompt[_sessionType] = false;
+        prompt = `${prompt} ${PROMPT_HINT}`
+    }
+    return prompt;
 }
 
 export function getNs(): string {
@@ -133,6 +145,24 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
         if (isOutputWindow) {
             setViewColumn(event.viewColumn);
         }
+    }));
+    state.extensionContext.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
+        let submitOnEnter = false;
+        if (event.textEditor) {
+            const document = event.textEditor.document;
+            if (isResultsDoc(document)) {
+                const idx = document.offsetAt(event.selections[0].active);
+                const mirrorDoc = docMirror.getDocument(document);
+                const selectionCursor = mirrorDoc.getTokenCursor(idx);
+                selectionCursor.forwardWhitespace();
+                if (selectionCursor.atEnd()) {
+                    const tlCursor = mirrorDoc.getTokenCursor(0);
+                    const topLevelFormRangeEnd = tlCursor.rangeForDefun(idx)[1];
+                    submitOnEnter = idx >= topLevelFormRangeEnd;
+                }
+            }                
+        }
+        vscode.commands.executeCommand("setContext", "calva:outputWindowSubmitOnEnter", submitOnEnter);
     }));
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
