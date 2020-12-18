@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [npm scripts with npm install in them are failing](https://github.com/BetterThanTomorrow/calva/issues/866)
+- Fix: [Binding keys to REPL functions, passing the namespace and cursor line (Notespace integration)](https://github.com/BetterThanTomorrow/calva/issues/863)
 
 ## [2.0.134 - 2020-12-05]
 - Fix: [Live share jackout error](https://github.com/BetterThanTomorrow/calva/issues/856)
