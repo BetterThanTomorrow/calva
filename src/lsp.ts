@@ -17,7 +17,8 @@ function createClient(jarPath: string): LanguageClient {
         initializationOptions: {
             "dependency-scheme": "jar",
             // LSP-TODO: Use lsp's feature and remove Calva's feature for this 
-            "auto-add-ns-to-new-files?": false
+            "auto-add-ns-to-new-files?": false,
+            "document-formatting?": false
         },
         middleware: {
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
@@ -49,6 +50,9 @@ function createClient(jarPath: string): LanguageClient {
             },
             provideSignatureHelp(document, position, context, token, next) {
                 return next(document, position, context, token);
+            },
+            provideDocumentFormattingEdits(document, options, token, next) {
+                return next(document, options, token);
             }
         }
     };
