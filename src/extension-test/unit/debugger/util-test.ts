@@ -67,12 +67,16 @@ describe('Debugger Util', async () => {
             expectBreakpointToBeFound('syntax-quote.clj');
         });
 
-        it('syntax quoted map with ~ values', () => {
-            expectBreakpointToBeFound('syntax-quoted-map-with-syntax-unquote.clj');
+        it('syntax quoted map 1', () => {
+            expectBreakpointToBeFound('syntax-quoted-map-1.clj');
         });
 
-        it('expanded form of syntax quoted map', () => {
-            expectBreakpointToBeFound('expanded-form-of-syntax-quoted-map.clj');
+        it('syntax quoted list 1', () => {
+            expectBreakpointToBeFound('syntax-quoted-list-1.clj');
+        });
+
+        it('syntax quoted vector 1', () => {
+            expectBreakpointToBeFound('syntax-quoted-vector-1.clj');
         });
     });
 });
