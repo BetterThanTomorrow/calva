@@ -157,8 +157,10 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 selectionCursor.forwardWhitespace();
                 if (selectionCursor.atEnd()) {
                     const tlCursor = mirrorDoc.getTokenCursor(0);
-                    const topLevelFormRangeEnd = tlCursor.rangeForDefun(idx)[1];
-                    submitOnEnter = idx >= topLevelFormRangeEnd;
+                    const topLevelFormRange = tlCursor.rangeForDefun(idx);
+                    submitOnEnter = topLevelFormRange &&
+                        topLevelFormRange[0] !== topLevelFormRange[1] &&
+                        idx >= topLevelFormRange[1];
                 }
             }                
         }
