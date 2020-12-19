@@ -1166,6 +1166,11 @@
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "enter",
+                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+            },
+            {
                 "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+c r",
                 "when": "calva:keybindingsEnabled"
