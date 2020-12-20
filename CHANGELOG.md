@@ -3,7 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [npm scripts with npm install in them are failing](https://github.com/BetterThanTomorrow/calva/issues/866)
+
+## [2.0.135 - 2020-12-20]
 - [Binding keys to REPL functions, passing the namespace and cursor line (Notespace integration)](https://github.com/BetterThanTomorrow/calva/issues/863)
 - [Make REPL prompt submit if the cursor is after the top level form](https://github.com/BetterThanTomorrow/calva/issues/875)
 - [Only print stacktrace on demand](https://github.com/BetterThanTomorrow/calva/issues/878)
