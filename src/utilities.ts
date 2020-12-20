@@ -4,9 +4,9 @@ import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';
 const syntaxQuoteSymbol = "`";
-const { parseForms } = require('../out/cljs-lib/cljs-lib');
 import select from './select';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc';
+import * as docMirror from './doc-mirror';
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -83,25 +83,25 @@ function getShadowCljsReplStartCode(build) {
 }
 
 function getTestUnderCursor() {
-    const doc = getDocument(null);
-    if (doc) {
-        try {
-            const topLevelFormRange = select.getFormSelection(doc, vscode.window.activeTextEditor.selection.active, true),
-                topLevelForm = doc.getText(topLevelFormRange);
-            const forms = parseForms(topLevelForm);
-            if (forms !== undefined) {
-                const formArray = forms.filter(x => x[0].startsWith("def"));
-                if (formArray != undefined && formArray.length > 0) {
-                    const form = formArray[0].filter(x => typeof (x) == "string");
-                    if (form != undefined) {
-                        return form[1];
-                    }
-                }
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+        const document = editor.document;
+        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
+        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
+        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
+        while (tokenCursor.downList()) {
+            tokenCursor.forwardWhitespace();
+            if (tokenCursor.getToken().raw.startsWith('def')) {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
+                return tokenCursor.getToken().raw;
+            } else {
+                tokenCursor.forwardSexp();
+                tokenCursor.forwardWhitespace();
             }
-        } catch (e) {
-            console.log("Error parsing deftest form under cursor." + e);
         }
     }
+    return undefined;
 }
 
 function getStartExpression(text) {
@@ -135,10 +135,13 @@ function getWordAtPosition(document, position) {
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
-    } else if (vscode.window.activeTextEditor) {
+    } else if (vscode.window.activeTextEditor && 
+        vscode.window.activeTextEditor.document && 
+        vscode.window.activeTextEditor.document.languageId !== 'Log') {
         return vscode.window.activeTextEditor.document;
     } else if (vscode.window.visibleTextEditors.length > 0) {
-        return vscode.window.visibleTextEditors[0].document;
+        const editor = vscode.window.visibleTextEditors.find(editor => editor.document && editor.document.languageId !== 'Log');
+        return editor ? editor.document : null;
     } else {
         return null;
     }
@@ -173,13 +176,8 @@ function getConnectedState() {
 }
 
 function setConnectedState(value: Boolean) {
-    if (value) {
-        vscode.commands.executeCommand("setContext", "calva:connected", true);
-        state.cursor.set('connected', true);
-    } else {
-        vscode.commands.executeCommand("setContext", "calva:connected", false);
-        state.cursor.set('connected', false);
-    }
+    vscode.commands.executeCommand("setContext", "calva:connected", value);
+    state.cursor.set('connected', value);
 }
 
 function getConnectingState() {
@@ -321,6 +319,12 @@ function filterVisibleRanges(editor: vscode.TextEditor, ranges: vscode.Range[], 
     return filtered;
 }
 
+function scrollToBottom(editor: vscode.TextEditor) {
+    const lastPos = editor.document.positionAt(Infinity);
+    editor.selection = new vscode.Selection(lastPos, lastPos);
+    editor.revealRange(new vscode.Range(lastPos, lastPos));
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -348,5 +352,6 @@ export {
     getTestUnderCursor,
     promptForUserInputString,
     debounce,
-    filterVisibleRanges
+    filterVisibleRanges,
+    scrollToBottom
 };

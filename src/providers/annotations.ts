@@ -146,7 +146,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
         decoration["hoverMessage"] = status == AnnotationStatus.ERROR ? resultString : hoverMessage;
     }
     // for (let s = 0; s < evalSelectionDecorationTypes.length; s++) {
-    //     setSelectionDecorations(editor, [], s);
+    //     setSelectionDecorations(editor, [], s);.
     // }
     setSelectionDecorations(editor, [], status);
     decorationRanges.push(decoration);
@@ -157,12 +157,14 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
 }
 
 function onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
-    const activeTextEditor: vscode.TextEditor = vscode.window.activeTextEditor;
-    if (activeTextEditor) {
-        const activeDocument = activeTextEditor.document,
-            changeDocument = event.document;
-        if (activeDocument.uri == changeDocument.uri) {
-            clearEvaluationDecorations(activeTextEditor);
+    if (event.contentChanges.length) {
+        const activeTextEditor: vscode.TextEditor = vscode.window.activeTextEditor;
+        if (activeTextEditor) {
+            const activeDocument = activeTextEditor.document,
+                changeDocument = event.document;
+            if (activeDocument.uri == changeDocument.uri) {
+                clearEvaluationDecorations(activeTextEditor);
+            }
         }
     }
 }

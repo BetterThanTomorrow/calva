@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as child from 'child_process';
-import * as outputWindow from '../result-output';
+import * as outputWindow from '../results-output/results-doc';
 
 export interface  JackInTerminalOptions extends vscode.TerminalOptions {
     name: string,

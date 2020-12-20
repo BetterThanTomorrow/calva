@@ -7,6 +7,9 @@ import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } fr
 import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
 import debugDecorations from '../debugger/decorations';
+import * as outputWindow from '../results-output/results-doc';
+import { formatAsLineComments } from '../results-output/util';
+import type { ReplSessionType } from '../config';
 
 /** An nREPL client */
 export class NReplClient {
@@ -30,11 +33,12 @@ export class NReplClient {
 
     ns: string = 'user';
 
-    private constructor(socket: net.Socket) {
+    private constructor(socket: net.Socket, onError: (e) => void) {
         this.socket = socket;
         this.socket.on("error", e => {
             console.error(e);
             state.connectionLogChannel().appendLine(e.message);
+            onError(e);
         })
         this.socket.on("close", e => {
             console.log("Socket closed")
@@ -79,13 +83,17 @@ export class NReplClient {
         for (let id in this.sessions) {
             this.sessions[id].close();
         }
+        this.disconnect();
+    }
+
+    disconnect() {
         this.socket.destroy();
     }
 
     /**
      * Create a new NRepl client
      */
-    static create(opts: { host: string, port: number }) {
+    static create(opts: { host: string, port: number, onError: (e) => void }) {
         return new Promise<NReplClient>((resolve, reject) => {
 
             let socket = net.createConnection(opts, () => {
@@ -118,7 +126,7 @@ export class NReplClient {
                 client.encoder.write({ "op": "eval", code: "*ns*", "id": nsId });
 
             });
-            let client = new NReplClient(socket);
+            let client = new NReplClient(socket, opts.onError);
         });
     }
 }
@@ -160,7 +168,7 @@ export class NReplSession {
     }
 
     messageHandlers: { [id: string]: (msg: any) => boolean } = {};
-    replType: "clj" | "cljs" = null;
+    replType: ReplSessionType = null;
 
     close() {
         this.client.write({ op: "close", session: this.sessionId })
@@ -198,15 +206,16 @@ export class NReplSession {
             this.addRunningID(msgData.id);
         }
 
-        const msgValue: string = msgData.out || msgData.err;
-        const isError: boolean = msgData.out ? false : true;
-        const msdId: string = msgData.id ? msgData.id : 'unknown';
-
-        if (msgValue && this.replType) {
-            const outputChan = state.config().asyncOutputDestination;
-            let msgText = msgValue.replace(/\n\r?$/, "");
-
-            state.outputChannel().appendLine(msgText);
+        if ((msgData.out || msgData.err) && this.replType) {
+            if (msgData.out) {
+                const out = msgData.out.replace(/\n\r?$/, "");
+                outputWindow.append(out);
+            } else if (msgData.err) {
+                const err = formatAsLineComments(msgData.err);
+                outputWindow.append(err, _ => {
+                    outputWindow.append(outputWindow.getPrompt());
+                });
+            }
         }
     }
 
@@ -249,7 +258,7 @@ export class NReplSession {
                 resolve(msg);
                 return true;
             }
-            this.client.write({ op: "stacktrace", id, session: this.sessionId })
+            this.client.write({ op: "stacktrace", id, session: this.sessionId });
         })
     }
 
@@ -377,18 +386,39 @@ export class NReplSession {
             this.client.write({ op: "info", ns, symbol, id, session: this.sessionId })
         })
     }
-
-    test(ns: string, tests?: string[]) {
+    
+    classpath() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;
             }
-            this.client.write({
-                op: "test", ns, id, session: this.sessionId, "tests": tests, "load?": true
-            });
+            this.client.write({ op: "classpath", id, session: this.sessionId })
         })
+    }
+
+    test(ns: string, test: string) {
+        return new Promise<any>((resolve, reject) => {
+            const id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            };
+            this.client.write({
+                op: "test-var-query",
+                ns,
+                id,
+                session: this.sessionId,
+                "var-query": {
+                    "ns-query": {
+                        exactly: [ns]
+                    },
+                    search: test,
+                    "search-property": "name"
+                }
+            });
+        });
     }
 
     testNs(ns: string) {

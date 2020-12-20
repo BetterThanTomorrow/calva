@@ -21,31 +21,56 @@ export type ProjectType = {
     nReplPortFile: string[];
 };
 
-export function nreplPortFile(connectSequence: ReplConnectSequence): string {
-    let subPath: string = ".nrepl-port";
+function nreplPortFileRelativePath(connectSequence: ReplConnectSequence): string {
+    let subPath: string;
     if (connectSequence.nReplPortFile) {
         subPath = path.join(...connectSequence.nReplPortFile);
     } else {
         const projectType: ProjectType | string = connectSequence.projectType;
         subPath = path.join(...getProjectTypeForName(projectType).nReplPortFile)
     }
-    const projectRoot = state.getProjectRoot();
+    return subPath;
+}
+
+/**
+ * If you know that you're using the local machine to access the nREPL port file,
+ * you can use this method. It returns an absolute path to the right file. In case
+ * you may be dealing with a remote scenario (e.g. live share), you should use
+ * `nreplPortFileUri()` instead.
+ */
+export function nreplPortFileLocalPath(connectSequence: ReplConnectSequence): string {
+    const relativePath = nreplPortFileRelativePath(connectSequence);
+    const projectRoot = state.getProjectRootLocal();
     if (projectRoot) {
         try {
-            return path.resolve(projectRoot, subPath);
+            return path.resolve(projectRoot, relativePath);
         } catch (e) {
             console.log(e);
         }
     }
-    return subPath;
+    return relativePath;
 }
 
-export function shadowConfigFile() {
-    return state.getProjectRoot() + '/shadow-cljs.edn';
+export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.Uri {
+    const relativePath = nreplPortFileRelativePath(connectSequence);
+    const projectRoot = state.getProjectRootUri();
+    if (projectRoot) {
+        try {
+            return vscode.Uri.joinPath(projectRoot, relativePath);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    return vscode.Uri.file(relativePath);
 }
 
-export function shadowBuilds(): string[] {
-    const parsed = parseEdn(fs.readFileSync(shadowConfigFile(), 'utf8').toString());
+export function shadowConfigFile(): vscode.Uri {
+    return vscode.Uri.joinPath(state.getProjectRootUri(), 'shadow-cljs.edn');
+}
+
+export async function shadowBuilds(): Promise<string[]> {
+    const data = await vscode.workspace.fs.readFile(shadowConfigFile());
+    const parsed = parseEdn(new TextDecoder("utf-8").decode(data));
     return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 
@@ -68,8 +93,8 @@ export function leinShadowBuilds(defproject: any): string[] {
 async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBuilds: string[]): Promise<{ selectedBuilds: string[], args: string[] }> {
     const menuSelections = connectSequence.menuSelections, selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
         values: foundBuilds.filter(x => x[0] == ":"),
-        placeHolder: "Select builds to start", saveAs: `
-                    ${state.getProjectRoot()}/shadow-cljs-jack-in`
+        placeHolder: "Select builds to start",
+        saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`
     }), aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
     let args: string[] = [];
@@ -79,8 +104,9 @@ async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBui
     return { selectedBuilds, args };
 }
 
-function leinDefProject(): any {
-    const data = fs.readFileSync(path.resolve(state.getProjectRoot(), "project.clj"), 'utf8').toString();
+async function leinDefProject(): Promise<any> {
+    const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "project.clj"));
+    const data = new TextDecoder("utf-8").decode(bytes);
     try {
         const parsed = parseForms(data);
         return parsed.find(x => x[0] == "defproject");
@@ -112,7 +138,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
                         aliases.unshift("No alias");
                         alias = await utilities.quickPickSingle({
                             values: aliases,
-                            saveAs: `${state.getProjectRoot()}/lein-cli-alias`,
+                            saveAs: `${state.getProjectRootUri().toString()}/lein-cli-alias`,
                             placeHolder: "Choose alias to launch with"
                         });
                         alias = (alias == "No alias") ? undefined : alias;
@@ -140,7 +166,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
                 if (profiles.length) {
                     profiles = await utilities.quickPickMulti({
                         values: profiles,
-                        saveAs: `${state.getProjectRoot()}/lein-cli-profiles`,
+                        saveAs: `${state.getProjectRootUri().toString()}/lein-cli-profiles`,
                         placeHolder: "Pick any profiles to launch with"
                     });
                 }
@@ -150,7 +176,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
     return { profiles, alias };
 }
 
-const NREPL_VERSION = "0.6.0",
+const NREPL_VERSION = "0.8.2",
     CIDER_NREPL_VERSION = "0.23.0",
     PIGGIEBACK_VERSION = "0.4.2",
     CLJ_KONDO_VERSION = "2020.04.05";
@@ -255,7 +281,8 @@ const projectTypes: { [id: string]: ProjectType } = {
          */
         commandLine: async (connectSequence, cljsType) => {
             let out: string[] = [];
-            let data = fs.readFileSync(path.join(state.getProjectRoot(), "deps.edn"), 'utf8').toString();
+            let bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "deps.edn"));
+            let data = new TextDecoder("utf-8").decode(bytes);
             let parsed;
             try {
                 parsed = parseEdn(data);
@@ -277,7 +304,7 @@ const projectTypes: { [id: string]: ProjectType } = {
                 if (projectAliases.length) {
                     aliases = await utilities.quickPickMulti({
                         values: projectAliases.map(keywordize),
-                        saveAs: `${state.getProjectRoot()}/clj-cli-aliases`,
+                        saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
                         placeHolder: "Pick any aliases to launch with"
                     });
                 }
@@ -398,7 +425,7 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
         ...serverPrinterDependencies
     };
     let keys = Object.keys(dependencies);
-    const defproject = leinDefProject();
+    const defproject = await leinDefProject();
     const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
     if (isWin) {
         out.push("/d", "/c", "lein");
@@ -434,12 +461,14 @@ export function getProjectTypeForName(name: string) {
 }
 
 export async function detectProjectTypes(): Promise<string[]> {
-    const rootDir = state.getProjectRoot(),
-        cljProjTypes = ['generic'];
+    const rootUri = state.getProjectRootUri();
+    const cljProjTypes = ['generic'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
-                fs.accessSync(path.resolve(rootDir, projectTypes[clj].useWhenExists));
+                const projectFileName = projectTypes[clj].useWhenExists;
+                const uri = vscode.Uri.joinPath(rootUri, projectFileName);
+                await vscode.workspace.fs.readFile(uri);
                 cljProjTypes.push(clj);
             } catch (_e) { }
         }

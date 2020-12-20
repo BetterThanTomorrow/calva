@@ -8,9 +8,10 @@ import { nClient } from "../connector";
 import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
-import * as outputWindow from '../result-output';
+import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions } from "./jack-in-terminal";
 import * as namespace from "../namespace";
+import * as liveShareSupport from '../liveShareSupport';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -26,7 +27,7 @@ function cancelJackInTask() {
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, isWin: boolean, cljTypes: string[], connectSequence: ReplConnectSequence) {
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
-    const nReplPortFile = projectTypes.nreplPortFile(connectSequence);
+    const nReplPortFile = projectTypes.nreplPortFileLocalPath(connectSequence);
     const env = Object.assign(process.env, state.config().jackInEnv) as {
         [key: string]: string;
     };
@@ -36,7 +37,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
         args,
         env,
         isWin,
-        cwd: state.getProjectRoot(),
+        cwd: state.getProjectRootLocal(),
     };
 
     // in case we have a running task present try to end it.
@@ -78,6 +79,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
                         watcher.removeAllListeners();
                         await connector.connect(connectSequence, true);
                         outputWindow.append("; Jack-in done.");
+                        outputWindow.appendPrompt();
                     }
                 });
             } catch (exception) {
@@ -121,16 +123,30 @@ export function calvaJackout() {
         utilities.setLaunchingState(null);
         statusbar.update();
     }
+
+    liveShareSupport.didJackOut();
 }
 
 export async function calvaJackIn() {
     try {
         await state.initProjectDir();
-    } catch {
+    } catch (e) {
+        console.error("An error occurred while initializing project directory.", e);
         return;
+    }
+    try {
+        await liveShareSupport.setupLiveShareListener();
+    } catch (e) {
+        console.error("An error occurred while setting up Live Share listener.", e);
+    }
+    if (state.getProjectRootUri().scheme === "vsls") {
+        outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
+        outputWindow.append("; Please use this command instead: Connect to a running REPL server in the project.");
+        return
     }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     await outputWindow.initResultsDoc();
+    outputWindow.append("; Jacking in...");
     const outputDocument = await outputWindow.openResultsDoc();
 
     const cljTypes: string[] = await projectTypes.detectProjectTypes();
@@ -143,8 +159,6 @@ export async function calvaJackIn() {
             return;
         }
         if (projectConnectSequence.projectType !== 'generic') {
-            outputWindow.append("; Jacking in...");
-
             const projectTypeName: string = projectConnectSequence.projectType;
             let selectedCljsType: CljsTypes;
 
@@ -169,6 +183,7 @@ export async function calvaJackIn() {
         vscode.window.showInformationMessage('No supported Jack-in project types detected. Maybe try starting your project manually and use the Connect command?')
     }
 
+    liveShareSupport.didJackIn();
 }
 
 export async function calvaDisconnect() {
@@ -202,7 +217,9 @@ export async function calvaJackInOrConnect() {
     if (!utilities.getConnectedState() &&
         !utilities.getConnectingState() &&
         !utilities.getLaunchingState()) {
-        commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
+        if (vscode.workspace.workspaceFolders[0].uri.scheme != "vsls") {
+            commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
+        }
         commands["Connect to a running REPL server in your project"] = "calva.connect";
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
@@ -218,5 +235,3 @@ export async function calvaJackInOrConnect() {
         }
     })
 }
-
-

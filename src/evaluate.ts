@@ -8,29 +8,28 @@ import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
 import { PrettyPrintingOptions } from './printer';
-import * as outputWindow from './result-output';
+import * as outputWindow from './results-output/results-doc';
 import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
+import * as replHistory from './results-output/repl-history';
+import { formatAsLineComments } from './results-output/util';
 
 function interruptAllEvaluations() {
-
     if (util.getConnectedState()) {
         let msgs: string[] = [];
-
-
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
         })
-        outputWindow.append(normalizeNewLinesAndJoin(msgs));
-
-        NReplSession.getInstances().forEach((session, index) => {
+        if (msgs.length) {
+            outputWindow.append(normalizeNewLinesAndJoin(msgs));
+        }
+        NReplSession.getInstances().forEach((session, _index) => {
             session.interruptAll();
         });
-
-        if (nums < 1) {
-            vscode.window.showInformationMessage(`There are no running evaluations to interupt.`);
+        if (nums > 0) {
+            vscode.window.showInformationMessage(`Interrupted ${nums} running evaluation(s).`);
         } else {
-            vscode.window.showInformationMessage(`Interupted ${nums} running evaluation(s).`);
+            vscode.window.showInformationMessage('Interruption command finished (unknown results)');
         }
         return;
     }
@@ -54,7 +53,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     const ns = options.ns;
 
     if (code.length > 0) {
-        let err: string[] = [], out: string[] = [];
+        let err: string[] = [];
 
         if (outputWindow.getNs() !== ns) {
             await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
@@ -65,13 +64,12 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             line: line + 1,
             column: column + 1,
             stdout: (m) => {
-                out.push(m);
                 outputWindow.append(normalizeNewLines(m));
             },
             stderr: m => err.push(m),
             pprintOptions: pprintOptions
         });
-        
+
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
@@ -88,41 +86,49 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                     } else if (options.comment) {
                         addAsComment(c, value, selection, editor, selection);
                     } else {
-                        const currentCursorPos = editor.selection.active;
-                        annotations.decorateSelection(value, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.SUCCESS);
-                        annotations.decorateResults(value, false, selection, editor);
+                        if (!outputWindow.isResultsDoc(editor.document)) {
+                            annotations.decorateSelection(value, selection, editor, editor.selection.active, resultLocation, annotations.AnnotationStatus.SUCCESS);
+                            annotations.decorateResults(value, false, selection, editor);
+                        }
                     }
                 }
             });
             // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
             if (err.length > 0) {
-                outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                const errMsg = `; ${normalizeNewLinesAndJoin(err, true)}`
                 if (context.stacktrace) {
-                    outputWindow.printStacktrace(context.stacktrace);
+                    outputWindow.saveStacktrace(context.stacktrace);
+                    outputWindow.append(errMsg, (_, afterResultLocation) => {
+                        outputWindow.markLastStacktraceRange(afterResultLocation);
+                    });
+                } else {
+                    outputWindow.append(errMsg);
                 }
             }
         } catch (e) {
-            if (!err.length) { // venantius/ultra outputs errors on stdout, it seems.
-                err = out;
-            }
-            outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`, (resultLocation) => {
+            const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
+            outputWindow.append(outputWindowError, async (resultLocation, afterResultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
-                    const error = util.stripAnsi(err.join("\n"));
+                    const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
                     const currentCursorPos = editor.selection.active;
-                    annotations.decorateSelection(error, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
-                    annotations.decorateResults(error, true, selection, editor);
+                    if (!outputWindow.isResultsDoc(editor.document)) {
+                        annotations.decorateSelection(editorError, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
+                        annotations.decorateResults(editorError, true, selection, editor);
+                    }
                     if (options.asComment) {
-                        addAsComment(selection.start.character, error, selection, editor, selection);
+                        addAsComment(selection.start.character, editorError, selection, editor, selection);
                     }
                 }
-                if (context.stacktrace) {
-                    outputWindow.printStacktrace(context.stacktrace);
+                if (context.stacktrace && context.stacktrace.stacktrace) {
+                    outputWindow.markLastStacktraceRange(afterResultLocation);
                 }
             });
+            if (context.stacktrace && context.stacktrace.stacktrace) {
+                outputWindow.saveStacktrace(context.stacktrace.stacktrace);
+            }
         }
-
-        outputWindow.setSession(session, context.ns);
+        outputWindow.setSession(session, context.ns || ns);
         namespace.updateREPLSessionType();
     }
 }
@@ -151,12 +157,19 @@ async function evaluateSelection(document: {}, options) {
         const column = codeSelection.start.character;
         const filePath = doc.fileName;
         const session = namespace.getSession(util.getFileType(doc));
+
+        if (outputWindow.isResultsDoc(doc)) {
+            replHistory.addToReplHistory(session.replType, code);
+            replHistory.resetState();
+        }
+
         if (code.length > 0) {
             if (options.debug) {
                 code = '#dbg\n' + code;
             }
             annotations.decorateSelection("", codeSelection, editor, undefined, undefined, annotations.AnnotationStatus.PENDING);
             await evaluateCode(code, { ...options, ns, line, column, filePath, session }, codeSelection);
+            outputWindow.appendPrompt();
         }
     } else {
         vscode.window.showErrorMessage("Not connected to a REPL");
@@ -201,14 +214,13 @@ function evaluateCurrentForm(document = {}, options = {}) {
         .catch(printWarningForError);
 }
 
-async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrintingOptions) {
+async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const current = state.deref();
     const doc = util.getDocument(document);
     const fileName = util.getFileName(doc);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
     const session = namespace.getSession(util.getFileType(doc));
-    const chan = state.outputChannel();
     const shortFileName = path.basename(fileName);
     const dirName = path.dirname(fileName);
 
@@ -218,34 +230,29 @@ async function loadFile(document, callback: () => { }, pprintOptions: PrettyPrin
 
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
-        let res = session.loadFile(doc.getText(), {
+        const res = session.loadFile(doc.getText(), {
             fileName: fileName,
             filePath: doc.fileName,
             stdout: m => outputWindow.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
             stderr: m => outputWindow.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions
-        })
-        await res.value.then((value) => {
+        });
+        try {
+            const value = await res.value;
             if (value) {
                 outputWindow.append(value);
             } else {
                 outputWindow.append("; No results from file evaluation.");
             }
-        }).catch(async (e) => {
+        } catch (e) {
             outputWindow.append(`; Evaluation of file ${fileName} failed: ${e}`);
             if (res.stacktrace) {
-                outputWindow.printStacktrace(res.stacktrace);
+                outputWindow.saveStacktrace(res.stacktrace);
+                outputWindow.printLastStacktrace();
             }
-        });
-        outputWindow.setSession(session, res.ns ? res.ns : ns);
+        }
+        outputWindow.setSession(session, res.ns || ns);
         namespace.updateREPLSessionType();
-    }
-    if (callback) {
-        try {
-            callback();
-        } catch (e) {
-            chan.appendLine(`After evaluation callback for file ${fileName} failed: ${e}`);
-        };
     }
 }
 
@@ -336,26 +343,26 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
         });
     }
     catch (e) {
-        outputWindow.append("; Evaluation failed.")
+        outputWindow.append("; Evaluation failed.");
     }
 }
 
 export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
 
-function evaluateCustomCommandSnippetCommand() {
-    let pickCounter = 1,
-        configErrors: { "name": string, "keys": string[] }[] = [];
-    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[],
-        snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
-            const undefs = ["name", "snippet", "repl"].filter(k => {
-                return !c[k];
-            })
-            if (undefs.length > 0) {
-                configErrors.push({ "name": c.name, "keys": undefs });
-            }
-            return `${pickCounter++}: ${c.name} (${c.repl})`;
-        }),
-        snippetsDict = {};
+async function evaluateCustomCommandSnippetCommand(): Promise<void> {
+    let pickCounter = 1;
+    let configErrors: { "name": string, "keys": string[] }[] = [];
+    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[];
+    const snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
+        const undefs = ["name", "snippet", "repl"].filter(k => {
+            return !c[k];
+        });
+        if (undefs.length > 0) {
+            configErrors.push({ "name": c.name, "keys": undefs });
+        }
+        return `${pickCounter++}: ${c.name} (${c.repl})`;
+    });
+    const snippetsDict = {};
     pickCounter = 1;
 
     if (configErrors.length > 0) {
@@ -367,20 +374,29 @@ function evaluateCustomCommandSnippetCommand() {
     });
 
     if (snippets && snippets.length > 0) {
-        util.quickPickSingle({
-            values: snippetPicks,
-            placeHolder: "Choose a command to run at the REPL",
-            saveAs: "runCustomREPLCommand"
-        }).then(async (pick) => {
+        try {
+            const pick = await util.quickPickSingle({
+                values: snippetPicks,
+                placeHolder: "Choose a command to run at the REPL",
+                saveAs: "runCustomREPLCommand"
+            });
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
-                const command = snippetsDict[pick].snippet,
-                    editor = vscode.window.activeTextEditor,
-                    editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined,
-                    ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS,
-                    repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                evaluateInOutputWindow(command, repl ? repl : "clj", ns);
+                const editor = vscode.window.activeTextEditor;
+                const currentLine = editor.selection.active.line;
+                const currentColumn = editor.selection.active.character;
+                const currentFilename = editor.document.fileName;
+                const editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
+                const ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS;
+                const repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
+                const command = snippetsDict[pick].snippet.
+                     replace("$line", currentLine).
+                     replace("$column", currentColumn).
+                     replace("$file", currentFilename);
+                await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
-        }).catch(() => { });
+        } catch (e) {
+            console.error(e);
+        }
     } else {
         vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
     }

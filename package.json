@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.120",
+    "version": "2.0.136",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -15,7 +15,7 @@
     },
     "license": "MIT",
     "engines": {
-        "vscode": "^1.39.0"
+        "vscode": "^1.45.0"
     },
     "categories": [
         "Programming Languages",
@@ -87,7 +87,7 @@
                     ".edn",
                     ".joke",
                     ".boot",
-                    ".repl-file"
+                    ".calva-repl"
                 ]
             }
         ],
@@ -179,7 +179,7 @@
                     "calva.testOnSave": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Run namespace tests when opening a new file and on file save"
+                        "description": "Run namespace tests on file save"
                     },
                     "calva.showDocstringInParameterHelp": {
                         "type": "boolean",
@@ -487,6 +487,12 @@
                         "type": "boolean",
                         "markdownDescription": "By default, the **Calva says** window opens on startup.",
                         "default": true
+                    },
+                    "calva.keybindingsEnabled": {
+                        "type": "boolean",
+                        "description": "Activate keybindings.",
+                        "default": true,
+                        "scope": "window"
                     }
                 }
             },
@@ -648,7 +654,7 @@
             },
             {
                 "command": "calva.interruptAllEvaluations",
-                "title": "Interrupt running Evaluations",
+                "title": "Interrupt Running Evaluations",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -683,6 +689,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.printLastStacktrace",
+                "title": "Print Last Stacktrace to Output Window",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.copyLastResults",
                 "title": "Copy Last Evaluation Result to Clipboard",
                 "category": "Calva"
@@ -713,7 +725,7 @@
             },
             {
                 "command": "calva.rerunTests",
-                "title": "Run Failing Tests again",
+                "title": "Run Failing Tests Again",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -746,6 +758,11 @@
                 "title": "Refresh All Namespaces",
                 "enablement": "calva:connected",
                 "category": "Calva"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.toggleKeybindingsEnabled",
+                "title": "Toggle Keybindings Enabled"
             },
             {
                 "category": "Calva Paredit",
@@ -1043,7 +1060,7 @@
                 "category": "Calva",
                 "command": "calva.showOutputWindow",
                 "title": "Show Output Window",
-                "enablement": "calva:connected"
+                "enablement": "calva:connected && !calva.outputWindowActive"
             },
             {
                 "command": "calva.setOutputWindowNamespace",
@@ -1062,434 +1079,497 @@
                 "title": "Send Current Top Level Form to Output/REPL Window",
                 "enablement": "calva:connected",
                 "category": "Calva"
+            },
+            {
+                "command": "calva.showPreviousReplHistoryEntry",
+                "title": "Show Previous REPL History Entry",
+                "enablement": "calva:connected && calva:outputWindowActive && calva:replHistoryCommandsActive",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.showNextReplHistoryEntry",
+                "title": "Show Next REPL History Entry",
+                "enablement": "calva:connected && calva:outputWindowActive && calva:replHistoryCommandsActive",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.clearReplHistory",
+                "title": "Clear REPL History",
+                "enablement": "calva:connected",
+                "category": "Calva"
             }
         ],
         "keybindings": [
             {
                 "command": "calva.tellAboutNewChordingKey",
                 "key": "ctrl+alt+v",
-                "when": "editorLangId == clojure"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure"
             },
             {
                 "command": "calva.debug.instrument",
                 "key": "ctrl+alt+c i",
-                "when": "editorLangId == clojure && calva:connected"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.jackIn",
-                "key": "ctrl+alt+c ctrl+alt+j"
+                "key": "ctrl+alt+c ctrl+alt+j",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.connect",
-                "key": "ctrl+alt+c ctrl+alt+c"
+                "key": "ctrl+alt+c ctrl+alt+c",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.connectNonProjectREPL",
-                "key": "ctrl+alt+c alt+c"
+                "key": "ctrl+alt+c alt+c",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.toggleCLJCSession",
-                "key": "ctrl+alt+c ctrl+alt+s"
+                "key": "ctrl+alt+c ctrl+alt+s",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.switchCljsBuild",
-                "key": "ctrl+alt+c ctrl+alt+b"
+                "key": "ctrl+alt+c ctrl+alt+b",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.selectCurrentForm",
-                "key": "ctrl+alt+c ctrl+s"
+                "key": "ctrl+alt+c ctrl+s",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.clearInlineResults",
                 "key": "escape",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions && !editorHasMultipleSelections && !parameterHintsVisible"
+                "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && editorLangId == 'clojure'"
             },
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+alt+c e",
-                "win": "ctrl+alt+c v"
+                "win": "ctrl+alt+c v",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
-                "when": "editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
                 "command": "calva.interruptAllEvaluations",
-                "key": "ctrl+alt+c ctrl+alt+d"
+                "key": "ctrl+alt+c ctrl+alt+d",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "ctrl+alt+c space"
+                "key": "ctrl+alt+c space",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "alt+enter",
-                "when": "editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "enter",
+                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
-                "key": "ctrl+alt+c r"
+                "key": "ctrl+alt+c r",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
-                "key": "ctrl+alt+c c"
+                "key": "ctrl+alt+c c",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.evaluateTopLevelFormAsComment",
-                "key": "ctrl+alt+c ctrl+space"
+                "key": "ctrl+alt+c ctrl+space",
+                "when": "calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.printLastStacktrace",
+                "key": "ctrl+alt+c ctrl+alt+p",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.copyLastResults",
-                "key": "ctrl+alt+c ctrl+c"
+                "key": "ctrl+alt+c ctrl+c",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.loadFile",
-                "key": "ctrl+alt+c enter"
+                "key": "ctrl+alt+c enter",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.togglePrettyPrint",
-                "key": "ctrl+alt+c p"
+                "key": "ctrl+alt+c p",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.requireREPLUtilities",
-                "key": "ctrl+alt+c ctrl+u"
+                "key": "ctrl+alt+c ctrl+u",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runNamespaceTests",
-                "key": "ctrl+alt+c t"
+                "key": "ctrl+alt+c t",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runAllTests",
-                "key": "ctrl+alt+c shift+t"
+                "key": "ctrl+alt+c shift+t",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.rerunTests",
-                "key": "ctrl+alt+c ctrl+t"
+                "key": "ctrl+alt+c ctrl+t",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runTestUnderCursor",
-                "key": "ctrl+alt+c ctrl+alt+t"
+                "key": "ctrl+alt+c ctrl+alt+t",
+                "when": "calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
-                "key": "ctrl+alt+c ."
+                "key": "ctrl+alt+c .",
+                "when": "calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.toggleKeybindingsEnabled",
+                "key": "ctrl+alt+c ctrl+alt+k"
             },
             {
                 "command": "paredit.togglemode",
                 "key": "ctrl+alt+p ctrl+alt+m",
-                "when": "paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardSexp",
                 "key": "ctrl+alt+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardSexp",
                 "key": "ctrl+alt+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardDownSexp",
                 "key": "ctrl+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardDownSexp",
                 "key": "ctrl+alt+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardUpSexp",
                 "key": "ctrl+alt+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardUpSexp",
                 "key": "ctrl+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.closeList",
                 "key": "ctrl+end",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.openList",
                 "key": "ctrl+home",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardSexp",
                 "key": "ctrl+shift+alt+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardSexp",
                 "key": "ctrl+shift+alt+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardDownSexp",
                 "key": "ctrl+shift+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardDownSexp",
                 "key": "ctrl+shift+alt+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectForwardUpSexp",
                 "key": "ctrl+shift+alt+down",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardUpSexp",
                 "key": "ctrl+shift+up",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectCloseList",
                 "key": "ctrl+shift+end",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectOpenList",
                 "key": "ctrl+shift+home",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rangeForDefun",
                 "key": "ctrl+alt+w space",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeExpansion",
                 "key": "ctrl+w",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeContraction",
                 "key": "ctrl+shift+w",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpForward",
                 "key": "ctrl+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpBackward",
                 "key": "ctrl+shift+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpForward",
                 "key": "ctrl+left",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpBackward",
                 "key": "ctrl+shift+right",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexp",
                 "key": "ctrl+alt+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.splitSexp",
                 "key": "ctrl+shift+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.joinSexp",
                 "key": "ctrl+shift+j",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.raiseSexp",
                 "key": "ctrl+alt+p ctrl+alt+r",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.transpose",
                 "key": "ctrl+alt+t",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprBackward",
                 "key": "ctrl+shift+alt+b",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprForward",
                 "key": "ctrl+shift+alt+f",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprBackwardUp",
                 "key": "ctrl+shift+alt+u",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprForwardDown",
                 "key": "ctrl+shift+alt+d",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprForwardUp",
                 "key": "ctrl+shift+alt+k",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.dragSexprBackwardDown",
                 "key": "ctrl+shift+alt+j",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.convolute",
                 "key": "ctrl+shift+c",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpForward",
                 "key": "ctrl+shift+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpBackward",
                 "key": "ctrl+alt+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killListForward",
                 "key": "ctrl+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killListBackward",
                 "key": "ctrl+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillForward",
                 "key": "ctrl+alt+shift+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.spliceSexpKillBackward",
                 "key": "ctrl+alt+shift+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundParens",
                 "key": "ctrl+alt+shift+p",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundSquare",
                 "key": "ctrl+alt+shift+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundCurly",
                 "key": "ctrl+alt+shift+c",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.wrapAroundQuote",
                 "key": "ctrl+alt+shift+q",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapParens",
                 "key": "ctrl+alt+r ctrl+alt+p",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapSquare",
                 "key": "ctrl+alt+r ctrl+alt+s",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapCurly",
                 "key": "ctrl+alt+r ctrl+alt+c",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.rewrapQuote",
                 "key": "ctrl+alt+r ctrl+alt+q",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.forceDeleteForward",
                 "key": "alt+delete",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "paredit.forceDeleteBackward",
                 "key": "alt+backspace",
-                "when": "editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",
                 "key": "tab",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !inSnippetMode && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !inSnippetMode && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
                 "command": "calva-fmt.alignCurrentForm",
                 "key": "ctrl+alt+l",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
                 "command": "calva-fmt.inferParens",
                 "key": "ctrl+alt+f ctrl+alt+p",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
                 "command": "calva-fmt.tabIndent",
                 "key": "ctrl+i",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
                 "command": "calva-fmt.tabDedent",
                 "key": "shift+ctrl+i",
-                "when": "editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
                 "command": "calva.showOutputWindow",
                 "key": "ctrl+alt+c o",
-                "when": "calva:connected && !calva.outputWindowActive"
+                "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
             },
             {
                 "command": "calva.setOutputWindowNamespace",
                 "key": "ctrl+alt+c alt+n",
-                "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
             },
             {
                 "command": "calva.sendCurrentFormToOutputWindow",
                 "key": "ctrl+alt+c ctrl+alt+e",
                 "win": "ctrl+alt+c ctrl+alt+v",
-                "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
             },
             {
                 "command": "calva.sendCurrentTopLevelFormToOutputWindow",
                 "key": "ctrl+alt+c ctrl+alt+space",
-                "when": "editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
+            },
+            {
+                "command": "calva.showPreviousReplHistoryEntry",
+                "key": "alt+up",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && calva:outputWindowActive"
+            },
+            {
+                "command": "calva.showNextReplHistoryEntry",
+                "key": "alt+down",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && calva:outputWindowActive"
             }
         ],
         "menus": {
@@ -1501,6 +1581,18 @@
                 {
                     "command": "calva.debug.instrument",
                     "when": "editorLangId == clojure && calva:connected"
+                },
+                {
+                    "command": "calva.showPreviousReplHistoryEntry",
+                    "when": "calva:connected && calva:outputWindowActive"
+                },
+                {
+                    "command": "calva.showNextReplHistoryEntry",
+                    "when": "calva:connected && calva:outputWindowActive"
+                },
+                {
+                    "command": "calva.showOutputWindow",
+                    "when": "calva:connected && !calva:outputWindowActive"
                 }
             ],
             "editor/title": [
@@ -1608,10 +1700,11 @@
         }
     },
     "scripts": {
-        "watch-docs": "echo \"Run `mkdocs serve` in the calva-docs repo.\"",
+        "watch-docs": "mkdocs serve",
+        "deploy-docs": "mkdocs gh-deploy -m \"[skip ci]\"",
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
-        "prewatch": "npm i && npm run clean && npm run compile-cljs",
+        "prewatch": "npm i && npm run clean && npm run update-grammar && npm run compile-cljs",
         "watch": "tsc -watch -p ./tsconfig.json",
         "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
@@ -1639,18 +1732,20 @@
         "lodash": "^4.17.19",
         "lodash.isequal": "4.5.0",
         "net": "1.0.2",
-        "npm": "^6.14.6",
+        "npm": "^7.0.7",
         "open": "^6.3.0",
+        "ovsx": "0.1.0-next.e000fdb",
         "parinfer": "^3.12.0",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
-        "vscode-extension-telemetry": "0.0.15"
+        "vscode-extension-telemetry": "0.0.15",
+        "vsls": "^1.0.2594"
     },
     "devDependencies": {
         "@types/chai": "^4.2.6",
         "@types/glob": "^7.1.1",
         "@types/mocha": "^5.2.7",
-        "@types/vscode": "^1.39.0",
+        "@types/vscode": "^1.45.0",
         "chai": "^4.2.0",
         "concurrently": "^5.2.0",
         "cson-parser": "^4.0.3",
@@ -1662,6 +1757,7 @@
         "eslint-plugin-standard": "^3.0.1",
         "fast-check": "^1.22.2",
         "glob": "^7.1.6",
+        "jest": "^26.6.2",
         "json": "^9.0.6",
         "minimist": "^1.2.5",
         "mocha": "^7.1.1",
@@ -1670,7 +1766,7 @@
         "node-gyp": "^5.0.5",
         "nodemon": "^2.0.3",
         "rimraf": "^2.7.1",
-        "shadow-cljs": "^2.8.109",
+        "shadow-cljs": "^2.11.6",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",

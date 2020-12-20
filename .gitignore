@@ -58,15 +58,11 @@ pom.xml
 *.iml
 *.bak
 
-
 ## TS
 out/
 html/main.js
 tsconfig.tsbuildinfo
 html/main.js.map
-
-## Read The Docs
-docs/readthedocs/build
 
 # Test reporter
 junit/test-results.xml
@@ -77,3 +73,10 @@ report.*
 # clojure-lsp
 .lsp
 .calva/output-window/
+.clj-kondo
+
+# MkDocs
+/site/
+
+# Calva dev
+clojure.tmLanguage.json

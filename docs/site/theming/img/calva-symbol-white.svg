@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.1-dev (ddb55ca, 2020-02-02)"
+   sodipodi:docname="calva-symbol-logo-white.svg"
+   id="svg26"
+   version="1.1"
+   viewBox="0 0 1550 1191"
+   height="1191"
+   width="1550">
+  <metadata
+     id="metadata32">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>calva-symbol-logo</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs30" />
+  <sodipodi:namedview
+     inkscape:current-layer="layer1"
+     inkscape:window-maximized="0"
+     inkscape:window-y="23"
+     inkscape:window-x="0"
+     inkscape:cy="612.32117"
+     inkscape:cx="1919.7158"
+     inkscape:zoom="0.23779562"
+     showgrid="false"
+     id="namedview28"
+     inkscape:window-height="1235"
+     inkscape:window-width="2006"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+  <title
+     id="title10">calva-symbol-logo</title>
+  <desc
+     id="desc12">Created with Sketch.</desc>
+  <g
+     fill-rule="evenodd"
+     fill="none"
+     stroke-width="1"
+     stroke="none"
+     id="Calva-logo">
+    <g
+       transform="translate(-2,-1)"
+       id="calva-symbol-logo">
+      <g
+         id="g22"
+         transform="translate(2)">
+        <g
+           fill-rule="nonzero"
+           transform="translate(0.181351,0.935064)"
+           id="Calva-icon" />
+      </g>
+    </g>
+  </g>
+  <g
+     style="display:inline"
+     inkscape:label="Icon"
+     id="layer1"
+     inkscape:groupmode="layer">
+    <g
+       id="g948">
+      <path
+         fill="#90b4fe"
+         id="Path"
+         d="m 191.8401,28.444291 c 15.16135,-15.2657 39.8247,-15.3477 55.08713,-0.1831 15.26244,15.1646 15.34437,39.8333 0.18302,55.0989 -0.59064,0.5948 -2.31766,2.4676 -5.02357,5.6419 -4.89318,5.7403 -10.45196,12.829999 -16.51976,21.292999 -17.75686,24.7662 -35.67655,55.3199 -52.51541,91.868 -48.78562,105.8875 -78.224992,238.2948 -78.224992,399.1938 0,160.8989 29.439372,293.3063 78.224992,399.19371 16.83886,36.5482 34.75855,67.1018 52.51541,91.8681 6.0678,8.463 11.62658,15.5527 16.51976,21.2929 2.70591,3.1743 4.43293,5.0472 5.02357,5.6419 15.16135,15.2657 15.07942,39.9343 -0.18302,55.0989 -15.26243,15.1646 -39.92578,15.0827 -55.08713,-0.183 -6.54288,-6.5879 -16.83691,-18.6639 -29.58209,-36.4402 C 141.6708,1109.1152 121.24642,1074.291 102.29749,1033.163 48.832258,917.11859 16.921118,773.59419 16.921118,601.35679 c 0,-172.2374 31.91114,-315.7619 85.376372,-431.8063 18.94893,-41.128 39.37331,-75.952199 59.96052,-104.666099 12.74518,-17.7762 23.03921,-29.8522 29.58209,-36.4401 z"
+         inkscape:connector-curvature="0"
+         style="fill:#fffaf4;fill-opacity:1" />
+      <path
+         fill="#90b4fe"
+         id="path15"
+         d="m 1308.8478,83.360091 c -15.1614,-15.2656 -15.0794,-39.9343 0.183,-55.0989 15.2624,-15.1646 39.9258,-15.0826 55.0871,0.1831 6.5429,6.5879 16.8369,18.6639 29.5821,36.4401 20.5872,28.7139 41.0116,63.538099 59.9605,104.666099 53.4653,116.0444 85.3764,259.5689 85.3764,431.8063 0,172.2374 -31.9111,315.7618 -85.3764,431.80621 -18.9489,41.128 -39.3733,75.9522 -59.9605,104.6661 -12.7452,17.7763 -23.0392,29.8523 -29.5821,36.4402 -15.1613,15.2657 -39.8247,15.3476 -55.0871,0.183 -15.2624,-15.1646 -15.3444,-39.8332 -0.183,-55.0989 0.5906,-0.5947 2.3176,-2.4676 5.0236,-5.6419 4.8931,-5.7402 10.4519,-12.8299 16.5197,-21.2929 17.7569,-24.7663 35.6766,-55.3199 52.5154,-91.8681 48.7856,-105.88741 78.225,-238.29481 78.225,-399.19371 0,-160.899 -29.4394,-293.3063 -78.225,-399.1938 -16.8388,-36.5481 -34.7585,-67.1018 -52.5154,-91.868 -6.0678,-8.463 -11.6266,-15.552699 -16.5197,-21.292999 -2.706,-3.1743 -4.433,-5.0471 -5.0236,-5.6419 z"
+         inkscape:connector-curvature="0"
+         style="fill:#fffaf4;fill-opacity:1" />
+      <path
+         fill="#db9550"
+         id="path17"
+         d="m 1225.2339,288.57749 c -38.4852,-7.1688 -70.8939,127.6364 -198.6588,7.6364 -141.63193,-132.9351 -245.71353,0 -245.71353,0 0,0 -101.1213,133.0909 -242.7533,0 -93.4865,-87.7403 -185.88229,-42.7013 -185.88229,-42.7013 -51.38814,108.7141 -77.18585,227.7608 -75.41243,348 -1.00667,99.7255 16.37082,198.7825 51.26176,292.2078 33.4024,88.3664 105.84195,156.27501 196.16576,183.89611 83.8448,23.1462 170.5913,34.064 257.5553,32.4156 82.0747,1.3674 163.9676,-8.1705 243.53233,-28.3636 97.8705,-27.2771 176.5195,-100.19541 211.1236,-195.74031 32.8544,-91.1852 49.2102,-187.4941 48.3014,-284.4156 1.2506,-107.2404 -18.9874,-213.6451 -59.5198,-312.9351 z"
+         inkscape:connector-curvature="0"
+         style="fill:#fffaf4;fill-opacity:1" />
+    </g>
+  </g>
+</svg>

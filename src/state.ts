@@ -80,7 +80,6 @@ function analytics(): Analytics {
     }
 }
 
-
 function reset() {
     data = Immutable.fromJS(initialData);
 }
@@ -148,10 +147,17 @@ function getViewColumnFromString(value: string): vscode.ViewColumn {
 }
 
 const PROJECT_DIR_KEY = "connect.projectDir";
+const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
-export function getProjectRoot(useCache = true): string {
+export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
         return deref().get(PROJECT_DIR_KEY);
+    }
+}
+
+export function getProjectRootUri(useCache = true): vscode.Uri {
+    if (useCache) {
+        return deref().get(PROJECT_DIR_URI_KEY);
     }
 }
 
@@ -185,9 +191,9 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
  * If there is no project file found, throw an exception.
  */
 export async function initProjectDir(): Promise<void> {
-    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"],
-        workspace = vscode.workspace.workspaceFolders![0],
-        doc = util.getDocument({});
+    const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
+    const workspace = vscode.workspace.workspaceFolders![0];
+    const doc = util.getDocument({});
 
     // first try the workplace folder
     let workspaceFolder = doc ? vscode.workspace.getWorkspaceFolder(doc.uri) : null;
@@ -198,49 +204,73 @@ export async function initProjectDir(): Promise<void> {
             workspaceFolder = workspace ? vscode.workspace.getWorkspaceFolder(workspace.uri) : null;
         }
     }
-    if (!workspaceFolder) {
-        vscode.window.showErrorMessage("There is no document opened in the workspace. Please open a file in your Clojure project and try again. Aborting.");
-        analytics().logEvent("REPL", "JackinOrConnectInterrupted", "NoCurrentDocument").send();
-        throw "There is no document opened in the workspace. Aborting.";
+
+    await findLocalProjectRoot(projectFileNames, doc, workspaceFolder);
+    await findProjectRootUri(projectFileNames, doc, workspaceFolder);
+}
+
+async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
+    let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
+    cursor.set(PROJECT_DIR_KEY, rootPath);
+    cursor.set(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+
+    let d = null;
+    let prev = null;
+    if (doc && path.dirname(doc.uri.fsPath) !== '.') {
+        d = path.dirname(doc.uri.fsPath);
     } else {
-        let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        cursor.set(PROJECT_DIR_KEY, rootPath);
-        let d = null;
-        let prev = null;
-        if (doc) {
-            d = path.dirname(doc.uri.fsPath);
-        } else {
-            d = workspaceFolder.uri.fsPath;
-        }
-        while (d != prev) {
-            for (let projectFile in projectFileNames) {
-                const p = path.resolve(d, projectFileNames[projectFile]);
-                if (fs.existsSync(p)) {
-                    rootPath = d;
-                    break;
-                }
-            }
-            if (d == rootPath) {
+        d = workspaceFolder.uri.fsPath;
+    }
+    while (d !== prev) {
+        for (let projectFile in projectFileNames) {
+            const p = path.resolve(d, projectFileNames[projectFile]);
+            if (fs.existsSync(p)) {
+                rootPath = d;
                 break;
             }
-            prev = d;
-            d = path.resolve(d, "..");
         }
+        if (d === rootPath) {
+            break;
+        }
+        prev = d;
+        d = path.resolve(d, "..");
+    }
 
-        // at least be sure the the root folder contains a
-        // supported project.
-        for (let projectFile in projectFileNames) {
-            const p = path.resolve(rootPath, projectFileNames[projectFile]);
-            if (fs.existsSync(p)) {
-                cursor.set(PROJECT_DIR_KEY, rootPath);
-                return;
-            }
+    // at least be sure the the root folder contains a
+    // supported project.
+    for (let projectFile in projectFileNames) {
+        const p = path.resolve(rootPath, projectFileNames[projectFile]);
+        if (fs.existsSync(p)) {
+            cursor.set(PROJECT_DIR_KEY, rootPath);
+            cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
+            return;
         }
-        return;
+    }
+    return;
+}
+
+async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promise<void> {
+    let searchUri = doc?.uri || workspaceFolder?.uri;
+    let prev = null;
+    while (searchUri != prev) {
+        for (let projectFile in projectFileNames) {
+            const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
+            try {
+                const stat = await vscode.workspace.fs.stat(u);
+                if (stat) {
+                    cursor.set(PROJECT_DIR_URI_KEY, searchUri);
+                    return;
+                }
+            }
+            catch (_) { }
+        }
+        prev = searchUri;
+        searchUri = vscode.Uri.joinPath(searchUri, "..");
     }
 }
 
 /**
+ *
  * Tries to resolve absolute path in relation to project root
  * @param filePath - absolute or relative to the project
  */

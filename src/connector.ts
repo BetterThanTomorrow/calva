@@ -11,11 +11,12 @@ import { CljsTypeConfig, ReplConnectSequence, getDefaultCljsType, CljsTypes, ask
 import { disabledPrettyPrinter } from './printer';
 import { keywordize } from './util/string';
 import { REQUESTS, initializeDebugger } from './debugger/calva-debug';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc';
 import evaluate from './evaluate';
 import * as namespace from './namespace';
+import * as liveShareSupport from './liveShareSupport';
 
-async function connectToHost(hostname, port, connectSequence: ReplConnectSequence) {
+async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
 
     if (nClient) {
@@ -29,7 +30,12 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
     try {
         outputWindow.append("; Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
-        nClient = await NReplClient.create({ host: hostname, port: +port })
+        nClient = await NReplClient.create({ host: hostname, port: +port, onError: e => {
+            const scheme = state.getProjectRootUri().scheme;
+            if (scheme === "vsls") {
+                outputWindow.append("; nREPL connection failed; did the host share the nREPL port?");
+            }
+        }})
         nClient.addOnCloseHandler(c => {
             util.setConnectedState(false);
             util.setConnectingState(false);
@@ -48,16 +54,16 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
         namespace.updateREPLSessionType();
 
-        // Initialize debugger
         await initializeDebugger(cljSession);
-        outputWindow.append('; Debugger initialized');
 
         outputWindow.setSession(cljSession, nClient.ns);
 
         if (connectSequence.afterCLJReplJackInCode) {
-            outputWindow.append(`; Evaluating 'afterCLJReplJackInCode'`);
+            outputWindow.append(`\n; Evaluating 'afterCLJReplJackInCode'`);
             await evaluate.evaluateInOutputWindow(connectSequence.afterCLJReplJackInCode, 'clj', outputWindow.getNs());
         }
+
+        outputWindow.appendPrompt();
 
         let cljsSession = null,
             cljsBuild = null;
@@ -84,7 +90,9 @@ async function connectToHost(hostname, port, connectSequence: ReplConnectSequenc
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
         return false;
     }
-    
+
+    liveShareSupport.didConnectRepl(port);
+
     return true;
 }
 
@@ -96,9 +104,11 @@ async function setUpCljsRepl(session, build) {
     namespace.updateREPLSessionType();
 }
 
-function getFigwheelMainBuilds() {
-    let res = fs.readdirSync(state.getProjectRoot());
-    let builds = res.filter(x => x.match(/\.cljs\.edn/)).map(x => x.replace(/\.cljs\.edn$/, ""));
+async function getFigwheelMainBuilds() {
+    let res = await vscode.workspace.fs.readDirectory(state.getProjectRootUri());
+    let builds = res
+        .filter(([name, type]) => type !== vscode.FileType.Directory && name.match(/\.cljs\.edn/))
+        .map(([name, _]) => name.replace(/\.cljs\.edn$/, ""));
     if (builds.length == 0) {
         vscode.window.showErrorMessage("There are no figwheel build files (.cljs.edn) in the project directory.");
         outputWindow.append("; There are no figwheel build files (.cljs.edn) in the project directory.");
@@ -160,11 +170,11 @@ export interface ReplType {
 
 let translatedReplType: ReplType;
 
-function figwheelOrShadowBuilds(cljsTypeName: string): string[] {
+async function figwheelOrShadowBuilds(cljsTypeName: string): Promise<string[]> {
     if (cljsTypeName.includes("Figwheel Main")) {
-        return getFigwheelMainBuilds();
+        return await getFigwheelMainBuilds();
     } else if (cljsTypeName.includes("shadow-cljs")) {
-        return projectTypes.shadowBuilds();
+        return await projectTypes.shadowBuilds();
     }
 }
 
@@ -257,9 +267,9 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
             } else {
                 if ((typeof initCode === 'object' || initCode.includes("%BUILD%"))) {
                     build = await util.quickPickSingle({
-                        values: startedBuilds ? startedBuilds : figwheelOrShadowBuilds(cljsTypeName),
+                        values: startedBuilds ? startedBuilds : await figwheelOrShadowBuilds(cljsTypeName),
                         placeHolder: "Select which build to connect to",
-                        saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-build`,
+                        saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(" ", "-")}-build`,
                         autoSelect: true
                     });
                 }
@@ -303,11 +313,11 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                         builds = menuSelections.cljsLaunchBuilds;
                     }
                     else {
-                        const allBuilds = figwheelOrShadowBuilds(cljsTypeName);
+                        const allBuilds = await figwheelOrShadowBuilds(cljsTypeName);
                         builds = allBuilds.length <= 1 ? allBuilds : await util.quickPickMulti({
                             values: allBuilds,
                             placeHolder: "Please select which builds to start",
-                            saveAs: `${state.getProjectRoot()}/${cljsTypeName.replace(" ", "-")}-builds`
+                            saveAs: `${state.getProjectRootUri().toString()}/${cljsTypeName.replace(" ", "-")}-builds`
                         });
                     }
                     if (builds) {
@@ -395,8 +405,6 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
 }
 
 async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSequence) {
-    let current = state.deref();
-
     let url = await vscode.window.showInputBox({
         placeHolder: "Enter existing nREPL hostname:port here...",
         prompt: "Add port to nREPL if localhost, otherwise 'hostname:port'",
@@ -433,18 +441,19 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
     state.analytics().logEvent("REPL", "ConnectInitiated", cljsTypeName).send();
 
-    const portFile = projectTypes.nreplPortFile(connectSequence);
+    const portFile = projectTypes.nreplPortFileUri(connectSequence);
 
     state.extensionContext.workspaceState.update('selectedCljsTypeName', cljsTypeName);
     state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
 
-    if (fs.existsSync(portFile)) {
-        let port = fs.readFileSync(portFile, 'utf8');
+    try {
+        let bytes = await vscode.workspace.fs.readFile(portFile);
+        let port = new TextDecoder("utf-8").decode(bytes);
         if (port) {
             if (isAutoConnect) {
                 state.cursor.set("hostname", "localhost");
                 state.cursor.set("port", port);
-                await connectToHost("localhost", port, connectSequence);
+                await connectToHost("localhost", parseInt(port), connectSequence);
             } else {
                 await promptForNreplUrlAndConnect(port, connectSequence);
             }
@@ -452,21 +461,23 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
             outputWindow.append('; No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
             await promptForNreplUrlAndConnect(port, connectSequence);
         }
-    } else {
+    } catch (e) {
+        console.log(e);
         await promptForNreplUrlAndConnect(null, connectSequence);
     }
     return true;
+
 }
 
 async function standaloneConnect(connectSequence: ReplConnectSequence) {
     await outputWindow.initResultsDoc();
-    const outputDocument = await outputWindow.openResultsDoc();
+    await outputWindow.openResultsDoc();
 
     if (connectSequence) {
         const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
         outputWindow.append(`; Connecting ...`);
         state.analytics().logEvent("REPL", "StandaloneConnect", `${connectSequence.name} + ${cljsTypeName}`).send();
-        connect(connectSequence, false).catch(() => { });
+        await connect(connectSequence, false).catch(() => { });
     }
     else {
         outputWindow.append("; Aborting connect, error determining connect sequence.");
@@ -482,6 +493,7 @@ export default {
         // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();
+            await liveShareSupport.setupLiveShareListener();
         } catch {
             // Could be a bae file, user makes the call
             vscode.commands.executeCommand('calva.jackInOrConnect');
@@ -500,9 +512,15 @@ export default {
         status.update();
 
         if (nClient) {
-            // the connection may be ended before
-            // the REPL client was connected.
-            nClient.close();
+            if (state.getProjectRootUri().scheme === "vsls") {
+                nClient.disconnect();
+            } else {
+                // the connection may be ended before
+                // the REPL client was connected.
+                nClient.close();
+            }
+            liveShareSupport.didDisconnectRepl();
+            nClient = undefined;
         }
 
         // If an active debug session exists, terminate it
@@ -526,6 +544,7 @@ export default {
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
                 outputWindow.setSession(newSession, undefined);
                 namespace.updateREPLSessionType();
+                outputWindow.appendPrompt();
             }
             status.update();
         }

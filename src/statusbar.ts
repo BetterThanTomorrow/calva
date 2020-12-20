@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import { REPL_FILE_EXT } from './result-output';
+import config from './config';
 import * as namespace from './namespace';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -26,6 +26,11 @@ function update() {
         doc = util.getDocument({}),
         fileType = util.getFileType(doc),
         cljsBuild = current.get('cljsBuild');
+
+    const replTypeNames = {
+        clj: "Clojure",
+        cljs: "ClojureScript"
+    };
 
     //let disconnectedColor = "rgb(192,192,192)";
 
@@ -53,25 +58,22 @@ function update() {
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.jackInOrConnect";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
-        if (['cljc', REPL_FILE_EXT].includes(fileType) && namespace.getREPLSessionType() !== null) {
-            typeStatus.text = "cljc/" + namespace.getREPLSessionType()
+        const replType = namespace.getREPLSessionType();
+        if (replType !== null) {
+            typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
             if (namespace.getSession('clj') !== null && namespace.getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
-                typeStatus.tooltip = `Click to use ${(namespace.getREPLSessionType() === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
+                typeStatus.tooltip = `Click to use ${(replType === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
+            } else {
+                typeStatus.tooltip = `Connected to ${replTypeNames[replType]} REPL`;
             }
-        } else if (namespace.getREPLSessionType() === 'cljs') {
-            typeStatus.text = "cljs";
-            typeStatus.tooltip = "Connected to ClojureScript REPL";
-        } else if (namespace.getREPLSessionType() === 'clj') {
-            typeStatus.text = "clj"
-            typeStatus.tooltip = "Connected to Clojure REPL";
         }
-        if (namespace.getREPLSessionType() === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
-            if (cljsBuild !== null && namespace.getREPLSessionType() === 'cljs') {
+        if (replType === 'cljs' && state.extensionContext.workspaceState.get('cljsReplTypeHasBuilds')) {
+            if (cljsBuild !== null && replType === 'cljs') {
                 cljsBuildStatus.text = cljsBuild;
                 cljsBuildStatus.tooltip = "Click to switch CLJS build REPL";
             } else if (cljsBuild === null) {
-                cljsBuildStatus.text = "no build connected"
+                cljsBuildStatus.text = "No build connected"
                 cljsBuildStatus.tooltip = "Click to connect to a CLJS build REPL";
             }
         }

@@ -4,6 +4,77 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.135 - 2020-12-20]
+- [Binding keys to REPL functions, passing the namespace and cursor line (Notespace integration)](https://github.com/BetterThanTomorrow/calva/issues/863)
+- [Make REPL prompt submit if the cursor is after the top level form](https://github.com/BetterThanTomorrow/calva/issues/875)
+- [Only print stacktrace on demand](https://github.com/BetterThanTomorrow/calva/issues/878)
+
+## [2.0.134 - 2020-12-05]
+- Fix: [Live share jackout error](https://github.com/BetterThanTomorrow/calva/issues/856)
+- Fix: [Cannot read property 'document' of undefined](https://github.com/BetterThanTomorrow/calva/issues/846)
+
+## [2.0.133] - 2020-11-25
+- Add [ns name deriving](https://github.com/BetterThanTomorrow/calva/issues/844)
+
+## [2.0.132] - 2020-11-16
+- Fix: [[Live Share] connecting to REPL as guest doesn't work in multi-project workspace](https://github.com/BetterThanTomorrow/calva/issues/831)
+
+## [2.0.131] - 2020-11-05
+- Fix: [Syntax highlighting error when repl prompt shows ns containing digits](https://github.com/BetterThanTomorrow/calva/issues/834)
+- Fix: [Syntax highlighting errors with tokens at the start of a line](https://github.com/BetterThanTomorrow/calva/issues/835)
+- Fix: [Various parsing issues](https://github.com/BetterThanTomorrow/calva/issues/802)
+
+## [2.0.130] - 2020-10-25
+- Fix: [Jack-in broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/827)
+
+## [2.0.129] - 2020-10-17
+- [Improve stack trace output](https://github.com/BetterThanTomorrow/calva/pull/806)
+- Fix: [Jack-in is broken for multi-project workspaces](https://github.com/BetterThanTomorrow/calva/issues/821)
+
+## [2.0.128] - 2020-10-17
+- Fix: [Jack-in is broken if live share extension is not installed](https://github.com/BetterThanTomorrow/calva/issues/821)
+
+## [2.0.127] - 2020-10-17
+- [Live Share Support](https://github.com/BetterThanTomorrow/calva/issues/803)
+
+## [2.0.126] - 2020-10-11
+- Fix: [Can't Jack-In to new Luminus template (+re-frame +shadow-cljs)](https://github.com/BetterThanTomorrow/calva/issues/777)
+- Fix: [Wrong `(in-ns ...)` sent for files with `.bb` extension](https://github.com/BetterThanTomorrow/calva/issues/812)
+
+## [no new version] - 2020-09-21
+- [Move docs into repo](https://github.com/BetterThanTomorrow/calva/issues/788)
+
+## [2.0.125] - 2020-09-20
+- [Fix: evals should be ignored during parsing](https://github.com/BetterThanTomorrow/calva/issues/763)
+- Fix: [Test runner can't find tests under cursor when using a custom test macro](https://github.com/BetterThanTomorrow/calva/issues/786)
+- Fix: [Test runner output only partially commented](https://github.com/BetterThanTomorrow/calva/issues/787)
+- [Allow toggling keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/784)
+
+## [2.0.124] - 2020-08-31
+- Re-fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
+- [Fix getDocument function to not return a Log document](https://github.com/BetterThanTomorrow/calva/issues/771)
+- Fix: [Inline evaluation result disappears after a second](https://github.com/BetterThanTomorrow/calva/issues/774)
+
+## [2.0.123] - 2020-08-26
+- [Change output/repl window extension to .calva-repl](https://github.com/BetterThanTomorrow/calva/issues/754)
+- Re-fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
+- [Fix/enhance test runner](https://github.com/BetterThanTomorrow/calva/issues/764)
+
+## [2.0.122] - 2020-08-20
+- Fix: [Can't jack-in when no project file is open](https://github.com/BetterThanTomorrow/calva/issues/734)
+- Fix: [Fix stacktraces not showing in output](https://github.com/BetterThanTomorrow/calva/pull/759)
+
+## [2.0.121] - 2020-08-19
+- Fix: ["Go to definition" command fails](https://github.com/BetterThanTomorrow/calva/issues/636)
+- Fix: [Weird expand selection behavior near an anonymous function](https://github.com/BetterThanTomorrow/calva/issues/600)
+- Fix: [Backspace is not working properly in the output window](https://github.com/BetterThanTomorrow/calva/issues/700)
+- Fix: [Cannot read property 'includes' of undefined](https://github.com/BetterThanTomorrow/calva/issues/753)
+
+## [2.0.120] - 2020-08-17
+- Fix: [Interrupting evaluations produces extra output and no prompt](https://github.com/BetterThanTomorrow/calva/issues/738)
+- Add REPL history to new output/REPL window
+- Fix: [Calva's ESC keybinding overrides VS Code's (useful) default](https://github.com/BetterThanTomorrow/calva/issues/740)
+
 ## [2.0.119] - 2020-08-07
 - Really fix: [Accessing recent results (*1, *2, *3) does not work](https://github.com/BetterThanTomorrow/calva/issues/724)
 

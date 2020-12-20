@@ -8,7 +8,7 @@ Generally:
 
 * Don't forget about `README.md`. (It might not need to be updated, but anyway.)
 * If a change warrants updates to `CHANGELOG.md`, put these under `[Unreleased]`.
-* If a change warrants updates the the [Calva User Guide](https://github.com/BetterThanTomorrow/calva-docs), make those changes in a branch with the same name as your feature branch in the `calva` repo.
+* If a change warrants updates the the Calva User Guide, make your changes where necessary in `docs/site`. 
 
 Bigger changes:
 
@@ -46,6 +46,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
 1. Add the CHANGELOG entries from `[Unreleased]`, **NB** There should be no newline between the header and the entries.
 1. Commit.
 1. Tag with `v<VERSION>` (and you must provide a tag message, else the CI pipeline won't pick it up correctly)
+   * e.g. `git tag -a v<version-number> -m "<message>"`
 1. Push `dev` (Using `--follow-tags`).
    * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace + `open-vsx.org`. **Note:** There is an approval step in the CircleCI pipeline. The release and VSIX will not be published until the Approve button is clicked in CircleCI.
    * You'll get an e-mail when it is published. (Or maybe only @pez gets that, not sure).
@@ -53,6 +54,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
    * If the Marketplace version works:
      1. Merge `dev` onto `master`
      1. Push
+     1. Run `npm run deploy-docs` to publish any changes to the docs
      1. Checkout `dev` and `$ npm run bump-version`
      1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
      1. Push.

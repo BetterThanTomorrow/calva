@@ -4,7 +4,7 @@
  * @param  {string} s the string to be keywordized
  * @return {string} keywordized string
  */
-export function keywordize(s: string): string {
+function keywordize(s: string): string {
     return s.replace(/^[\s,:]*/, ":");
 }
 
@@ -14,6 +14,33 @@ export function keywordize(s: string): string {
  * @param  {string} kw
  * @return {string} kw without the first character
  */
-export function unKeywordize(kw: string): string {
+function unKeywordize(kw: string): string {
     return kw.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
+}
+
+function getIndexAfterLastNonWhitespace(text: string): number {
+    const textTrimmed = text.trim();
+    const lastNonWhitespaceOrEolChar = textTrimmed[textTrimmed.length - 1];
+    return text.lastIndexOf(lastNonWhitespaceOrEolChar) + 1;
+}
+
+function getTextAfterLastOccurrenceOfSubstring(text: string, substring: string): string {
+    const indexOfLastPrompt = text.lastIndexOf(substring);
+    if (indexOfLastPrompt === -1) {
+        return null;
+    }
+    const indexOfEndOfPrompt = indexOfLastPrompt + substring.length;
+    return text.substring(indexOfEndOfPrompt);
+}
+
+function removeFileSchemeFromUri(uri: string): string {
+    return uri.replace(/^(file:)/, '');
+}
+
+export {
+    keywordize,
+    unKeywordize,
+    getIndexAfterLastNonWhitespace,
+    getTextAfterLastOccurrenceOfSubstring,
+    removeFileSchemeFromUri
 }

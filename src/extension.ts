@@ -23,27 +23,28 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
-import * as outputWindow from './result-output'
+import * as outputWindow from './results-output/results-doc';
+import * as replHistory from './results-output/repl-history';
+import config from './config';
+import handleNewCljFiles from './fileHandler';
 
-function onDidSave(document) {
+async function onDidSave(document) {
     let {
         evaluate,
         test,
-        prettyPrintingOptions
     } = state.config();
 
     if (document.languageId !== 'clojure') {
         return;
     }
 
-    if (test) {
-        if (test) {
-            testRunner.runNamespaceTests(document);
-            state.analytics().logEvent("Calva", "OnSaveTest").send();
-        }
+    if (test && util.getConnectedState()) {
+        testRunner.runNamespaceTests(document);
+        state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            eval.loadFile(document, undefined, state.config().prettyPrintingOptions).catch(() => {});
+            await eval.loadFile(document, state.config().prettyPrintingOptions);
+            outputWindow.appendPrompt();
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
     }
@@ -55,6 +56,10 @@ function onDidOpen(document) {
     }
 }
 
+function setKeybindingsEnabledContext() {
+    let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
+    vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
+}
 
 function activate(context: vscode.ExtensionContext) {
     state.cursor.set('analytics', new Analytics(context));
@@ -128,8 +133,9 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', () => {
-        eval.loadFile({}, undefined, state.config().prettyPrintingOptions);
+    context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', async () => {
+        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
@@ -149,12 +155,22 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', eval.evaluateCustomCommandSnippetCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', async () => {
+        await eval.evaluateCustomCommandSnippetCommand();
+        outputWindow.appendPrompt();
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setOutputWindowNamespace', outputWindow.setNamespaceFromCurrentFile));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentFormToOutputWindow', outputWindow.appendCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentTopLevelFormToOutputWindow', outputWindow.appendCurrentTopLevelForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.printLastStacktrace', outputWindow.printLastStacktrace));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.showPreviousReplHistoryEntry', replHistory.showPreviousReplHistoryEntry));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.showNextReplHistoryEntry', replHistory.showNextReplHistoryEntry));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.clearReplHistory', replHistory.clearHistory));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleKeybindingsEnabled', () => {
+        let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
+        vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
+    }));
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
@@ -162,18 +178,19 @@ function activate(context: vscode.ExtensionContext) {
     }));
 
     // Initial set of the provided contexts
-    vscode.commands.executeCommand("setContext", "calva:outputWindowActive", false);
+    outputWindow.setContextForOutputWindowActive(false);
     vscode.commands.executeCommand("setContext", "calva:launching", false);
     vscode.commands.executeCommand("setContext", "calva:connected", false);
     vscode.commands.executeCommand("setContext", "calva:connecting", false);
+    setKeybindingsEnabledContext();
 
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.PathDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.StackTraceDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(),  ' ', ' '));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
@@ -187,6 +204,7 @@ function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
+        replHistory.setReplHistoryCommandsActiveContext(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
@@ -197,6 +215,25 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((_: vscode.ConfigurationChangeEvent) => {
         statusbar.update();
     }));
+    context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
+        replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
+    }));
+    context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(document => {
+        if (outputWindow.isResultsDoc(document)) {
+            outputWindow.setContextForOutputWindowActive(false);
+        }
+    }));
+    context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(editors => {
+        if (!editors.some(editor => outputWindow.isResultsDoc(editor.document))) {
+            outputWindow.setContextForOutputWindowActive(false);
+        }
+    }));
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((e: vscode.ConfigurationChangeEvent) => {
+        if (e.affectsConfiguration(config.KEYBINDINGS_ENABLED_CONFIG_KEY)) {
+            setKeybindingsEnabledContext();
+        }
+    }));
+    context.subscriptions.push(vscode.workspace.onDidCreateFiles(handleNewCljFiles));
 
     // Clojure debug adapter setup
     const provider = new debug.CalvaDebugConfigurationProvider();
@@ -218,7 +255,7 @@ function activate(context: vscode.ExtensionContext) {
                 .then(v => {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
-                        open(VIM_DOC_URL).catch(() => {});
+                        open(VIM_DOC_URL).catch(() => { });
                     }
                 })
         }

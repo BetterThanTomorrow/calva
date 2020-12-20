@@ -28,6 +28,7 @@ I have:
      - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
      - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
+- [ ] Added to or updated docs in this branch, if appropriate
 
 ## The Calva Team PR Checklist:
 <!-- Please read the list, since you'll get a better idea about what to expect by doing so. 😄 -->

@@ -108,35 +108,47 @@
         'name': 'constant.language.boolean.clojure'
       }
       {
-        'match': '(-?\\d+/\\d+)'
+        'match': '([-+]?\\d+/\\d+)'
         'name': 'constant.numeric.ratio.clojure'
       }
       {
-        'match': '(-?\\d+[rR]\\w+)'
+        'match': '([-+]?\\d+[rR]\\w+)'
         'name': 'constant.numeric.arbitrary-radix.clojure'
       }
       {
-        'match': '(-?0[xX][0-9a-fA-F]+)'
+        'match': '([-+]?0[xX][0-9a-fA-F]+N?)'
         'name': 'constant.numeric.hexadecimal.clojure'
       }
       {
-        'match': '(-?0\\d+)'
-        'name': 'constant.numeric.octal.clojure'
+        'match': '([-+]?0[xX][g-zG-Z]+)'
+        'name': 'constant.numeric.invalid.clojure'
       }
       {
-        'match': '(-?\\d+\\.\\d+([eE][+-]?\\d+)?M)'
+        'match': '([-+]?\\d+M)'
         'name': 'constant.numeric.bigdecimal.clojure'
       }
       {
-        'match': '(-?\\d+\\.\\d+([eE][+-]?\\d+)?)'
+        'match': '([-+]?0[0-7]+N?)'
+        'name': 'constant.numeric.octal.clojure'
+      }
+      {
+        'match': '([-+]?0[89]+)'
+        'name': 'constant.numeric.invalid.clojure'
+      }
+      {
+        'match': '([-+]?\\d+\\.\\d+([eE][+-]?\\d+)?M)'
+        'name': 'constant.numeric.bigdecimal.clojure'
+      }
+      {
+        'match': '([-+]?\\d+\\.\\d+([eE][+-]?\\d+)?)'
         'name': 'constant.numeric.double.clojure'
       }
       {
-        'match': '(-?\\d+N)'
+        'match': '([-+]?\\d+N)'
         'name': 'constant.numeric.bigint.clojure'
       }
       {
-        'match': '(-?\\d+)'
+        'match': '([-+]?\\d+)'
         'name': 'constant.numeric.long.clojure'
       }
       { # separating the pattern for reuse
@@ -144,16 +156,16 @@
       }
     ]
   'keyword':
-    'match': '(?<=(\\s|\\(|\\[|\\{)):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
+    'match': '(?<=^|\\s|\\(|\\[|\\{):[\\w\\#\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}|\\,))'
     'name': 'variable.other.constant.clojure'
   'keyfn':
     'patterns': [
       {
-        'match': '(?<=(\\s|\\(|\\[|\\{))(if(-[-\\p{Ll}\\?]*)?|when(-[-\\p{Ll}]*)?|for(-[-\\p{Ll}]*)?|cond|do|let(-[-\\p{Ll}\\?]*)?|binding|loop|recur|fn|throw[\\p{Ll}\\-]*|try|catch|finally|([\\p{Ll}]*case))(?=(\\s|\\)|\\]|\\}))'
+        'match': '(?<=^|\\s|\\(|\\[|\\{)(if(-[-\\p{Ll}\\?]*)?|when(-[-\\p{Ll}]*)?|for(-[-\\p{Ll}]*)?|cond|do|let(-[-\\p{Ll}\\?]*)?|binding|loop|recur|fn|throw[\\p{Ll}\\-]*|try|catch|finally|([\\p{Ll}]*case))(?=(\\s|\\)|\\]|\\}))'
         'name': 'storage.control.clojure'
       }
       {
-        'match': '(?<=(\\s|\\(|\\[|\\{))(declare-?|(in-)?ns|import|use|require|load|compile|(def(?!ault)[\\p{Ll}\\-]*))(?=(\\s|\\)|\\]|\\}))'
+        'match': '(?<=^|\\s|\\(|\\[|\\{)(declare-?|(in-)?ns|import|use|require|load|compile|(def(?!ault)[\\p{Ll}\\-]*))(?=(\\s|\\)|\\]|\\}))'
         'name': 'keyword.control.clojure'
       }
     ]
@@ -382,7 +394,7 @@
       }
     ]
   'var':
-    'match': '(?<=(\\s|\\(|\\[|\\{)\\#)\'[\\w\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}))'
+    'match': '(?<=^\\#|[\\s\\(\\[\\{]\\#)\'[\\w\\.\\-\\_\\:\\+\\=\\>\\<\\/\\!\\?\\*]+(?=(\\s|\\)|\\]|\\}))'
     'name': 'meta.var.clojure'
   'vector':
     'begin': '(\\[)'
@@ -404,7 +416,7 @@
   'prompt':
     'patterns': [
       {
-        'match': '^([\\p{L}]+)(::)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*]+)(=>)([ ])'
+        'match': '^([\\p{L}0-9]+)(::)([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*0-9]+)(=>)([ ])'
         'captures':
           '1':
             'name': 'keyword.control.prompt.clojure'
