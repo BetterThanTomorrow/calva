@@ -608,6 +608,18 @@
 
 
   <li class="md-nav__item">
+    <a href="../reveal/" title="How to use Calva and Reveal together" class="md-nav__link">
+      How to use Calva and Reveal together
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
     <a href="../vim/" title="Calva and the VIM Extension" class="md-nav__link">
       Calva and the VIM Extension
     </a>
@@ -923,10 +935,6 @@
                 
                 
                 <h1 id="the-outputrepl-windowfile">The Output/REPL Window/File</h1>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>As of version <strong>v2.0.109</strong> the old REPL Window was replaced by the new one described below. Read <a href="https://clojureverse.org/t/calva-summer-of-bugs-2020/">this article on ClojureVerse</a> for some of the rationale behind the change.</p>
-</div>
 <p>When Calva evaluates Clojure/ClojureScript code, the results are displayed inline as well as printed to the results output window/file. This file is created and opened when Calva is connected to a REPL.</p>
 <p>In ClojureScript projects the window will be associated with the <code>cljs</code> REPL once this one is connected. It will then look something like so:</p>
 <p><img alt="Output Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
@@ -969,7 +977,9 @@
 <li>The widget displays a ”full” Calva editor, so you can use Paredit to conveniently select forms.</li>
 </ol>
 <h2 id="stack-traces">Stack Traces</h2>
-<p>When an evaluation produces an error, the output window will automatically print the stack trace (when available). And when source locations are available (Clojure files) you will be able to navigate to them by pressing <code>ctrl+click</code> (<code>cmd+click</code> on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and <code>ctrl+click</code> (<code>cmd+click</code> on Mac) the symbol to Peek Definition.</p>
+<p>When an evaluation produces an error, the output window will automatically print the the error message. If there is a stack trace associated with the error, this can now be printed on demand using the <strong>Calva: Print Last Stacktrace to the Output Window</strong> command. The output window will also have a Codelense button below the error message that will print the stack trace..</p>
+<p><img alt="Print Stacktrace Codelense button" src="../images/howto/output/print-stacktrace-codelense.png" title="Print Stacktrace Codelense button" /></p>
+<p>For printed stacktraces, when source locations are available (Clojure files) you will be able to navigate to them by pressing <code>ctrl+click</code> (<code>cmd+click</code> on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and <code>ctrl+click</code> (<code>cmd+click</code> on Mac) the symbol to Peek Definition.</p>
 <p><img alt="Stack trace clicking and peeking definition" src="../images/howto/output/stack-traces.gif" title="Stack trace clicking and peeking definition" /></p>
 <h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
 <p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+c o</code>.</p>
