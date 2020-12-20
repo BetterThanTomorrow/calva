@@ -50,45 +50,18 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
 
     try {
-        jackInPTY = new JackInTerminal(terminalOptions, (p) => {
+        jackInPTY = new JackInTerminal(terminalOptions, async (_p, hostname: string, port: string) => {
             // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
-            const portFileDir = path.dirname(nReplPortFile),
-                portFileBase = path.basename(nReplPortFile);
-            if (watcher != undefined) {
-                watcher.removeAllListeners();
-            }
-            console.log("executeTask: " + nReplPortFile);
-
-            if (!fs.existsSync(portFileDir)) {
-                // try to make the directory to allow the
-                // started process to catch up.
-                fs.mkdirSync(portFileDir);
-            }
-
-            try {
-                watcher = fs.watch(portFileDir, async (eventType, fileName) => {
-                    if (fileName == portFileBase) {
-                        if (!fs.existsSync(nReplPortFile)) {
-                            return;
-                        }
-                        const port = fs.readFileSync(nReplPortFile, 'utf8');
-                        if (!port) { // On Windows we get two events, one for file creation and one for the change of content
-                            return;  // If there is no port to be read yet, wait for the next event instead.
-                        }
-                        utilities.setLaunchingState(null);
-                        watcher.removeAllListeners();
-                        await connector.connect(connectSequence, true);
-                        outputWindow.append("; Jack-in done.");
-                        outputWindow.appendPrompt();
-                    }
-                });
-            } catch (exception) {
-                outputWindow.append("; Error in Jack-in: unable to read port file");
-                outputWindow.append(`; ${exception}`);
-                outputWindow.append("; You may have chosen the wrong jack-in configuration for your project.");
-                vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output window for more information.");
-                cancelJackInTask();
-            }
+            utilities.setLaunchingState(null);
+            await connector.connect(connectSequence, true, hostname, port);
+            outputWindow.append("; Jack-in done.");
+            outputWindow.appendPrompt();
+        }, (errorMessage) => {
+            outputWindow.append("; Error in Jack-in: unable to read port file");
+            outputWindow.append(`; ${errorMessage}`);
+            outputWindow.append("; You may have chosen the wrong jack-in configuration for your project.");
+            vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output window for more information.");
+            cancelJackInTask();
         });
         jackInTerminal = (<any>vscode.window).createTerminal({ name: `Calva Jack-in: ${connectSequence.name}`, pty: jackInPTY });
         jackInTerminal.show();

@@ -19,8 +19,9 @@ export class JackInTerminal implements vscode.Pseudoterminal {
 
     private process: child.ChildProcess;
 
-    constructor(private options: JackInTerminalOptions, private whenStarted: (p: child.ChildProcess) => void) {
-    }
+    constructor(private options: JackInTerminalOptions,
+        private whenREPLStarted: (p: child.ChildProcess, host: string, port: string) => void,
+        private whenError: (errorMessage: string) => void) {}
 
     open(initialDimensions: vscode.TerminalDimensions | undefined): void {
         outputWindow.append(`; Starting Jack-in Terminal: ${this.options.executable} ${this.options.args.join(' ')}`);
@@ -56,12 +57,24 @@ export class JackInTerminal implements vscode.Pseudoterminal {
                 cwd: this.options.cwd,
                 shell: !this.options.isWin
             });
-            this.whenStarted(this.process);
             this.process.on('exit', (status) => {
                 this.writeEmitter.fire(`process exited with status: ${status}\r\n`);
             });
-            this.process.stdout.on('data', (data) => {
-                this.writeEmitter.fire(`${data}\r\n`);
+            this.process.stdout.on('data', (data: string) => {
+                const msg = data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
+                this.writeEmitter.fire(`${msg}\r\n`);
+                // Started nREPL server at 127.0.0.1:1337
+                // nREPL server started on port 61419 on host localhost - nrepl://localhost:61419
+                // shadow-cljs - nREPL server started on port 3333
+                if (msg.match(/Started nREPL server|nREPL server started/)) {
+                    const [_, port1, host1, host2, port2] =
+                        msg.match(/(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))/);
+                    this.whenREPLStarted(this.process, host1 ? host1 : host2 ? host2 : 'localhost', port1 ? port1 : port2);
+                }
+            });
+            this.process.stderr.on('data', (data: string) => {
+                const msg = data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
+                this.writeEmitter.fire(`${msg}\r\n`);
             });
         });
     }
