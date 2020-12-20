@@ -10,8 +10,12 @@ import * as namespace from '../namespace';
 import config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
+import * as docMirror from '../doc-mirror'
+import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
+
+const PROMPT_HINT = '; Use `alt+enter` to evaluate';
 
 const START_GREETINGS = '; This is the Calva evaluation results output window.\n\
 ; TIPS: The keyboard shortcut `ctrl+alt+c o` shows and focuses this window\n\
@@ -45,9 +49,18 @@ let _sessionInfo: { [id: string]: { ns?: string, session?: NReplSession } } = {
     clj: {},
     cljs: {}
 };
+let showPrompt: { [id: string]: boolean } = {
+    clj: true,
+    cljs: true
+};
 
 export function getPrompt(): string {
-    return `${_sessionType}::${getNs()}=> `;
+    let prompt = `${_sessionType}::${getNs()}=> `;
+    if (showPrompt[_sessionType]) {
+        showPrompt[_sessionType] = false;
+        prompt = `${prompt} ${PROMPT_HINT}`
+    }
+    return prompt;
 }
 
 export function getNs(): string {
@@ -134,6 +147,28 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
             setViewColumn(event.viewColumn);
         }
     }));
+    state.extensionContext.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
+        let submitOnEnter = false;
+        if (event.textEditor) {
+            const document = event.textEditor.document;
+            if (isResultsDoc(document)) {
+                const idx = document.offsetAt(event.selections[0].active);
+                const mirrorDoc = docMirror.getDocument(document);
+                const selectionCursor = mirrorDoc.getTokenCursor(idx);
+                selectionCursor.forwardWhitespace();
+                if (selectionCursor.atEnd()) {
+                    const tlCursor = mirrorDoc.getTokenCursor(0);
+                    const topLevelFormRange = tlCursor.rangeForDefun(idx);
+                    submitOnEnter = topLevelFormRange &&
+                        topLevelFormRange[0] !== topLevelFormRange[1] &&
+                        idx >= topLevelFormRange[1];
+                }
+            }
+        }
+        vscode.commands.executeCommand("setContext", "calva:outputWindowSubmitOnEnter", submitOnEnter);
+    }));
+    vscode.languages.registerCodeLensProvider(state.documentSelector, new PrintStackTraceCodelensProvider());
+
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
     if (vscode.window.activeTextEditor && isResultsDoc(vscode.window.activeTextEditor.document)) {
@@ -198,7 +233,7 @@ export function appendCurrentTopLevelForm() {
 
 let scrollToBottomSub: vscode.Disposable;
 export interface OnAppendedCallback {
-    (insertLocation: vscode.Location): any
+    (insertLocation: vscode.Location, newPosition?: vscode.Location): any
 }
 const editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
@@ -245,7 +280,6 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                 vscode.workspace.applyEdit(edit).then(success => {
                     applyingEdit = false;
                     doc.save();
-
                     if (success) {
                         if (visibleResultsEditors.length > 0) {
                             visibleResultsEditors.forEach(editor => {
@@ -254,11 +288,10 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                             });
                         }
                     }
-
                     if (onAppended) {
-                        onAppended(new vscode.Location(DOC_URI(), insertPosition));
+                        onAppended(new vscode.Location(DOC_URI(), insertPosition),
+                            new vscode.Location(DOC_URI(), doc.positionAt(Infinity)));
                     }
-
                     if (editQueue.length > 0) {
                         return append.apply(null, editQueue.shift());
                     }
@@ -271,6 +304,7 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
 export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
 
 let _lastStacktrace: any[] = [];
+let _lastStackTraceRange: vscode.Range;
 const _stacktraceEntries = {} as OutputStacktraceEntry;
 
 export function getStacktraceEntryForKey(key: string): OutputStacktraceEntry {
@@ -301,9 +335,20 @@ export async function saveStacktrace(stacktrace: any[]): Promise<void> {
     });
 }
 
+export function markLastStacktraceRange(location: vscode.Location): void {
+    _lastStackTraceRange = location.range; //new vscode.Range(newPosition, newPosition);
+}
+
+export function getLastStackTraceRange(): vscode.Range {
+    return _lastStackTraceRange;
+}
+
 export function printLastStacktrace(): void {
     const text = _lastStacktrace.map(entry => entry.string).join("\n");
-    append(text);
+    append(text, (_location) => {
+        _lastStackTraceRange = undefined;
+    });
+    append(getPrompt());
 }
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {

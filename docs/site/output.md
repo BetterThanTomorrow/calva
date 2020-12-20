@@ -1,8 +1,5 @@
 # The Output/REPL Window/File
 
-!!! Note
-    As of version **v2.0.109** the old REPL Window was replaced by the new one described below. Read [this article on ClojureVerse](https://clojureverse.org/t/calva-summer-of-bugs-2020/) for some of the rationale behind the change.
-
 When Calva evaluates Clojure/ClojureScript code, the results are displayed inline as well as printed to the results output window/file. This file is created and opened when Calva is connected to a REPL.
 
 In ClojureScript projects the window will be associated with the `cljs` REPL once this one is connected. It will then look something like so:
@@ -70,7 +67,11 @@ In the demo gif we utilize two things about this peek widget:
 
 ## Stack Traces
 
-When an evaluation produces an error, the output window will automatically print the stack trace (when available). And when source locations are available (Clojure files) you will be able to navigate to them by pressing `ctrl+click` (`cmd+click` on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and `ctrl+click` (`cmd+click` on Mac) the symbol to Peek Definition.
+When an evaluation produces an error, the output window will automatically print the the error message. If there is a stack trace associated with the error, this can now be printed on demand using the **Calva: Print Last Stacktrace to the Output Window** command. The output window will also have a Codelense button below the error message that will print the stack trace..
+
+![Print Stacktrace Codelense button](images/howto/output/print-stacktrace-codelense.png "Print Stacktrace Codelense button")
+
+For printed stacktraces, when source locations are available (Clojure files) you will be able to navigate to them by pressing `ctrl+click` (`cmd+click` on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and `ctrl+click` (`cmd+click` on Mac) the symbol to Peek Definition.
 
 ![Stack trace clicking and peeking definition](images/howto/output/stack-traces.gif "Stack trace clicking and peeking definition")
 

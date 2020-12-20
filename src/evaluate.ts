@@ -95,15 +95,19 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             });
             // May need to move this inside of onResultsAppended callback above, depending on desired ordering of appended results
             if (err.length > 0) {
-                outputWindow.append(`; ${normalizeNewLinesAndJoin(err, true)}`);
+                const errMsg = `; ${normalizeNewLinesAndJoin(err, true)}`
                 if (context.stacktrace) {
                     outputWindow.saveStacktrace(context.stacktrace);
-                    outputWindow.printLastStacktrace();
+                    outputWindow.append(errMsg, (_, afterResultLocation) => {
+                        outputWindow.markLastStacktraceRange(afterResultLocation);
+                    });
+                } else {
+                    outputWindow.append(errMsg);
                 }
             }
         } catch (e) {
             const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
-            outputWindow.append(outputWindowError, async (resultLocation) => {
+            outputWindow.append(outputWindowError, async (resultLocation, afterResultLocation) => {
                 if (selection) {
                     const editor = vscode.window.activeTextEditor;
                     const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
@@ -116,10 +120,12 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
                         addAsComment(selection.start.character, editorError, selection, editor, selection);
                     }
                 }
+                if (context.stacktrace && context.stacktrace.stacktrace) {
+                    outputWindow.markLastStacktraceRange(afterResultLocation);
+                }
             });
             if (context.stacktrace && context.stacktrace.stacktrace) {
                 outputWindow.saveStacktrace(context.stacktrace.stacktrace);
-                outputWindow.printLastStacktrace();
             }
         }
         outputWindow.setSession(session, context.ns || ns);
@@ -375,11 +381,17 @@ async function evaluateCustomCommandSnippetCommand(): Promise<void> {
                 saveAs: "runCustomREPLCommand"
             });
             if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
-                const command = snippetsDict[pick].snippet;
                 const editor = vscode.window.activeTextEditor;
+                const currentLine = editor.selection.active.line;
+                const currentColumn = editor.selection.active.character;
+                const currentFilename = editor.document.fileName;
                 const editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
                 const ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS;
                 const repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
+                const command = snippetsDict[pick].snippet.
+                     replace("$line", currentLine).
+                     replace("$column", currentColumn).
+                     replace("$file", currentFilename);
                 await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
         } catch (e) {

@@ -9,6 +9,13 @@ The `calva.customREPLCommandSnippets` is an array of objects with the following 
 * `ns`: (optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.
 * `repl`: Which repl session to use for the evaluation. Either `"clj"` or `"cljs"`
 
+There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are
+
+* `$line`: Current line number in editor
+* `$column`: Current column number in editor
+* `$file`: Full name of current file edited
+
+
 E.g. with these settings:
 
 ```
@@ -21,7 +28,7 @@ E.g. with these settings:
         },
         {
             "name": "Bar",
-            "snippet": "(println :bar)",
+            "snippet": "(println :bar $line)",
             "ns": "acme.test.bar-test",
             "repl": "clj"
         },
@@ -32,6 +39,7 @@ E.g. with these settings:
         }
     ]
 ```
+
 
 You will get this menu.
 
