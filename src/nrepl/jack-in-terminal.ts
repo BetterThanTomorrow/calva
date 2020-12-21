@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as child from 'child_process';
+var kill = require('tree-kill')
 import * as outputWindow from '../results-output/results-doc';
 
 export interface  JackInTerminalOptions extends vscode.TerminalOptions {
@@ -29,6 +30,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     }
 
     close(): void {
+        this.killProcess();
         this.closeEmitter.fire();
     }
 
@@ -46,11 +48,16 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         }
     }
 
+    private dataToString(data: string | Buffer) {
+        return data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
+    }
+
     private async startClojureProgram(): Promise<child.ChildProcess> {
         return new Promise<child.ChildProcess>((resolve) => {
             this.writeEmitter.fire(`${this.options.executable} ${this.options.args.join(' ')}\r\n`);
             if (this.process && !this.process.killed) {
-                this.process.kill();
+                console.log("Restarting Jack-in process");
+                this.killProcess();
             }
             this.process = child.spawn(this.options.executable, this.options.args, {
                 env: this.options.env,
@@ -58,10 +65,10 @@ export class JackInTerminal implements vscode.Pseudoterminal {
                 shell: !this.options.isWin
             });
             this.process.on('exit', (status) => {
-                this.writeEmitter.fire(`process exited with status: ${status}\r\n`);
+                this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);
             });
-            this.process.stdout.on('data', (data: string) => {
-                const msg = data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
+            this.process.stdout.on('data', (data) => {
+                const msg = this.dataToString(data);
                 this.writeEmitter.fire(`${msg}\r\n`);
                 // Started nREPL server at 127.0.0.1:1337
                 // nREPL server started on port 61419 on host localhost - nrepl://localhost:61419
@@ -72,16 +79,25 @@ export class JackInTerminal implements vscode.Pseudoterminal {
                     this.whenREPLStarted(this.process, host1 ? host1 : host2 ? host2 : 'localhost', port1 ? port1 : port2);
                 }
             });
-            this.process.stderr.on('data', (data: string) => {
-                const msg = data.toString().replace(/\r?\n/g, '\r\n').replace(/\r\n$/, '');
+            this.process.stderr.on('data', (data) => {
+                const msg = this.dataToString(data);
                 this.writeEmitter.fire(`${msg}\r\n`);
             });
         });
     }
 
     killProcess(): void {
+        console.log("Jack-in process kill requested")
         if (this.process && !this.process.killed) {
-            this.process.kill();
+            console.log("Closing any ongoing stdin event")
+            this.writeEmitter.fire('Killing the Jack-in process\r\n');
+            this.process.stdin.end(() => {
+                console.log('Killing the Jack-in process');
+                kill(this.process.pid);
+            })
+        }
+        else if (this.process && this.process.killed) {
+            console.error("Jack-in process already killed. We shouldn't get here.")
         }
     }
 }
