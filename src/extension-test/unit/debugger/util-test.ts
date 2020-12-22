@@ -43,39 +43,39 @@ describe('Debugger Util', async () => {
             expect(tokenCursor.getPrevToken().raw.endsWith('|')).toBe(true);
         }
 
-        it('simple example', () => {
+        it('handles simple example', () => {
             expectBreakpointToBeFound('simple.clj');
         });
 
-        it('function shorthand', () => {
+        it('handles function shorthand', () => {
             expectBreakpointToBeFound('fn-shorthand.clj');
         });
 
-        it('map', () => {
+        it('handles map', () => {
             expectBreakpointToBeFound('map.clj');
         });
 
-        it('metadata symbol', () => {
+        it('handles metadata symbol', () => {
             expectBreakpointToBeFound('metadata-symbol.clj');
         });
 
-        it('ignored forms', () => {
+        it('handles ignored forms', () => {
             expectBreakpointToBeFound('ignored-forms.clj');
         });
 
-        it('syntax quote', () => {
+        it('handles syntax quote', () => {
             expectBreakpointToBeFound('syntax-quote.clj');
         });
 
-        it('syntax quoted map 1', () => {
+        it('handles syntax quoted map 1', () => {
             expectBreakpointToBeFound('syntax-quoted-map-1.clj');
         });
 
-        it('syntax quoted list 1', () => {
+        it('handles syntax quoted list 1', () => {
             expectBreakpointToBeFound('syntax-quoted-list-1.clj');
         });
 
-        it('syntax quoted vector 1', () => {
+        it('handles syntax quoted vector 1', () => {
             expectBreakpointToBeFound('syntax-quoted-vector-1.clj');
         });
     });
