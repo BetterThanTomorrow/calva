@@ -32,6 +32,7 @@ describe('Debugger Util', async () => {
         };
     });
 
+    // Cider's test cases: https://github.com/clojure-emacs/cider/blob/f1c2a797291fd3d2a44cb32372852950d5ecf8a2/test/cider-debug-tests.el#L82
     describe('moveTokenCursorToBreakpoint', () => {
 
         function expectBreakpointToBeFound(fileName: string) {
@@ -43,8 +44,16 @@ describe('Debugger Util', async () => {
             expect(tokenCursor.getPrevToken().raw.endsWith('|')).toBe(true);
         }
 
-        it('handles simple example', () => {
+        function expectBreakpointToBeFound2(code: string, coor: number[]) {
+            doc.insertString(code);
+            const tokenCursor = doc.getTokenCursor(0);
+            moveTokenCursorToBreakpoint(tokenCursor, { coor });
+            expect(tokenCursor.getPrevToken().raw.endsWith('|')).toBe(true);
+        }
+
+        it('navigates the clojure sexpresions guided by the given coordinates', () => {
             expectBreakpointToBeFound('simple.clj');
+            expectBreakpointToBeFound2('(defn a [] (let [x 1] (inc x|)) {:a 1, :b 2})', [3, 2, 1]);
         });
 
         it('handles function shorthand', () => {
