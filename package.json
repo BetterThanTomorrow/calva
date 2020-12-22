@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.135",
+    "version": "2.0.136",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -704,6 +704,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.printLastStacktrace",
+                "title": "Print Last Stacktrace to Output Window",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.copyLastResults",
                 "title": "Copy Last Evaluation Result to Clipboard",
                 "category": "Calva"
@@ -1181,6 +1187,11 @@
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
+                "command": "calva.evaluateCurrentTopLevelForm",
+                "key": "enter",
+                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+            },
+            {
                 "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+c r",
                 "when": "calva:keybindingsEnabled"
@@ -1193,6 +1204,11 @@
             {
                 "command": "calva.evaluateTopLevelFormAsComment",
                 "key": "ctrl+alt+c ctrl+space",
+                "when": "calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.printLastStacktrace",
+                "key": "ctrl+alt+c ctrl+alt+p",
                 "when": "calva:keybindingsEnabled"
             },
             {
