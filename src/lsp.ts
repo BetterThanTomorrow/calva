@@ -22,6 +22,10 @@ function createClient(jarPath: string): LanguageClient {
             "document-range-formatting?": false
         },
         middleware: {
+            provideCodeActions(document, range, context, token, next) {
+                // Disable code actions
+                return [];
+            },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
                 if (state.config().referencesCodeLensEnabled) {
                     return await next(document, token);
