@@ -52,12 +52,6 @@ function createClient(jarPath: string): LanguageClient {
             provideCompletionItem(document, position, context, token, next) {
                 // Disable completion items from clojure-lsp
                 return null;
-            },
-            provideSignatureHelp(document, position, context, token, next) {
-                return next(document, position, context, token);
-            },
-            provideDocumentFormattingEdits(document, options, token, next) {
-                return next(document, options, token);
             }
         }
     };
