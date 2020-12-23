@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.136 - 2020-12-23]
+- Fix: [Jack-in/Connect prompts sometimes not showing on Windows](https://github.com/BetterThanTomorrow/calva/issues/885)
+
 ## [2.0.135 - 2020-12-20]
 - [Binding keys to REPL functions, passing the namespace and cursor line (Notespace integration)](https://github.com/BetterThanTomorrow/calva/issues/863)
 - [Make REPL prompt submit if the cursor is after the top level form](https://github.com/BetterThanTomorrow/calva/issues/875)
