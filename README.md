@@ -102,6 +102,10 @@ It is pretty educational using the signature help hover to see which argument yo
 
 ![References code lens](assets/howto/references-code-lens.gif)
 
+### Demo: Outline
+
+![Outline view](assets/howto/outline-view.gif)
+
 ## How to contribute
 
 I'm glad you are reading this section! There are many ways and you are welcome to combine them at will. Be creative 😄:
