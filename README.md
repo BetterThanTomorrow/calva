@@ -50,7 +50,11 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 * Structural Editing (via [Paredit](https://calva.io/paredit/))
 * [Linting](https://calva.io/linting/)
 * Intellisense
-* Go to / Peek at definition
+* Go to / peek at definition
+* Find all references
+* Rename symbol
+* Change all occurrences
+* References code lens (enable in settings)
 * View doc strings on hover
 * View function signatures on hover, including help with knowing which argument you are typing
 * [Debugger](https://calva.io/debugger/)
@@ -66,11 +70,11 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 
 The gif demos several more features, apart from the in-comment evaluation, like:
 
-* signature help while typing function calls
-* evaluation result display is a bit sticky (so you can examine several evaluations at once)
-* there is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
-  * Edit: This feature has been removed in favor of using peek definition. See [here](https://calva.io/output/#peek-at-results). This decision was made due to high memory usage from storing results, but may be added back at some point if it's desired by many users over the peek definition feature.
-* some [structural editing](https://calva.io/paredit/)
+* Signature help while typing function calls
+* Evaluation result display is a bit sticky (so you can examine several evaluations at once)
+* There is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
+  * Edit: This feature has been removed in favor of using peek definition. See [here](https://calva.io/output/#peek-at-results). This decision was made due to high memory usage from storing results, but may be added back at some point if it's desired by many users over the peek definition feature. Please let us know if you'd like this added back.
+* Some [structural editing](https://calva.io/paredit/)
 
 ### Demo: Signature Help, while Typing
 
@@ -93,6 +97,10 @@ It is pretty educational using the signature help hover to see which argument yo
 ### Demo: switch between `clj` and `cljs` repl sessions for `cljc` files
 
 ![CLJC repl switching](assets/howto/cljc-clj-cljs.gif)
+
+### Demo: References code lens (enable in settings)
+
+![References code lens](assets/howto/references-code-lens.gif)
 
 ## How to contribute
 
@@ -172,6 +180,6 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 
 Calva is a quite young open source project, with surprisingly many code contributors. We take great care to keep it easy and fun to contribute. See the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki) for more on this.
 
-## Happy coding
+## Happy Coding
 
 We hope you will find good use for Calva. Please let us know what you think. PRs welcome, file an issue or chat us up in the [#calva](https://clojurians.slack.com/messages/calva/) channel in the Clojurians Slack.
