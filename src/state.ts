@@ -264,7 +264,9 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                 catch { }
             }
         }
-        catch (_) { }
+        catch (e) { 
+            console.error(`Problems in search for project root directory: ${e}`);
+        }
         prev = searchUri;
         searchUri = vscode.Uri.joinPath(searchUri, "..");
     }
