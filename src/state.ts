@@ -256,16 +256,17 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
         try {
             for (let projectFile in projectFileNames) {
                 const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
-                const stat = await vscode.workspace.fs.stat(u);
-                if (stat) {
+                try {
+                    await vscode.workspace.fs.stat(u);
                     cursor.set(PROJECT_DIR_URI_KEY, searchUri);
                     return;
                 }
+                catch { }
             }
-            prev = searchUri;
-            searchUri = vscode.Uri.joinPath(searchUri, "..");
         }
         catch (_) { }
+        prev = searchUri;
+        searchUri = vscode.Uri.joinPath(searchUri, "..");
     }
 }
 
