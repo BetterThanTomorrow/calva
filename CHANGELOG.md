@@ -3,8 +3,10 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [Jack-in/Connect prompts never showing on some Windows machines](https://github.com/BetterThanTomorrow/calva/issues/885)
 - Use Pseudo Terminal instead of Task for Jack-in
+
+## [2.0.136 - 2020-12-23]
+- Fix: [Jack-in/Connect prompts sometimes not showing on Windows](https://github.com/BetterThanTomorrow/calva/issues/885)
 
 ## [2.0.135 - 2020-12-20]
 - [Binding keys to REPL functions, passing the namespace and cursor line (Notespace integration)](https://github.com/BetterThanTomorrow/calva/issues/863)
