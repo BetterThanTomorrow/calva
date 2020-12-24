@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
 import * as path from 'path';
 import * as state from './state';
+import * as util from './utilities'
 
 function createClient(jarPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -43,15 +44,27 @@ function createClient(jarPath: string): LanguageClient {
                 return;
             },
             provideHover(document, position, token, next) {
-                // Disable hovers from clojure-lsp
-                // Main issue is Java hovers: https://github.com/snoe/clojure-lsp/issues/204
-                // We could possibly make Calva hover provider provide only Java hovers,
-                // and clojure-lsp provide only non-Java hovers
-                return null;
+                if (util.getConnectedState()) {
+                    return null;
+                } else {
+                    return next(document, position, token);
+                }
             },
             provideCompletionItem(document, position, context, token, next) {
-                // Disable completion items from clojure-lsp
-                return null;
+                if (util.getConnectedState()) {
+                    return null;
+                } else {
+                    return next(document, position, context, token);
+                }
+            },
+            // TODO: Not sure if clojure-lsp provides signature help?
+            //       But if it does, probably Calva's is better, so use that if nREPL is available
+            provideSignatureHelp(document, position, context, token, next) {
+                if (util.getConnectedState()) {
+                    return null;
+                } else {
+                    return next(document, position, context, token);
+                }
             }
         }
     };
