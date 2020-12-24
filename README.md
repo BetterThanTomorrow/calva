@@ -55,6 +55,7 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 * Rename symbol
 * Change all occurrences
 * References code lens (enable in settings)
+* Outline view
 * View doc strings on hover
 * View function signatures on hover, including help with knowing which argument you are typing
 * [Debugger](https://calva.io/debugger/)
