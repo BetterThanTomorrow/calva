@@ -51,14 +51,13 @@ function createClient(jarPath: string): LanguageClient {
                 }
             },
             provideCompletionItem(document, position, context, token, next) {
-                if (util.getConnectedState()) {
-                    return null;
-                } else {
-                    return next(document, position, context, token);
-                }
+                // if (util.getConnectedState()) {
+                //     return null;
+                // } else {
+                //     return next(document, position, context, token);
+                // }
+                return null;
             },
-            // TODO: Not sure if clojure-lsp provides signature help?
-            //       But if it does, probably Calva's is better, so use that if nREPL is available
             provideSignatureHelp(document, position, context, token, next) {
                 if (util.getConnectedState()) {
                     return null;
