@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.137 - 2020-12-24]
 - [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)
 
 ## [2.0.136 - 2020-12-23]
