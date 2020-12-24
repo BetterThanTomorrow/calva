@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)
 
 ## [2.0.136 - 2020-12-23]
 - Fix: [Jack-in/Connect prompts sometimes not showing on Windows](https://github.com/BetterThanTomorrow/calva/issues/885)

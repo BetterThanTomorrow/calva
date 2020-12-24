@@ -23,10 +23,14 @@ import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
+import { LanguageClient } from 'vscode-languageclient';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
+import lsp from './lsp';
+
+let lspClient: LanguageClient;
 
 async function onDidSave(document) {
     let {
@@ -62,6 +66,7 @@ function setKeybindingsEnabledContext() {
 }
 
 function activate(context: vscode.ExtensionContext) {
+    lspClient = lsp.activate(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -94,7 +99,7 @@ function activate(context: vscode.ExtensionContext) {
     }
 
     if (legacyExtension) {
-        vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.", ...["Roger that. Right away!"])
+        vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.", "Roger that. Right away!")
     }
 
     state.setExtensionContext(context);
@@ -106,7 +111,7 @@ function activate(context: vscode.ExtensionContext) {
             console.error("Failed activating Formatter: " + e.message)
         }
     } else {
-        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall or, disable, it before continuing using Calva.", ...["Got it. Will do!"]);
+        vscode.window.showErrorMessage("Calva Format extension detected, which will break things. Please uninstall or, disable, it before continuing using Calva.", "Got it. Will do!");
     }
     if (!pareEditExtension) {
         try {
@@ -115,7 +120,7 @@ function activate(context: vscode.ExtensionContext) {
             console.error("Failed activating Paredit: " + e.message)
         }
     } else {
-        vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", ...["I hear ya. Doing it!"]);
+        vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", "I hear ya. Doing it!");
     }
 
     chan.appendLine("Calva activated.");
@@ -187,7 +192,7 @@ function activate(context: vscode.ExtensionContext) {
     // PROVIDERS
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
     context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
+    //context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.StackTraceDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
@@ -289,7 +294,10 @@ function activate(context: vscode.ExtensionContext) {
 function deactivate() {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
-    paredit.deactivate()
+    paredit.deactivate();
+    if (lspClient) {
+        lspClient.stop();
+    }
 }
 
 export { activate, deactivate };
