@@ -74,7 +74,7 @@ The gif demos several more features, apart from the in-comment evaluation, like:
 * Signature help while typing function calls
 * Evaluation result display is a bit sticky (so you can examine several evaluations at once)
 * There is a richer display of results in the hover of the evaluated expression. (From where you can also copy the results to the clipboard)
-  * Edit: This feature has been removed in favor of using peek definition. See [here](https://calva.io/output/#peek-at-results). This decision was made due to high memory usage from storing results, but may be added back at some point if it's desired by many users over the peek definition feature. Please let us know if you'd like this added back.
+  * Edit: This feature has been removed in favor of using peek definition. See [here](https://calva.io/output/#peek-at-results). This decision was made due to high memory usage from storing results, but may be added back at some point if it's desired by many users over the peek definition feature. Please [let us know here](https://github.com/BetterThanTomorrow/calva/issues/736) if you'd like this added back.
 * Some [structural editing](https://calva.io/paredit/)
 
 ### Demo: Signature Help, while Typing
