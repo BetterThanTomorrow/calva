@@ -78,7 +78,17 @@ function createClient(jarPath: string): LanguageClient {
 
 type ClojureLspCommand = {
     command: string,
-    extraParams?: { [id: string]: any }[]
+    extraParamFn?: () => Thenable<string>;
+}
+
+function makePromptForInput(placeHolder: string) {
+    return async () => {
+        return await vscode.window.showInputBox({
+            value: '',
+            placeHolder: placeHolder,
+            validateInput: (input => input.trim() === '' ? 'Empty input' : null)
+        })
+    }
 }
 
 const clojureLspCommands: ClojureLspCommand[] = [
@@ -88,9 +98,10 @@ const clojureLspCommands: ClojureLspCommand[] = [
     {
         command: 'add-missing-libspec'
     },
-    {
-        command: 'cycle-coll'
-    },
+    // This seems to be similar to Calva's rewrap commands
+    //{
+    //    command: 'cycle-coll'
+    //},
     {
         command: 'cycle-privacy'
     },
@@ -114,6 +125,18 @@ const clojureLspCommands: ClojureLspCommand[] = [
     },
     {
         command: 'unwind-thread'
+    },
+    {
+        command: 'introduce-let',
+        extraParamFn: makePromptForInput('Bind to')
+    },
+    {
+        command: 'move-to-let',
+        extraParamFn: makePromptForInput('Bind to')
+    },
+    {
+        command: 'extract-function',
+        extraParamFn: makePromptForInput('Function name')
     }
 ]
 
@@ -126,12 +149,15 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             const line = editor.selection.active.line;
             const column = editor.selection.active.character;
             const params = [document.uri.toString(), line, column];
-            client.sendRequest('workspace/executeCommand', {
-                'command': command.command,
-                'arguments': command.extraParams ? [...params, command.extraParams] : params
-            }).catch(e => {
-                console.error(e);
-            });
+            const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
+            if (!command.extraParamFn || command.extraParamFn && extraParam) {
+                client.sendRequest('workspace/executeCommand', {
+                    'command': command.command,
+                    'arguments': extraParam ? [...params, extraParam] : params
+                }).catch(e => {
+                    console.error(e);
+                });    
+            }
         }
     });
 }
