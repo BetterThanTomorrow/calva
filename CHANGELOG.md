@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)
 
 ## [2.0.137 - 2020-12-24]
 - [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)

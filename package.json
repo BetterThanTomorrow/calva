@@ -1112,7 +1112,62 @@
                 "title": "Clear REPL History",
                 "enablement": "calva:connected",
                 "category": "Calva"
-            }
+            },
+            {
+                "command": "calva.refactor.cleanNs",
+                "title": "Clean NS Form",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.refactor.addMissingLibspec",
+                "title": "Add Missing Require",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.cycleColl",
+                "title": "Cycle Collection",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.cyclePrivacy",
+                "title": "Toggle Privacy",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.expandLet",
+                "title": "Expand Let",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.threadFirst",
+                "title": "Thread First",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.threadFirstAll",
+                "title": "Thread First All",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.threadLast",
+                "title": "Thread Last",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.threadLastAll",
+                "title": "Thread Last All",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.unwindAll",
+                "title": "Unwind All",
+                "category": "Calva"
+              },
+              {
+                "command": "calva.refactor.unwindThread",
+                "title": "Unwind Thread",
+                "category": "Calva"
+              }
         ],
         "keybindings": [
             {
