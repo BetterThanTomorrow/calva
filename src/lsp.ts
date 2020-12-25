@@ -121,6 +121,9 @@ const clojureLspCommands: ClojureLspCommand[] = [
         command: 'thread-last-all'
     },
     {
+        command: 'inline-symbol'
+    },
+    {
         command: 'unwind-all'
     },
     {

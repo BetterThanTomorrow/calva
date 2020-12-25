@@ -1139,6 +1139,11 @@
                 "category": "Calva Refactor"
               },
               {
+                "command": "calva.refactor.inlineSymbol",
+                "title": "Inline Symbol",
+                "category": "Calva Refactor"
+              },
+              {
                 "command": "calva.refactor.threadFirst",
                 "title": "Thread First",
                 "category": "Calva Refactor"
