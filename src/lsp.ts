@@ -161,7 +161,7 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
                     'arguments': extraParam ? [...params, extraParam] : params
                 }).catch(e => {
                     console.error(e);
-                });    
+                });
             }
         }
     });
@@ -170,6 +170,18 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
 function activate(context: vscode.ExtensionContext): LanguageClient {
     const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
     const client = createClient(jarPath);
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "clojure-lsp starting. You don't need to wait, to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+        cancellable: false
+    }, (_progress, _token) => {
+        const p = new Promise(resolve => {
+            client.onReady().then(_v => {
+                resolve(true);
+            });
+        });
+        return p;
+    })
     context.subscriptions.push(client.start());
 
     const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
