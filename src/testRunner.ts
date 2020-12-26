@@ -6,7 +6,6 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
-import { removeFileSchemeFromUri } from './util/string';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -121,9 +120,10 @@ function runAllTestsCommand() {
 async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
     if (!ns.endsWith('-test')) {
         const testNS = ns + '-test';
-        const testFilePath = (await session.nsPath(testNS)).path;
+        const nsPath = await session.nsPath(testNS);
+        const testFilePath = nsPath.path;
         if (testFilePath && testFilePath !== "") {
-            const filePath = removeFileSchemeFromUri(testFilePath);
+            const filePath = vscode.Uri.parse(testFilePath).path;
             let loadForms = `(load-file "${filePath}")`;
             await session.eval(loadForms, testNS).value;
         }
