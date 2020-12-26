@@ -177,8 +177,8 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const filePath = removeFileSchemeFromUri(debugResponse.file);
-        const document = await vscode.workspace.openTextDocument(filePath);
+        const uri = vscode.Uri.parse(debugResponse.file);
+        const document = await vscode.workspace.openTextDocument(uri);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
@@ -196,7 +196,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const [line, column] = tokenCursor.rowCol;
 
-        const source = new Source(basename(filePath), filePath);
+        const pathWithoutScheme = uri.path.includes(':') ? uri.path.split(':')[1] : uri.path;
+        const source = new Source(basename(pathWithoutScheme), pathWithoutScheme);
         const name = tokenCursor.getFunction();
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
