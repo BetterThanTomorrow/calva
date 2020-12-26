@@ -1122,72 +1122,67 @@
                 "command": "calva.refactor.addMissingLibspec",
                 "title": "Add Missing Require",
                 "category": "Calva Refactor"
-              },
-              {
-                "command": "calva.refactor.cycleColl",
-                "title": "Cycle Collection",
-                "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.cyclePrivacy",
                 "title": "Toggle Privacy",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.expandLet",
                 "title": "Expand Let",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.inlineSymbol",
                 "title": "Inline Symbol",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.threadFirst",
                 "title": "Thread First",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.threadFirstAll",
                 "title": "Thread First All",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.threadLast",
                 "title": "Thread Last",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.threadLastAll",
                 "title": "Thread Last All",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.unwindAll",
                 "title": "Unwind All",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.unwindThread",
                 "title": "Unwind Thread",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.introduceLet",
                 "title": "Introduce let (Creates a new let box with the binding)",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.moveToLet",
                 "title": "Move to Previous let Box",
                 "category": "Calva Refactor"
-              },
-              {
+            },
+            {
                 "command": "calva.refactor.extractFunction",
                 "title": "Extract to New Function",
                 "category": "Calva Refactor"
-              }
+            }
         ],
         "keybindings": [
             {

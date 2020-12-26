@@ -1,0 +1,32 @@
+# Refactoring
+
+There are two ”flavours” to refactoring support. Some (just a few) refactorings are made available as _Quick Fix_ suggestions (the light bulb), the rest are regular commands in the *Calva Refactoring* category.
+
+![](images/refactoring/quick-fix.png)
+
+You can enable or disable the _Quick Fix_ suggestion lightbulb using the VS Code setting `editor.lightbulb.enabled`.
+
+The refactoring commands do not have default keyboard shortcuts. You find them all by typing ”Calva Refactoring” in the Command Palette.
+
+## Commands
+
+Command Title | Command Key | Description
+------------- | ----------- | -----------
+Clean NS Form | `calva.refactor.cleanNs` | ![](images/refactoring/cleanNs.gif)
+Add Missing Require | `calva.refactor.addMissingLibspec` | ![](images/refactoring/addMissingLibspec.gif)
+Extract to New Function | `calva.refactor.extractFunction` | ![](images/refactoring/extractFunction.gif)
+Toggle Privacy | `calva.refactor.cyclePrivacy` | ![](images/refactoring/cyclePrivacy.gif)
+Inline Symbol | `calva.refactor.inlineSymbol` | ![](images/refactoring/inlineSymbol.gif)
+Introduce let (Creates a new let box with the binding) | `calva.refactor.introduceLet` | ![](images/refactoring/introduceLet.gif)
+Expand Let | `calva.refactor.expandLet` | ![](images/refactoring/expandLet.gif)
+Move to Previous let Box | `calva.refactor.moveToLet` | ![](images/refactoring/moveToLet.gif)
+Thread First | `calva.refactor.threadFirst` | ![](images/refactoring/threadFirst.gif)
+Thread First All | `calva.refactor.threadFirstAll` | ![](images/refactoring/threadFirstAll.gif)
+Thread Last | `calva.refactor.threadLast` | ![](images/refactoring/threadLast.gif)
+Thread Last All | `calva.refactor.threadLastAll` | ![](images/refactoring/threadLastAll.gif)
+Unwind All | `calva.refactor.unwindAll` | ![](images/refactoring/unwindAll.gif)
+Unwind Thread | `calva.refactor.unwindThread` | ![](images/refactoring/unwindThread.gif)
+
+## Thanks to clojure-lsp
+
+Most of Calva's refactoring support is sourced directly from [clojure-lsp](https://github.com/snoe/clojure-lsp). This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.

@@ -30,6 +30,7 @@ nav:
     - paredit.md
     - debugger.md
     - pprint.md
+    - refactoring.md
     - test-runner.md
     - connect-sequences.md
     - custom-commands.md
