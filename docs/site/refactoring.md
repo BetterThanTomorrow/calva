@@ -27,6 +27,10 @@ Thread Last All | `calva.refactor.threadLastAll` | ![](images/refactoring/thread
 Unwind All | `calva.refactor.unwindAll` | ![](images/refactoring/unwindAll.gif)
 Unwind Thread | `calva.refactor.unwindThread` | ![](images/refactoring/unwindThread.gif)
 
+!!! Formatting
+
+The way that some of the refactorings are applied to the document, makes it difficult for Calva to format the results. So, sometimes you'll need to navigate the cursor to the enclosing form and hit `tab` to tidy up the formatting after a refactoring. See also [Formatting](formatting.md).
+
 ## Thanks to clojure-lsp
 
 Most of Calva's refactoring support is sourced directly from [clojure-lsp](https://github.com/snoe/clojure-lsp). This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.
