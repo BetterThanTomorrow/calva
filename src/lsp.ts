@@ -22,7 +22,7 @@ function createClient(jarPath: string): LanguageClient {
             "document-formatting?": false,
             "document-range-formatting?": false,
             "keep-require-at-start?": true,
-            "use-metadata-for-privacy?": false
+            //"use-metadata-for-privacy?": false
         },
         middleware: {
             provideCodeActions(document, range, context, token, next) {
