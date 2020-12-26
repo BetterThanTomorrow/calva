@@ -33,4 +33,4 @@ The way that some of the refactorings are applied to the document, makes it diff
 
 ## Thanks to clojure-lsp
 
-Most of Calva's refactoring support is sourced directly from [clojure-lsp](https://github.com/snoe/clojure-lsp). This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.
+Most of Calva's refactoring support is sourced directly from [clojure-lsp](clojure-lsp.md). This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.

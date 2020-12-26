@@ -23,6 +23,7 @@ nav:
     - try-first.md
     - finding-commands.md
     - eval-tips.md
+    - clojure-lsp.md
   - Features:
     - commands-top10.md
     - output.md
