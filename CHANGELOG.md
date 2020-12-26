@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Fix step into local dep with debugger](https://github.com/BetterThanTomorrow/calva/issues/893)
 
 ## [2.0.137 - 2020-12-24]
 - [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)
