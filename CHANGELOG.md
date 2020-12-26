@@ -5,6 +5,9 @@ Changes to Calva.
 ## [Unreleased]
 - Use Pseudo Terminal instead of Task for Jack-in
 
+## [2.0.137 - 2020-12-24]
+- [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)
+
 ## [2.0.136 - 2020-12-23]
 - Fix: [Jack-in/Connect prompts sometimes not showing on Windows](https://github.com/BetterThanTomorrow/calva/issues/885)
 
