@@ -20,12 +20,15 @@ function createClient(jarPath: string): LanguageClient {
             // LSP-TODO: Use lsp's feature and remove Calva's feature for this 
             "auto-add-ns-to-new-files?": false,
             "document-formatting?": false,
-            "document-range-formatting?": false
+            "document-range-formatting?": false,
+            "keep-require-at-start?": true,
+            //"use-metadata-for-privacy?": false
         },
         middleware: {
             provideCodeActions(document, range, context, token, next) {
                 // Disable code actions
-                return [];
+                //return [];
+                return next(document, range, context, token);
             },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
                 if (state.config().referencesCodeLensEnabled) {
@@ -75,9 +78,110 @@ function createClient(jarPath: string): LanguageClient {
     );
 }
 
+type ClojureLspCommand = {
+    command: string,
+    extraParamFn?: () => Thenable<string>;
+}
+
+function makePromptForInput(placeHolder: string) {
+    return async () => {
+        return await vscode.window.showInputBox({
+            value: '',
+            placeHolder: placeHolder,
+            validateInput: (input => input.trim() === '' ? 'Empty input' : null)
+        })
+    }
+}
+
+const clojureLspCommands: ClojureLspCommand[] = [
+    {
+        command: 'clean-ns'
+    },
+    {
+        command: 'add-missing-libspec'
+    },
+    // This seems to be similar to Calva's rewrap commands
+    //{
+    //    command: 'cycle-coll'
+    //},
+    {
+        command: 'cycle-privacy'
+    },
+    {
+        command: 'expand-let'
+    },
+    {
+        command: 'thread-first'
+    },
+    {
+        command: 'thread-first-all'
+    },
+    {
+        command: 'thread-last'
+    },
+    {
+        command: 'thread-last-all'
+    },
+    {
+        command: 'inline-symbol'
+    },
+    {
+        command: 'unwind-all'
+    },
+    {
+        command: 'unwind-thread'
+    },
+    {
+        command: 'introduce-let',
+        extraParamFn: makePromptForInput('Bind to')
+    },
+    {
+        command: 'move-to-let',
+        extraParamFn: makePromptForInput('Bind to')
+    },
+    {
+        command: 'extract-function',
+        extraParamFn: makePromptForInput('Function name')
+    }
+]
+
+function registerLspCommand(client: LanguageClient, command: ClojureLspCommand): vscode.Disposable {
+    const vscodeCommand = `calva.refactor.${command.command.replace(/-[a-z]/g, (m) => m.substring(1).toUpperCase())}`;
+    return vscode.commands.registerCommand(vscodeCommand, async () => {
+        const editor = vscode.window.activeTextEditor;
+        const document = util.getDocument(editor.document);
+        if (document && document.languageId === 'clojure') {
+            const line = editor.selection.active.line;
+            const column = editor.selection.active.character;
+            const params = [document.uri.toString(), line, column];
+            const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
+            if (!command.extraParamFn || command.extraParamFn && extraParam) {
+                client.sendRequest('workspace/executeCommand', {
+                    'command': command.command,
+                    'arguments': extraParam ? [...params, extraParam] : params
+                }).catch(e => {
+                    console.error(e);
+                });
+            }
+        }
+    });
+}
+
 function activate(context: vscode.ExtensionContext): LanguageClient {
     const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
     const client = createClient(jarPath);
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "clojure-lsp starting. You don't need to wait, to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+        cancellable: false
+    }, (_progress, _token) => {
+        const p = new Promise(resolve => {
+            client.onReady().then(_v => {
+                resolve(true);
+            });
+        });
+        return p;
+    })
     context.subscriptions.push(client.start());
 
     const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
@@ -98,6 +202,10 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
         vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
         await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
     }));
+
+    context.subscriptions.push(
+        ...clojureLspCommands.map(command => registerLspCommand(client, command))
+    );
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async event => {
         if (event.affectsConfiguration('calva.referencesCodeLens.enabled')) {
