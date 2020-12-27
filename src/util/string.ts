@@ -33,14 +33,9 @@ function getTextAfterLastOccurrenceOfSubstring(text: string, substring: string):
     return text.substring(indexOfEndOfPrompt);
 }
 
-function removeFileSchemeFromUri(uri: string): string {
-    return uri.replace(/^(file:)/, '');
-}
-
 export {
     keywordize,
     unKeywordize,
     getIndexAfterLastNonWhitespace,
-    getTextAfterLastOccurrenceOfSubstring,
-    removeFileSchemeFromUri
+    getTextAfterLastOccurrenceOfSubstring
 }
