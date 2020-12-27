@@ -11,17 +11,19 @@
         <meta name="description" content="Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.">
       
       
+        <link rel="canonical" href="https://calva.io/refactoring/">
       
-      <link rel="shortcut icon" href="img/favicon.ico">
+      
+      <link rel="shortcut icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.1, mkdocs-material-5.0.1">
     
     
       
-        <title>Calva User Guide</title>
+        <title>Refactoring - Calva User Guide</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.c3000690.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.c3000690.min.css">
       
       
     
@@ -35,7 +37,7 @@
     
     
     
-      <link rel="stylesheet" href="stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
     
       
@@ -51,6 +53,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#refactoring" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -60,7 +67,7 @@
   <nav class="md-header-nav md-grid" aria-label="Header">
     <a href="https://calva.io" title="Calva User Guide" class="md-header-nav__button md-logo" aria-label="Calva User Guide">
       
-  <img src="img/calva-symbol-white.svg" alt="logo">
+  <img src="../img/calva-symbol-white.svg" alt="logo">
 
     </a>
     <label class="md-header-nav__button md-icon" for="__drawer">
@@ -74,7 +81,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              
+              Refactoring
             
           </span>
         </div>
@@ -146,7 +153,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="https://calva.io" title="Calva User Guide" class="md-nav__button md-logo" aria-label="Calva User Guide">
       
-  <img src="img/calva-symbol-white.svg" alt="logo">
+  <img src="../img/calva-symbol-white.svg" alt="logo">
 
     </a>
     Calva User Guide
@@ -173,7 +180,7 @@
 
 
   <li class="md-nav__item">
-    <a href="." title="Welcome!" class="md-nav__link">
+    <a href=".." title="Welcome!" class="md-nav__link">
       Welcome!
     </a>
   </li>
@@ -210,7 +217,7 @@
 
 
   <li class="md-nav__item">
-    <a href="connect/" title="Connect Calva to Your Project" class="md-nav__link">
+    <a href="../connect/" title="Connect Calva to Your Project" class="md-nav__link">
       Connect Calva to Your Project
     </a>
   </li>
@@ -222,7 +229,7 @@
 
 
   <li class="md-nav__item">
-    <a href="try-first/" title="Something to Try First (After Connecting)" class="md-nav__link">
+    <a href="../try-first/" title="Something to Try First (After Connecting)" class="md-nav__link">
       Something to Try First (After Connecting)
     </a>
   </li>
@@ -234,7 +241,7 @@
 
 
   <li class="md-nav__item">
-    <a href="finding-commands/" title="Finding Calva Commands" class="md-nav__link">
+    <a href="../finding-commands/" title="Finding Calva Commands" class="md-nav__link">
       Finding Calva Commands
     </a>
   </li>
@@ -246,7 +253,7 @@
 
 
   <li class="md-nav__item">
-    <a href="eval-tips/" title="Code Evaluation Tips" class="md-nav__link">
+    <a href="../eval-tips/" title="Code Evaluation Tips" class="md-nav__link">
       Code Evaluation Tips
     </a>
   </li>
@@ -258,7 +265,7 @@
 
 
   <li class="md-nav__item">
-    <a href="clojure-lsp/" title="clojure-lsp" class="md-nav__link">
+    <a href="../clojure-lsp/" title="clojure-lsp" class="md-nav__link">
       clojure-lsp
     </a>
   </li>
@@ -273,10 +280,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
     
     <label class="md-nav__link" for="nav-3">
       Features
@@ -300,7 +309,7 @@
 
 
   <li class="md-nav__item">
-    <a href="commands-top10/" title="The Top 10 Calva Commands" class="md-nav__link">
+    <a href="../commands-top10/" title="The Top 10 Calva Commands" class="md-nav__link">
       The Top 10 Calva Commands
     </a>
   </li>
@@ -312,7 +321,7 @@
 
 
   <li class="md-nav__item">
-    <a href="output/" title="The Output/REPL Window/File" class="md-nav__link">
+    <a href="../output/" title="The Output/REPL Window/File" class="md-nav__link">
       The Output/REPL Window/File
     </a>
   </li>
@@ -324,7 +333,7 @@
 
 
   <li class="md-nav__item">
-    <a href="formatting/" title="Formatting" class="md-nav__link">
+    <a href="../formatting/" title="Formatting" class="md-nav__link">
       Formatting
     </a>
   </li>
@@ -336,7 +345,7 @@
 
 
   <li class="md-nav__item">
-    <a href="paredit/" title="Paredit – a Visual Guide" class="md-nav__link">
+    <a href="../paredit/" title="Paredit – a Visual Guide" class="md-nav__link">
       Paredit – a Visual Guide
     </a>
   </li>
@@ -348,7 +357,7 @@
 
 
   <li class="md-nav__item">
-    <a href="debugger/" title="Debugger" class="md-nav__link">
+    <a href="../debugger/" title="Debugger" class="md-nav__link">
       Debugger
     </a>
   </li>
@@ -360,7 +369,7 @@
 
 
   <li class="md-nav__item">
-    <a href="pprint/" title="Pretty Printing" class="md-nav__link">
+    <a href="../pprint/" title="Pretty Printing" class="md-nav__link">
       Pretty Printing
     </a>
   </li>
@@ -370,11 +379,60 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="refactoring/" title="Refactoring" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Refactoring
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Refactoring" class="md-nav__link md-nav__link--active">
       Refactoring
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#thanks-to-clojure-lsp" class="md-nav__link">
+    Thanks to clojure-lsp
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -384,7 +442,7 @@
 
 
   <li class="md-nav__item">
-    <a href="test-runner/" title="Test Runner" class="md-nav__link">
+    <a href="../test-runner/" title="Test Runner" class="md-nav__link">
       Test Runner
     </a>
   </li>
@@ -396,7 +454,7 @@
 
 
   <li class="md-nav__item">
-    <a href="connect-sequences/" title="REPL Jack-in and Connection Sequences" class="md-nav__link">
+    <a href="../connect-sequences/" title="REPL Jack-in and Connection Sequences" class="md-nav__link">
       REPL Jack-in and Connection Sequences
     </a>
   </li>
@@ -408,7 +466,7 @@
 
 
   <li class="md-nav__item">
-    <a href="custom-commands/" title="Running Custom REPL Commands" class="md-nav__link">
+    <a href="../custom-commands/" title="Running Custom REPL Commands" class="md-nav__link">
       Running Custom REPL Commands
     </a>
   </li>
@@ -420,7 +478,7 @@
 
 
   <li class="md-nav__item">
-    <a href="linting/" title="Linting" class="md-nav__link">
+    <a href="../linting/" title="Linting" class="md-nav__link">
       Linting
     </a>
   </li>
@@ -432,7 +490,7 @@
 
 
   <li class="md-nav__item">
-    <a href="ns-form-deriving/" title="NS Name Deriving" class="md-nav__link">
+    <a href="../ns-form-deriving/" title="NS Name Deriving" class="md-nav__link">
       NS Name Deriving
     </a>
   </li>
@@ -449,7 +507,7 @@
 
 
   <li class="md-nav__item">
-    <a href="customizing/" title="Customizing Calva" class="md-nav__link">
+    <a href="../customizing/" title="Customizing Calva" class="md-nav__link">
       Customizing Calva
     </a>
   </li>
@@ -486,7 +544,7 @@
 
 
   <li class="md-nav__item">
-    <a href="rebl/" title="How to Use Calva and REBL Together" class="md-nav__link">
+    <a href="../rebl/" title="How to Use Calva and REBL Together" class="md-nav__link">
       How to Use Calva and REBL Together
     </a>
   </li>
@@ -498,7 +556,7 @@
 
 
   <li class="md-nav__item">
-    <a href="reveal/" title="How to use Calva and Reveal together" class="md-nav__link">
+    <a href="../reveal/" title="How to use Calva and Reveal together" class="md-nav__link">
       How to use Calva and Reveal together
     </a>
   </li>
@@ -510,7 +568,7 @@
 
 
   <li class="md-nav__item">
-    <a href="vim/" title="Calva and the VIM Extension" class="md-nav__link">
+    <a href="../vim/" title="Calva and the VIM Extension" class="md-nav__link">
       Calva and the VIM Extension
     </a>
   </li>
@@ -522,7 +580,7 @@
 
 
   <li class="md-nav__item">
-    <a href="wsl/" title="Calva ❤️ WSL" class="md-nav__link">
+    <a href="../wsl/" title="Calva ❤️ WSL" class="md-nav__link">
       Calva ❤️ WSL
     </a>
   </li>
@@ -534,7 +592,7 @@
 
 
   <li class="md-nav__item">
-    <a href="remote-development/" title="Using Calva with Remote Development" class="md-nav__link">
+    <a href="../remote-development/" title="Using Calva with Remote Development" class="md-nav__link">
       Using Calva with Remote Development
     </a>
   </li>
@@ -546,7 +604,7 @@
 
 
   <li class="md-nav__item">
-    <a href="live-share/" title="Using Calva with Live Share" class="md-nav__link">
+    <a href="../live-share/" title="Using Calva with Live Share" class="md-nav__link">
       Using Calva with Live Share
     </a>
   </li>
@@ -558,7 +616,7 @@
 
 
   <li class="md-nav__item">
-    <a href="luminus/" title="How to Use Calva with Luminus" class="md-nav__link">
+    <a href="../luminus/" title="How to Use Calva with Luminus" class="md-nav__link">
       How to Use Calva with Luminus
     </a>
   </li>
@@ -570,7 +628,7 @@
 
 
   <li class="md-nav__item">
-    <a href="re-frame-template/" title="How to Use Calva With the re-frame Template" class="md-nav__link">
+    <a href="../re-frame-template/" title="How to Use Calva With the re-frame Template" class="md-nav__link">
       How to Use Calva With the re-frame Template
     </a>
   </li>
@@ -612,7 +670,7 @@
 
 
   <li class="md-nav__item">
-    <a href="workspace-layouts/" title="Workspace Layouts" class="md-nav__link">
+    <a href="../workspace-layouts/" title="Workspace Layouts" class="md-nav__link">
       Workspace Layouts
     </a>
   </li>
@@ -624,7 +682,7 @@
 
 
   <li class="md-nav__item">
-    <a href="quirks/" title="Quirks" class="md-nav__link">
+    <a href="../quirks/" title="Quirks" class="md-nav__link">
       Quirks
     </a>
   </li>
@@ -666,7 +724,7 @@
 
 
   <li class="md-nav__item">
-    <a href="jack-in-guide/" title="Learn about Calva Jack-in" class="md-nav__link">
+    <a href="../jack-in-guide/" title="Learn about Calva Jack-in" class="md-nav__link">
       Learn about Calva Jack-in
     </a>
   </li>
@@ -683,7 +741,7 @@
 
 
   <li class="md-nav__item">
-    <a href="sponsors/" title="Calva Sponsors" class="md-nav__link">
+    <a href="../sponsors/" title="Calva Sponsors" class="md-nav__link">
       Calva Sponsors
     </a>
   </li>
@@ -696,12 +754,153 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#thanks-to-clojure-lsp" class="md-nav__link">
+    Thanks to clojure-lsp
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
               
-  <h1>404 - Not found</h1>
-
+                
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/master/docs/site/refactoring.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
+                  </a>
+                
+                
+                  
+                
+                
+                <h1 id="refactoring">Refactoring</h1>
+<p>There are two ”flavours” to refactoring support. Some (just a few) refactorings are made available as <em>Quick Fix</em> suggestions (the light bulb), the rest are regular commands in the <em>Calva Refactoring</em> category.</p>
+<p><img alt="" src="../images/refactoring/quick-fix.png" /></p>
+<p>You can enable or disable the <em>Quick Fix</em> suggestion lightbulb using the VS Code setting <code>editor.lightbulb.enabled</code>.</p>
+<p>The refactoring commands do not have default keyboard shortcuts. You find them all by typing ”Calva Refactoring” in the Command Palette.</p>
+<h2 id="commands">Commands</h2>
+<table>
+<thead>
+<tr>
+<th>Command Title</th>
+<th>Command Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clean NS Form</td>
+<td><code>calva.refactor.cleanNs</code></td>
+<td><img alt="" src="../images/refactoring/cleanNs.gif" /></td>
+</tr>
+<tr>
+<td>Add Missing Require</td>
+<td><code>calva.refactor.addMissingLibspec</code></td>
+<td><img alt="" src="../images/refactoring/addMissingLibspec.gif" /></td>
+</tr>
+<tr>
+<td>Extract to New Function</td>
+<td><code>calva.refactor.extractFunction</code></td>
+<td><img alt="" src="../images/refactoring/extractFunction.gif" /></td>
+</tr>
+<tr>
+<td>Cycle/Toggle Privacy</td>
+<td><code>calva.refactor.cyclePrivacy</code></td>
+<td><img alt="" src="../images/refactoring/cyclePrivacy.gif" /></td>
+</tr>
+<tr>
+<td>Inline Symbol</td>
+<td><code>calva.refactor.inlineSymbol</code></td>
+<td><img alt="" src="../images/refactoring/inlineSymbol.gif" /></td>
+</tr>
+<tr>
+<td>Introduce let</td>
+<td><code>calva.refactor.introduceLet</code></td>
+<td>Creates a new let box with the binding. Follow up with ”Expand let” to move it upwards.<br><img alt="" src="../images/refactoring/introduceLet.gif" /></td>
+</tr>
+<tr>
+<td>Expand Let</td>
+<td><code>calva.refactor.expandLet</code></td>
+<td><img alt="" src="../images/refactoring/expandLet.gif" /></td>
+</tr>
+<tr>
+<td>Move to Previous let Box</td>
+<td><code>calva.refactor.moveToLet</code></td>
+<td><img alt="" src="../images/refactoring/moveToLet.gif" /></td>
+</tr>
+<tr>
+<td>Thread First</td>
+<td><code>calva.refactor.threadFirst</code></td>
+<td><img alt="" src="../images/refactoring/threadFirst.gif" /></td>
+</tr>
+<tr>
+<td>Thread First All</td>
+<td><code>calva.refactor.threadFirstAll</code></td>
+<td><img alt="" src="../images/refactoring/threadFirstAll.gif" /></td>
+</tr>
+<tr>
+<td>Thread Last</td>
+<td><code>calva.refactor.threadLast</code></td>
+<td><img alt="" src="../images/refactoring/threadLast.gif" /></td>
+</tr>
+<tr>
+<td>Thread Last All</td>
+<td><code>calva.refactor.threadLastAll</code></td>
+<td><img alt="" src="../images/refactoring/threadLastAll.gif" /></td>
+</tr>
+<tr>
+<td>Unwind All</td>
+<td><code>calva.refactor.unwindAll</code></td>
+<td><img alt="" src="../images/refactoring/unwindAll.gif" /></td>
+</tr>
+<tr>
+<td>Unwind Thread</td>
+<td><code>calva.refactor.unwindThread</code></td>
+<td><img alt="" src="../images/refactoring/unwindThread.gif" /></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition formatting">
+<p class="admonition-title">Formatting</p>
+</div>
+<p>The way that some of the refactorings are applied to the document, makes it difficult for Calva to format the results. So, sometimes you'll need to navigate the cursor to the enclosing form and hit <code>tab</code> to tidy up the formatting after a refactoring. See also <a href="../formatting/">Formatting</a>.</p>
+<h2 id="thanks-to-clojure-lsp">Thanks to clojure-lsp</h2>
+<p>Most of Calva's refactoring support is sourced directly from <a href="../clojure-lsp/">clojure-lsp</a>. This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.</p>
+                
+              
               
                 
 
@@ -714,6 +913,41 @@
       
         
 <footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
+        
+          <a href="../pprint/" title="Pretty Printing" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+            </div>
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Pretty Printing
+              </div>
+            </div>
+          </a>
+        
+        
+          <a href="../test-runner/" title="Test Runner" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-footer-nav__title">
+              <div class="md-ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Test Runner
+              </div>
+            </div>
+            <div class="md-footer-nav__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -731,15 +965,15 @@
       
     </div>
     
-      <script src="assets/javascripts/vendor.f45d2d8d.min.js"></script>
-      <script src="assets/javascripts/bundle.74d0b805.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
+      <script src="../assets/javascripts/vendor.f45d2d8d.min.js"></script>
+      <script src="../assets/javascripts/bundle.74d0b805.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script>
       
       <script>
         app = initialize({
-          base: "",
+          base: "..",
           features: [],
           search: Object.assign({
-            worker: "assets/javascripts/worker/search.7f7c8775.min.js"
+            worker: "../assets/javascripts/worker/search.7f7c8775.min.js"
           }, typeof search !== "undefined" && search)
         })
       </script>

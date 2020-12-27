@@ -259,6 +259,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../clojure-lsp/" title="clojure-lsp" class="md-nav__link">
+      clojure-lsp
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -357,6 +369,18 @@
   <li class="md-nav__item">
     <a href="../pprint/" title="Pretty Printing" class="md-nav__link">
       Pretty Printing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../refactoring/" title="Refactoring" class="md-nav__link">
+      Refactoring
     </a>
   </li>
 
@@ -869,12 +893,12 @@
 <h2 id="key-bindings">Key bindings</h2>
 <p>In general Calva's default key bindings are not very VI-ish.</p>
 <p>You can add these keybindings to your <code>init.vim</code> if you are using the VSCode Neovim extension. It is inspired by and tries to emulate the keybindings found in <a href="https://github.com/tpope/vim-fireplace">vim-fireplace</a> which is the most popular vim plugin for Clojure.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">nmap</span> <span class="n">cqp</span> <span class="p">:</span><span class="n">call</span> <span class="n">VSCodeNotify</span><span class="p">(</span><span class="s1">&#39;calva.jackIn&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="n">CR</span><span class="o">&gt;</span>
-<span class="n">nmap</span> <span class="n">cqq</span> <span class="p">:</span><span class="n">call</span> <span class="n">VSCodeNotify</span><span class="p">(</span><span class="s1">&#39;calva.disconnect&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="n">CR</span><span class="o">&gt;</span>
-<span class="n">nmap</span> <span class="n">cpr</span> <span class="p">:</span><span class="n">call</span> <span class="n">VSCodeNotify</span><span class="p">(</span><span class="s1">&#39;calva.loadFile&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="n">CR</span><span class="o">&gt;</span>
-<span class="n">nmap</span> <span class="n">cpR</span> <span class="p">:</span><span class="n">call</span> <span class="n">VSCodeNotify</span><span class="p">(</span><span class="s1">&#39;calva.loadNamespace&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="n">CR</span><span class="o">&gt;</span>
-<span class="n">nmap</span> <span class="n">cpp</span> <span class="p">:</span><span class="n">call</span> <span class="n">VSCodeNotify</span><span class="p">(</span><span class="s1">&#39;calva.evaluateSelection&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="n">CR</span><span class="o">&gt;</span>
-<span class="n">nmap</span> <span class="n">cqc</span> <span class="p">:</span><span class="n">call</span> <span class="n">VSCodeNotify</span><span class="p">(</span><span class="s1">&#39;calva.evalCurrentFormInREPLWindow&#39;</span><span class="p">)</span><span class="o">&lt;</span><span class="n">CR</span><span class="o">&gt;</span>
+<div class="codehilite"><pre><span></span><code><span class="err">nmap cqp :call VSCodeNotify(&#39;calva.jackIn&#39;)&lt;CR&gt;</span>
+<span class="err">nmap cqq :call VSCodeNotify(&#39;calva.disconnect&#39;)&lt;CR&gt;</span>
+<span class="err">nmap cpr :call VSCodeNotify(&#39;calva.loadFile&#39;)&lt;CR&gt;</span>
+<span class="err">nmap cpR :call VSCodeNotify(&#39;calva.loadNamespace&#39;)&lt;CR&gt;</span>
+<span class="err">nmap cpp :call VSCodeNotify(&#39;calva.evaluateSelection&#39;)&lt;CR&gt;</span>
+<span class="err">nmap cqc :call VSCodeNotify(&#39;calva.evalCurrentFormInREPLWindow&#39;)&lt;CR&gt;</span>
 </code></pre></div>
 
 
