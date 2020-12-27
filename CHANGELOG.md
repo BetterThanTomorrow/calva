@@ -5,6 +5,11 @@ Changes to Calva.
 ## [Unreleased]
 - Use Pseudo Terminal instead of Task for Jack-in
 
+## [2.0.138 - 2020-12-24]
+- [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)
+- [Add ”clojure-lsp starting” progress indicator](https://github.com/BetterThanTomorrow/calva/issues/892)
+- [Fix step into local dep with debugger](https://github.com/BetterThanTomorrow/calva/issues/893)
+
 ## [2.0.137 - 2020-12-24]
 - [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)
 

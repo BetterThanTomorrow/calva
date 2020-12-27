@@ -14,7 +14,6 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import * as namespace from '../namespace';
-import { removeFileSchemeFromUri } from '../util/string';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -177,8 +176,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const filePath = removeFileSchemeFromUri(debugResponse.file);
-        const document = await vscode.workspace.openTextDocument(filePath);
+        const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(debugResponse.file));
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
@@ -196,7 +194,8 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const [line, column] = tokenCursor.rowCol;
 
-        const source = new Source(basename(filePath), filePath);
+        // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
+        const source = new Source(basename(debugResponse.file), debugResponse.file);
         const name = tokenCursor.getFunction();
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
