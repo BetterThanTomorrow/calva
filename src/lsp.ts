@@ -172,7 +172,7 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
     const client = createClient(jarPath);
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: "clojure-lsp starting. You don't need to wait, to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+        title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
         cancellable: false
     }, (_progress, _token) => {
         const p = new Promise(resolve => {
