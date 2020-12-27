@@ -23,8 +23,6 @@ export default class HoverProvider implements vscode.HoverProvider {
                 return new vscode.Hover(infoparser.getHover(res));
             }
             return new vscode.Hover(infoparser.getHoverNotAvailable(text));
-        } else {
-            return new vscode.Hover("Please connect to a REPL to retrieve information.");
         }
     }
 };
