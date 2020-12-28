@@ -5,6 +5,25 @@ import annotations from './annotations';
 import * as namespace from '../namespace';
 import * as outputWindow from '../results-output/results-doc';
 
+// Used by out LSP middleware
+export async function provideClojureDefinition(document, position: vscode.Position, token) {
+  const evalPos = annotations.getEvaluationPosition(position);
+  const posIsEvalPos = evalPos && position.isEqual(evalPos);
+  if (util.getConnectedState() && !posIsEvalPos) {
+    const text = util.getWordAtPosition(document, position);
+    const client = namespace.getSession(util.getFileType(document));
+    const info = await client.info(namespace.getNamespace(document), text);
+    if (info.file && info.file.length > 0) {
+      const pos = new vscode.Position(info.line - 1, info.column || 0);
+      try {
+        return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
+      } catch(e) { /* ignore */ }
+    }
+  }
+}
+
+// TODO: This provider is no longer used. We should factor the code away such that
+//       it is clearer that this is handled by our LSP middleware.
 export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   state: any;
   constructor() {
@@ -12,19 +31,7 @@ export class ClojureDefinitionProvider implements vscode.DefinitionProvider {
   }
 
   async provideDefinition(document, position: vscode.Position, token) {
-    const evalPos = annotations.getEvaluationPosition(position);
-    const posIsEvalPos = evalPos && position.isEqual(evalPos);
-    if (util.getConnectedState() && !posIsEvalPos) {
-      const text = util.getWordAtPosition(document, position);
-      const client = namespace.getSession(util.getFileType(document));
-      const info = await client.info(namespace.getNamespace(document), text);
-      if (info.file && info.file.length > 0) {
-        const pos = new vscode.Position(info.line - 1, info.column || 0);
-        try {
-          return new vscode.Location(vscode.Uri.parse(info.file, true), pos);
-        } catch(e) { /* ignore */ }
-      }
-    }
+    return await provideClojureDefinition(document, position, token);
   }
 }
 
