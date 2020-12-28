@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Remove default key binding for toggling Calva key bindings](https://github.com/BetterThanTomorrow/calva/issues/815)
 
 ## [2.0.140 - 2020-12-28]
 - Make Jack-in dependency versions configurable (and bump 'em all with default settings)
