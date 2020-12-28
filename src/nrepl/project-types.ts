@@ -176,44 +176,59 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
     return { profiles, alias };
 }
 
-const NREPL_VERSION = "0.8.2",
-    CIDER_NREPL_VERSION = "0.23.0",
-    PIGGIEBACK_VERSION = "0.4.2",
-    CLJ_KONDO_VERSION = "2020.04.05";
-
-const cliDependencies = {
-    "nrepl": NREPL_VERSION,
-    "cider/cider-nrepl": CIDER_NREPL_VERSION,
-    "clj-kondo": CLJ_KONDO_VERSION
+export enum JackInDependency {
+    "nrepl" = "nrepl",
+    "cider-nrepl" = "cider-nrepl",
+    "cider/piggieback" = "cider/piggieback",
+    "clj-kondo" = "clj-kondo"
 }
 
-const cljsDependencies: { [id: string]: Object } = {
-    "lein-figwheel": {
-        "cider/piggieback": PIGGIEBACK_VERSION
-    },
-    "Figwheel Main": {
-        "cider/piggieback": PIGGIEBACK_VERSION
-    },
-    "shadow-cljs": {
-        "cider/cider-nrepl": CIDER_NREPL_VERSION,
-    },
-    "lein-shadow": {
-        "cider/cider-nrepl": CIDER_NREPL_VERSION,
-    },
-    "Nashorn": {
-        "cider/piggieback": PIGGIEBACK_VERSION
-    },
-    "User provided": {
-        "cider/piggieback": PIGGIEBACK_VERSION,
+const NREPL_VERSION = () => state.config().jackInDependencyVersions["nrepl"],
+    CIDER_NREPL_VERSION = () => state.config().jackInDependencyVersions["cider-nrepl"],
+    PIGGIEBACK_VERSION = () => state.config().jackInDependencyVersions["cider/piggieback"],
+    CLJ_KONDO_VERSION = () => state.config().jackInDependencyVersions["clj-kondo"];
+
+const cliDependencies = () => {
+    return {
+        "nrepl/nrepl": NREPL_VERSION(),
+        "cider/cider-nrepl": CIDER_NREPL_VERSION(),
+        "clj-kondo/clj-kondo": CLJ_KONDO_VERSION()
     }
 }
 
-const leinPluginDependencies = {
-    "cider/cider-nrepl": CIDER_NREPL_VERSION
+const cljsDependencies = () =>  {
+    return {
+        "lein-figwheel": {
+            "cider/piggieback": PIGGIEBACK_VERSION()
+        },
+        "Figwheel Main": {
+            "cider/piggieback": PIGGIEBACK_VERSION()
+        },
+        "shadow-cljs": {
+            "cider/cider-nrepl": CIDER_NREPL_VERSION()
+        },
+        "lein-shadow": {
+            "cider/cider-nrepl": CIDER_NREPL_VERSION()
+        },
+        "Nashorn": {
+            "cider/piggieback": PIGGIEBACK_VERSION()
+        },
+        "User provided": {
+            "cider/piggieback": PIGGIEBACK_VERSION()
+        }
+    }
 }
-const leinDependencies = {
-    "nrepl": NREPL_VERSION,
-    "clj-kondo": CLJ_KONDO_VERSION
+
+const leinPluginDependencies = () => {
+    return {
+        "cider/cider-nrepl": CIDER_NREPL_VERSION()
+    }
+}
+const leinDependencies = () => {
+    return {
+        "nrepl": NREPL_VERSION(),
+        "clj-kondo": CLJ_KONDO_VERSION()
+    }
 }
 const middleware = ["cider.nrepl/cider-middleware"];
 const cljsMiddlewareNames = {
@@ -311,8 +326,8 @@ const projectTypes: { [id: string]: ProjectType } = {
             }
 
             const dependencies = {
-                ...cliDependencies,
-                ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
+                ...cliDependencies(),
+                ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
                 ...serverPrinterDependencies
             },
                 useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
@@ -358,7 +373,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         commandLine: async (connectSequence, cljsType) => {
             const chan = state.outputChannel(),
                 dependencies = {
-                    ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
+                    ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
                     ...serverPrinterDependencies
                 };
             let defaultArgs: string[] = [];
@@ -420,8 +435,8 @@ const projectTypes: { [id: string]: ProjectType } = {
 async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSequence: ReplConnectSequence) {
     let out: string[] = [];
     const dependencies = {
-        ...leinDependencies,
-        ...(cljsType ? { ...cljsDependencies[cljsType] } : {}),
+        ...leinDependencies(),
+        ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
         ...serverPrinterDependencies
     };
     let keys = Object.keys(dependencies);
@@ -435,10 +450,10 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
         let dep = keys[i];
         out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + ',' + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
     }
-    keys = Object.keys(leinPluginDependencies);
+    keys = Object.keys(leinPluginDependencies());
     for (let i = 0; i < keys.length; i++) {
         let dep = keys[i];
-        out.push("update-in", ":plugins", "conj", `${q + "[" + dep + ',' + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
+        out.push("update-in", ":plugins", "conj", `${q + "[" + dep + ',' + dQ + leinPluginDependencies()[dep] + dQ + "]" + q}`, '--');
     }
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     for (let mw of useMiddleware) {
