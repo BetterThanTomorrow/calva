@@ -1327,10 +1327,6 @@
                 "when": "calva:keybindingsEnabled"
             },
             {
-                "command": "calva.toggleKeybindingsEnabled",
-                "key": "ctrl+alt+c ctrl+alt+k"
-            },
-            {
                 "command": "paredit.togglemode",
                 "key": "ctrl+alt+p ctrl+alt+m",
                 "when": "calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"

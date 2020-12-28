@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Remove default key binding for toggling Calva key bindings](https://github.com/BetterThanTomorrow/calva/issues/815)
 
 ## [2.0.139 - 2020-12-28]
 - Use Pseudo Terminal instead of Task for Jack-in
