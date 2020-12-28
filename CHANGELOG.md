@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Prefer cider-nrepl symbol definitions over clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/897)
+- Enable clojure-lsp completion items whe no nrepl connection
 
 ## [2.0.138 - 2020-12-24]
 - [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)
