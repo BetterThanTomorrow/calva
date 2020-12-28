@@ -4,6 +4,9 @@
 
 Like with [CIDER Jack-in](https://metaredux.com/posts/2019/11/02/hard-cider-understanding-the-jack-in-process.html), Calva's let-me-help-you-start-your-project-and-connect feature might seem a bit mysterious. It really is helpful, but also really isn't mysterious. Here are a few things about it that is good to know about.
 
+!!! Note
+    If you came here to find out how to configure the versions of the dependencies that Calva Jack-in injects, see [Customizing Calva - Jack-in Dependency Versions](customizing.md#jack-in-dependency-versions).
+
 ## What it Solves
 
 At first it might seem that something like `lein repl` in a terminal and then connecting Calva is enough. It sometimes might be, but only if you are in luck. To provide many of its IDE features, Calva relies on nREPL middleware, mainly [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) and, for ClojureScript, [piggieback](https://github.com/nrepl/piggieback). When starting your Clojure(Script) app and its REPL, it needs to be started with these dependencies satisfied. There are mainly three ways this can be achieved.

@@ -3,6 +3,7 @@ import * as Immutable from 'immutable';
 import * as ImmutableCursor from 'immutable-cursor';
 import Analytics from './analytics';
 import { ReplConnectSequence } from './nrepl/connectSequence';
+import { JackInDependency } from './nrepl/project-types';
 import * as util from './utilities';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -103,6 +104,7 @@ function config() {
         test: configOptions.get("testOnSave"),
         showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
         jackInEnv: configOptions.get("jackInEnv"),
+        jackInDependencyVersions: configOptions.get("jackInDependencyVersions") as { JackInDependency: string },
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
