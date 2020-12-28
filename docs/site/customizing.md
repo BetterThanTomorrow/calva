@@ -71,6 +71,18 @@ See [Formatting](formatting.md) for information on how to configure this.
 
 Jack-in and Connect are very customizable through [Custom Connect Sequences](connect-sequences.md).
 
+## Jack-in Dependency Versions
+
+The versions of the dependencies [Calva Jack-in](jack-in-guide.md) injects in order for the REPL session to support IDE features are configurable via the VS Code settings `calva.jackInDependencyVersions`. At the time of this writing the default versions are:
+
+Dependency | Version | Description
+---------- | ------- | -----------
+[nrepl](https://github.com/nrepl/nrepl) | 0.8.3 | nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
+[cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.5 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
+[cider/piggieback](https://github.com/nrepl/piggieback) | 0.5.2 | Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
+[clj-kondo](https://github.com/borkdude/clj-kondo) | 2020.04.05 | This clj-kondo instance is used by the Calva [debugger](debugger.md). (Not to be confused with the clj-kondo used by the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo) with the same name that gives you linting.)
+
+
 ## Key bindings
 
 Here are a collection of custom keybindings from here and there.
@@ -86,7 +98,7 @@ Are you a vim extension user? See: [Using with VIM extension](vim.md).
 
 Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing [Paredit](paredit.md) shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.
 
-## Wrap using `(`, `[`, `{` (like Cursive)
+### Wrap using `(`, `[`, `{` (like Cursive)
 
 Something I use in IntelliJ/Cursive is the ability to select an expression and hit one of `(`, `[`, `{` to wrap it. And after wrapping the expression I don't want the selection anymore, so if I were wrapping `(foo)` then I would want to get `( | (foo))` where `|` would be my cursor.
 
