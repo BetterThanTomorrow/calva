@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.138",
+    "version": "2.0.139",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -1823,6 +1823,7 @@
         "open": "^6.3.0",
         "ovsx": "0.1.0-next.e000fdb",
         "parinfer": "^3.12.0",
+        "tree-kill": "^1.2.2",
         "universal-analytics": "^0.4.20",
         "vscode-debugadapter": "1.38.0",
         "vscode-extension-telemetry": "0.0.15",

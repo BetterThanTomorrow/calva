@@ -4,7 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
-## [2.0.138 - 2020-12-24]
+## [2.0.139 - 2020-12-28]
+- Use Pseudo Terminal instead of Task for Jack-in
+- [Prefer cider-nrepl symbol definitions over clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/897)
+- Enable clojure-lsp completion items whe no nrepl connection
+
+## [2.0.138 - 2020-12-27]
 - [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)
 - [Add ”clojure-lsp starting” progress indicator](https://github.com/BetterThanTomorrow/calva/issues/892)
 - [Fix step into local dep with debugger](https://github.com/BetterThanTomorrow/calva/issues/893)
@@ -141,6 +146,7 @@ Changes to Calva.
 
 ## [2.0.104] - 2020-06-14
 - Fix [File lexing fails on junk characters inside strings](https://github.com/BetterThanTomorrow/calva/issues/659)
+- [Use Pseudo-terminal instead of Task for Jack-in](https://github.com/BetterThanTomorrow/calva/pull/654)
 
 ## [2.0.103] - 2020-06-05
 - Fix [Stream output messages to Calva Says as they're received](https://github.com/BetterThanTomorrow/calva/issues/638)
@@ -149,6 +155,7 @@ Changes to Calva.
 ## [2.0.102] - 2020-06-04
 - Fix [Format Document sometimes causes Calva to stop working](https://github.com/BetterThanTomorrow/calva/issues/651)
 - Fix [repl hanging after disconnecting debugger while repl window focused](https://github.com/BetterThanTomorrow/calva/issues/647)
+- [Use a pseudo terminal for Jack-in - and stop (ab)using the Tasks system for this](https://github.com/BetterThanTomorrow/calva/pull/654)
 
 ## [2.0.101] - 2020-05-11
 - [Paredit slurp outer form if current form is nested](https://github.com/BetterThanTomorrow/calva/issues/554)

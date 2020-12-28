@@ -3,6 +3,7 @@ import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } fro
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
+import { provideClojureDefinition } from './providers/definition';
 
 function createClient(jarPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -53,13 +54,20 @@ function createClient(jarPath: string): LanguageClient {
                     return next(document, position, token);
                 }
             },
+            async provideDefinition(document, position, token, next) {
+                const nReplDefinition = await provideClojureDefinition(document, position, token);
+                if (nReplDefinition) {
+                    return nReplDefinition;
+                } else {
+                    return next(document, position, token);
+                }
+            },
             provideCompletionItem(document, position, context, token, next) {
-                // if (util.getConnectedState()) {
-                //     return null;
-                // } else {
-                //     return next(document, position, context, token);
-                // }
-                return null;
+                 if (util.getConnectedState()) {
+                     return null;
+                 } else {
+                     return next(document, position, context, token);
+                 }
             },
             provideSignatureHelp(document, position, context, token, next) {
                 if (util.getConnectedState()) {
@@ -172,7 +180,7 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
     const client = createClient(jarPath);
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: "clojure-lsp starting. You don't need to wait, to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+        title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
         cancellable: false
     }, (_progress, _token) => {
         const p = new Promise(resolve => {
