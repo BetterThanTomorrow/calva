@@ -6,7 +6,7 @@ There are two ”flavours” to refactoring support. Some (just a few) refactori
 
 You can enable or disable the _Quick Fix_ suggestion lightbulb using the VS Code setting `editor.lightbulb.enabled`.
 
-The refactoring commands do not have default keyboard shortcuts. You find them all by typing ”Calva Refactoring” in the Command Palette.
+The refactoring commands do not have default keyboard shortcuts. You find them all by typing ”Calva Refactor” in the Command Palette.
 
 ## Commands
 
