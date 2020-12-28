@@ -23,4 +23,6 @@ Did you know? There is a complete list of Calva settings and commands in the *Co
 
 ## Toggling Keyboard Shortcuts On/Off
 
-The command `calva.toggleKeybindingsEnabled` can be used to quickly enable and disable (almost) all keyboard shortcuts. By default it is bound to `ctrl+alt+c ctrl+alt+k`, and this shortcut is the only one which will not be disabled. This allows you to quickly toggle between Calva keybindings and other keybindings which would otherwise not be available when Calva is enabled. This is particularly useful with the Paredit keyboard shortcuts, whose default shortcuts conflict with the default VS Code shortcuts for textual (non-structural) editing.
+The command `calva.toggleKeybindingsEnabled` can be used to quickly enable and disable (almost) all keyboard shortcuts. This allows you to quickly toggle between Calva keybindings and other keybindings which would otherwise not be available when Calva is enabled. This is particularly useful with the Paredit keyboard shortcuts, whose default shortcuts conflict with the default VS Code shortcuts for textual (non-structural) editing.
+
+By default it is not bound to a shortcut so as not to cause confusion by users unwittingly pressing it, but if this is something you'd like to use often, you may want to bind it to a shortcut.
