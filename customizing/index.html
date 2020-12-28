@@ -533,6 +533,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jack-in-dependency-versions" class="md-nav__link">
+    Jack-in Dependency Versions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-bindings" class="md-nav__link">
     Key bindings
   </a>
@@ -547,15 +554,15 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
+          <li class="md-nav__item">
   <a href="#wrap-using-like-cursive" class="md-nav__link">
     Wrap using (, [, { (like Cursive)
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -868,6 +875,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jack-in-dependency-versions" class="md-nav__link">
+    Jack-in Dependency Versions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#key-bindings" class="md-nav__link">
     Key bindings
   </a>
@@ -882,15 +896,15 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
+          <li class="md-nav__item">
   <a href="#wrap-using-like-cursive" class="md-nav__link">
     Wrap using (, [, { (like Cursive)
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1015,6 +1029,39 @@
 <p>See <a href="../formatting/">Formatting</a> for information on how to configure this.</p>
 <h2 id="jack-in-and-connect-sequences">Jack-in and Connect Sequences</h2>
 <p>Jack-in and Connect are very customizable through <a href="../connect-sequences/">Custom Connect Sequences</a>.</p>
+<h2 id="jack-in-dependency-versions">Jack-in Dependency Versions</h2>
+<p>The versions of the dependencies <a href="../jack-in-guide/">Calva Jack-in</a> injects in order for the REPL session to support IDE features are configurable via the VS Code settings <code>calva.jackInDependencyVersions</code>. At the time of this writing the default versions are:</p>
+<table>
+<thead>
+<tr>
+<th>Dependency</th>
+<th>Version</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/nrepl/nrepl">nrepl</a></td>
+<td>0.8.3</td>
+<td>nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a></td>
+<td>0.25.5</td>
+<td>cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/nrepl/piggieback">cider/piggieback</a></td>
+<td>0.5.2</td>
+<td>Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with <a href="http://shadow-cljs.org">shadow-cljs</a> projects though, which provides its own middleware for this.)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/borkdude/clj-kondo">clj-kondo</a></td>
+<td>2020.04.05</td>
+<td>This clj-kondo instance is used by the Calva <a href="../debugger/">debugger</a>. (Not to be confused with the clj-kondo used by the <a href="https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo">VS Code extension</a> with the same name that gives you linting.)</td>
+</tr>
+</tbody>
+</table>
 <h2 id="key-bindings">Key bindings</h2>
 <p>Here are a collection of custom keybindings from here and there.</p>
 <ul>
@@ -1026,7 +1073,7 @@
 <p>Are you a vim extension user? See: <a href="../vim/">Using with VIM extension</a>.</p>
 <h3 id="paredit">Paredit</h3>
 <p>Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing <a href="../paredit/">Paredit</a> shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.</p>
-<h2 id="wrap-using-like-cursive">Wrap using <code>(</code>, <code>[</code>, <code>{</code> (like Cursive)</h2>
+<h3 id="wrap-using-like-cursive">Wrap using <code>(</code>, <code>[</code>, <code>{</code> (like Cursive)</h3>
 <p>Something I use in IntelliJ/Cursive is the ability to select an expression and hit one of <code>(</code>, <code>[</code>, <code>{</code> to wrap it. And after wrapping the expression I don't want the selection anymore, so if I were wrapping <code>(foo)</code> then I would want to get <code>( | (foo))</code> where <code>|</code> would be my cursor.</p>
 <p>Here's how you can make this work with Calva Paredit: Update all of the <code>Paredit: Wrap Around ...</code> commands so that their respective shortcuts are the wrappers themselves and update the <code>when</code> clause to include <code>editorHasSelection</code> (otherwise when you open a paren the next expression would get slurped in).</p>
 <p>The change would look like this in your <code>keybindings.json</code>:</p>
