@@ -3,7 +3,9 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Make Jack-in dependency versions configurable (and bump'em all with default settings)
+
+## [2.0.140 - 2020-12-28]
+- Make Jack-in dependency versions configurable (and bump 'em all with default settings)
 
 ## [2.0.139 - 2020-12-28]
 - Use Pseudo Terminal instead of Task for Jack-in
