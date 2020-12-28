@@ -430,19 +430,19 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
     if (isWin) {
         out.push("/d", "/c", "lein");
     }
-    const q = isWin ? '' : "'", dQ = '"', s = isWin ? "^ " : " ";
+    const q = isWin ? '' : "'", dQ = '"';
     for (let i = 0; i < keys.length; i++) {
         let dep = keys[i];
-        out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
+        out.push("update-in", ":dependencies", "conj", `${q + "[" + dep + ',' + dQ + dependencies[dep] + dQ + "]" + q}`, '--');
     }
     keys = Object.keys(leinPluginDependencies);
     for (let i = 0; i < keys.length; i++) {
         let dep = keys[i];
-        out.push("update-in", ":plugins", "conj", `${q + "[" + dep + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
+        out.push("update-in", ":plugins", "conj", `${q + "[" + dep + ',' + dQ + leinPluginDependencies[dep] + dQ + "]" + q}`, '--');
     }
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     for (let mw of useMiddleware) {
-        out.push("update-in", `${q + '[:repl-options' + s + ':nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
+        out.push("update-in", `${q + '[:repl-options,:nrepl-middleware]' + q}`, "conj", `'["${mw}"]'`, '--');
     }
     if (profiles.length) {
         out.push("with-profile", profiles.map(x => `+${unKeywordize(x)}`).join(','));

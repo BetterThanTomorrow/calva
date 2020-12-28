@@ -435,7 +435,8 @@ export let nClient: NReplClient;
 export let cljSession: NReplSession;
 export let cljsSession: NReplSession;
 
-export async function connect(connectSequence: ReplConnectSequence, isAutoConnect: boolean) {
+export async function connect(connectSequence: ReplConnectSequence,
+    isAutoConnect: boolean, hostname?: string, port?: string) {
     const cljsTypeName = projectTypes.getCljsTypeName(connectSequence);
 
     state.analytics().logEvent("REPL", "ConnectInitiated", isAutoConnect ? "auto" : "manual");
@@ -450,15 +451,16 @@ export async function connect(connectSequence: ReplConnectSequence, isAutoConnec
         let bytes = await vscode.workspace.fs.readFile(portFile);
         let port = new TextDecoder("utf-8").decode(bytes);
         if (port) {
+            hostname = hostname !== undefined ? hostname : "localhost";
             if (isAutoConnect) {
-                state.cursor.set("hostname", "localhost");
+                state.cursor.set("hostname", hostname);
                 state.cursor.set("port", port);
-                await connectToHost("localhost", parseInt(port), connectSequence);
+                await connectToHost(hostname, parseInt(port), connectSequence);
             } else {
                 await promptForNreplUrlAndConnect(port, connectSequence);
             }
         } else {
-            outputWindow.append('; No nrepl port file found. (Calva does not start the nrepl for you, yet.)');
+            outputWindow.append('; No nrepl port file found.');
             await promptForNreplUrlAndConnect(port, connectSequence);
         }
     } catch (e) {

@@ -159,14 +159,15 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
     "shadow-cljs": {
         name: "shadow-cljs",
         buildsRequired: true,
-        isStarted: true,
+        isStarted: false,
         // isReadyToStartRegExp: /To quit, type: :cljs\/quit/,
         connectCode: {
             build: `(shadow.cljs.devtools.api/nrepl-select %BUILD%)`,
             repl: `(shadow.cljs.devtools.api/%REPL%)`
         },
         shouldOpenUrl: false,
-        isConnectedRegExp: /:selected/
+        isConnectedRegExp: /To quit, type: :cljs\/quit/
+        //isConnectedRegExp: /:selected/
     },
     "Nashorn": {
         name: "Nashorn",
