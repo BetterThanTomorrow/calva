@@ -4,10 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.140 - 2020-12-28]
+- Make Jack-in dependency versions configurable (and bump 'em all with default settings)
+
 ## [2.0.139 - 2020-12-28]
 - Use Pseudo Terminal instead of Task for Jack-in
 - [Prefer cider-nrepl symbol definitions over clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/897)
-- Enable clojure-lsp completion items whe no nrepl connection
+- Enable clojure-lsp completion items when no nrepl connection
 
 ## [2.0.138 - 2020-12-27]
 - [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)

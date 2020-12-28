@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
     "icon": "assets/calva.png",
-    "version": "2.0.139",
+    "version": "2.0.140",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -277,6 +277,34 @@
                         "type": "object",
                         "default": {},
                         "description": "Specifies any environment variables your project needs. (Probably mostly for your Workspace Settings.)"
+                    },
+                    "calva.jackInDependencyVersions": {
+                        "type": "object",
+                        "description": "Versions of the dependencies injected by Calva Jack-in",
+                        "properties": {
+                            "nrepl": {
+                                "type": "string",
+                                "description": "nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects."
+                            },
+                            "cider-nrepl": {
+                                "type": "string",
+                                "description": "cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience."
+                            },
+                            "cider/piggieback": {
+                                "type": "string",
+                                "description": "Piggieback is used to create nREPL sessions in ClojureScript projects (not with shadow-cljs though, which provides its own middleware for this."
+                            },
+                            "clj-kondo": {
+                                "type": "string",
+                                "description": "This clj-kondo instance is used by the Calva debugger. (Not to be confused with the clj-kondo used by the extension with the same name that gives you linting.)"
+                            } 
+                        },
+                        "default": {
+                            "nrepl": "0.8.3",
+                            "cider-nrepl": "0.25.5",
+                            "cider/piggieback": "0.5.2",
+                            "clj-kondo": "2020.04.05"
+                        }
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
                         "type": "boolean",
