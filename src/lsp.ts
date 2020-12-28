@@ -3,6 +3,7 @@ import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } fro
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
+import { provideClojureDefinition } from './providers/definition';
 
 function createClient(jarPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -53,13 +54,20 @@ function createClient(jarPath: string): LanguageClient {
                     return next(document, position, token);
                 }
             },
+            async provideDefinition(document, position, token, next) {
+                const nReplDefinition = await provideClojureDefinition(document, position, token);
+                if (nReplDefinition) {
+                    return nReplDefinition;
+                } else {
+                    return next(document, position, token);
+                }
+            },
             provideCompletionItem(document, position, context, token, next) {
-                // if (util.getConnectedState()) {
-                //     return null;
-                // } else {
-                //     return next(document, position, context, token);
-                // }
-                return null;
+                 if (util.getConnectedState()) {
+                     return null;
+                 } else {
+                     return next(document, position, context, token);
+                 }
             },
             provideSignatureHelp(document, position, context, token, next) {
                 if (util.getConnectedState()) {
