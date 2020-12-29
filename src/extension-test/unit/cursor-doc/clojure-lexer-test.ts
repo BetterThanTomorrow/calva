@@ -376,31 +376,31 @@ describe('Scanner', () => {
             });
         });
         it('tokenizes the Calva repl prompt', () => {
-            const tokens = scanner.processLine('foo::bar.baz=> ()');
+            const tokens = scanner.processLine('foo꞉bar.baz꞉> ()');
             expect(tokens[0].type).toBe('prompt');
-            expect(tokens[0].raw).toBe('foo::bar.baz=> ');
+            expect(tokens[0].raw).toBe('foo꞉bar.baz꞉> ');
             expect(tokens[1].type).toBe('open');
             expect(tokens[1].raw).toBe('(');
             expect(tokens[2].type).toBe('close');
             expect(tokens[2].raw).toBe(')');
         });
         it('only tokenizes the Calva repl prompt if it is at the start of a line', () => {
-            const tokens = scanner.processLine(' foo::bar.baz=> ()');
+            const tokens = scanner.processLine(' foo꞉bar.baz꞉> ()');
             expect(tokens[0].type).toBe('ws');
             expect(tokens[0].raw).toBe(' ');
             expect(tokens[1].type).toBe('id');
-            expect(tokens[1].raw).toBe('foo::bar.baz=>');
-            expect(tokens[2].type).toBe('ws');
-            expect(tokens[2].raw).toBe(' ');
+            expect(tokens[1].raw).toBe('foo꞉bar.baz꞉>');
+            expect(tokens[2].type).toBe('junk');
+            expect(tokens[2].raw).toBe(' ');
             expect(tokens[3].type).toBe('open');
             expect(tokens[3].raw).toBe('(');
             expect(tokens[4].type).toBe('close');
             expect(tokens[4].raw).toBe(')');
         });
         it('only tokenizes the Calva repl prompt if it ends with a space', () => {
-            const tokens = scanner.processLine('foo::bar.baz=>()');
+            const tokens = scanner.processLine('foo꞉bar.baz꞉>()');
             expect(tokens[0].type).toBe('id');
-            expect(tokens[0].raw).toBe('foo::bar.baz=>');
+            expect(tokens[0].raw).toBe('foo꞉bar.baz꞉>');
             expect(tokens[1].type).toBe('open');
             expect(tokens[1].raw).toBe('(');
             expect(tokens[2].type).toBe('close');
