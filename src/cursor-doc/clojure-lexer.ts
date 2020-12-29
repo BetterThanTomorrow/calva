@@ -55,8 +55,8 @@ toplevel.terminal("ws-nl", /(\r|\n|\r\n)/, (l, m) => ({ type: "ws" }))
 toplevel.terminal("ws-other", /[\f\u000B\u001C\u001D\u001E\u001F\u2028\u2029\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2008\u2009\u200a\u205f\u3000]+/, (l, m) => ({ type: "ws" }))
 // comments
 toplevel.terminal("comment", /;.*/, (l, m) => ({ type: "comment" }))
-// Calva repl prompt
-toplevel.terminal("comment", /^[^()[\]\{\},~@`^\"\s;]+::[^()[\]\{\},~@`^\"\s;]+=> /, (l, m) => ({ type: "prompt" }))
+// Calva repl prompt, it contains special colon symbols and a hard space 
+toplevel.terminal("comment", /^[^()[\]\{\},~@`^\"\s;]+꞉[^()[\]\{\},~@`^\"\s;]+꞉> /, (l, m) => ({ type: "prompt" }))
 
 // current idea for prefixing data reader
 // (#[^\(\)\[\]\{\}"_@~\s,]+[\s,]*)*

@@ -9,7 +9,7 @@ import * as config from './config'
 
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
     return {
-        wordPattern: /[^\s,#()[\]{};"\\\@\']+/,
+        wordPattern: /[^\s,#()[\]{}꞉;"\\\@\']+/, // NB: The ꞉ there is not a regular colon
         onEnterRules: autoIndentOn ? [
             // This is madness, but the only way to stop vscode from indenting new lines
             {

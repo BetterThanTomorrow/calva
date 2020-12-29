@@ -333,18 +333,18 @@ describe "Clojure grammar", ->
 
   describe "replPrompt", ->
     it "tokenizes repl prompt", ->
-      {tokens} = grammar.tokenizeLine "foo::bar.baz-2=> "
+      {tokens} = grammar.tokenizeLine "foo꞉bar.baz-2꞉> "
       expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
-      expect(tokens[1]).toEqual value: "::", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[1]).toEqual value: "꞉", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
       expect(tokens[2]).toEqual value: "bar.baz-2", scopes: ["source.clojure", "meta.symbol.namespace.prompt.clojure"]
-      expect(tokens[3]).toEqual value: "=>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
+      expect(tokens[3]).toEqual value: "꞉>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
     it "does not tokenize repl prompt when prepended with anything", ->
-      {tokens} = grammar.tokenizeLine " foo::bar.baz-2=> "
+      {tokens} = grammar.tokenizeLine " foo꞉bar.baz-2꞉> "
       expect(tokens[0]).toEqual value: " ", scopes: ["source.clojure"]
-      expect(tokens[1]).toEqual value: "foo::bar.baz-2=>", scopes: ["source.clojure", "meta.symbol.clojure"]
-    it "does not tokenize repl prompt when not followed by space", ->
-      {tokens} = grammar.tokenizeLine "foo::bar.baz-2=>"
-      expect(tokens[0]).toEqual value: "foo::bar.baz-2=>", scopes: ["source.clojure", "meta.symbol.clojure"]
+      expect(tokens[1]).toEqual value: "foo", scopes: ["source.clojure", "meta.symbol.clojure"]
+    it "does not tokenize repl prompt when not followed by hard space", ->
+      {tokens} = grammar.tokenizeLine "foo꞉bar.baz-2꞉>"
+      expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "meta.symbol.clojure"]
 
   describe "firstLineMatch", ->
     it "recognises interpreter directives", ->
