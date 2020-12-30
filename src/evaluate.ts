@@ -13,6 +13,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
+import * as fs from 'fs';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -217,22 +218,26 @@ function evaluateCurrentForm(document = {}, options = {}) {
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const current = state.deref();
     const doc = util.getDocument(document);
-    const fileName = util.getFileName(doc);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
     const session = namespace.getSession(util.getFileType(doc));
-    const shortFileName = path.basename(fileName);
-    const dirName = path.dirname(fileName);
 
-    if (doc && !outputWindow.isResultsDoc(doc) && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
+        const info = await session.info(ns, ns);
+        const fileName = outputWindow.isResultsDoc(doc) ? info.file : util.getFileName(doc);
+        const shortFileName = path.basename(fileName);
+        const dirName = path.dirname(fileName);
+        const filePath = outputWindow.isResultsDoc(doc) ? vscode.Uri.parse(fileName).path : doc.fileName;
+        const fileContents = await util.getFileContents(filePath);
+
         outputWindow.append("; Evaluating file: " + fileName);
 
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
-        const res = session.loadFile(doc.getText(), {
+        const res = session.loadFile(fileContents, {
             fileName: fileName,
-            filePath: doc.fileName,
+            filePath,
             stdout: m => outputWindow.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
             stderr: m => outputWindow.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
             pprintOptions: pprintOptions

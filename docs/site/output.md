@@ -8,6 +8,10 @@ In ClojureScript projects the window will be associated with the `cljs` REPL onc
 
 The first prompt is from when the `clj` REPL is connected, the second when Calva has a `cljs` REPL connection. The first part of the prompt tells you which REPL type the window is currently connected to. This gets important when the file/window is used as an interactive REPL.
 
+## Find the Output/REPL Window
+
+If you quickly want to open and switch to the output window there is the command **Calva: Show Output Window**, `ctrl+alt+c o`.
+
 ## Evaluating code
 
 The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a `clj` file with the namespace `fresh-reagent.handler`:
@@ -75,9 +79,35 @@ For printed stacktraces, when source locations are available (Clojure files) you
 
 ![Stack trace clicking and peeking definition](images/howto/output/stack-traces.gif "Stack trace clicking and peeking definition")
 
-## Find the Output/REPL Window
+## Load Current Namespace
 
-If you quickly want to open and switch to the output window there is the command **Calva: Show Output Window**, `ctrl+alt+c o`.
+When navigating namespaces it is easy to [forget to first require them](https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong) and that can be a bit tricky to fix. To help with this Calva's command **Load Current File** also works in the output window, but then acts like **Load Current Namespace**.
+
+Consider you have two files, `pez/xxx.clj` and `pez/yyy.clj`, where `pez.yyy` requires in `pez.yyy`.
+
+```clojure
+(ns pez.xxx)
+
+(def a :xxx-a)
+
+(def b :xxx-b)
+```
+
+```clojure
+(ns pez.yyy
+  (:require [pez.xxx]))
+
+(def a :yyy-a)
+
+(println "Hello" pez.xxx/a)
+```
+
+Then with a freshly jacked-in REPL you do `(ns pez.yyy)` and want to work with the vars defined there. Clojure will complain. But if you **Load Current File**, it will start working. Something like so:
+
+![Load Current Namespace in the Calva Output Window](images/howto/output/load-current-namespace.png)
+
+!!! Note
+    This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyway (by opening the files and loading them). See [Calva issue #907](https://github.com/BetterThanTomorrow/calva/issues/907)
 
 ## Paredit Enabled
 

@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Remove default key binding for toggling Calva key bindings](https://github.com/BetterThanTomorrow/calva/issues/815)
+- [Make load-file available in the output window](https://github.com/BetterThanTomorrow/calva/issues/904)
 - [Make the ns in the repl prompt a peekable symbol](https://github.com/BetterThanTomorrow/calva/issues/904)
 
 ## [2.0.140 - 2020-12-28]
