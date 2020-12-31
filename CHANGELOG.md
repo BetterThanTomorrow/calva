@@ -3,17 +3,24 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.142 and 2.0.143 - 2020-12-30]
+- No changes besides version number. Released due to vsix publishing issues.
+
+## [2.0.141 - 2020-12-30]
+- Update clojure-lsp to include [jar dependency navigation fix for Windows](https://github.com/clojure-lsp/clojure-lsp/issues/223)
+- Fix: [clojure-lsp refactorings not working on Windows](https://github.com/BetterThanTomorrow/calva/issues/911)
 - [Remove default key binding for toggling Calva key bindings](https://github.com/BetterThanTomorrow/calva/issues/815)
 - [Make load-file available in the output window](https://github.com/BetterThanTomorrow/calva/issues/904)
 - [Make the ns in the repl prompt a peekable symbol](https://github.com/BetterThanTomorrow/calva/issues/904)
 
 ## [2.0.140 - 2020-12-28]
-- Make Jack-in dependency versions configurable (and bump 'em all with default settings)
+- [Make Jack-in dependency versions configurable (and bump 'em all with default settings)](https://github.com/BetterThanTomorrow/calva/pull/899)
 
 ## [2.0.139 - 2020-12-28]
-- Use Pseudo Terminal instead of Task for Jack-in
+- [Use Pseudo Terminal instead of Task for Jack-in](https://github.com/BetterThanTomorrow/calva/pull/654)
 - [Prefer cider-nrepl symbol definitions over clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/897)
-- Enable clojure-lsp completion items when no nrepl connection
+- [Enable clojure-lsp completion items when no nrepl connection](https://github.com/BetterThanTomorrow/calva/pull/898)
 
 ## [2.0.138 - 2020-12-27]
 - [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)
