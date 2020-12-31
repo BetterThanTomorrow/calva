@@ -57,17 +57,17 @@ function createClient(jarPath: string): LanguageClient {
             async provideDefinition(document, position, token, next) {
                 const nReplDefinition = await provideClojureDefinition(document, position, token);
                 if (nReplDefinition) {
-                    return nReplDefinition;
+                    return null;
                 } else {
                     return next(document, position, token);
                 }
             },
             provideCompletionItem(document, position, context, token, next) {
-                 if (util.getConnectedState()) {
-                     return null;
-                 } else {
-                     return next(document, position, context, token);
-                 }
+                if (util.getConnectedState()) {
+                    return null;
+                } else {
+                    return next(document, position, context, token);
+                }
             },
             provideSignatureHelp(document, position, context, token, next) {
                 if (util.getConnectedState()) {
@@ -161,7 +161,8 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
         if (document && document.languageId === 'clojure') {
             const line = editor.selection.active.line;
             const column = editor.selection.active.character;
-            const params = [document.uri.toString(), line, column];
+            const docUri = `${document.uri.scheme}://${document.uri.path}`;
+            const params = [docUri, line, column];
             const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
             if (!command.extraParamFn || command.extraParamFn && extraParam) {
                 client.sendRequest('workspace/executeCommand', {
