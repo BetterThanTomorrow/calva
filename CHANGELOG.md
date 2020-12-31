@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.142 and 2.0.143 - 2020-12-30]
+- No changes besides version number. Released due to vsix publishing issues.
+
 ## [2.0.141 - 2020-12-30]
 - Update clojure-lsp to include [jar dependency navigation fix for Windows](https://github.com/clojure-lsp/clojure-lsp/issues/223)
 - Fix: [clojure-lsp refactorings not working on Windows](https://github.com/BetterThanTomorrow/calva/issues/911)
