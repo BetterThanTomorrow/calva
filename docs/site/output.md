@@ -109,6 +109,10 @@ Then with a freshly jacked-in REPL you do `(ns pez.yyy)` and want to work with t
 !!! Note
     This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyway (by opening the files and loading them). See [Calva issue #907](https://github.com/BetterThanTomorrow/calva/issues/907)
 
+### Peek Current Namespace
+
+A somewhat hidden feature: You can see documentation for, peek and navigate to a namespace by hovering on the namespace symbol in one of the repl window prompts (just like you would if it was not in the prompt 😄).
+
 ## Paredit Enabled
 
 The output window is mostly a regular Calva Clojure/ClojureScript file, which make everything that works in a regular file work in this file, including [Paredit](paredit.md). This makes it easy to navigate the input and output. For instance, to select the last evaluation results you can press `ctrl+w`:
