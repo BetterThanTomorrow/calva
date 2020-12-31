@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.141 - 2020-12-30]
 - Update clojure-lsp to include [jar dependency navigation fix for Windows](https://github.com/clojure-lsp/clojure-lsp/issues/223)
 - Fix: [clojure-lsp refactorings not working on Windows](https://github.com/BetterThanTomorrow/calva/issues/911)
 - [Remove default key binding for toggling Calva key bindings](https://github.com/BetterThanTomorrow/calva/issues/815)
