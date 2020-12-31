@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Reactivate definitions/navigation in core and library files](https://github.com/BetterThanTomorrow/calva/issues/915)
 
 ## [2.0.142 and 2.0.143 - 2020-12-30]
 - No changes besides version number. Released due to vsix publishing issues.
