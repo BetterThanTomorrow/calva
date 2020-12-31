@@ -57,7 +57,7 @@ function createClient(jarPath: string): LanguageClient {
             async provideDefinition(document, position, token, next) {
                 const nReplDefinition = await provideClojureDefinition(document, position, token);
                 if (nReplDefinition) {
-                    return nReplDefinition;
+                    return null;
                 } else {
                     return next(document, position, token);
                 }
