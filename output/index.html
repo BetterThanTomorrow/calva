@@ -356,6 +356,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#find-the-outputrepl-window" class="md-nav__link">
+    Find the Output/REPL Window
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#evaluating-code" class="md-nav__link">
     Evaluating code
   </a>
@@ -404,9 +411,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#find-the-outputrepl-window" class="md-nav__link">
-    Find the Output/REPL Window
+  <a href="#load-current-namespace" class="md-nav__link">
+    Load Current Namespace
   </a>
+  
+    <nav class="md-nav" aria-label="Load Current Namespace">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#peek-current-namespace" class="md-nav__link">
+    Peek Current Namespace
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -849,6 +869,13 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#find-the-outputrepl-window" class="md-nav__link">
+    Find the Output/REPL Window
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#evaluating-code" class="md-nav__link">
     Evaluating code
   </a>
@@ -897,9 +924,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#find-the-outputrepl-window" class="md-nav__link">
-    Find the Output/REPL Window
+  <a href="#load-current-namespace" class="md-nav__link">
+    Load Current Namespace
   </a>
+  
+    <nav class="md-nav" aria-label="Load Current Namespace">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#peek-current-namespace" class="md-nav__link">
+    Peek Current Namespace
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -963,6 +1003,8 @@
 <p>In ClojureScript projects the window will be associated with the <code>cljs</code> REPL once this one is connected. It will then look something like so:</p>
 <p><img alt="Output Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
 <p>The first prompt is from when the <code>clj</code> REPL is connected, the second when Calva has a <code>cljs</code> REPL connection. The first part of the prompt tells you which REPL type the window is currently connected to. This gets important when the file/window is used as an interactive REPL.</p>
+<h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
+<p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+c o</code>.</p>
 <h2 id="evaluating-code">Evaluating code</h2>
 <p>The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a <code>clj</code> file with the namespace <code>fresh-reagent.handler</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">mount-target</span>
@@ -1005,8 +1047,34 @@
 <p><img alt="Print Stacktrace Codelense button" src="../images/howto/output/print-stacktrace-codelense.png" title="Print Stacktrace Codelense button" /></p>
 <p>For printed stacktraces, when source locations are available (Clojure files) you will be able to navigate to them by pressing <code>ctrl+click</code> (<code>cmd+click</code> on Mac) on the file name. You can also hover over symbols in the stack trace to see the symbol's documentation, and <code>ctrl+click</code> (<code>cmd+click</code> on Mac) the symbol to Peek Definition.</p>
 <p><img alt="Stack trace clicking and peeking definition" src="../images/howto/output/stack-traces.gif" title="Stack trace clicking and peeking definition" /></p>
-<h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
-<p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+c o</code>.</p>
+<h2 id="load-current-namespace">Load Current Namespace</h2>
+<p>When navigating namespaces it is easy to <a href="https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong">forget to first require them</a> and that can be a bit tricky to fix. To help with this Calva's command <strong>Load Current File</strong> also works in the output window, but then acts like <strong>Load Current Namespace</strong>.</p>
+<p>Consider you have two files, <code>pez/xxx.clj</code> and <code>pez/yyy.clj</code>, where <code>pez.yyy</code> requires in <code>pez.yyy</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">pez.xxx</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">a</span> <span class="ss">:xxx-a</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">b</span> <span class="ss">:xxx-b</span><span class="p">)</span>
+</code></pre></div>
+
+
+<div class="codehilite"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">pez.yyy</span>
+  <span class="p">(</span><span class="ss">:require</span> <span class="p">[</span><span class="nv">pez.xxx</span><span class="p">]))</span>
+
+<span class="p">(</span><span class="k">def </span><span class="nv">a</span> <span class="ss">:yyy-a</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nb">println </span><span class="s">&quot;Hello&quot;</span> <span class="nv">pez.xxx/a</span><span class="p">)</span>
+</code></pre></div>
+
+
+<p>Then with a freshly jacked-in REPL you do <code>(ns pez.yyy)</code> and want to work with the vars defined there. Clojure will complain. But if you <strong>Load Current File</strong>, it will start working. Something like so:</p>
+<p><img alt="Load Current Namespace in the Calva Output Window" src="../images/howto/output/load-current-namespace.png" /></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This currently suffers from a limitation in Calva where it won't reload dependencies, so you will sometimes have to do this ”manually” anyway (by opening the files and loading them). See <a href="https://github.com/BetterThanTomorrow/calva/issues/907">Calva issue #907</a></p>
+</div>
+<h3 id="peek-current-namespace">Peek Current Namespace</h3>
+<p>A somewhat hidden feature: You can see documentation for, peek and navigate to a namespace by hovering on the namespace symbol in one of the repl window prompts (just like you would if it was not in the prompt 😄).</p>
 <h2 id="paredit-enabled">Paredit Enabled</h2>
 <p>The output window is mostly a regular Calva Clojure/ClojureScript file, which make everything that works in a regular file work in this file, including <a href="../paredit/">Paredit</a>. This makes it easy to navigate the input and output. For instance, to select the last evaluation results you can press <code>ctrl+w</code>:</p>
 <p><img alt="Paredit select current form" src="../images/howto/output/select-last-result.png" /></p>
