@@ -1,12 +1,16 @@
 import * as vscode from 'vscode';
-const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';
-const syntaxQuoteSymbol = "`";
+import * as os from 'os';
+import * as fs from 'fs';
+import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror';
+
+const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
+const syntaxQuoteSymbol = "`";
 
 export function stripAnsi(str: string) {
     return str.replace(/[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g, "")
@@ -135,8 +139,8 @@ function getWordAtPosition(document, position) {
 function getDocument(document): vscode.TextDocument {
     if (document && document.hasOwnProperty('fileName')) {
         return document;
-    } else if (vscode.window.activeTextEditor && 
-        vscode.window.activeTextEditor.document && 
+    } else if (vscode.window.activeTextEditor &&
+        vscode.window.activeTextEditor.document &&
         vscode.window.activeTextEditor.document.languageId !== 'Log') {
         return vscode.window.activeTextEditor.document;
     } else if (vscode.window.visibleTextEditors.length > 0) {
@@ -325,6 +329,34 @@ function scrollToBottom(editor: vscode.TextEditor) {
     editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
 
+async function getFileContents(uri: string) {
+    const doc = vscode.workspace.textDocuments.find(document => document.uri.path === uri);
+    if (doc) {
+        return doc.getText();
+    }
+    if (uri.match(/jar!\//)) {
+        return await getJarContents(uri);
+    }
+    return fs.readFileSync(uri).toString();
+}
+
+async function getJarContents(uri: vscode.Uri | string) {
+    return new Promise<string>((resolve, reject) => {
+        const rawPath = typeof(uri) === "string" ? uri : uri.path;
+        const replaceRegex = os.platform() === 'win32' ? /file:\/*/ : /file:/;
+        const [pathToJar, pathToFileInJar] = rawPath.replace(replaceRegex, '').split('!/');
+
+        fs.readFile(pathToJar, (err, data) => {
+            let zip = new JSZip();
+            zip.loadAsync(data).then((new_zip) => {
+                new_zip.file(pathToFileInJar).async("string").then((value) => {
+                    resolve(value);
+                })
+            })
+        });
+    });
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -353,5 +385,7 @@ export {
     promptForUserInputString,
     debounce,
     filterVisibleRanges,
-    scrollToBottom
+    scrollToBottom,
+    getFileContents,
+    getJarContents
 };
