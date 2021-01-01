@@ -88,7 +88,8 @@ function createClient(jarPath: string): LanguageClient {
 
 type ClojureLspCommand = {
     command: string,
-    extraParamFn?: () => Thenable<string>;
+    extraParamFn?: () => Thenable<string>,
+    category?: string;
 }
 
 function makePromptForInput(placeHolder: string) {
@@ -150,11 +151,16 @@ const clojureLspCommands: ClojureLspCommand[] = [
     {
         command: 'extract-function',
         extraParamFn: makePromptForInput('Function name')
+    },
+    {
+        command: 'server-info',
+        category: 'calva.diagnostics'
     }
 ]
 
 function registerLspCommand(client: LanguageClient, command: ClojureLspCommand): vscode.Disposable {
-    const vscodeCommand = `calva.refactor.${command.command.replace(/-[a-z]/g, (m) => m.substring(1).toUpperCase())}`;
+    const category = command.category ? command.category : 'calva.refactor';
+    const vscodeCommand = `${category}.${command.command.replace(/-[a-z]/g, (m) => m.substring(1).toUpperCase())}`;
     return vscode.commands.registerCommand(vscodeCommand, async () => {
         const editor = vscode.window.activeTextEditor;
         const document = util.getDocument(editor.document);
