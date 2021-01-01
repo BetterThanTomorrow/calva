@@ -88,7 +88,8 @@ function createClient(jarPath: string): LanguageClient {
 
 type ClojureLspCommand = {
     command: string,
-    extraParamFn?: () => Thenable<string>;
+    extraParamFn?: () => Thenable<string>,
+    category?: string;
 }
 
 function makePromptForInput(placeHolder: string) {
@@ -150,11 +151,16 @@ const clojureLspCommands: ClojureLspCommand[] = [
     {
         command: 'extract-function',
         extraParamFn: makePromptForInput('Function name')
+    },
+    {
+        command: 'server-info',
+        category: 'calva.diagnostics'
     }
 ]
 
 function registerLspCommand(client: LanguageClient, command: ClojureLspCommand): vscode.Disposable {
-    const vscodeCommand = `calva.refactor.${command.command.replace(/-[a-z]/g, (m) => m.substring(1).toUpperCase())}`;
+    const category = command.category ? command.category : 'calva.refactor';
+    const vscodeCommand = `${category}.${command.command.replace(/-[a-z]/g, (m) => m.substring(1).toUpperCase())}`;
     return vscode.commands.registerCommand(vscodeCommand, async () => {
         const editor = vscode.window.activeTextEditor;
         const document = util.getDocument(editor.document);
@@ -193,18 +199,19 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
     })
     context.subscriptions.push(client.start());
 
-    const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
-    const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
-    const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
-        onDidChange: jarEventEmitter.event,
-        provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
-            const v = await client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
-                { uri: decodeURIComponent(uri.toString()) },
-                token);
-            return v || '';
-        }
-    };
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', textDocumentContentProvider));
+    // TODO: We don't need two jar content providers, when would this one be needed?
+    //const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
+    //const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
+    //const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
+    //    onDidChange: jarEventEmitter.event,
+    //    provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
+    //        const v = await client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
+    //            { uri: decodeURIComponent(uri.toString()) },
+    //            token);
+    //        return v || '';
+    //    }
+    //};
+    //context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', textDocumentContentProvider));
 
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (_, line, character) => {

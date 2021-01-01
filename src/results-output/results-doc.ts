@@ -55,7 +55,7 @@ let showPrompt: { [id: string]: boolean } = {
 };
 
 export function getPrompt(): string {
-    let prompt = `${_sessionType}::${getNs()}=> `;
+    let prompt = `${_sessionType}꞉${getNs()}꞉> `;
     if (showPrompt[_sessionType]) {
         showPrompt[_sessionType] = false;
         prompt = `${prompt} ${PROMPT_HINT}`

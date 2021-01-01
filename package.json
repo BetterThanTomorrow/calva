@@ -1210,6 +1210,11 @@
                 "command": "calva.refactor.extractFunction",
                 "title": "Extract to New Function",
                 "category": "Calva Refactor"
+            },
+            {
+                "command": "calva.diagnostics.serverInfo",
+                "title": "LSP Server Info",
+                "category": "Calva Diagnostics"
             }
         ],
         "keybindings": [

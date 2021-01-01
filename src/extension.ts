@@ -8,7 +8,7 @@ import * as util from './utilities'
 import status from './status';
 import connector from './connector';
 import CalvaCompletionItemProvider from './providers/completion';
-import TextDocumentContentProvider from './providers/content';
+import JarContentProvider from './providers/content';
 import HoverProvider from './providers/hover';
 import * as definition from './providers/definition';
 import { CalvaSignatureHelpProvider } from './providers/signature';
@@ -198,7 +198,7 @@ function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
-    vscode.workspace.registerTextDocumentContentProvider('jar', new TextDocumentContentProvider());
+    vscode.workspace.registerTextDocumentContentProvider('jar', new JarContentProvider());
 
     // //EVENTS
     context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((document) => {
