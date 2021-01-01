@@ -343,13 +343,8 @@ async function getFileContents(uri: string) {
 async function getJarContents(uri: vscode.Uri | string) {
     return new Promise<string>((resolve, reject) => {
         const rawPath = typeof(uri) === "string" ? uri : uri.path;
-        const pathToFileInJar = rawPath.slice(rawPath.search('!/') + 2);
-        let pathToJar = rawPath.slice('file:'.length);
-
-        pathToJar = pathToJar.slice(0, pathToJar.search('!'));
-        if (os.platform() === 'win32') {
-            pathToJar = pathToJar.replace(/\//g, '\\').slice(1);
-        }
+        const replaceRegex = os.platform() === 'win32' ? /file:\/*/ : /file:/;
+        const [pathToJar, pathToFileInJar] = rawPath.replace(replaceRegex, '').split('!/');
 
         fs.readFile(pathToJar, (err, data) => {
             let zip = new JSZip();
