@@ -340,11 +340,15 @@ async function getFileContents(uri: string) {
     return fs.readFileSync(uri).toString();
 }
 
+function jarFilePathComponents(uri: vscode.Uri | string) {
+    const rawPath = typeof(uri) === "string" ? uri : uri.path;
+    const replaceRegex = os.platform() === 'win32' ? /file:\/*/ : /file:/;
+    return rawPath.replace(replaceRegex, '').split('!/');
+}
+
 async function getJarContents(uri: vscode.Uri | string) {
-    return new Promise<string>((resolve, reject) => {
-        const rawPath = typeof(uri) === "string" ? uri : uri.path;
-        const replaceRegex = os.platform() === 'win32' ? /file:\/*/ : /file:/;
-        const [pathToJar, pathToFileInJar] = rawPath.replace(replaceRegex, '').split('!/');
+    return new Promise<string>((resolve, _reject) => {
+        const [pathToJar, pathToFileInJar] = jarFilePathComponents(uri);
 
         fs.readFile(pathToJar, (err, data) => {
             let zip = new JSZip();
@@ -387,5 +391,6 @@ export {
     filterVisibleRanges,
     scrollToBottom,
     getFileContents,
+    jarFilePathComponents,
     getJarContents
 };
