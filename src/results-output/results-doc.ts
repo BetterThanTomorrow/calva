@@ -354,3 +354,10 @@ export function printLastStacktrace(): void {
 export function appendPrompt(onAppended?: OnAppendedCallback) {
     append(getPrompt(), onAppended);
 }
+
+export async function getFilePathForCurrentNameSpace(): Promise<[string, string]> {
+    const ns = getNs();
+    const info = await getSession().info(ns, ns);
+    const fileName = info.file;
+    return [fileName, vscode.Uri.parse(fileName).path];
+}

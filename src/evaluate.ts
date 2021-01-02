@@ -224,11 +224,11 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
 
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        const info = await session.info(ns, ns);
-        const fileName = outputWindow.isResultsDoc(doc) ? info.file : util.getFileName(doc);
+        const [fileName, filePath] = outputWindow.isResultsDoc(doc) ?
+            await outputWindow.getFilePathForCurrentNameSpace() :
+            [util.getFileName(doc), doc.fileName];
         const shortFileName = path.basename(fileName);
         const dirName = path.dirname(fileName);
-        const filePath = outputWindow.isResultsDoc(doc) ? vscode.Uri.parse(fileName).path : doc.fileName;
         const fileContents = await util.getFileContents(filePath);
 
         outputWindow.append("; Evaluating file: " + fileName);
