@@ -87,6 +87,9 @@ function activate(context: vscode.ExtensionContext) {
     const VIM_DOC_URL = "https://calva.io/vim/";
     const VIEWED_VIM_DOCS = "viewedVimDocs";
     const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
+    const BUTTON_GOTO_CALVA_IO = "Open calva.io";
+    const CALVA_DOCS_URL = "https://calva.io/";
+    const VIEWED_CALVA_DOCS = "viewedCalvaDocs";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
@@ -249,6 +252,19 @@ function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
     greetings.activationGreetings(chan);
+
+    if (!context.globalState.get(VIEWED_CALVA_DOCS)) {
+        vscode.window.showInformationMessage("Calva is activated. Please visit calva.io for instructions on how to connect Calva to the REPL. (This message will stop showing once you've used the button to visit calva.io.)", ...[BUTTON_GOTO_CALVA_IO])
+            .then(v => {
+                if (v == BUTTON_GOTO_CALVA_IO) {
+                    context.globalState.update(VIEWED_CALVA_DOCS, true);
+                    open(CALVA_DOCS_URL).catch((e) => { 
+                        console.error(`Problems visiting calva docs: ${e}`)
+                    });
+                }
+            })
+    }
+
 
     if (vimExtension) {
         chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
