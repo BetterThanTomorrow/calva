@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add command for opening the file for the output/repl window namespace](https://github.com/BetterThanTomorrow/calva/issues/920)
+- [Add setting for auto opening the repl window on Jack-in/Connect](https://github.com/BetterThanTomorrow/calva/issues/922)
+- [Stop opening Calva says on start](https://github.com/BetterThanTomorrow/calva/issues/923)
 
 ## [2.0.144 - 2021-01-01]
 - [Reactivate definitions/navigation in core and library files](https://github.com/BetterThanTomorrow/calva/issues/915)

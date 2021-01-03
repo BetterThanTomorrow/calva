@@ -134,11 +134,13 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
-    const firstPos = resultsEditor.document.positionAt(0);
-    const lastPos = resultsDoc.positionAt(Infinity);
-    resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
-    resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+    if (state.config().autoOpenREPLWindow) {
+        const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
+        const firstPos = resultsEditor.document.positionAt(0);
+        const lastPos = resultsDoc.positionAt(Infinity);
+        resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
+        resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+    }
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
         const isOutputWindow = isResultsDoc(event.document);
@@ -208,7 +210,6 @@ export async function setNamespaceFromCurrentFile() {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
     setSession(session, ns);
-    appendPrompt(_ => revealResultsDoc(false));
     namespace.updateREPLSessionType();
 }
 

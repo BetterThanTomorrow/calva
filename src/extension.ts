@@ -123,10 +123,6 @@ function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", "I hear ya. Doing it!");
     }
 
-    chan.appendLine("Calva activated.");
-    if (state.config().openCalvaSaysOnStart) {
-        chan.show(true);
-    }
     status.update();
 
     // COMMANDS

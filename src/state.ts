@@ -114,7 +114,7 @@ function config() {
         customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
         enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
-        openCalvaSaysOnStart: configOptions.get("openCalvaSaysOnStart") as boolean,
+        autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
     };
 }
