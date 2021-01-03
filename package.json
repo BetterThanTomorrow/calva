@@ -1649,7 +1649,7 @@
             },
             {
                 "command": "calva.setOutputWindowNamespace",
-                "key": "ctrl+alt+c alt+n",
+                "key": "ctrl+alt+c n",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
             },
             {
