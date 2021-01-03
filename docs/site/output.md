@@ -12,7 +12,16 @@ The first prompt is from when the `clj` REPL is connected, the second when Calva
 
 If you quickly want to open and switch to the output window there is the command **Calva: Show Output Window**, `ctrl+alt+c o`.
 
-## Evaluating code
+To sync the Output/REPL window namespace with the current file before switching, use the **Switch Namespace of the Output/REPL Window to Current Namespace** command, `ctrl+alt+c alt+n`.
+
+## Find the File for the Current REPL Window Namespace
+
+When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the **Show File for the Current Output/REPL Window Namespace** command, `ctrl+alt+c o`.
+
+!!! Note
+    This also works for Clojure core and library namespaces.
+
+## Evaluating Code
 
 The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a `clj` file with the namespace `fresh-reagent.handler`:
 

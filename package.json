@@ -1,9 +1,9 @@
 {
     "name": "calva",
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
-    "description": "Integrated REPL, formatter, Paredit, and more. Powered by nREPL.",
+    "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.144",
+    "version": "2.0.145",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -238,40 +238,7 @@
                         }
                     },
                     "calva.customCljsRepl": {
-                        "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead.",
-                        "type": "object",
-                        "default": null,
-                        "description": "Configuration for custom any CLJS REPL type your project may use",
-                        "$schema": "http://json-schema.org/draft-06/schema#",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "default": "My Custom CLJS REPL",
-                                "description": "Name of your custom config (used in picker menus)"
-                            },
-                            "startCode": {
-                                "type": "string",
-                                "description": "Clojure code that starts the CLJS REPL"
-                            },
-                            "tellUserToStartRegExp": {
-                                "type": "string",
-                                "description": "When this pattern is matched in the stdout of the `startCode`, Calva will instruct the user to start the cljs app (so that Calva can connect)."
-                            },
-                            "printThisLineRegExp": {
-                                "type": "string",
-                                "description": "Any lines in the stdout of `startCode` matching this regexp will be printed to `Calva says`. One use for it is to help the user know how to start the cljs app."
-                            },
-                            "connectedRegExp": {
-                                "type": "string",
-                                "default": "To quit, type: :cljs/quit",
-                                "description": "A pattern/string that Calva can look for in the stdout of the `startCode` to determine when the REPL is connected. (The default often works well)"
-                            }
-                        },
-                        "required": [
-                            "name",
-                            "startCode",
-                            "connectedRegExp"
-                        ]
+                        "deprecationMessage": "This settings is deprecated. Use `cljsType` in a `calva.replConnectSequences` item instead."
                     },
                     "calva.jackInEnv": {
                         "type": "object",
@@ -512,7 +479,7 @@
                                                 },
                                                 "printThisLineRegExp": {
                                                     "type": "string",
-                                                    "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Calva says Output channel."
+                                                    "description": "A regular expression which, when matched in the stdout from any code evaluations in the cljsType, will make the matched text be printed to the Output/REPL window."
                                                 }
                                             }
                                         }
@@ -526,9 +493,14 @@
                         "description": "Should Calva use suitible and bring you JavaScript completions? This is an experimental cider-nrepl feature. Disable if completions start to throw errors.",
                         "default": true
                     },
-                    "calva.openCalvaSaysOnStart": {
+                    "calva.autoOpenREPLWindow": {
                         "type": "boolean",
-                        "markdownDescription": "By default, the **Calva says** window opens on startup.",
+                        "markdownDescription": "Automatically open the REPL window on Jack-in or Connect.",
+                        "default": true
+                    },
+                    "calva.autoOpenJackInTerminal": {
+                        "type": "boolean",
+                        "markdownDescription": "Automatically open the the Jack-in Terminal on Jack-in.",
                         "default": true
                     },
                     "calva.keybindingsEnabled": {
@@ -641,6 +613,11 @@
             }
         ],
         "commands": [
+            {
+                "command": "calva.openCalvaDocs",
+                "title": "Open Documentation (calva.io)",
+                "category": "Calva"
+            },
             {
                 "command": "calva.debug.instrument",
                 "title": "Instrument Top Level Form for Debugging",
@@ -1102,12 +1079,18 @@
             {
                 "category": "Calva",
                 "command": "calva.showOutputWindow",
-                "title": "Show Output Window",
-                "enablement": "calva:connected && !calva.outputWindowActive"
+                "title": "Show Output/REPL Window",
+                "enablement": "calva:connected"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.showFileForOutputWindowNS",
+                "title": "Show File for the Current Output/REPL Window Namespace",
+                "enablement": "calva:connected"
             },
             {
                 "command": "calva.setOutputWindowNamespace",
-                "title": "Switch Namespace in Output Window to Current Namespace",
+                "title": "Switch Namespace in Output/REPL Window to Current Namespace",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1660,8 +1643,13 @@
                 "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
             },
             {
+                "command": "calva.showFileForOutputWindowNS",
+                "key": "ctrl+alt+c o",
+                "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
+            },
+            {
                 "command": "calva.setOutputWindowNamespace",
-                "key": "ctrl+alt+c alt+n",
+                "key": "ctrl+alt+c n",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
             },
             {
@@ -1706,7 +1694,10 @@
                 },
                 {
                     "command": "calva.showOutputWindow",
-                    "when": "calva:connected && !calva:outputWindowActive"
+                    "when": "!calva:outputWindowActive"
+                },
+                {
+                    "command": "calva.showFileForOutputWindowNS"
                 }
             ],
             "editor/title": [

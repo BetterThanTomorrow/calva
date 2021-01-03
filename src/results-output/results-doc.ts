@@ -134,11 +134,13 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
-    const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
-    const firstPos = resultsEditor.document.positionAt(0);
-    const lastPos = resultsDoc.positionAt(Infinity);
-    resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
-    resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+    if (state.config().autoOpenREPLWindow) {
+        const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
+        const firstPos = resultsEditor.document.positionAt(0);
+        const lastPos = resultsDoc.positionAt(Infinity);
+        resultsEditor.selection = new vscode.Selection(lastPos, lastPos);
+        resultsEditor.revealRange(new vscode.Range(firstPos, firstPos));
+    }
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
         const isOutputWindow = isResultsDoc(event.document);
@@ -190,6 +192,17 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
     });
 }
 
+export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
+    const [_fileName, filePath] = await getFilePathForCurrentNameSpace();
+    let uri = vscode.Uri.parse(filePath);
+    if (filePath.match(/jar!\//)) {
+        uri = uri.with({ scheme: 'jar' });
+    }
+    vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc, {
+        preserveFocus: false
+    }));
+}
+
 export async function setNamespaceFromCurrentFile() {
     const session = namespace.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
@@ -197,7 +210,6 @@ export async function setNamespaceFromCurrentFile() {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
     setSession(session, ns);
-    appendPrompt(_ => revealResultsDoc(false));
     namespace.updateREPLSessionType();
 }
 
@@ -353,4 +365,11 @@ export function printLastStacktrace(): void {
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {
     append(getPrompt(), onAppended);
+}
+
+export async function getFilePathForCurrentNameSpace(): Promise<[string, string]> {
+    const ns = getNs();
+    const info = await getSession().info(ns, ns);
+    const fileName = info.file;
+    return [fileName, vscode.Uri.parse(fileName).path];
 }
