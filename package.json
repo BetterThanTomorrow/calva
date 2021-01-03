@@ -609,6 +609,11 @@
         ],
         "commands": [
             {
+                "command": "calva.openCalvaDocs",
+                "title": "Open Documentation (calva.io)",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.debug.instrument",
                 "title": "Instrument Top Level Form for Debugging",
                 "category": "Calva Debug",
