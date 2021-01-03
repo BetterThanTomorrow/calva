@@ -87,6 +87,8 @@ function activate(context: vscode.ExtensionContext) {
     const VIM_DOC_URL = "https://calva.io/vim/";
     const VIEWED_VIM_DOCS = "viewedVimDocs";
     const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
+    const CALVA_DOCS_URL = "https://calva.io/";
+    const VIEWED_CALVA_DOCS = "viewedCalvaDocs";
 
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
@@ -123,10 +125,6 @@ function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", "I hear ya. Doing it!");
     }
 
-    chan.appendLine("Calva activated.");
-    if (state.config().openCalvaSaysOnStart) {
-        chan.show(true);
-    }
     status.update();
 
     // COMMANDS
@@ -177,6 +175,16 @@ function activate(context: vscode.ExtensionContext) {
         let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
         vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
     }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openCalvaDocs', () => {
+        context.globalState.update(VIEWED_CALVA_DOCS, true);
+        open(CALVA_DOCS_URL)
+            .then(() => {
+                state.analytics().logEvent("Calva", "Docs opened");
+            })
+            .catch((e) => {
+                console.error(`Problems visiting calva docs: ${e}`);
+            });
+    }))
 
     // Temporary command to teach new default keyboard shortcut chording key
     context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
@@ -253,6 +261,16 @@ function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('setContext', 'calva:activated', true);
 
     greetings.activationGreetings(chan);
+
+    if (!context.globalState.get(VIEWED_CALVA_DOCS)) {
+        vscode.window.showInformationMessage("Calva is activated. Please use the command **Calva: Open Documentation** to visit calva.io for instructions on how to connect Calva to the REPL. (This message will keep showing on start of Calva until you've used the command.)", ...[BUTTON_OK])
+            .then(v => {
+                if (v == BUTTON_OK) {
+                    state.analytics().logEvent("LifeCycle", "Greetings dismissed")
+                }
+            })
+    }
+
 
     if (vimExtension) {
         chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
