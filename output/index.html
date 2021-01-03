@@ -41,6 +41,11 @@
     
     
       
+        
+<link rel="preconnect dns-prefetch" href="https://www.google-analytics.com">
+<script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}),document.addEventListener("DOMContentSwitch",function(){ga("send","pageview")})</script>
+<script async src="https://www.google-analytics.com/analytics.js"></script>
+      
     
     
   </head>
@@ -363,8 +368,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#find-the-file-for-the-current-repl-window-namespace" class="md-nav__link">
+    Find the File for the Current REPL Window Namespace
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#evaluating-code" class="md-nav__link">
-    Evaluating code
+    Evaluating Code
   </a>
   
 </li>
@@ -876,8 +888,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#find-the-file-for-the-current-repl-window-namespace" class="md-nav__link">
+    Find the File for the Current REPL Window Namespace
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#evaluating-code" class="md-nav__link">
-    Evaluating code
+    Evaluating Code
   </a>
   
 </li>
@@ -1005,7 +1024,14 @@
 <p>The first prompt is from when the <code>clj</code> REPL is connected, the second when Calva has a <code>cljs</code> REPL connection. The first part of the prompt tells you which REPL type the window is currently connected to. This gets important when the file/window is used as an interactive REPL.</p>
 <h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
 <p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+c o</code>.</p>
-<h2 id="evaluating-code">Evaluating code</h2>
+<p>To sync the Output/REPL window namespace with the current file before switching, use the <strong>Switch Namespace of the Output/REPL Window to Current Namespace</strong> command, <code>ctrl+alt+c alt+n</code>.</p>
+<h2 id="find-the-file-for-the-current-repl-window-namespace">Find the File for the Current REPL Window Namespace</h2>
+<p>When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the <strong>Show File for the Current Output/REPL Window Namespace</strong> command, <code>ctrl+alt+c o</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This also works for Clojure core and library namespaces.</p>
+</div>
+<h2 id="evaluating-code">Evaluating Code</h2>
 <p>The window will be automatically associated with the REPL and the namespace of any project Clojure/ClojureScript file you evaluate code in. So for instance if you evaluate this code in a <code>clj</code> file with the namespace <code>fresh-reagent.handler</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">(</span><span class="k">def </span><span class="nv">mount-target</span>
   <span class="p">[</span><span class="ss">:div#app</span>
