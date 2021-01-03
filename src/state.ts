@@ -115,6 +115,7 @@ function config() {
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
         enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
         autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
+        autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
     };
 }

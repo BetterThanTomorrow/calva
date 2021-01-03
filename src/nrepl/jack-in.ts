@@ -64,7 +64,9 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
             cancelJackInTask();
         });
         jackInTerminal = (<any>vscode.window).createTerminal({ name: `Calva Jack-in: ${connectSequence.name}`, pty: jackInPTY });
-        jackInTerminal.show();
+        if (state.config().autoOpenJackInTerminal) {
+            jackInTerminal.show();
+        }
         jackInPTY.onDidClose((e) => {
             calvaJackout();
         });
