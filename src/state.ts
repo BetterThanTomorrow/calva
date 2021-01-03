@@ -119,36 +119,6 @@ function config() {
     };
 }
 
-// TODO: Remove this, no longer used
-function getViewColumnFromString(value: string): vscode.ViewColumn {
-    switch (value.trim().toLowerCase()) {
-        case 'active':
-            return (vscode.ViewColumn.Active);
-        case 'beside':
-            return (vscode.ViewColumn.Beside);
-        case 'one':
-            return (vscode.ViewColumn.One);
-        case 'two':
-            return (vscode.ViewColumn.Two);
-        case 'three':
-            return (vscode.ViewColumn.Three);
-        case 'four':
-            return (vscode.ViewColumn.Four);
-        case 'five':
-            return (vscode.ViewColumn.Five);
-        case 'six':
-            return (vscode.ViewColumn.Six);
-        case 'seven':
-            return (vscode.ViewColumn.Seven);
-        case 'eight':
-            return (vscode.ViewColumn.Eight);
-        case 'nine':
-            return (vscode.ViewColumn.Nine);
-        default:
-            return (vscode.ViewColumn.Two);
-    }
-}
-
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 

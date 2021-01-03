@@ -190,6 +190,17 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
     });
 }
 
+export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
+    const [_fileName, filePath] = await getFilePathForCurrentNameSpace();
+    let uri = vscode.Uri.parse(filePath);
+    if (filePath.match(/jar!\//)) {
+        uri = uri.with({ scheme: 'jar' });
+    }
+    vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc, {
+        preserveFocus: false
+    }));
+}
+
 export async function setNamespaceFromCurrentFile() {
     const session = namespace.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
@@ -353,4 +364,11 @@ export function printLastStacktrace(): void {
 
 export function appendPrompt(onAppended?: OnAppendedCallback) {
     append(getPrompt(), onAppended);
+}
+
+export async function getFilePathForCurrentNameSpace(): Promise<[string, string]> {
+    const ns = getNs();
+    const info = await getSession().info(ns, ns);
+    const fileName = info.file;
+    return [fileName, vscode.Uri.parse(fileName).path];
 }

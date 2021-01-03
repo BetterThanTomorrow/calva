@@ -1102,12 +1102,18 @@
             {
                 "category": "Calva",
                 "command": "calva.showOutputWindow",
-                "title": "Show Output Window",
-                "enablement": "calva:connected && !calva.outputWindowActive"
+                "title": "Show Output/REPL Window",
+                "enablement": "calva:connected"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.showFileForOutputWindowNS",
+                "title": "Show File for the Current Output/REPL Window Namespace",
+                "enablement": "calva:connected"
             },
             {
                 "command": "calva.setOutputWindowNamespace",
-                "title": "Switch Namespace in Output Window to Current Namespace",
+                "title": "Switch Namespace in Output/REPL Window to Current Namespace",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1660,6 +1666,11 @@
                 "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
             },
             {
+                "command": "calva.showFileForOutputWindowNS",
+                "key": "ctrl+alt+c o",
+                "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
+            },
+            {
                 "command": "calva.setOutputWindowNamespace",
                 "key": "ctrl+alt+c alt+n",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && !calva:outputWindowActive"
@@ -1706,7 +1717,10 @@
                 },
                 {
                     "command": "calva.showOutputWindow",
-                    "when": "calva:connected && !calva:outputWindowActive"
+                    "when": "!calva:outputWindowActive"
+                },
+                {
+                    "command": "calva.showFileForOutputWindowNS"
                 }
             ],
             "editor/title": [
