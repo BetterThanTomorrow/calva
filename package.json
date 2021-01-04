@@ -268,7 +268,7 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.5",
+                            "cider-nrepl": "0.25.6",
                             "cider/piggieback": "0.5.2",
                             "clj-kondo": "2020.04.05"
                         }

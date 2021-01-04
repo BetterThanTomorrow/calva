@@ -190,28 +190,9 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
         title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
         cancellable: false
     }, (_progress, _token) => {
-        const p = new Promise(resolve => {
-            client.onReady().then(_v => {
-                resolve(true);
-            });
-        });
-        return p;
-    })
+        return client.onReady();
+    });
     context.subscriptions.push(client.start());
-
-    // TODO: We don't need two jar content providers, when would this one be needed?
-    //const jarEventEmitter: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter();
-    //const contentsRequest = new RequestType<string, string, string, vscode.CancellationToken>('clojure/dependencyContents');
-    //const textDocumentContentProvider: vscode.TextDocumentContentProvider = {
-    //    onDidChange: jarEventEmitter.event,
-    //    provideTextDocumentContent: async (uri: vscode.Uri, token: vscode.CancellationToken): Promise<string> => {
-    //        const v = await client.sendRequest<any, string, string, vscode.CancellationToken>(contentsRequest,
-    //            { uri: decodeURIComponent(uri.toString()) },
-    //            token);
-    //        return v || '';
-    //    }
-    //};
-    //context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('jar', textDocumentContentProvider));
 
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (_, line, character) => {
