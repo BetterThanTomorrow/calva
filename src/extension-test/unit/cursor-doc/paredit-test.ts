@@ -438,10 +438,6 @@ describe('paredit', () => {
             });
         });
     });
-});
-
-
-
     describe('edits', () => {
         it('Closes list', () => {
             const doc: mock.MockDocument = new mock.MockDocument(),
@@ -463,4 +459,31 @@ describe('paredit', () => {
             expect(doc.model.getText(0, Infinity)).toBe(text);
             expect(doc.selection).toEqual(new ModelEditSelection(caret + 1));
         });
+        it('slurps form after list', () => {
+            const doc: mock.MockDocument = new mock.MockDocument();
+            const oldText = '(str) "foo"';
+            const newText = '(str "foo")';
+            const caret = 2;
+            doc.insertString(oldText);
+            doc.selection = new ModelEditSelection(caret);
+            paredit.forwardSlurpSexp(doc);
+            expect(doc.model.getText(0, Infinity)).toBe(newText);
+            expect(doc.selection).toEqual(new ModelEditSelection(caret));
+        });
+        it('slurps and adds leading space if form after list lacks it', () => {
+            const doc: mock.MockDocument = new mock.MockDocument();
+            const oldText = '(str)#(foo)';
+            const newText = '(str #(foo))';
+            const caret = 2;
+            doc.insertString(oldText);
+            doc.selection = new ModelEditSelection(caret);
+            paredit.forwardSlurpSexp(doc);
+            expect(doc.model.getText(0, Infinity)).toBe(newText);
+            expect(doc.selection).toEqual(new ModelEditSelection(caret));
+        });
     });
+});
+
+
+
+
