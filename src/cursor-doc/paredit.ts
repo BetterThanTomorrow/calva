@@ -274,12 +274,15 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
         cursor.next();
+        const hasWs = cursor.getToken().type === 'ws';
         cursor.forwardSexp();
         cursor.backwardWhitespace(false);
         if (cursor.offsetStart !== offset + close.length) {
             doc.model.edit([
-                new ModelEdit('changeRange', [cursor.offsetStart, cursor.offsetStart, close]),
-                new ModelEdit('deleteRange', [offset, close.length])
+                new ModelEdit('insertString', [cursor.offsetStart, close]),
+                !hasWs ?
+                    new ModelEdit('changeRange', [offset, offset + close.length, ' ']) :
+                    new ModelEdit('deleteRange', [offset, close.length])
             ], {
                 ...{
                     undoStopBefore: true
@@ -395,7 +398,7 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
             return;
         } else if (cursor.getToken().type == 'prompt') {
             return;
-        } else if(doc.model.getText(p - 3, p, true) == '\\""') {
+        } else if (doc.model.getText(p - 3, p, true) == '\\""') {
             doc.selection = new ModelEditSelection(p - 1);
         } else if (doc.model.getText(p - 2, p - 1, true) == '\\') {
             doc.model.edit([
