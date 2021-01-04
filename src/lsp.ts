@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
 import { provideClojureDefinition } from './providers/definition';
+import * as fs from 'fs';
 
 function createClient(jarPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -180,6 +181,11 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             }
         }
     });
+}
+
+async function downloadLsp(): Promise<void> {
+    const version = '';
+    const fileName = './clojure-lsp'
 }
 
 function activate(context: vscode.ExtensionContext): LanguageClient {
