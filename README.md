@@ -163,6 +163,7 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars1.githubusercontent.com/u/11031952" width="32" alt="Alid Lorenzo">](https://github.com/alidlorenzo)
 [<img src="https://avatars2.githubusercontent.com/u/505737" width="32" alt="ikrima">](https://github.com/ikrima)
 [<img src="https://avatars0.githubusercontent.com/u/583120" width="32" alt="nnichols">](https://github.com/nnichols)
+[<img src="https://avatars0.githubusercontent.com/u/486355" width="32" alt="ajoberstar">](https://github.com/ajoberstar)
 
 ## The Calva Team
 
