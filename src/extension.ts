@@ -310,12 +310,12 @@ function activate(context: vscode.ExtensionContext) {
     }
 }
 
-function deactivate() {
+async function deactivate() {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate();
     if (lspClient) {
-        lspClient.stop();
+        await lspClient.stop();
     }
 }
 
