@@ -190,19 +190,38 @@ function getJarFilePath(baseFilePath: string, tag: string): string {
     return path.join(baseFilePath, `clojure-lsp_${tag}.jar`);
 }
 
-function downloadLsp(tag: string, jarFilePath: string): Promise<string> {
+function downloadLsp(tag: string, jarFilePath: string): Promise<void> {
     const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${tag}/clojure-lsp.jar`;
     const jarFileWriteStream = fs.createWriteStream(jarFilePath);
-    return new Promise((resolve, reject) => {
-        https.get({
-            hostname: 'github.com',
-            path: urlPath
-        }, (response) => {
-            response.pipe(jarFileWriteStream);
-            response.on('end', () => {
-                jarFileWriteStream.end();
-                console.log('clojure-lsp downloaded to ' + jarFilePath);
-                resolve(jarFilePath);
+
+    return new Promise((resolveDownload, rejectDownload) => {
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Downloading clojure-lsp",
+            cancellable: false
+        }, async (progress, _token) => {
+            return new Promise<void>((resolveProgress, rejectProgress) => {
+                https.get({
+                    hostname: 'github.com',
+                    path: urlPath
+                }, (response) => {
+                    const totalBytes = parseInt(response.headers['content-length']);
+                    let bytesReceived = 0;
+                    let increment = 0;
+                    response.on('data', data => {
+                        bytesReceived += data.length;
+                        increment = (bytesReceived / totalBytes) * 100;
+                        progress.report({
+                            increment,
+                            message: Math.round(increment) + '%'
+                        });
+                    }).on('end', () => {
+                        jarFileWriteStream.close();
+                        console.log('clojure-lsp downloaded to ' + jarFilePath);
+                        resolveProgress();
+                        resolveDownload();
+                    }).pipe(jarFileWriteStream);
+                });
             });
         });
     });
@@ -245,6 +264,8 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
     const jarFilePath = getJarFilePath(context.extensionPath, tag);
     client = createClient(jarFilePath);
 
+    await downloadLsp(tag, jarFilePath);
+
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: "clojure-lsp is starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
@@ -253,8 +274,6 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
         await client.onReady();
         setupLspFeatures(context);
     });
-    
-    await downloadLsp(tag, jarFilePath);
     context.subscriptions.push(client.start());
 }
 
