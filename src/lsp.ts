@@ -6,6 +6,7 @@ import * as util from './utilities'
 import { provideClojureDefinition } from './providers/definition';
 import * as fs from 'fs';
 import { https } from 'follow-redirects';
+import * as glob from 'glob';
 
 let client: LanguageClient;
 
@@ -187,10 +188,10 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
 }
 
 function getJarFilePath(baseFilePath: string, tag: string): string {
-    return path.join(baseFilePath, `clojure-lsp_${tag}.jar`);
+    return path.join(baseFilePath, `clojure-lsp.jar_${tag}.jar`);
 }
 
-function downloadLsp(tag: string, jarFilePath: string): Promise<void> {
+function downloadLspJar(tag: string, jarFilePath: string): Promise<void> {
     const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${tag}/clojure-lsp.jar`;
     const jarFileWriteStream = fs.createWriteStream(jarFilePath);
 
@@ -259,16 +260,32 @@ function setupLspFeatures(context: vscode.ExtensionContext): void {
     }));
 }
 
+function deletePreviousJarFiles(globPattern: string): void {
+    glob(globPattern, (_error, filePaths) => {
+        filePaths.forEach(filePath => {
+            fs.unlink(filePath, err => {
+                if (err) {
+                    console.error('Error deleting unused clojure-lsp jar', err);
+                }
+            });
+        });
+    });
+}
+
 async function activate(context: vscode.ExtensionContext): Promise<void> {
-    const tag = '2021.01.03-00.42.23';
+    const tag = '2021.01.05-13.31.52';
     const jarFilePath = getJarFilePath(context.extensionPath, tag);
     client = createClient(jarFilePath);
 
-    await downloadLsp(tag, jarFilePath);
+    if (!fs.existsSync(jarFilePath)) {
+        const globPattern = jarFilePath.replace(tag, '*');
+        deletePreviousJarFiles(globPattern);
+        await downloadLspJar(tag, jarFilePath);
+    }
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: "clojure-lsp is starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+        title: "Starting clojure-lsp. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See [here](https://calva.io/clojure-lsp) for more info.",
         cancellable: false
     }, async (_progress, _token) => {
         await client.onReady();
