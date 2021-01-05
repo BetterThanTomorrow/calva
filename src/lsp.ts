@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
-import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
+import { LanguageClient, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
 import { provideClojureDefinition } from './providers/definition';
 import * as fs from 'fs';
+import { https } from 'follow-redirects';
+
+let client: LanguageClient;
 
 function createClient(jarPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -183,23 +186,29 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
     });
 }
 
-async function downloadLsp(): Promise<void> {
-    const version = '';
-    const fileName = './clojure-lsp'
+function getJarFilePath(baseFilePath: string, tag: string): string {
+    return path.join(baseFilePath, `clojure-lsp_${tag}.jar`);
 }
 
-function activate(context: vscode.ExtensionContext): LanguageClient {
-    const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
-    const client = createClient(jarPath);
-    vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
-        cancellable: false
-    }, (_progress, _token) => {
-        return client.onReady();
+function downloadLsp(tag: string, jarFilePath: string): Promise<string> {
+    const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${tag}/clojure-lsp.jar`;
+    const jarFileWriteStream = fs.createWriteStream(jarFilePath);
+    return new Promise((resolve, reject) => {
+        https.get({
+            hostname: 'github.com',
+            path: urlPath
+        }, (response) => {
+            response.pipe(jarFileWriteStream);
+            response.on('end', () => {
+                jarFileWriteStream.end();
+                console.log('clojure-lsp downloaded to ' + jarFilePath);
+                resolve(jarFilePath);
+            });
+        });
     });
-    context.subscriptions.push(client.start());
+}
 
+function setupLspFeatures(context: vscode.ExtensionContext): void {
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (_, line, character) => {
         vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
@@ -229,10 +238,33 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
             }
         }
     }));
+}
 
-    return client;
+async function activate(context: vscode.ExtensionContext): Promise<void> {
+    const tag = '2021.01.03-00.42.23';
+    const jarFilePath = getJarFilePath(context.extensionPath, tag);
+    client = createClient(jarFilePath);
+
+    vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "clojure-lsp is starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+        cancellable: false
+    }, async (_progress, _token) => {
+        await client.onReady();
+        setupLspFeatures(context);
+    });
+    
+    await downloadLsp(tag, jarFilePath);
+    context.subscriptions.push(client.start());
+}
+
+async function deactivate() {
+    if (client) {
+        await client.stop();
+    }
 }
 
 export default {
-    activate
+    activate,
+    deactivate
 }

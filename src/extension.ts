@@ -30,8 +30,6 @@ import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
 
-let lspClient: LanguageClient;
-
 async function onDidSave(document) {
     let {
         evaluate,
@@ -66,7 +64,7 @@ function setKeybindingsEnabledContext() {
 }
 
 function activate(context: vscode.ExtensionContext) {
-    lspClient = lsp.activate(context);
+    lsp.activate(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -314,9 +312,7 @@ async function deactivate() {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate();
-    if (lspClient) {
-        await lspClient.stop();
-    }
+    await lsp.deactivate();
 }
 
 export { activate, deactivate };
