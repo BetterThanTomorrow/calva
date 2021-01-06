@@ -1,19 +1,20 @@
-var fs = require('fs');
-var https = require('follow-redirects').https;
+const { createWriteStream } = require('fs');
+const { https } = require('follow-redirects');
 
-var file_name = "./clojure-lsp.jar"
+const clojureLspVersion = '2021.01.06-03.00.28';
+const fileName = "./clojure-lsp.jar"
 
-var file = fs.createWriteStream(file_name);
+const file = createWriteStream(fileName);
 
 https.get({
     host: 'github.com',
     port: 443,
-    path: '/clojure-lsp/clojure-lsp/releases/latest/download/clojure-lsp'
+    path: `/clojure-lsp/clojure-lsp/releases/download/${clojureLspVersion}/clojure-lsp.jar`
 }, function (res) {
     res.on('data', function (data) {
         file.write(data);
     }).on('end', function () {
         file.end();
-        console.log(file_name + ' downloaded');
+        console.log(fileName + ' downloaded');
     });
 });
