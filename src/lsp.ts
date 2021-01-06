@@ -205,6 +205,10 @@ function downloadLspJar(version: string, jarFilePath: string): Promise<void> {
                     hostname: 'github.com',
                     path: urlPath
                 }, (response) => {
+                    if (response.statusCode !== 200) {
+                        rejectProgress();
+                        return rejectDownload(`Status: ${response.statusCode} ${response.statusMessage}`);
+                    }
                     const jarFileWriteStream = fs.createWriteStream(jarFilePath);
                     const totalBytes = parseInt(response.headers['content-length']);
                     let bytesReceived = 0;
@@ -222,6 +226,10 @@ function downloadLspJar(version: string, jarFilePath: string): Promise<void> {
                         resolveProgress();
                         resolveDownload();
                     }).pipe(jarFileWriteStream);
+                }).on('error', error => {
+                    console.error('An error occurred while downloading clojure-lsp', error);
+                    rejectProgress();
+                    rejectDownload(error);
                 });
             });
         });
@@ -281,8 +289,19 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
     if (!fs.existsSync(jarFilePath)) {
         const globPattern = jarFilePath.replace(version, '*');
         // We download first, and once we know it succeeded, we delete the old jar file(s)
-        await downloadLspJar(version, jarFilePath);
-        deleteJarFiles(globPattern, jarFilePath);
+        try {
+            await downloadLspJar(version, jarFilePath);
+            deleteJarFiles(globPattern, jarFilePath);
+        } catch (e) {
+            // Check for existing lsp jar and use it
+            const jarFilePaths = glob.sync(globPattern);
+            if (jarFilePaths.length > 0) {
+                jarFilePath = jarFilePaths[0];
+                console.warn(`An error occurred while downloading clojure-lsp version ${version}: ${e}. Using jar at path ${jarFilePath}.`);
+            } else {
+                throw `An error occurred while downloading clojure-lsp version ${version}: ${e}. No alternative jar found.`;
+            }
+        }
     }
 
     client = createClient(jarFilePath);

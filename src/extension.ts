@@ -64,7 +64,10 @@ function setKeybindingsEnabledContext() {
 }
 
 function activate(context: vscode.ExtensionContext) {
-    lsp.activate(context);
+    lsp.activate(context).catch(e => {
+        vscode.window.showErrorMessage(`An error occurred while activating clojure-lsp. Some functionality may not work as expected. Please check the logs and report any issues found.`);
+        console.error('Error while activating clojure-lsp', e);
+    });
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
