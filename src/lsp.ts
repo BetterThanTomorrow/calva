@@ -7,6 +7,7 @@ import { provideClojureDefinition } from './providers/definition';
 import * as fs from 'fs';
 import { https } from 'follow-redirects';
 import * as glob from 'glob';
+import config from './config';
 
 let client: LanguageClient;
 
@@ -187,25 +188,24 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
     });
 }
 
-function getJarFilePath(baseFilePath: string, tag: string): string {
-    return path.join(baseFilePath, `clojure-lsp.jar_${tag}.jar`);
+function getJarFilePath(baseFilePath: string, version: string): string {
+    return path.join(baseFilePath, `clojure-lsp.jar_${version}.jar`);
 }
 
-function downloadLspJar(tag: string, jarFilePath: string): Promise<void> {
-    const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${tag}/clojure-lsp.jar`;
-    const jarFileWriteStream = fs.createWriteStream(jarFilePath);
-
+function downloadLspJar(version: string, jarFilePath: string): Promise<void> {
     return new Promise((resolveDownload, rejectDownload) => {
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "Downloading clojure-lsp",
             cancellable: false
         }, async (progress, _token) => {
+            const urlPath = `/clojure-lsp/clojure-lsp/releases/download/${version}/clojure-lsp.jar`;
             return new Promise<void>((resolveProgress, rejectProgress) => {
                 https.get({
                     hostname: 'github.com',
                     path: urlPath
                 }, (response) => {
+                    const jarFileWriteStream = fs.createWriteStream(jarFilePath);
                     const totalBytes = parseInt(response.headers['content-length']);
                     let bytesReceived = 0;
                     let increment = 0;
@@ -260,28 +260,32 @@ function setupLspFeatures(context: vscode.ExtensionContext): void {
     }));
 }
 
-function deletePreviousJarFiles(globPattern: string): void {
+function deleteJarFiles(globPattern: string, exceptPath: string): void {
     glob(globPattern, (_error, filePaths) => {
         filePaths.forEach(filePath => {
-            fs.unlink(filePath, err => {
-                if (err) {
-                    console.error('Error deleting unused clojure-lsp jar', err);
-                }
-            });
+            if (filePath !== exceptPath) {
+                fs.unlink(filePath, err => {
+                    if (err) {
+                        console.error('Error deleting unused clojure-lsp jar', err);
+                    }
+                });
+            }
         });
     });
 }
 
 async function activate(context: vscode.ExtensionContext): Promise<void> {
-    const tag = '2021.01.05-13.31.52';
-    const jarFilePath = getJarFilePath(context.extensionPath, tag);
-    client = createClient(jarFilePath);
+    const version = config.CLOJURE_LSP_VERSION;
+    let jarFilePath = getJarFilePath(context.extensionPath, version);
 
     if (!fs.existsSync(jarFilePath)) {
-        const globPattern = jarFilePath.replace(tag, '*');
-        deletePreviousJarFiles(globPattern);
-        await downloadLspJar(tag, jarFilePath);
+        const globPattern = jarFilePath.replace(version, '*');
+        // We download first, and once we know it succeeded, we delete the old jar file(s)
+        await downloadLspJar(version, jarFilePath);
+        deleteJarFiles(globPattern, jarFilePath);
     }
+
+    client = createClient(jarFilePath);
 
     vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
