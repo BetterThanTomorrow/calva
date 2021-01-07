@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import * as utilities from "../utilities";
-import * as fs from "fs";
 import * as _ from "lodash";
 import * as state from "../state"
 import * as connector from "../connector";
@@ -16,8 +15,6 @@ import * as liveShareSupport from '../liveShareSupport';
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
 
-let watcher: fs.FSWatcher;
-
 function cancelJackInTask() {
     setTimeout(() => {
         calvaJackout();
@@ -32,7 +29,6 @@ function resolveEnvVariables(entry: string): string {
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, isWin: boolean, cljTypes: string[], connectSequence: ReplConnectSequence) {
     utilities.setLaunchingState(projectTypeSelection);
     statusbar.update();
-    const nReplPortFile = projectTypes.nreplPortFileLocalPath(connectSequence);
     const jackInEnv = _.mapValues(state.config().jackInEnv as object, resolveEnvVariables);
     const env = Object.assign(process.env, jackInEnv) as {
         [key: string]: string;
