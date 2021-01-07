@@ -253,7 +253,7 @@ function updateRainbowBrackets() {
             ignoreCursor.forwardWhitespace();
           }
           for (i = 0; i < ignore_counter; i++) {
-            ignoreCursor.forwardSexp();
+            ignoreCursor.forwardSexp(true, true, true);
           }
           const ignore_end = activeEditor.document.positionAt(ignoreCursor.offsetStart);
           ignores.push(new Range(ignore_start, ignore_end));
