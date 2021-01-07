@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [calva.jackInEnv does not resolve `${env:...}`](https://github.com/BetterThanTomorrow/calva/issues/933)
 
 ## [2.0.148] - 2021-01-07
 - Update clojure-lsp to version 2021.01.07-20.02.02
