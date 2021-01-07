@@ -38,6 +38,9 @@ There are also these settings:
 * `calva.myLeinProfiles`: An array of Leiningen profiles not found in `project.clj`. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.
 * `calva.openBrowserWhenFigwheelStarted`: _For Legacy Figwheel only._ A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to `true`.
 
+!!! Note
+    When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
+
 ### Troubleshooting
 
 #### Environment Variables Are Not Readable From REPL

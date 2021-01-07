@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - Fix: [Dimming ignored forms does not work correctly with metadata](https://github.com/BetterThanTomorrow/calva/issues/908)
 - [Improve clojure-lsp jar integration](https://github.com/BetterThanTomorrow/calva/issues/913)
+- Fix: [calva.jackInEnv does not resolve `${env:...}`](https://github.com/BetterThanTomorrow/calva/issues/933)
 
 ## [2.0.146 - 2021-01-04]
 - Fix: [Slurp forward sometimes joins forms to one](https://github.com/BetterThanTomorrow/calva/issues/883)
