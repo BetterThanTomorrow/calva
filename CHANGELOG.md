@@ -3,17 +3,19 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## 2.0.147 - 2021-01-04
 - Fix: [Dimming ignored forms does not work correctly with metadata](https://github.com/BetterThanTomorrow/calva/issues/908)
 - [Improve clojure-lsp jar integration](https://github.com/BetterThanTomorrow/calva/issues/913)
 - Update clojure-lsp to version 2021.01.07-12.28.44
 
-## [2.0.146 - 2021-01-04]
+## [2.0.146] - 2021-01-04
 - Fix: [Slurp forward sometimes joins forms to one](https://github.com/BetterThanTomorrow/calva/issues/883)
 - Fix: [clojure-lsp processes left running/orphaned if VS Code is closed while the lsp server is starting](https://github.com/BetterThanTomorrow/calva/issues/906)
 - Fix: [go to definition jumps to inc instead of inc'](https://github.com/BetterThanTomorrow/calva/issues/884)
 - Fix: [Error when start a REPL with jdk15](https://github.com/BetterThanTomorrow/calva/issues/888)
 
-## [2.0.145 - 2021-01-03]
+## [2.0.145] - 2021-01-03
 - [Add command for opening the file for the output/repl window namespace](https://github.com/BetterThanTomorrow/calva/issues/920)
 - [Add setting for auto opening the repl window on Jack-in/Connect](https://github.com/BetterThanTomorrow/calva/issues/922)
 - [Add setting for auto opening the Jack-in Terminal](https://github.com/BetterThanTomorrow/calva/issues/923)
@@ -21,44 +23,44 @@ Changes to Calva.
 - [Add command for opening Calva documentation](https://github.com/BetterThanTomorrow/calva/issues/923)
 - [Change default keyboard shortcut for syncing the repl window ns to `ctrl+alt+c n`](https://github.com/BetterThanTomorrow/calva/issues/923)
 
-## [2.0.144 - 2021-01-01]
+## [2.0.144] - 2021-01-01
 - [Reactivate definitions/navigation in core and library files](https://github.com/BetterThanTomorrow/calva/issues/915)
 - [Make load-file available in the output window](https://github.com/BetterThanTomorrow/calva/issues/910)
 - [Make the ns in the repl prompt a peekable symbol](https://github.com/BetterThanTomorrow/calva/issues/904)
 
-## [2.0.142 and 2.0.143 - 2020-12-30]
+## [2.0.142 and 2.0.143] - 2020-12-30
 - No changes besides version number. Released due to vsix publishing issues.
 
-## [2.0.141 - 2020-12-30]
+## [2.0.141] - 2020-12-30
 - Update clojure-lsp to include [jar dependency navigation fix for Windows](https://github.com/clojure-lsp/clojure-lsp/issues/223)
 - Fix: [clojure-lsp refactorings not working on Windows](https://github.com/BetterThanTomorrow/calva/issues/911)
 - [Remove default key binding for toggling Calva key bindings](https://github.com/BetterThanTomorrow/calva/issues/815)
 
-## [2.0.140 - 2020-12-28]
+## [2.0.140] - 2020-12-28
 - [Make Jack-in dependency versions configurable (and bump 'em all with default settings)](https://github.com/BetterThanTomorrow/calva/pull/899)
 
-## [2.0.139 - 2020-12-28]
+## [2.0.139] - 2020-12-28
 - [Use Pseudo Terminal instead of Task for Jack-in](https://github.com/BetterThanTomorrow/calva/pull/654)
 - [Prefer cider-nrepl symbol definitions over clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/897)
 - [Enable clojure-lsp completion items when no nrepl connection](https://github.com/BetterThanTomorrow/calva/pull/898)
 
-## [2.0.138 - 2020-12-27]
+## [2.0.138] - 2020-12-27
 - [Bring in refactorings we get access to via clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/890)
 - [Add ”clojure-lsp starting” progress indicator](https://github.com/BetterThanTomorrow/calva/issues/892)
 - [Fix step into local dep with debugger](https://github.com/BetterThanTomorrow/calva/issues/893)
 
-## [2.0.137 - 2020-12-24]
+## [2.0.137] - 2020-12-24
 - [Bring in clojure-lsp](https://github.com/BetterThanTomorrow/calva/pull/572)
 
-## [2.0.136 - 2020-12-23]
+## [2.0.136] - 2020-12-23
 - Fix: [Jack-in/Connect prompts sometimes not showing on Windows](https://github.com/BetterThanTomorrow/calva/issues/885)
 
-## [2.0.135 - 2020-12-20]
+## [2.0.135] - 2020-12-20
 - [Binding keys to REPL functions, passing the namespace and cursor line (Notespace integration)](https://github.com/BetterThanTomorrow/calva/issues/863)
 - [Make REPL prompt submit if the cursor is after the top level form](https://github.com/BetterThanTomorrow/calva/issues/875)
 - [Only print stacktrace on demand](https://github.com/BetterThanTomorrow/calva/issues/878)
 
-## [2.0.134 - 2020-12-05]
+## [2.0.134] - 2020-12-05
 - Fix: [Live share jackout error](https://github.com/BetterThanTomorrow/calva/issues/856)
 - Fix: [Cannot read property 'document' of undefined](https://github.com/BetterThanTomorrow/calva/issues/846)
 
