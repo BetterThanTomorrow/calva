@@ -33,7 +33,7 @@ A connect sequence configures the following:
     * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 
-The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/master/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
+The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
 ## Example Sequences
 

@@ -17,7 +17,7 @@ I have:
 
 - [ ] Read [How to Contribute](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute#before-sending-pull-requests).
 - [ ] Directed this pull request at the `dev` branch. (Or have specific reasons to target some other branch.)
-- [ ] Made sure I have changed the default PR base branch, so that it is not `master`. (Sorry for the nagging.)
+- [ ] Made sure I have changed the PR base branch, so that it is not `published`. (Sorry for the nagging.)
 - [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
 - [ ] Figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and either tested it there if so, or mentioned it in the PR.
 - [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test. NB: *There is a CircleCI bug that makes the Artifacts hard to find. Please see [this issue](https://discuss.circleci.com/t/artifacts-tab-not-showing-unless-logged-in/32433) for workarounds.*

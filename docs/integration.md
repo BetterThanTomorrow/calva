@@ -40,7 +40,7 @@ Smaller changes:
 
 ## 3. Publishing a New Calva Version
 
-When a VSIX is good enough for release, and someone authorized to commit to the `master` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
+When a VSIX is good enough for release, and someone authorized to commit to the `published` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
 1. Checkout `dev`
 1. Add the CHANGELOG entries from `[Unreleased]`, **NB** There should be no newline between the header and the entries.
@@ -52,7 +52,7 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
    * You'll get an e-mail when it is published. (Or maybe only @pez gets that, not sure).
 1. When the new version is live, immediately install it and see that it works.
    * If the Marketplace version works:
-     1. Merge `dev` onto `master`
+     1. Merge `dev` onto `published`
      1. Push
      1. Run `npm run deploy-docs` to publish any changes to the docs
      1. Checkout `dev` and `$ npm run bump-version`
@@ -70,4 +70,4 @@ When a VSIX is good enough for release, and someone authorized to commit to the 
 
 Sometimes we need to update the documentation contained in the Calva repo, such as `README.md`, of the published extension, w/o publishing a new version.
 
-Make the changes on `master` and cherry pick back on `dev`.
+Make the changes on `published` and cherry pick back on `dev`.
