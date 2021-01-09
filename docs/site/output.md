@@ -92,7 +92,7 @@ For printed stacktraces, when source locations are available (Clojure files) you
 
 When navigating namespaces it is easy to [forget to first require them](https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong) and that can be a bit tricky to fix. To help with this Calva's command **Load Current File** also works in the output window, but then acts like **Load Current Namespace**.
 
-Consider you have two files, `pez/xxx.clj` and `pez/yyy.clj`, where `pez.yyy` requires in `pez.yyy`.
+Consider you have two files, `pez/xxx.clj` and `pez/yyy.clj`, where `pez.yyy` requires `pez.xxx`.
 
 ```clojure
 (ns pez.xxx)
