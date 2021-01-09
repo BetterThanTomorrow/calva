@@ -192,7 +192,7 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
     }, (_progress, _token) => {
         return client.onReady();
     });
-    context.subscriptions.push(client.start());
+    client.start();
 
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (_, line, character) => {
