@@ -883,7 +883,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/connect.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/master/docs/site/connect.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
                   </a>
                 
@@ -920,10 +920,6 @@
 <li><code>calva.myLeinProfiles</code>: An array of Leiningen profiles not found in <code>project.clj</code>. Use this to tell Calva Jack-in to launch your REPL using your user defined profiles.</li>
 <li><code>calva.openBrowserWhenFigwheelStarted</code>: <em>For Legacy Figwheel only.</em> A boolean controlling if Calva should automatically launch your ClojureScript app, once it is compiled by Figwheel. Defaults to <code>true</code>.</li>
 </ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When processing the <code>calva.jackInEnv</code> setting you can refer to existing ENV variables with <code>${env:VARIABLE}</code>.</p>
-</div>
 <h3 id="troubleshooting">Troubleshooting</h3>
 <h4 id="environment-variables-are-not-readable-from-repl">Environment Variables Are Not Readable From REPL</h4>
 <p>If you've added environment variables in your OS, such as in your <code>~/.bashrc</code> file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run <code>echo $SOME_VAR</code> and see the value there, then open VS Code from that terminal with <code>code &lt;project path&gt;</code>.</p>
