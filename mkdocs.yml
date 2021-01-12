@@ -14,7 +14,7 @@ google_analytics:
   - auto
 repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
-edit_uri: edit/master/docs/site
+edit_uri: edit/published/docs/site
 strict: true
 markdown_extensions:
   - admonition
