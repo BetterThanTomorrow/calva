@@ -11,7 +11,7 @@ import * as util from '../utilities';
 let enabled = false;
 
 interface DecorationLocations {
-    [propName: string]: Location[];
+    [symbolName: string]: Location[];
 }
 let decorationLocations: DecorationLocations = {};
 
