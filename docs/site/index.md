@@ -4,9 +4,6 @@
 
 [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) development in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, code formatting, a test runner, syntax highlighting, [linting](linting.md), and more. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
 
-We are super extra proud for [this comment](https://clojurians-log.clojureverse.org/calva/2021-01-11/1610400442.271900) from Alex Miller:
-
-![Alex Miller showed up in the Calva channel on the Clojurians Slack](images/alex-miller-likes-it.png)
 ## Getting Started
 
 First thing you need to do is to get [Calva connected to the REPL of your project](connect.md). Then we suggest you check out [Something to Try First](try-first.md).

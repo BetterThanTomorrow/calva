@@ -10,10 +10,6 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 ## Users Like it 😍
 
-We are super extra proud for [this comment](https://clojurians-log.clojureverse.org/calva/2021-01-11/1610400442.271900) from Alex Miller:
-
-![Alex Miller showed up in the Calva channel on the Clojurians Slack](assets/images/alex-miller-likes-it.png)
-
 Crispin Bennett's review:
 > This is great, and makes VS Code a truly viable IDE/editor for clojure development. It has great REPL support (including inline evaluation), an extensive Paredit implementation, and excellent linting (care of the bundled clj-kondo). Calva is being improved on at an impressive clip by maintainers who appear solidly committed to its ongoing development. It's well-documented, and manages to be both approachable and capable. A no-brainer if you're already a VS Code user, and well worth a look if you're not.
 
