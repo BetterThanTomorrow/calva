@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
+import { LanguageClient, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
+import config from './config';
 import { provideClojureDefinition } from './providers/definition';
 
 function createClient(jarPath: string): LanguageClient {
@@ -23,12 +24,15 @@ function createClient(jarPath: string): LanguageClient {
             "document-formatting?": false,
             "document-range-formatting?": false,
             "keep-require-at-start?": true,
-            //"use-metadata-for-privacy?": false
         },
         middleware: {
+            handleDiagnostics(uri, diagnostics, next) {
+                if (uri.path.endsWith(config.REPL_FILE_EXT)) {
+                    return;
+                }
+                return next(uri, diagnostics);
+            },
             provideCodeActions(document, range, context, token, next) {
-                // Disable code actions
-                //return [];
                 return next(document, range, context, token);
             },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
@@ -42,10 +46,6 @@ function createClient(jarPath: string): LanguageClient {
                     return await next(codeLens, token);
                 }
                 return null;
-            },
-            handleDiagnostics(uri, diagnostics, next) {
-                // Disable diagnostics from clojure-lsp
-                return;
             },
             provideHover(document, position, token, next) {
                 if (util.getConnectedState()) {
