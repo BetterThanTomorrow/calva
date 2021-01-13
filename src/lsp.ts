@@ -27,8 +27,6 @@ function createClient(jarPath: string): LanguageClient {
         },
         middleware: {
             provideCodeActions(document, range, context, token, next) {
-                // Disable code actions
-                //return [];
                 return next(document, range, context, token);
             },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
@@ -42,10 +40,6 @@ function createClient(jarPath: string): LanguageClient {
                     return await next(codeLens, token);
                 }
                 return null;
-            },
-            handleDiagnostics(uri, diagnostics, next) {
-                // Disable diagnostics from clojure-lsp
-                return;
             },
             provideHover(document, position, token, next) {
                 if (util.getConnectedState()) {
