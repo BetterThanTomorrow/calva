@@ -59,9 +59,6 @@
         "onDebugResolve:type"
     ],
     "main": "./out/extension",
-    "extensionPack": [
-        "borkdude.clj-kondo"
-    ],
     "contributes": {
         "debuggers": [
             {
@@ -263,7 +260,7 @@
                             },
                             "clj-kondo": {
                                 "type": "string",
-                                "description": "This clj-kondo instance is used by the Calva debugger. (Not to be confused with the clj-kondo used by the extension with the same name that gives you linting.)"
+                                "description": "This clj-kondo is used by the Calva debugger for finding usages, not for linting."
                             }
                         },
                         "default": {
