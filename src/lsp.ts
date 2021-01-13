@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
+import { LanguageClient, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
@@ -24,7 +24,6 @@ function createClient(jarPath: string): LanguageClient {
             "document-formatting?": false,
             "document-range-formatting?": false,
             "keep-require-at-start?": true,
-            //"use-metadata-for-privacy?": false
         },
         middleware: {
             handleDiagnostics(uri, diagnostics, next) {
