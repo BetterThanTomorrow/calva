@@ -3,6 +3,7 @@ import { LanguageClient, RequestType, ServerOptions, LanguageClientOptions } fro
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
+import config from './config';
 import { provideClojureDefinition } from './providers/definition';
 
 function createClient(jarPath: string): LanguageClient {
@@ -26,6 +27,12 @@ function createClient(jarPath: string): LanguageClient {
             //"use-metadata-for-privacy?": false
         },
         middleware: {
+            handleDiagnostics(uri, diagnostics, next) {
+                if (uri.path.endsWith(config.REPL_FILE_EXT)) {
+                    return;
+                }
+                return next(uri, diagnostics);
+            },
             provideCodeActions(document, range, context, token, next) {
                 return next(document, range, context, token);
             },
