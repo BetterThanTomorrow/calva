@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Stop bundling clj-kondo in favor of using it through clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/868)
 
 ## [2.0.149] - 2021-01-12
 - Fix: [calva.jackInEnv does not resolve `${env:...}`](https://github.com/BetterThanTomorrow/calva/issues/933)
