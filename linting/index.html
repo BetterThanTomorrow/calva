@@ -789,14 +789,14 @@
                 
                 
                 <h1 id="linting">Linting</h1>
-<p>Calva does no linting, yet with Calva you get excellent linting. That is because Calva bundles the <a href="https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo">clj-kondo</a> extension, which is powered by the <a href="https://github.com/borkdude/clj-kondo">linter with the same name</a>.</p>
+<p>Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses <a href="https://github.com/clojure-lsp/clojure-lsp">clojure-lsp</a>, which provides linting powered by clj-kondo.</p>
 <p>You might want to read about <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#configuration">how to configure clj-kondo</a>. These two sections might be of extra interest:</p>
 <ul>
 <li><a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#exclude-unresolved-symbols-from-being-reported">Exclude unresolved symbols from being reported</a></li>
 <li><a href="https://github.com/borkdude/clj-kondo/blob/master/doc/config.md#lint-a-custom-macro-like-a-built-in-macro">Lint a custom macro like a built-in macro</a></li>
 </ul>
-<p>If you see clj-kondo squiggle the first character of the file with an error you don't quite understand, it is probably something wrong with your clj-kondo configuration.</p>
-<p>The clj-kondo extension lints the current file as it is being edited. If you want to lint the whole project, use the clj-kondo cli command. See <a href="https://github.com/borkdude/clj-kondo">https://github.com/borkdude/clj-kondo</a> for more info on that. Windows users might like to know that they too can get a clj-kondo cli command now, via <a href="https://twitter.com/borkdude/status/1187622954236071936"><code>npm install -g clj-kondo</code></a>. It'll be a bit slower to start than the native build, but for sure it's better than not having a clj-kondo command! (Besides, the VS Code extension takes care of the cases where you really want speed.) See <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows">https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows</a> for more on this.</p>
+<p>If you see a linting squiggle under the first character of the file with an error you don't quite understand, it is probably something wrong with your clj-kondo configuration.</p>
+<p>Files are linted as they're being edited. If you want to lint the whole project, use the clj-kondo cli command. See <a href="https://github.com/borkdude/clj-kondo">https://github.com/borkdude/clj-kondo</a> for more info on that. Windows users might like to know that they too can get a clj-kondo cli command now, via <a href="https://twitter.com/borkdude/status/1187622954236071936"><code>npm install -g clj-kondo</code></a>. It'll be a bit slower to start than the native build, but for sure it's better than not having a clj-kondo command! See <a href="https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows">https://github.com/borkdude/clj-kondo/blob/master/doc/install.md#npm-linux-macos-windows</a> for more on this.</p>
                 
               
               

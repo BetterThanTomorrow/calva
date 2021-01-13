@@ -1108,7 +1108,7 @@
 <p><img alt="Stack trace clicking and peeking definition" src="../images/howto/output/stack-traces.gif" title="Stack trace clicking and peeking definition" /></p>
 <h2 id="load-current-namespace">Load Current Namespace</h2>
 <p>When navigating namespaces it is easy to <a href="https://clojure.org/guides/repl/navigating_namespaces#_how_things_can_go_wrong">forget to first require them</a> and that can be a bit tricky to fix. To help with this Calva's command <strong>Load Current File</strong> also works in the output window, but then acts like <strong>Load Current Namespace</strong>.</p>
-<p>Consider you have two files, <code>pez/xxx.clj</code> and <code>pez/yyy.clj</code>, where <code>pez.yyy</code> requires in <code>pez.yyy</code>.</p>
+<p>Consider you have two files, <code>pez/xxx.clj</code> and <code>pez/yyy.clj</code>, where <code>pez.yyy</code> requires <code>pez.xxx</code>.</p>
 <div class="codehilite"><pre><span></span><code><span class="p">(</span><span class="kd">ns </span><span class="nv">pez.xxx</span><span class="p">)</span>
 
 <span class="p">(</span><span class="k">def </span><span class="nv">a</span> <span class="ss">:xxx-a</span><span class="p">)</span>
