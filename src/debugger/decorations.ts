@@ -6,6 +6,7 @@ import { Position, Location, DocumentSymbol } from 'vscode-languageserver-protoc
 import lsp from '../lsp';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
+import * as util from '../utilities';
 
 let enabled = false;
 
@@ -60,7 +61,7 @@ function clearUninstrumentedSymbolDecorations(instrumentedSymbols: DocumentSymbo
 
 async function update(editor: vscode.TextEditor, cljSession: NReplSession): Promise<void> {
     if (/(\.clj)$/.test(editor.document.fileName)) {
-        if (cljSession) {
+        if (cljSession && util.getConnectedState()) {
             const document = editor.document;
 
             // Get instrumented defs in current editor

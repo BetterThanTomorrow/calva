@@ -250,8 +250,6 @@ class CalvaDebugSession extends LoggingDebugSession {
             cljSession.sendDebugInput(':quit', id, key);
         }
 
-        //debugDecorations.triggerUpdateAndRenderDecorations();
-
         this.sendResponse(response);
     }
 
@@ -368,6 +366,13 @@ async function initializeDebugger(cljSession: NReplSession): Promise<void> {
     debugDecorations.activate();
 }
 
+function terminateDebugSession(): void {
+    if (vscode.debug.activeDebugSession) {
+        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+    }
+    debugDecorations.triggerUpdateAndRenderDecorations();
+}
+
 export {
     CALVA_DEBUG_CONFIGURATION,
     DEBUG_ANALYTICS,
@@ -379,5 +384,6 @@ export {
     CalvaDebugAdapterDescriptorFactory,
     handleNeedDebugInput,
     initializeDebugger,
-    onNreplMessage
+    onNreplMessage,
+    terminateDebugSession
 };
