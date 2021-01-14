@@ -9,6 +9,11 @@ import { NReplSession } from '../nrepl';
 
 let enabled = false;
 
+interface DecorationLocations {
+    [propName: string]: Location[];
+}
+let decorationLocations: DecorationLocations = {};
+
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderStyle: 'solid',
     overviewRulerColor: 'blue',
@@ -45,75 +50,109 @@ async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promi
     return result;
 }
 
-async function updateDecorations(cljSession: NReplSession) {
-    const activeEditor = vscode.window.activeTextEditor;
+function clearUninstrumentedSymbolDecorations(instrumentedSymbols: DocumentSymbol[]): void {
+    // Clear uninstrumented symbol decorations
+    Object.keys(decorationLocations).forEach(symbol => {
+        if (!instrumentedSymbols.map(s => s.name).includes(symbol)) {
+            delete decorationLocations[symbol];
+        }
+    });
+}
 
-    if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
+async function update(editor: vscode.TextEditor, cljSession: NReplSession): Promise<void> {
+    if (/(\.clj)$/.test(editor.document.fileName)) {
         if (cljSession) {
-            const document = activeEditor.document;
+            const document = editor.document;
 
             // Get instrumented defs in current editor
             const docNamespace = namespace.getDocumentNamespace(document);
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
-            // Find ranges of instrumented defs
+            // Find locations of instrumented symbols
             const documentUri = document.uri.toString();
             const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
             const documentSymbols = await getDocumentSymbols(lspClient, documentUri);
-            const instrumentedSymbolRanges = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name)).map(s => s.range);
-            const instrumentedSymbolReferences = _.flatten(await Promise.all(instrumentedSymbolRanges.map(range => {
+            const instrumentedSymbols = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
+
+            clearUninstrumentedSymbolDecorations(instrumentedSymbols);
+
+            // Find locations of instrumented symbol references
+            const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbols.map(s => {
                 const position = {
-                    line: range.start.line,
-                    character: range.start.character
+                    line: s.range.start.line,
+                    character: s.range.start.character
                 };
                 return getReferences(lspClient, documentUri, position);
-            }))).filter(ref => ref.uri === documentUri);
-            const instrumentedSymbolReferenceRanges = instrumentedSymbolReferences.map(ref => ref.range);
-
-            // Combine the symbol range with its references' ranges and create vscode Ranges
-            const decorationRanges = [...instrumentedSymbolRanges, ...instrumentedSymbolReferenceRanges].map(range => {
-                return new vscode.Range(range.start.line, range.start.character, range.end.line, range.end.character);
-            });
-            activeEditor.setDecorations(instrumentedFunctionDecorationType, decorationRanges);
+            }));
+            const currentDocumentSymbolLocations = instrumentedSymbols.reduce((currentLocations, symbol, i) => {
+                // Combine the symbol definition location with its reference locations
+                return {
+                    ...currentLocations,
+                    [symbol.name]: [{ uri: documentUri, range: symbol.range }, ...instrumentedSymbolReferenceLocations[i]]
+                }
+            }, {});
+            decorationLocations = {
+                ...decorationLocations,
+                ...currentDocumentSymbolLocations
+            }
+            
         } else {
-            activeEditor.setDecorations(instrumentedFunctionDecorationType, []);
+            decorationLocations = {};
         }
     }
 }
 
+function render(editor: vscode.TextEditor): void {
+    const editorDecorationLocations = _.flatten(_.values(decorationLocations)).filter(loc => loc.uri === editor.document.uri.toString());
+    const editorDecorationRanges = editorDecorationLocations.map(loc => {
+        return new vscode.Range(loc.range.start.line, loc.range.start.character, loc.range.end.line, loc.range.end.character);
+    });
+    editor.setDecorations(instrumentedFunctionDecorationType, editorDecorationRanges);
+}
+
+function renderInAllVisibleEditors(): void {
+    vscode.window.visibleTextEditors.forEach(editor => {
+        render(editor);
+    });
+}
+
 let timeout: NodeJS.Timer | undefined = undefined;
 
-function triggerUpdateDecorations() {
+function triggerUpdateAndRenderDecorations() {
     if (timeout) {
         clearTimeout(timeout);
         timeout = undefined;
     }
     if (enabled) {
-        timeout = setTimeout(() => {
-            const cljSession = namespace.getSession('clj');
-            updateDecorations(cljSession);
-        }, 50);
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            timeout = setTimeout(async () => {
+                const cljSession = namespace.getSession('clj');
+                await update(editor, cljSession);
+                renderInAllVisibleEditors();
+            }, 50);
+        }
     }
 }
 
 async function activate() {
     enabled = true;
-    triggerUpdateDecorations();
+    triggerUpdateAndRenderDecorations();
 
-    vscode.window.onDidChangeActiveTextEditor(_ => {
-        triggerUpdateDecorations();
+    vscode.window.onDidChangeVisibleTextEditors(editors => {
+        renderInAllVisibleEditors();
     });
 
     vscode.workspace.onDidChangeTextDocument(event => {
         const activeEditor = vscode.window.activeTextEditor;
         if (activeEditor && event.document === activeEditor.document && event.contentChanges.length > 0) {
-            triggerUpdateDecorations();
+            triggerUpdateAndRenderDecorations();
         }
     });
 }
 
 export default {
     activate,
-    triggerUpdateDecorations
+    triggerUpdateAndRenderDecorations
 };

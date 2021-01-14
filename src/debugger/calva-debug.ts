@@ -250,7 +250,7 @@ class CalvaDebugSession extends LoggingDebugSession {
             cljSession.sendDebugInput(':quit', id, key);
         }
 
-        debugDecorations.triggerUpdateDecorations();
+        //debugDecorations.triggerUpdateAndRenderDecorations();
 
         this.sendResponse(response);
     }
