@@ -176,7 +176,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(debugResponse.file));
+        // c:\\Users\\brand\\development\\clojure-test\\src\\core.clj - DOES NOT WORK\
+        // file://c:\\Users\\brand\\development\\clojure-test\\src\\core.clj does not work
+        const uriString = debugResponse.file.includes(':/') ? debugResponse.file : `file:/${debugResponse.file}`;
+        const uri = vscode.Uri.parse(uriString, true);
+        const document = await vscode.workspace.openTextDocument(uri);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
