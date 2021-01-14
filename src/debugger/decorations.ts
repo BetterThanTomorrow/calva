@@ -5,6 +5,7 @@ import { LanguageClient } from 'vscode-languageclient';
 import { Position, Location, DocumentSymbol } from 'vscode-languageserver-protocol';
 import lsp from '../lsp';
 import * as _ from 'lodash';
+import { NReplSession } from '../nrepl';
 
 let enabled = false;
 
@@ -44,12 +45,10 @@ async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promi
     return result;
 }
 
-async function updateDecorations() {
+async function updateDecorations(cljSession: NReplSession) {
     const activeEditor = vscode.window.activeTextEditor;
 
     if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
-        const cljSession = namespace.getSession('clj');
-
         if (cljSession) {
             const document = activeEditor.document;
 
@@ -91,7 +90,10 @@ function triggerUpdateDecorations() {
         timeout = undefined;
     }
     if (enabled) {
-        timeout = setTimeout(() => updateDecorations(), 50);
+        timeout = setTimeout(() => {
+            const cljSession = namespace.getSession('clj');
+            updateDecorations(cljSession);
+        }, 50);
     }
 }
 
