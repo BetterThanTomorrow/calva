@@ -6,6 +6,8 @@ import * as util from './utilities'
 import config from './config';
 import { provideClojureDefinition } from './providers/definition';
 
+const LSP_CLIENT_KEY = 'lspClient';
+
 function createClient(jarPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
         run: { command: 'java', args: ['-jar', jarPath] },
@@ -182,18 +184,7 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
     });
 }
 
-function activate(context: vscode.ExtensionContext): LanguageClient {
-    const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
-    const client = createClient(jarPath);
-    vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
-        cancellable: false
-    }, (_progress, _token) => {
-        return client.onReady();
-    });
-    client.start();
-
+function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (_, line, character) => {
         vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
@@ -203,7 +194,9 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
     context.subscriptions.push(
         ...clojureLspCommands.map(command => registerLspCommand(client, command))
     );
+}
 
+function registerEventHandlers(context: vscode.ExtensionContext, client: LanguageClient) {
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async event => {
         if (event.affectsConfiguration('calva.referencesCodeLens.enabled')) {
             const visibleFileEditors = vscode.window.visibleTextEditors.filter(editor => {
@@ -223,10 +216,39 @@ function activate(context: vscode.ExtensionContext): LanguageClient {
             }
         }
     }));
+}
 
-    return client;
+function activate(context: vscode.ExtensionContext): Thenable<void> {
+    const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
+    const client = createClient(jarPath);
+
+    registerCommands(context, client);
+    registerEventHandlers(context, client);
+    state.cursor.set(LSP_CLIENT_KEY, client);
+
+    return new Promise((resolveLspActivation, _rejectLspActivation) => {
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
+            cancellable: false
+        }, async (_progress, _token) => {
+           await client.onReady();
+           resolveLspActivation();
+        });
+        client.start();
+    });
+}
+
+function deactivate(): Promise<void> {
+    const client = state.deref().get(LSP_CLIENT_KEY);
+    if (client) {
+        return client.stop();
+    }
+    return Promise.resolve();
 }
 
 export default {
-    activate
+    activate,
+    deactivate,
+    LSP_CLIENT_KEY
 }
