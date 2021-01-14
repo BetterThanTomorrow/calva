@@ -51,7 +51,6 @@ async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promi
 }
 
 function clearUninstrumentedSymbolDecorations(instrumentedSymbols: DocumentSymbol[]): void {
-    // Clear uninstrumented symbol decorations
     Object.keys(decorationLocations).forEach(symbol => {
         if (!instrumentedSymbols.map(s => s.name).includes(symbol)) {
             delete decorationLocations[symbol];
@@ -127,10 +126,11 @@ function triggerUpdateAndRenderDecorations() {
     if (enabled) {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
-            timeout = setTimeout(async () => {
+            timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
-                await update(editor, cljSession);
-                renderInAllVisibleEditors();
+                update(editor, cljSession).then(() => {
+                    renderInAllVisibleEditors();
+                });
             }, 50);
         }
     }

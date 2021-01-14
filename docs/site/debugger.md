@@ -30,7 +30,7 @@ Calva comes with a powerful expression-based debugger, inspired by [Cider](https
 
 ## Dependencies
 
-The debugger itself relies pretty heavily on [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl), as do other parts of Calva, and the decorations to show instrumented functions rely on [clj-kondo](https://github.com/borkdude/clj-kondo). Both of these libraries are loaded as dependencies when you use Calva Jack-in. If you are not using Calva Jack-in, you can add these dependencies in your project definition or user profile. See the [Calva Jack-in guide](/jack-in-guide) for more information.
+The debugger itself relies pretty heavily on [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl), as do other parts of Calva. This library is loaded as a dependency when you use Calva Jack-in. If you are not using Calva Jack-in, you can add these dependencies in your project definition or user profile. See the [Calva Jack-in guide](/jack-in-guide) for more information.
 
 ## Using the Debugger
 

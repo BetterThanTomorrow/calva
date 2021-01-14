@@ -257,17 +257,12 @@
                             "cider/piggieback": {
                                 "type": "string",
                                 "description": "Piggieback is used to create nREPL sessions in ClojureScript projects (not with shadow-cljs though, which provides its own middleware for this."
-                            },
-                            "clj-kondo": {
-                                "type": "string",
-                                "description": "This clj-kondo is used by the Calva debugger for finding usages, not for linting."
                             }
                         },
                         "default": {
                             "nrepl": "0.8.3",
                             "cider-nrepl": "0.25.6",
-                            "cider/piggieback": "0.5.2",
-                            "clj-kondo": "2020.04.05"
+                            "cider/piggieback": "0.5.2"
                         }
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
