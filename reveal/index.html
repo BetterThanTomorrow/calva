@@ -852,7 +852,7 @@ Clojure". This page describes how to use Reveal in your development setup based
 on Calva.</p>
 <h2 id="when-using-leiningen">When using Leiningen</h2>
 <p>In your <code>project.clj</code>, add a profile named "reveal":</p>
-<div class="codehilite"><pre><span></span><code><span class="ss">:profiles</span> <span class="p">{</span><span class="ss">:reveal</span> <span class="p">{</span><span class="ss">:dependencies</span> <span class="p">[[</span><span class="nv">vlaaad/reveal</span> <span class="s">&quot;1.1.164&quot;</span><span class="p">]]</span>
+<div class="codehilite"><pre><span></span><code><span class="ss">:profiles</span> <span class="p">{</span><span class="ss">:reveal</span> <span class="p">{</span><span class="ss">:dependencies</span> <span class="p">[[</span><span class="nv">vlaaad/reveal</span> <span class="s">&quot;1.2.185&quot;</span><span class="p">]]</span>
                     <span class="ss">:repl-options</span> <span class="p">{</span><span class="ss">:nrepl-middleware</span> <span class="p">[</span><span class="nv">vlaaad.reveal.nrepl/middleware</span><span class="p">]}}}</span>
 </code></pre></div>
 
@@ -860,10 +860,23 @@ on Calva.</p>
 started automatically. Please note that Reveal requires Java 8 or higher, and
 uses JavaFX. Depending on your setup, you may need to make sure it is available.</p>
 <h2 id="when-using-toolsdeps">When using tools.deps</h2>
-<p><em>TODO: this needs to be figured out too. Probably going by the <a href="https://vlaaad.github.io/reveal/#nrepl-based-editors">Reveal
-instructions</a> will do the
-trick. Please <a href="https://github.com/BetterThanTomorrow/calva/pulls">submit a PR</a>
-if you know how to do this!</em></p>
+<p>In your project's <code>deps.edn</code> file add a <code>:reveal</code> alias:</p>
+<div class="codehilite"><pre><span></span><code><span class="ss">:aliases</span>
+<span class="p">{</span><span class="ss">:reveal</span>
+    <span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">vlaaad/reveal</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;1.2.185&quot;</span><span class="p">}}</span>
+     <span class="ss">:main-opts</span>  <span class="p">[</span><span class="s">&quot;-m&quot;</span> <span class="s">&quot;nrepl.cmdline&quot;</span>
+                  <span class="s">&quot;--middleware&quot;</span> <span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
+</code></pre></div>
+
+<p>And then jack-in choosing the Clojure CLI option and then pick the <code>:reveal</code> alias.</p>
+<p>If you find the font to small you can add a <code>:jvm-opts</code> key to make it a little bigger:</p>
+<div class="codehilite"><pre><span></span><code><span class="ss">:aliases</span>
+<span class="p">{</span><span class="ss">:reveal</span>
+    <span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">vlaaad/reveal</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;1.2.185&quot;</span><span class="p">}}</span>
+     <span class="ss">:jvm-opts</span>   <span class="p">[</span><span class="s">&quot;-Dvlaaad.reveal.prefs={:font-size,17}&quot;</span><span class="p">]</span>
+     <span class="ss">:main-opts</span>  <span class="p">[</span><span class="s">&quot;-m&quot;</span> <span class="s">&quot;nrepl.cmdline&quot;</span>
+                  <span class="s">&quot;--middleware&quot;</span> <span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
+</code></pre></div>
                 
               
               
