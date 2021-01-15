@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Use clojure-lsp for usages for debug instrumentation decorations, and stop injecting clj-kondo at jack-in](https://github.com/BetterThanTomorrow/calva/issues/931)
+- Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)
+
+## [2.0.150] - 2021-01-13
+- [Stop bundling clj-kondo in favor of using it through clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/868)
 
 ## [2.0.149] - 2021-01-12
 - Fix: [calva.jackInEnv does not resolve `${env:...}`](https://github.com/BetterThanTomorrow/calva/issues/933)
