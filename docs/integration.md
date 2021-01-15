@@ -37,7 +37,6 @@ Smaller changes:
    1. Circle CI runs our tests, and builds a VSIX.
    1. Download this VSIX post on #calva asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
 
-
 ## 3. Publishing a New Calva Version
 
 When a VSIX is good enough for release, and someone authorized to commit to the `published` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
