@@ -40,7 +40,8 @@ const initialData = {
     outputChannel: vscode.window.createOutputChannel("Calva says"),
     connectionLogChannel: vscode.window.createOutputChannel("Calva Connection Log"),
     diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
-    analytics: null
+    analytics: null,
+    lspClient: null
 };
 
 reset();

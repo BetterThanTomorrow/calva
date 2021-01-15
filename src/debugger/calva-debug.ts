@@ -176,7 +176,8 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = state.deref().get(DEBUG_RESPONSE_KEY);
-        const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(debugResponse.file));
+        const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
+        const document = await vscode.workspace.openTextDocument(uri);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
         const positionColumn = convertOneBasedToZeroBased(debugResponse.column);
         const offset = document.offsetAt(new Position(positionLine, positionColumn));
