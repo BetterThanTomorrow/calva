@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)
 
 ## [2.0.150] - 2021-01-13
 - [Stop bundling clj-kondo in favor of using it through clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/868)
