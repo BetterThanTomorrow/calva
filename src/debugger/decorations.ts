@@ -64,17 +64,19 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
         if (cljSession && util.getConnectedState() && lspClient) {
             const document = editor.document;
 
-            // Get instrumented defs in current editor
+            // Get instrumented defs
             const docNamespace = namespace.getDocumentNamespace(document);
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
+
+            // TODO: Refactor this implementation and structure of decorationLocations data
+            clearUninstrumentedSymbolDecorations(instrumentedDefs);
+            
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
             // Find locations of instrumented symbols
             const documentUri = document.uri.toString();
             const documentSymbols = await getDocumentSymbols(lspClient, documentUri);
             const instrumentedSymbolsInEditor = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
-
-            clearUninstrumentedSymbolDecorations(instrumentedSymbolsInEditor);
 
             // Find locations of instrumented symbol references
             const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbolsInEditor.map(s => {
