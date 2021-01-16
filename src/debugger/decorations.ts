@@ -89,7 +89,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession): Prom
                 // Combine the symbol definition location with its reference locations
                 return {
                     ...currentLocations,
-                    [symbol.name]: [{ uri: documentUri, range: symbol.range }, ...instrumentedSymbolReferenceLocations[i]]
+                    [symbol.name]: [{ uri: decodeURIComponent(documentUri), range: symbol.range }, ...instrumentedSymbolReferenceLocations[i]]
                 }
             }, {});
             decorationLocations = {
@@ -104,7 +104,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession): Prom
 }
 
 function render(editor: vscode.TextEditor): void {
-    const editorDecorationLocations = _.flatten(_.values(decorationLocations)).filter(loc => loc.uri === editor.document.uri.toString());
+    const editorDecorationLocations = _.flatten(_.values(decorationLocations)).filter(loc => loc.uri === decodeURIComponent(editor.document.uri.toString()));
     const editorDecorationRanges = editorDecorationLocations.map(loc => {
         return new vscode.Range(loc.range.start.line, loc.range.start.character, loc.range.end.line, loc.range.end.character);
     });
