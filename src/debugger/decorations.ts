@@ -72,30 +72,28 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
             // Find locations of instrumented symbols
             const documentUri = document.uri.toString();
             const documentSymbols = await getDocumentSymbols(lspClient, documentUri);
-            const instrumentedSymbols = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
+            const instrumentedSymbolsInEditor = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
 
-            clearUninstrumentedSymbolDecorations(instrumentedSymbols);
+            clearUninstrumentedSymbolDecorations(instrumentedSymbolsInEditor);
 
             // Find locations of instrumented symbol references
-            const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbols.map(s => {
+            const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbolsInEditor.map(s => {
                 const position = {
                     line: s.range.start.line,
                     character: s.range.start.character
                 };
                 return getReferences(lspClient, documentUri, position);
             }));
-            const currentDocumentSymbolLocations = instrumentedSymbols.reduce((currentLocations, symbol, i) => {
-                // Combine the symbol definition location with its reference locations
+            const currentDocInstrumentedSymbolReferenceLocations = instrumentedSymbolsInEditor.reduce((currentLocations, symbol, i) => {
                 return {
                     ...currentLocations,
-                    [symbol.name]: [{ uri: decodeURIComponent(documentUri), range: symbol.range }, ...instrumentedSymbolReferenceLocations[i]]
+                    [symbol.name]: instrumentedSymbolReferenceLocations[i]
                 }
             }, {});
             decorationLocations = {
                 ...decorationLocations,
-                ...currentDocumentSymbolLocations
+                ...currentDocInstrumentedSymbolReferenceLocations
             }
-            
         } else {
             decorationLocations = {};
         }
