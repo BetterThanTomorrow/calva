@@ -59,9 +59,9 @@ function clearUninstrumentedSymbolDecorations(instrumentedSymbols: DocumentSymbo
     });
 }
 
-async function update(editor: vscode.TextEditor, cljSession: NReplSession): Promise<void> {
+async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspClient: LanguageClient): Promise<void> {
     if (/(\.clj)$/.test(editor.document.fileName)) {
-        if (cljSession && util.getConnectedState()) {
+        if (cljSession && util.getConnectedState() && lspClient) {
             const document = editor.document;
 
             // Get instrumented defs in current editor
@@ -71,7 +71,6 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession): Prom
 
             // Find locations of instrumented symbols
             const documentUri = document.uri.toString();
-            const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
             const documentSymbols = await getDocumentSymbols(lspClient, documentUri);
             const instrumentedSymbols = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
 
@@ -129,7 +128,8 @@ function triggerUpdateAndRenderDecorations() {
         if (editor) {
             timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
-                update(editor, cljSession).then(() => {
+                const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
+                update(editor, cljSession, lspClient).then(() => {
                     renderInAllVisibleEditors();
                 });
             }, 50);
