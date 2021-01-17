@@ -1454,6 +1454,7 @@
             {
                 "command": "paredit.slurpSexpForward",
                 "key": "ctrl+alt+right",
+                "linux": "ctrl+alt+.",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1464,6 +1465,7 @@
             {
                 "command": "paredit.barfSexpForward",
                 "key": "ctrl+alt+left",
+                "linux": "ctrl+alt+,",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
