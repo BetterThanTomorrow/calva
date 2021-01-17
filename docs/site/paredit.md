@@ -47,7 +47,7 @@ In Calva Paredit, strings are treated in much the same way as lists are. Here's 
 
 Default keybinding      | Action | Description
 ------------------      | ------ | -----------
- `ctrl+alt+right`          | **Forward Sexp** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> ![](images/paredit/forward-sexp.gif)
+ `ctrl+right` (win)<br>`alt+right` (mac)          | **Forward Sexp** | Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> ![](images/paredit/forward-sexp.gif)
  `ctrl+alt+left`           | **Backward Sexp** | Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Will not move out of lists.<br> ![](images/paredit/backward-sexp.gif)
  `ctrl+down`               | **Forward Down Sexp** | Moves the cursor into the following list.<br> ![](images/paredit/forward-down-sexp.gif)
  `ctrl+alt+up`             | **Backward Down Sexp** | Moves the cursor into the preceding list.<br> ![](images/paredit/backward-down-sexp.gif)
@@ -62,11 +62,11 @@ Most of these commands are selecting ”versions” of the navigation commands a
 
 Default keybinding    | Action | Description
 ------------------    | ------ | -----------
- `ctrl+w`                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](images/paredit/grow-selection.gif)
- `ctrl+shift+w`          | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
+ `shift+alt+right` (win)<br>`ctrl+w` (mac)                | **Expand Selection** | Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> ![](images/paredit/grow-selection.gif)
+ `shift+alt+left` (win)<br>`ctrl+shift+w` (mac)         | **Shrink Selection** | Contracts back from an expanded selection performed by any Paredit selection command.<br> ![](images/paredit/shrink-selection.gif)<br>(In the animation the selection is first grown using a combination of **Grow Selection** and some lateral selection commands, then shrunk all the way back down to no selection.)
  `ctrl+alt+w space`      | **Select Top Level Form** | Top level in a structural sence. Typically where your`(def ...)`/`(defn ...)` type forms. Please note that`(comment ...)` forms create a new top level. <br> ![](images/paredit/select-top-level-form.gif)
- `ctrl+shift+alt+right`  | **Select Forward Sexp** | ![](images/paredit/select-forward-sexp.gif)
- `ctrl+shift+alt+left`   | **Select Backward Sexp** | ![](images/paredit/select-backward-sexp.gif)
+ `shift+ctrl+right` (win)<br>`shift+alt+right` (mac)  | **Select Forward Sexp** | ![](images/paredit/select-forward-sexp.gif)
+ `shift+ctrl+left` (win)<br>`shift+alt+left`(mac)   | **Select Backward Sexp** | ![](images/paredit/select-backward-sexp.gif)
  `ctrl+shift+down`       | **Select Forward Down Sexp** | ![](images/paredit/select-forward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
  `ctrl+shift+alt+up`     | **Select Backward Down Sexp** | ![](images/paredit/select-backward-down-sexp.gif) <br>(You probably do not need to select like this, but you can!)
  `ctrl+shift+alt+down`   | **Select Forward Up Sexp** | ![](images/paredit/select-forward-up-sexp.gif) <br>(You probably do not need to select like this, but you can!)
@@ -81,10 +81,10 @@ Many implementations of Paredit have commands for copying/cutting while deleting
 
 Default keybinding                | Action | Description
 ------------------                | ------ | -----------
- `ctrl+right`<br>**NB** On Mac this keybinding might need your attention, see [Quirks](quirks.md).                        | **Slurp Forward** |  Moves the _closing_ bracket _forward_, _away_ from the cursor, past the following form, if any. <br> ![](images/paredit/slurp-forward.gif)
- `ctrl+left` <br>**NB** On Mac this keybinding might need your attention, see [Quirks](quirks.md).                        | **Barf Forward** | Moves the _closing_ bracket _backward_, _towards_ the cursor, past the preceding form. <br> ![](images/paredit/barf-forward.gif)
- `ctrl+shift+left`                   | **Slurp Backward** | Moves the _opening_ bracket _backward_, _away_ from the cursor, past the preceding form, if any. <br> ![](images/paredit/slurp-backward.gif)
- `ctrl+shift+right`                  | **Barf Backward** | Moves the _opening_ bracket _forward_, _towards_ the cursor, past the following form. <br> ![](images/paredit/barf-backward.gif)
+ `ctrl+alt+right`                        | **Slurp Forward** |  Moves the _closing_ bracket _forward_, _away_ from the cursor, past the following form, if any. <br> ![](images/paredit/slurp-forward.gif)
+ `ctrl+alt+left`                        | **Barf Forward** | Moves the _closing_ bracket _backward_, _towards_ the cursor, past the preceding form. <br> ![](images/paredit/barf-forward.gif)
+ `ctrl+alt+shift+left`                   | **Slurp Backward** | Moves the _opening_ bracket _backward_, _away_ from the cursor, past the preceding form, if any. <br> ![](images/paredit/slurp-backward.gif)
+ `ctrl+alt+shift+right`                  | **Barf Backward** | Moves the _opening_ bracket _forward_, _towards_ the cursor, past the following form. <br> ![](images/paredit/barf-backward.gif)
  `ctrl+alt+s`                      | **Splice Sexp** | Remove enclosing brackets. <br> ![](images/paredit/splice.gif)
  `ctrl+shift+s`                  | **Split Sexp** | Splits a string, or a list, into two strings, or lists of the same type as the current. <br> ![](images/paredit/split.gif)
  `ctrl+shift+j`                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](images/paredit/join.gif)

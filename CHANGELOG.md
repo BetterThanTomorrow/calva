@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Change default shortcuts for Paredit forward/backward sexp, expand/shrink selection, and for slurping and barfing](https://github.com/BetterThanTomorrow/calva/issues/950)
 
 ## [2.0.151] - 2021-01-15
 - Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)
