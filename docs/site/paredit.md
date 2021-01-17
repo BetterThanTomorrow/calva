@@ -35,6 +35,9 @@ The Paredit commands are sorted into **Navigation**, **Selection**, and **Edit**
 
 To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.
 
+!!! Note
+    About the default shortcuts listed here: Some shortcuts differ between Mac, Windows and Linux. This is indicated where so is the case. So far Windows and Linux always share shortcuts, and for the sake of brevity their special shortcuts are indicated with *(win)*.
+
 ### Strings are not Lists, but Anyway...
 
 In Calva Paredit, strings are treated in much the same way as lists are. Here's an example showing **Slurp** and **Barf**, **Forward/Backward List**, and **Grow Selection**.
