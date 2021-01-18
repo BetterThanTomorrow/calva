@@ -95,8 +95,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
 function render(editor: vscode.TextEditor): void {
     const allNsSymbolLocations: Location[] = _.flatten(_.flatten(_.values(symbolReferenceLocations).map(_.values)));
     console.log(allNsSymbolLocations);
-    // TODO: Test this path comparison on Windows
-    const nsSymbolReferenceLocations = allNsSymbolLocations.filter(loc => loc.uri === editor.document.uri.toString());
+    const nsSymbolReferenceLocations = allNsSymbolLocations.filter(loc => loc.uri === decodeURIComponent(editor.document.uri.toString()));
     const editorDecorationRanges = nsSymbolReferenceLocations.map(loc => {
         return new vscode.Range(loc.range.start.line, loc.range.start.character, loc.range.end.line, loc.range.end.character);
     });
