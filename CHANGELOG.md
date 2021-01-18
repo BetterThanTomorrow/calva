@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Jack-In env with non-string variables fails](https://github.com/BetterThanTomorrow/calva/issues/959)
 
 ## [2.0.151] - 2021-01-15
 - Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)
