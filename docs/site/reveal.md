@@ -9,7 +9,7 @@ on Calva.
 In your `project.clj`, add a profile named "reveal":
 
 ```clojure
-:profiles {:reveal {:dependencies [[vlaaad/reveal "1.1.164"]]
+:profiles {:reveal {:dependencies [[vlaaad/reveal "1.2.185"]]
                     :repl-options {:nrepl-middleware [vlaaad.reveal.nrepl/middleware]}}}
 ```
 
@@ -19,7 +19,27 @@ uses JavaFX. Depending on your setup, you may need to make sure it is available.
 
 ## When using tools.deps
 
-_TODO: this needs to be figured out too. Probably going by the [Reveal
-instructions](https://vlaaad.github.io/reveal/#nrepl-based-editors) will do the
-trick. Please [submit a PR](https://github.com/BetterThanTomorrow/calva/pulls)
-if you know how to do this!_
+In your project's `deps.edn` file add a `:reveal` alias:
+
+```clojure
+:aliases
+{:reveal
+    {:extra-deps {vlaaad/reveal {:mvn/version "1.2.185"}}
+     :main-opts  ["-m" "nrepl.cmdline"
+                  "--middleware" "[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"]}}
+
+```
+
+And then jack-in choosing the Clojure CLI option and then pick the `:reveal` alias.
+
+If you find the font to small you can add a `:jvm-opts` key to make it a little bigger:
+
+```clojure
+:aliases
+{:reveal
+    {:extra-deps {vlaaad/reveal {:mvn/version "1.2.185"}}
+     :jvm-opts   ["-Dvlaaad.reveal.prefs={:font-size,17}"]
+     :main-opts  ["-m" "nrepl.cmdline"
+                  "--middleware" "[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]"]}}
+
+```
