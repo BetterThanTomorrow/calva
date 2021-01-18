@@ -62,8 +62,6 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
             const docNamespace = namespace.getDocumentNamespace(document);
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
 
-            //clearUninstrumentedSymbolDecorations(instrumentedDefs);
-            
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
             // Find locations of instrumented symbols
