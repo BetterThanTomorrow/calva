@@ -10,10 +10,12 @@ import * as util from '../utilities';
 
 let enabled = false;
 
-interface DecorationLocations {
-    [symbolName: string]: Location[];
+interface SymbolReferenceLocations {
+    [namespace: string]: {
+        [symbol: string]: Location[]
+    }
 }
-let decorationLocations: DecorationLocations = {};
+let symbolReferenceLocations: SymbolReferenceLocations = {};
 
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderStyle: 'solid',
@@ -51,14 +53,6 @@ async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promi
     return result;
 }
 
-function clearUninstrumentedSymbolDecorations(instrumentedSymbols: DocumentSymbol[]): void {
-    Object.keys(decorationLocations).forEach(symbol => {
-        if (!instrumentedSymbols.map(s => s.name).includes(symbol)) {
-            delete decorationLocations[symbol];
-        }
-    });
-}
-
 async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspClient: LanguageClient): Promise<void> {
     if (/(\.clj)$/.test(editor.document.fileName)) {
         if (cljSession && util.getConnectedState() && lspClient) {
@@ -68,8 +62,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
             const docNamespace = namespace.getDocumentNamespace(document);
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
 
-            // TODO: Refactor this implementation and structure of decorationLocations data
-            clearUninstrumentedSymbolDecorations(instrumentedDefs);
+            //clearUninstrumentedSymbolDecorations(instrumentedDefs);
             
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
@@ -86,25 +79,25 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
                 };
                 return getReferences(lspClient, documentUri, position);
             }));
-            const currentDocInstrumentedSymbolReferenceLocations = instrumentedSymbolsInEditor.reduce((currentLocations, symbol, i) => {
+            const currentNamespaceSymbolReferenceLocations = instrumentedSymbolsInEditor.reduce((currentLocations, symbol, i) => {
                 return {
                     ...currentLocations,
                     [symbol.name]: instrumentedSymbolReferenceLocations[i]
                 }
             }, {});
-            decorationLocations = {
-                ...decorationLocations,
-                ...currentDocInstrumentedSymbolReferenceLocations
-            }
+            symbolReferenceLocations[docNamespace] = currentNamespaceSymbolReferenceLocations;
         } else {
-            decorationLocations = {};
+            symbolReferenceLocations = {};
         }
     }
 }
 
 function render(editor: vscode.TextEditor): void {
-    const editorDecorationLocations = _.flatten(_.values(decorationLocations)).filter(loc => loc.uri === decodeURIComponent(editor.document.uri.toString()));
-    const editorDecorationRanges = editorDecorationLocations.map(loc => {
+    const allNsSymbolLocations: Location[] = _.flatten(_.flatten(_.values(symbolReferenceLocations).map(_.values)));
+    console.log(allNsSymbolLocations);
+    // TODO: Test this path comparison on Windows
+    const nsSymbolReferenceLocations = allNsSymbolLocations.filter(loc => loc.uri === editor.document.uri.toString());
+    const editorDecorationRanges = nsSymbolReferenceLocations.map(loc => {
         return new vscode.Range(loc.range.start.line, loc.range.start.character, loc.range.end.line, loc.range.end.character);
     });
     editor.setDecorations(instrumentedFunctionDecorationType, editorDecorationRanges);
