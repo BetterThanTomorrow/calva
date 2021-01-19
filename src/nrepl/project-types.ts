@@ -179,20 +179,17 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
 export enum JackInDependency {
     "nrepl" = "nrepl",
     "cider-nrepl" = "cider-nrepl",
-    "cider/piggieback" = "cider/piggieback",
-    "clj-kondo" = "clj-kondo"
+    "cider/piggieback" = "cider/piggieback"
 }
 
 const NREPL_VERSION = () => state.config().jackInDependencyVersions["nrepl"],
     CIDER_NREPL_VERSION = () => state.config().jackInDependencyVersions["cider-nrepl"],
-    PIGGIEBACK_VERSION = () => state.config().jackInDependencyVersions["cider/piggieback"],
-    CLJ_KONDO_VERSION = () => state.config().jackInDependencyVersions["clj-kondo"];
+    PIGGIEBACK_VERSION = () => state.config().jackInDependencyVersions["cider/piggieback"];
 
 const cliDependencies = () => {
     return {
         "nrepl/nrepl": NREPL_VERSION(),
-        "cider/cider-nrepl": CIDER_NREPL_VERSION(),
-        "clj-kondo/clj-kondo": CLJ_KONDO_VERSION()
+        "cider/cider-nrepl": CIDER_NREPL_VERSION()
     }
 }
 
@@ -226,8 +223,7 @@ const leinPluginDependencies = () => {
 }
 const leinDependencies = () => {
     return {
-        "nrepl": NREPL_VERSION(),
-        "clj-kondo": CLJ_KONDO_VERSION()
+        "nrepl": NREPL_VERSION()
     }
 }
 const middleware = ["cider.nrepl/cider-middleware"];
