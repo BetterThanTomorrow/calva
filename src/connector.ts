@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as fs from 'fs';
 import * as state from './state';
 import * as util from './utilities';
 import * as open from 'open';
@@ -15,6 +14,7 @@ import * as outputWindow from './results-output/results-doc';
 import evaluate from './evaluate';
 import * as namespace from './namespace';
 import * as liveShareSupport from './liveShareSupport';
+import * as calvaDebug from './debugger/calva-debug';
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -30,18 +30,21 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
     try {
         outputWindow.append("; Hooking up nREPL sessions...");
         // Create an nREPL client. waiting for the connection to be established.
-        nClient = await NReplClient.create({ host: hostname, port: +port, onError: e => {
-            const scheme = state.getProjectRootUri().scheme;
-            if (scheme === "vsls") {
-                outputWindow.append("; nREPL connection failed; did the host share the nREPL port?");
+        nClient = await NReplClient.create({
+            host: hostname, port: +port, onError: e => {
+                const scheme = state.getProjectRootUri().scheme;
+                if (scheme === "vsls") {
+                    outputWindow.append("; nREPL connection failed; did the host share the nREPL port?");
+                }
             }
-        }})
+        })
         nClient.addOnCloseHandler(c => {
             util.setConnectedState(false);
             util.setConnectingState(false);
             if (!c["silent"]) // we didn't deliberately close this session, mention this fact.
                 outputWindow.append("; nREPL Connection was closed");
             status.update();
+            calvaDebug.terminateDebugSession();
         })
         cljSession = nClient.session;
         cljSession.replType = 'clj';
@@ -201,16 +204,16 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
         hasStarted = cljsType.isStarted,
         useDefaultBuild = true,
         startedBuilds: string[];
-        // The output processors are used to keep the user informed about the connection process
-        // The output from Figwheel is meant for printing to the REPL prompt,
-        // and since we print to Calva says we, only print some of the messages.
+    // The output processors are used to keep the user informed about the connection process
+    // The output from Figwheel is meant for printing to the REPL prompt,
+    // and since we print to Calva says we, only print some of the messages.
     const printThisPrinter: processOutputFn = x => {
-            if (cljsType.printThisLineRegExp) {
-                if (x.search(cljsType.printThisLineRegExp) >= 0) {
-                    outputWindow.append('; ' + x.replace(/\s*$/, ""));
-                }
+        if (cljsType.printThisLineRegExp) {
+            if (x.search(cljsType.printThisLineRegExp) >= 0) {
+                outputWindow.append('; ' + x.replace(/\s*$/, ""));
             }
-        },
+        }
+    },
         // Having and app to connect to is crucial so we do what we can to help the user
         // start the app at the right time in the process.
         startAppNowProcessor: processOutputFn = x => {
@@ -523,11 +526,6 @@ export default {
             }
             liveShareSupport.didDisconnectRepl();
             nClient = undefined;
-        }
-
-        // If an active debug session exists, terminate it
-        if (vscode.debug.activeDebugSession) {
-            vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
         }
 
         callback();

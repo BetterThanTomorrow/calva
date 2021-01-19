@@ -1,12 +1,21 @@
 import * as vscode from 'vscode';
 import * as namespace from '../namespace';
-import * as docMirror from '../doc-mirror';
-import { NReplSession } from '../nrepl';
-const { parseEdn } = require('../../out/cljs-lib/cljs-lib');
 import * as state from '../state';
+import { LanguageClient } from 'vscode-languageclient';
+import { Position, Location, DocumentSymbol } from 'vscode-languageserver-protocol';
+import lsp from '../lsp';
+import * as _ from 'lodash';
+import { NReplSession } from '../nrepl';
+import * as util from '../utilities';
 
 let enabled = false;
-let decorationsSession: NReplSession = null;
+
+interface SymbolReferenceLocations {
+    [namespace: string]: {
+        [symbol: string]: Location[]
+    }
+}
+let symbolReferenceLocations: SymbolReferenceLocations = {};
 
 const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
     borderStyle: 'solid',
@@ -22,123 +31,119 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
-async function setPrintLength(session: NReplSession, printLength: string): Promise<void> {
-    const code = `(set! clojure.core/*print-length* ${printLength})`;
-    await session.eval(code, 'user').value;
-}
-
-async function getPrintLength(session: NReplSession): Promise<string> {
-    const code = `clojure.core/*print-length*`;
-    return await session.eval(code, 'user').value;
-}
-
-async function getLintAnalysis(session: NReplSession, documentText: string): Promise<any> {
-    const printLength = await getPrintLength(session);
-    await setPrintLength(session, 'nil');
-    const code = `(with-in-str ${JSON.stringify(documentText)} (:analysis (clj-kondo.core/run! {:lint ["-"] :lang :clj :config {:output {:analysis true}}})))`;
-    const resEdn = await session.eval(code, 'user').value;
-    await setPrintLength(session, printLength);
-    return parseEdn(resEdn);
-}
-
-function getVarDefinitionRanges(definitions: any[], document: vscode.TextDocument): [number, number][] {
-    const mirroredDocument = docMirror.getDocument(document);
-    return definitions.map(varInfo => {
-        const position = new vscode.Position(varInfo.row - 1, varInfo.col - 1);
-        const offset = document.offsetAt(position);
-        const tokenCursor = mirroredDocument.getTokenCursor(offset);
-        while (tokenCursor.getToken().raw !== varInfo.name && !tokenCursor.atEnd()) {
-            tokenCursor.next();
+async function getReferences(lspClient: LanguageClient, uri: string, position: Position): Promise<Location[] | null> {
+    const result: Location[] = await lspClient.sendRequest('textDocument/references', {
+        textDocument: {
+            uri,
+        },
+        position,
+        context: {
+            includeDeclaration: true
         }
-        return [tokenCursor.offsetStart, tokenCursor.offsetEnd];
     });
+    return result;
 }
 
-function getVarUsageRanges(usages: any[], document: vscode.TextDocument): [number, number][] {
-    const mirroredDocument = docMirror.getDocument(document);
-    return usages.map(varInfo => {
-        const position = new vscode.Position(varInfo.row - 1, varInfo.col - 1);
-        const offset = document.offsetAt(position);
-        const tokenCursor = mirroredDocument.getTokenCursor(offset);
-        return [offset, tokenCursor.offsetEnd];
+async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promise<DocumentSymbol[]> {
+    const result: DocumentSymbol[] = await lspClient.sendRequest('textDocument/documentSymbol', {
+        textDocument: {
+            uri
+        }
     });
+    return result;
 }
 
-async function updateDecorations(decorationsSession: NReplSession) {
-    const activeEditor = vscode.window.activeTextEditor;
+async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspClient: LanguageClient): Promise<void> {
+    if (/(\.clj)$/.test(editor.document.fileName)) {
+        if (cljSession && util.getConnectedState() && lspClient) {
+            const document = editor.document;
 
-    if (activeEditor && /(\.clj)$/.test(activeEditor.document.fileName)) {
-        const cljSession = namespace.getSession('clj');
-
-        if (cljSession) {
-            const document = activeEditor.document;
-
-            // Get instrumented defs in current editor
+            // Get instrumented defs
             const docNamespace = namespace.getDocumentNamespace(document);
             const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
+
             const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
 
-            // Get editor ranges of instrumented var definitions and usages
-            const lintAnalysis = await getLintAnalysis(decorationsSession, document.getText());
-            const instrumentedVarDefs = lintAnalysis['var-definitions'].filter(varInfo => instrumentedDefsInEditor.includes(varInfo.name));
-            const instrumentedVarDefRanges = getVarDefinitionRanges(instrumentedVarDefs, document);
-            const instrumentedVarUsages = lintAnalysis['var-usages'].filter(varInfo => {
-                const instrumentedDefsInVarNs = instrumentedDefs.list.filter(l => l[0] === varInfo.to)[0]?.slice(1) || [];
-                return instrumentedDefsInVarNs.includes(varInfo.name);
-            });
-            const instrumentedVarUsageRanges = getVarUsageRanges(instrumentedVarUsages, document);
+            // Find locations of instrumented symbols
+            const documentUri = document.uri.toString();
+            const documentSymbols = await getDocumentSymbols(lspClient, documentUri);
+            const instrumentedSymbolsInEditor = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
 
-            const decorations = [...instrumentedVarDefRanges, ...instrumentedVarUsageRanges].map(([startOffset, endOffset]) => {
-                return {
-                    range: new vscode.Range(document.positionAt(startOffset), document.positionAt(endOffset)),
-                    hoverMessage: 'Instrumented for debugging'
+            // Find locations of instrumented symbol references
+            const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbolsInEditor.map(s => {
+                const position = {
+                    line: s.range.start.line,
+                    character: s.range.start.character
                 };
-            });
-            activeEditor.setDecorations(instrumentedFunctionDecorationType, decorations);
+                return getReferences(lspClient, documentUri, position);
+            }));
+            const currentNamespaceSymbolReferenceLocations = instrumentedSymbolsInEditor.reduce((currentLocations, symbol, i) => {
+                return {
+                    ...currentLocations,
+                    [symbol.name]: instrumentedSymbolReferenceLocations[i]
+                }
+            }, {});
+            symbolReferenceLocations[docNamespace] = currentNamespaceSymbolReferenceLocations;
         } else {
-            activeEditor.setDecorations(instrumentedFunctionDecorationType, []);
+            symbolReferenceLocations = {};
         }
     }
 }
 
+function render(editor: vscode.TextEditor): void {
+    const allNsSymbolLocations: Location[] = _.flatten(_.flatten(_.values(symbolReferenceLocations).map(_.values)));
+    console.log(allNsSymbolLocations);
+    const nsSymbolReferenceLocations = allNsSymbolLocations.filter(loc => loc.uri === decodeURIComponent(editor.document.uri.toString()));
+    const editorDecorationRanges = nsSymbolReferenceLocations.map(loc => {
+        return new vscode.Range(loc.range.start.line, loc.range.start.character, loc.range.end.line, loc.range.end.character);
+    });
+    editor.setDecorations(instrumentedFunctionDecorationType, editorDecorationRanges);
+}
+
+function renderInAllVisibleEditors(): void {
+    vscode.window.visibleTextEditors.forEach(editor => {
+        render(editor);
+    });
+}
+
 let timeout: NodeJS.Timer | undefined = undefined;
 
-function triggerUpdateDecorations() {
+function triggerUpdateAndRenderDecorations() {
     if (timeout) {
         clearTimeout(timeout);
         timeout = undefined;
     }
     if (enabled) {
-        timeout = setTimeout(() => updateDecorations(decorationsSession), 50);
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            timeout = setTimeout(() => {
+                const cljSession = namespace.getSession('clj');
+                const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
+                update(editor, cljSession, lspClient).then(() => {
+                    renderInAllVisibleEditors();
+                });
+            }, 50);
+        }
     }
 }
 
 async function activate() {
-    const cljSession = namespace.getSession('clj');
-    decorationsSession = await cljSession.clone();
+    enabled = true;
+    triggerUpdateAndRenderDecorations();
 
-    try {
-        await cljSession.eval("(require 'clj-kondo.core)", 'user').value;
-        enabled = true;
-        triggerUpdateDecorations();
+    vscode.window.onDidChangeVisibleTextEditors(editors => {
+        renderInAllVisibleEditors();
+    });
 
-        vscode.window.onDidChangeActiveTextEditor(_ => {
-            triggerUpdateDecorations();
-        });
-
-        vscode.workspace.onDidChangeTextDocument(event => {
-            const activeEditor = vscode.window.activeTextEditor;
-            if (activeEditor && event.document === activeEditor.document && event.contentChanges.length > 0) {
-                triggerUpdateDecorations();
-            }
-        });
-    } catch (_) {
-        const chan = state.outputChannel();
-        chan.appendLine('clj-kondo was not found on the classpath. Debugger decorations will not be enabled. More details: https://calva.io/debugger/#dependencies');
-    }
+    vscode.workspace.onDidChangeTextDocument(event => {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor && event.document === activeEditor.document && event.contentChanges.length > 0) {
+            triggerUpdateAndRenderDecorations();
+        }
+    });
 }
 
 export default {
     activate,
-    triggerUpdateDecorations
+    triggerUpdateAndRenderDecorations
 };
