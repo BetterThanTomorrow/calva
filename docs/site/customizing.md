@@ -80,8 +80,6 @@ Dependency | Version | Description
 [nrepl](https://github.com/nrepl/nrepl) | 0.8.3 | nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
 [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.6 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
 [cider/piggieback](https://github.com/nrepl/piggieback) | 0.5.2 | Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
-[clj-kondo](https://github.com/borkdude/clj-kondo) | 2020.04.05 | This clj-kondo instance is used by the Calva [debugger](debugger.md). (Not to be confused with the clj-kondo used by the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo) with the same name that gives you linting.)
-
 
 ## Key bindings
 

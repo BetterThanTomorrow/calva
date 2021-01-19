@@ -224,7 +224,6 @@ function activate(context: vscode.ExtensionContext): Thenable<void> {
 
     registerCommands(context, client);
     registerEventHandlers(context, client);
-    state.cursor.set(LSP_CLIENT_KEY, client);
 
     return new Promise((resolveLspActivation, _rejectLspActivation) => {
         vscode.window.withProgress({
@@ -233,6 +232,7 @@ function activate(context: vscode.ExtensionContext): Thenable<void> {
             cancellable: false
         }, async (_progress, _token) => {
            await client.onReady();
+           state.cursor.set(LSP_CLIENT_KEY, client);
            resolveLspActivation();
         });
         client.start();

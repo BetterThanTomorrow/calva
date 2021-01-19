@@ -21,9 +21,13 @@ function cancelJackInTask() {
     }, 1000);
 }
 
-function resolveEnvVariables(entry: string): string {
-    const s = entry.replace(/\$\{env:(\w+)\}/, (_, v) => process.env[v] ? process.env[v] : '');
-    return s;
+function resolveEnvVariables(entry: any): any {
+    if (typeof (entry) === "string") {
+        const s = entry.replace(/\$\{env:(\w+)\}/, (_, v) => process.env[v] ? process.env[v] : '');
+        return s;
+    } else {
+        return entry;
+    }
 }
 
 async function executeJackInTask(projectType: projectTypes.ProjectType, projectTypeSelection: any, executable: string, args: any, isWin: boolean, cljTypes: string[], connectSequence: ReplConnectSequence) {
@@ -31,7 +35,7 @@ async function executeJackInTask(projectType: projectTypes.ProjectType, projectT
     statusbar.update();
     const jackInEnv = _.mapValues(state.config().jackInEnv as object, resolveEnvVariables);
     const env = Object.assign(process.env, jackInEnv) as {
-        [key: string]: string;
+        [key: string]: any;
     };
     const terminalOptions: JackInTerminalOptions = {
         name: `Calva Jack-in: ${connectSequence.name}`,
