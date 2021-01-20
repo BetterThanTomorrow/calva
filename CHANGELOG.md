@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: ["Extract function" refactoring doesn't work as expected with selections
+](https://github.com/BetterThanTomorrow/calva/issues/958)
 
 ## [2.0.152] - 2021-01-19
 - Fix: [Jack-In env with non-string variables fails](https://github.com/BetterThanTomorrow/calva/issues/959)

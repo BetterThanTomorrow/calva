@@ -167,8 +167,8 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
         const editor = vscode.window.activeTextEditor;
         const document = util.getDocument(editor.document);
         if (document && document.languageId === 'clojure') {
-            const line = editor.selection.active.line;
-            const column = editor.selection.active.character;
+            const line = editor.selection.start.line;
+            const column = editor.selection.start.character;
             const docUri = `${document.uri.scheme}://${document.uri.path}`;
             const params = [docUri, line, column];
             const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
