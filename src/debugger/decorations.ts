@@ -31,28 +31,6 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
     }
 });
 
-async function getReferences(lspClient: LanguageClient, uri: string, position: Position): Promise<Location[] | null> {
-    const result: Location[] = await lspClient.sendRequest('textDocument/references', {
-        textDocument: {
-            uri,
-        },
-        position,
-        context: {
-            includeDeclaration: true
-        }
-    });
-    return result;
-}
-
-async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promise<DocumentSymbol[]> {
-    const result: DocumentSymbol[] = await lspClient.sendRequest('textDocument/documentSymbol', {
-        textDocument: {
-            uri
-        }
-    });
-    return result;
-}
-
 async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspClient: LanguageClient): Promise<void> {
     if (/(\.clj)$/.test(editor.document.fileName)) {
         if (cljSession && util.getConnectedState() && lspClient) {
@@ -66,7 +44,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
 
             // Find locations of instrumented symbols
             const documentUri = document.uri.toString();
-            const documentSymbols = await getDocumentSymbols(lspClient, documentUri);
+            const documentSymbols = await lsp.getDocumentSymbols(lspClient, documentUri);
             const instrumentedSymbolsInEditor = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
 
             // Find locations of instrumented symbol references
@@ -75,7 +53,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
                     line: s.range.start.line,
                     character: s.range.start.character
                 };
-                return getReferences(lspClient, documentUri, position);
+                return lsp.getReferences(lspClient, documentUri, position);
             }));
             const currentNamespaceSymbolReferenceLocations = instrumentedSymbolsInEditor.reduce((currentLocations, symbol, i) => {
                 return {
