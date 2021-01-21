@@ -225,7 +225,7 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
     registerCommands(context, client);
     registerEventHandlers(context, client);
 
-    vscode.window.setStatusBarMessage('$(sync~spin) Initializing Clojure language features', client.onReady());
+    vscode.window.setStatusBarMessage('$(sync~spin) Initializing Clojure language features via clojure-lsp', client.onReady());
 
     client.start();
     await client.onReady();
