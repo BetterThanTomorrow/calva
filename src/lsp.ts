@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, ServerOptions, LanguageClientOptions } from 'vscode-languageclient';
+import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient';
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
@@ -218,25 +218,18 @@ function registerEventHandlers(context: vscode.ExtensionContext, client: Languag
     }));
 }
 
-function activate(context: vscode.ExtensionContext): Thenable<void> {
+async function activate(context: vscode.ExtensionContext): Promise<void> {
     const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
     const client = createClient(jarPath);
 
     registerCommands(context, client);
     registerEventHandlers(context, client);
 
-    return new Promise((resolveLspActivation, _rejectLspActivation) => {
-        vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "clojure-lsp starting. You don't need to wait for it to start using Calva. Please go ahead with Jack-in or Connect to the REPL. See https://calva.io/clojure-lsp for more info.",
-            cancellable: false
-        }, async (_progress, _token) => {
-           await client.onReady();
-           state.cursor.set(LSP_CLIENT_KEY, client);
-           resolveLspActivation();
-        });
-        client.start();
-    });
+    vscode.window.setStatusBarMessage('$(sync~spin) Initializing Clojure language features via clojure-lsp', client.onReady());
+
+    client.start();
+    await client.onReady();
+    state.cursor.set(LSP_CLIENT_KEY, client);
 }
 
 function deactivate(): Promise<void> {
@@ -247,8 +240,32 @@ function deactivate(): Promise<void> {
     return Promise.resolve();
 }
 
+async function getReferences(lspClient: LanguageClient, uri: string, position: Position): Promise<Location[] | null> {
+    const result: Location[] = await lspClient.sendRequest('textDocument/references', {
+        textDocument: {
+            uri,
+        },
+        position,
+        context: {
+            includeDeclaration: true
+        }
+    });
+    return result;
+}
+
+async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promise<DocumentSymbol[]> {
+    const result: DocumentSymbol[] = await lspClient.sendRequest('textDocument/documentSymbol', {
+        textDocument: {
+            uri
+        }
+    });
+    return result;
+}
+
 export default {
     activate,
     deactivate,
-    LSP_CLIENT_KEY
+    LSP_CLIENT_KEY,
+    getReferences,
+    getDocumentSymbols
 }
