@@ -45,7 +45,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
             // Find locations of instrumented symbols
             const documentUri = document.uri.toString();
             const documentSymbols = await lsp.getDocumentSymbols(lspClient, documentUri);
-            const instrumentedSymbolsInEditor = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
+            const instrumentedSymbolsInEditor = documentSymbols[0]?.children.filter(s => instrumentedDefsInEditor.includes(s.name));
 
             // Find locations of instrumented symbol references
             const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbolsInEditor.map(s => {
