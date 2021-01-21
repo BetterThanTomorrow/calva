@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Update cider-nrepl: 0.25.6 -> 0.25.7](https://github.com/BetterThanTomorrow/calva/issues/973)
 - Fix: ["Extract function" refactoring doesn't work as expected with selections](https://github.com/BetterThanTomorrow/calva/issues/958)
 
 ## [2.0.152] - 2021-01-19
