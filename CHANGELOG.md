@@ -4,6 +4,11 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.153] - 2021-01-19
+- [Use status bar message instead of withProgress message for clojure-lsp initialization](https://github.com/BetterThanTomorrow/calva/issues/974)
+- [Update cider-nrepl: 0.25.6 -> 0.25.7](https://github.com/BetterThanTomorrow/calva/issues/973)
+- Fix: ["Extract function" refactoring doesn't work as expected with selections](https://github.com/BetterThanTomorrow/calva/issues/958)
+
 ## [2.0.152] - 2021-01-19
 - Fix: [Jack-In env with non-string variables fails](https://github.com/BetterThanTomorrow/calva/issues/959)
 - [Use clojure-lsp for usages for debug instrumentation decorations, and stop injecting clj-kondo at jack-in](https://github.com/BetterThanTomorrow/calva/issues/931)
