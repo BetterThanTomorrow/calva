@@ -500,6 +500,11 @@
                         "description": "Activate keybindings.",
                         "default": true,
                         "scope": "window"
+                    },
+                    "calva.displayDiagnostics": {
+                        "type": "boolean",
+                        "markdownDescription": "Show linter warnings and other diagnostics from clojure-lsp and clj-kondo.",
+                        "default": true
                     }
                 }
             },

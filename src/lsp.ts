@@ -29,6 +29,9 @@ function createClient(jarPath: string): LanguageClient {
         },
         middleware: {
             handleDiagnostics(uri, diagnostics, next) {
+                if (!state.config().displayDiagnostics) {
+                    return;
+                }
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
                     return;
                 }
