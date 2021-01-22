@@ -122,6 +122,7 @@ function config() {
         autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
         hideReplUi: configOptions.get('hideReplUi') as boolean,
+        displayDiagnostics: configOptions.get('displayDiagnostics') as boolean,
     };
 }
 
@@ -243,7 +244,7 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                 catch { }
             }
         }
-        catch (e) { 
+        catch (e) {
             console.error(`Problems in search for project root directory: ${e}`);
         }
         prev = searchUri;
