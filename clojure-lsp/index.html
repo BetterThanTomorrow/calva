@@ -18,7 +18,7 @@
     
     
       
-        <title>clojure-lsp - Calva User Guide</title>
+        <title>Clojure-lsp - Calva User Guide</title>
       
     
     
@@ -99,7 +99,7 @@
         <div class="md-header-nav__topic">
           <span class="md-ellipsis">
             
-              clojure-lsp
+              Clojure-lsp
             
           </span>
         </div>
@@ -303,12 +303,12 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        clojure-lsp
+        Clojure-lsp
         <span class="md-nav__icon md-icon"></span>
       </label>
     
     <a href="./" class="md-nav__link md-nav__link--active">
-      clojure-lsp
+      Clojure-lsp
     </a>
     
       
@@ -860,12 +860,12 @@
                   </a>
                 
                 
-                <h1 id="clojure-lsp">clojure-lsp</h1>
+                <h1 id="clojure-lsp">Clojure-lsp</h1>
 <p>Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from <a href="https://github.com/snoe/clojure-lsp">clojure-lsp</a>. This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)</p>
 <h2 id="starting-the-lsp-server">Starting the LSP server</h2>
 <p>You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
-<p>Calva will show a progress notification while the server is starting, which will go away once the LSP is ready to serve. However: <em>Most of Calva's functionality is available regardless of the LSP server</em>, so please start using Calva while this server is starting.</p>
-<p><img alt="" src="../images/lsp-starting.gif" /></p>
+<p>Calva will show a status bar message while the server is starting, which will go away once the server is ready. However, <em>much of Calva's functionality is available regardless of the LSP server</em>, so please start using Calva while this server is starting.</p>
+<p><img alt="&quot;Clojure-lsp status bar intializing message&quot;" src="../images/lsp-status-bar-message.gif" title="Clojure-lsp status bar intializing message" /></p>
 <h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files</h2>
 <p>clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="na">.clj-kondo</span><span class="err">/</span><span class="no">cache</span><span class="err">/</span>
