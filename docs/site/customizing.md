@@ -78,7 +78,7 @@ The versions of the dependencies [Calva Jack-in](jack-in-guide.md) injects in or
 Dependency | Version | Description
 ---------- | ------- | -----------
 [nrepl](https://github.com/nrepl/nrepl) | 0.8.3 | nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
-[cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.7 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
+[cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.8 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
 [cider/piggieback](https://github.com/nrepl/piggieback) | 0.5.2 | Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
 
 ## Key bindings
