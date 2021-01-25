@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Calva uses ; for comments instead of ;;?](https://github.com/BetterThanTomorrow/calva/issues/971)
 - Update cider-nrepl to 0.25.8
 
 ## [2.0.153] - 2021-01-19
