@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Update cider-nrepl to 0.25.8
 
 ## [2.0.153] - 2021-01-19
 - [Use status bar message instead of withProgress message for clojure-lsp initialization](https://github.com/BetterThanTomorrow/calva/issues/974)

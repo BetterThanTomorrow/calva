@@ -261,7 +261,7 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.7",
+                            "cider-nrepl": "0.25.8",
                             "cider/piggieback": "0.5.2"
                         }
                     },
