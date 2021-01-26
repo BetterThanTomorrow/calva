@@ -407,7 +407,8 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
         } else if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
             doc.model.edit([
                 new ModelEdit('deleteRange', [p - 1, 2])
-            ], { selection: new ModelEditSelection(p - 1) });
+            ], { selection: new ModelEditSelection(p - 1),
+                 skipFormat: true });
         } else {
             const prevChar = doc.model.getText(p - 1, p);
             if (openParen.has(prevChar) && cursor.forwardList() || closeParen.has(prevChar) && cursor.backwardSexp()) {
