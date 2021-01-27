@@ -9,9 +9,10 @@ import * as config from './config'
 
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
     return {
-        wordPattern: /[^\s,#()[\]{}꞉;"\\\@]+/, // NB: The ꞉ there is not a regular colon
-        onEnterRules: autoIndentOn ? [
-            // This is madness, but the only way to stop vscode from indenting new lines
+        onEnterRules: autoIndentOn && state.config().format ? [
+            // When Calva is the formatter disable all vscode default indentation
+            // (By outdenting a lot, which is the only way I have found that works)
+            // TODO: Make it actually consider whether Calva is the formatter or not
             {
                 beforeText: /.*/,
                 action: {
@@ -19,11 +20,7 @@ function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfigu
                     removeText: Number.MAX_VALUE
                 }
             },
-        ] : [],
-        comments: {
-            lineComment: ';;',
-            blockComment: ['(comment\n', ')']
-        }
+        ] : []
     }
 }
 
