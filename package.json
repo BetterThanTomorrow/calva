@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.153",
+    "version": "2.0.155",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -85,7 +85,8 @@
                     ".joke",
                     ".boot",
                     ".calva-repl"
-                ]
+                ],
+                "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
@@ -261,7 +262,7 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.7",
+                            "cider-nrepl": "0.25.8",
                             "cider/piggieback": "0.5.2"
                         }
                     },
@@ -1261,13 +1262,13 @@
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "key": "enter",
+                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "enter",
-                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
