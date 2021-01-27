@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.154] - 2021-01-27
 - Fix: [Calva uses ; for comments instead of ;;](https://github.com/BetterThanTomorrow/calva/issues/971)
 - Update cider-nrepl to 0.25.8
 - Update clojure-lsp to 2021.01.26-22.35.27
