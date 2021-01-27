@@ -1262,13 +1262,13 @@
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "key": "enter",
+                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "enter",
-                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
