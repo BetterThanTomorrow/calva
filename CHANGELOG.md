@@ -3,8 +3,9 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [Calva uses ; for comments instead of ;;?](https://github.com/BetterThanTomorrow/calva/issues/971)
+- Fix: [Calva uses ; for comments instead of ;;](https://github.com/BetterThanTomorrow/calva/issues/971)
 - Update cider-nrepl to 0.25.8
+- Update clojure-lsp to 2021.01.26-22.35.27
 
 ## [2.0.153] - 2021-01-19
 - [Use status bar message instead of withProgress message for clojure-lsp initialization](https://github.com/BetterThanTomorrow/calva/issues/974)
