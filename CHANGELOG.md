@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Make command palette show alt+enter shortcut variant instead of enter for evaluating top level form](https://github.com/BetterThanTomorrow/calva/issues/989)
+- Update clojure-lsp to 2021.01.28-03.03.16
 
 ## [2.0.154] - 2021-01-27
 - Fix: [Calva uses ; for comments instead of ;;](https://github.com/BetterThanTomorrow/calva/issues/971)
