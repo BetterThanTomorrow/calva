@@ -29,7 +29,7 @@ import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
-import snippets from './custom-snippets';
+import * as snippets from './custom-snippets';
 
 async function onDidSave(document) {
     let {

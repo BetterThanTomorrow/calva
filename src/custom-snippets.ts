@@ -4,19 +4,8 @@ import * as state from './state';
 import * as util from './utilities';
 import * as namespace from './namespace';
 import { customREPLCommandSnippet, evaluateInOutputWindow } from './evaluate';
-import select from './select';
 
-function currentFormText(editor: vscode.TextEditor, topLevel: boolean) {
-    const doc = editor.document;
-    if (doc) {
-        const codeSelection = select.getFormSelection(doc, editor.selection.active, topLevel);
-        return doc.getText(codeSelection);    
-    } else {
-        return '';
-    }
-}
-
-async function evaluateCustomCommandSnippetCommand(): Promise<void> {
+export async function evaluateCustomCommandSnippetCommand(): Promise<void> {
     let pickCounter = 1;
     let configErrors: { "name": string; "keys": string[]; }[] = [];
     const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[];
@@ -59,9 +48,10 @@ async function evaluateCustomCommandSnippetCommand(): Promise<void> {
                     replace("$line", currentLine).
                     replace("$column", currentColumn).
                     replace("$file", currentFilename).
-                    replace("$current-form", currentFormText(editor, false)).
-                    replace("$current-top-level-form", currentFormText(editor, true))
-                    ;
+                    replace("$current-form", util.currentFormText(editor, false)).
+                    replace("$top-level-form", util.currentFormText(editor, true)).
+                    replace("$current-fn", util.currentFunction(editor)).
+                    replace("$top-level-defined", util.currentTopLevelFunction(editor));
                 await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
         } catch (e) {
@@ -70,8 +60,4 @@ async function evaluateCustomCommandSnippetCommand(): Promise<void> {
     } else {
         vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
     }
-}
-
-export default {
-    evaluateCustomCommandSnippetCommand
 }
