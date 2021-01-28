@@ -144,7 +144,7 @@ async function evaluateSelection(document: {}, options) {
         const selection = editor.selection;
         let code = "";
         let codeSelection: vscode.Selection;
-        if (selection.isEmpty) {
+        if (selection.isEmpty || topLevel) {
             state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
