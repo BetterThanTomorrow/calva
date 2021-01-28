@@ -19,6 +19,7 @@ Changes to Calva.
 ## [2.0.152] - 2021-01-19
 - Fix: [Jack-In env with non-string variables fails](https://github.com/BetterThanTomorrow/calva/issues/959)
 - [Use clojure-lsp for usages for debug instrumentation decorations, and stop injecting clj-kondo at jack-in](https://github.com/BetterThanTomorrow/calva/issues/931)
+- Fix: [nrepl port detection race condition](https://github.com/BetterThanTomorrow/calva/issues/901)
 
 ## [2.0.151] - 2021-01-15
 - Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)
