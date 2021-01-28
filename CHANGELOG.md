@@ -3,8 +3,11 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.155] - 2021-01-27
 - [Make command palette show alt+enter shortcut variant instead of enter for evaluating top level form](https://github.com/BetterThanTomorrow/calva/issues/989)
 - Update clojure-lsp to 2021.01.28-03.03.16
+- Fix: [nrepl port detection race condition](https://github.com/BetterThanTomorrow/calva/issues/901)
 
 ## [2.0.154] - 2021-01-27
 - Fix: [Calva uses ; for comments instead of ;;](https://github.com/BetterThanTomorrow/calva/issues/971)
@@ -19,7 +22,6 @@ Changes to Calva.
 ## [2.0.152] - 2021-01-19
 - Fix: [Jack-In env with non-string variables fails](https://github.com/BetterThanTomorrow/calva/issues/959)
 - [Use clojure-lsp for usages for debug instrumentation decorations, and stop injecting clj-kondo at jack-in](https://github.com/BetterThanTomorrow/calva/issues/931)
-- Fix: [nrepl port detection race condition](https://github.com/BetterThanTomorrow/calva/issues/901)
 
 ## [2.0.151] - 2021-01-15
 - Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)
