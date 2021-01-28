@@ -34,8 +34,7 @@ const instrumentedSymbolDecorationType = vscode.window.createTextEditorDecoratio
 async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspClient: LanguageClient): Promise<void> {
     if (/(\.clj)$/.test(editor.document.fileName)) {
         if (cljSession && util.getConnectedState() && lspClient) {
-            // TODO: Add specific type here
-            const instrumentedDefLists: any[] = (await cljSession.listDebugInstrumentedDefs()).list;
+            const instrumentedDefLists = (await cljSession.listDebugInstrumentedDefs()).list;
 
             instrumentedSymbolReferenceLocations = await instrumentedDefLists.reduce(async (iSymbolRefLocations, [namespace, ...instrumentedDefs]) => {
                 const namespacePath = (await cljSession.nsPath(namespace)).path;
@@ -57,10 +56,11 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
                     }
                 }, {});
                 return {
-                    ...iSymbolRefLocations,
+                    ...(await iSymbolRefLocations),
                     [namespace]: currentNsSymbolsReferenceLocations
                 };
             }, {});
+            console.log('done');
         } else {
             instrumentedSymbolReferenceLocations = {};
         }
@@ -107,7 +107,7 @@ async function activate() {
     enabled = true;
     triggerUpdateAndRenderDecorations();
 
-    vscode.window.onDidChangeVisibleTextEditors(editors => {
+    vscode.window.onDidChangeVisibleTextEditors(_ => {
         renderInAllVisibleEditors();
     });
 
