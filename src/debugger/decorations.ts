@@ -36,31 +36,31 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
         if (cljSession && util.getConnectedState() && lspClient) {
             const instrumentedDefLists = (await cljSession.listDebugInstrumentedDefs()).list;
 
-            instrumentedSymbolReferenceLocations = await instrumentedDefLists.reduce(async (iSymbolRefLocations, [namespace, ...instrumentedDefs]) => {
-                const namespacePath = (await cljSession.nsPath(namespace)).path;
-                const docUri = vscode.Uri.parse(namespacePath, true);
-                const decodedDocUri = decodeURIComponent(docUri.toString());
-                const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
-                const instrumentedDocSymbols = docSymbols.filter(s => instrumentedDefs.includes(s.name));
-                const instrumentedDocSymbolsReferenceRanges = await Promise.all(instrumentedDocSymbols.map(s => {
-                    const position = {
-                        line: s.selectionRange.start.line,
-                        character: s.selectionRange.start.character
-                    };
-                    return lsp.getReferences(lspClient, decodedDocUri, position);
-                }));
-                const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce((currentLocations, symbol, i) => {
+            instrumentedSymbolReferenceLocations = await instrumentedDefLists.reduce(
+                async (iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>, [namespace, ...instrumentedDefs]: string[]) => {
+                    const namespacePath = (await cljSession.nsPath(namespace)).path;
+                    const docUri = vscode.Uri.parse(namespacePath, true);
+                    const decodedDocUri = decodeURIComponent(docUri.toString());
+                    const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+                    const instrumentedDocSymbols = docSymbols.filter(s => instrumentedDefs.includes(s.name));
+                    const instrumentedDocSymbolsReferenceRanges = await Promise.all(instrumentedDocSymbols.map(s => {
+                        const position = {
+                            line: s.selectionRange.start.line,
+                            character: s.selectionRange.start.character
+                        };
+                        return lsp.getReferences(lspClient, decodedDocUri, position);
+                    }));
+                    const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce((currentLocations, symbol, i) => {
+                        return {
+                            ...currentLocations,
+                            [symbol.name]: instrumentedDocSymbolsReferenceRanges[i]
+                        }
+                    }, {});
                     return {
-                        ...currentLocations,
-                        [symbol.name]: instrumentedDocSymbolsReferenceRanges[i]
-                    }
+                        ...(await iSymbolRefLocations),
+                        [namespace]: currentNsSymbolsReferenceLocations
+                    };
                 }, {});
-                return {
-                    ...(await iSymbolRefLocations),
-                    [namespace]: currentNsSymbolsReferenceLocations
-                };
-            }, {});
-            console.log('done');
         } else {
             instrumentedSymbolReferenceLocations = {};
         }
@@ -95,9 +95,7 @@ function triggerUpdateAndRenderDecorations() {
             timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
                 const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
-                update(editor, cljSession, lspClient).then(() => {
-                    renderInAllVisibleEditors();
-                });
+                update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }
     }
