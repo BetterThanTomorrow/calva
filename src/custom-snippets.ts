@@ -52,7 +52,7 @@ export async function evaluateCustomCommandSnippetCommand(): Promise<void> {
                     replace("$current-form", util.currentFormText(editor, false)).
                     replace("$top-level-form", util.currentFormText(editor, true)).
                     replace("$current-fn", util.currentFunction(editor)).
-                    replace("$top-level-defined", util.currentTopLevelFunction(editor));
+                    replace("$top-level-defined-symbol", util.currentTopLevelFunction(editor));
                 await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
             }
         } catch (e) {
