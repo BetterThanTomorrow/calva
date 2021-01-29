@@ -1332,7 +1332,7 @@
             },
             {
                 "command": "calva.runCustomREPLCommand",
-                "key": "ctrl+alt+c .",
+                "key": "ctrl+alt+space",
                 "when": "calva:keybindingsEnabled"
             },
             {
