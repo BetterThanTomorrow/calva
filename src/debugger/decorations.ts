@@ -10,14 +10,14 @@ import * as util from '../utilities';
 
 let enabled = false;
 
-interface SymbolReferenceLocations {
+interface InstrumentedSymbolReferenceLocations {
     [namespace: string]: {
         [symbol: string]: Location[]
     }
 }
-let symbolReferenceLocations: SymbolReferenceLocations = {};
+let instrumentedSymbolReferenceLocations: InstrumentedSymbolReferenceLocations = {};
 
-const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorationType({
+const instrumentedSymbolDecorationType = vscode.window.createTextEditorDecorationType({
     borderStyle: 'solid',
     overviewRulerColor: 'blue',
     borderWidth: '1px 0px 1px 0px',
@@ -34,47 +34,46 @@ const instrumentedFunctionDecorationType = vscode.window.createTextEditorDecorat
 async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspClient: LanguageClient): Promise<void> {
     if (/(\.clj)$/.test(editor.document.fileName)) {
         if (cljSession && util.getConnectedState() && lspClient) {
-            const document = editor.document;
+            const instrumentedDefLists = (await cljSession.listDebugInstrumentedDefs()).list;
 
-            // Get instrumented defs
-            const docNamespace = namespace.getDocumentNamespace(document);
-            const instrumentedDefs = await cljSession.listDebugInstrumentedDefs();
-
-            const instrumentedDefsInEditor = instrumentedDefs.list.filter(alist => alist[0] === docNamespace)[0]?.slice(1) || [];
-
-            // Find locations of instrumented symbols
-            const documentUri = document.uri.toString();
-            const documentSymbols = await lsp.getDocumentSymbols(lspClient, documentUri);
-            const instrumentedSymbolsInEditor = documentSymbols[0].children.filter(s => instrumentedDefsInEditor.includes(s.name));
-
-            // Find locations of instrumented symbol references
-            const instrumentedSymbolReferenceLocations = await Promise.all(instrumentedSymbolsInEditor.map(s => {
-                const position = {
-                    line: s.range.start.line,
-                    character: s.range.start.character
-                };
-                return lsp.getReferences(lspClient, documentUri, position);
-            }));
-            const currentNamespaceSymbolReferenceLocations = instrumentedSymbolsInEditor.reduce((currentLocations, symbol, i) => {
-                return {
-                    ...currentLocations,
-                    [symbol.name]: instrumentedSymbolReferenceLocations[i]
-                }
-            }, {});
-            symbolReferenceLocations[docNamespace] = currentNamespaceSymbolReferenceLocations;
+            instrumentedSymbolReferenceLocations = await instrumentedDefLists.reduce(
+                async (iSymbolRefLocations: Promise<InstrumentedSymbolReferenceLocations>, [namespace, ...instrumentedDefs]: string[]) => {
+                    const namespacePath = (await cljSession.nsPath(namespace)).path;
+                    const docUri = vscode.Uri.parse(namespacePath, true);
+                    const decodedDocUri = decodeURIComponent(docUri.toString());
+                    const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+                    const instrumentedDocSymbols = docSymbols.filter(s => instrumentedDefs.includes(s.name));
+                    const instrumentedDocSymbolsReferenceRanges = await Promise.all(instrumentedDocSymbols.map(s => {
+                        const position = {
+                            line: s.selectionRange.start.line,
+                            character: s.selectionRange.start.character
+                        };
+                        return lsp.getReferences(lspClient, decodedDocUri, position);
+                    }));
+                    const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce((currentLocations, symbol, i) => {
+                        return {
+                            ...currentLocations,
+                            [symbol.name]: instrumentedDocSymbolsReferenceRanges[i]
+                        }
+                    }, {});
+                    return {
+                        ...(await iSymbolRefLocations),
+                        [namespace]: currentNsSymbolsReferenceLocations
+                    };
+                }, {});
         } else {
-            symbolReferenceLocations = {};
+            instrumentedSymbolReferenceLocations = {};
         }
     }
 }
 
 function render(editor: vscode.TextEditor): void {
-    const allNsSymbolLocations: Location[] = _.flatten(_.flatten(_.values(symbolReferenceLocations).map(_.values)));
-    const nsSymbolReferenceLocations = allNsSymbolLocations.filter(loc => loc.uri === decodeURIComponent(editor.document.uri.toString()));
+    const locations = _.flatten(_.flatten(_.values(instrumentedSymbolReferenceLocations).map(_.values)));
+    const nsSymbolReferenceLocations = locations.filter(loc => decodeURIComponent(loc.uri) === decodeURIComponent(editor.document.uri.toString()));
     const editorDecorationRanges = nsSymbolReferenceLocations.map(loc => {
         return new vscode.Range(loc.range.start.line, loc.range.start.character, loc.range.end.line, loc.range.end.character);
     });
-    editor.setDecorations(instrumentedFunctionDecorationType, editorDecorationRanges);
+    editor.setDecorations(instrumentedSymbolDecorationType, editorDecorationRanges);
 }
 
 function renderInAllVisibleEditors(): void {
@@ -96,9 +95,7 @@ function triggerUpdateAndRenderDecorations() {
             timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
                 const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
-                update(editor, cljSession, lspClient).then(() => {
-                    renderInAllVisibleEditors();
-                });
+                update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }
     }
@@ -108,7 +105,7 @@ async function activate() {
     enabled = true;
     triggerUpdateAndRenderDecorations();
 
-    vscode.window.onDidChangeVisibleTextEditors(editors => {
+    vscode.window.onDidChangeVisibleTextEditors(_ => {
         renderInAllVisibleEditors();
     });
 
