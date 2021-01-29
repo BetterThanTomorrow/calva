@@ -714,6 +714,22 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
     }
+
+    /**
+     * Get the range of the sexp that is in function position of the current list, optionally digging `levels` functions up.
+     * @param levels how many levels of functions to dig up.
+     * @returns the range of the function sexp/form, or undefined if there is no function there.
+     */
+    getFunctionSexpRange(levels: number = 0): [number, number] {
+        const cursor = this.clone();
+        if (cursor.backwardFunction(levels)) {
+            cursor.forwardWhitespace();
+            const start = cursor.offsetStart;
+            cursor.forwardSexp(true, true, true);
+            const end = cursor.offsetStart;
+            return [start, end];
+        }
+    }
 }
 
 /**

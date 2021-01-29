@@ -375,7 +375,13 @@ function currentFunction(editor: vscode.TextEditor) {
     if (editor) {
         const document = editor.document;
         const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor();
-        return tokenCursor.getFunctionName();
+        const [start, end] = tokenCursor.getFunctionSexpRange();
+        if (start && end) {
+            const startPos = document.positionAt(start);
+            const endPos = document.positionAt(end);
+            return document.getText(new vscode.Range(startPos, endPos));
+        }
+        return '';
     }
 }
 
@@ -395,6 +401,7 @@ function currentTopLevelFunction(editor: vscode.TextEditor) {
             }
             return '';
         }
+        return '';
     }
 }
 
