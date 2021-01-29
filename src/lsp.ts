@@ -240,14 +240,14 @@ function deactivate(): Promise<void> {
     return Promise.resolve();
 }
 
-async function getReferences(lspClient: LanguageClient, uri: string, position: Position): Promise<Location[] | null> {
+async function getReferences(lspClient: LanguageClient, uri: string, position: Position, includeDeclaration: boolean = true): Promise<Location[] | null> {
     const result: Location[] = await lspClient.sendRequest('textDocument/references', {
         textDocument: {
             uri,
         },
         position,
         context: {
-            includeDeclaration: true
+            includeDeclaration
         }
     });
     return result;

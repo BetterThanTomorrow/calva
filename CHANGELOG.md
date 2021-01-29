@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.156] - 2021-01-28
+- Fix: [Debug instrumentation decoration not working correctly anymore on Windows](https://github.com/BetterThanTomorrow/calva/issues/969)
+- Fix: [Debugger decorations issues](https://github.com/BetterThanTomorrow/calva/issues/976)
+
 ## [2.0.155] - 2021-01-27
 - [Make command palette show alt+enter shortcut variant instead of enter for evaluating top level form](https://github.com/BetterThanTomorrow/calva/issues/989)
 - Update clojure-lsp to 2021.01.28-03.03.16
