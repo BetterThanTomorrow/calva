@@ -375,7 +375,7 @@ function currentFunction(editor: vscode.TextEditor) {
     if (editor) {
         const document = editor.document;
         const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor();
-        return tokenCursor.getFunction();
+        return tokenCursor.getFunctionName();
     }
 }
 

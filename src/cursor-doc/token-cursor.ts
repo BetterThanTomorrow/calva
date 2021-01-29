@@ -575,7 +575,7 @@ export class LispTokenCursor extends TokenCursor {
                 if (depth < 1 && cursor.getPrevToken().raw === ')') {
                     const commentCursor = cursor.clone();
                     commentCursor.previous();
-                    if (commentCursor.getFunction() === 'comment') {
+                    if (commentCursor.getFunctionName() === 'comment') {
                         commentCursor.backwardList();
                         commentCursor.forwardWhitespace();
                         commentCursor.forwardSexp();
@@ -704,7 +704,7 @@ export class LispTokenCursor extends TokenCursor {
      * @param levels how many levels of functions to dig up.
      * @returns the function name, or undefined if there is no function there.
      */
-    getFunction(levels: number = 0): string {
+    getFunctionName(levels: number = 0): string {
         const cursor = this.clone();
         if (cursor.backwardFunction(levels)) {
             cursor.forwardWhitespace();
