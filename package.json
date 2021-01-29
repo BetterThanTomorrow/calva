@@ -607,6 +607,11 @@
         ],
         "commands": [
             {
+                "command": "calva.copyJackInCommandToClipboard",
+                "title": "Copy Jack-In Command to Clipboard",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.openCalvaDocs",
                 "title": "Open Documentation (calva.io)",
                 "category": "Calva"
