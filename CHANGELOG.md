@@ -3,7 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
-
+- [Add Custom Commands variables for current form and more](https://github.com/BetterThanTomorrow/calva/issues/986)
 ## [2.0.155] - 2021-01-27
 - [Make command palette show alt+enter shortcut variant instead of enter for evaluating top level form](https://github.com/BetterThanTomorrow/calva/issues/989)
 - Update clojure-lsp to 2021.01.28-03.03.16
