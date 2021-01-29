@@ -48,6 +48,7 @@ export async function evaluateCustomCommandSnippetCommand(): Promise<void> {
                     replace("$line", currentLine).
                     replace("$column", currentColumn).
                     replace("$file", currentFilename).
+                    replace("$ns", ns).
                     replace("$current-form", util.currentFormText(editor, false)).
                     replace("$top-level-form", util.currentFormText(editor, true)).
                     replace("$current-fn", util.currentFunction(editor)).
