@@ -29,6 +29,7 @@ import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
+import * as snippets from './custom-snippets';
 
 async function onDidSave(document) {
     let {
@@ -162,7 +163,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', async () => {
-        await eval.evaluateCustomCommandSnippetCommand();
+        await snippets.evaluateCustomCommandSnippetCommand();
         outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));

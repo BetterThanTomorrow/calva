@@ -575,7 +575,7 @@ export class LispTokenCursor extends TokenCursor {
                 if (depth < 1 && cursor.getPrevToken().raw === ')') {
                     const commentCursor = cursor.clone();
                     commentCursor.previous();
-                    if (commentCursor.getFunction() === 'comment') {
+                    if (commentCursor.getFunctionName() === 'comment') {
                         commentCursor.backwardList();
                         commentCursor.forwardWhitespace();
                         commentCursor.forwardSexp();
@@ -704,7 +704,7 @@ export class LispTokenCursor extends TokenCursor {
      * @param levels how many levels of functions to dig up.
      * @returns the function name, or undefined if there is no function there.
      */
-    getFunction(levels: number = 0): string {
+    getFunctionName(levels: number = 0): string {
         const cursor = this.clone();
         if (cursor.backwardFunction(levels)) {
             cursor.forwardWhitespace();
@@ -712,6 +712,22 @@ export class LispTokenCursor extends TokenCursor {
             if (symbol.type === 'id') {
                 return symbol.raw;
             }
+        }
+    }
+
+    /**
+     * Get the range of the sexp that is in function position of the current list, optionally digging `levels` functions up.
+     * @param levels how many levels of functions to dig up.
+     * @returns the range of the function sexp/form, or undefined if there is no function there.
+     */
+    getFunctionSexpRange(levels: number = 0): [number, number] {
+        const cursor = this.clone();
+        if (cursor.backwardFunction(levels)) {
+            cursor.forwardWhitespace();
+            const start = cursor.offsetStart;
+            cursor.forwardSexp(true, true, true);
+            const end = cursor.offsetStart;
+            return [start, end];
         }
     }
 }
