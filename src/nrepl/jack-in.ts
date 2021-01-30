@@ -148,7 +148,12 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
 async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
     const cljTypes: string[] = await projectTypes.detectProjectTypes();
     if (cljTypes.length > 1) {
-        return askForConnectSequence(cljTypes.filter(t => t !== 'generic'), 'jack-in-type', "JackInInterrupted");
+        const connectSequence = await askForConnectSequence(cljTypes.filter(t => t !== 'generic'), 'jack-in-type', "JackInInterrupted");
+        if (connectSequence) {
+            return connectSequence;
+        } else {
+            return Promise.reject();
+        }
     } else { // Only 'generic' type left
         vscode.window.showInformationMessage('No supported Jack-in project types detected.')
     }
@@ -169,19 +174,28 @@ export async function calvaJackIn() {
     if (state.getProjectRootUri().scheme === "vsls") {
         outputWindow.append("; Aborting Jack-in, since you're the guest of a live share session.");
         outputWindow.append("; Please use this command instead: Connect to a running REPL server in the project.");
-        return
+        return;
     }
     state.analytics().logEvent("REPL", "JackInInitiated").send();
     await outputWindow.initResultsDoc();
     outputWindow.append("; Jacking in...");
     await outputWindow.openResultsDoc();
 
-    const projectConnectSequence = await getProjectConnectSequence();
+    let projectConnectSequence: ReplConnectSequence;
+    try {
+        projectConnectSequence = await getProjectConnectSequence();
+    } catch (e) {
+        outputWindow.append('; Aborting jack-in. No project type selected.');
+        return;
+    }
     if (projectConnectSequence) {
         const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
         if (terminalJackInOptions) {
             executeJackInTask(terminalJackInOptions, projectConnectSequence);
         }
+    } else {
+        outputWindow.append('; No supported project types detected.');
+        return;
     }
 
     liveShareSupport.didJackIn();
