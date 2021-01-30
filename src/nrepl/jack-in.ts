@@ -48,9 +48,6 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
         jackInTerminal = undefined;
     }
 
-    // TODO: Move this out to call site
-    //state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
-
     try {
         jackInPTY = new JackInTerminal(terminalOptions, async (_p, hostname: string, port: string) => {
             // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
@@ -76,57 +73,6 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
         console.error("Failed executing task: ", exception.message);
     }
 }
-
-// async function executeJackInTask(executable: string, args: any, isWin: boolean, cljTypes: string[], connectSequence: ReplConnectSequence) {
-//     utilities.setLaunchingState(connectSequence.name);
-//     statusbar.update();
-//     const jackInEnv = _.mapValues(state.config().jackInEnv as object, resolveEnvVariables);
-//     const env = Object.assign(process.env, jackInEnv) as {
-//         [key: string]: any;
-//     };
-//     const terminalOptions: JackInTerminalOptions = {
-//         name: `Calva Jack-in: ${connectSequence.name}`,
-//         executable,
-//         args,
-//         env,
-//         isWin,
-//         cwd: state.getProjectRootLocal(),
-//     };
-
-//     // in case we have a running task present try to end it.
-//     calvaJackout();
-//     if (jackInTerminal !== undefined) {
-//         jackInTerminal.dispose();
-//         jackInTerminal = undefined;
-//     }
-
-//     state.analytics().logEvent("REPL", "JackInExecuting", JSON.stringify(cljTypes)).send();
-
-//     try {
-//         jackInPTY = new JackInTerminal(terminalOptions, async (_p, hostname: string, port: string) => {
-//             // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
-//             utilities.setLaunchingState(null);
-//             await connector.connect(connectSequence, true, hostname, port);
-//             outputWindow.append("; Jack-in done.");
-//             outputWindow.appendPrompt();
-//         }, (errorMessage) => {
-//             outputWindow.append("; Error in Jack-in: unable to read port file");
-//             outputWindow.append(`; ${errorMessage}`);
-//             outputWindow.append("; You may have chosen the wrong jack-in configuration for your project.");
-//             vscode.window.showErrorMessage("Error in Jack-in: unable to read port file. See output window for more information.");
-//             cancelJackInTask();
-//         });
-//         jackInTerminal = (<any>vscode.window).createTerminal({ name: `Calva Jack-in: ${connectSequence.name}`, pty: jackInPTY });
-//         if (state.config().autoOpenJackInTerminal) {
-//             jackInTerminal.show();
-//         }
-//         jackInPTY.onDidClose((e) => {
-//             calvaJackout();
-//         });
-//     } catch (exception) {
-//         console.error("Failed executing task: ", exception.message);
-//     }
-// }
 
 export function calvaJackout() {
     if (jackInPTY != undefined) {
@@ -162,39 +108,16 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
         console.error("An error occurred while initializing project directory.", e);
         return;
     }
-    const cljTypes: string[] = await projectTypes.detectProjectTypes();
-    if (cljTypes.length > 1) {
-        const projectConnectSequence: ReplConnectSequence = await askForConnectSequence(cljTypes.filter(t => t !== 'generic'), 'jack-in-type', "JackInInterrupted");
-
-        if (projectConnectSequence && projectConnectSequence.projectType !== 'generic') {
-            const projectTypeName: string = projectConnectSequence.projectType;
-            let selectedCljsType: CljsTypes;
-
-            if (typeof projectConnectSequence.cljsType == "string" && projectConnectSequence.cljsType != CljsTypes.none) {
-                selectedCljsType = projectConnectSequence.cljsType;
-            } else if (projectConnectSequence.cljsType && typeof projectConnectSequence.cljsType == "object") {
-                selectedCljsType = projectConnectSequence.cljsType.dependsOn;
-            }
-
-            const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-            const executable = projectTypes.isWin ? projectType.winCmd : projectType.cmd;
-            // Ask the project type to build up the command line. This may prompt for further information.
-            const args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+    const projectConnectSequence = await getProjectConnectSequence();
+    if (projectConnectSequence) {
+        const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
+        if (executable && args) {
             vscode.env.clipboard.writeText(createTerminalCommand(executable, args));
         }
-    } else { // Only 'generic' type left
-        vscode.window.showInformationMessage('No supported Jack-in project types detected.');
     }
 }
 
-async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSequence) {
-    try {
-        await state.initProjectDir();
-    } catch (e) {
-        console.error("An error occurred while initializing project directory.", e);
-        return;
-    }
-
+async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSequence): Promise<JackInTerminalOptions> {
     if (projectConnectSequence.projectType !== 'generic') {
         const projectTypeName: string = projectConnectSequence.projectType;
         let selectedCljsType: CljsTypes;
@@ -222,6 +145,15 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
     }
 }
 
+async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
+    const cljTypes: string[] = await projectTypes.detectProjectTypes();
+    if (cljTypes.length > 1) {
+        return askForConnectSequence(cljTypes.filter(t => t !== 'generic'), 'jack-in-type', "JackInInterrupted");
+    } else { // Only 'generic' type left
+        vscode.window.showInformationMessage('No supported Jack-in project types detected.')
+    }
+}
+
 export async function calvaJackIn() {
     try {
         await state.initProjectDir();
@@ -244,45 +176,12 @@ export async function calvaJackIn() {
     outputWindow.append("; Jacking in...");
     await outputWindow.openResultsDoc();
 
-    const cljTypes: string[] = await projectTypes.detectProjectTypes();
-    if (cljTypes.length > 1) {
-        const projectConnectSequence: ReplConnectSequence = await askForConnectSequence(cljTypes.filter(t => t !== 'generic'), 'jack-in-type', "JackInInterrupted");
-
-        if (!projectConnectSequence) {
-            state.analytics().logEvent("REPL", "JackInInterrupted", "NoProjectTypeForBuildName").send();
-            outputWindow.append("; Aborting Jack-in, since no project type was selected.");
-            return;
+    const projectConnectSequence = await getProjectConnectSequence();
+    if (projectConnectSequence) {
+        const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
+        if (terminalJackInOptions) {
+            executeJackInTask(terminalJackInOptions, projectConnectSequence);
         }
-        if (projectConnectSequence.projectType !== 'generic') {
-            const projectTypeName: string = projectConnectSequence.projectType;
-            let selectedCljsType: CljsTypes;
-
-            if (typeof projectConnectSequence.cljsType == "string" && projectConnectSequence.cljsType != CljsTypes.none) {
-                selectedCljsType = projectConnectSequence.cljsType;
-            } else if (projectConnectSequence.cljsType && typeof projectConnectSequence.cljsType == "object") {
-                selectedCljsType = projectConnectSequence.cljsType.dependsOn;
-            }
-
-            const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-            const executable = projectTypes.isWin ? projectType.winCmd : projectType.cmd;
-            // Ask the project type to build up the command line. This may prompt for further information.
-            const args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
-
-            const terminalOptions: JackInTerminalOptions = {
-                name: `Calva Jack-in: ${projectConnectSequence.name}`,
-                executable,
-                args,
-                env: getJackInEnv(),
-                isWin: projectTypes.isWin,
-                cwd: state.getProjectRootLocal(),
-            };
-            executeJackInTask(terminalOptions, projectConnectSequence);
-        } else {
-            outputWindow.append("; There is no Jack-in possible for this project type.");
-        }
-    } else { // Only 'generic' type left
-        outputWindow.append("; No Jack-in possible.");
-        vscode.window.showInformationMessage('No supported Jack-in project types detected. Maybe try starting your project manually and use the Connect command?')
     }
 
     liveShareSupport.didJackIn();

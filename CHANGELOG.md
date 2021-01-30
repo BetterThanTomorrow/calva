@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add command for copying jack-in command to clipboard](https://github.com/BetterThanTomorrow/calva/pull/995)
 
 ## [2.0.156] - 2021-01-28
 - Fix: [Debug instrumentation decoration not working correctly anymore on Windows](https://github.com/BetterThanTomorrow/calva/issues/969)
