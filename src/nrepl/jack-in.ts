@@ -105,7 +105,7 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
     try {
         await state.initProjectDir();
     } catch (e) {
-        console.error("An error occurred while initializing project directory.", e);
+        console.error('An error occurred while initializing project directory.', e);
         return;
     }
     let projectConnectSequence: ReplConnectSequence;
@@ -118,8 +118,10 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
         const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
         if (executable && args) {
             vscode.env.clipboard.writeText(createTerminalCommand(executable, args));
-            vscode.window.showInformationMessage("Jack-in command copied to the clipboard.");
+            vscode.window.showInformationMessage('Jack-in command copied to the clipboard.');
         }
+    } else {
+        vscode.window.showInformationMessage('No supported project types detected.');
     }
 }
 
@@ -160,8 +162,6 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
         } else {
             return Promise.reject();
         }
-    } else { // Only 'generic' type left
-        vscode.window.showInformationMessage('No supported Jack-in project types detected.');
     }
 }
 
@@ -200,7 +200,7 @@ export async function calvaJackIn() {
             executeJackInTask(terminalJackInOptions, projectConnectSequence);
         }
     } else {
-        outputWindow.append('; No supported project types detected. Maybe try starting your project manually and use the Connect command?');
+        vscode.window.showInformationMessage('No supported project types detected. Maybe try starting your project manually and use the Connect command?');
         return;
     }
 
