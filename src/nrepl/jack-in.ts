@@ -113,6 +113,7 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
         const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
         if (executable && args) {
             vscode.env.clipboard.writeText(createTerminalCommand(executable, args));
+            vscode.window.showInformationMessage("Jack-in command copied to the clipboard.");
         }
     }
 }
