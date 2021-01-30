@@ -8,7 +8,7 @@ import statusbar from "../statusbar";
 import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
 import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
-import { JackInTerminal, JackInTerminalOptions, createTerminalCommand } from "./jack-in-terminal";
+import { JackInTerminal, JackInTerminalOptions, createCommandLine } from "./jack-in-terminal";
 import * as namespace from "../namespace";
 import * as liveShareSupport from '../liveShareSupport';
 
@@ -116,7 +116,7 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
     if (projectConnectSequence) {
         const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
         if (executable && args) {
-            vscode.env.clipboard.writeText(createTerminalCommand(executable, args));
+            vscode.env.clipboard.writeText(createCommandLine(executable, args));
             vscode.window.showInformationMessage('Jack-in command copied to the clipboard.');
         }
     } else {
