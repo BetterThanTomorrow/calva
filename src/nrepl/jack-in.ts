@@ -108,7 +108,12 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
         console.error("An error occurred while initializing project directory.", e);
         return;
     }
-    const projectConnectSequence = await getProjectConnectSequence();
+    let projectConnectSequence: ReplConnectSequence;
+    try {
+        projectConnectSequence = await getProjectConnectSequence();
+    } catch (e) {
+        return;
+    }
     if (projectConnectSequence) {
         const { executable, args } = await getJackInTerminalOptions(projectConnectSequence);
         if (executable && args) {
@@ -156,7 +161,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
             return Promise.reject();
         }
     } else { // Only 'generic' type left
-        vscode.window.showInformationMessage('No supported Jack-in project types detected.')
+        vscode.window.showInformationMessage('No supported Jack-in project types detected.');
     }
 }
 
