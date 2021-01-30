@@ -50,7 +50,6 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
 
     try {
         jackInPTY = new JackInTerminal(terminalOptions, async (_p, hostname: string, port: string) => {
-            // Create a watcher to wait for the nREPL port file to appear with new content, and connect + open the repl window at that point.
             utilities.setLaunchingState(null);
             await connector.connect(connectSequence, true, hostname, port);
             outputWindow.append("; Jack-in done.");
