@@ -155,21 +155,6 @@ export function calvaJackout() {
     liveShareSupport.didJackOut();
 }
 
-function getJackInExecutable(projectReplConnectSequence: ReplConnectSequence): string {
-    const projectTypeName: string = projectReplConnectSequence.projectType;
-    let selectedCljsType: CljsTypes;
-
-    if (typeof projectReplConnectSequence.cljsType === "string" && projectReplConnectSequence.cljsType !== CljsTypes.none) {
-        selectedCljsType = projectReplConnectSequence.cljsType;
-    } else if (projectReplConnectSequence.cljsType && typeof projectReplConnectSequence.cljsType === "object") {
-        selectedCljsType = projectReplConnectSequence.cljsType.dependsOn;
-    }
-
-    const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-    const executable = projectTypes.isWin ? projectType.winCmd : projectType.cmd;
-    return executable;
-}
-
 export async function copyJackInCommandToClipboard(): Promise<void> {
     try {
         await state.initProjectDir();
@@ -199,6 +184,41 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
         }
     } else { // Only 'generic' type left
         vscode.window.showInformationMessage('No supported Jack-in project types detected.');
+    }
+}
+
+async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSequence) {
+    try {
+        await state.initProjectDir();
+    } catch (e) {
+        console.error("An error occurred while initializing project directory.", e);
+        return;
+    }
+
+    if (projectConnectSequence.projectType !== 'generic') {
+        const projectTypeName: string = projectConnectSequence.projectType;
+        let selectedCljsType: CljsTypes;
+
+        if (typeof projectConnectSequence.cljsType == "string" && projectConnectSequence.cljsType != CljsTypes.none) {
+            selectedCljsType = projectConnectSequence.cljsType;
+        } else if (projectConnectSequence.cljsType && typeof projectConnectSequence.cljsType == "object") {
+            selectedCljsType = projectConnectSequence.cljsType.dependsOn;
+        }
+
+        const projectType = projectTypes.getProjectTypeForName(projectTypeName);
+        const executable = projectTypes.isWin ? projectType.winCmd : projectType.cmd;
+        // Ask the project type to build up the command line. This may prompt for further information.
+        const args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+
+        const terminalOptions: JackInTerminalOptions = {
+            name: `Calva Jack-in: ${projectConnectSequence.name}`,
+            executable,
+            args,
+            env: getJackInEnv(),
+            isWin: projectTypes.isWin,
+            cwd: state.getProjectRootLocal(),
+        };
+        return terminalOptions;
     }
 }
 
