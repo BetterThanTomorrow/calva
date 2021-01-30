@@ -4,6 +4,30 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Change default shortcuts for Paredit forward/backward sexp, expand/shrink selection, and for slurping and barfing](https://github.com/BetterThanTomorrow/calva/issues/950)
+- [Add Custom Commands variables for current form and more](https://github.com/BetterThanTomorrow/calva/issues/986)
+
+## [2.0.156] - 2021-01-28
+- Fix: [Debug instrumentation decoration not working correctly anymore on Windows](https://github.com/BetterThanTomorrow/calva/issues/969)
+- Fix: [Debugger decorations issues](https://github.com/BetterThanTomorrow/calva/issues/976)
+
+## [2.0.155] - 2021-01-27
+- [Make command palette show alt+enter shortcut variant instead of enter for evaluating top level form](https://github.com/BetterThanTomorrow/calva/issues/989)
+- Update clojure-lsp to 2021.01.28-03.03.16
+- Fix: [nrepl port detection race condition](https://github.com/BetterThanTomorrow/calva/issues/901)
+
+## [2.0.154] - 2021-01-27
+- Fix: [Calva uses ; for comments instead of ;;](https://github.com/BetterThanTomorrow/calva/issues/971)
+- Update cider-nrepl to 0.25.8
+- Update clojure-lsp to 2021.01.26-22.35.27
+
+## [2.0.153] - 2021-01-19
+- [Use status bar message instead of withProgress message for clojure-lsp initialization](https://github.com/BetterThanTomorrow/calva/issues/974)
+- [Update cider-nrepl: 0.25.6 -> 0.25.7](https://github.com/BetterThanTomorrow/calva/issues/973)
+- Fix: ["Extract function" refactoring doesn't work as expected with selections](https://github.com/BetterThanTomorrow/calva/issues/958)
+
+## [2.0.152] - 2021-01-19
+- Fix: [Jack-In env with non-string variables fails](https://github.com/BetterThanTomorrow/calva/issues/959)
+- [Use clojure-lsp for usages for debug instrumentation decorations, and stop injecting clj-kondo at jack-in](https://github.com/BetterThanTomorrow/calva/issues/931)
 
 ## [2.0.151] - 2021-01-15
 - Fix: [Debugger is broken on Windows](https://github.com/BetterThanTomorrow/calva/issues/947)

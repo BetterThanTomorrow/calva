@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.152",
+    "version": "2.0.157",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -85,7 +85,8 @@
                     ".joke",
                     ".boot",
                     ".calva-repl"
-                ]
+                ],
+                "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
@@ -257,17 +258,12 @@
                             "cider/piggieback": {
                                 "type": "string",
                                 "description": "Piggieback is used to create nREPL sessions in ClojureScript projects (not with shadow-cljs though, which provides its own middleware for this."
-                            },
-                            "clj-kondo": {
-                                "type": "string",
-                                "description": "This clj-kondo is used by the Calva debugger for finding usages, not for linting."
                             }
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.6",
-                            "cider/piggieback": "0.5.2",
-                            "clj-kondo": "2020.04.05"
+                            "cider-nrepl": "0.25.8",
+                            "cider/piggieback": "0.5.2"
                         }
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
@@ -1266,13 +1262,13 @@
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "key": "enter",
+                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "enter",
-                "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
@@ -1336,7 +1332,7 @@
             },
             {
                 "command": "calva.runCustomREPLCommand",
-                "key": "ctrl+alt+c .",
+                "key": "ctrl+alt+space",
                 "when": "calva:keybindingsEnabled"
             },
             {

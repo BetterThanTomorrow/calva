@@ -296,7 +296,7 @@ export class NReplSession {
             this.messageHandlers[opMsg.id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
                 if (opts.line && opts.column && opts.file) {
-                    debugDecorations.triggerUpdateDecorations();
+                    debugDecorations.triggerUpdateAndRenderDecorations();
                 }
                 if (evaluation.onMessage(msg, pprintOptions)) {
                     return true;
@@ -344,7 +344,7 @@ export class NReplSession {
         let evaluation = new NReplEvaluation(id, this, opts.stderr, opts.stdout, null, new Promise((resolve, reject) => {
             this.messageHandlers[id] = (msg) => {
                 evaluation.setHandlers(resolve, reject);
-                debugDecorations.triggerUpdateDecorations();
+                debugDecorations.triggerUpdateAndRenderDecorations();
                 if (evaluation.onMessage(msg, opts.pprintOptions)) {
                     return true;
                 }

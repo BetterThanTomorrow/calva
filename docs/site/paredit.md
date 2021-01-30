@@ -75,7 +75,7 @@ Default keybinding    | Action | Description
  `ctrl+shift+home`       | **Select Backward to List Start/Open** | ![](images/paredit/select-open-list.gif)
 
 !!! Note
-Many implementations of Paredit have commands for copying/cutting while deleting. In Calva there are instead the above selection commands, and you can choose to copy/cut once you have the selection.
+    Many implementations of Paredit have commands for copying/cutting while deleting. In Calva there are instead the above selection commands, and you can choose to copy/cut once you have the selection.
 
 ### Editing
 

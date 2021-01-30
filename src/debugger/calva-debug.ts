@@ -197,7 +197,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
         const source = new Source(basename(debugResponse.file), debugResponse.file);
-        const name = tokenCursor.getFunction();
+        const name = tokenCursor.getFunctionName();
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
         response.body = {
@@ -250,8 +250,6 @@ class CalvaDebugSession extends LoggingDebugSession {
             const { id, key } = state.deref().get(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':quit', id, key);
         }
-
-        debugDecorations.triggerUpdateDecorations();
 
         this.sendResponse(response);
     }
@@ -369,6 +367,13 @@ async function initializeDebugger(cljSession: NReplSession): Promise<void> {
     debugDecorations.activate();
 }
 
+function terminateDebugSession(): void {
+    if (vscode.debug.activeDebugSession) {
+        vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
+    }
+    debugDecorations.triggerUpdateAndRenderDecorations();
+}
+
 export {
     CALVA_DEBUG_CONFIGURATION,
     DEBUG_ANALYTICS,
@@ -380,5 +385,6 @@ export {
     CalvaDebugAdapterDescriptorFactory,
     handleNeedDebugInput,
     initializeDebugger,
-    onNreplMessage
+    onNreplMessage,
+    terminateDebugSession
 };

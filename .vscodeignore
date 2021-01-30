@@ -5,6 +5,7 @@
 */**/.DS_Store
 
 # Whitelist
+!language-configuration.json
 !clojure.tmLanguage.json
 !assets/**
 !out/**
