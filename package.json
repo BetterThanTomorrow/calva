@@ -1195,11 +1195,6 @@
         ],
         "keybindings": [
             {
-                "command": "calva.tellAboutNewChordingKey",
-                "key": "ctrl+alt+v",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure"
-            },
-            {
                 "command": "calva.debug.instrument",
                 "key": "ctrl+alt+c i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
