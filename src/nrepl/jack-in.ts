@@ -200,7 +200,7 @@ export async function calvaJackIn() {
             executeJackInTask(terminalJackInOptions, projectConnectSequence);
         }
     } else {
-        outputWindow.append('; No supported project types detected.');
+        outputWindow.append('; No supported project types detected. Maybe try starting your project manually and use the Connect command?');
         return;
     }
 
