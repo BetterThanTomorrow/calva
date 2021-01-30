@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Change default shortcuts for Paredit forward/backward sexp, expand/shrink selection, and for slurping and barfing](https://github.com/BetterThanTomorrow/calva/issues/950)
 - [Add Custom Commands variables for current form and more](https://github.com/BetterThanTomorrow/calva/issues/986)
 
 ## [2.0.156] - 2021-01-28
