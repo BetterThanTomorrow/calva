@@ -30,7 +30,7 @@ In your project's `deps.edn` file add a `:reveal` alias:
 
 ```
 
-And then jack-in choosing the Clojure CLI option and then pick the `:reveal` alias.
+And then jack-in choosing the deps.edn option and then pick the `:reveal` alias.
 
 If you find the font to small you can add a `:jvm-opts` key to make it a little bigger:
 

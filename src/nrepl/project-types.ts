@@ -276,7 +276,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     },
     */
     "clj": {
-        name: "Clojure CLI",
+        name: "deps.edn",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: "clojure",
         winCmd: "powershell.exe",
