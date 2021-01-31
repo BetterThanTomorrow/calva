@@ -14,8 +14,10 @@ export const isWin = /^win/.test(process.platform);
 export type ProjectType = {
     name: string;
     cljsTypes: string[];
-    cmd: string;
-    winCmd: string;
+    cmd: string[];
+    winCmd: string[];
+    processShellWin: boolean;
+    processShellUnix: boolean;
     commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
     useWhenExists: string;
     nReplPortFile: string[];
@@ -245,8 +247,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
         name: "Leiningen",
         cljsTypes: ["Figwheel", "Figwheel Main"],
-        cmd: "lein",
-        winCmd: "cmd.exe",
+        cmd: ["lein"],
+        winCmd: ["cmd.exe", "/d", "/c", "lein"],
+        processShellUnix: true,
+        processShellWin: false,
         useWhenExists: "project.clj",
         nReplPortFile: [".nrepl-port"],
         /** Build the command line args for a lein-project.
@@ -278,8 +282,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     "clj": {
         name: "deps.edn",
         cljsTypes: ["Figwheel", "Figwheel Main"],
-        cmd: "clojure",
-        winCmd: "powershell.exe",
+        cmd: ["clojure"],
+        winCmd: [], // this will be determined at jack-in
+        processShellUnix: true,
+        processShellWin: true,
         useWhenExists: "deps.edn",
         nReplPortFile: [".nrepl-port"],
         /** Build the command line args for a clj-project.
@@ -338,11 +344,12 @@ const projectTypes: { [id: string]: ProjectType } = {
                 if (aliasHasMain)
                     break;
             }
+            const q = isWin ? '"' : "'";
             const dQ = isWin ? '""' : '"';
             for (let dep in dependencies)
-                out.push(dep + ` {:mvn/version ${dQ}${dependencies[dep]}${dQ}}`)
+                out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`)
 
-            let args = ["-Sdeps", `'${"{:deps {" + out.join(' ') + "}}"}'`];
+            let args = ["-Sdeps", `${q}${"{:deps {" + out.join(',') + "}}"}${q}`];
 
             if (aliasHasMain) {
                 args.push(aliasesOption);
@@ -350,17 +357,16 @@ const projectTypes: { [id: string]: ProjectType } = {
                 args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
             }
 
-            if (isWin) {
-                args.unshift("clojure");
-            }
             return args;
         }
     },
     "shadow-cljs": {
         name: "shadow-cljs",
         cljsTypes: [],
-        cmd: "npx",
-        winCmd: "npx.cmd",
+        cmd: ["npx"],
+        winCmd: ["npx.cmd"],
+        processShellUnix: true,
+        processShellWin: false,
         useWhenExists: "shadow-cljs.edn",
         nReplPortFile: [".shadow-cljs", "nrepl.port"],
         /**
@@ -391,8 +397,10 @@ const projectTypes: { [id: string]: ProjectType } = {
     "lein-shadow": {
         name: "lein-shadow",
         cljsTypes: [],
-        cmd: "lein",
-        winCmd: "cmd.exe",
+        cmd: ["lein"],
+        winCmd: ["cmd.exe", "/d", "/c", "lein"],
+        processShellUnix: true,
+        processShellWin: false,
         useWhenExists: "project.clj",
         nReplPortFile: [".shadow-cljs", "nrepl.port"],
         /**
@@ -420,6 +428,8 @@ const projectTypes: { [id: string]: ProjectType } = {
         cljsTypes: [],
         cmd: undefined,
         winCmd: undefined,
+        processShellUnix: true,
+        processShellWin: false,
         useWhenExists: undefined,
         nReplPortFile: [".nrepl-port"],
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
@@ -438,9 +448,6 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
     let keys = Object.keys(dependencies);
     const defproject = await leinDefProject();
     const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
-    if (isWin) {
-        out.push("/d", "/c", "lein");
-    }
     const q = isWin ? '' : "'", dQ = '"';
     for (let i = 0; i < keys.length; i++) {
         let dep = keys[i];
