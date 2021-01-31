@@ -6,6 +6,7 @@ Changes to Calva.
 - [Add command for copying jack-in command to clipboard](https://github.com/BetterThanTomorrow/calva/pull/995)
 - [Change default shortcuts for Paredit forward/backward sexp, expand/shrink selection, and for slurping and barfing](https://github.com/BetterThanTomorrow/calva/issues/950)
 - [Add Custom Commands variables for current form and more](https://github.com/BetterThanTomorrow/calva/issues/986)
+- Fix: [Jack-in fails to launch deps.edn projects for some Windows users](https://github.com/BetterThanTomorrow/calva/issues/1000)
 
 ## [2.0.156] - 2021-01-28
 - Fix: [Debug instrumentation decoration not working correctly anymore on Windows](https://github.com/BetterThanTomorrow/calva/issues/969)
