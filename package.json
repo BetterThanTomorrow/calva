@@ -1200,11 +1200,6 @@
         ],
         "keybindings": [
             {
-                "command": "calva.tellAboutNewChordingKey",
-                "key": "ctrl+alt+v",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure"
-            },
-            {
                 "command": "calva.debug.instrument",
                 "key": "ctrl+alt+c i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
@@ -1337,7 +1332,7 @@
             },
             {
                 "command": "calva.runCustomREPLCommand",
-                "key": "ctrl+alt+c .",
+                "key": "ctrl+alt+space",
                 "when": "calva:keybindingsEnabled"
             },
             {
@@ -1347,12 +1342,16 @@
             },
             {
                 "command": "paredit.forwardSexp",
-                "key": "ctrl+alt+right",
+                "mac": "alt+right",
+                "win": "ctrl+right",
+                "linux": "ctrl+right",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardSexp",
-                "key": "ctrl+alt+left",
+                "mac": "alt+left",
+                "win": "ctrl+left",
+                "linux": "ctrl+left",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1387,12 +1386,16 @@
             },
             {
                 "command": "paredit.selectForwardSexp",
-                "key": "ctrl+shift+alt+right",
+                "mac": "shift+alt+right",
+                "win": "shift+ctrl+right",
+                "linux": "shift+ctrl+right",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardSexp",
-                "key": "ctrl+shift+alt+left",
+                "mac": "shift+alt+left",
+                "win": "shift+ctrl+left",
+                "linux": "shift+ctrl+left",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1432,32 +1435,38 @@
             },
             {
                 "command": "paredit.sexpRangeExpansion",
-                "key": "ctrl+w",
+                "mac": "ctrl+w",
+                "win": "shift+alt+right",
+                "linux": "shift+alt+right",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.sexpRangeContraction",
-                "key": "ctrl+shift+w",
+                "mac": "ctrl+shift+w",
+                "win": "shift+alt+left",
+                "linux": "shift+alt+left",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpForward",
-                "key": "ctrl+right",
+                "key": "ctrl+alt+right",
+                "linux": "ctrl+alt+.",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.slurpSexpBackward",
-                "key": "ctrl+shift+left",
+                "key": "ctrl+alt+shift+left",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpForward",
-                "key": "ctrl+left",
+                "key": "ctrl+alt+left",
+                "linux": "ctrl+alt+,",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.barfSexpBackward",
-                "key": "ctrl+shift+right",
+                "key": "ctrl+alt+shift+right",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
