@@ -12,6 +12,10 @@ export interface  JackInTerminalOptions extends vscode.TerminalOptions {
     isWin: boolean
 };
 
+export function createCommandLine(executable: string, args: string[]) {
+    return `${executable} ${args.join(' ')}`;
+}
+
 export class JackInTerminal implements vscode.Pseudoterminal {
     private writeEmitter = new vscode.EventEmitter<string>();
     onDidWrite: vscode.Event<string> = this.writeEmitter.event;
@@ -25,7 +29,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         private whenError: (errorMessage: string) => void) {}
 
     open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-        outputWindow.append(`; Starting Jack-in Terminal: ${this.options.executable} ${this.options.args.join(' ')}`);
+        outputWindow.append(`; Starting Jack-in Terminal: ${createCommandLine(this.options.executable, this.options.args)}`);
         this.startClojureProgram();
     }
 
@@ -53,8 +57,9 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     }
 
     private async startClojureProgram(): Promise<child.ChildProcess> {
-        return new Promise<child.ChildProcess>((resolve) => {
-            this.writeEmitter.fire(`${this.options.executable} ${this.options.args.join(' ')}\r\n`);
+        return new Promise<child.ChildProcess>(() => {
+            const data = `${createCommandLine(this.options.executable, this.options.args)}\r\n`;
+            this.writeEmitter.fire(data);
             if (this.process && !this.process.killed) {
                 console.log("Restarting Jack-in process");
                 this.killProcess();
