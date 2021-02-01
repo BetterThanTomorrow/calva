@@ -162,10 +162,6 @@ function getFileType(document) {
     }
 }
 
-function getFileName(document) {
-    return path.basename(document.fileName);
-}
-
 function getLaunchingState() {
     return state.deref().get('launching');
 }
@@ -410,7 +406,6 @@ export {
     getWordAtPosition,
     getDocument,
     getFileType,
-    getFileName,
     getLaunchingState,
     setLaunchingState,
     getConnectedState,
