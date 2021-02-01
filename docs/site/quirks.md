@@ -14,13 +14,6 @@ Calva defaults to formatting as you type. If you use Parinfer this creates a con
 
 However, with VS Code and Calva it is probably better to learn to use [Paredit](paredit.md)'s **slurp** and **barf** and generally use Calva's automatic formatting.
 
-
-## MacOS and the Slurp and Barf Keyboard Shortcuts
-
-To make slurping and barfing forward really easy to perform they are bound to `ctrl+right` and `ctrl+left`, respectively. However, on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortcuts to not work. One way to solve it is to disable the shortcuts in *System Preferences -> Keyboard -> Shortcuts*:
-
-![Disable Mission Control Shortcuts](images/howto/mission-control-shortcuts.gif)
-
 ## Calva and the VIM Extension
 
 See [Using Calva with the VIM Extension](vim.md).
@@ -29,7 +22,7 @@ See [Using Calva with the VIM Extension](vim.md).
 
 [Jack-in](jack-in-guide.md) starts by running a command in a new terminal. You will need the commands used installed on your computer:
 
-* `clojure` for tools.deps/Clojure CLI
+* `clojure` for tools.deps/deps.edn
 * `lein` for Leiningen
 * `npx` for shadow-cljs
 

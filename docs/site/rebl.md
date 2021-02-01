@@ -2,7 +2,7 @@
 
 [REBL](https://github.com/cognitect-labs/REBL-distro) is a graphical, interactive tool for browsing Clojure data.
 
-## Clojure CLI
+## deps.edn
 
 Add the following aliases to your deps.edn file. Use the deps.edn file in the `~/.clojure` directory to enable alias reuse across multiple projects. This is the configuration for REBL on openjdk 12. Check out the [REBL github page](https://github.com/cognitect-labs/REBL-distro) for more info.
 
@@ -40,7 +40,7 @@ Create a Calva custom connect sequence for your VSCode editor. (Read [Custom REP
     "calva.replConnectSequences": [
         {
             "name": "Rebl Connect",
-            "projectType": "Clojure CLI",
+            "projectType": "deps.edn",
             "menuSelections": {
                 "cljAliases": [
                     "rebl",

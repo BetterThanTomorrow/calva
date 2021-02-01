@@ -14,12 +14,16 @@ There are also substitutions available, which will take elements from the curren
 * `$line`: Current line number in editor
 * `$column`: Current column number in editor
 * `$file`: Full name of current file edited
+* `ns`: The namespace used for evaluating the command
+* `$current-form`: The text of the [current form](eval-tips.md#current-form)
+* `$top-level-form` The text of the [current top level form](eval-tips.md#current-top-level-form)
+* `$current-fn`: The sexpr/form at call position in the current list, e.g. `str` with `(defn foo [] (str "foo" "bar|"))`
+* `$top-level-defined-symbol`: The second symbol of the top level form, e.g. `foo` with `(defn foo [] (str "foo" "bar|"))`
 
+Consider these settings:
 
-E.g. with these settings:
-
-```
-    "calva.customREPLCommandSnippets": [
+```json
+        "calva.customREPLCommandSnippets": [
         {
             "name": "Foo",
             "snippet": "(println :foo)",
@@ -36,15 +40,40 @@ E.g. with these settings:
             "name": "Refresh",
             "snippet": "(refresh)",
             "repl": "clj"
+        },
+        {
+            "name": "Call Current Form",
+            "repl": "clj",
+            "snippet": "($current-form)"
+        },
+        {
+            "name": "Call Current Top Level Form",
+            "repl": "clj",
+            "snippet": "($top-level-form)"
+        },
+        {
+            "name": "Tap Current Form",
+            "repl": "clj",
+            "snippet": "(tap> $current-form)"
+        },
+        {
+            "name": "Evaluate Current Function Symbol",
+            "repl": "clj",
+            "snippet": "$current-fn"
+        },
+        {
+            "name": "Call Top Level Defined Symbol",
+            "repl": "clj",
+            "snippet": "($top-level-defined-symbol)"
         }
     ]
 ```
 
 
-You will get this menu.
+Issuing **Run Custom REPL Command** will render this VS Code menu:
 
-<img width="601" alt="image" src="https://user-images.githubusercontent.com/30010/66232206-9bab3280-e6e8-11e9-872b-22fd50baef25.png">
+![](images/custom-command-menu.png)
 
-The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd>, <kbd>.</kbd>. Which means that to execute the **Refresh** command, `(refresh)`, in the `clj` REPL, you could do:
+The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is `ctrl+alt+space`. Which means that to execute the **Tap Current Form** custom command, you could do:
 
-<kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd>, <kbd>.</kbd>, <kbd>3</kbd>, <kbd>ENTER</kbd>.
+`ctrl+alt+space 6 enter`.

@@ -9,8 +9,13 @@ export interface  JackInTerminalOptions extends vscode.TerminalOptions {
     env: { [key: string]: string },
     executable: string,
     args: string[],
-    isWin: boolean
+    isWin: boolean,
+    useShell: boolean
 };
+
+export function createCommandLine(executable: string, args: string[]) {
+    return `${executable} ${args.join(' ')}`;
+}
 
 export class JackInTerminal implements vscode.Pseudoterminal {
     private writeEmitter = new vscode.EventEmitter<string>();
@@ -25,7 +30,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
         private whenError: (errorMessage: string) => void) {}
 
     open(initialDimensions: vscode.TerminalDimensions | undefined): void {
-        outputWindow.append(`; Starting Jack-in Terminal: ${this.options.executable} ${this.options.args.join(' ')}`);
+        outputWindow.append(`; Starting Jack-in Terminal: ${createCommandLine(this.options.executable, this.options.args)}`);
         this.startClojureProgram();
     }
 
@@ -53,8 +58,9 @@ export class JackInTerminal implements vscode.Pseudoterminal {
     }
 
     private async startClojureProgram(): Promise<child.ChildProcess> {
-        return new Promise<child.ChildProcess>((resolve) => {
-            this.writeEmitter.fire(`${this.options.executable} ${this.options.args.join(' ')}\r\n`);
+        return new Promise<child.ChildProcess>(() => {
+            const data = `${createCommandLine(this.options.executable, this.options.args)}\r\n`;
+            this.writeEmitter.fire(data);
             if (this.process && !this.process.killed) {
                 console.log("Restarting Jack-in process");
                 this.killProcess();
@@ -62,7 +68,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
             this.process = child.spawn(this.options.executable, this.options.args, {
                 env: this.options.env,
                 cwd: this.options.cwd,
-                shell: !this.options.isWin
+                shell: this.options.useShell
             });
             this.process.on('exit', (status) => {
                 this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);
