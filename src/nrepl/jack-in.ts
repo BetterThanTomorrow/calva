@@ -141,8 +141,9 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
         let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
         if (projectTypes.isWin) {
             if (projectType.name === 'deps.edn') {
-                executable = path.join(state.extensionContext.extensionPath, 'bb.exe');
-                args = ['--clojure', ...args];
+                const depsJarPath = path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
+                executable = 'java';
+                args = ['-jar', depsJarPath, ...args];
             } else {
                 executable = projectType.winCmd[0];
                 args = [...projectType.winCmd.slice(1), ...args];
@@ -150,12 +151,6 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
         } else {
             executable = projectType.cmd[0];
             args = [...projectType.cmd.slice(1), ...args];
-        }
-
-        // Ask the project type to build up the command line. This may prompt for further information.
-
-        if (projectTypes.isWin && projectType.name === 'deps.edn') {
-            executable = path.join(state.extensionContext.extensionPath, 'bb.exe'); //'cmd.exe';
         }
 
         const terminalOptions: JackInTerminalOptions = {
