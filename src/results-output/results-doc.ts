@@ -189,11 +189,8 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 
 export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
     const uri = await getUriForCurrentNamespace();
-    // if (uri.path.match(/jar!\//)) {
-    //     uri = uri.with({ scheme: 'jar' });
-    // }
     vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc, {
-        preserveFocus: false
+        preserveFocus
     }));
 }
 
