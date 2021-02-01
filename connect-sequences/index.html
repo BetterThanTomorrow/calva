@@ -857,7 +857,7 @@
 <p>A connect sequence configures the following:</p>
 <ul>
 <li><code>name</code>: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).</li>
-<li><code>projectType</code>: (required) This is either "Leiningen”, ”Clojure CLI”, ”shadow-cljs”, ”lein-shadow”, or ”generic".</li>
+<li><code>projectType</code>: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, or ”generic".</li>
 <li><code>nReplPortFile</code>: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be <code>[".shadow-cljs", "nrepl.port"]</code>.</li>
 <li><code>afterCLJReplJackInCode</code>: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.</li>
 <li><code>cljsType</code>: This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:<ul>
@@ -876,7 +876,7 @@
 <li><code>menuSelections</code>: a dictionary with pre-filled-in selections for the Jack-in and Connect prompts, making Calva not prompt for that particular selection:<ul>
 <li><code>leinProfiles</code>: At Jack-in to a Leiningen project, use these profiles to launch the repl.</li>
 <li><code>leinAlias</code>: At Jack-in to a Leiningen project, launch with this alias. Set to <code>null</code> to launch with Calva's default task (a headless repl), w/o prompting.</li>
-<li><code>cljAliases</code>: At Jack-in to a Clojure CLI project, use these aliases to launch the repl.</li>
+<li><code>cljAliases</code>: At Jack-in to a deps.edn project, use these aliases to launch the repl.</li>
 <li><code>cljsLaunchBuilds</code>: The cljs builds to start/watch at Jack-in/connect.</li>
 <li><code>cljsDefaultBuild</code>: Which cljs build to attach to at the initial connect.</li>
 </ul>
@@ -908,11 +908,11 @@
     <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Edge backend only&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;Clojure CLI&quot;</span>
+            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span>
         <span class="p">},</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Edge backend + frontend&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;Clojure CLI&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
             <span class="nt">&quot;cljsType&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="nt">&quot;dependsOn&quot;</span><span class="p">:</span> <span class="s2">&quot;Figwheel Main&quot;</span><span class="p">,</span>
                 <span class="nt">&quot;startCode&quot;</span><span class="p">:</span> <span class="s2">&quot;(do (require &#39;dev-extras) (dev-extras/go) (println \&quot;Edge Figwheel Main started\&quot;) ((resolve &#39;dev-extras/cljs-repl)))&quot;</span><span class="p">,</span>
@@ -936,12 +936,12 @@
 <span class="p">}</span>
 </code></pre></div>
 
-<p>A Clojure CLI sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.</p>
+<p>A deps.edn sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.</p>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
     <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Do not promote to cljs&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;Clojure CLI&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
             <span class="nt">&quot;cljsType&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="nt">&quot;dependsOn&quot;</span><span class="p">:</span> <span class="s2">&quot;Figwheel Main&quot;</span><span class="p">,</span>
                 <span class="nt">&quot;connectCode&quot;</span><span class="p">:</span> <span class="s2">&quot;\&quot;Don&#39;t promote me bro!\&quot;&quot;</span><span class="p">,</span>

@@ -725,13 +725,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#macos-and-the-slurp-and-barf-keyboard-shortcuts" class="md-nav__link">
-    MacOS and the Slurp and Barf Keyboard Shortcuts
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#calva-and-the-vim-extension" class="md-nav__link">
     Calva and the VIM Extension
   </a>
@@ -858,13 +851,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#macos-and-the-slurp-and-barf-keyboard-shortcuts" class="md-nav__link">
-    MacOS and the Slurp and Barf Keyboard Shortcuts
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#calva-and-the-vim-extension" class="md-nav__link">
     Calva and the VIM Extension
   </a>
@@ -910,15 +896,12 @@
 <h2 id="using-with-parinfer">Using with Parinfer</h2>
 <p>Calva defaults to formatting as you type. If you use Parinfer this creates a conflict, since it auto-indents your code. If you want to use Parinfer you'll have to tell Calva not to do auto-formatting by disabling <code>calva.fmt.formatAsYouType</code>.</p>
 <p>However, with VS Code and Calva it is probably better to learn to use <a href="../paredit/">Paredit</a>'s <strong>slurp</strong> and <strong>barf</strong> and generally use Calva's automatic formatting.</p>
-<h2 id="macos-and-the-slurp-and-barf-keyboard-shortcuts">MacOS and the Slurp and Barf Keyboard Shortcuts</h2>
-<p>To make slurping and barfing forward really easy to perform they are bound to <code>ctrl+right</code> and <code>ctrl+left</code>, respectively. However, on MacOS those shortcuts are sometimes bound by Mission Control, causing the Calva shortcuts to not work. One way to solve it is to disable the shortcuts in <em>System Preferences -&gt; Keyboard -&gt; Shortcuts</em>:</p>
-<p><img alt="Disable Mission Control Shortcuts" src="../images/howto/mission-control-shortcuts.gif" /></p>
 <h2 id="calva-and-the-vim-extension">Calva and the VIM Extension</h2>
 <p>See <a href="../vim/">Using Calva with the VIM Extension</a>.</p>
 <h2 id="command-not-found-errors-on-jack-in">”Command not found” Errors on Jack-in</h2>
 <p><a href="../jack-in-guide/">Jack-in</a> starts by running a command in a new terminal. You will need the commands used installed on your computer:</p>
 <ul>
-<li><code>clojure</code> for tools.deps/Clojure CLI</li>
+<li><code>clojure</code> for tools.deps/deps.edn</li>
 <li><code>lein</code> for Leiningen</li>
 <li><code>npx</code> for shadow-cljs</li>
 </ul>

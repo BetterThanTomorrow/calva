@@ -1022,12 +1022,12 @@
 </thead>
 <tbody>
 <tr>
-<td><code>ctrl+alt+right</code></td>
+<td><code>ctrl+right</code> (win/linux)<br><code>alt+right</code> (mac)</td>
 <td><strong>Forward Sexp</strong></td>
 <td>Moves the cursor forward, to the end of the current form. If at the end, moves to the end of the next form. Will not move out of lists.<br> <img alt="" src="../images/paredit/forward-sexp.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+alt+left</code></td>
+<td><code>ctrl+left</code> (win/linux)<br><code>alt+left</code> (mac)</td>
 <td><strong>Backward Sexp</strong></td>
 <td>Moves the cursor backward, to the start of the current form. If at the start, moves to the start of the previous form. Will not move out of lists.<br> <img alt="" src="../images/paredit/backward-sexp.gif" /></td>
 </tr>
@@ -1075,12 +1075,12 @@
 </thead>
 <tbody>
 <tr>
-<td><code>ctrl+w</code></td>
+<td><code>shift+alt+right</code> (win/linux)<br><code>ctrl+w</code> (mac)</td>
 <td><strong>Expand Selection</strong></td>
 <td>Starts from the cursor and selects the current form. Then will keep expanding to enclosing forms.<br> <img alt="" src="../images/paredit/grow-selection.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+shift+w</code></td>
+<td><code>shift+alt+left</code> (win/linux)<br><code>ctrl+shift+w</code> (mac)</td>
 <td><strong>Shrink Selection</strong></td>
 <td>Contracts back from an expanded selection performed by any Paredit selection command.<br> <img alt="" src="../images/paredit/shrink-selection.gif" /><br>(In the animation the selection is first grown using a combination of <strong>Grow Selection</strong> and some lateral selection commands, then shrunk all the way back down to no selection.)</td>
 </tr>
@@ -1090,12 +1090,12 @@
 <td>Top level in a structural sence. Typically where your<code>(def ...)</code>/<code>(defn ...)</code> type forms. Please note that<code>(comment ...)</code> forms create a new top level. <br> <img alt="" src="../images/paredit/select-top-level-form.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+shift+alt+right</code></td>
+<td><code>shift+ctrl+right</code> (win/linux)<br><code>shift+alt+right</code> (mac)</td>
 <td><strong>Select Forward Sexp</strong></td>
 <td><img alt="" src="../images/paredit/select-forward-sexp.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+shift+alt+left</code></td>
+<td><code>shift+ctrl+left</code> (win/linux)<br><code>shift+alt+left</code>(mac)</td>
 <td><strong>Select Backward Sexp</strong></td>
 <td><img alt="" src="../images/paredit/select-backward-sexp.gif" /></td>
 </tr>
@@ -1146,22 +1146,22 @@
 </thead>
 <tbody>
 <tr>
-<td><code>ctrl+right</code><br><strong>NB</strong> On Mac this keybinding might need your attention, see <a href="../quirks/">Quirks</a>.</td>
+<td><code>ctrl+alt+right</code> (mac/win)<br><code>ctrl+alt+.</code> (linux)</td>
 <td><strong>Slurp Forward</strong></td>
 <td>Moves the <em>closing</em> bracket <em>forward</em>, <em>away</em> from the cursor, past the following form, if any. <br> <img alt="" src="../images/paredit/slurp-forward.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+left</code> <br><strong>NB</strong> On Mac this keybinding might need your attention, see <a href="../quirks/">Quirks</a>.</td>
+<td><code>ctrl+alt+left</code> (mac/win)<br><code>ctrl+alt+,</code> (linux)</td>
 <td><strong>Barf Forward</strong></td>
 <td>Moves the <em>closing</em> bracket <em>backward</em>, <em>towards</em> the cursor, past the preceding form. <br> <img alt="" src="../images/paredit/barf-forward.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+shift+left</code></td>
+<td><code>ctrl+alt+shift+left</code></td>
 <td><strong>Slurp Backward</strong></td>
 <td>Moves the <em>opening</em> bracket <em>backward</em>, <em>away</em> from the cursor, past the preceding form, if any. <br> <img alt="" src="../images/paredit/slurp-backward.gif" /></td>
 </tr>
 <tr>
-<td><code>ctrl+shift+right</code></td>
+<td><code>ctrl+alt+shift+right</code></td>
 <td><strong>Barf Backward</strong></td>
 <td>Moves the <em>opening</em> bracket <em>forward</em>, <em>towards</em> the cursor, past the following form. <br> <img alt="" src="../images/paredit/barf-backward.gif" /></td>
 </tr>

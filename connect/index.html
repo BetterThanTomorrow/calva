@@ -930,7 +930,7 @@
 <p>The recommended way is to:</p>
 <h2 id="jack-in-let-calva-start-the-repl-for-you">Jack-in: Let Calva start the REPL for you</h2>
 <p>This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as <strong>Jack in</strong> (because that is what it is called in CIDER).</p>
-<p>Jack-in supports both CLJ and for CLJS, and has built-in configurations for <strong>Leiningen</strong>, <strong>Clojure CLI</strong>, and <strong>shadow-cljs</strong> projects, as well as for the CLJS repl types: <strong>Figwheel Main</strong>, <strong>lein-figwheel</strong> (legacy Figwheel), <strong>shadow-cljs</strong>, and Nashorn. Using jack-in provides your development environment with all the dependencies you need for Calva to work.</p>
+<p>Jack-in supports both CLJ and for CLJS, and has built-in configurations for <strong>Leiningen</strong>, <strong>deps.edn</strong>, and <strong>shadow-cljs</strong> projects, as well as for the CLJS repl types: <strong>Figwheel Main</strong>, <strong>lein-figwheel</strong> (legacy Figwheel), <strong>shadow-cljs</strong>, and Nashorn. Using jack-in provides your development environment with all the dependencies you need for Calva to work.</p>
 <p>It works like so:</p>
 <ol>
 <li>Open your project root directory in VS Code.</li>
@@ -940,7 +940,7 @@
 <p>See also: <a href="../workspace-layouts/">Workspace Layouts</a></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You must have a project file, such as <code>project.clj</code> for Leiningen or <code>deps.edn</code> for Clojure CLI, in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the <strong>Figwheel Main</strong> project type, you should have <code>com.bhauman/figwheel-main</code> in your project dependencies.</p>
+<p>You must have a project file, such as <code>project.clj</code> for Leiningen or <code>deps.edn</code> for deps.edn, in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the <strong>Figwheel Main</strong> project type, you should have <code>com.bhauman/figwheel-main</code> in your project dependencies.</p>
 </div>
 <h3 id="aliases-profiles-builds">Aliases, profiles, builds</h3>
 <p>When Jack-in starts it will depend on the project type, and whether ClojureScript is involved or not, and if it is, what kind of ClojureScript project, what will happen next. Calva will analyze the project files and will then give you prompts with selections based on what is found there.</p>
