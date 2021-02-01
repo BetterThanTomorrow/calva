@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.157",
+    "version": "2.0.158",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -345,7 +345,7 @@
                                     "description": "Select one of the project types supported by Calva.",
                                     "enum": [
                                         "Leiningen",
-                                        "Clojure CLI",
+                                        "deps.edn",
                                         "shadow-cljs",
                                         "lein-shadow",
                                         "generic"
@@ -387,7 +387,7 @@
                                         },
                                         "cljAliases": {
                                             "type": "array",
-                                            "description": "At Jack-in to a Clojure CLI project, use these aliases to launch the repl.",
+                                            "description": "At Jack-in to a deps.edn project, use these aliases to launch the repl.",
                                             "items": {
                                                 "type": "string"
                                             }
