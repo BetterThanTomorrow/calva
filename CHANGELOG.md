@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.157] - 2021-02-01
 - [Add command for copying jack-in command to clipboard](https://github.com/BetterThanTomorrow/calva/pull/995)
 - [Change default shortcuts for Paredit forward/backward sexp, expand/shrink selection, and for slurping and barfing](https://github.com/BetterThanTomorrow/calva/issues/950)
 - [Add Custom Commands variables for current form and more](https://github.com/BetterThanTomorrow/calva/issues/986)
