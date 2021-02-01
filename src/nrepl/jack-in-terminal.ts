@@ -9,7 +9,8 @@ export interface  JackInTerminalOptions extends vscode.TerminalOptions {
     env: { [key: string]: string },
     executable: string,
     args: string[],
-    isWin: boolean
+    isWin: boolean,
+    useShell: boolean
 };
 
 export function createCommandLine(executable: string, args: string[]) {
@@ -67,7 +68,7 @@ export class JackInTerminal implements vscode.Pseudoterminal {
             this.process = child.spawn(this.options.executable, this.options.args, {
                 env: this.options.env,
                 cwd: this.options.cwd,
-                shell: !this.options.isWin
+                shell: this.options.useShell
             });
             this.process.on('exit', (status) => {
                 this.writeEmitter.fire(`Jack-in process exited. Status: ${status}\r\n`);

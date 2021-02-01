@@ -12,7 +12,7 @@ NB: _Connect sequence configuration affects Calva's Jack-in menu in the followin
 A connect sequence configures the following:
 
 * `name`: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).
-* `projectType`: (required) This is either "Leiningen”, ”Clojure CLI”, ”shadow-cljs”, ”lein-shadow”, or ”generic".
+* `projectType`: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, or ”generic".
 * `nReplPortFile`: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be `[".shadow-cljs", "nrepl.port"]`.
 * `afterCLJReplJackInCode`: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.
 * `cljsType`: This can be either "Figwheel Main", "lein-figwheel", "shadow-cljs", "Nashorn", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:
@@ -29,7 +29,7 @@ A connect sequence configures the following:
 * `menuSelections`: a dictionary with pre-filled-in selections for the Jack-in and Connect prompts, making Calva not prompt for that particular selection:
     * `leinProfiles`: At Jack-in to a Leiningen project, use these profiles to launch the repl.
     * `leinAlias`: At Jack-in to a Leiningen project, launch with this alias. Set to `null` to launch with Calva's default task (a headless repl), w/o prompting.
-    * `cljAliases`: At Jack-in to a Clojure CLI project, use these aliases to launch the repl.
+    * `cljAliases`: At Jack-in to a deps.edn project, use these aliases to launch the repl.
     * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
 
@@ -65,11 +65,11 @@ Here is an example from the [JUXT Edge](https://juxt.pro/blog/posts/edge.html) p
     "calva.replConnectSequences": [
         {
             "name": "Edge backend only",
-            "projectType": "Clojure CLI"
+            "projectType": "deps.edn"
         },
         {
             "name": "Edge backend + frontend",
-            "projectType": "Clojure CLI",
+            "projectType": "deps.edn",
             "cljsType": {
                 "dependsOn": "Figwheel Main",
                 "startCode": "(do (require 'dev-extras) (dev-extras/go) (println \"Edge Figwheel Main started\") ((resolve 'dev-extras/cljs-repl)))",
@@ -93,14 +93,14 @@ Here is an example from the [JUXT Edge](https://juxt.pro/blog/posts/edge.html) p
 }
 ```
 
-A Clojure CLI sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.
+A deps.edn sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.
 
 ```json
 {
     "calva.replConnectSequences": [
         {
             "name": "Do not promote to cljs",
-            "projectType": "Clojure CLI",
+            "projectType": "deps.edn",
             "cljsType": {
                 "dependsOn": "Figwheel Main",
                 "connectCode": "\"Don't promote me bro!\"",

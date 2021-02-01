@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from 'path';
 import * as utilities from "../utilities";
 import * as _ from "lodash";
 import * as state from "../state"
@@ -136,9 +137,21 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
         }
 
         const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-        const executable = projectTypes.isWin ? projectType.winCmd : projectType.cmd;
-        // Ask the project type to build up the command line. This may prompt for further information.
-        const args = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+        let executable: string;
+        let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+        if (projectTypes.isWin) {
+            if (projectType.name === 'deps.edn') {
+                const depsJarPath = path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
+                executable = 'java';
+                args = ['-jar', depsJarPath, ...args];
+            } else {
+                executable = projectType.winCmd[0];
+                args = [...projectType.winCmd.slice(1), ...args];
+            }
+        } else {
+            executable = projectType.cmd[0];
+            args = [...projectType.cmd.slice(1), ...args];
+        }
 
         const terminalOptions: JackInTerminalOptions = {
             name: `Calva Jack-in: ${projectConnectSequence.name}`,
@@ -147,6 +160,7 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
             env: getJackInEnv(),
             isWin: projectTypes.isWin,
             cwd: state.getProjectRootLocal(),
+            useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix
         };
         return terminalOptions;
     }

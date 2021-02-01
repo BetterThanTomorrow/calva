@@ -29,7 +29,7 @@ See [Using Calva with the VIM Extension](vim.md).
 
 [Jack-in](jack-in-guide.md) starts by running a command in a new terminal. You will need the commands used installed on your computer:
 
-* `clojure` for tools.deps/Clojure CLI
+* `clojure` for tools.deps/deps.edn
 * `lein` for Leiningen
 * `npx` for shadow-cljs
 
