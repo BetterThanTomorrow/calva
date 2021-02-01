@@ -223,22 +223,21 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
 
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        const [fileName, filePath] = outputWindow.isResultsDoc(doc) ?
-            await outputWindow.getFilePathForCurrentNameSpace() :
-            [util.getFileName(doc), doc.fileName];
-        const shortFileName = path.basename(fileName);
-        const dirName = path.dirname(fileName);
-        const fileContents = await util.getFileContents(filePath);
+        const docUri = outputWindow.isResultsDoc(doc) ?
+            await outputWindow.getUriForCurrentNamespace() :
+            doc.uri;
+        const fileName = path.basename(docUri.path);
+        const fileContents = await util.getFileContents(docUri.path);
 
         outputWindow.append("; Evaluating file: " + fileName);
 
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
         const res = session.loadFile(fileContents, {
-            fileName: fileName,
-            filePath,
-            stdout: m => outputWindow.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
-            stderr: m => outputWindow.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
+            fileName,
+            filePath: docUri.path,
+            stdout: m => outputWindow.append(normalizeNewLines(m)),
+            stderr: m => outputWindow.append('; ' + normalizeNewLines(m, true)),
             pprintOptions: pprintOptions
         });
         try {

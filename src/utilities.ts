@@ -329,15 +329,15 @@ function scrollToBottom(editor: vscode.TextEditor) {
     editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
 
-async function getFileContents(uri: string) {
-    const doc = vscode.workspace.textDocuments.find(document => document.uri.path === uri);
+async function getFileContents(path: string) {
+    const doc = vscode.workspace.textDocuments.find(document => document.uri.path === path);
     if (doc) {
         return doc.getText();
     }
-    if (uri.match(/jar!\//)) {
-        return await getJarContents(uri);
+    if (path.match(/jar!\//)) {
+        return await getJarContents(path);
     }
-    return fs.readFileSync(uri).toString();
+    return fs.readFileSync(path).toString();
 }
 
 function jarFilePathComponents(uri: vscode.Uri | string) {
