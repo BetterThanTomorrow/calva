@@ -8,6 +8,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror';
+import status from './status';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -405,6 +406,11 @@ function currentTopLevelFunction(editor: vscode.TextEditor) {
     }
 }
 
+function updateNeedREPLUi(isNeeded: boolean) {
+    state.extensionContext.workspaceState.update('needREPLUi', isNeeded);
+    status.update();
+}
+
 function showREPLUi(): boolean {
     return state.extensionContext.workspaceState.get('needREPLUi') ||
     !state.config().hideREPLUi;
@@ -445,5 +451,6 @@ export {
     currentFormText,
     currentFunction,
     currentTopLevelFunction,
+    updateNeedREPLUi,
     showREPLUi
 };

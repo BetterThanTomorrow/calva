@@ -44,6 +44,7 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
 
     // in case we have a running task present try to end it.
     calvaJackout();
+    utilities.updateNeedREPLUi(true);
     if (jackInTerminal !== undefined) {
         jackInTerminal.dispose();
         jackInTerminal = undefined;
@@ -179,7 +180,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 }
 
 export async function calvaJackIn() {
-    state.extensionContext.workspaceState.update('needREPLUi', true);
+    utilities.updateNeedREPLUi(true);
     try {
         await state.initProjectDir();
     } catch (e) {
@@ -226,8 +227,7 @@ export async function calvaDisconnect() {
     if (utilities.getConnectedState()) {
         connector.default.disconnect();
         return;
-    } else if (utilities.getConnectingState() ||
-        utilities.getLaunchingState()) {
+    } else if (utilities.getConnectingState() || utilities.getLaunchingState()) {
         vscode.window.showInformationMessage(
             "Do you want to interrupt the connection process?",
             { modal: true },
