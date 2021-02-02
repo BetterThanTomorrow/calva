@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as utilities from "../utilities";
 import * as _ from "lodash";
 import * as state from "../state"
+import status from '../status';
 import * as connector from "../connector";
 import { nClient } from "../connector";
 import statusbar from "../statusbar";
@@ -44,7 +45,7 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
 
     // in case we have a running task present try to end it.
     calvaJackout();
-    utilities.updateNeedREPLUi(true);
+    status.updateNeedREPLUi(true);
     if (jackInTerminal !== undefined) {
         jackInTerminal.dispose();
         jackInTerminal = undefined;
@@ -180,7 +181,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 }
 
 export async function calvaJackIn() {
-    utilities.updateNeedREPLUi(true);
+    status.updateNeedREPLUi(true);
     try {
         await state.initProjectDir();
     } catch (e) {

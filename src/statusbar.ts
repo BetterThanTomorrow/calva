@@ -3,6 +3,7 @@ import * as state from './state';
 import * as util from './utilities';
 import config from './config';
 import * as namespace from './namespace';
+import status from './status';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -18,7 +19,7 @@ function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration)
     return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
 }
 
-function update() {
+function update(context = state.extensionContext) {
 
     let currentConf = vscode.workspace.getConfiguration('calva.statusColor');
 
@@ -92,7 +93,7 @@ function update() {
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.jackInOrConnect";
     }
-    if (util.showREPLUi()) {
+    if (status.shouldShowREPLUi(context)) {
         connectionStatus.show();
         typeStatus.show();
         if (cljsBuildStatus.text) {

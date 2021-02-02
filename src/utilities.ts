@@ -406,16 +406,6 @@ function currentTopLevelFunction(editor: vscode.TextEditor) {
     }
 }
 
-function updateNeedREPLUi(isNeeded: boolean) {
-    state.extensionContext.workspaceState.update('needREPLUi', isNeeded);
-    status.update();
-}
-
-function showREPLUi(): boolean {
-    return state.extensionContext.workspaceState.get('needREPLUi') ||
-    !state.config().hideREPLUi;
-}
-
 export {
     getStartExpression,
     getWordAtPosition,
@@ -450,7 +440,5 @@ export {
     getJarContents,
     currentFormText,
     currentFunction,
-    currentTopLevelFunction,
-    updateNeedREPLUi,
-    showREPLUi
+    currentTopLevelFunction
 };

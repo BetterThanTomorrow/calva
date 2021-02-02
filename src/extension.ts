@@ -65,7 +65,7 @@ function setKeybindingsEnabledContext() {
 }
 
 async function activate(context: vscode.ExtensionContext) {
-    context.workspaceState.update('needREPLUi', false);
+    status.updateNeedREPLUi(false, context);
     lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
@@ -130,7 +130,7 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", "I hear ya. Doing it!");
     }
 
-    status.update();
+    status.update(context);
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
