@@ -179,6 +179,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 }
 
 export async function calvaJackIn() {
+    state.extensionContext.workspaceState.update('needREPLUi', true);
     try {
         await state.initProjectDir();
     } catch (e) {

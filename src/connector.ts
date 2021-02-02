@@ -493,10 +493,12 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
 
 export default {
     connectNonProjectREPLCommand: async () => {
+        state.extensionContext.workspaceState.update('needREPLUi', true);
         const connectSequence = await askForConnectSequence(projectTypes.getAllProjectTypes(), 'connect-type', "ConnectInterrupted");
         standaloneConnect(connectSequence);
     },
     connectCommand: async () => {
+        state.extensionContext.workspaceState.update('needREPLUi', true);
         // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();

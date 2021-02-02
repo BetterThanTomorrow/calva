@@ -501,6 +501,11 @@
                         "description": "Activate keybindings.",
                         "default": true,
                         "scope": "window"
+                    },
+                    "calva.hideREPLUi": {
+                        "type": "boolean",
+                        "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features).",
+                        "default": false
                     }
                 }
             },

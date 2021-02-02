@@ -14,7 +14,7 @@ const color = {
 };
 
 function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
-    let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
+    let { defaultValue, globalValue, workspaceFolderValue, workspaceValue } = currentConf.inspect(section);
     return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
 }
 
@@ -92,15 +92,21 @@ function update() {
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.jackInOrConnect";
     }
-
-    connectionStatus.show();
-    typeStatus.show();
-    if (cljsBuildStatus.text) {
-        cljsBuildStatus.show();
+    if (util.showREPLUi()) {
+        connectionStatus.show();
+        typeStatus.show();
+        if (cljsBuildStatus.text) {
+            cljsBuildStatus.show();
+        } else {
+            cljsBuildStatus.hide();
+        }
+        prettyPrintToggle.show();
     } else {
+        connectionStatus.hide();
+        typeStatus.hide();
         cljsBuildStatus.hide();
+        prettyPrintToggle.hide();
     }
-    prettyPrintToggle.show();
 }
 
 export default {
