@@ -1,5 +1,12 @@
 #!/usr/bin/env bb
 
+;; Steps to reverse the effects of this script
+;; 
+;;  1. git reset HEAD^
+;;  2. git tag -d <tag-name> ;; Where tag-name is like v2.0.159
+;;  3. git push --delete origin <tag-name>
+;;  4. git checkout -- CHANGELOG.md
+
 (require '[clojure.string :as str]
          '[cheshire.core :as json]
          '[clojure.java.shell :as shell])
@@ -53,6 +60,10 @@
                             "-a" (str "v" version)
                             "-m" (str "Version " version))))
 
+(defn push []
+  (println "Pushing")
+  (throw-if-error (shell/sh "git" "push" "--follow-tags")))
+
 (let [unreleased-changelog-text (get-unreleased-changelog-text
                                  changelog-text
                                  unreleased-header-re)]
@@ -62,9 +73,8 @@
       (update-changelog changelog-filename 
                         changelog-text
                         unreleased-header-re
-                        calva-version))))
-;; (update-changelog changelog-filename calva-version)
-;; (commit-changelog changelog-filename "Test commit from publish script")
-;; (tag calva-version)
-
-
+                        calva-version)
+      (commit-changelog changelog-filename
+                        (str "Add changelog section for v" calva-version))
+      (tag calva-version)
+      (push))))
