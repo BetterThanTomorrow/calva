@@ -3,8 +3,6 @@
 Changes to Calva.
 
 ## [Unreleased]
-
-## [2.0.158] - 2021-02-03
 - Fix: [Load file command not loading changes since last file save on Windows](https://github.com/BetterThanTomorrow/calva/issues/975)
 - Update clojure-lsp to 2021.02.02-14.02.23
 
