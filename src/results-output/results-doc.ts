@@ -188,13 +188,9 @@ export function revealResultsDoc(preserveFocus: boolean = true) {
 }
 
 export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
-    const [_fileName, filePath] = await getFilePathForCurrentNameSpace();
-    let uri = vscode.Uri.parse(filePath);
-    if (filePath.match(/jar!\//)) {
-        uri = uri.with({ scheme: 'jar' });
-    }
+    const uri = await getUriForCurrentNamespace();
     vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc, {
-        preserveFocus: false
+        preserveFocus
     }));
 }
 
@@ -362,9 +358,8 @@ export function appendPrompt(onAppended?: OnAppendedCallback) {
     append(getPrompt(), onAppended);
 }
 
-export async function getFilePathForCurrentNameSpace(): Promise<[string, string]> {
+export async function getUriForCurrentNamespace(): Promise<vscode.Uri> {
     const ns = getNs();
     const info = await getSession().info(ns, ns);
-    const fileName = info.file;
-    return [fileName, vscode.Uri.parse(fileName).path];
+    return vscode.Uri.parse(info.file, true);
 }
