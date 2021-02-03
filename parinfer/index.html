@@ -11,7 +11,7 @@
         <meta name="description" content="Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.">
       
       
-        <link rel="canonical" href="https://calva.io/refactoring/">
+        <link rel="canonical" href="https://calva.io/parinfer/">
       
       
       <link rel="shortcut icon" href="../img/favicon.ico">
@@ -19,7 +19,7 @@
     
     
       
-        <title>Refactoring - Calva User Guide</title>
+        <title>Using Calva with Parinfer - Calva User Guide</title>
       
     
     
@@ -59,7 +59,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#refactoring" class="md-skip">
+        <a href="#using-calva-with-parinfer" class="md-skip">
           Skip to content
         </a>
       
@@ -86,7 +86,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Refactoring
+              Using Calva with Parinfer
             
           </span>
         </div>
@@ -285,12 +285,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
     
     <label class="md-nav__link" for="nav-3">
       Features
@@ -384,60 +382,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Refactoring
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
-        </span>
-      </label>
-    
-    <a href="./" title="Refactoring" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../refactoring/" title="Refactoring" class="md-nav__link">
       Refactoring
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
-      </span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
-    Commands
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#thanks-to-clojure-lsp" class="md-nav__link">
-    Thanks to clojure-lsp
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -522,10 +471,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
     
     <label class="md-nav__link" for="nav-5">
       Using Calva with X
@@ -655,11 +606,20 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../parinfer/" title="Using Calva with Parinfer" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+    <a href="./" title="Using Calva with Parinfer" class="md-nav__link md-nav__link--active">
       Using Calva with Parinfer
     </a>
+    
   </li>
 
         
@@ -793,30 +753,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
-      </span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
-    Commands
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#thanks-to-clojure-lsp" class="md-nav__link">
-    Thanks to clojure-lsp
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -827,7 +763,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/refactoring.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/parinfer.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
                   </a>
                 
@@ -835,99 +771,17 @@
                   
                 
                 
-                <h1 id="refactoring">Refactoring</h1>
-<p>There are two ”flavours” to refactoring support. Some (just a few) refactorings are made available as <em>Quick Fix</em> suggestions (the light bulb), the rest are regular commands in the <em>Calva Refactoring</em> category.</p>
-<p><img alt="" src="../images/refactoring/quick-fix.png" /></p>
-<p>You can enable or disable the <em>Quick Fix</em> suggestion lightbulb using the VS Code setting <code>editor.lightbulb.enabled</code>.</p>
-<p>The refactoring commands do not have default keyboard shortcuts. You find them all by typing ”Calva Refactor” in the Command Palette.</p>
-<h2 id="commands">Commands</h2>
-<table>
-<thead>
-<tr>
-<th>Command Title</th>
-<th>Command Key</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Clean NS Form</td>
-<td><code>calva.refactor.cleanNs</code></td>
-<td><img alt="" src="../images/refactoring/cleanNs.gif" /></td>
-</tr>
-<tr>
-<td>Add Missing Require</td>
-<td><code>calva.refactor.addMissingLibspec</code></td>
-<td><img alt="" src="../images/refactoring/addMissingLibspec.gif" /></td>
-</tr>
-<tr>
-<td>Extract to New Function</td>
-<td><code>calva.refactor.extractFunction</code></td>
-<td><img alt="" src="../images/refactoring/extractFunction.gif" /></td>
-</tr>
-<tr>
-<td>Cycle/Toggle Privacy</td>
-<td><code>calva.refactor.cyclePrivacy</code></td>
-<td><img alt="" src="../images/refactoring/cyclePrivacy.gif" /></td>
-</tr>
-<tr>
-<td>Inline Symbol</td>
-<td><code>calva.refactor.inlineSymbol</code></td>
-<td><img alt="" src="../images/refactoring/inlineSymbol.gif" /></td>
-</tr>
-<tr>
-<td>Introduce let</td>
-<td><code>calva.refactor.introduceLet</code></td>
-<td>Creates a new let box with the binding. Follow up with ”Expand let” to move it upwards.<br><img alt="" src="../images/refactoring/introduceLet.gif" /></td>
-</tr>
-<tr>
-<td>Expand Let</td>
-<td><code>calva.refactor.expandLet</code></td>
-<td><img alt="" src="../images/refactoring/expandLet.gif" /></td>
-</tr>
-<tr>
-<td>Move to Previous let Box</td>
-<td><code>calva.refactor.moveToLet</code></td>
-<td><img alt="" src="../images/refactoring/moveToLet.gif" /></td>
-</tr>
-<tr>
-<td>Thread First</td>
-<td><code>calva.refactor.threadFirst</code></td>
-<td><img alt="" src="../images/refactoring/threadFirst.gif" /></td>
-</tr>
-<tr>
-<td>Thread First All</td>
-<td><code>calva.refactor.threadFirstAll</code></td>
-<td><img alt="" src="../images/refactoring/threadFirstAll.gif" /></td>
-</tr>
-<tr>
-<td>Thread Last</td>
-<td><code>calva.refactor.threadLast</code></td>
-<td><img alt="" src="../images/refactoring/threadLast.gif" /></td>
-</tr>
-<tr>
-<td>Thread Last All</td>
-<td><code>calva.refactor.threadLastAll</code></td>
-<td><img alt="" src="../images/refactoring/threadLastAll.gif" /></td>
-</tr>
-<tr>
-<td>Unwind All</td>
-<td><code>calva.refactor.unwindAll</code></td>
-<td><img alt="" src="../images/refactoring/unwindAll.gif" /></td>
-</tr>
-<tr>
-<td>Unwind Thread</td>
-<td><code>calva.refactor.unwindThread</code></td>
-<td><img alt="" src="../images/refactoring/unwindThread.gif" /></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Formatting</p>
-<p>The way that some of the refactorings are applied to the document, makes it difficult for Calva to format the results. So, sometimes you'll need to navigate the cursor to the enclosing form and hit <code>tab</code> to tidy up the formatting after a refactoring. See also <a href="../formatting/">Formatting</a>.</p>
-</div>
-<h2 id="thanks-to-clojure-lsp">Thanks to clojure-lsp</h2>
-<p>Most of Calva's refactoring support is sourced directly from <a href="../clojure-lsp/">clojure-lsp</a>. This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.</p>
+                <h1 id="using-calva-with-parinfer">Using Calva with Parinfer</h1>
+<p>Yes, you can use Calva with with the Parinfer extension. The only conflict here is that Calva's auto-formatting (that which happens as you type) is going to risk clash with Parinfer's.</p>
+<p>However, Calva's <a href="../paredit/">Paredit</a> is carefully crafted. We suggest you consider that Clojure is a LISP, and therefore structural. There is power in this structure that other languages can not let you wield. Take advantage of this and make Paredit your friend. It takes only some few minutes to learn two or three basic Paredit commands:</p>
+<ul>
+<li><strong>Select form</strong></li>
+<li><strong>Slurp</strong></li>
+<li><strong>Barf</strong></li>
+</ul>
+<p>Besides letting you benefit from auto-formatting, working this way will quickly bring you in better contact with the structural nature of the Clojure code. You'll thank yourself later.</p>
+<p>Also, if you find yourself having deleted or added a bracket out of structure, despite Calva Paredit's <strong>Strict mode</strong> (which you are using, right?) there is a command that might help you heal the structure: <strong>Infer Parens</strong>. That command is actually implemented using the Parinfer library, so it will let you recover from quite many situations.</p>
+<p>All that said, what was said first is true: if you want to use the Parinfer extension, you can. You'll probably want to disable Calva's auto-formatting. The setting for controlling this is named <code>calva.fmt.formatAsYouType</code>.</p>
                 
               
               
@@ -946,7 +800,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
         
-          <a href="../pprint/" title="Pretty Printing" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../static-only/" title="Use Calva as w/o the REPL" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-footer-nav__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
             </div>
@@ -955,19 +809,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Pretty Printing
+                Use Calva as w/o the REPL
               </div>
             </div>
           </a>
         
         
-          <a href="../test-runner/" title="Test Runner" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../workspace-layouts/" title="Workspace Layouts" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-footer-nav__title">
               <div class="md-ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Test Runner
+                Workspace Layouts
               </div>
             </div>
             <div class="md-footer-nav__button md-icon">
