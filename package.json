@@ -282,7 +282,11 @@
                             "properties": {
                                 "name": {
                                     "type": "string",
-                                    "description": "Name this command so that it is easy to pick from the menu."
+                                    "markDownDescription": "The name of the command will show in the **Run Custom REPL Command** quick-pick menu."
+                                },
+                                "key": {
+                                    "type": "string",
+                                    "markdownDescription": "The key can be used to reference the snippet from **Run Custom REPL Command** keyboard shortcut arguments. This key will also be used in the quick-pick menu."
                                 },
                                 "snippet": {
                                     "type": [
@@ -293,11 +297,11 @@
                                 },
                                 "ns": {
                                     "type": "string",
-                                    "description": "(optional) Namespace to evaluate the command in. If omitted the command will be executed in whatever namespace the output/REPL window has at the moment."
+                                    "description": "(optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current file."
                                 },
                                 "repl": {
                                     "type": "string",
-                                    "description": "Choose which REPL should the code should be evaluated in.",
+                                    "description": "Choose which REPL should the code should be evaluated in. If omitted, the same REPL as for the current file will be used.",
                                     "enum": [
                                         "clj",
                                         "cljs"
@@ -306,8 +310,7 @@
                             },
                             "required": [
                                 "name",
-                                "snippet",
-                                "repl"
+                                "snippet"
                             ]
                         }
                     },
