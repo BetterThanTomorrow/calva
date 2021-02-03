@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as utilities from "../utilities";
 import * as _ from "lodash";
 import * as state from "../state"
+import status from '../status';
 import * as connector from "../connector";
 import { nClient } from "../connector";
 import statusbar from "../statusbar";
@@ -44,6 +45,7 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
 
     // in case we have a running task present try to end it.
     calvaJackout();
+    status.updateNeedReplUi(true);
     if (jackInTerminal !== undefined) {
         jackInTerminal.dispose();
         jackInTerminal = undefined;
@@ -179,6 +181,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 }
 
 export async function calvaJackIn() {
+    status.updateNeedReplUi(true);
     try {
         await state.initProjectDir();
     } catch (e) {
@@ -225,8 +228,7 @@ export async function calvaDisconnect() {
     if (utilities.getConnectedState()) {
         connector.default.disconnect();
         return;
-    } else if (utilities.getConnectingState() ||
-        utilities.getLaunchingState()) {
+    } else if (utilities.getConnectingState() || utilities.getLaunchingState()) {
         vscode.window.showInformationMessage(
             "Do you want to interrupt the connection process?",
             { modal: true },

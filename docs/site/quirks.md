@@ -10,9 +10,7 @@ Currently [`cider-nrepl` does not provide its test functionality for ClojureScri
 
 ## Using with Parinfer
 
-Calva defaults to formatting as you type. If you use Parinfer this creates a conflict, since it auto-indents your code. If you want to use Parinfer you'll have to tell Calva not to do auto-formatting by disabling `calva.fmt.formatAsYouType`.
-
-However, with VS Code and Calva it is probably better to learn to use [Paredit](paredit.md)'s **slurp** and **barf** and generally use Calva's automatic formatting.
+See [Using with Parinfer](parinfer.md)
 
 ## Calva and the VIM Extension
 
