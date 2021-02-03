@@ -8,6 +8,17 @@ As it could be a bit confusing and cluttered to have several REPL UIs active at 
 
 If you have the Calva REPL UI disabled and still want to [connect or jack-in to a REPL using Calva](connect.md), just do it. Then Calva's REPL UI will wake up and be there for the duration of the session.
 
+## Consider uninstalling these extensions
+
+Without Calva, many users install other nifty extensions (some of which are old pieces of Calva) that help with this or that problem. It might sometimes work together with Calva, sometimes not. Here's a list of some common extensions you should consider to at least disable:
+
+* Strict Paredit - Calva Paredit has evolved a lot since that version
+* Calva-fmt/Calva Formatter - Same here, evolution
+* Clojure Warrior - Calva includes it, in a much evolved way
+* Parinfer - This one you _can_ actually keep, _at some cost_, see [Using Calva with Parinfer](parinfer.md).
+
+## There's only one Calva REPL, though
+
 Of course we encourage you to use Calva's REPL. It gives you easy ways to
 
 * [start a Clojure REPL](connect.md)
