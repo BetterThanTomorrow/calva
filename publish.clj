@@ -5,33 +5,34 @@
          '[clojure.java.shell :as shell])
 
 (def changelog-filename "CHANGELOG.md")
-
+(def changelog-text (slurp changelog-filename))
+(def unreleased-header-re #"\[Unreleased\]\s+")
 (def calva-version (-> (slurp "package.json")
                        json/parse-string
                        (get "version")))
 
-;; TODO: Move getting of unreleased content out to separate function
-(defn update-changelog [file-name version]
+(defn get-unreleased-changelog-text
+  [changelog-text unreleased-header-re]
+  (-> changelog-text
+      (str/split unreleased-header-re)
+      (nth 1)
+      (str/split #"##")
+      (nth 0)
+      str/trim))
+
+(defn update-changelog
+  [file-name changelog-text unreleased-header-re version]
   (println "Updating changelog")
-  (let [changelog-text (slurp file-name)
-        unreleased-header-re #"\[Unreleased\]\s+"
-        unreleased-content (-> changelog-text
-                               (str/split unreleased-header-re)
-                               (nth 1)
-                               (str/split #"##")
-                               (nth 0)
-                               str/trim)]
-    (when-not (empty? unreleased-content)
-      (let [utc-date (-> (java.time.Instant/now)
-                         .toString
-                         (clojure.string/split #"T")
-                         (nth 0))
-            new-header (format "## [%s] - %s" version utc-date)
-            new-text (str/replace-first
-                      changelog-text
-                      unreleased-header-re
-                      (format "[Unreleased]\n\n%s\n" new-header))]
-        (spit changelog-filename new-text)))))
+  (let [utc-date (-> (java.time.Instant/now)
+                     .toString
+                     (clojure.string/split #"T")
+                     (nth 0))
+        new-header (format "## [%s] - %s" version utc-date)
+        new-text (str/replace-first
+                  changelog-text
+                  unreleased-header-re
+                  (format "[Unreleased]\n\n%s\n" new-header))]
+    (spit file-name new-text)))
 
 (defn throw-if-error [{:keys [exit out err]}]
   (when-not (= exit 0)
@@ -52,8 +53,18 @@
                             "-a" (str "v" version)
                             "-m" (str "Version " version))))
 
-(update-changelog changelog-filename calva-version)
-(commit-changelog changelog-filename "Test commit from publish script")
-(tag calva-version)
+(let [unreleased-changelog-text (get-unreleased-changelog-text
+                                 changelog-text
+                                 unreleased-header-re)]
+  (if (empty? unreleased-changelog-text)
+    (println "Aborting publish. There are no unreleased changes in the changelog.")
+    (do
+      (update-changelog changelog-filename 
+                        changelog-text
+                        unreleased-header-re
+                        calva-version))))
+;; (update-changelog changelog-filename calva-version)
+;; (commit-changelog changelog-filename "Test commit from publish script")
+;; (tag calva-version)
 
 
