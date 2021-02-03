@@ -5,7 +5,7 @@
 
 (let [changelog-filename "CHANGELOG.md"
       changelog-text (slurp changelog-filename)
-      unreleased-header-re #"\[Unreleased\]"
+      unreleased-header-re #"\[Unreleased\]\s+"
       unreleased-content (-> changelog-text
                              (str/split unreleased-header-re)
                              (nth 1)
@@ -24,5 +24,5 @@
           new-text (str/replace-first
                     changelog-text
                     unreleased-header-re
-                    (format "[Unreleased]\n\n%s" new-header))]
+                    (format "[Unreleased]\n\n%s\n" new-header))]
       (spit changelog-filename new-text))))
