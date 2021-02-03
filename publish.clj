@@ -1,5 +1,8 @@
 #!/usr/bin/env bb
 
+;; Note: The shell commands may need to be modifying if you're using Windows.
+;;       At the time of this writing, both people who push use Unix-based machines.
+
 ;; Steps to reverse the effects of this script
 ;; 
 ;;  1. git reset HEAD^
