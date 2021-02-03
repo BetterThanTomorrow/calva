@@ -1,7 +1,7 @@
 const { createWriteStream } = require('fs');
 const { https } = require('follow-redirects');
 
-const clojureLspVersion = '2021.01.28-03.03.16';
+const clojureLspVersion = '2021.02.02-14.02.23';
 const fileName = "./clojure-lsp.jar"
 
 const file = createWriteStream(fileName);
