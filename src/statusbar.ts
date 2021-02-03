@@ -3,6 +3,7 @@ import * as state from './state';
 import * as util from './utilities';
 import config from './config';
 import * as namespace from './namespace';
+import status from './status';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -14,11 +15,11 @@ const color = {
 };
 
 function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
-    let { defaultValue, globalValue, workspaceFolderValue, workspaceValue} = currentConf.inspect(section);
+    let { defaultValue, globalValue, workspaceFolderValue, workspaceValue } = currentConf.inspect(section);
     return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
 }
 
-function update() {
+function update(context = state.extensionContext) {
 
     let currentConf = vscode.workspace.getConfiguration('calva.statusColor');
 
@@ -92,15 +93,21 @@ function update() {
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.jackInOrConnect";
     }
-
-    connectionStatus.show();
-    typeStatus.show();
-    if (cljsBuildStatus.text) {
-        cljsBuildStatus.show();
+    if (status.shouldshowReplUi(context)) {
+        connectionStatus.show();
+        typeStatus.show();
+        if (cljsBuildStatus.text) {
+            cljsBuildStatus.show();
+        } else {
+            cljsBuildStatus.hide();
+        }
+        prettyPrintToggle.show();
     } else {
+        connectionStatus.hide();
+        typeStatus.hide();
         cljsBuildStatus.hide();
+        prettyPrintToggle.hide();
     }
-    prettyPrintToggle.show();
 }
 
 export default {

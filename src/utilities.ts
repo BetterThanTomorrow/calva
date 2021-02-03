@@ -8,6 +8,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror';
+import status from './status';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";

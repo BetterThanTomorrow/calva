@@ -50,6 +50,8 @@ nav:
     - live-share.md
     - luminus.md
     - re-frame-template.md
+    - static-only.md
+    - parinfer.md
   - Etcetera:
     - workspace-layouts.md
     - quirks.md
