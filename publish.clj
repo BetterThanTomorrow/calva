@@ -33,17 +33,27 @@
                       (format "[Unreleased]\n\n%s\n" new-header))]
         (spit changelog-filename new-text)))))
 
+(defn throw-if-error [{:keys [exit out err]}]
+  (when-not (= exit 0)
+    (throw (Exception. (if (empty? out)
+                         err
+                         out)))))
+
 (defn commit-changelog [file-name message]
   (println "Committing")
   (shell/sh "git" "add" file-name)
-  (shell/sh "git" "commit" "-m" message))
+  (throw-if-error (shell/sh "git" "commit" 
+                            "-m" message
+                            "-o" file-name)))
 
 (defn tag [version]
-  (println "Tagging")
-  (shell/sh "git" "tag"
-            "-a" (str "v" version)
-            "-m" (str "Version " version)))
+  (println "Tagging with version" version)
+  (throw-if-error (shell/sh "git" "tag"
+                            "-a" (str "v" version)
+                            "-m" (str "Version " version))))
 
 (update-changelog changelog-filename calva-version)
 (commit-changelog changelog-filename "Test commit from publish script")
 (tag calva-version)
+
+
