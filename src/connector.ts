@@ -493,12 +493,12 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
 
 export default {
     connectNonProjectREPLCommand: async () => {
-        status.updateNeedREPLUi(true);
+        status.updateNeedReplUi(true);
         const connectSequence = await askForConnectSequence(projectTypes.getAllProjectTypes(), 'connect-type', "ConnectInterrupted");
         standaloneConnect(connectSequence);
     },
     connectCommand: async () => {
-        status.updateNeedREPLUi(true);
+        status.updateNeedReplUi(true);
         // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();
@@ -513,7 +513,7 @@ export default {
         standaloneConnect(connectSequence);
     },
     disconnect: (options = null, callback = () => { }) => {
-        status.updateNeedREPLUi(false);
+        status.updateNeedReplUi(false);
         ['clj', 'cljs'].forEach(sessionType => {
             state.cursor.set(sessionType, null);
         });

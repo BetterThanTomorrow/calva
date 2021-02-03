@@ -3,23 +3,23 @@ import * as namespace from './namespace';
 import statusbar from './statusbar';
 import * as state from './state';
 
-function updateNeedREPLUi(isNeeded: boolean, context = state.extensionContext) {
-    context.workspaceState.update('needREPLUi', isNeeded);
+function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
+    context.workspaceState.update('needReplUi', isNeeded);
     update(context);
 }
 
-function shouldShowREPLUi(context = state.extensionContext): boolean {
-    return context.workspaceState.get('needREPLUi') || !state.config().hideREPLUi;
+function shouldshowReplUi(context = state.extensionContext): boolean {
+    return context.workspaceState.get('needReplUi') || !state.config().hideReplUi;
 }
 
 function update(context = state.extensionContext) {
-    vscode.commands.executeCommand('setContext', 'calva:showREPLUi', shouldShowREPLUi(context));
+    vscode.commands.executeCommand('setContext', 'calva:showReplUi', shouldshowReplUi(context));
     namespace.updateREPLSessionType();
     statusbar.update(context);
 }
 
 export default {
     update,
-    updateNeedREPLUi,
-    shouldShowREPLUi
+    updateNeedReplUi,
+    shouldshowReplUi
 };

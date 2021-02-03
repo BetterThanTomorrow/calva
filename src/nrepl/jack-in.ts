@@ -45,7 +45,7 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
 
     // in case we have a running task present try to end it.
     calvaJackout();
-    status.updateNeedREPLUi(true);
+    status.updateNeedReplUi(true);
     if (jackInTerminal !== undefined) {
         jackInTerminal.dispose();
         jackInTerminal = undefined;
@@ -181,7 +181,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
 }
 
 export async function calvaJackIn() {
-    status.updateNeedREPLUi(true);
+    status.updateNeedReplUi(true);
     try {
         await state.initProjectDir();
     } catch (e) {

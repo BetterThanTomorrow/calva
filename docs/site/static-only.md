@@ -4,7 +4,7 @@ Why would anyone want to use a Clojure editor without a REPL? It could be becaus
 
 As it could be a bit confusing and cluttered to have several REPL UIs active at the same time, Calva supports this use with a setting to disable most of its REPL UI elements, like statusbar items, command palette entries and editor context menus.
 
-* Set `calva.hideREPLUi` to `true` and the only commands still visible should be those for Connect and Jack-in.
+* Set `calva.hideReplUi` to `true` and the only commands still visible should be those for Connect and Jack-in.
 
 If you have the Calva REPL UI disabled and still want to [connect or jack-in to a REPL using Calva](connect.md), just do it. Then Calva's REPL UI will wake up and be there for the duration of the session.
 

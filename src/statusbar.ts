@@ -93,7 +93,7 @@ function update(context = state.extensionContext) {
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.jackInOrConnect";
     }
-    if (status.shouldShowREPLUi(context)) {
+    if (status.shouldshowReplUi(context)) {
         connectionStatus.show();
         typeStatus.show();
         if (cljsBuildStatus.text) {
