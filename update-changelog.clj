@@ -1,20 +1,28 @@
 #!/usr/bin/env bb
 
-(require '[clojure.string :as str])
-
-;; TODO: Check if any list items under Unreleased header, and if not, throw exception
+(require '[clojure.string :as str]
+         '[cheshire.core :as json])
 
 (let [changelog-filename "CHANGELOG.md"
       changelog-text (slurp changelog-filename)
       unreleased-header-re #"\[Unreleased\]"
-      content-after-unreleased (-> changelog-text
-                                   (str/split unreleased-header-re)
-                                   (nth 1)
-                                   (str/split #"##")
-                                   (nth 0)
-                                   str/trim)
-      new-text (str/replace-first changelog-text unreleased-header-re "[Unreleased]\n\n## [MY NEW HEADER]")]
-  (if (empty? content-after-unreleased)
-    (throw (Exception. "There are no items to be released in the changelog. Update the changelog before releasing."))
-    content-after-unreleased)
-  #_(spit changelog-filename new-text))
+      unreleased-content (-> changelog-text
+                             (str/split unreleased-header-re)
+                             (nth 1)
+                             (str/split #"##")
+                             (nth 0)
+                             str/trim)]
+  (when-not (empty? unreleased-content)
+    (let [version (-> (slurp "package.json")
+                      json/parse-string
+                      (get "version"))
+          utc-date (-> (java.time.Instant/now)
+                       .toString
+                       (clojure.string/split #"T")
+                       (nth 0))
+          new-header (format "## [%s] - %s" version utc-date)
+          new-text (str/replace-first
+                    changelog-text
+                    unreleased-header-re
+                    (format "[Unreleased]\n\n%s" new-header))]
+      (spit changelog-filename new-text))))
