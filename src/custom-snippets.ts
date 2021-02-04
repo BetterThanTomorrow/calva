@@ -17,7 +17,16 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const currentFilename = editor.document.fileName;
     let pickCounter = 0;
     let configErrors: { "name": string; "keys": string[]; }[] = [];
-    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[];
+    const globalSnippets = state.config().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
+    const workspaceSnippets = state.config().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
+    const workspaceFolderSnippets = state.config().customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
+    let snippets = [
+        ...(globalSnippets ? globalSnippets : []),
+        ...(workspaceSnippets ? workspaceSnippets : []),
+        ...(workspaceFolderSnippets ? workspaceFolderSnippets : [])];
+    if (snippets.length < 1) {
+        snippets = state.config().customREPLCommandSnippets;
+    }
     const snippetsDict = {};
     const snippetsKeyDict = {};
     const snippetsMenuItems: string[] = [];
@@ -33,9 +42,7 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
             configErrors.push({ "name": c.name, "keys": undefs });
         }
         const entry = { ...c };
-
         entry.ns = entry.ns ? entry.ns : editorNS;
-
         entry.repl = entry.repl ? entry.repl : editorRepl;
         pickCounter++;
         const prefix = entry.key !== undefined ? entry.key : pickCounter;
