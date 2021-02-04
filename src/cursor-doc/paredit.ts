@@ -483,8 +483,6 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
         const currentFormRange = startC.rangeForCurrentForm(start);
         if (currentFormRange) {
             growSelectionStack(doc, currentFormRange);
-        } else {
-            console.log("no move");
         }
     } else {
         if (startC.getPrevToken().type == "open" && endC.getToken().type == "close") {

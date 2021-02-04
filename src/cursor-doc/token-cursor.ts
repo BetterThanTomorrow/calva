@@ -729,6 +729,7 @@ export class LispTokenCursor extends TokenCursor {
             const end = cursor.offsetStart;
             return [start, end];
         }
+        return [undefined, undefined];
     }
 }
 
