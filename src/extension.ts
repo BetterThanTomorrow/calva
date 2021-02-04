@@ -164,10 +164,9 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', async () => {
-        await snippets.evaluateCustomCommandSnippetCommand();
-        outputWindow.appendPrompt();
-    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', snippets.evaluateCustomCodeSnippetCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.tapSelection', () => snippets.evaluateCustomCodeSnippetCommand("(tap> $current-form)")));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.tapCurrentTopLevelForm', () => snippets.evaluateCustomCodeSnippetCommand("(tap> $top-level-form)")));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showFileForOutputWindowNS', () => { outputWindow.revealDocForCurrentNS(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setOutputWindowNamespace', outputWindow.setNamespaceFromCurrentFile));

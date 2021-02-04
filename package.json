@@ -686,13 +686,25 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "title": "Evaluate Current Form",
+                "title": "Evaluate Current Form  (or selection, if any)",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.tapSelection",
+                "title": "Tap Current Form (or selection, if any)",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "title": "Evaluate Top Level Form (defun)",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.tapCurrentTopLevelForm",
+                "title": "Tap Current Top Level Form",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1256,6 +1268,16 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.tapSelection",
+                "key": "ctrl+shift+t t",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.tapCurrentTopLevelForm",
+                "key": "ctrl+shift+t space",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
