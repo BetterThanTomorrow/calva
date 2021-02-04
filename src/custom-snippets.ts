@@ -8,7 +8,6 @@ import { customREPLCommandSnippet, evaluateInOutputWindow } from './evaluate';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
     await evaluateCustomCodeSnippet(codeOrKey);
-    outputWindow.appendPrompt();
 };
 
 async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
@@ -60,6 +59,9 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
                     placeHolder: "Choose a command to run at the REPL",
                     saveAs: "runCustomREPLCommand"
                 });
+                if (pick === undefined || pick.length < 1) {
+                    return;
+                }
             } catch (e) {
                 console.error(e);
             }
@@ -85,4 +87,5 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         replace("$current-fn", util.currentFunction(editor)).
         replace("$top-level-defined-symbol", util.currentTopLevelFunction(editor));
     await evaluateInOutputWindow(interpolatedCode, repl, ns);
+    outputWindow.appendPrompt();
 }
