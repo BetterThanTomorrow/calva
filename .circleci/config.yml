@@ -248,6 +248,12 @@ jobs:
             else
               npx ${OVSX_CMD}
             fi
+  merge-dev-to-published:
+    docker:
+      - image: cimg/node:15.8
+    steps:
+      - checkout
+      - run: git --version
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
