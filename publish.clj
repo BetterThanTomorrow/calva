@@ -67,6 +67,10 @@
   (println "Pushing")
   (throw-if-error (shell/sh "git" "push" "--follow-tags")))
 
+(defn open-ci-in-browser []
+  (shell/sh "xdg-open" "https://app.circleci.com/pipelines/github/BetterThanTomorrow/calva")
+  nil)
+
 (let [unreleased-changelog-text (get-unreleased-changelog-text
                                  changelog-text
                                  unreleased-header-re)]
@@ -80,4 +84,5 @@
       (commit-changelog changelog-filename
                         (str "Add changelog section for v" calva-version))
       (tag calva-version)
-      (push))))
+      (push)
+      (open-ci-in-browser))))
