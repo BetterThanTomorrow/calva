@@ -267,7 +267,14 @@ jobs:
             # git push origin HEAD
   deploy-docs:
     docker:
-      - image: cimg/python:
+      - image: cimg/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Install mkdocs
+          command: |
+            pip install mkdocs
+            mkdocs --version
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
@@ -289,8 +296,7 @@ workflows:
       # - test-ts-unit:
       #     requires:
       #       - build
-      - merge-dev-to-published:
-          context: Calva
+      - deploy-docs
   release-publish:
     jobs:
       - build:
