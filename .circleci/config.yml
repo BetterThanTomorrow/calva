@@ -267,22 +267,23 @@ workflows:
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
-      - build:
-          filters:
-            tags:
-              ignore: /^v\d+\.\d+\.\d+-?.*/
-      - test-grammar:
-          requires:
-            - build
-      - test-cljslib:
-          requires:
-            - build
-      - test-integration:
-          requires:
-            - build
-      - test-ts-unit:
-          requires:
-            - build
+      # - build:
+      #     filters:
+      #       tags:
+      #         ignore: /^v\d+\.\d+\.\d+-?.*/
+      # - test-grammar:
+      #     requires:
+      #       - build
+      # - test-cljslib:
+      #     requires:
+      #       - build
+      # - test-integration:
+      #     requires:
+      #       - build
+      # - test-ts-unit:
+      #     requires:
+      #       - build
+      - merge-dev-to-published
   release-publish:
     jobs:
       - build:
