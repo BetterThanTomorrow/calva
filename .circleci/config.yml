@@ -267,14 +267,14 @@ jobs:
             # git push origin HEAD
   deploy-docs:
     docker:
-      - image: cimg/python:3.8
+      - image: cimg/python:3.8-node
     steps:
       - checkout
       - run:
           name: Install mkdocs
           command: |
             pip install mkdocs
-            mkdocs gh-deploy --message \"[skip ci]\" --strict --clean
+            npm run deploy-docs
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
