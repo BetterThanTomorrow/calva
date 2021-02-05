@@ -1,4 +1,4 @@
-# The Calva development and release process
+# The Calva Development and Release Process
 
 _This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feedback and tips on how to improve this process is very welcome._
 
