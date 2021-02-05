@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.159] - 2021-02-05
 - [Enable keyboard shortcuts for custom REPL commands]((https://github.com/BetterThanTomorrow/calva/issues/1011))
 - [Add commands for tapping current and top-level forms]((https://github.com/BetterThanTomorrow/calva/issues/1008))
 
