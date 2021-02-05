@@ -263,7 +263,7 @@ jobs:
             git config --global user.name $GITHUB_USER_NAME
             git checkout published
             git merge origin/dev -m "Merge branch 'dev' into published"
-            # git push origin HEAD
+            git push origin HEAD
   deploy-docs:
     docker:
       - image: cimg/python:3.8-node
@@ -299,7 +299,7 @@ jobs:
             npm run bump-version
             git add .
             git commit -m "Bring on version $(node -p "require('./package').version")! [skip ci]"
-            # git push origin HEAD
+            git push origin HEAD
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
