@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.161] - 2021-02-05
 - [Automate more of the release process and document it (including rationale)](https://github.com/BetterThanTomorrow/calva/issues/860)
 
 ## [2.0.160] - 2021-02-05
