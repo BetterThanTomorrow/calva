@@ -56,7 +56,7 @@ A custom REPL command for starting Reveal in your project:
     ]
 ```
 
-See [Custom REPL Command](custom-snippets.md) for how to configure more commands, and bind shortcuts to them, to make Reveal integration nice for you.
+See [Custom REPL Command](custom-commands.md) for how to configure more commands, and bind shortcuts to them, to make Reveal integration nice for you.
 
 
 ## When using Leiningen
