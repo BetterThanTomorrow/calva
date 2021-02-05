@@ -274,7 +274,7 @@ jobs:
           name: Install mkdocs
           command: |
             pip install mkdocs
-            mkdocs --version
+            mkdocs gh-deploy --message \"[skip ci]\" --strict --clean
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
