@@ -43,7 +43,27 @@ There are also these settings:
 
 ### Troubleshooting
 
-#### Environment Variables Are Not Readable From REPL
+#### Command not found errors
+
+If you get `command not found` error when Calva tries to start your project, and you know you have the command installed. It probably is because VS Code starts from an environment where the command is not on the `$PATH`. It can look like so:
+
+```sh
+lein update-in :dependencies conj '[nrepl,"0.8.3"]' -- update-in :plugins conj '[cider/cider-nrepl,"0.25.8"]' -- update-in '[:repl-options,:nrepl-middleware]' conj '["cider.nrepl/cider-middleware"]' -- repl :headless
+/bin/sh: lein: command not found
+Jack-in process exited. Status: 127
+```
+
+The fix is to always start VS Code from the command line:
+
+```sh
+$ code
+```
+
+You might need to first run the **Shell Command: Install `code` command in PATH**.
+
+This will also make sure your REPL has access to the environment you probably expect it to have access to. See below.
+
+##### Environment variables are not readable From REPL
 
 If you've added environment variables in your OS, such as in your `~/.bashrc` file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run `echo $SOME_VAR` and see the value there, then open VS Code from that terminal with `code <project path>`.
 
@@ -56,3 +76,6 @@ However, just as before it can be tricky to get the dependencies right. Consider
 Even better: Copying that command line gives you the command to start the REPL with the correct dependencies.
 
 All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
+
+!!! Note
+    There is a Calva command for copying the Jack-in command line to the clipboard.
