@@ -264,7 +264,7 @@ jobs:
             # git merge origin/dev origin/automate_more_of_publish -m "Merge branch 'dev' into branch 'automate_more_of_publish'"
             # git push origin HEAD
             git checkout published
-            git merge dev
+            git merge origin/dev
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
