@@ -274,11 +274,13 @@ jobs:
             - "d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14"
       - checkout
       - run:
-          name: Install mkdocs
+          name: Install mkdocs and mkdocs-material
           command: |
             pip install mkdocs
             pip install mkdocs-material
-            npm run deploy-docs
+      - run:
+          name: Deploy docs
+          command: npm run deploy-docs
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
