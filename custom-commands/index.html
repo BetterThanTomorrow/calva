@@ -19,7 +19,7 @@
     
     
       
-        <title>Running Custom REPL Commands - Calva User Guide</title>
+        <title>Custom REPL Commands - Calva User Guide</title>
       
     
     
@@ -59,7 +59,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#running-custom-repl-commands" class="md-skip">
+        <a href="#custom-repl-commands" class="md-skip">
           Skip to content
         </a>
       
@@ -86,7 +86,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              Running Custom REPL Commands
+              Custom REPL Commands
             
           </span>
         </div>
@@ -430,9 +430,42 @@
       
     
     
-    <a href="./" title="Running Custom REPL Commands" class="md-nav__link md-nav__link--active">
-      Running Custom REPL Commands
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Custom REPL Commands
+        <span class="md-nav__icon md-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
+        </span>
+      </label>
+    
+    <a href="./" title="Custom REPL Commands" class="md-nav__link md-nav__link--active">
+      Custom REPL Commands
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#binding-keyboard-shortcuts" class="md-nav__link">
+    Binding keyboard shortcuts
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -753,6 +786,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
+      </span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#binding-keyboard-shortcuts" class="md-nav__link">
+    Binding keyboard shortcuts
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -771,14 +821,15 @@
                   
                 
                 
-                <h1 id="running-custom-repl-commands">Running Custom REPL Commands</h1>
-<p>Calva supports configuration of custom command snippets that you can execute in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting <code>calva.customREPLCommandSnippets</code> to configure it and then use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</p>
-<p>The <code>calva.customREPLCommandSnippets</code> is an array of objects with the following fields:</p>
+                <h1 id="custom-repl-commands">Custom REPL Commands</h1>
+<p>Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting <code>calva.customREPLCommandSnippets</code> to configure it. Then either bind keyboard shortcuts to them or use the command <strong>Run Custom REPL Command</strong> to access it. The command will give you a menu with the snippets you have configured.</p>
+<p>The <code>calva.customREPLCommandSnippets</code> is an array of objects with the following fields (required fields in <strong>bold</strong>):</p>
 <ul>
-<li><code>name</code>: The name of the snippet as it will appear in the picker menu</li>
-<li><code>snippet</code>: The code that will be evaluated</li>
-<li><code>ns</code>: (optional) Namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.</li>
-<li><code>repl</code>: Which repl session to use for the evaluation. Either <code>"clj"</code> or <code>"cljs"</code></li>
+<li><strong><code>name</code></strong>: The name of the snippet as it will appear in the picker menu</li>
+<li><strong><code>snippet</code></strong>: The code that will be evaluated</li>
+<li><code>key</code>: A key can be used to reference the snippet from <strong>Run Custom REPL Command</strong> keyboard shortcut arguments. It will also be used in the quick-pick menu.</li>
+<li><code>ns</code>: A namespace to evaluate the command in. If omitted the command will be executed in the namespace of the current editor.</li>
+<li><code>repl</code>: Which repl session to use for the evaluation. Either <code>"clj"</code> or <code>"cljs"</code>. Omit if you want to use the session of the current editor.</li>
 </ul>
 <p>There are also substitutions available, which will take elements from the current state of Calva and splice them in to the text of your command before executing it. They are</p>
 <ul>
@@ -807,6 +858,7 @@
         <span class="p">},</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Refresh&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
             <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(refresh)&quot;</span><span class="p">,</span>
             <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span>
         <span class="p">},</span>
@@ -817,11 +869,15 @@
         <span class="p">},</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Call Current Top Level Form&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;call-t&quot;</span><span class="p">,</span>
             <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
             <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;($top-level-form)&quot;</span>
         <span class="p">},</span>
         <span class="p">{</span>
+            <span class="err">//</span> <span class="err">You</span> <span class="err">don&#39;t</span> <span class="err">need</span> <span class="err">to</span> <span class="err">configure</span> <span class="err">this</span> <span class="err">one,</span>
+            <span class="err">//</span> <span class="err">there</span> <span class="err">is</span> <span class="err">a</span> <span class="err">built-in</span> <span class="err">command</span> <span class="err">for</span> <span class="err">tapping</span> <span class="err">the</span> <span class="err">current</span> <span class="err">form</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Tap Current Form&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;tap&quot;</span><span class="p">,</span>
             <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
             <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(tap&gt; $current-form)&quot;</span>
         <span class="p">},</span>
@@ -839,10 +895,31 @@
 </code></pre></div>
 
 
-<p>Issuing <strong>Run Custom REPL Command</strong> will render this VS Code menu:</p>
+<p>Issuing <strong>Run Custom REPL Command</strong> will then render this VS Code menu:</p>
 <p><img alt="" src="../images/custom-command-menu.png" /></p>
-<p>The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is <code>ctrl+alt+space</code>. Which means that to execute the <strong>Tap Current Form</strong> custom command, you could do:</p>
-<p><code>ctrl+alt+space 6 enter</code>.</p>
+<p>The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is <code>ctrl+alt+space</code>. Which means that to execute the <strong>Call Current Form</strong> custom command, you could do:</p>
+<p><code>ctrl+alt+space 4 enter</code>.</p>
+<h2 id="binding-keyboard-shortcuts">Binding keyboard shortcuts</h2>
+<p>Some custom REPL commands might be so central to your workflow that you want to bind keyboard shortcuts to them directly. There are two ways to do this:</p>
+<ol>
+<li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut with whatever code you want to evaluate in <code>args</code> key. You have access to the substitution variables here as well.</li>
+<li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut referencing the <code>key</code> of on of your <code>calva.customREPLCommandSnippets</code>.</li>
+</ol>
+<p>Given the above example settings, here are two shortcut definitions that both <code>tap&gt;</code> the current form:</p>
+<div class="codehilite"><pre><span></span><code>    <span class="p">{</span>
+        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+alt+shift+t t&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;calva.runCustomREPLCommand&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;args&quot;</span><span class="p">:</span> <span class="s2">&quot;(tap&gt; $current-form)&quot;</span>
+    <span class="p">}</span><span class="err">,</span>
+    <span class="p">{</span>
+        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+alt+shift+t t&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;calva.runCustomREPLCommand&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;args&quot;</span><span class="p">:</span> <span class="s2">&quot;tap&quot;</span>
+    <span class="p">}</span>
+</code></pre></div>
+
+
+<p>(Again, none of them is needed, the built in command for tapping the current form is default bound to the shortcut <code>ctrl+shift+t t</code>.)</p>
                 
               
               

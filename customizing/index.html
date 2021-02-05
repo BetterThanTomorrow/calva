@@ -420,8 +420,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../custom-commands/" title="Running Custom REPL Commands" class="md-nav__link">
-      Running Custom REPL Commands
+    <a href="../custom-commands/" title="Custom REPL Commands" class="md-nav__link">
+      Custom REPL Commands
     </a>
   </li>
 
@@ -553,8 +553,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#paredit" class="md-nav__link">
-    Paredit
+  <a href="#move-by-word" class="md-nav__link">
+    Move by word
   </a>
   
 </li>
@@ -919,8 +919,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#paredit" class="md-nav__link">
-    Paredit
+  <a href="#move-by-word" class="md-nav__link">
+    Move by word
   </a>
   
 </li>
@@ -1095,8 +1095,38 @@
 <li><a href="../emacs-keybindings/">Keybindings for Emacs users</a></li>
 </ul>
 <p>Are you a vim extension user? See: <a href="../vim/">Using with VIM extension</a>.</p>
-<h3 id="paredit">Paredit</h3>
-<p>Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing <a href="../paredit/">Paredit</a> shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.</p>
+<h3 id="move-by-word">Move by word</h3>
+<p>If you sometimes navigate by word, you might find that Calva defaults gets a bit in the way. Here are some settings that retain the default word movement shortcuts for Windows and Mac:</p>
+<div class="codehilite"><pre><span></span><code>    <span class="p">{</span>
+        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;win&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;mac&quot;</span><span class="p">:</span> <span class="s2">&quot;alt+right&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;cursorWordRight&quot;</span>
+    <span class="p">}</span><span class="err">,</span>
+    <span class="p">{</span>
+        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+left&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;win&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+left&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;mac&quot;</span><span class="p">:</span> <span class="s2">&quot;alt+left&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;cursorWordLeft&quot;</span>
+    <span class="p">}</span><span class="err">,</span>
+    <span class="p">{</span>
+        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;mac&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;win&quot;</span><span class="p">:</span> <span class="s2">&quot;alt+right&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;paredit.forwardSexp&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;when&quot;</span><span class="p">:</span> <span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+    <span class="p">}</span><span class="err">,</span>
+    <span class="p">{</span>
+        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+left&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;mac&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+left&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;win&quot;</span><span class="p">:</span> <span class="s2">&quot;alt+left&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;paredit.backwardSexp&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;when&quot;</span><span class="p">:</span> <span class="s2">&quot;calva:keybindingsEnabled &amp;&amp; editorTextFocus &amp;&amp; editorLangId == &#39;clojure&#39; &amp;&amp; paredit:keyMap =~ /original|strict/&quot;</span>
+    <span class="p">}</span>
+</code></pre></div>
+
+
+<p>Use it as an inspiration for customizing these things to your own liking. 😄</p>
 <h3 id="wrap-using-like-cursive">Wrap using <code>(</code>, <code>[</code>, <code>{</code> (like Cursive)</h3>
 <p>Something I use in IntelliJ/Cursive is the ability to select an expression and hit one of <code>(</code>, <code>[</code>, <code>{</code> to wrap it. And after wrapping the expression I don't want the selection anymore, so if I were wrapping <code>(foo)</code> then I would want to get <code>( | (foo))</code> where <code>|</code> would be my cursor.</p>
 <p>Here's how you can make this work with Calva Paredit: Update all of the <code>Paredit: Wrap Around ...</code> commands so that their respective shortcuts are the wrappers themselves and update the <code>when</code> clause to include <code>editorHasSelection</code> (otherwise when you open a paren the next expression would get slurped in).</p>
