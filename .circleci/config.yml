@@ -248,6 +248,58 @@ jobs:
             else
               npx ${OVSX_CMD}
             fi
+  merge-dev-to-published:
+    docker:
+      - image: cimg/node:15.8
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14"
+      - checkout
+      - run:
+          name: Merge dev into published
+          command: |
+            git config --global user.email $GITHUB_USER_EMAIL
+            git config --global user.name $GITHUB_USER_NAME
+            git checkout published
+            git merge origin/dev --no-edit
+            git push origin HEAD
+  deploy-docs:
+    docker:
+      - image: cimg/python:3.8-node
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14"
+      - checkout
+      - run:
+          name: Install mkdocs and mkdocs-material
+          command: |
+            pip install mkdocs
+            pip install mkdocs-material
+      - run:
+          name: Deploy docs
+          command: |
+            git checkout published
+            npm run deploy-docs
+  bump-dev-version:
+    docker:
+      - image: cimg/node:15.8
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "d1:06:ff:c3:58:59:68:6e:a3:2f:69:1d:e2:94:7c:14"
+      - checkout
+      - run:
+          name: Bump dev version
+          command: |
+            git config --global user.email $GITHUB_USER_EMAIL
+            git config --global user.name $GITHUB_USER_NAME
+            git checkout dev
+            npm run bump-version
+            git add .
+            git commit -m "Bring on version $(node -p "require('./package').version")! [skip ci]"
+            git push origin HEAD
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
@@ -342,6 +394,32 @@ workflows:
       - open-vsx-publish:
           requires:
             - github-release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+          context: Calva
+      - merge-dev-to-published:
+          requires:
+            - marketplace-publish
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+          context: Calva
+      - deploy-docs:
+          requires:
+            - merge-dev-to-published
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+      - bump-dev-version:
+          requires:
+            - merge-dev-to-published
           filters:
             branches:
               ignore: /.*/
