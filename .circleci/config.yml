@@ -263,7 +263,6 @@ jobs:
             git config --global user.name $GITHUB_USER_NAME
             git checkout published
             git merge origin/dev -m "Merge branch 'dev' into published"
-            # TODO: Uncomment before real run
             # git push origin HEAD
   deploy-docs:
     docker:
@@ -294,8 +293,12 @@ jobs:
       - run:
           name: Bump dev version
           command: |
+            git config --global user.email $GITHUB_USER_EMAIL
+            git config --global user.name $GITHUB_USER_NAME
             git checkout dev
             npm run bump-version
+            git add .
+            git commit -m "Bring on version $(node -p "require('./package').version")! [skip ci]"
             # git push origin HEAD
 workflows:
   version: 2
@@ -318,7 +321,8 @@ workflows:
       # - test-ts-unit:
       #     requires:
       #       - build
-      - bump-dev-version
+      - bump-dev-version:
+          context: Calva
   release-publish:
     jobs:
       - build:
@@ -407,3 +411,23 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+$/
           context: Calva
+      - deploy-docs:
+          requires:
+            - merge-dev-to-published
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+      - bump-dev-version:
+          requires:
+            - merge-dev-to-published
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
+          context: Calva
+          
+          
+
