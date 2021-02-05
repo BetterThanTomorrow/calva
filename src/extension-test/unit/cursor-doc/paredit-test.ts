@@ -481,6 +481,30 @@ describe('paredit', () => {
             expect(doc.model.getText(0, Infinity)).toBe(newText);
             expect(doc.selection).toEqual(new ModelEditSelection(caret));
         });
+        it('raises the current form when cursor is preceeding', () => {
+            const doc: mock.MockDocument = new mock.MockDocument();
+            const oldText = '(str #(foo))';
+            const newText = '#(foo)';
+            const oldCaret = 5;
+            const newCaret = 0;
+            doc.insertString(oldText);
+            doc.selection = new ModelEditSelection(oldCaret);
+            paredit.raiseSexp(doc);
+            expect(doc.model.getText(0, Infinity)).toBe(newText);
+            expect(doc.selection).toEqual(new ModelEditSelection(newCaret));
+        });
+        it('raises the current form when cursor is trailing', () => {
+            const doc: mock.MockDocument = new mock.MockDocument();
+            const oldText = '(str #(foo))';
+            const newText = '#(foo)';
+            const oldCaret = 11;
+            const newCaret = 11;
+            doc.insertString(oldText);
+            doc.selection = new ModelEditSelection(oldCaret);
+            paredit.raiseSexp(doc);
+            expect(doc.model.getText(0, Infinity)).toBe(newText);
+            expect(doc.selection).toEqual(new ModelEditSelection(newCaret));
+        });
     });
 });
 

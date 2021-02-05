@@ -548,22 +548,21 @@ export function setSelectionStack(doc: EditableDocument, selection = doc.selecti
 }
 
 export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
-    if (start == end) {
-        let cursor = doc.getTokenCursor(end);
-        cursor.forwardWhitespace();
-        cursor.backwardThroughAnyReader();
-        let endCursor = cursor.clone();
-        if (endCursor.forwardSexp()) {
-            let raised = doc.model.getText(cursor.offsetStart, endCursor.offsetStart);
-            cursor.backwardList();
-            endCursor.forwardList();
-            if (cursor.getPrevToken().type == "open") {
-                cursor.previous();
-                if (endCursor.getToken().type == "close") {
-                    doc.model.edit([
-                        new ModelEdit('changeRange', [cursor.offsetStart, endCursor.offsetEnd, raised])
-                    ], { selection: new ModelEditSelection(cursor.offsetStart) });
-                }
+    const cursor = doc.getTokenCursor(end);
+    const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+    const startCursor = doc.getTokenCursor(formStart);
+    let endCursor = startCursor.clone();
+    if (endCursor.forwardSexp()) {
+        let raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
+        startCursor.backwardList();
+        endCursor.forwardList();
+        const caretCursor = formEnd - start < start - formStart ? endCursor : startCursor;
+        if (startCursor.getPrevToken().type == "open") {
+            startCursor.previous();
+            if (endCursor.getToken().type == "close") {
+                doc.model.edit([
+                    new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])
+                ], { selection: new ModelEditSelection(caretCursor.offsetStart) });
             }
         }
     }
