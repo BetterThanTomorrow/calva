@@ -42,28 +42,19 @@ Smaller changes:
 When a VSIX is good enough for release, and someone authorized to commit to the `published` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
 1. Checkout `dev`
-1. Add the CHANGELOG entries from `[Unreleased]`, **NB** There should be no newline between the header and the entries.
-1. Commit.
-1. Tag with `v<VERSION>` (and you must provide a tag message, else the CI pipeline won't pick it up correctly)
-   * e.g. `git tag -a v<version-number> -m "<message>"`
-1. Push `dev` (Using `--follow-tags`).
-   * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace + `open-vsx.org`. **Note:** There is an approval step in the CircleCI pipeline. The release and VSIX will not be published until the Approve button is clicked in CircleCI.
-   * You'll get an e-mail when it is published. (Or maybe only @pez gets that, not sure).
+1. Run `npm run publish`
+   * This updates the changelog to move the Unreleased items to a new section for the new version, commits, tags the commit, and pushes with `--follow-tags` so that the CI publish workflow is kicked off.
+1. Click to approve the publishing of the extension in the CircleCI web app
 1. When the new version is live, immediately install it and see that it works.
-   * If the Marketplace version works:
-     1. Merge `dev` onto `published`
-     1. Push
-     1. Run `npm run deploy-docs` to publish any changes to the docs
-     1. Checkout `dev` and `$ npm run bump-version`
-     1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
-     1. Push.
-   * If the Marketplace version does not work:
-     1. Install the artifact from the release build and test it.
-        * If this works, then something in Microsoft's publish pipeline has broken the extension. This has happened (a few times) before. To retry again you need to build a new VSIX with a bumped version:
-          1. `$ npm run bump-version`.
-          1. Push.
-        * If the artifact doesn't work (we should never be here).
-          1. ???
+   * If the Marketplace version does not work, install the artifact from the release build and test it.
+      * If this works, then something in Microsoft's publish pipeline has broken the extension. This has happened (a few times) before. To retry again, start over at step 1.
+      * If the artifact doesn't work (we should never be here) - ???
+
+### The Publishing Process and Rationale
+
+We develop features off the `dev` branch and manually dictate (via `npm run publish`) when to release a new version from this branch. This is so that we have the option of accumulating features for release on this branch, rather than releasing a new version for every PR merged into `published`.
+
+We want to keep the `published` branch in sync with the released version. After a release is published, the CI merges the `dev` branch into `published`. It then deploys the docs from `published` and bumps the version on `dev`. Bumping the version on `dev` after a publish lines up with our process of `dev` representing the next version of Calva.
 
 ## 4. Updating README.md (and other docs) after publishing
 

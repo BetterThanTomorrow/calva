@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Automate more of the release process and document it (including rationale)](https://github.com/BetterThanTomorrow/calva/issues/860)
 
 ## [2.0.159] - 2021-02-05
 - [Enable keyboard shortcuts for custom REPL commands]((https://github.com/BetterThanTomorrow/calva/issues/1011))
