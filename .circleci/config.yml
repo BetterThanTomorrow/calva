@@ -280,7 +280,9 @@ jobs:
             pip install mkdocs-material
       - run:
           name: Deploy docs
-          command: npm run deploy-docs
+          command: |
+            git checkout published
+            npm run deploy-docs
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
