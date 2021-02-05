@@ -274,6 +274,7 @@ jobs:
           name: Install mkdocs
           command: |
             pip install mkdocs
+            pip install mkdocs-material
             npm run deploy-docs
 workflows:
   version: 2
