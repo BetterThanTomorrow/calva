@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Upgrade clojure-lsp to 2021.02.05-03.05.34](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.02.05-03.05.34)
-
+- [Fix Paredit raise sexpr doesn't work when cursor is behind the current form](https://github.com/BetterThanTomorrow/calva/issues/1016)
 ## [2.0.159] - 2021-02-05
 - [Enable keyboard shortcuts for custom REPL commands](https://github.com/BetterThanTomorrow/calva/issues/1011)
 - [Add commands for tapping current and top-level forms](https://github.com/BetterThanTomorrow/calva/issues/1008)
