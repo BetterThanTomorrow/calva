@@ -350,7 +350,13 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
     }
 }
 
-export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
+export type customREPLCommandSnippet = {
+    name: string,
+    key?: string,
+    snippet: string,
+    repl?: string,
+    ns?: string
+};
 
 export default {
     interruptAllEvaluations,

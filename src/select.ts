@@ -6,7 +6,9 @@ function getFormSelection(doc: vscode.TextDocument, pos: vscode.Position, topLev
     const idx = doc.offsetAt(pos),
         cursor = docMirror.getDocument(doc).getTokenCursor(topLevel ? 0 : idx),
         range = topLevel ? cursor.rangeForDefun(idx) : cursor.rangeForCurrentForm(idx);
-    return new vscode.Selection(doc.positionAt(range[0]), doc.positionAt(range[1]));
+    if (range) {
+        return new vscode.Selection(doc.positionAt(range[0]), doc.positionAt(range[1]));
+    }
 }
 
 function selectCurrentForm(document = {}) {
