@@ -378,7 +378,6 @@ function currentFunction(editor: vscode.TextEditor) {
             const endPos = document.positionAt(end);
             return document.getText(new vscode.Range(startPos, endPos));
         }
-        return '';
     }
 }
 
