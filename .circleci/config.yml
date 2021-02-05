@@ -261,8 +261,10 @@ jobs:
           command: |
             git config --global user.email $GITHUB_USER_EMAIL
             git config --global user.name $GITHUB_USER_NAME
-            git merge origin/dev origin/automate_more_of_publish -m "Merge branch 'dev' into branch 'automate_more_of_publish'"
-            git push origin HEAD
+            # git merge origin/dev origin/automate_more_of_publish -m "Merge branch 'dev' into branch 'automate_more_of_publish'"
+            # git push origin HEAD
+            git checkout published
+            git merge dev
 workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
