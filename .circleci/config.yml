@@ -318,7 +318,7 @@ workflows:
       # - test-ts-unit:
       #     requires:
       #       - build
-      - deploy-docs
+      - bump-dev-version
   release-publish:
     jobs:
       - build:
