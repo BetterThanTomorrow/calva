@@ -76,3 +76,6 @@ However, just as before it can be tricky to get the dependencies right. Consider
 Even better: Copying that command line gives you the command to start the REPL with the correct dependencies.
 
 All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
+
+!!! Note
+    There is a Calva command for copying the Jack-in command line to the clipboard.
