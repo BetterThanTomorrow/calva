@@ -92,9 +92,40 @@ Here are a collection of custom keybindings from here and there.
 
 Are you a vim extension user? See: [Using with VIM extension](vim.md).
 
-### Paredit
+### Move by word
 
-Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing [Paredit](paredit.md) shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.
+If you sometimes navigate by word, you might find that Calva defaults gets a bit in the way. Here are some settings that retain the default word movement shortcuts for Windows and Mac:
+
+```json
+    {
+        "key": "ctrl+right",
+        "win": "ctrl+right",
+        "mac": "alt+right",
+        "command": "cursorWordRight"
+    },
+    {
+        "key": "ctrl+left",
+        "win": "ctrl+left",
+        "mac": "alt+left",
+        "command": "cursorWordLeft"
+    },
+    {
+        "key": "ctrl+right",
+        "mac": "ctrl+right",
+        "win": "alt+right",
+        "command": "paredit.forwardSexp",
+        "when": "calva:keybindingsEnabled && editorTextFocus && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    },
+    {
+        "key": "ctrl+left",
+        "mac": "ctrl+left",
+        "win": "alt+left",
+        "command": "paredit.backwardSexp",
+        "when": "calva:keybindingsEnabled && editorTextFocus && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    }
+```
+
+Use it as an inspiration for customizing these things to your own liking. 😄
 
 ### Wrap using `(`, `[`, `{` (like Cursive)
 
