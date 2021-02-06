@@ -221,7 +221,7 @@ jobs:
       - run:
           name: Publish to the marketplace
           command: |
-            VSCE_CMD="vsce publish --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
+            VSCE_CMD="vsce publish --githubBranch published --packagePath /tmp/artifacts/calva-$(node -p 'require("./package.json").version').vsix -p ${PUBLISH_TOKEN}"
             if [ "${IS_LOCAL}" = YES ]
             then
               echo "Dry npx ${VSCE_CMD}"
