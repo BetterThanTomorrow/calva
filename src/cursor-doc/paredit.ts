@@ -550,19 +550,23 @@ export function setSelectionStack(doc: EditableDocument, selection = doc.selecti
 export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
     const cursor = doc.getTokenCursor(end);
     const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+    const isCaretTrailing = formEnd - start < start - formStart;
     const startCursor = doc.getTokenCursor(formStart);
     let endCursor = startCursor.clone();
     if (endCursor.forwardSexp()) {
         let raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
         startCursor.backwardList();
         endCursor.forwardList();
-        const caretCursor = formEnd - start < start - formStart ? endCursor : startCursor;
         if (startCursor.getPrevToken().type == "open") {
             startCursor.previous();
             if (endCursor.getToken().type == "close") {
                 doc.model.edit([
                     new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])
-                ], { selection: new ModelEditSelection(caretCursor.offsetStart) });
+                ], {
+                    selection: new ModelEditSelection(isCaretTrailing ?
+                        startCursor.offsetStart + raised.length :
+                        startCursor.offsetStart)
+                });
             }
         }
     }
