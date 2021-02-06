@@ -24,18 +24,13 @@ Smaller changes:
 
 ## 2. Prepare for Including the Change in the Next Published Calva
 
-1. When a PR looks good
-   1. Make sure the PR is directed at `dev``
-   1. Merge the PR.
-   1. Click the **Delete branch** button that Github offers (when it's not from a fork, that is).
-1. Consider if `README.md` needs update.
-   1. Commit with a message like: ”Add feature: **Short Release Description Title**"
-1. Consider if there should be a prerelease made of this. If so:
-   1. Tag the prerelease with `v<VERSION>-release-description-title`, _and make sure to make it a tag with a message_.
-   1. Push using `--follow-tags`
-1. Regardless if prerelease or not.
-   1. Circle CI runs our tests, and builds a VSIX.
-   1. Download this VSIX post on #calva asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
+When a PR looks good:
+
+1. Make sure the PR template checklist items are checked off / accounted for.
+1. Merge the PR.
+1. Click the **Delete branch** button that Github offers (when it's not from a fork, that is).
+1. Circle CI runs our tests, and builds a VSIX.
+1. Download this VSIX post on #calva asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
 
 ## 3. Publishing a New Calva Version
 

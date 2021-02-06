@@ -495,10 +495,10 @@ describe('paredit', () => {
         });
         it('raises the current form when cursor is trailing', () => {
             const doc: mock.MockDocument = new mock.MockDocument();
-            const oldText = '(str #(foo))';
-            const newText = '#(foo)';
+            const oldText = '(str #(foo))\n';
+            const newText = '#(foo)\n';
             const oldCaret = 11;
-            const newCaret = 11;
+            const newCaret = 6;
             doc.insertString(oldText);
             doc.selection = new ModelEditSelection(oldCaret);
             paredit.raiseSexp(doc);

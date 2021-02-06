@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.162] - 2021-02-06
+- Fix for fix of: [Fix Paredit raise sexpr doesn't work when cursor is behind the current form](https://github.com/BetterThanTomorrow/calva/issues/1016)
+
 ## [2.0.161] - 2021-02-05
 - [Automate more of the release process and document it (including rationale)](https://github.com/BetterThanTomorrow/calva/issues/860)
 
