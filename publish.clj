@@ -3,13 +3,6 @@
 ;; Note: The shell commands may need to be modifying if you're using Windows.
 ;;       At the time of this writing, both people who push use Unix-based machines.
 
-;; Steps to reverse the effects of this script
-;; 
-;;  1. git reset HEAD^
-;;  2. git tag -d <tag-name> ;; Where tag-name is like v2.0.159
-;;  3. git push --delete origin <tag-name>
-;;  4. git checkout -- CHANGELOG.md
-
 (require '[clojure.string :as str]
          '[cheshire.core :as json]
          '[clojure.java.shell :as shell])
