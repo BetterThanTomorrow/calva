@@ -1,6 +1,6 @@
 # Calva: Clojure & ClojureScript with Visual Studio Code
 
-![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
+![Calva logo](assets/calva-64h.png)
 
 _Distilled from [CIDER](https://cider.mx/)*._
 
