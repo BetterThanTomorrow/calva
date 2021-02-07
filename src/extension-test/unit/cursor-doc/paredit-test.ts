@@ -185,15 +185,17 @@ describe('paredit', () => {
             const newRange = paredit.rangeToBackwardUpList(doc);
             expect(newRange).toEqual([4, 15]);
         });
-        it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•(#b •[:f :b :z])•c•#z•1)))', () => {
+        it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•|(#b •[:f :b :z])•c•#z•1)))', () => {
             doc.selection = new ModelEditSelection(10, 10);
             paredit.dragSexprBackward(doc);
             expect(doc.model.getText(0, Infinity)).toBe('(a(b(#f\n(#b \n[:f :b :z])\nc\n#z\n1)))');
+            expect(doc.selection).toEqual(new ModelEditSelection(8));
         });
-        it('dragSexprForward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(c•#z•1•#f•(#b •[:f :b :z]))))', () => {
+        it('dragSexprForward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(c•#z•1•#f•|(#b •[:f :b :z]))))', () => {
             doc.selection = new ModelEditSelection(10, 10);
             paredit.dragSexprForward(doc);
             expect(doc.model.getText(0, Infinity)).toBe('(a(b(c\n#z\n1\n#f\n(#b \n[:f :b :z]))))');
+            expect(doc.selection).toEqual(new ModelEditSelection(15));
         });
         describe('Stacked readers', () => {
             const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
@@ -203,15 +205,17 @@ describe('paredit', () => {
                 doc = new mock.MockDocument();
                 doc.insertString(docText);
             });
-            it('dragSexprBackward: (c•#f•(#b •[:f :b :z])•#x•#y•|1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
-                doc.selection = new ModelEditSelection(30, 30);
+            it('dragSexprBackward: (c•#f•(#b •[:f :b :z])•#x•#y•|1) => (c•#x•#y•|1•#f•(#b •[:f :b :z]))', () => {
+                doc.selection = new ModelEditSelection(29, 29);
                 paredit.dragSexprBackward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+                expect(doc.selection).toEqual(new ModelEditSelection(9));
             });
-            it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#x•#y•1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
+            it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#x•#y•1) => (c•#x•#y•1•#f•|(#b •[:f :b :z]))', () => {
                 doc.selection = new ModelEditSelection(6, 6);
                 paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+                expect(doc.selection).toEqual(new ModelEditSelection(14));
             });
         })
         describe('Top Level Readers', () => {
@@ -227,15 +231,17 @@ describe('paredit', () => {
                 paredit.dragSexprBackward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
             });
-            it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+            it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•|(#b •[:f :b :z])•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(3, 3);
                 paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
+                expect(doc.selection).toEqual(new ModelEditSelection(11));
             });
             it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(26, 26);
                 paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö');
+                expect(doc.selection).toEqual(new ModelEditSelection(26));
             });
         })
     });

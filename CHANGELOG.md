@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Paredit drag backward/forward should drag bindings as pairs](https://github.com/BetterThanTomorrow/calva/issues/529)
 
 ## [2.0.164] - 2021-02-06
 - Really fix: [Demo gifs 404 on VisualStudio Marketplace](https://github.com/BetterThanTomorrow/calva/issues/1018)

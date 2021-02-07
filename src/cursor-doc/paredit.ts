@@ -646,7 +646,12 @@ export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLef
     backCursor.backwardSexp();
     const backRange = backCursor.rangeForCurrentForm(backCursor.offsetEnd);
     if (backRange[0] !== currentRange[0]) { // there is a sexp to the left
-        transpose(doc, left, currentRange[0], { fromLeft: newPosOffset });
+        const leftText = doc.model.getText(backRange[0], backRange[1]);
+        const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+        doc.model.edit([
+            new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
+            new ModelEdit('changeRange', [backRange[0], backRange[1], currentText])
+        ], { selection: new ModelEditSelection(backRange[0] + newPosOffset) });
     }
 }
 
@@ -655,11 +660,16 @@ export function dragSexprForward(doc: EditableDocument, left = doc.selectionLeft
         currentRange = cursor.rangeForCurrentForm(right),
         newPosOffset = currentRange[1] - right;
     const forwardCursor = doc.getTokenCursor(currentRange[1]);
-    forwardCursor.forwardWhitespace();
+    //forwardCursor.forwardWhitespace();
     forwardCursor.forwardSexp();
-    const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetEnd);
+    const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetStart);
     if (forwardRange[0] !== currentRange[0]) { // there is a sexp to the right
-        transpose(doc, left, currentRange[1], { fromRight: newPosOffset });
+        const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
+        const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+        doc.model.edit([
+            new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], currentText]),
+            new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText])
+        ], { selection: new ModelEditSelection(currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset) });
     }
 }
 
