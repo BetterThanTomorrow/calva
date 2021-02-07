@@ -343,7 +343,6 @@ describe('paredit', () => {
 
     describe('dragSexpr', () => {
         describe('forwardAndBackwardSexpr', () => {
-            const docText = "(comment\n  ['(0 1 2 \"t\" \"f\")\n   \"b\"\n             {:s \"h\"}\n             :f]\n  [:f '(0 \"t\") \"b\" :s]\n  [:f 0\n   \"b\" :s\n   4 :b]\n  {:e '(e o ea)\n   3 {:w? 'w}\n   :t '(t i o im)\n   :b 'b})";
             // (comment\n  ['(0 1 2 "t" "f")•   "b"•             {:s "h"}•             :f]•  [:f '(0 "t") "b" :s]•  [:f 0•   "b" :s•   4 :b]•  {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b})
             let doc: mock.MockDocument;
 
@@ -397,11 +396,21 @@ describe('paredit', () => {
             });
 
             it('drags pair backwards in maps', () => {
-                const bDot = `(c• {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)|•   :b 'b}•)`;
-                const aDot = `(c• {:e '(e o ea)•   :t '(t i o im)|•   3 {:w? 'w}•   :b 'b}•)`;
+                const bDot = `(c• ^{:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)|•   :b 'b}•)`;
+                const aDot = `(c• ^{:e '(e o ea)•   :t '(t i o im)|•   3 {:w? 'w}•   :b 'b}•)`;
                 const doc = docFromDot(bDot);
                 const [afterText, afterCursor] = dotToNl(aDot);
                 paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags single sexpr forward in sets', () => {
+                const bDot = `(c• #{:|e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b}•)`;
+                const aDot = `(c• #{'(e o ea) :|e•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b}•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe(afterText);
                 expect(doc.selection).toEqual(afterCursor);
             });
