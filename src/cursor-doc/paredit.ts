@@ -1,5 +1,6 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
+import { LispTokenCursor } from "./token-cursor";
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -637,14 +638,49 @@ export function transpose(doc: EditableDocument, left = doc.selectionLeft, right
     }
 }
 
+function isInPairsList(cursor: LispTokenCursor): boolean {
+    const probeCursor = cursor.clone();
+    if (probeCursor.backwardList()) {
+        if (probeCursor.getPrevToken().raw === '{') {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+/**
+ * Returns the range of the current form
+ * or the current form pair, if usePairs is true
+ */
+function currentSexpsRange(doc: EditableDocument, cursor: LispTokenCursor, offset: number, usePairs = false): [number, number] {
+    const currentSingleRange = cursor.rangeForCurrentForm(offset);
+    if (usePairs) {
+        const ranges = cursor.rangesForSexpsInList();
+        if (ranges.length > 1) {
+            const indexOfCurrentSingle = ranges.findIndex(r => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1] );
+            if (indexOfCurrentSingle % 2 == 0) {
+                const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
+                pairCursor.forwardSexp();
+                return [currentSingleRange[0], pairCursor.offsetStart];
+            } else {
+                const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
+                pairCursor.backwardSexp();
+                return [pairCursor.offsetStart, currentSingleRange[1]];
+            }
+        }
+    }
+    return currentSingleRange;
+}
+
 export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
-    const cursor = doc.getTokenCursor(right),
-        currentRange = cursor.rangeForCurrentForm(right),
-        newPosOffset = right - currentRange[0];
+    const cursor = doc.getTokenCursor(right);
+    const usePairs = isInPairsList(cursor);
+    const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+    const newPosOffset = right - currentRange[0];
     const backCursor = doc.getTokenCursor(currentRange[0]);
-    backCursor.backwardWhitespace();
     backCursor.backwardSexp();
-    const backRange = backCursor.rangeForCurrentForm(backCursor.offsetEnd);
+    const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
     if (backRange[0] !== currentRange[0]) { // there is a sexp to the left
         const leftText = doc.model.getText(backRange[0], backRange[1]);
         const currentText = doc.model.getText(currentRange[0], currentRange[1]);
@@ -656,13 +692,13 @@ export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLef
 }
 
 export function dragSexprForward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
-    const cursor = doc.getTokenCursor(right),
-        currentRange = cursor.rangeForCurrentForm(right),
-        newPosOffset = currentRange[1] - right;
+    const cursor = doc.getTokenCursor(right);
+    const usePairs = isInPairsList(cursor);
+    const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+    const newPosOffset = currentRange[1] - right;
     const forwardCursor = doc.getTokenCursor(currentRange[1]);
-    //forwardCursor.forwardWhitespace();
     forwardCursor.forwardSexp();
-    const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetStart);
+    const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
     if (forwardRange[0] !== currentRange[0]) { // there is a sexp to the right
         const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
         const currentText = doc.model.getText(currentRange[0], currentRange[1]);

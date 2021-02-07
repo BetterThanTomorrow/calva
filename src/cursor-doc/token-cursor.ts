@@ -133,7 +133,7 @@ function _rangesForSexpsInList(cursor: LispTokenCursor, useRowCol = false, openi
         }
         if (cursor.forwardSexp()) {
             if (ignoreCounter === 0) {
-                const end = useRowCol ? cursor.rowCol : cursor.offsetEnd;
+                const end = useRowCol ? cursor.rowCol : cursor.offsetStart;
                 ranges.push([start, end]);
             } else {
                 ignoreCounter--;
