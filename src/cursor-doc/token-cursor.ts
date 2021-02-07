@@ -101,6 +101,50 @@ export class TokenCursor {
     }
 }
 
+/**
+ * Implementation for cursor.rangesForSexpsInList and
+ * cursor.rowColRangesForSexpsInList
+ * Returns the ranges for all forms in the current list.
+ * Returns undefined if the current cursor is not within a list.
+ * If you are particular about which list type that should be considered, supply an `openingBracket`.
+ */
+
+function _rangesForSexpsInList(cursor: LispTokenCursor, useRowCol = false, openingBracket?: string):
+    [number, number][] | [[number, number], [number, number]][] {
+    if (openingBracket !== undefined) {
+        if (!cursor.backwardListOfType(openingBracket)) {
+            return undefined;
+        }
+    } else {
+        if (!cursor.backwardList()) {
+            return undefined;
+        }
+    }
+    let ranges = [];
+    // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
+    let ignoreCounter = 0;
+    while (true) {
+        cursor.forwardWhitespace();
+        const start = useRowCol ? cursor.rowCol : cursor.offsetStart;
+        if (cursor.getToken().type === 'ignore') {
+            ignoreCounter++;
+            cursor.forwardSexp();
+            continue;
+        }
+        if (cursor.forwardSexp()) {
+            if (ignoreCounter === 0) {
+                const end = useRowCol ? cursor.rowCol : cursor.offsetEnd;
+                ranges.push([start, end]);
+            } else {
+                ignoreCounter--;
+            }
+        } else {
+            break;
+        }
+    }
+    return ranges;
+}
+
 export class LispTokenCursor extends TokenCursor {
 
     constructor(public doc: LineInputModel, public line: number, public token: number) {
@@ -636,44 +680,23 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
-     * Returns the ranges for all forms in the current list.
+     * Returns the rowCol ranges for all forms in the current list.
      * Returns undefined if the current cursor is not within a list.
      * If you are particular about which list type that should be considered, supply an `openingBracket`.
      */
-    rangesForSexpsInList(openingBracket?: string): [[number, number], [number, number]][] {
+    rowColRangesForSexpsInList(openingBracket?: string): [[number, number], [number, number]][] {
         let cursor = this.clone();
-        if (openingBracket !== undefined) {
-            if (!cursor.backwardListOfType(openingBracket)) {
-                return undefined;
-            }
-        } else {
-            if (!cursor.backwardList()) {
-                return undefined;
-            }
-        }
-        let ranges = [];
-        // TODO: Figure out how to do this ignore skipping more generally in forward/backward this or that.
-        let ignoreCounter = 0;
-        while (true) {
-            cursor.forwardWhitespace();
-            const start = cursor.rowCol;
-            if (cursor.getToken().type === 'ignore') {
-                ignoreCounter++;
-                cursor.forwardSexp();
-                continue;
-            }
-            if (cursor.forwardSexp()) {
-                if (ignoreCounter === 0) {
-                    const end = cursor.rowCol;
-                    ranges.push([start, end]);
-                } else {
-                    ignoreCounter--;
-                }
-            } else {
-                break;
-            }
-        }
-        return ranges;
+        return _rangesForSexpsInList(cursor, true, openingBracket) as [[number, number], [number, number]][];
+    }
+
+    /**
+     * Returns the rowCol ranges for all forms in the current list.
+     * Returns undefined if the current cursor is not within a list.
+     * If you are particular about which list type that should be considered, supply an `openingBracket`.
+     */
+    rangesForSexpsInList(openingBracket?: string): [number, number][] {
+        let cursor = this.clone();
+        return _rangesForSexpsInList(cursor, false, openingBracket) as [number, number][];
     }
 
     /**
