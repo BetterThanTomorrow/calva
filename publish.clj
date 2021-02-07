@@ -61,12 +61,6 @@
   (throw-if-error (shell/sh "git" "push" "--follow-tags")))
 
 (defn publish []
-  (update-changelog changelog-filename
-                    changelog-text
-                    unreleased-header-re
-                    calva-version)
-  (commit-changelog changelog-filename
-                    (str "Add changelog section for v" calva-version))
   (tag calva-version)
   (push)
   (println "Open to follow the progress of the release:")
@@ -83,4 +77,11 @@
         (if (= (str answer) "y")
           (publish)
           (println "Aborting publish."))))
-    (publish)))
+    (do
+      (update-changelog changelog-filename
+                        changelog-text
+                        unreleased-header-re
+                        calva-version)
+      (commit-changelog changelog-filename
+                        (str "Add changelog section for v" calva-version " [skip ci]"))
+      (publish))))
