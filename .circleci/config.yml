@@ -263,8 +263,7 @@ jobs:
             git config --global user.name $GITHUB_USER_NAME
             git checkout published
             git merge origin/dev -m "Merge branch 'origin/dev' into published [skip ci]"
-            # git push origin HEAD
-            git log
+            git push origin HEAD
   deploy-docs:
     docker:
       - image: cimg/python:3.8-node
@@ -306,24 +305,22 @@ workflows:
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
-    #   - build:
-    #       filters:
-    #         tags:
-    #           ignore: /^v\d+\.\d+\.\d+-?.*/
-    #   - test-grammar:
-    #       requires:
-    #         - build
-    #   - test-cljslib:
-    #       requires:
-    #         - build
-    #   - test-integration:
-    #       requires:
-    #         - build
-    #   - test-ts-unit:
-    #       requires:
-    #         - build
-      - merge-dev-to-published:
-          context: Calva
+      - build:
+          filters:
+            tags:
+              ignore: /^v\d+\.\d+\.\d+-?.*/
+      - test-grammar:
+          requires:
+            - build
+      - test-cljslib:
+          requires:
+            - build
+      - test-integration:
+          requires:
+            - build
+      - test-ts-unit:
+          requires:
+            - build
   release-publish:
     jobs:
       - build:
