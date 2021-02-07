@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.166] - 2021-02-07
 ## [2.0.165] - 2021-02-07
 ## [2.0.164] - 2021-02-06
 - Really fix: [Demo gifs 404 on VisualStudio Marketplace](https://github.com/BetterThanTomorrow/calva/issues/1018)
