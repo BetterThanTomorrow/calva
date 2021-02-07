@@ -60,19 +60,27 @@
   (println "Pushing")
   (throw-if-error (shell/sh "git" "push" "--follow-tags")))
 
+(defn publish []
+  (update-changelog changelog-filename
+                    changelog-text
+                    unreleased-header-re
+                    calva-version)
+  (commit-changelog changelog-filename
+                    (str "Add changelog section for v" calva-version))
+  (tag calva-version)
+  (push)
+  (println "Open to follow the progress of the release:")
+  (println "  https://app.circleci.com/pipelines/github/BetterThanTomorrow/calva"))
+
 (let [unreleased-changelog-text (get-unreleased-changelog-text
                                  changelog-text
                                  unreleased-header-re)]
   (if (empty? unreleased-changelog-text)
-    (println "Aborting publish. There are no unreleased changes in the changelog.")
     (do
-      (update-changelog changelog-filename
-                        changelog-text
-                        unreleased-header-re
-                        calva-version)
-      (commit-changelog changelog-filename
-                        (str "Add changelog section for v" calva-version))
-      (tag calva-version)
-      (push)
-      (println "Open to follow the progress of the release:")
-      (println "  https://app.circleci.com/pipelines/github/BetterThanTomorrow/calva"))))
+      (print "There are no unreleased changes in the changelog. Release anyway? y/n: ")
+      (flush)
+      (let [answer (read)]
+        (if (= (str answer) "y")
+          (publish)
+          (println "Aborting publish."))))
+    (publish)))
