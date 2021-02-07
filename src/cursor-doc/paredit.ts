@@ -641,7 +641,8 @@ export function transpose(doc: EditableDocument, left = doc.selectionLeft, right
 function isInPairsList(cursor: LispTokenCursor): boolean {
     const probeCursor = cursor.clone();
     if (probeCursor.backwardList()) {
-        if (probeCursor.getPrevToken().raw === '{') {
+        const opening = probeCursor.getPrevToken().raw
+        if (opening.endsWith('{') && !opening.endsWith('#{')) {
             return true;
         }
         return false;

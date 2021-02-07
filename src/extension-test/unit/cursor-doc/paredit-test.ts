@@ -396,6 +396,16 @@ describe('paredit', () => {
             });
 
             it('drags pair backwards in maps', () => {
+                const bDot = `(c• {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)|•   :b 'b}•)`;
+                const aDot = `(c• {:e '(e o ea)•   :t '(t i o im)|•   3 {:w? 'w}•   :b 'b}•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags pair backwards in meta-data maps', () => {
                 const bDot = `(c• ^{:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)|•   :b 'b}•)`;
                 const aDot = `(c• ^{:e '(e o ea)•   :t '(t i o im)|•   3 {:w? 'w}•   :b 'b}•)`;
                 const doc = docFromDot(bDot);
