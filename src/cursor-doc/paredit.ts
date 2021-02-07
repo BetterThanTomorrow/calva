@@ -638,12 +638,27 @@ export function transpose(doc: EditableDocument, left = doc.selectionLeft, right
     }
 }
 
-function isInPairsList(cursor: LispTokenCursor): boolean {
+export const bindingForms = [
+    'let',
+    'for',
+    'loop',
+    'binding',
+    'with-local-vars'
+];
+
+function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
     const probeCursor = cursor.clone();
     if (probeCursor.backwardList()) {
         const opening = probeCursor.getPrevToken().raw
         if (opening.endsWith('{') && !opening.endsWith('#{')) {
             return true;
+        }
+        if (opening.endsWith('[')) {
+            probeCursor.backwardUpList();
+            const fn = probeCursor.getFunctionName();
+            if (fn && pairForms.includes(fn)) {
+                return true;
+            }
         }
         return false;
     }
@@ -674,9 +689,9 @@ function currentSexpsRange(doc: EditableDocument, cursor: LispTokenCursor, offse
     return currentSingleRange;
 }
 
-export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
+export function dragSexprBackward(doc: EditableDocument, pairForms = bindingForms, left = doc.selectionLeft, right = doc.selectionRight) {
     const cursor = doc.getTokenCursor(right);
-    const usePairs = isInPairsList(cursor);
+    const usePairs = isInPairsList(cursor, pairForms);
     const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
     const newPosOffset = right - currentRange[0];
     const backCursor = doc.getTokenCursor(currentRange[0]);
@@ -692,9 +707,9 @@ export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLef
     }
 }
 
-export function dragSexprForward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
+export function dragSexprForward(doc: EditableDocument, pairForms = bindingForms, left = doc.selectionLeft, right = doc.selectionRight) {
     const cursor = doc.getTokenCursor(right);
-    const usePairs = isInPairsList(cursor);
+    const usePairs = isInPairsList(cursor, pairForms);
     const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
     const newPosOffset = currentRange[1] - right;
     const forwardCursor = doc.getTokenCursor(currentRange[1]);

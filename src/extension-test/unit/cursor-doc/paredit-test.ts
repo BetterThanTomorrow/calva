@@ -424,6 +424,16 @@ describe('paredit', () => {
                 expect(doc.model.getText(0, Infinity)).toBe(afterText);
                 expect(doc.selection).toEqual(afterCursor);
             });
+
+            it('drags pair in binding box', () => {
+                const bDot = `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`;
+                const aDot = `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprForward(doc, ['c']);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
         });
 
         describe('backwardUp - one line', () => {
