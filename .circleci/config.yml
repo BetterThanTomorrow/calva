@@ -305,7 +305,7 @@ workflows:
   version: 2
   # We have two workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
-    # jobs:
+    jobs:
     #   - build:
     #       filters:
     #         tags:
