@@ -45,6 +45,14 @@ function docFromDot(s: string): mock.MockDocument {
     return doc;
 }
 
+/**
+ * Utility function to create a comparable structure with the text and 
+ * selection from a document
+ */
+function textAndSelection(doc: mock.MockDocument): [string, [number, number]] {
+    return [doc.model.getText(0, Infinity), [doc.selection.anchor, doc.selection.active]]
+}
+
 describe('paredit', () => {
     const docText = '(def foo [:foo :bar :baz])';
     let doc: mock.MockDocument,
@@ -426,13 +434,10 @@ describe('paredit', () => {
             });
 
             it('drags pair in binding box', () => {
-                const bDot = `(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`;
-                const aDot = `(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`;
-                const doc = docFromDot(bDot);
-                const [afterText, afterCursor] = dotToNl(aDot);
-                paredit.dragSexprForward(doc, ['c']);
-                expect(doc.model.getText(0, Infinity)).toBe(afterText);
-                expect(doc.selection).toEqual(afterCursor);
+                const b = docFromDot(`(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`);
+                const a = docFromDot(`(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`);
+                paredit.dragSexprForward(b, ['c']);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
         });
 
