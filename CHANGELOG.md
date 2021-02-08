@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.168] - 2021-02-08
+- Update clojure-lsp to version 2021.02.07-22.51.26
+
 ## [2.0.164] - 2021-02-06
 - Really fix: [Demo gifs 404 on VisualStudio Marketplace](https://github.com/BetterThanTomorrow/calva/issues/1018)
 
