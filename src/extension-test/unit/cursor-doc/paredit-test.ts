@@ -22,6 +22,37 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
  * * Newlines are denoted with `•`
  */
 
+/**
+ * Utility function to get text and selection from dot-notated strings
+ * Only handles translation of `•` to newline and `|` to selection for now
+ */
+function dotToNl(s: string): [string, ModelEditSelection] {
+    return [
+        s.replace(/•/g, '\n').replace(/\|/, ''),
+        new ModelEditSelection(s.indexOf('|'))
+    ];
+}
+
+/**
+ * Utility function to create a doc from dot-notated strings
+ * Only handles translation of `•` to newline and `|` to selection for now
+ */
+function docFromDot(s: string): mock.MockDocument {
+    const [text, selection] = dotToNl(s);
+    const doc = new mock.MockDocument();
+    doc.insertString(text);
+    doc.selection = selection;
+    return doc;
+}
+
+/**
+ * Utility function to create a comparable structure with the text and 
+ * selection from a document
+ */
+function textAndSelection(doc: mock.MockDocument): [string, [number, number]] {
+    return [doc.model.getText(0, Infinity), [doc.selection.anchor, doc.selection.active]]
+}
+
 describe('paredit', () => {
     const docText = '(def foo [:foo :bar :baz])';
     let doc: mock.MockDocument,
@@ -185,15 +216,17 @@ describe('paredit', () => {
             const newRange = paredit.rangeToBackwardUpList(doc);
             expect(newRange).toEqual([4, 15]);
         });
-        it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•(#b •[:f :b :z])•c•#z•1)))', () => {
+        it('dragSexprBackward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(#f•|(#b •[:f :b :z])•c•#z•1)))', () => {
             doc.selection = new ModelEditSelection(10, 10);
             paredit.dragSexprBackward(doc);
             expect(doc.model.getText(0, Infinity)).toBe('(a(b(#f\n(#b \n[:f :b :z])\nc\n#z\n1)))');
+            expect(doc.selection).toEqual(new ModelEditSelection(8));
         });
-        it('dragSexprForward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(c•#z•1•#f•(#b •[:f :b :z]))))', () => {
+        it('dragSexprForward: (a(b(c•#f•|(#b •[:f :b :z])•#z•1))) => (a(b(c•#z•1•#f•|(#b •[:f :b :z]))))', () => {
             doc.selection = new ModelEditSelection(10, 10);
             paredit.dragSexprForward(doc);
             expect(doc.model.getText(0, Infinity)).toBe('(a(b(c\n#z\n1\n#f\n(#b \n[:f :b :z]))))');
+            expect(doc.selection).toEqual(new ModelEditSelection(15));
         });
         describe('Stacked readers', () => {
             const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
@@ -203,15 +236,17 @@ describe('paredit', () => {
                 doc = new mock.MockDocument();
                 doc.insertString(docText);
             });
-            it('dragSexprBackward: (c•#f•(#b •[:f :b :z])•#x•#y•|1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
-                doc.selection = new ModelEditSelection(30, 30);
+            it('dragSexprBackward: (c•#f•(#b •[:f :b :z])•#x•#y•|1) => (c•#x•#y•|1•#f•(#b •[:f :b :z]))', () => {
+                doc.selection = new ModelEditSelection(29, 29);
                 paredit.dragSexprBackward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+                expect(doc.selection).toEqual(new ModelEditSelection(9));
             });
-            it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#x•#y•1) => (c•#x•#y•1•#f•(#b •[:f :b :z]))', () => {
+            it('dragSexprForward: (c•#f•|(#b •[:f :b :z])•#x•#y•1) => (c•#x•#y•1•#f•|(#b •[:f :b :z]))', () => {
                 doc.selection = new ModelEditSelection(6, 6);
                 paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('(c\n#x\n#y\n1\n#f\n(#b \n[:f :b :z]))');
+                expect(doc.selection).toEqual(new ModelEditSelection(14));
             });
         })
         describe('Top Level Readers', () => {
@@ -227,15 +262,17 @@ describe('paredit', () => {
                 paredit.dragSexprBackward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
             });
-            it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
+            it('dragSexprForward: #f•|(#b •[:f :b :z])•#x•#y•1#å#ä#ö => #x•#y•1•#f•|(#b •[:f :b :z])•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(3, 3);
                 paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('#x\n#y\n1\n#f\n(#b \n[:f :b :z])\n#å#ä#ö');
+                expect(doc.selection).toEqual(new ModelEditSelection(11));
             });
             it('dragSexprForward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(26, 26);
                 paredit.dragSexprForward(doc);
                 expect(doc.model.getText(0, Infinity)).toBe('#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö');
+                expect(doc.selection).toEqual(new ModelEditSelection(26));
             });
         })
     });
@@ -313,6 +350,97 @@ describe('paredit', () => {
     });
 
     describe('dragSexpr', () => {
+        describe('forwardAndBackwardSexpr', () => {
+            // (comment\n  ['(0 1 2 "t" "f")•   "b"•             {:s "h"}•             :f]•  [:f '(0 "t") "b" :s]•  [:f 0•   "b" :s•   4 :b]•  {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b})
+            let doc: mock.MockDocument;
+
+            beforeEach(() => {
+                doc = new mock.MockDocument();
+                doc.insertString(docText);
+            });
+
+            it('drags forward in regular lists', () => {
+                const doc = docFromDot(`(c• [:|f '(0 "t")•   "b" :s]•)`);
+                const [afterText, afterCursor] = dotToNl(`(c• ['(0 "t") :|f•   "b" :s]•)`);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags backward in regular lists', () => {
+                const doc = docFromDot(`(c• [:f '(0 "t")•   "b"| :s]•)`);
+                const [afterText, afterCursor] = dotToNl(`(c• [:f "b"|•   '(0 "t") :s]•)`);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('does not drag forward when sexpr is last in regular lists', () => {
+                const dotText = `(c• [:f '(0 "t")•   "b" |:s ]•)`;
+                const doc = docFromDot(dotText);
+                const [afterText, afterCursor] = dotToNl(dotText);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('does not drag backward when sexpr is last in regular lists', () => {
+                const dotText = `(c• [ :|f '(0 "t")•   "b" :s ]•)`;
+                const doc = docFromDot(dotText);
+                const [afterText, afterCursor] = dotToNl(dotText);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags pair forward in maps', () => {
+                const bDot = `(c• {:|e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b}•)`;
+                const aDot = `(c• {3 {:w? 'w}•   :|e '(e o ea)•   :t '(t i o im)•   :b 'b}•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags pair backwards in maps', () => {
+                const bDot = `(c• {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)|•   :b 'b}•)`;
+                const aDot = `(c• {:e '(e o ea)•   :t '(t i o im)|•   3 {:w? 'w}•   :b 'b}•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags pair backwards in meta-data maps', () => {
+                const bDot = `(c• ^{:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)|•   :b 'b}•)`;
+                const aDot = `(c• ^{:e '(e o ea)•   :t '(t i o im)|•   3 {:w? 'w}•   :b 'b}•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprBackward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags single sexpr forward in sets', () => {
+                const bDot = `(c• #{:|e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b}•)`;
+                const aDot = `(c• #{'(e o ea) :|e•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b}•)`;
+                const doc = docFromDot(bDot);
+                const [afterText, afterCursor] = dotToNl(aDot);
+                paredit.dragSexprForward(doc);
+                expect(doc.model.getText(0, Infinity)).toBe(afterText);
+                expect(doc.selection).toEqual(afterCursor);
+            });
+
+            it('drags pair in binding box', () => {
+                const b = docFromDot(`(c• [:e '(e o ea)•   3 {:w? 'w}•   :t |'(t i o im)•   :b 'b]•)`);
+                const a = docFromDot(`(c• [:e '(e o ea)•   3 {:w? 'w}•   :b 'b•   :t |'(t i o im)]•)`);
+                paredit.dragSexprForward(b, ['c']);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
+        });
+
         describe('backwardUp - one line', () => {
             it('(def foo [:><foo :bar :baz]) => (def foo :><foo [:bar :baz])', () => {
                 const inKwFoo = 11;
