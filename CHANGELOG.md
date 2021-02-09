@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.169] - 2021-02-09
+- Update clojure-lsp to version 2021.02.07-22.51.26 (fix previous attempt)
+
 ## [2.0.168] - 2021-02-08
 - Update clojure-lsp to version 2021.02.07-22.51.26
 
