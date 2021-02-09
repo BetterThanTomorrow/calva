@@ -450,6 +450,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#drag-bindings-forwardbackward" class="md-nav__link">
+    Drag bindings forward/backward
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -925,6 +932,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#drag-bindings-forwardbackward" class="md-nav__link">
+    Drag bindings forward/backward
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1205,7 +1219,7 @@
 <tr>
 <td><code>ctrl+alt+shift</code> <code>b</code><br> <code>ctrl+alt+shift</code> <code>f</code></td>
 <td><strong>Drag Sexp Backward/Forward</strong></td>
-<td>Moves the current form to the behind/in front of the previous/next one. <br> <img alt="" src="../images/paredit/drag-backward-forward.gif" /></td>
+<td>Moves the current form to the behind/in front of the previous/next one. (See below about behavior in maps and binding boxes.) <br> <img alt="" src="../images/paredit/drag-backward-forward.gif" /></td>
 </tr>
 <tr>
 <td><code>ctrl+alt+shift</code> <code>u</code><br><code>ctrl+alt+shift</code> <code>d</code></td>
@@ -1279,6 +1293,11 @@
 </tr>
 </tbody>
 </table>
+<h3 id="drag-bindings-forwardbackward">Drag bindings forward/backward</h3>
+<p>When dragging forms inside maps and binding boxes, such as with <code>let</code>, <code>for</code>, <code>binding</code>, etcetera, it often makes most sense to drag each binding as a pair. And this is what Calva will do. Like so:</p>
+<p><img alt="" src="../images/paredit/drag-pairs-in-binding-box.gif" /></p>
+<p>And like so (wait for it):</p>
+<p><img alt="" src="../images/paredit/drag-pairs-in-maps.gif" /></p>
 <h2 id="about-the-keyboard-shortcuts">About the Keyboard Shortcuts</h2>
 <p>Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.</p>
 <p>Note: You can choose to disable all default key bindings by configuring <code>calva.paredit.defaultKeyMap</code> to <code>none</code>. (Then you probably also want to register your own shortcuts for the commands you often use.)</p>
