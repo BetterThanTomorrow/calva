@@ -5,6 +5,12 @@ Changes to Calva.
 ## [Unreleased]
 - [Paredit drag backward/forward should drag bindings as pairs](https://github.com/BetterThanTomorrow/calva/issues/529)
 
+## [2.0.169] - 2021-02-09
+- Update clojure-lsp to version 2021.02.07-22.51.26 (fix previous attempt)
+
+## [2.0.168] - 2021-02-08
+- Update clojure-lsp to version 2021.02.07-22.51.26
+
 ## [2.0.164] - 2021-02-06
 - Really fix: [Demo gifs 404 on VisualStudio Marketplace](https://github.com/BetterThanTomorrow/calva/issues/1018)
 
