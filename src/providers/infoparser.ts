@@ -137,7 +137,7 @@ export class REPLInfoParser {
     private getParameterOffsets(symbol: string, argList: string): [number, number][] {
         const cursor: tokenCursor.LispTokenCursor = tokenCursor.createStringCursor(argList);
         if (cursor.downList()) {
-            const ranges = cursor.rangesForSexpsInList('[');
+            const ranges = cursor.rowColRangesForSexpsInList('[');
             if (ranges !== undefined) {
                 const symbolOffset = symbol.length + 2;
                 // We need to keep track of special `& args` and treat it as one argument
