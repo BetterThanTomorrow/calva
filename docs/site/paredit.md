@@ -90,7 +90,7 @@ Default keybinding                | Action | Description
  `ctrl+shift+j`                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](images/paredit/join.gif)
  `ctrl+alt+p ctrl+alt+r`                        | **Raise Sexp** | Replaces the enclosing list with the current form. <br> ![](images/paredit/raise.gif)
  `ctrl+alt+t`                        | **Transpose Sexps/Forms** | Swaps place of the two forms surrounding the cursor. <br> ![](images/paredit/transpose.gif)
- `ctrl+alt+shift` `b`<br> `ctrl+alt+shift` `f` | **Drag Sexp Backward/Forward** | Moves the current form to the behind/in front of the previous/next one. <br> ![](images/paredit/drag-backward-forward.gif)
+ `ctrl+alt+shift` `b`<br> `ctrl+alt+shift` `f` | **Drag Sexp Backward/Forward** | Moves the current form to the behind/in front of the previous/next one. (See below about behavior in maps and binding boxes.) <br> ![](images/paredit/drag-backward-forward.gif)
  `ctrl+alt+shift` `u`<br>`ctrl+alt+shift` `d` | **Drag Sexp Backward Up**<br>**Drag Sexp Forward Down** | Moves the current form up/out of the current list, *backwards*, and down/in to the following list, *forwards*, keeping the cursor within the sexpr being dragged.<br> ![](images/paredit/drag-backward-up-forward-down.gif)
  `ctrl+alt+shift` `k`<br>`ctrl+alt+shift` `j` | **Drag Sexp Forward Up**<br>**Drag Sexp Backward Down** | Moves the current form up/out of the current list, *forwards*, and down/in to the preceding list, *backwards*, keeping the cursor within the sexpr being dragged.<br> ![](images/paredit/drag-forward-up-backward-down.gif)
  `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](images/paredit/convolute.gif)
@@ -106,6 +106,15 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](images/paredit/rewrap.gif)
 
+### Drag bindings forward/backward
+
+When dragging forms inside maps and binding boxes, such as with `let`, `for`, `binding`, etcetera, it often makes most sense to drag each binding as a pair. And this is what Calva will do. Like so:
+
+![](images/paredit/drag-pairs-in-binding-box.gif)
+
+And like so (wait for it):
+
+![](images/paredit/drag-pairs-in-maps.gif)
 
 ## About the Keyboard Shortcuts
 

@@ -54,14 +54,14 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
         const peekBehindCursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
         peekBehindCursor.backwardFunction(1);
         const previousFunction = peekBehindCursor.getFunctionName(0),
-            previousRanges = peekBehindCursor.rangesForSexpsInList('(').map(this.coordsToRange),
+            previousRanges = peekBehindCursor.rowColRangesForSexpsInList('(').map(this.coordsToRange),
             previousRangeIndex = previousRanges.findIndex(range => range.contains(document.positionAt(idx)));
         return { previousRangeIndex, previousFunction };
     }
 
     private getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
         const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx),
-            allRanges = cursor.rangesForSexpsInList('(');
+            allRanges = cursor.rowColRangesForSexpsInList('(');
 
         // Are we in a function that gets a threaded first parameter?
         const { previousRangeIndex, previousFunction } = this.getPreviousRangeIndexAndFunction(document, idx);
