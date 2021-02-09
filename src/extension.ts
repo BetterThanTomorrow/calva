@@ -67,8 +67,8 @@ function setKeybindingsEnabledContext() {
 
 async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
-    const result = activateLsp();
-    lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
+    activateLsp(context);
+    //lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
