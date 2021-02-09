@@ -30,6 +30,7 @@ import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
 import * as snippets from './custom-snippets';
+const { activateLsp } = require('../out/cljs-lib/cljs-lib');
 
 async function onDidSave(document) {
     let {
@@ -66,6 +67,7 @@ function setKeybindingsEnabledContext() {
 
 async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
+    const result = activateLsp();
     lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
