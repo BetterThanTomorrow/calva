@@ -1,6 +1,5 @@
 (ns calva.pprint.printer
-  (:require [cljs.test :refer [is testing]]
-            [zprint.core :refer [zprint-str]]
+  (:require [zprint.core :refer [zprint-str]]
             [calva.js-utils :refer [jsify cljify]]
             [clojure.string]))
 
