@@ -248,13 +248,20 @@ export async function calvaDisconnect() {
 }
 
 export async function calvaJackInOrConnect() {
-
+    const JACK_IN_OPTION = "Start a REPL server and connect (a.k.a. Jack-in)";
+    const JACK_IN_COMMAND = "calva.jackIn";
     let commands = {};
     if (!utilities.getConnectedState() &&
         !utilities.getConnectingState() &&
         !utilities.getLaunchingState()) {
-        if (vscode.workspace.workspaceFolders[0].uri.scheme != "vsls") {
-            commands["Start a REPL server and connect (a.k.a. Jack-in)"] = "calva.jackIn";
+
+        if (vscode.workspace.workspaceFolders &&
+            vscode.workspace.workspaceFolders.length > 0) {
+            if (vscode.workspace.workspaceFolders[0].uri.scheme != "vsls") {
+                commands[JACK_IN_OPTION] = JACK_IN_COMMAND;
+            }
+        } else {
+            commands[JACK_IN_OPTION] = JACK_IN_COMMAND;
         }
         commands["Connect to a running REPL server in your project"] = "calva.connect";
         commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";

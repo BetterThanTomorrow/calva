@@ -148,7 +148,7 @@ export function getProjectWsFolder(): vscode.WorkspaceFolder {
             return folder;
         }
     }
-    if (vscode.workspace.workspaceFolders) {
+    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
         return vscode.workspace.workspaceFolders[0];
     }
     return undefined;

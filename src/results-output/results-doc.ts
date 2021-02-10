@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as os from 'os';
 import * as state from '../state';
 import { highlight } from '../highlight/src/extension'
 import { NReplSession } from '../nrepl';
@@ -35,13 +36,16 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
 
-const OUTPUT_FILE_DIR = () => {
-    const projectRoot = state.getProjectRootUri();
+function outputFileDir() {
+    let projectRoot = state.getProjectRootUri();
+    if (!projectRoot) {
+        projectRoot = vscode.Uri.file(os.tmpdir());
+    }
     return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
 };
 
 const DOC_URI = () => {
-    return vscode.Uri.joinPath(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME);
+    return vscode.Uri.joinPath(outputFileDir(), RESULTS_DOC_NAME);
 };
 
 let _sessionType: ReplSessionType = "clj";
@@ -114,7 +118,7 @@ export function setContextForOutputWindowActive(isActive: boolean): void {
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
-    await vscode.workspace.fs.createDirectory(OUTPUT_FILE_DIR());
+    await vscode.workspace.fs.createDirectory(outputFileDir());
     let resultsDoc: vscode.TextDocument;
     try {
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());

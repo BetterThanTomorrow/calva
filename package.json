@@ -49,6 +49,7 @@
     ],
     "activationEvents": [
         "onLanguage:clojure",
+        "onCommand:calva.startNewRepl",
         "onCommand:calva.jackIn",
         "onCommand:calva.jackInOrConnect",
         "onCommand:calva.connect",
@@ -663,6 +664,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.startNewRepl",
+                "title": "Start a Clojure REPL",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
                 "enablement": "calva:connected",
@@ -1235,6 +1241,10 @@
                 "when": "calva:keybindingsEnabled"
             },
             {
+                "command": "calva.startNewRepl",
+                "key": "ctrl+alt+c ctrl+alt+r"
+            },
+            {
                 "command": "calva.connectNonProjectREPL",
                 "key": "ctrl+alt+c alt+c",
                 "when": "calva:keybindingsEnabled"
@@ -1716,6 +1726,10 @@
                 {
                     "command": "calva.jackInOrConnect",
                     "when": "false"
+                },
+                {
+                    "command": "calva.startNewRepl",
+                    "when": "true"
                 },
                 {
                     "command": "calva.debug.instrument",

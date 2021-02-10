@@ -224,10 +224,12 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabel: string): Promise<ReplConnectSequence> {
     // figure out what possible kinds of project we're in
     const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
+    const projectRootUri = state.getProjectRootUri();
+    const saveAsFull = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
     const projectConnectSequenceName = await utilities.quickPickSingle({
         values: sequences.map(s => { return s.name }),
         placeHolder: "Please select a project type",
-        saveAs: `${state.getProjectRootUri().toString()}/${saveAs}`,
+        saveAs: saveAsFull,
         autoSelect: true
     });
     if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
