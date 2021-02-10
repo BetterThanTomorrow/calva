@@ -3,7 +3,8 @@
             ["vscode-languageclient" :refer [LanguageClient]]
             ["path" :as path]
             [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]))
+            [cljs.core.async.interop :refer-macros [<p!]]
+            ["/state.js" :as state]))
 
 (defn create-client [jarPath]
   (let [server-options {:run {:command "java"
