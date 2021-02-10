@@ -263,6 +263,7 @@ jobs:
             git config --global user.name $GITHUB_USER_NAME
             git checkout published
             git merge origin/dev --ff-only
+            git log -2
             # git push origin HEAD
   deploy-docs:
     docker:
