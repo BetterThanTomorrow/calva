@@ -43,7 +43,7 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
 
     private getSymbol(document: TextDocument, idx: number): string {
         const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
-        return cursor.getFunction();
+        return cursor.getFunctionName();
     }
 
     private coordsToRange(coords: [[number, number], [number, number]]): Range {
@@ -53,15 +53,15 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
     private getPreviousRangeIndexAndFunction(document: TextDocument, idx: number) {
         const peekBehindCursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx);
         peekBehindCursor.backwardFunction(1);
-        const previousFunction = peekBehindCursor.getFunction(0),
-            previousRanges = peekBehindCursor.rangesForSexpsInList('(').map(this.coordsToRange),
+        const previousFunction = peekBehindCursor.getFunctionName(0),
+            previousRanges = peekBehindCursor.rowColRangesForSexpsInList('(').map(this.coordsToRange),
             previousRangeIndex = previousRanges.findIndex(range => range.contains(document.positionAt(idx)));
         return { previousRangeIndex, previousFunction };
     }
 
     private getCurrentArgsRanges(document: TextDocument, idx: number): Range[] {
         const cursor: LispTokenCursor = docMirror.getDocument(document).getTokenCursor(idx),
-            allRanges = cursor.rangesForSexpsInList('(');
+            allRanges = cursor.rowColRangesForSexpsInList('(');
 
         // Are we in a function that gets a threaded first parameter?
         const { previousRangeIndex, previousFunction } = this.getPreviousRangeIndexAndFunction(document, idx);

@@ -27,7 +27,7 @@ suite('Extension Test Suite', () => {
     expect(vscode.window.activeTextEditor).undefined;
     const testClj = await openFile(path.join(util.testDataDir, 'test.clj'));
     vscode.commands.executeCommand("workbench.action.closeActiveEditor");
-    await sleep(300);
+    await sleep(1000);
     expect(vscode.window.activeTextEditor).undefined;
   });
 

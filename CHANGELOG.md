@@ -4,6 +4,64 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.171] - 2021-02-10
+- Update clojure-lsp to version 2021.02.09-18.28.06 (Fix: [Auto completion does not work in clojure-lsp only mode (no repl connection)](https://github.com/BetterThanTomorrow/calva/issues/996#issuecomment-776148282))
+- Update clojure-lsp to version 2021.02.10-03.01.19 (Fix: [Project clj-kondo config file not being considered](https://github.com/BetterThanTomorrow/calva/issues/1026))
+
+## [2.0.170] - 2021-02-09
+- [Paredit drag backward/forward should drag bindings as pairs](https://github.com/BetterThanTomorrow/calva/issues/529)
+
+## [2.0.169] - 2021-02-09
+- Update clojure-lsp to version 2021.02.07-22.51.26 (fix previous attempt)
+
+## [2.0.168] - 2021-02-08
+- Update clojure-lsp to version 2021.02.07-22.51.26
+
+## [2.0.164] - 2021-02-06
+- Really fix: [Demo gifs 404 on VisualStudio Marketplace](https://github.com/BetterThanTomorrow/calva/issues/1018)
+
+## [2.0.163] - 2021-02-06
+- Fix: [Demo gifs 404 on VisualStudio Marketplace](https://github.com/BetterThanTomorrow/calva/issues/1018)
+
+## [2.0.162] - 2021-02-06
+- Fix for fix of: [Fix Paredit raise sexpr doesn't work when cursor is behind the current form](https://github.com/BetterThanTomorrow/calva/issues/1016)
+
+## [2.0.161] - 2021-02-05
+- [Automate more of the release process and document it (including rationale)](https://github.com/BetterThanTomorrow/calva/issues/860)
+
+## [2.0.160] - 2021-02-05
+- [Upgrade clojure-lsp to 2021.02.05-03.05.34](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.02.05-03.05.34)
+- [Fix Paredit raise sexpr doesn't work when cursor is behind the current form](https://github.com/BetterThanTomorrow/calva/issues/1016)
+
+## [2.0.159] - 2021-02-05
+- [Enable keyboard shortcuts for custom REPL commands](https://github.com/BetterThanTomorrow/calva/issues/1011)
+- [Add commands for tapping current and top-level forms](https://github.com/BetterThanTomorrow/calva/issues/1008)
+
+## [2.0.158] - 2021-02-03
+- [Add setting to use only static parts of Calva](https://github.com/BetterThanTomorrow/calva/issues/1005)
+- Fix: [Load file command not loading changes since last file save on Windows](https://github.com/BetterThanTomorrow/calva/issues/975)
+- Update clojure-lsp to 2021.02.02-14.02.23
+
+## [2.0.157] - 2021-02-01
+- [Add command for copying jack-in command to clipboard](https://github.com/BetterThanTomorrow/calva/pull/995)
+- [Change default shortcuts for Paredit forward/backward sexp, expand/shrink selection, and for slurping and barfing](https://github.com/BetterThanTomorrow/calva/issues/950)
+- [Add Custom Commands variables for current form and more](https://github.com/BetterThanTomorrow/calva/issues/986)
+- Fix: [Jack-in fails to launch deps.edn projects for some Windows users](https://github.com/BetterThanTomorrow/calva/issues/1000)
+
+## [2.0.156] - 2021-01-28
+- Fix: [Debug instrumentation decoration not working correctly anymore on Windows](https://github.com/BetterThanTomorrow/calva/issues/969)
+- Fix: [Debugger decorations issues](https://github.com/BetterThanTomorrow/calva/issues/976)
+
+## [2.0.155] - 2021-01-27
+- [Make command palette show alt+enter shortcut variant instead of enter for evaluating top level form](https://github.com/BetterThanTomorrow/calva/issues/989)
+- Update clojure-lsp to 2021.01.28-03.03.16
+- Fix: [nrepl port detection race condition](https://github.com/BetterThanTomorrow/calva/issues/901)
+
+## [2.0.154] - 2021-01-27
+- Fix: [Calva uses ; for comments instead of ;;](https://github.com/BetterThanTomorrow/calva/issues/971)
+- Update cider-nrepl to 0.25.8
+- Update clojure-lsp to 2021.01.26-22.35.27
+
 ## [2.0.153] - 2021-01-19
 - [Use status bar message instead of withProgress message for clojure-lsp initialization](https://github.com/BetterThanTomorrow/calva/issues/974)
 - [Update cider-nrepl: 0.25.6 -> 0.25.7](https://github.com/BetterThanTomorrow/calva/issues/973)

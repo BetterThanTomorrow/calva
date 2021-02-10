@@ -1,4 +1,4 @@
-# The Calva development and release process
+# The Calva Development and Release Process
 
 _This is mainly for Calva maintainers. But is probably good for any [contributor](https://github.com/BetterThanTomorrow/calva/wiki/How-to-Contribute) to be familiar with. Also, feedback and tips on how to improve this process is very welcome._
 
@@ -24,46 +24,32 @@ Smaller changes:
 
 ## 2. Prepare for Including the Change in the Next Published Calva
 
-1. When a PR looks good
-   1. Make sure the PR is directed at `dev``
-   1. Merge the PR.
-   1. Click the **Delete branch** button that Github offers (when it's not from a fork, that is).
-1. Consider if `README.md` needs update.
-   1. Commit with a message like: ”Add feature: **Short Release Description Title**"
-1. Consider if there should be a prerelease made of this. If so:
-   1. Tag the prerelease with `v<VERSION>-release-description-title`, _and make sure to make it a tag with a message_.
-   1. Push using `--follow-tags`
-1. Regardless if prerelease or not.
-   1. Circle CI runs our tests, and builds a VSIX.
-   1. Download this VSIX post on #calva asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
+When a PR looks good:
+
+1. Make sure the PR template checklist items are checked off / accounted for.
+1. Merge the PR.
+1. Click the **Delete branch** button that Github offers (when it's not from a fork, that is).
+1. Circle CI runs our tests, and builds a VSIX.
+1. Download this VSIX post on #calva asking for help testing it. Attaching the `[Unreleased]` CHANGELOG entry is an easy way to let people know what is new.
 
 ## 3. Publishing a New Calva Version
 
 When a VSIX is good enough for release, and someone authorized to commit to the `published` branch has _at least half an hour of spare time_, the following will bring it to the Marketplace:
 
 1. Checkout `dev`
-1. Add the CHANGELOG entries from `[Unreleased]`, **NB** There should be no newline between the header and the entries.
-1. Commit.
-1. Tag with `v<VERSION>` (and you must provide a tag message, else the CI pipeline won't pick it up correctly)
-   * e.g. `git tag -a v<version-number> -m "<message>"`
-1. Push `dev` (Using `--follow-tags`).
-   * This will build the release VSIX, push a release to GitHub, and publish it on the extension Marketplace + `open-vsx.org`. **Note:** There is an approval step in the CircleCI pipeline. The release and VSIX will not be published until the Approve button is clicked in CircleCI.
-   * You'll get an e-mail when it is published. (Or maybe only @pez gets that, not sure).
+1. Run `npm run publish`
+   * This updates the changelog to move the Unreleased items to a new section for the new version, commits, tags the commit, and pushes with `--follow-tags` so that the CI publish workflow is kicked off.
+1. Click to approve the publishing of the extension in the CircleCI web app
 1. When the new version is live, immediately install it and see that it works.
-   * If the Marketplace version works:
-     1. Merge `dev` onto `published`
-     1. Push
-     1. Run `npm run deploy-docs` to publish any changes to the docs
-     1. Checkout `dev` and `$ npm run bump-version`
-     1. Commit with this message: "`Bring on version: `v<NEW_VERSION>`! `[skip ci]`”.
-     1. Push.
-   * If the Marketplace version does not work:
-     1. Install the artifact from the release build and test it.
-        * If this works, then something in Microsoft's publish pipeline has broken the extension. This has happened (a few times) before. To retry again you need to build a new VSIX with a bumped version:
-          1. `$ npm run bump-version`.
-          1. Push.
-        * If the artifact doesn't work (we should never be here).
-          1. ???
+   * If the Marketplace version does not work, install the artifact from the release build and test it.
+      * If this works, then something in Microsoft's publish pipeline has broken the extension. This has happened (a few times) before. To retry again, start over at step 1.
+      * If the artifact doesn't work (we should never be here) - ???
+
+### The Publishing Process and Rationale
+
+We develop features off the `dev` branch and manually dictate (via `npm run publish`) when to release a new version from this branch. This is so that we have the option of accumulating features for release on this branch, rather than releasing a new version for every PR merged into `published`.
+
+We want to keep the `published` branch in sync with the released version. After a release is published, the CI merges the `dev` branch into `published`. It then deploys the docs from `published` and bumps the version on `dev`. Bumping the version on `dev` after a publish lines up with our process of `dev` representing the next version of Calva.
 
 ## 4. Updating README.md (and other docs) after publishing
 

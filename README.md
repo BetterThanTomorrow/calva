@@ -1,6 +1,6 @@
 # Calva: Clojure & ClojureScript with Visual Studio Code
 
-![Calva logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
+![Calva logo](assets/calva-64h.png)
 
 _Distilled from [CIDER](https://cider.mx/)*._
 
@@ -12,7 +12,6 @@ Welcome to [Calva](https://marketplace.visualstudio.com/items?itemName=bettertha
 
 Crispin Bennett's review:
 > This is great, and makes VS Code a truly viable IDE/editor for clojure development. It has great REPL support (including inline evaluation), an extensive Paredit implementation, and excellent linting (care of the bundled clj-kondo). Calva is being improved on at an impressive clip by maintainers who appear solidly committed to its ongoing development. It's well-documented, and manages to be both approachable and capable. A no-brainer if you're already a VS Code user, and well worth a look if you're not.
-
 
 ## There is Documentation
 

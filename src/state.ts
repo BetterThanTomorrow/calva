@@ -98,7 +98,7 @@ function _trimAliasName(name: string): string {
 
 // TODO find a way to validate the configs
 function config() {
-    let configOptions = vscode.workspace.getConfiguration('calva');
+    const configOptions = vscode.workspace.getConfiguration('calva');
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
@@ -112,13 +112,17 @@ function config() {
         myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
         myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
         asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
-        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []) as customREPLCommandSnippet[],
+        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []),
+        customREPLCommandSnippetsGlobal: configOptions.inspect("customREPLCommandSnippets").globalValue as customREPLCommandSnippet[],
+        customREPLCommandSnippetsWorkspace: configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[],
+        customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect("customREPLCommandSnippets").workspaceFolderValue as customREPLCommandSnippet[],
         prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
         enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
         autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
         autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
         displayDiagnostics: configOptions.get('displayDiagnostics') as boolean,
+        hideReplUi: configOptions.get('hideReplUi') as boolean,
     };
 }
 

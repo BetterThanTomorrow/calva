@@ -22,13 +22,14 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
+import debugDecorations from './debugger/decorations';
 import * as model from './cursor-doc/model';
-import { LanguageClient } from 'vscode-languageclient';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
+import * as snippets from './custom-snippets';
 
 async function onDidSave(document) {
     let {
@@ -64,7 +65,8 @@ function setKeybindingsEnabledContext() {
 }
 
 async function activate(context: vscode.ExtensionContext) {
-    lsp.activate(context);
+    status.updateNeedReplUi(false, context);
+    lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -88,7 +90,7 @@ async function activate(context: vscode.ExtensionContext) {
     const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
     const CALVA_DOCS_URL = "https://calva.io/";
     const VIEWED_CALVA_DOCS = "viewedCalvaDocs";
-
+    const VIEWED_SHORTCUT_CHANGE_MSG = "viewedShortcutsChangeMessage";
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
         vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
@@ -128,11 +130,12 @@ async function activate(context: vscode.ExtensionContext) {
         vscode.window.showErrorMessage("Calva Paredit extension detected, which will cause problems. Please uninstall, or disable, it.", "I hear ya. Doing it!");
     }
 
-    status.update();
+    status.update(context);
 
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn))
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', connector.connectNonProjectREPLCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.disconnect', jackIn.calvaDisconnect));
@@ -161,10 +164,9 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refreshAll', refresh.refreshAll));
     context.subscriptions.push(vscode.commands.registerCommand('calva.debug.instrument', eval.instrumentTopLevelForm));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', async () => {
-        await eval.evaluateCustomCommandSnippetCommand();
-        outputWindow.appendPrompt();
-    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runCustomREPLCommand', snippets.evaluateCustomCodeSnippetCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.tapSelection', () => snippets.evaluateCustomCodeSnippetCommand("(tap> $current-form)")));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.tapCurrentTopLevelForm', () => snippets.evaluateCustomCodeSnippetCommand("(tap> $top-level-form)")));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showFileForOutputWindowNS', () => { outputWindow.revealDocForCurrentNS(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setOutputWindowNamespace', outputWindow.setNamespaceFromCurrentFile));
@@ -188,11 +190,6 @@ async function activate(context: vscode.ExtensionContext) {
                 console.error(`Problems visiting calva docs: ${e}`);
             });
     }))
-
-    // Temporary command to teach new default keyboard shortcut chording key
-    context.subscriptions.push(vscode.commands.registerCommand('calva.tellAboutNewChordingKey', () => {
-        vscode.window.showInformationMessage(`The ”Calva key” has changed. It is now: ctrl+alt+c`);
-    }));
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);
@@ -265,13 +262,14 @@ async function activate(context: vscode.ExtensionContext) {
 
     greetings.activationGreetings(chan);
 
-    if (!context.globalState.get(VIEWED_CALVA_DOCS)) {
-        vscode.window.showInformationMessage("Calva is activated. Please use the command **Calva: Open Documentation** to visit calva.io for instructions on how to connect Calva to the REPL. (This message will keep showing on start of Calva until you've used the command.)", ...[BUTTON_OK])
+    if (!context.globalState.get(VIEWED_SHORTCUT_CHANGE_MSG)) {
+        vscode.window.showInformationMessage("Dear Calva user, some default keyboard shortcuts have changed. See calva.io/paredit and calva.io/custom-commands for the current defaults.", ...[BUTTON_OK])
             .then(v => {
                 if (v == BUTTON_OK) {
-                    state.analytics().logEvent("LifeCycle", "Greetings dismissed")
+                    context.globalState.update(VIEWED_SHORTCUT_CHANGE_MSG, true);
+                    state.analytics().logEvent("LifeCycle", "Shortcut change message dismissed")
                 }
-            })
+            });
     }
 
 

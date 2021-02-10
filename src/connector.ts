@@ -451,8 +451,10 @@ export async function connect(connectSequence: ReplConnectSequence,
     state.extensionContext.workspaceState.update('selectedConnectSequence', connectSequence);
 
     try {
-        let bytes = await vscode.workspace.fs.readFile(portFile);
-        let port = new TextDecoder("utf-8").decode(bytes);
+        if (port === undefined) {
+            let bytes = await vscode.workspace.fs.readFile(portFile);
+            port = new TextDecoder("utf-8").decode(bytes);
+        }
         if (port) {
             hostname = hostname !== undefined ? hostname : "localhost";
             if (isAutoConnect) {
@@ -491,10 +493,12 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
 
 export default {
     connectNonProjectREPLCommand: async () => {
+        status.updateNeedReplUi(true);
         const connectSequence = await askForConnectSequence(projectTypes.getAllProjectTypes(), 'connect-type', "ConnectInterrupted");
         standaloneConnect(connectSequence);
     },
     connectCommand: async () => {
+        status.updateNeedReplUi(true);
         // TODO: Figure out a better way to have an initialized project directory.
         try {
             await state.initProjectDir();
@@ -509,6 +513,7 @@ export default {
         standaloneConnect(connectSequence);
     },
     disconnect: (options = null, callback = () => { }) => {
+        status.updateNeedReplUi(false);
         ['clj', 'cljs'].forEach(sessionType => {
             state.cursor.set(sessionType, null);
         });

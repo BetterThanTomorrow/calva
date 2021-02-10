@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as _ from 'lodash';
 import * as state from './state';
 import annotations from './providers/annotations';
 import * as path from 'path';
@@ -144,7 +143,7 @@ async function evaluateSelection(document: {}, options) {
         const selection = editor.selection;
         let code = "";
         let codeSelection: vscode.Selection;
-        if (selection.isEmpty) {
+        if (selection.isEmpty || topLevel) {
             state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
             codeSelection = select.getFormSelection(doc, selection.active, topLevel);
             code = doc.getText(codeSelection);
@@ -224,22 +223,21 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
 
     if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
-        const [fileName, filePath] = outputWindow.isResultsDoc(doc) ?
-            await outputWindow.getFilePathForCurrentNameSpace() :
-            [util.getFileName(doc), doc.fileName];
-        const shortFileName = path.basename(fileName);
-        const dirName = path.dirname(fileName);
-        const fileContents = await util.getFileContents(filePath);
+        const docUri = outputWindow.isResultsDoc(doc) ?
+            await outputWindow.getUriForCurrentNamespace() :
+            doc.uri;
+        const fileName = path.basename(docUri.path);
+        const fileContents = await util.getFileContents(docUri.path);
 
         outputWindow.append("; Evaluating file: " + fileName);
 
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
 
         const res = session.loadFile(fileContents, {
-            fileName: fileName,
-            filePath,
-            stdout: m => outputWindow.append(normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m)),
-            stderr: m => outputWindow.append('; ' + normalizeNewLines(m.indexOf(dirName) < 0 ? m.replace(shortFileName, fileName) : m, true)),
+            fileName,
+            filePath: docUri.path,
+            stdout: m => outputWindow.append(normalizeNewLines(m)),
+            stderr: m => outputWindow.append('; ' + normalizeNewLines(m, true)),
             pprintOptions: pprintOptions
         });
         try {
@@ -331,7 +329,7 @@ async function instrumentTopLevelForm() {
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
-async function evaluateInOutputWindow(code: string, sessionType: string, ns: string) {
+export async function evaluateInOutputWindow(code: string, sessionType: string, ns: string) {
     const outputDocument = await outputWindow.openResultsDoc();
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
@@ -352,61 +350,13 @@ async function evaluateInOutputWindow(code: string, sessionType: string, ns: str
     }
 }
 
-export type customREPLCommandSnippet = { name: string, snippet: string, repl: string, ns?: string };
-
-async function evaluateCustomCommandSnippetCommand(): Promise<void> {
-    let pickCounter = 1;
-    let configErrors: { "name": string, "keys": string[] }[] = [];
-    const snippets = state.config().customREPLCommandSnippets as customREPLCommandSnippet[];
-    const snippetPicks = _.map(snippets, (c: customREPLCommandSnippet) => {
-        const undefs = ["name", "snippet", "repl"].filter(k => {
-            return !c[k];
-        });
-        if (undefs.length > 0) {
-            configErrors.push({ "name": c.name, "keys": undefs });
-        }
-        return `${pickCounter++}: ${c.name} (${c.repl})`;
-    });
-    const snippetsDict = {};
-    pickCounter = 1;
-
-    if (configErrors.length > 0) {
-        vscode.window.showErrorMessage("Errors found in the `calva.customREPLCommandSnippets` setting. Values missing for: " + JSON.stringify(configErrors), "OK");
-        return;
-    }
-    snippets.forEach((c: customREPLCommandSnippet) => {
-        snippetsDict[`${pickCounter++}: ${c.name} (${c.repl})`] = c;
-    });
-
-    if (snippets && snippets.length > 0) {
-        try {
-            const pick = await util.quickPickSingle({
-                values: snippetPicks,
-                placeHolder: "Choose a command to run at the REPL",
-                saveAs: "runCustomREPLCommand"
-            });
-            if (pick && snippetsDict[pick] && snippetsDict[pick].snippet) {
-                const editor = vscode.window.activeTextEditor;
-                const currentLine = editor.selection.active.line;
-                const currentColumn = editor.selection.active.character;
-                const currentFilename = editor.document.fileName;
-                const editorNS = editor && editor.document && editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
-                const ns = snippetsDict[pick].ns ? snippetsDict[pick].ns : editorNS;
-                const repl = snippetsDict[pick].repl ? snippetsDict[pick].repl : "clj";
-                const command = snippetsDict[pick].snippet.
-                     replace("$line", currentLine).
-                     replace("$column", currentColumn).
-                     replace("$file", currentFilename);
-                await evaluateInOutputWindow(command, repl ? repl : "clj", ns);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    } else {
-        vscode.window.showInformationMessage("No snippets configured. Configure snippets in `calva.customREPLCommandSnippets`.", ...["OK"]);
-    }
-}
-
+export type customREPLCommandSnippet = {
+    name: string,
+    key?: string,
+    snippet: string,
+    repl?: string,
+    ns?: string
+};
 
 export default {
     interruptAllEvaluations,
@@ -422,6 +372,5 @@ export default {
     requireREPLUtilitiesCommand,
     togglePrettyPrint,
     instrumentTopLevelForm,
-    evaluateInOutputWindow,
-    evaluateCustomCommandSnippetCommand
+    evaluateInOutputWindow
 };

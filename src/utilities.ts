@@ -8,6 +8,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror';
+import status from './status';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -160,10 +161,6 @@ function getFileType(document) {
     else {
         return 'clj';
     }
-}
-
-function getFileName(document) {
-    return path.basename(document.fileName);
 }
 
 function getLaunchingState() {
@@ -329,15 +326,15 @@ function scrollToBottom(editor: vscode.TextEditor) {
     editor.revealRange(new vscode.Range(lastPos, lastPos));
 }
 
-async function getFileContents(uri: string) {
-    const doc = vscode.workspace.textDocuments.find(document => document.uri.path === uri);
+async function getFileContents(path: string) {
+    const doc = vscode.workspace.textDocuments.find(document => document.uri.path === path);
     if (doc) {
         return doc.getText();
     }
-    if (uri.match(/jar!\//)) {
-        return await getJarContents(uri);
+    if (path.match(/jar!\//)) {
+        return await getJarContents(path);
     }
-    return fs.readFileSync(uri).toString();
+    return fs.readFileSync(path).toString();
 }
 
 function jarFilePathComponents(uri: vscode.Uri | string) {
@@ -361,12 +358,54 @@ async function getJarContents(uri: vscode.Uri | string) {
     });
 }
 
+function currentFormText(editor: vscode.TextEditor, topLevel: boolean) {
+    const doc = editor.document;
+    if (doc) {
+        const codeSelection = select.getFormSelection(doc, editor.selection.active, topLevel);
+        return doc.getText(codeSelection);    
+    } else {
+        return '';
+    }
+}
+
+function currentFunction(editor: vscode.TextEditor) {
+    if (editor) {
+        const document = editor.document;
+        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor();
+        const [start, end] = tokenCursor.getFunctionSexpRange();
+        if (start && end) {
+            const startPos = document.positionAt(start);
+            const endPos = document.positionAt(end);
+            return document.getText(new vscode.Range(startPos, endPos));
+        }
+    }
+}
+
+function currentTopLevelFunction(editor: vscode.TextEditor) {
+    if (editor) {
+        const document = editor.document;
+        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
+        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
+        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
+        if (tokenCursor.downList()) {
+            tokenCursor.forwardWhitespace();
+            while (tokenCursor.next()) {
+                const symbol = tokenCursor.getToken();
+                if (symbol.type === 'id') {
+                    return symbol.raw;
+                }
+            }
+            return '';
+        }
+        return '';
+    }
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
     getDocument,
     getFileType,
-    getFileName,
     getLaunchingState,
     setLaunchingState,
     getConnectedState,
@@ -392,5 +431,8 @@ export {
     scrollToBottom,
     getFileContents,
     jarFilePathComponents,
-    getJarContents
+    getJarContents,
+    currentFormText,
+    currentFunction,
+    currentTopLevelFunction
 };

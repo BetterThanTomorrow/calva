@@ -1,5 +1,6 @@
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
+import { LispTokenCursor } from "./token-cursor";
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
 // But don't put such chains in this module because that won't work in the repl-console.
@@ -483,8 +484,6 @@ export function growSelection(doc: EditableDocument, start: number = doc.selecti
         const currentFormRange = startC.rangeForCurrentForm(start);
         if (currentFormRange) {
             growSelectionStack(doc, currentFormRange);
-        } else {
-            console.log("no move");
         }
     } else {
         if (startC.getPrevToken().type == "open" && endC.getToken().type == "close") {
@@ -550,22 +549,25 @@ export function setSelectionStack(doc: EditableDocument, selection = doc.selecti
 }
 
 export function raiseSexp(doc: EditableDocument, start = doc.selectionLeft, end = doc.selectionRight) {
-    if (start == end) {
-        let cursor = doc.getTokenCursor(end);
-        cursor.forwardWhitespace();
-        cursor.backwardThroughAnyReader();
-        let endCursor = cursor.clone();
-        if (endCursor.forwardSexp()) {
-            let raised = doc.model.getText(cursor.offsetStart, endCursor.offsetStart);
-            cursor.backwardList();
-            endCursor.forwardList();
-            if (cursor.getPrevToken().type == "open") {
-                cursor.previous();
-                if (endCursor.getToken().type == "close") {
-                    doc.model.edit([
-                        new ModelEdit('changeRange', [cursor.offsetStart, endCursor.offsetEnd, raised])
-                    ], { selection: new ModelEditSelection(cursor.offsetStart) });
-                }
+    const cursor = doc.getTokenCursor(end);
+    const [formStart, formEnd] = cursor.rangeForCurrentForm(start);
+    const isCaretTrailing = formEnd - start < start - formStart;
+    const startCursor = doc.getTokenCursor(formStart);
+    let endCursor = startCursor.clone();
+    if (endCursor.forwardSexp()) {
+        let raised = doc.model.getText(startCursor.offsetStart, endCursor.offsetStart);
+        startCursor.backwardList();
+        endCursor.forwardList();
+        if (startCursor.getPrevToken().type == "open") {
+            startCursor.previous();
+            if (endCursor.getToken().type == "close") {
+                doc.model.edit([
+                    new ModelEdit('changeRange', [startCursor.offsetStart, endCursor.offsetEnd, raised])
+                ], {
+                    selection: new ModelEditSelection(isCaretTrailing ?
+                        startCursor.offsetStart + raised.length :
+                        startCursor.offsetStart)
+                });
             }
         }
     }
@@ -636,29 +638,92 @@ export function transpose(doc: EditableDocument, left = doc.selectionLeft, right
     }
 }
 
-export function dragSexprBackward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
-    const cursor = doc.getTokenCursor(right),
-        currentRange = cursor.rangeForCurrentForm(right),
-        newPosOffset = right - currentRange[0];
+export const bindingForms = [
+    'let',
+    'for',
+    'loop',
+    'binding',
+    'with-local-vars',
+    'doseq',
+    'with-redefs'
+];
+
+function isInPairsList(cursor: LispTokenCursor, pairForms: string[]): boolean {
+    const probeCursor = cursor.clone();
+    if (probeCursor.backwardList()) {
+        const opening = probeCursor.getPrevToken().raw
+        if (opening.endsWith('{') && !opening.endsWith('#{')) {
+            return true;
+        }
+        if (opening.endsWith('[')) {
+            probeCursor.backwardUpList();
+            const fn = probeCursor.getFunctionName();
+            if (fn && pairForms.includes(fn)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    return false;
+}
+
+/**
+ * Returns the range of the current form
+ * or the current form pair, if usePairs is true
+ */
+function currentSexpsRange(doc: EditableDocument, cursor: LispTokenCursor, offset: number, usePairs = false): [number, number] {
+    const currentSingleRange = cursor.rangeForCurrentForm(offset);
+    if (usePairs) {
+        const ranges = cursor.rangesForSexpsInList();
+        if (ranges.length > 1) {
+            const indexOfCurrentSingle = ranges.findIndex(r => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1] );
+            if (indexOfCurrentSingle % 2 == 0) {
+                const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
+                pairCursor.forwardSexp();
+                return [currentSingleRange[0], pairCursor.offsetStart];
+            } else {
+                const pairCursor = doc.getTokenCursor(currentSingleRange[0]);
+                pairCursor.backwardSexp();
+                return [pairCursor.offsetStart, currentSingleRange[1]];
+            }
+        }
+    }
+    return currentSingleRange;
+}
+
+export function dragSexprBackward(doc: EditableDocument, pairForms = bindingForms, left = doc.selectionLeft, right = doc.selectionRight) {
+    const cursor = doc.getTokenCursor(right);
+    const usePairs = isInPairsList(cursor, pairForms);
+    const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+    const newPosOffset = right - currentRange[0];
     const backCursor = doc.getTokenCursor(currentRange[0]);
-    backCursor.backwardWhitespace();
     backCursor.backwardSexp();
-    const backRange = backCursor.rangeForCurrentForm(backCursor.offsetEnd);
+    const backRange = currentSexpsRange(doc, backCursor, backCursor.offsetStart, usePairs);
     if (backRange[0] !== currentRange[0]) { // there is a sexp to the left
-        transpose(doc, left, currentRange[0], { fromLeft: newPosOffset });
+        const leftText = doc.model.getText(backRange[0], backRange[1]);
+        const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+        doc.model.edit([
+            new ModelEdit('changeRange', [currentRange[0], currentRange[1], leftText]),
+            new ModelEdit('changeRange', [backRange[0], backRange[1], currentText])
+        ], { selection: new ModelEditSelection(backRange[0] + newPosOffset) });
     }
 }
 
-export function dragSexprForward(doc: EditableDocument, left = doc.selectionLeft, right = doc.selectionRight) {
-    const cursor = doc.getTokenCursor(right),
-        currentRange = cursor.rangeForCurrentForm(right),
-        newPosOffset = currentRange[1] - right;
+export function dragSexprForward(doc: EditableDocument, pairForms = bindingForms, left = doc.selectionLeft, right = doc.selectionRight) {
+    const cursor = doc.getTokenCursor(right);
+    const usePairs = isInPairsList(cursor, pairForms);
+    const currentRange = currentSexpsRange(doc, cursor, right, usePairs);
+    const newPosOffset = currentRange[1] - right;
     const forwardCursor = doc.getTokenCursor(currentRange[1]);
-    forwardCursor.forwardWhitespace();
     forwardCursor.forwardSexp();
-    const forwardRange = forwardCursor.rangeForCurrentForm(forwardCursor.offsetEnd);
+    const forwardRange = currentSexpsRange(doc, forwardCursor, forwardCursor.offsetStart, usePairs);
     if (forwardRange[0] !== currentRange[0]) { // there is a sexp to the right
-        transpose(doc, left, currentRange[1], { fromRight: newPosOffset });
+        const rightText = doc.model.getText(forwardRange[0], forwardRange[1]);
+        const currentText = doc.model.getText(currentRange[0], currentRange[1]);
+        doc.model.edit([
+            new ModelEdit('changeRange', [forwardRange[0], forwardRange[1], currentText]),
+            new ModelEdit('changeRange', [currentRange[0], currentRange[1], rightText])
+        ], { selection: new ModelEditSelection(currentRange[1] + (forwardRange[1] - currentRange[1]) - newPosOffset) });
     }
 }
 

@@ -78,7 +78,7 @@ The versions of the dependencies [Calva Jack-in](jack-in-guide.md) injects in or
 Dependency | Version | Description
 ---------- | ------- | -----------
 [nrepl](https://github.com/nrepl/nrepl) | 0.8.3 | nREPL is the wonderful piece of software that gives Calva a structured and extensible connection to the REPL in your Clojure and ClojureScript projects.
-[cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.7 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
+[cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) | 0.25.8 | cider-nrepl is middleware that extends the nREPL connection with all sorts of nice stuff that Calva uses to give you a delightful IDE experience.
 [cider/piggieback](https://github.com/nrepl/piggieback) | 0.5.2 | Piggieback is used to create nREPL sessions in ClojureScript projects. (Not with [shadow-cljs](http://shadow-cljs.org) projects though, which provides its own middleware for this.)
 
 ## Key bindings
@@ -92,9 +92,40 @@ Here are a collection of custom keybindings from here and there.
 
 Are you a vim extension user? See: [Using with VIM extension](vim.md).
 
-### Paredit
+### Move by word
 
-Please be aware that the REPL window does not handle chorded shortcuts. Something to keep in mind when customizing [Paredit](paredit.md) shortcuts, because those are dispatched onto the REPL window. So, best to avoid chorded shortcuts for Paredit.
+If you sometimes navigate by word, you might find that Calva defaults gets a bit in the way. Here are some settings that retain the default word movement shortcuts for Windows and Mac:
+
+```json
+    {
+        "key": "ctrl+right",
+        "win": "ctrl+right",
+        "mac": "alt+right",
+        "command": "cursorWordRight"
+    },
+    {
+        "key": "ctrl+left",
+        "win": "ctrl+left",
+        "mac": "alt+left",
+        "command": "cursorWordLeft"
+    },
+    {
+        "key": "ctrl+right",
+        "mac": "ctrl+right",
+        "win": "alt+right",
+        "command": "paredit.forwardSexp",
+        "when": "calva:keybindingsEnabled && editorTextFocus && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    },
+    {
+        "key": "ctrl+left",
+        "mac": "ctrl+left",
+        "win": "alt+left",
+        "command": "paredit.backwardSexp",
+        "when": "calva:keybindingsEnabled && editorTextFocus && editorLangId == 'clojure' && paredit:keyMap =~ /original|strict/"
+    }
+```
+
+Use it as an inspiration for customizing these things to your own liking. 😄
 
 ### Wrap using `(`, `[`, `{` (like Cursive)
 

@@ -5,6 +5,7 @@
 */**/.DS_Store
 
 # Whitelist
+!language-configuration.json
 !clojure.tmLanguage.json
 !assets/**
 !out/**
@@ -13,3 +14,4 @@
 !CHANGELOG.md
 !LICENSE.txt
 !clojure-lsp.jar
+!deps.clj.jar

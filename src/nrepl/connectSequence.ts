@@ -4,7 +4,7 @@ import * as utilities from '../utilities';
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
-    "Clojure CLI" = "Clojure CLI",
+    "deps.edn" = "deps.edn",
     "shadow-cljs" = "shadow-cljs",
     "lein-shadow" = "lein-shadow",
     'generic' = 'generic'
@@ -80,29 +80,29 @@ const leiningenDefaults: ReplConnectSequence[] =
 
 const cljDefaults: ReplConnectSequence[] =
     [{
-        name: "Clojure CLI",
-        projectType: ProjectTypes["Clojure CLI"],
+        name: "deps.edn",
+        projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes.none
     },
     {
-        name: "Clojure CLI + Figwheel Main",
-        projectType: ProjectTypes["Clojure CLI"],
+        name: "deps.edn + Figwheel Main",
+        projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["Figwheel Main"]
     },
     {
-        name: "Clojure CLI + shadow-cljs",
-        projectType: ProjectTypes["Clojure CLI"],
+        name: "deps.edn + shadow-cljs",
+        projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["shadow-cljs"],
         nReplPortFile: [".shadow-cljs", "nrepl.port"]
     },
     {
-        name: "Clojure CLI + Legacy Figwheel",
-        projectType: ProjectTypes["Clojure CLI"],
+        name: "deps.edn + Legacy Figwheel",
+        projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["lein-figwheel"]
     },
     {
-        name: "Clojure CLI + Nashorn",
-        projectType: ProjectTypes["Clojure CLI"],
+        name: "deps.edn + Nashorn",
+        projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["Nashorn"]
     }];
 
@@ -190,6 +190,9 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
             vscode.window.showWarningMessage("Check your calva.replConnectSequences. You need to supply `name`, `projectType`, and `cljsType` for every sequence.", ...["Roger That!"]);
 
             return [];
+        }
+        if (sequence.projectType as string === 'Clojure CLI') {
+            sequence.projectType = ProjectTypes['deps.edn'];
         }
     }
 
