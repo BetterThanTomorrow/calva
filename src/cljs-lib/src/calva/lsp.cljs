@@ -22,7 +22,7 @@
                          "document-range-formatting?" false
                          "keep-require-at-start?" true}}]
     (LanguageClient. "clojure" "Clojure Language Client"
-                     (clj->js server-options) 
+                     (clj->js server-options)
                      (clj->js client-options))))
 
 ;; TODO: Find out what the type hint ^js does here

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as util from './utilities'
-import * as docMirror from './doc-mirror'
+import * as docMirror from './doc-mirror/index'
 
 function getFormSelection(doc: vscode.TextDocument, pos: vscode.Position, topLevel): vscode.Selection {
     const idx = doc.offsetAt(pos),

@@ -10,7 +10,7 @@ import * as namespace from '../namespace';
 import config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
-import * as docMirror from '../doc-mirror'
+import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;

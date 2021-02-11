@@ -7,7 +7,7 @@ import {
 import * as Net from 'net';
 import * as state from '../state';
 import { basename } from 'path';
-import * as docMirror from '../doc-mirror';
+import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
 import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
