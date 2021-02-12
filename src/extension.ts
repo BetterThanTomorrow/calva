@@ -30,6 +30,9 @@ import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
 import * as snippets from './custom-snippets';
+import * as docMirror from './doc-mirror'
+import { testDataDir } from './extension-test/integration/suite/util';
+import { commands } from 'fast-check/*';
 
 async function onDidSave(document) {
     let {
@@ -65,6 +68,7 @@ function setKeybindingsEnabledContext() {
 }
 
 async function activate(context: vscode.ExtensionContext) {
+    vscode.commands.executeCommand('setContext', "@AFARK", "farked");
     status.updateNeedReplUi(false, context);
     lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
     state.cursor.set('analytics', new Analytics(context));
@@ -219,6 +223,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
         replHistory.setReplHistoryCommandsActiveContext(editor);
+        checkForContextChange(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
@@ -231,6 +236,7 @@ async function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
         replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
+        checkForContextChange(event.textEditor);
     }));
     context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(document => {
         if (outputWindow.isResultsDoc(document)) {
@@ -309,6 +315,62 @@ async function activate(context: vscode.ExtensionContext) {
         hasParedit: true,
         hasFormatter: true
     }
+}
+
+// TODO: remove console.logs
+type CursorContext = 'calva-standard' | AltCursorContext;
+type AltCursorContext = 'string' | 'comment';
+let lastContext: CursorContext = null;
+
+function checkForContextChange(editor: vscode.TextEditor) {
+    if (!editor || !editor.document || editor.document.languageId !== 'clojure') return;
+
+    const currentContext = getCursorContext(editor.document, editor.selection.active);
+    setNewContext(currentContext);
+}
+
+function setNewContext(currentContext: CursorContext) {
+    if (lastContext === currentContext) {
+        return;
+    }
+    lastContext = currentContext;
+    const commentContext = config.CURSOR_CONTEXT_IN_COMMENT;
+    const stringContext = config.CURSOR_CONTEXT_IN_STRING;
+    vscode.commands.executeCommand('setContext', commentContext, false);
+    vscode.commands.executeCommand('setContext', stringContext, false);
+
+    switch (currentContext) {
+        case 'calva-standard':
+            console.log(`context: calva-standard`);
+            break;
+        case 'comment':
+            console.log(`context: ${commentContext}`);
+            vscode.commands.executeCommand('setContext', commentContext, true);
+            break;
+        case 'string':
+            console.log(`context: ${stringContext}`);
+            vscode.commands.executeCommand('setContext', stringContext, true);
+            break;
+        default:
+        // TODO: throw? log?
+    }
+}
+
+function getCursorContext(document: vscode.TextDocument, position: vscode.Position): CursorContext {
+    const idx = document.offsetAt(position);
+    const mirrorDoc = docMirror.getDocument(document);
+    const tokenCursor = mirrorDoc.getTokenCursor(idx);
+
+    let context: CursorContext;
+    if (tokenCursor.withinString()) {
+        context = 'string';
+    } else if (tokenCursor.withinComment()) {
+        context = 'comment';
+    } else {
+        context = 'calva-standard';
+    }
+
+    return context;
 }
 
 function deactivate(): Promise<void> | undefined {

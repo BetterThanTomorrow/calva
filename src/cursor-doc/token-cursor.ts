@@ -671,6 +671,14 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     /**
+     * Indicates if the current token is in a comment line
+     */
+    withinComment() {
+        const cursor = this.clone();
+        return cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
+    }
+
+    /**
      * Tells if the cursor is inside a properly closed list.
      */
     withinValidList(): boolean {
