@@ -45,4 +45,4 @@ This works regardless if you have evaluated in a file editor or in a REPL window
 
 ## Evaluating in a REPL window
 
-Since the REPL Window is mostly just a regular file, things work pretty similar at the REPL prompt. You use `alt+enter` to evaluate. Selecting the current form (default key binding `ctrl+w` after evaluating will select the result.
+Since the REPL Window is mostly just a regular file, things work pretty similar at the REPL prompt. You use `alt+enter` to evaluate. Selecting the current form (default key binding `ctrl+w` on Mac and `shift+alt+right` on Windows and Linux) after evaluating will select the result.
