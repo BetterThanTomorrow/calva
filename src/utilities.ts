@@ -401,6 +401,16 @@ function currentTopLevelFunction(editor: vscode.TextEditor) {
     }
 }
 
+function sortByPresetOrder(arr: any[], presetOrder: any[]) {
+    const result = [];
+    presetOrder.forEach(preset => {
+        if (arr.indexOf(preset) != -1) {
+            result.push(preset);
+        }
+    });
+    return [...result, ...arr.filter(e => !presetOrder.includes(e))];
+}
+ 
 export {
     getStartExpression,
     getWordAtPosition,
@@ -434,5 +444,6 @@ export {
     getJarContents,
     currentFormText,
     currentFunction,
-    currentTopLevelFunction
+    currentTopLevelFunction,
+    sortByPresetOrder
 };

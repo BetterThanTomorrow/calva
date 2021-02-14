@@ -7,7 +7,7 @@ import status from '../status';
 import * as connector from "../connector";
 import { nClient } from "../connector";
 import statusbar from "../statusbar";
-import { askForConnectSequence, ReplConnectSequence, CljsTypes } from "./connectSequence";
+import { askForConnectSequence, ReplConnectSequence, CljsTypes, genericDefaults } from "./connectSequence";
 import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from "./jack-in-terminal";
@@ -128,44 +128,42 @@ export async function copyJackInCommandToClipboard(): Promise<void> {
 }
 
 async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSequence): Promise<JackInTerminalOptions> {
-    if (projectConnectSequence.projectType !== 'generic') {
-        const projectTypeName: string = projectConnectSequence.projectType;
-        let selectedCljsType: CljsTypes;
+    const projectTypeName: string = projectConnectSequence.projectType;
+    let selectedCljsType: CljsTypes;
 
-        if (typeof projectConnectSequence.cljsType == "string" && projectConnectSequence.cljsType != CljsTypes.none) {
-            selectedCljsType = projectConnectSequence.cljsType;
-        } else if (projectConnectSequence.cljsType && typeof projectConnectSequence.cljsType == "object") {
-            selectedCljsType = projectConnectSequence.cljsType.dependsOn;
-        }
-
-        const projectType = projectTypes.getProjectTypeForName(projectTypeName);
-        let executable: string;
-        let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
-        if (projectTypes.isWin) {
-            if (projectType.name === 'deps.edn') {
-                const depsJarPath = path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
-                executable = 'java';
-                args = ['-jar', depsJarPath, ...args];
-            } else {
-                executable = projectType.winCmd[0];
-                args = [...projectType.winCmd.slice(1), ...args];
-            }
-        } else {
-            executable = projectType.cmd[0];
-            args = [...projectType.cmd.slice(1), ...args];
-        }
-
-        const terminalOptions: JackInTerminalOptions = {
-            name: `Calva Jack-in: ${projectConnectSequence.name}`,
-            executable,
-            args,
-            env: getJackInEnv(),
-            isWin: projectTypes.isWin,
-            cwd: state.getProjectRootLocal(),
-            useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix
-        };
-        return terminalOptions;
+    if (typeof projectConnectSequence.cljsType == "string" && projectConnectSequence.cljsType != CljsTypes.none) {
+        selectedCljsType = projectConnectSequence.cljsType;
+    } else if (projectConnectSequence.cljsType && typeof projectConnectSequence.cljsType == "object") {
+        selectedCljsType = projectConnectSequence.cljsType.dependsOn;
     }
+
+    const projectType = projectTypes.getProjectTypeForName(projectTypeName);
+    let executable: string;
+    let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
+    if (projectTypes.isWin || projectType.name === 'generic') {
+        if (['deps.edn', 'generic'].includes(projectType.name)) {
+            const depsJarPath = path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
+            executable = 'java';
+            args = ['-jar', depsJarPath, ...args];
+        } else {
+            executable = projectType.winCmd[0];
+            args = [...projectType.winCmd.slice(1), ...args];
+        }
+    } else {
+        executable = projectType.cmd[0];
+        args = [...projectType.cmd.slice(1), ...args];
+    }
+
+    const terminalOptions: JackInTerminalOptions = {
+        name: `Calva Jack-in: ${projectConnectSequence.name}`,
+        executable,
+        args,
+        env: getJackInEnv(),
+        isWin: projectTypes.isWin,
+        cwd: state.getProjectRootLocal(),
+        useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix
+    };
+    return terminalOptions;
 }
 
 async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
@@ -180,14 +178,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
     }
 }
 
-export async function calvaJackIn() {
-    status.updateNeedReplUi(true);
-    try {
-        await state.initProjectDir();
-    } catch (e) {
-        console.error("An error occurred while initializing project directory.", e);
-        return;
-    }
+async function _jackIn(connectSequence: ReplConnectSequence) {
     try {
         await liveShareSupport.setupLiveShareListener();
     } catch (e) {
@@ -203,12 +194,14 @@ export async function calvaJackIn() {
     outputWindow.append("; Jacking in...");
     await outputWindow.openResultsDoc();
 
-    let projectConnectSequence: ReplConnectSequence;
-    try {
-        projectConnectSequence = await getProjectConnectSequence();
-    } catch (e) {
-        outputWindow.append('; Aborting jack-in. No project type selected.');
-        return;
+    let projectConnectSequence: ReplConnectSequence = connectSequence;
+    if (!projectConnectSequence) {
+        try {
+            projectConnectSequence = await getProjectConnectSequence();
+        } catch (e) {
+            outputWindow.append('; Aborting jack-in. No project type selected.');
+            return;
+        }
     }
     if (projectConnectSequence) {
         const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
@@ -221,6 +214,17 @@ export async function calvaJackIn() {
     }
 
     liveShareSupport.didJackIn();
+}
+
+export async function calvaJackIn(connectSequence?: ReplConnectSequence) {
+    status.updateNeedReplUi(true);
+    try {
+        await state.initProjectDir();
+    } catch (e) {
+        console.error("An error occurred while initializing project directory.", e);
+        return;
+    }
+    await _jackIn(connectSequence);
 }
 
 export async function calvaDisconnect() {
@@ -247,9 +251,37 @@ export async function calvaDisconnect() {
     vscode.window.showInformationMessage("Not connected to a REPL server");
 }
 
+export async function startStandaloneRepl(context: vscode.ExtensionContext) {
+    await state.initProjectDir();
+    let projectDirUri = state.getProjectRootUri();
+    if (!projectDirUri) {
+        projectDirUri = await state.getOrCreateNonProjectRoot(context);
+    }
+    await state.initProjectDir(projectDirUri);
+    _jackIn(genericDefaults[0]);
+}
+
 export async function startOrConnectRepl() {
-    const JACK_IN_OPTION = "Start a REPL server and connect (a.k.a. Jack-in)";
+    const JACK_IN_OPTION = "Start your project with a REPL server and connect (a.k.a. Jack-in)";
     const JACK_IN_COMMAND = "calva.jackIn";
+    const START_REPL_OPTION = "Start a standalone REPL server and connect";
+    const START_REPL_COMMAND = "calva.startStandaloneRepl";
+    const CONNECT_PROJECT_OPTION = "Connect to a running REPL server in your project";
+    const CONNECT_PROJECT_COMMAND = "calva.connect";
+    const CONNECT_STANDALONE_OPTION = "Connect to a running REPL server, not in your project";
+    const CONNECT_STANDALONE_COMMAND = "calva.connectNonProjectREPL";
+    const DISCONNECT_OPTION = "Disconnect from the REPL server";
+    const DISCONNECT_COMMAND = "calva.disconnect";
+    const OPEN_WINDOW_OPTION = "Open the Output Window";
+    const OPEN_WINDOW_COMMAND = "calva.showOutputWindow";
+    const PREFERRED_ORDER = [
+        JACK_IN_OPTION,
+        CONNECT_PROJECT_OPTION,
+        START_REPL_OPTION,
+        CONNECT_STANDALONE_OPTION,
+        OPEN_WINDOW_OPTION,
+        DISCONNECT_OPTION
+    ]
     let commands = {};
     if (!utilities.getConnectedState() &&
         !utilities.getConnectingState() &&
@@ -259,20 +291,22 @@ export async function startOrConnectRepl() {
             vscode.workspace.workspaceFolders.length > 0) {
             if (vscode.workspace.workspaceFolders[0].uri.scheme != "vsls") {
                 commands[JACK_IN_OPTION] = JACK_IN_COMMAND;
-            }
+                commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
+            } 
+            commands[CONNECT_PROJECT_OPTION] = CONNECT_PROJECT_COMMAND;
         } else {
-            commands[JACK_IN_OPTION] = JACK_IN_COMMAND;
+            commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
+            commands[START_REPL_OPTION] = START_REPL_COMMAND;
         }
-        commands["Connect to a running REPL server in your project"] = "calva.connect";
-        commands["Connect to a running REPL server, not in your project"] = "calva.connectNonProjectREPL";
     } else {
-        commands["Disconnect from the REPL server"] = "calva.disconnect";
+        commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
         if (namespace.getSession("clj")) {
-            commands["Open the Output Window"] = "calva.showOutputWindow";
+            commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
         }
     }
 
-    vscode.window.showQuickPick([...Object.keys(commands)]).then(v => {
+    const sortedCommands = utilities.sortByPresetOrder(Object.keys(commands), PREFERRED_ORDER);
+    vscode.window.showQuickPick(sortedCommands).then(v => {
         if (commands[v]) {
             vscode.commands.executeCommand(commands[v]);
         }

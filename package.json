@@ -49,7 +49,7 @@
     ],
     "activationEvents": [
         "onLanguage:clojure",
-        "onCommand:calva.startNewRepl",
+        "onCommand:calva.startStandaloneRepl",
         "onCommand:calva.jackIn",
         "onCommand:calva.startOrConnectRepl",
         "onCommand:calva.connect",
