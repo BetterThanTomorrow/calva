@@ -619,7 +619,8 @@
             {
                 "command": "calva.copyJackInCommandToClipboard",
                 "title": "Copy Jack-In Command to Clipboard",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "workspaceFolderCount > 0"
             },
             {
                 "command": "calva.openCalvaDocs",
@@ -635,17 +636,20 @@
             {
                 "command": "calva.togglePrettyPrint",
                 "title": "Toggle Pretty Printing for All Evaluations",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "calva:connected"
             },
             {
                 "command": "calva.jackIn",
                 "title": "Start a Project REPL and Connect (aka Jack-In)",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "workspaceFolderCount > 0"
             },
             {
                 "command": "calva.connect",
                 "title": "Connect to a Running REPL Server in the Project",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "workspaceFolderCount > 0"
             },
             {
                 "command": "calva.connectNonProjectREPL",
@@ -682,12 +686,14 @@
             {
                 "command": "calva.selectCurrentForm",
                 "title": "Select Current Form",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.clearInlineResults",
                 "title": "Clear Inline Evaluation Results",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.interruptAllEvaluations",
@@ -746,7 +752,8 @@
             {
                 "command": "calva.copyLastResults",
                 "title": "Copy Last Evaluation Result to Clipboard",
-                "category": "Calva"
+                "category": "Calva",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.loadFile",
@@ -817,293 +824,350 @@
                 "category": "Calva Paredit",
                 "command": "paredit.togglemode",
                 "title": "Toggle Paredit Mode",
-                "when": "paredit:keyMap =~ /original|strict/",
-                "enablement": "paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure && paredit:keyMap =~ /original|strict/",
+                "enablement": "editorLangId == clojure && paredit:keyMap =~ /original|strict/"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardSexp",
-                "title": "Forward Sexp"
+                "title": "Forward Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardSexp",
-                "title": "Backward Sexp"
+                "title": "Backward Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardDownSexp",
-                "title": "Forward Down Sexp"
+                "title": "Forward Down Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardDownSexp",
-                "title": "Backward Down Sexp"
+                "title": "Backward Down Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.backwardUpSexp",
-                "title": "Backward Up Sexp"
+                "title": "Backward Up Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forwardUpSexp",
-                "title": "Forward Up Sexp"
+                "title": "Forward Up Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.closeList",
-                "title": "Forward to List End/Close"
+                "title": "Forward to List End/Close",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectForwardSexp",
-                "title": "Select Forward Sexp"
+                "title": "Select Forward Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectBackwardSexp",
-                "title": "Select Backward Sexp"
+                "title": "Select Backward Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectForwardDownSexp",
-                "title": "Select Forward Down Sexp"
+                "title": "Select Forward Down Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectBackwardDownSexp",
-                "title": "Select Backward Down Sexp"
+                "title": "Select Backward Down Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectBackwardUpSexp",
-                "title": "Select Backward Up Sexp"
+                "title": "Select Backward Up Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectForwardUpSexp",
-                "title": "Select Forward Up Sexp"
+                "title": "Select Forward Up Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectCloseList",
-                "title": "Select Forward to List End/Close"
+                "title": "Select Forward to List End/Close",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.selectOpenList",
-                "title": "Select Backward to List Start/Open"
+                "title": "Select Backward to List Start/Open",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.rangeForDefun",
-                "title": "Select Current Top Level (aka defun) Form"
+                "title": "Select Current Top Level (aka defun) Form",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.sexpRangeExpansion",
-                "title": "Expand Selection"
+                "title": "Expand Selection",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.sexpRangeContraction",
-                "title": "Shrink Selection"
+                "title": "Shrink Selection",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.slurpSexpForward",
-                "title": "Slurp Sexp Forward"
+                "title": "Slurp Sexp Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.slurpSexpBackward",
-                "title": "Slurp Sexp Backward"
+                "title": "Slurp Sexp Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpForward",
-                "title": "Barf Sexp Forward"
+                "title": "Barf Sexp Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.barfSexpBackward",
-                "title": "Barf Sexp Backward"
+                "title": "Barf Sexp Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexp",
-                "title": "Splice Sexp"
+                "title": "Splice Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.splitSexp",
-                "title": "Split Sexp"
+                "title": "Split Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.joinSexp",
-                "title": "Join Sexp"
+                "title": "Join Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.raiseSexp",
-                "title": "Raise Sexp"
+                "title": "Raise Sexp",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.transpose",
-                "title": "Transpose (Swap) the two Sexps Around the Cursor"
+                "title": "Transpose (Swap) the two Sexps Around the Cursor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.dragSexprBackward",
-                "title": "Drag Sexp Backward"
+                "title": "Drag Sexp Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.dragSexprForward",
-                "title": "Drag Sexp Forward"
+                "title": "Drag Sexp Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.dragSexprBackwardUp",
-                "title": "Drag Sexp Backward Up"
+                "title": "Drag Sexp Backward Up",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.dragSexprForwardDown",
-                "title": "Drag Sexp Forward Down"
+                "title": "Drag Sexp Forward Down",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.dragSexprForwardUp",
-                "title": "Drag Sexp Forward Up"
+                "title": "Drag Sexp Forward Up",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.dragSexprBackwardDown",
-                "title": "Drag Sexp Backward Down"
+                "title": "Drag Sexp Backward Down",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.convolute",
-                "title": "Convolute Sexp ¯\\_(ツ)_/¯"
+                "title": "Convolute Sexp ¯\\_(ツ)_/¯",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
-                "title": "Kill/Delete Sexp Forward"
+                "title": "Kill/Delete Sexp Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killSexpBackward",
-                "title": "Kill/Delete Sexp Backward"
+                "title": "Kill/Delete Sexp Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killListForward",
-                "title": "Kill/Delete Forward to End of List"
+                "title": "Kill/Delete Forward to End of List",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.killListBackward",
-                "title": "Kill/Delete Backward to Start of List"
+                "title": "Kill/Delete Backward to Start of List",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexpKillForward",
-                "title": "Splice & Kill/Delete Forward"
+                "title": "Splice & Kill/Delete Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.spliceSexpKillBackward",
-                "title": "Splice & Kill/Delete Backward"
+                "title": "Splice & Kill/Delete Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.deleteForward",
-                "title": "Delete Forward"
+                "title": "Delete Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.deleteBackward",
-                "title": "Delete Backward"
+                "title": "Delete Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forceDeleteForward",
-                "title": "Force Delete Forward"
+                "title": "Force Delete Forward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.forceDeleteBackward",
-                "title": "Force Delete Backward"
+                "title": "Force Delete Backward",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundParens",
-                "title": "Wrap Around ()"
+                "title": "Wrap Around ()",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundSquare",
-                "title": "Wrap Around []"
+                "title": "Wrap Around []",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundCurly",
-                "title": "Wrap Around {}"
+                "title": "Wrap Around {}",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.wrapAroundQuote",
-                "title": "Wrap Around \"\""
+                "title": "Wrap Around \"\"",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.rewrapParens",
-                "title": "Rewrap ()"
+                "title": "Rewrap ()",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.rewrapSquare",
-                "title": "Rewrap []"
+                "title": "Rewrap []",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.rewrapCurly",
-                "title": "Rewrap {}"
+                "title": "Rewrap {}",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
                 "command": "paredit.rewrapQuote",
-                "title": "Rewrap \"\""
+                "title": "Rewrap \"\"",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva-fmt.formatCurrentForm",
                 "title": "Format Current Form",
-                "category": "Calva Format"
+                "category": "Calva Format",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva-fmt.alignCurrentForm",
                 "title": "Format and Align Current Form (recursively, experimental)",
-                "category": "Calva Format"
+                "category": "Calva Format",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva-fmt.inferParens",
                 "title": "Infer Parens (from the indentation)",
-                "category": "Calva Format"
+                "category": "Calva Format",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva-fmt.tabIndent",
                 "title": "Indent Line",
-                "category": "Calva Format"
+                "category": "Calva Format",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva-fmt.tabDedent",
                 "title": "Dedent Line",
-                "category": "Calva Format"
+                "category": "Calva Format",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva",
@@ -1156,77 +1220,92 @@
             {
                 "command": "calva.refactor.cleanNs",
                 "title": "Clean NS Form",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.addMissingLibspec",
                 "title": "Add Missing Require",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.cyclePrivacy",
                 "title": "Cycle/Toggle Privacy",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.expandLet",
                 "title": "Expand Let",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.inlineSymbol",
                 "title": "Inline Symbol",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.threadFirst",
                 "title": "Thread First",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.threadFirstAll",
                 "title": "Thread First All",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.threadLast",
                 "title": "Thread Last",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.threadLastAll",
                 "title": "Thread Last All",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.unwindAll",
                 "title": "Unwind All",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.unwindThread",
                 "title": "Unwind Thread",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.introduceLet",
                 "title": "Introduce let",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.moveToLet",
                 "title": "Move to Previous let Box",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.refactor.extractFunction",
                 "title": "Extract to New Function",
-                "category": "Calva Refactor"
+                "category": "Calva Refactor",
+                "enablement": "editorLangId == clojure"
             },
             {
                 "command": "calva.diagnostics.serverInfo",
                 "title": "LSP Server Info",
-                "category": "Calva Diagnostics"
+                "category": "Calva Diagnostics",
+                "enablement": "editorLangId == clojure"
             }
         ],
         "keybindings": [
@@ -1272,7 +1351,7 @@
             {
                 "command": "calva.clearInlineResults",
                 "key": "escape",
-                "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && editorLangId == 'clojure'"
+                "when": "calva:keybindingsEnabled && editorTextFocus && !editorHasMultipleSelections && !editorHasSelection && !editorReadOnly && !hasOtherSuggestions && !parameterHintsVisible && !selectionAnchorSet && !suggestWidgetVisible && editorLangId == clojure"
             },
             {
                 "command": "calva.evaluateSelection",
@@ -1338,52 +1417,52 @@
             {
                 "command": "calva.copyLastResults",
                 "key": "ctrl+alt+c ctrl+c",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.togglePrettyPrint",
                 "key": "ctrl+alt+c p",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.requireREPLUtilities",
                 "key": "ctrl+alt+c ctrl+u",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runNamespaceTests",
                 "key": "ctrl+alt+c t",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runAllTests",
                 "key": "ctrl+alt+c shift+t",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.rerunTests",
                 "key": "ctrl+alt+c ctrl+t",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runTestUnderCursor",
                 "key": "ctrl+alt+c ctrl+alt+t",
-                "when": "calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "paredit.togglemode",
                 "key": "ctrl+alt+p ctrl+alt+m",
-                "when": "calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
+                "when": "editorLangId == clojure calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.forwardSexp",
