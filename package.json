@@ -50,6 +50,7 @@
     "activationEvents": [
         "onLanguage:clojure",
         "onCommand:calva.startStandaloneRepl",
+        "onCommand:calva.startStandaloneHelloRepl",
         "onCommand:calva.jackIn",
         "onCommand:calva.startOrConnectRepl",
         "onCommand:calva.connect",
@@ -660,6 +661,16 @@
             {
                 "command": "calva.startOrConnectRepl",
                 "title": "Start or Connect to a Clojure REPL",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.startStandaloneRepl",
+                "title": "Start a standalone REPL (not in a project)",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.startStandaloneHelloRepl",
+                "title": "Start a standalone ”Hello World” REPL",
                 "category": "Calva"
             },
             {

@@ -254,7 +254,10 @@ export async function calvaDisconnect() {
     vscode.window.showInformationMessage("Not connected to a REPL server");
 }
 
-export async function startStandaloneRepl(context: vscode.ExtensionContext) {
+export const TEMPLATE_FILE_NAME = 'user.clj';
+export const HELLO_TEMPLATE_FILE_NAME = 'hello-repl.clj';
+
+export async function startStandaloneRepl(context: vscode.ExtensionContext, template: string) {
     await state.initProjectDir();
     let projectDirUri = state.getProjectRootUri();
     if (!projectDirUri) {
@@ -263,7 +266,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext) {
     await state.initProjectDir(projectDirUri);
 
     await vscode.workspace.fs.createDirectory(projectDirUri);
-    let docName = 'hello-repl.clj';
+    let docName = template;
     let docUri: vscode.Uri;
     try {
         docUri = vscode.Uri.joinPath(projectDirUri, docName); 
@@ -295,8 +298,10 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext) {
 export async function startOrConnectRepl() {
     const JACK_IN_OPTION = "Start your project with a REPL server and connect (a.k.a. Jack-in)";
     const JACK_IN_COMMAND = "calva.jackIn";
-    const START_REPL_OPTION = "Start a standalone REPL server and connect";
+    const START_REPL_OPTION = "Start a standalone REPL server";
     const START_REPL_COMMAND = "calva.startStandaloneRepl";
+    const START_HELLO_REPL_OPTION = "Start a standalone ”Hello World” REPL server";
+    const START_HELLO_REPL_COMMAND = "calva.startStandaloneHelloRepl";
     const CONNECT_PROJECT_OPTION = "Connect to a running REPL server in your project";
     const CONNECT_PROJECT_COMMAND = "calva.connect";
     const CONNECT_STANDALONE_OPTION = "Connect to a running REPL server, not in your project";
@@ -309,6 +314,7 @@ export async function startOrConnectRepl() {
         JACK_IN_OPTION,
         CONNECT_PROJECT_OPTION,
         START_REPL_OPTION,
+        START_HELLO_REPL_OPTION,
         CONNECT_STANDALONE_OPTION,
         OPEN_WINDOW_OPTION,
         DISCONNECT_OPTION
@@ -328,6 +334,7 @@ export async function startOrConnectRepl() {
         } else {
             commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             commands[START_REPL_OPTION] = START_REPL_COMMAND;
+            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         }
     } else {
         commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;

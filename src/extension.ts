@@ -135,7 +135,10 @@ async function activate(context: vscode.ExtensionContext) {
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.startOrConnectRepl', jackIn.startOrConnectRepl));
     context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneRepl', () => {
-        jackIn.startStandaloneRepl(context);
+        jackIn.startStandaloneRepl(context, jackIn.TEMPLATE_FILE_NAME);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneHelloRepl', () => {
+        jackIn.startStandaloneRepl(context, jackIn.HELLO_TEMPLATE_FILE_NAME);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
