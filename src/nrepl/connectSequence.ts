@@ -205,7 +205,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
  */
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     const customSequences = getCustomConnectSequences();
-    const defSequences = projectTypes.reduce((seqs, projecType) => seqs.concat(defaultSequences[projecType]), []);
+    const defSequences = projectTypes.reduce((seqs, projectType) => seqs.concat(defaultSequences[projectType]), []);
     const defSequenceProjectTypes = [...new Set(defSequences.map(s => s.projectType))];
     const sequences = customSequences.filter(customSequence => defSequenceProjectTypes.includes(customSequence.projectType)).concat(defSequences);
     return sequences;

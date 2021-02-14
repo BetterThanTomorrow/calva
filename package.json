@@ -51,7 +51,7 @@
         "onLanguage:clojure",
         "onCommand:calva.startNewRepl",
         "onCommand:calva.jackIn",
-        "onCommand:calva.jackInOrConnect",
+        "onCommand:calva.startOrConnectRepl",
         "onCommand:calva.connect",
         "onCommand:calva.connectNonProjectREPL",
         "workspaceContains:**/project.clj",
@@ -658,14 +658,8 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.jackInOrConnect",
-                "title": "Jack-in or Connect to REPL Server",
-                "enablement": "!calva:connected && !calva:connecting",
-                "category": "Calva"
-            },
-            {
-                "command": "calva.startNewRepl",
-                "title": "Start a Clojure REPL",
+                "command": "calva.startOrConnectRepl",
+                "title": "Start or Connect to a Clojure REPL",
                 "category": "Calva"
             },
             {
@@ -1241,7 +1235,7 @@
                 "when": "calva:keybindingsEnabled"
             },
             {
-                "command": "calva.startNewRepl",
+                "command": "calva.startOrConnectRepl",
                 "key": "ctrl+alt+c ctrl+alt+r"
             },
             {
@@ -1724,11 +1718,7 @@
         "menus": {
             "commandPalette": [
                 {
-                    "command": "calva.jackInOrConnect",
-                    "when": "false"
-                },
-                {
-                    "command": "calva.startNewRepl",
+                    "command": "calva.startOrConnectRepl",
                     "when": "true"
                 },
                 {
@@ -1767,7 +1757,7 @@
                 {
                     "when": "editorLangId == clojure",
                     "enablement": "!calva:connected",
-                    "command": "calva.jackInOrConnect",
+                    "command": "calva.startOrConnectRepl",
                     "group": "calva/x-connect"
                 },
                 {

@@ -36,12 +36,14 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
 
+
 function outputFileDir() {
     let projectRoot = state.getProjectRootUri();
-    if (!projectRoot) {
-        projectRoot = vscode.Uri.file(os.tmpdir());
+    try {
+        return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
+    } catch {
+        return vscode.Uri.file(path.join(projectRoot.fsPath, ".calva", "output-window"));
     }
-    return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
 };
 
 const DOC_URI = () => {

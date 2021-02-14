@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Connect ”not in project” glitches](https://github.com/BetterThanTomorrow/calva/issues/814)
 
 ## [2.0.171] - 2021-02-10
 - Update clojure-lsp to version 2021.02.09-18.28.06 (Fix: [Auto completion does not work in clojure-lsp only mode (no repl connection)](https://github.com/BetterThanTomorrow/calva/issues/996#issuecomment-776148282))

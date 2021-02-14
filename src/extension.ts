@@ -133,11 +133,13 @@ async function activate(context: vscode.ExtensionContext) {
     status.update(context);
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.startNewRepl', jackIn.calvaJackInOrConnect));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startOrConnectRepl', jackIn.startOrConnectRepl));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startNewRepl', jackIn.startOrConnectRepl));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', connector.connectNonProjectREPLCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', () => {
+        connector.connectNonProjectREPLCommand(context)
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.disconnect', jackIn.calvaDisconnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));

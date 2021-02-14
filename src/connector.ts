@@ -452,8 +452,13 @@ export async function connect(connectSequence: ReplConnectSequence,
 
     try {
         if (port === undefined) {
-            let bytes = await vscode.workspace.fs.readFile(portFile);
-            port = new TextDecoder("utf-8").decode(bytes);
+            try {
+                await vscode.workspace.fs.stat(portFile);
+                let bytes = await vscode.workspace.fs.readFile(portFile);
+                port = new TextDecoder("utf-8").decode(bytes);
+            } catch {
+                throw new Error("No nrepl port found");
+            }
         }
         if (port) {
             hostname = hostname !== undefined ? hostname : "localhost";
@@ -476,7 +481,13 @@ export async function connect(connectSequence: ReplConnectSequence,
 
 }
 
-async function standaloneConnect(connectSequence: ReplConnectSequence) {
+async function standaloneConnect(context: vscode.ExtensionContext, connectSequence: ReplConnectSequence) {
+    await state.initProjectDir();
+    let projectDirUri = state.getProjectRootUri();
+    if (!projectDirUri) {
+        projectDirUri = await state.getOrCreateNonProjectRoot(context);
+    }
+    await state.initProjectDir(projectDirUri);
     await outputWindow.initResultsDoc();
     await outputWindow.openResultsDoc();
 
@@ -492,12 +503,12 @@ async function standaloneConnect(connectSequence: ReplConnectSequence) {
 }
 
 export default {
-    connectNonProjectREPLCommand: async () => {
+    connectNonProjectREPLCommand: async (context: vscode.ExtensionContext) => {
         status.updateNeedReplUi(true);
         const connectSequence = await askForConnectSequence(projectTypes.getAllProjectTypes(), 'connect-type', "ConnectInterrupted");
-        standaloneConnect(connectSequence);
+        standaloneConnect(context, connectSequence);
     },
-    connectCommand: async () => {
+    connectCommand: async (context: vscode.ExtensionContext) => {
         status.updateNeedReplUi(true);
         // TODO: Figure out a better way to have an initialized project directory.
         try {
@@ -505,12 +516,12 @@ export default {
             await liveShareSupport.setupLiveShareListener();
         } catch {
             // Could be a bae file, user makes the call
-            vscode.commands.executeCommand('calva.jackInOrConnect');
+            vscode.commands.executeCommand('calva.startOrConnectRepl');
             return;
         }
         const cljTypes = await projectTypes.detectProjectTypes(),
             connectSequence = await askForConnectSequence(cljTypes, 'connect-type', "ConnectInterrupted");
-        standaloneConnect(connectSequence);
+        standaloneConnect(context, connectSequence);
     },
     disconnect: (options = null, callback = () => { }) => {
         status.updateNeedReplUi(false);

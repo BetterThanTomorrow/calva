@@ -247,7 +247,7 @@ export async function calvaDisconnect() {
     vscode.window.showInformationMessage("Not connected to a REPL server");
 }
 
-export async function calvaJackInOrConnect() {
+export async function startOrConnectRepl() {
     const JACK_IN_OPTION = "Start a REPL server and connect (a.k.a. Jack-in)";
     const JACK_IN_COMMAND = "calva.jackIn";
     let commands = {};

@@ -7,6 +7,7 @@ import * as pprint from '../printer';
 
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
+import { pathToNs } from '../util/ns-form';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -60,7 +61,7 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
         try {
             return vscode.Uri.joinPath(projectRoot, relativePath);
         } catch (e) {
-            console.log(e);
+            return vscode.Uri.file(path.join(projectRoot.fsPath, relativePath));
         }
     }
     return vscode.Uri.file(relativePath);
@@ -495,7 +496,7 @@ export async function detectProjectTypes(): Promise<string[]> {
 }
 
 export function getAllProjectTypes(): string[] {
-    return [...Object.keys(projectTypes)];
+    return ['generic', ...Object.keys(projectTypes).filter(pt => pt !== 'generic')];
 }
 
 export function getCljsTypeName(connectSequence: ReplConnectSequence) {
