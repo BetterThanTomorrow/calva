@@ -411,6 +411,16 @@ function sortByPresetOrder(arr: any[], presetOrder: any[]) {
     return [...result, ...arr.filter(e => !presetOrder.includes(e))];
 }
  
+
+function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
+    const ab = new ArrayBuffer(text.length);
+    const ui8a = new Uint8Array(ab);
+    for (var i = 0, strLen = text.length; i < strLen; i++) {
+        ui8a[i] = text.charCodeAt(i);
+    }
+    return vscode.workspace.fs.writeFile(uri, ui8a);
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -445,5 +455,6 @@ export {
     currentFormText,
     currentFunction,
     currentTopLevelFunction,
-    sortByPresetOrder
+    sortByPresetOrder,
+    writeTextToFile
 };

@@ -106,15 +106,6 @@ function setViewColumn(column: vscode.ViewColumn) {
     return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
 }
 
-function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
-    const ab = new ArrayBuffer(text.length);
-    const ui8a = new Uint8Array(ab);
-    for (var i = 0, strLen = text.length; i < strLen; i++) {
-        ui8a[i] = text.charCodeAt(i);
-    }
-    return vscode.workspace.fs.writeFile(uri, ui8a);
-}
-
 export function setContextForOutputWindowActive(isActive: boolean): void {
     vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
 }
@@ -125,7 +116,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     try {
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
     } catch (e) {
-        await writeTextToFile(DOC_URI(), '');
+        await util.writeTextToFile(DOC_URI(), '');
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
     }
     const greetings = `${START_GREETINGS}\n\n`;

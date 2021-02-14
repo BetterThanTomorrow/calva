@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import * as utilities from "../utilities";
+import eval from '../evaluate';
 import * as _ from "lodash";
 import * as state from "../state"
 import status from '../status';
@@ -39,7 +40,7 @@ function getJackInEnv(): any {
     };
 }
 
-async function executeJackInTask(terminalOptions: JackInTerminalOptions, connectSequence: ReplConnectSequence) {
+async function executeJackInTask(terminalOptions: JackInTerminalOptions, connectSequence: ReplConnectSequence, cb?: Function) {
     utilities.setLaunchingState(connectSequence.name);
     statusbar.update();
 
@@ -57,6 +58,9 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
             await connector.connect(connectSequence, true, hostname, port);
             outputWindow.append("; Jack-in done.");
             outputWindow.appendPrompt();
+            if (cb) {
+                cb();
+            }
         }, (errorMessage) => {
             outputWindow.append("; Error in Jack-in: unable to read port file");
             outputWindow.append(`; ${errorMessage}`);
@@ -178,7 +182,7 @@ async function getProjectConnectSequence(): Promise<ReplConnectSequence> {
     }
 }
 
-async function _jackIn(connectSequence: ReplConnectSequence) {
+async function _jackIn(connectSequence: ReplConnectSequence, cb?: Function) {
     try {
         await liveShareSupport.setupLiveShareListener();
     } catch (e) {
@@ -206,7 +210,7 @@ async function _jackIn(connectSequence: ReplConnectSequence) {
     if (projectConnectSequence) {
         const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
         if (terminalJackInOptions) {
-            executeJackInTask(terminalJackInOptions, projectConnectSequence);
+            await executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
         }
     } else {
         vscode.window.showInformationMessage('No supported project types detected. Maybe try starting your project manually and use the Connect command?');
@@ -228,7 +232,6 @@ export async function calvaJackIn(connectSequence?: ReplConnectSequence) {
 }
 
 export async function calvaDisconnect() {
-
     if (utilities.getConnectedState()) {
         connector.default.disconnect();
         return;
@@ -258,7 +261,35 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext) {
         projectDirUri = await state.getOrCreateNonProjectRoot(context);
     }
     await state.initProjectDir(projectDirUri);
-    _jackIn(genericDefaults[0]);
+
+    await vscode.workspace.fs.createDirectory(projectDirUri);
+    let docName = 'hello-repl.clj';
+    let docUri: vscode.Uri;
+    try {
+        docUri = vscode.Uri.joinPath(projectDirUri, docName); 
+    } catch {
+        docUri = vscode.Uri.file(path.join(projectDirUri.fsPath, docName));
+    }
+
+    const templateUri = vscode.Uri.file(path.join(context.extensionPath, docName));
+    try {
+        await vscode.workspace.fs.copy(templateUri, docUri, {overwrite: false});
+    } catch {}
+
+    const doc = await vscode.workspace.openTextDocument(docUri);
+
+    if (state.config().autoOpenREPLWindow) {
+        const editor = await vscode.window.showTextDocument(doc, vscode.ViewColumn.One, false);
+        const firstPos = editor.document.positionAt(0);
+        editor.selection = new vscode.Selection(firstPos, firstPos);
+        editor.revealRange(new vscode.Range(firstPos, firstPos));
+    }
+
+    await _jackIn(genericDefaults[0], async () => {
+        await vscode.window.showTextDocument(doc, vscode.ViewColumn.One, false);
+        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        outputWindow.appendPrompt();
+    });
 }
 
 export async function startOrConnectRepl() {
