@@ -2,7 +2,9 @@
 
 ;; Alt+Enter evaluates ”top level” forms
 ;; Try it with the cursor anywhere inside this function
-(defn greet [name]
+(defn greet
+  "Doc strings matter"
+  [name]
   (str "Hello " name "!"))
 
 ;; To clear inline results display, press ESC

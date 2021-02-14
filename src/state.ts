@@ -141,9 +141,12 @@ export function getProjectRootUri(useCache = true): vscode.Uri {
     }
 }
 
-export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext): Promise<vscode.Uri> {
+export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext, preferProjectDir = false): Promise<vscode.Uri> {
     const NON_PROJECT_DIR_KEY = "calva.connect.nonProjectDir";
-    let root = getProjectRootUri();
+    let root: vscode.Uri;
+    if (preferProjectDir) {
+        root = getProjectRootUri();
+    }
     if (!root) {
         try {
             root = await context.workspaceState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;

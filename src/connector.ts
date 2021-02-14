@@ -485,7 +485,7 @@ async function standaloneConnect(context: vscode.ExtensionContext, connectSequen
     await state.initProjectDir();
     let projectDirUri = state.getProjectRootUri();
     if (!projectDirUri) {
-        projectDirUri = await state.getOrCreateNonProjectRoot(context);
+        projectDirUri = await state.getOrCreateNonProjectRoot(context, true);
     }
     await state.initProjectDir(projectDirUri);
     await outputWindow.initResultsDoc();

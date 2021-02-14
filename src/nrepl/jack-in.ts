@@ -258,11 +258,7 @@ export const TEMPLATE_FILE_NAME = 'user.clj';
 export const HELLO_TEMPLATE_FILE_NAME = 'hello-repl.clj';
 
 export async function startStandaloneRepl(context: vscode.ExtensionContext, template: string) {
-    await state.initProjectDir();
-    let projectDirUri = state.getProjectRootUri();
-    if (!projectDirUri) {
-        projectDirUri = await state.getOrCreateNonProjectRoot(context);
-    }
+    let projectDirUri = await state.getOrCreateNonProjectRoot(context);
     await state.initProjectDir(projectDirUri);
 
     await vscode.workspace.fs.createDirectory(projectDirUri);
