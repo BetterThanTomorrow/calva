@@ -25,7 +25,7 @@ Unfortunately these key combinations will not work in the normal VIM extension a
 
 ### Expand selection
 
-Calva binds **expand selection** to `ctrl+w`. This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.
+Calva binds **expand selection** to `ctrl+w` (`shift+alt+right` on Windows and Linux). This conflicts with the VIM Extension's default mapping of window splitting shortcuts. You'll need to remap it either with Calva or with the VIM Extension.
 
 ### The `esc` key
 
