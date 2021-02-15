@@ -674,7 +674,7 @@
             },
             {
                 "command": "calva.startStandaloneHelloRepl",
-                "title": "Start a standalone ”Hello World” REPL",
+                "title": "Fire up the ”Getting Started” REPL",
                 "category": "Calva"
             },
             {

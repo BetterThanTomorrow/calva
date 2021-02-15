@@ -5,13 +5,17 @@ Depending on wether you want to just start a Clojure REPL or you have a project 
 0. You have VS Code started
 1. You install Calva
 
-## Start a Standalone REPL
+## There's a ”Getting Started” REPL
 
-If you are new to Calva, a good place to start is using the command **Start a standalone ”Hello World” REPL**. 
+If you are new to Calva, a good place to start is using the command **Fire up the ”Getting Started” REPL**. 
 
-![Command Palette Start Standaloe REPL](images/howto/start-hello-repl.png "Start a Standalone REPL")
+![Command Palette Start Standaloe REPL](images/howto/start-hello-repl.png "Fire up the ”Getting Started” REPL")
 
-It will open up a file named `hallo-repl.clj` in a temporary directory, and start and connect a REPL. The file contains some sample code and a few tips on how to evaluate code in a Calva editor.
+It will open up a three files in a temporary directory, and start and connect a REPL. The files are:
+
+- `hello-repl.clj` – The basics of how to evaluate code in Calva
+- `hello-paredit.clj` - A super brief intro to Calva structural editing
+- `hello-clojure.clj` - The very basics of the Clojure language
 
 ![Hello REPL](images/howto/hello-repl.png "hello-repl.clj")
 

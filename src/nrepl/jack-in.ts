@@ -254,38 +254,47 @@ export async function calvaDisconnect() {
     vscode.window.showInformationMessage("Not connected to a REPL server");
 }
 
-export const TEMPLATE_FILE_NAME = 'user.clj';
-export const HELLO_TEMPLATE_FILE_NAME = 'hello-repl.clj';
+export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
+export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
+const TEMPLATES_SUB_DIR = 'bundled';
 
-export async function startStandaloneRepl(context: vscode.ExtensionContext, template: string) {
-    let projectDirUri = await state.getOrCreateNonProjectRoot(context);
-    await state.initProjectDir(projectDirUri);
-
-    await vscode.workspace.fs.createDirectory(projectDirUri);
-    let docName = template;
+async function openBundledDoc(context: vscode.ExtensionContext, tempDirUri: vscode.Uri, docName: string): Promise<[vscode.TextDocument, vscode.TextEditor]> {
     let docUri: vscode.Uri;
     try {
-        docUri = vscode.Uri.joinPath(projectDirUri, docName); 
+        docUri = vscode.Uri.joinPath(tempDirUri, docName);
     } catch {
-        docUri = vscode.Uri.file(path.join(projectDirUri.fsPath, docName));
+        docUri = vscode.Uri.file(path.join(tempDirUri.fsPath, docName));
     }
-
-    const templateUri = vscode.Uri.file(path.join(context.extensionPath, docName));
+    const templateUri = vscode.Uri.file(path.join(context.extensionPath, TEMPLATES_SUB_DIR, docName));
     try {
         await vscode.workspace.fs.copy(templateUri, docUri, {overwrite: false});
     } catch {}
-
     const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.One,
+        preserveFocus: true
+    });
+    return [doc, editor];
+}
 
-    if (state.config().autoOpenREPLWindow) {
-        const editor = await vscode.window.showTextDocument(doc, vscode.ViewColumn.One, false);
-        const firstPos = editor.document.positionAt(0);
-        editor.selection = new vscode.Selection(firstPos, firstPos);
-        editor.revealRange(new vscode.Range(firstPos, firstPos));
-    }
+export async function startStandaloneRepl(context: vscode.ExtensionContext, docNames: string[]) {
+    let tempDirUri = await state.getOrCreateNonProjectRoot(context);
+    await state.initProjectDir(tempDirUri);
 
+    await vscode.workspace.fs.createDirectory(tempDirUri);
+
+    const [mainDoc, mainEditor] = await openBundledDoc(context, tempDirUri, docNames[0]);
+    docNames.splice(1).forEach(async docName => {
+        await openBundledDoc(context, tempDirUri, docName);            
+    });
+    const firstPos = mainEditor.document.positionAt(0);
+    mainEditor.selection = new vscode.Selection(firstPos, firstPos);
+    mainEditor.revealRange(new vscode.Range(firstPos, firstPos));
+    await vscode.window.showTextDocument(mainDoc, { preview: false, viewColumn: vscode.ViewColumn.One, preserveFocus: false });
+    
     await _jackIn(genericDefaults[0], async () => {
-        await vscode.window.showTextDocument(doc, vscode.ViewColumn.One, false);
+        await vscode.window.showTextDocument(mainDoc, { preview: false, viewColumn: vscode.ViewColumn.One, preserveFocus: false });
         await eval.loadFile({}, state.config().prettyPrintingOptions);
         outputWindow.appendPrompt();
     });
@@ -296,7 +305,7 @@ export async function startOrConnectRepl() {
     const JACK_IN_COMMAND = "calva.jackIn";
     const START_REPL_OPTION = "Start a standalone REPL server";
     const START_REPL_COMMAND = "calva.startStandaloneRepl";
-    const START_HELLO_REPL_OPTION = "Start a standalone ”Hello World” REPL server";
+    const START_HELLO_REPL_OPTION = "Fire up the ”Getting Started” REPL server";
     const START_HELLO_REPL_COMMAND = "calva.startStandaloneHelloRepl";
     const CONNECT_PROJECT_OPTION = "Connect to a running REPL server in your project";
     const CONNECT_PROJECT_COMMAND = "calva.connect";

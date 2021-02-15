@@ -15,5 +15,4 @@
 !LICENSE.txt
 !clojure-lsp.jar
 !deps.clj.jar
-!hello-repl.clj
-!user.clj
+!bundled/**
