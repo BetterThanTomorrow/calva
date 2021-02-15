@@ -124,7 +124,7 @@ A somewhat hidden feature: You can see documentation for, peek and navigate to a
 
 ## Paredit Enabled
 
-The output window is mostly a regular Calva Clojure/ClojureScript file, which make everything that works in a regular file work in this file, including [Paredit](paredit.md). This makes it easy to navigate the input and output. For instance, to select the last evaluation results you can press `ctrl+w`:
+The output window is mostly a regular Calva Clojure/ClojureScript file, which make everything that works in a regular file work in this file, including [Paredit](paredit.md). This makes it easy to navigate the input and output. For instance, to select the last evaluation results you can press `ctrl+w` (`shift+alt+right` on Windows and Linux):
 
 ![Paredit select current form](images/howto/output/select-last-result.png)
 

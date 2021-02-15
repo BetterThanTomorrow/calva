@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 
+- [Add a configuration option to disable diagnostics](https://github.com/BetterThanTomorrow/calva/pull/981)
+
 ## [2.0.171] - 2021-02-10
 - Update clojure-lsp to version 2021.02.09-18.28.06 (Fix: [Auto completion does not work in clojure-lsp only mode (no repl connection)](https://github.com/BetterThanTomorrow/calva/issues/996#issuecomment-776148282))
 - Update clojure-lsp to version 2021.02.10-03.01.19 (Fix: [Project clj-kondo config file not being considered](https://github.com/BetterThanTomorrow/calva/issues/1026))
