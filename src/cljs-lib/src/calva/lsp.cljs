@@ -3,8 +3,9 @@
             ["vscode-languageclient" :refer [LanguageClient]]
             ["path" :as path]
             [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]
-            #_["/state.js" :as state]))
+            [cljs.core.async.interop :refer-macros [<p!]]))
+
+(def state2 (js/require "../../state.js"))
 
 (defn create-client [jarPath]
   (let [server-options {:run {:command "java"
@@ -36,6 +37,7 @@
       (js/console.log "Client is ready!"))))
 
 (comment
+  (js->clj (.. state2 (config)))
   (LanguageClient. "clojure" "Clojure Language Client" {} {})
   (. path join "/home/something" "clojure-lsp.jar")
 
