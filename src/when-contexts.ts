@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
-import config from './config';
+import { TokenCursor } from './cursor-doc/token-cursor';
 import * as docMirror from './doc-mirror'
 
 type CursorContext = 'calva-standard' | AltCursorContext;
 type AltCursorContext = 'string' | 'comment';
+const stringContext = 'calva:cursorInString';
+const commentContext = 'calva:cursorInComment';
 let lastContext: CursorContext = null;
 
 export default function setCursorContextIfChanged(editor: vscode.TextEditor) {
@@ -18,8 +20,7 @@ function setCursorContext(currentContext: CursorContext) {
         return;
     }
     lastContext = currentContext;
-    const commentContext = config.CURSOR_CONTEXT_IN_COMMENT;
-    const stringContext = config.CURSOR_CONTEXT_IN_STRING;
+   
     vscode.commands.executeCommand('setContext', commentContext, false);
     vscode.commands.executeCommand('setContext', stringContext, false);
 
@@ -45,11 +46,16 @@ function determineCursorContext(document: vscode.TextDocument, position: vscode.
     let context: CursorContext;
     if (tokenCursor.withinString()) {
         context = 'string';
-    } else if (tokenCursor.withinComment()) {
+    } else if (tokenCursorWithinComment(tokenCursor)) {
         context = 'comment';
     } else {
         context = 'calva-standard';
     }
 
     return context;
+}
+
+function tokenCursorWithinComment(cursor: TokenCursor):boolean {
+    const token_type = cursor.getToken().type;
+    return token_type === 'comment' || (token_type === 'eol' && cursor.getPrevToken().type === 'comment');
 }
