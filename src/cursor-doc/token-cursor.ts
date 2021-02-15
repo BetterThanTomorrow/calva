@@ -675,7 +675,8 @@ export class LispTokenCursor extends TokenCursor {
      */
     withinComment() {
         const cursor = this.clone();
-        return cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
+        const token_type = cursor.getToken().type;
+        return token_type === 'comment' || (token_type === 'eol' && cursor.getPrevToken().type === 'comment');
     }
 
     /**

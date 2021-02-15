@@ -361,7 +361,7 @@ function determineCursorContext(document: vscode.TextDocument, position: vscode.
         context = 'comment';
     } else {
         context = 'calva-standard';
-    }
+ma    }
 
     return context;
 }
