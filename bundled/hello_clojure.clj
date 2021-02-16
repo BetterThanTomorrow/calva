@@ -116,7 +116,7 @@ true false      ; booleans
 ;; https://clojure.org/reference/special_forms#_other_special_forms
 
 ;; A very important special form is `fn` (which is
-;; actualy four special forms, but anyway).
+;; actually four special forms, but anyway).
 ;; Without this form we can't define new functions.
 ;; The following form evaliates to a function which 
 ;; adds 2 to its argument.
