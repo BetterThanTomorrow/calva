@@ -5,7 +5,7 @@
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]))
 
-(def state2 (js/require "../../state.js"))
+(def state (js/require "../state.js"))
 
 (defn create-client [jarPath]
   (let [server-options {:run {:command "java"
@@ -30,14 +30,14 @@
 (defn activate [^js context]
   (let [jar-path (. path join (. context -extensionPath) "clojure-lsp.jar")
         client (create-client jar-path)]
-    (js/console.log "client:" client)
-    (.start client)
+    (. client start)
     (go
-      (<p! (.onReady client))
+      (<p! (. client onReady))
       (js/console.log "Client is ready!"))))
 
+
 (comment
-  (js->clj (.. state2 (config)))
+  (js->clj (.. state (config)))
   (LanguageClient. "clojure" "Clojure Language Client" {} {})
   (. path join "/home/something" "clojure-lsp.jar")
 
