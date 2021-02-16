@@ -7,6 +7,8 @@
 
 (def state (js/require "../state.js"))
 (def config (js/require "../config.js"))
+(def util (js/require "../utilities.js"))
+(def definition (js/require "../providers/definition"))
 
 ;;;; Client middleware
 
@@ -21,6 +23,19 @@
   (if (.. state config -referencesCodeLensEnabled)
     (next document token)
     []))
+
+(defn provide-hover
+  [document position token next]
+  (when-not (.. util getConnectedState)
+    (next document position token)))
+
+(defn provide-definition
+  [document position token next]
+  (.. (.. definition (provideClojureDefinition document position token))
+      (then (fn [nrepl-definition]
+              (when-not nrepl-definition
+                (. js/console (log "no nrepl defintion, providing lsp definition"))
+                (next document position token))))))
 
 (defn create-client [jarPath]
   (let [server-options {:run {:command "java"
@@ -38,7 +53,9 @@
                          "document-range-formatting?" false
                          "keep-require-at-start?" true}
                         :middleware {:handleDiagnostics handle-diagnostics
-                                     :provideCodeLenses provide-code-lenses}}]
+                                     :provideCodeLenses provide-code-lenses
+                                     :provideHover provide-hover
+                                     :provideDefinition provide-definition}}]
     (LanguageClient. "clojure" "Clojure Language Client"
                      (clj->js server-options)
                      (clj->js client-options))))
@@ -61,6 +78,11 @@
     (.. client stop)))
 
 (comment
+  (-> (next document position token)
+      (. then (fn [definition]
+                (. js/console (log "definition:" definition)))))
+  (.. definition -provideClojureDefinition)
+  (.. util getConnectedState)
   (.. state config -referencesCodeLensEnabled)
   (.. config -default -REPL_FILE_EXT)
   (js->clj (.. config -default) :keywordize-keys true)
@@ -82,7 +104,7 @@
                                   :args ["-jar" "jarPath"]}
                             :debug {:command "java"
                                     :args ["-jar" "jarPath"]}}))
-
+  
 
   (. state config)
   ;; Example interop
