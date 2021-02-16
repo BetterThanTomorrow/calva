@@ -105,7 +105,7 @@ true false      ; booleans
 ;; Convince yourself they are the same:
 (= (quote (1 2 3))
    '(1 2 3))
-;; Clojure has value semantics any datastructures
+;; Clojure has value semantics. Any data structures
 ;; that evaluate to the same data are equal,
 ;; no matter how deep or big the structures are.
 (= [1 [1 #{1 {:a 1 :b '(:foo bar)}}]]
