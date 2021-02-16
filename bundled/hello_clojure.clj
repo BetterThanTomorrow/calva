@@ -153,5 +153,5 @@ foo
 
 
 ;; Learn much more Clojure at https://clojure.org/
-;; There is also ClojureSript, the same wundeful language,
+;; There is also ClojureSript, the same wondeful language,
 ;; for JavaScript VMs: https://clojurescript.org
