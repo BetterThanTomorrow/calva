@@ -31,13 +31,25 @@
   (let [jar-path (. path join (. context -extensionPath) "clojure-lsp.jar")
         client (create-client jar-path)]
     (. client start)
+    (.. vscode -window
+        (setStatusBarMessage
+         "$(sync~spin) Initializing Clojure language features via clojure-lsp"
+         (.. client onReady)))
     (go
       (<p! (. client onReady))
-      (js/console.log "Client is ready!"))))
+      (.. state -cursor (set "lspClient" client)))))
+
+(defn deactivate [])
 
 
 (comment
   (js->clj (.. state (config)))
+
+  (.. state deref (get "lspClient"))
+  (.. state -cursor (set "lspClient" "hello"))
+
+  (.. vscode -window (setStatusBarMessage "$(sync~spin) Initializing Clojure language features via clojure-lsp"))
+
   (LanguageClient. "clojure" "Clojure Language Client" {} {})
   (. path join "/home/something" "clojure-lsp.jar")
 
