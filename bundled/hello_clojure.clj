@@ -44,7 +44,7 @@ true false      ; booleans
 
 ;; So far you have been able to evaluate all examples.
 ;; It's because we quoted that list.
-;; Actually lists look iike so
+;; Actually lists look like so
 (1 2 3)
 ;; If you evaluate that, you'll get an error:
 ;; => class java.lang.Long cannot be cast to class clojure.lang.IFn
