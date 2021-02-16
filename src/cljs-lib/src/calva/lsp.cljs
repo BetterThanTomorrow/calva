@@ -6,6 +6,21 @@
             [cljs.core.async.interop :refer-macros [<p!]]))
 
 (def state (js/require "../state.js"))
+(def config (js/require "../config.js"))
+
+;;;; Client middleware
+
+(defn handle-diagnostics
+  [uri diagnostics next]
+  (let [repl-file-ext (.. config -default -REPL_FILE_EXT)]
+    (when-not (.. uri -path (endsWith repl-file-ext))
+      (next uri diagnostics))))
+
+(defn provide-code-lenses
+  [document token next]
+  (if (.. state config -referencesCodeLensEnabled)
+    (next document token)
+    []))
 
 (defn create-client [jarPath]
   (let [server-options {:run {:command "java"
@@ -21,7 +36,9 @@
                          "auto-add-ns-to-new-files?" false
                          "document-formatting?" false
                          "document-range-formatting?" false
-                         "keep-require-at-start?" true}}]
+                         "keep-require-at-start?" true}
+                        :middleware {:handleDiagnostics handle-diagnostics
+                                     :provideCodeLenses provide-code-lenses}}]
     (LanguageClient. "clojure" "Clojure Language Client"
                      (clj->js server-options)
                      (clj->js client-options))))
@@ -44,6 +61,9 @@
     (.. client stop)))
 
 (comment
+  (.. state config -referencesCodeLensEnabled)
+  (.. config -default -REPL_FILE_EXT)
+  (js->clj (.. config -default) :keywordize-keys true)
   (js->clj (.. state (config)))
 
   (.. state deref (get "lspClient"))
