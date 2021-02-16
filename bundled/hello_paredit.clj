@@ -6,7 +6,7 @@
 ;; (different kinds of lists).
 ;; Paredit helps you take advantage of this.
 
-;; Alt+Enterthis one
+;; Alt+Enter this one
 (->> ["I" "💖" "Paredit"]
      (interpose " ~ ")
      (apply str))
