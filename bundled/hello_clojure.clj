@@ -118,7 +118,7 @@ true false      ; booleans
 ;; A very important special form is `fn` (which is
 ;; actually four special forms, but anyway).
 ;; Without this form we can't define new functions.
-;; The following form evaliates to a function which 
+;; The following form evaluates to a function which 
 ;; adds 2 to its argument.
 (fn [arg] (+ arg 2))
 
