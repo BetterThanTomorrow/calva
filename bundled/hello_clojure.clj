@@ -122,7 +122,7 @@ true false      ; booleans
 ;; adds 2 to its argument.
 (fn [arg] (+ arg 2))
 
-;; Calling the function with the argment 3:
+;; Calling the function with the argument 3:
 ((fn [arg] (+ arg 2)) 3)
 
 ;; Another special form is `def`. It defines things,
