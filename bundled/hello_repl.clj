@@ -34,7 +34,7 @@
 ;; to this style of coding.
 
 ;; See hello-paredit.clj to learn the very
-;; basic of structural editing in Calva
+;; basics of structural editing in Calva
 
 ;; Learn more about Calva at https://calva.io 
 ;; Clojure language basics: https://clojure.org/guides/learn/syntax
