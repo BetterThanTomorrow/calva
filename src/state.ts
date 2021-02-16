@@ -158,6 +158,8 @@ export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext
         const subDir = Math.random().toString(36).substring(7);
         root = vscode.Uri.file(path.join(os.tmpdir(), subDir));
     }
+    cursor.set(PROJECT_DIR_KEY, path.resolve(root.fsPath));
+    cursor.set(PROJECT_DIR_URI_KEY, root);    
     try {
         context.workspaceState.update(NON_PROJECT_DIR_KEY, root);
     } catch {

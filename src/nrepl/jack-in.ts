@@ -144,19 +144,20 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
     const projectType = projectTypes.getProjectTypeForName(projectTypeName);
     let executable: string;
     let args: string[] = await projectType.commandLine(projectConnectSequence, selectedCljsType);
-    if (projectTypes.isWin || projectType.name === 'generic') {
-        if (['deps.edn', 'generic'].includes(projectType.name)) {
-            const depsJarPath = path.join(state.extensionContext.extensionPath, 'deps.clj.jar')
-            executable = 'java';
-            args = ['-jar', depsJarPath, ...args];
-        } else {
-            executable = projectType.winCmd[0];
-            args = [...projectType.winCmd.slice(1), ...args];
+    let cmd: string[];
+    if (projectTypes.isWin) {
+        cmd = projectType.winCmd;
+        if (projectType.resolveBundledPathWin) {
+            cmd = [...cmd, projectType.resolveBundledPathWin()]; 
         }
     } else {
-        executable = projectType.cmd[0];
-        args = [...projectType.cmd.slice(1), ...args];
+        cmd = projectType.cmd;
+        if (projectType.resolveBundledPathUnix) {
+            cmd = [...cmd, projectType.resolveBundledPathUnix()]; 
+        }
     }
+    executable = cmd[0];
+    args = [...cmd.slice(1), ...args];
 
     const terminalOptions: JackInTerminalOptions = {
         name: `Calva Jack-in: ${projectConnectSequence.name}`,

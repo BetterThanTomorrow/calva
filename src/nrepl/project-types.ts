@@ -18,6 +18,8 @@ export type ProjectType = {
     cljsTypes: string[];
     cmd: string[];
     winCmd: string[];
+    resolveBundledPathWin?: Function,
+    resolveBundledPathUnix?: Function,
     processShellWin: boolean;
     processShellUnix: boolean;
     commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
@@ -272,7 +274,8 @@ const projectTypes: { [id: string]: ProjectType } = {
         name: "deps.edn",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: ["clojure"],
-        winCmd: [], // this will be determined at jack-in
+        winCmd: ['java', '-jar'],
+        resolveBundledPathWin: () => path.join(state.extensionContext.extensionPath, 'deps.clj.jar'),
         processShellUnix: true,
         processShellWin: true,
         useWhenExists: "deps.edn",
@@ -352,17 +355,18 @@ const projectTypes: { [id: string]: ProjectType } = {
         }
     },
     'generic': {
-        // There is no Jack-in supported here
         name: 'generic',
         cljsTypes: [],
-        cmd: ['java'],
-        winCmd: ['java'],
+        cmd: ['java', '-jar'],
+        winCmd: ['java', '-jar'],
+        resolveBundledPathWin: () => path.join(state.extensionContext.extensionPath, 'deps.clj.jar'),
+        resolveBundledPathUnix: () => path.join(state.extensionContext.extensionPath, 'deps.clj.jar'),
         processShellUnix: true,
-        processShellWin: false,
+        processShellWin: true,
         useWhenExists: undefined,
         nReplPortFile: [".nrepl-port"],
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-            return await cljCommandLine(connectSequence, CljsTypes.none);
+            return cljCommandLine(connectSequence, CljsTypes.none);
         }
     },
 }
