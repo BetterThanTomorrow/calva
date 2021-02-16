@@ -34,13 +34,14 @@
     (.. vscode -window
         (setStatusBarMessage
          "$(sync~spin) Initializing Clojure language features via clojure-lsp"
-         (.. client onReady)))
+         (. client onReady)))
     (go
       (<p! (. client onReady))
       (.. state -cursor (set "lspClient" client)))))
 
-(defn deactivate [])
-
+(defn deactivate []
+  (when-let [client (.. state deref (get "lspClient"))]
+    (.. client stop)))
 
 (comment
   (js->clj (.. state (config)))

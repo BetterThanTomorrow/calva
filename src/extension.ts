@@ -30,7 +30,7 @@ import config from './config';
 import handleNewCljFiles from './fileHandler';
 import lsp from './lsp';
 import * as snippets from './custom-snippets';
-const { activateLsp } = require('../out/cljs-lib/cljs-lib');
+import { activateLsp, deactivateLsp } from '../out/cljs-lib/cljs-lib';
 
 async function onDidSave(document) {
     let {
@@ -317,7 +317,7 @@ function deactivate(): Promise<void> | undefined {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate();
-    return lsp.deactivate();
+    return deactivateLsp();
 }
 
 export { activate, deactivate };
