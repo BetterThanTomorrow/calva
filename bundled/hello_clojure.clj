@@ -50,7 +50,7 @@ true false      ; booleans
 ;; => class java.lang.Long cannot be cast to class clojure.lang.IFn
 ;; (Of course, the linter already warned you.)
 ;; This is because the Clojure will try to call
-;; `1` as a function. When evealuating unquoted lists
+;; `1` as a function. When evaluating unquoted lists
 ;; the first element in the list is regarded as being
 ;; in ”function position”. A Clojure program is data. 
 ;; In fancier words, Clojure is homoiconic:
