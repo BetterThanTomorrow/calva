@@ -64,7 +64,7 @@ true false      ; booleans
 (*)
 (println "From Clojure with ♥️")
 (reverse [5 4 3 2 1])
-;; Everything from position 2 and up are
+;; Everything after the first position is
 ;; handed to the function as arguments
 
 ;; You define new functions and bind them to names
@@ -88,7 +88,7 @@ true false      ; booleans
 ;; Clojure has an extensive core library of functions
 ;; and macros. See: https://clojuredocs.org for a community
 ;; driven Clojure core (and more) search engine.
-;; The core libarary is built with the functions and macros
+;; The core libarary is composed from the functions and macros
 ;; in the library itself. Bootstrapping the library is
 ;; a few (15-ish) built-in primitive forms,
 ;; a k a ”special forms”.
@@ -148,6 +148,11 @@ foo
 ;; are built using `if`. Try imagine a programming language
 ;; without conditionals!
 
+;; We'll return to `if` and conditionals. Let's wrap
+;; the special forms section up with just noting that
+;; together with _how_ Clojure reads and evaluates code,
+;; the special forms make up the Clojure langugage
+;; itself. 
 
 ;; To be continued...
 
