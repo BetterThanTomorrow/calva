@@ -4,10 +4,13 @@
 ;; Ctrl+Alt+C Enter
 
 ;; Clojure is a LISP and therefore the code
-;; is structural. Everything is literals or
-;; ”symbols” organized in literal collections
-;; (different kinds of lists).
-;; Paredit helps you take advantage of this.
+;; is structural. Everything is organized in
+;; ”forms”, a k a S-expressions (sexprs).
+;; https://en.wikipedia.org/wiki/S-expression
+;; A form is any literal or ”symbol” or
+;; literal collection (different kinds of
+;; lists) of literals. Paredit helps you take
+;; advantage of this structure.
 
 ;; Alt+Enter this one
 (->> ["I" "💖" "Paredit"]
@@ -82,3 +85,5 @@
 ;; If you are new to Clojure, please continue
 ;; with `hello_clojure.clj` and evaluate your way
 ;; to some basic Clojure knowledge.
+
+"Hello Calva Paredit"

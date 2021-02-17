@@ -291,7 +291,7 @@ like this, if leading spaces are no-no."
   ;; The example above is equivalent to
   (fn [arg] (+ arg 2))
   ;; Nesting function literals is forbidden activity
-  #(+ % (#(- % 2) 3))
+  ;; (#(+ % (#(- % 2) 3)))
   ;; (thankfully)
 
   ;; The hash sign has a special role. It is a k a
@@ -364,9 +364,9 @@ like this, if leading spaces are no-no."
   ;; capabilities. We'll touch on that a bit later.
   ;; Here we want to highlight that this power can
   ;; be weilded for extending the language. 
-  ;; Since Clojure code is structured, and code is
-  ;; data, Clojure can be used to produce Clojure
-  ;; code from code.
+  ;; Since Clojure code is structured and code data
+  ;; Clojure can be used to produce Clojure code from
+  ;; c
 
   ;; To be continued...
 
@@ -374,3 +374,5 @@ like this, if leading spaces are no-no."
   ;; There is also ClojureSript, the same wondeful language,
   ;; for JavaScript VMs: https://clojurescript.org
   )
+
+"Hello Clojure"
