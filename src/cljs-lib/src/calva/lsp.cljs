@@ -37,6 +37,11 @@
                 (. js/console (log "no nrepl defintion, providing lsp definition"))
                 (next document position token))))))
 
+(defn provide-completion-item
+  [document position context token next]
+  (when-not (. util getConnectedState)
+    (next document position context token)))
+
 (defn create-client [jarPath]
   (let [server-options {:run {:command "java"
                               :args ["-jar" jarPath]}
@@ -52,10 +57,12 @@
                          "document-formatting?" false
                          "document-range-formatting?" false
                          "keep-require-at-start?" true}
-                        :middleware {:handleDiagnostics handle-diagnostics
-                                     :provideCodeLenses provide-code-lenses
-                                     :provideHover provide-hover
-                                     :provideDefinition provide-definition}}]
+                        :middleware
+                        {:handleDiagnostics handle-diagnostics
+                         :provideCodeLenses provide-code-lenses
+                         :provideHover provide-hover
+                         :provideDefinition provide-definition
+                         :provideCompletionItem provide-completion-item}}]
     (LanguageClient. "clojure" "Clojure Language Client"
                      (clj->js server-options)
                      (clj->js client-options))))
