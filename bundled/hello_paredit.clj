@@ -1,5 +1,8 @@
 (ns hello-paredit)
 
+;; Start with loading this file
+;; Ctrl+Alt+C Enter
+
 ;; Clojure is a LISP and therefore the code
 ;; is structural. Everything is literals or
 ;; ”symbols” organized in literal collections
@@ -61,8 +64,8 @@
 ;; *Paredit Slurp* and *Paredit Barf* are handy
 ;; commands to move forms in and out of the current
 ;; list/vector/map/string
-(def slurp-barf {:barf-me "barf-me-too"}
-  'slurp-me-then-barf-me)
+(def slurp-barf [{:barf-me "barf-me-too"}
+                 'slurp-me-then-barf-me])
 
 ;; *Paredit Raise Sexp* replaces the enclosing
 ;; form with the ”current” form
@@ -75,3 +78,7 @@
 ;; displayed in the Command Palette 😀
 
 ;; Learn much more Paredit: https://calva.io/paredit
+
+;; If you are new to Clojure, please continue
+;; with `hello_clojure.clj` and evaluate your way
+;; to some basic Clojure knowledge.
