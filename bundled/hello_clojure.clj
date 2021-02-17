@@ -3,19 +3,16 @@
 ;; Start with loading this file
 ;; Ctrl+Alt+C Enter
 
-;; This is a super basic Clojure tutorial.
-;; Evaluate the examples and write your own code
-;; and evaluate that as well.
-;; At https://clojure.org/guides/learn/syntax
-;; you can read more about each concept.
+;; Some of this is from 
+;; https://clojure.org/guides/learn/syntax
+;; where you can read more about each concept.
+
+;; In Clojure everything is an expression.
+;; (There are no statements.) Unless there is
+;; en error when evaluating the expressions there
+;; is always a return value (which is sometimes `nil`).
 
 (comment
-  ;; In Clojure everything is an expression.
-  ;; (There are no statements.) Unless there is
-  ;; en error when evaluating the expressions, there
-  ;; is always a return value (which is sometimes `nil`).
-
-
   ;; = LITERALS =
   ;; Literals evaluate to themselves.
   ;; (Alt+Enter and Ctrl+Enter, remeber?)
@@ -46,7 +43,19 @@
   :alpha          ; keyword
   :release/alpha  ; keyword with namespace
 
+  ;; == STRINGS ==
+  ;; Somewhere in between the atomic literals and
+  ;; the collections we have strings. They are treated as
+  ;; sequences (a cool abstraction we'll talk more about).
+  ;; Strings are enclosed by double quotes. 
+  "A string can be
+   multiline, but will contain any leading spaces."
+  "Write strings
+like this, if leading spaces are no-no."
+  ;; (The single quote is used for something else.)
+  )
 
+(comment
   ;; = COLLECTIONS =
   ;; Clojure has literal syntax for four collection types
   ;; They evaluate to themselves.
@@ -79,6 +88,9 @@
   (str 1 2 3 4 5 :foo)
   (< 1 2 3 4 5)
   (*)
+  (= "1"
+     (str "1")
+     (str \1))
   (println "From Clojure with ♥️")
   (reverse [5 4 3 2 1])
   ;; Everything after the first position is
@@ -109,8 +121,9 @@
   ;; Clojure has an extensive core library of functions
   ;; and macros. See: https://clojuredocs.org for a community
   ;; driven Clojure core (and more) search engine.
+  )
 
-
+(comment
   ;; = SPECIAL FORMS =
   ;; The core libarary is composed from the functions and macros
   ;; in the library itself. Bootstrapping the library is
@@ -126,7 +139,7 @@
   ;; We used the shorthand syntax for it then:
   '(1 2 3)
 
-  ;; Convince yourself they are the same:
+  ;; Convince yourself they are the same witg the `=` function:
   (= (quote (1 2 3))
      '(1 2 3))
   ;; Clojure has value semantics. Any data structures
@@ -188,8 +201,9 @@
   ;; itself. The next level och building blocks are
   ;; macros. But let's investigate this with how code
   ;; is read first...
+  )
 
-
+(comment
   ;; = THE READER =
   ;; https://clojure.org/reference/reader
   ;; The Clojure Reader is responsible for reading text,
@@ -217,13 +231,48 @@
   ;; function. It will check for equality of all
   ;; arguments it is passed.)
 
-  ;; == EXTRA SYNTAX ===
+  ;; == LINE COMMENTS ==
+  ;; The Reader skips reading everything on a line from
+  ;; a semicolon. This is unstructured comments in
+  ;; that if you start a form
+  (range 1 ; 10)
+  ;; and then place a line commment so that the closing
+  ;; bracket of that form gets commented out, the
+  ;; structure breaks.
+         )
+  ;;     ^ Healing the structure.        
+  ;; If you remove the semicolon on the opening form
+  ;; above, make sure to also remove this closing one.           
+
+  ;; Since everything on the line is ignored, you can
+  ;; add as many semicolons as you want.
+  ;;;;;;;;;; (hidden from the Reader)
+  ;; It's common to use two semicolons to start a full
+  ;; line comment. 
+
+  ;; == EXRA SYNTAX ===
   ;; We've already seen the single quote
   'something
   ;; Which is, as we have seen, is transfromed to
   (quote something)
   ;; There are some more quoting, and even splicing
   ;; symbols, which we won't cover in this guide.
+
+  ;; === Deref ===
+  ;; Clojure also has reference types, we'll discuss
+  ;; (briefly) the most common one, `atom`, later.
+  (def an-atom (atom [1 2 3]))
+  (type an-atom)
+  ;; To access value from a reference:
+  (deref an-atom)
+  (type (deref an-atom))
+  ;; This is so common that there is shorthand syntax
+  @an-atom
+  (= (deref an-atom)
+     @an-atom)
+  ;; It's a common mistake to forget to deref
+  (first an-atom)
+  (first @an-atom)
 
   ;; === THE DISPATCHER (HASH SIGN) ===
   ;; Regular expressions have literal syntax, they are
@@ -274,7 +323,7 @@
             :baz 'baz}
      {:foo/bar 'bar
       :foo/baz 'baz})
-  ;; Unrelated to the #, there is another shorthand for
+  ;; Unrelated to the #: There is another shorthand for
   ;; speecifying namespaced keywords. Double colon
   ;; keywords get namespaced with the current namespace
   ::foo
@@ -295,13 +344,10 @@
   #uuid "0000000-0000-0000-0000-000000000016"
   (java.util.UUID/fromString "0000000-0000-0000-0000-000000000016")
 
-  ;; Phew, but if you ponder that this is almost all
-  ;; syntax there is to the language, you'll realize
-  ;; that compared to most languages, this is a tiny
-  ;; syntax. You now know how to read (in the sense
-  ;; of you being a Clojure Reader) most Clojure code.
+  ;; You now know how to read (in the sense of you
+  ;; being a Clojure Reader) most Clojure code.
   ;; That said, let's skip going into the syntax
-  ;; sugar and special form for making host platform
+  ;; sugar and special forms for making host platform
   ;; interop extra nice.
   ;; https://clojure.org/reference/java_interop
   ;; Just a sneak peek:
@@ -310,16 +356,21 @@
   ;; This invokes the method `before` on the date
   ;; object for year 2018 giving it the date from
   ;; year 2021 as argument.
+  )
 
+(comment
   ;; = MACROS =
+  ;; Clojure has powerful data transformation
+  ;; capabilities. We'll touch on that a bit later.
+  ;; Here we want to highlight that this power can
+  ;; be weilded for extending the language. 
+  ;; Since Clojure code is structured, and code is
+  ;; data, Clojure can be used to produce Clojure
+  ;; code from code.
 
   ;; To be continued...
 
+  ;; Learn much more Clojure at https://clojure.org/
+  ;; There is also ClojureSript, the same wondeful language,
+  ;; for JavaScript VMs: https://clojurescript.org
   )
-
-;; Learn much more Clojure at https://clojure.org/
-;; AND INSTALLL clojure, remember?
-;; https://clojure.org/guides/getting_started
-;; 
-;; There is also ClojureSript, the same wondeful language,
-;; for JavaScript VMs: https://clojurescript.org
