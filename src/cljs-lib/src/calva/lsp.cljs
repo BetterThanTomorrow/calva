@@ -8,7 +8,7 @@
 (def state (js/require "../state.js"))
 (def config (js/require "../config.js"))
 (def util (js/require "../utilities.js"))
-(def definition (js/require "../providers/definition"))
+(def definition (js/require "../providers/definition.js"))
 
 ;;;; Client middleware
 
