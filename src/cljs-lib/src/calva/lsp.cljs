@@ -67,7 +67,22 @@
                      (clj->js server-options)
                      (clj->js client-options))))
 
-;; TODO: Find out what the type hint ^js does here
+(defn code-lens-references-callback
+  [_ line character]
+  (let [line (dec line)
+        character (dec character)]
+    (set! (.. vscode -window -activeTextEditor -selection)
+          (new (.. vscode -Selection) line character line character))
+    (.. vscode -commands (executeCommand "editor.action.referenceSearch.trigger"))))
+
+(defn register-commands 
+  [^js context client]
+  ;; The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
+  (.. context -subscriptions
+      (push (.. vscode -commands
+                (registerCommand "code-lens-references" code-lens-references-callback)))))
+
+
 (defn activate [^js context]
   (let [jar-path (. path join (. context -extensionPath) "clojure-lsp.jar")
         client (create-client jar-path)]
@@ -78,13 +93,15 @@
          (. client onReady)))
     (go
       (<p! (. client onReady))
-      (.. state -cursor (set "lspClient" client)))))
+      (.. state -cursor (set "lspClient" client))
+      (register-commands context client))))
 
 (defn deactivate []
   (when-let [client (.. state deref (get "lspClient"))]
     (.. client stop)))
 
 (comment
+  (type (new (.. vscode -Selection) 1 2 3 4))
   (-> (next document position token)
       (. then (fn [definition]
                 (. js/console (log "definition:" definition)))))
