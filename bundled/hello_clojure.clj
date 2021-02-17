@@ -7,25 +7,27 @@
 ;; THen Alt+Enter this
 "Hello World"
 
-;; This guide will try to give you a very basic
+;; This guide will try to give you a basic
 ;; understanding of the Clojure language. Basic in
-;; the sense that it is not comprehensible. Basic
-;; in the sense that it is foundational. With the
-;; foundations in place you'll have a good chance
-;; of formmulating your questions, googling for
+;; the sense that it is not extensive. Basic in the
+;; sense that it is foundational. Building from first
+;; principles in order to make the Clujure journey
+;; you hopefully have ahead easier to comprehend.
+;; With the foundations in place you'll have a good 
+;; chance of formmulating your questions, googling for
 ;; information, make sense of code you stumble
 ;; across, and so on.
 
-;; There are links here and there, ctrl/cmd-click
-;; them to open them in a browser. Here's the first
+;; There will be links here and there, ctrl/cmd-click
+;; those to open them in a browser. Here's the first
 ;; such link; 
 ;; https://clojure.org/guides/learn/syntax
 ;; There you can read more about the concepts
 ;; mentioned in this guide.
 
 ;; The way to use the guide is to read about the
-;; concepts and evaluate the examples. Please Feel
-;; encouraged to edit the examples, add new code
+;; concepts and evaluate the examples. Please feel
+;; encouraged to edit the examples, and add new code
 ;; and evaluate that. Evaluate this to warm up:
 
 (str "Learning " "by" " evaluating")
@@ -280,7 +282,7 @@ like this, if leading spaces are no-no."
   ;; == EXRA SYNTAX ===
   ;; We've already seen the single quote
   'something
-  ;; Which is, as we have seen, is transfromed to
+  ;; Which is, as we have seen, transfromed to
   (quote something)
   ;; There are some more quoting, and even splicing
   ;; symbols, which we won't cover in this guide.
@@ -400,11 +402,17 @@ to the compiler, if it is evaluated together with the
   ;; Clojure can be used to produce Clojure code from
   ;; c
 
-  ;; To be continued...
-
-  ;; Learn much more Clojure at https://clojure.org/
-  ;; There is also ClojureSript, the same wondeful language,
-  ;; for JavaScript VMs: https://clojurescript.org
   )
+
+;; To be continued...
+
+;; immmutabibility
+;; atoms
+;; fizz-buzz
+
+;; Learn much more Clojure at https://clojure.org/
+;; There is also ClojureSript, the same wondeful language,
+;; for JavaScript VMs: https://clojurescript.org
+
 
 "Hello Clojure"
