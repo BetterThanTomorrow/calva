@@ -1,12 +1,36 @@
-(ns hello-clojure)
+(ns hello-clojure
+  (:require [clojure.string :as string]))
 
 ;; Start with loading this file
 ;; Ctrl+Alt+C Enter
 
-;; Some of this is from 
-;; https://clojure.org/guides/learn/syntax
-;; where you can read more about each concept.
+;; THen Alt+Enter this
+"Hello World"
 
+;; This guide will try to give you a very basic
+;; understanding of the Clojure language. Basic in
+;; the sense that it is not comprehensible. Basic
+;; in the sense that it is foundational. With the
+;; foundations in place you'll have a good chance
+;; of formmulating your questions, googling for
+;; information, make sense of code you stumble
+;; across, and so on.
+
+;; There are links here and there, ctrl/cmd-click
+;; them to open them in a browser. Here's the first
+;; such link; 
+;; https://clojure.org/guides/learn/syntax
+;; There you can read more about the concepts
+;; mentioned in this guide.
+
+;; The way to use the guide is to read about the
+;; concepts and evaluate the examples. Please Feel
+;; encouraged to edit the examples, add new code
+;; and evaluate that. Evaluate this to warm up:
+
+(str "Learning " "by" " evaluating")
+
+;; = EXPRESSIONS =
 ;; In Clojure everything is an expression.
 ;; (There are no statements.) Unless there is
 ;; en error when evaluating the expressions there
@@ -15,7 +39,8 @@
 (comment
   ;; = LITERALS =
   ;; Literals evaluate to themselves.
-  ;; (Alt+Enter and Ctrl+Enter, remeber?)
+  ;; (Remember your friends:
+  ;;   Alt+Enter and Ctrl+Enter)
 
   ;; Numeric types
   42        ; integer
@@ -45,14 +70,16 @@
 
   ;; == STRINGS ==
   ;; Somewhere in between the atomic literals and
-  ;; the collections we have strings. They are treated as
-  ;; sequences (a cool abstraction we'll talk more about).
+  ;; the collections we have strings. They are sometimes
+  ;; treated as sequences (a cool abstraction we'll
+  ;; talk more about).
   ;; Strings are enclosed by double quotes. 
   "A string can be
    multiline, but will contain any leading spaces."
   "Write strings
 like this, if leading spaces are no-no."
-  ;; (The single quote is used for something else.)
+  ;; (The single quote is used for something else.
+  ;; You'll see to what a bit later.)
   )
 
 (comment
@@ -303,17 +330,22 @@ like this, if leading spaces are no-no."
 
   ;; There is a very useful hash-dispatcher which
   ;; is used to make the Reader ignore the next form
-  #_(str "The reader will just skip this function call")
+  #_(str "The reader will not send this function call
+to the compiler, if it is evaluated together with the
+#_ marker.")
   ;; You'll need to select the ignore marker together with
   ;; the function call and use Ctrl+Enter, to make Calva
   ;; send the both the marker and the form to the Reader,
-  ;; which will then ignore it. ¯\_(ツ)_/¯
+  ;; which will read it, then ignore it. ¯\_(ツ)_/¯
   ;; Since #_ ignores the next form it is a structural
   ;; comment mechanism, often used to temporarily disable
   ;; some code or some data
   (str "a" "b" #_(str 1 2 3 [4 5 6]) "c")
   ;; Ignore markers stack
   (str "a" #_#_"b" (str 1 2 3 [4 5 6]) "c")
+  ;; Note that the Reader _will_ read the ignored form.
+  ;; If there are syntactic errors in there, the
+  ;; Reader will get sad, complain, and stop Reading.
 
   ;; Two more common #-variants you will see, and use,
   ;; are namespaced map keyword shorthand syntax and
