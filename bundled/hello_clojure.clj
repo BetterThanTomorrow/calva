@@ -3,14 +3,16 @@
 ;; Start with loading this file
 ;; Ctrl+Alt+C Enter
 
-;; Some of this is from 
-;; https://clojure.org/guides/learn/syntax
-;; where you can read more about each concept.
+;; This is a super basic Clojure tutorial.
+;; Evaluate the examples and write your own code
+;; and evaluate that as well.
+;; At https://clojure.org/guides/learn/syntax
+;; you can read more about each concept.
 
 (comment
   ;; In Clojure everything is an expression.
   ;; (There are no statements.) Unless there is
-  ;; en error when evaluating the expressions there
+  ;; en error when evaluating the expressions, there
   ;; is always a return value (which is sometimes `nil`).
 
 
@@ -313,7 +315,11 @@
 
   ;; To be continued...
 
-  ;; Learn much more Clojure at https://clojure.org/
-  ;; There is also ClojureSript, the same wondeful language,
-  ;; for JavaScript VMs: https://clojurescript.org
   )
+
+;; Learn much more Clojure at https://clojure.org/
+;; AND INSTALLL clojure, remember?
+;; https://clojure.org/guides/getting_started
+;; 
+;; There is also ClojureSript, the same wondeful language,
+;; for JavaScript VMs: https://clojurescript.org
