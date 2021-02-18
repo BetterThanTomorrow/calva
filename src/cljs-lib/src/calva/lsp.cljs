@@ -3,7 +3,8 @@
             ["vscode-languageclient" :refer [LanguageClient]]
             ["path" :as path]
             [cljs.core.async :refer [go]]
-            [cljs.core.async.interop :refer-macros [<p!]]))
+            [cljs.core.async.interop :refer-macros [<p!]]
+            [clojure.string :as str]))
 
 (def state (js/require "../state.js"))
 (def config (js/require "../config.js"))
@@ -75,13 +76,57 @@
           (new (.. vscode -Selection) line character line character))
     (.. vscode -commands (executeCommand "editor.action.referenceSearch.trigger"))))
 
+(defn create-prompt-for-input-fn
+  [placeholder]
+  (fn []
+    (.. vscode -window
+        (showInputBox
+         (clj->js {:value ""
+                   :placeHolder placeholder
+                   :validateInput (fn [input]
+                                    (when (empty? (str/trim input))
+                                      "Empty input"))})))))
+
+(def lsp-commands
+  #{{:name "clean-ns"}
+    {:name "add-missing-libspec"}
+    {:name "cycle-privacy"}
+    {:name "expand-let"}
+    {:name "thread-first"}
+    {:name "thread-first-all"}
+    {:name "thread-last"}
+    {:name "thread-last-all"}
+    {:name "inline-symbol"}
+    {:name "unwind-all"}
+    {:name "unwind-thread"}
+    {:name "introduce-let"
+     :extra-param-fn (create-prompt-for-input-fn "Bind to")}
+    {:name "move-to-let"
+     :extra-param-fn (create-prompt-for-input-fn "Bind to")}
+    {:name "extract-function"
+     :extra-param-fn (create-prompt-for-input-fn "Function name")}
+    {:name "server-info"
+     :category "calva.diagnostics"}})
+
+(defn register-lsp-command
+  [client command]
+  (let [category (or (:category command) "calva.refactor")
+        calva-command-name (str category "."
+                                (str/replace (:name command) #"-[a-z]"
+                                             (fn [m]
+                                               (. (nth m 1) toUpperCase))))]
+    ;; TODO: Finish registering command
+    (. js/console (log "Registering command:" calva-command-name))))
+
 (defn register-commands 
   [^js context client]
   ;; The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
   (.. context -subscriptions
       (push (.. vscode -commands
-                (registerCommand "code-lens-references" code-lens-references-callback)))))
-
+                (registerCommand "code-lens-references" code-lens-references-callback))))
+  (map (fn [command] 
+         (register-lsp-command client command))
+       lsp-commands))
 
 (defn activate [^js context]
   (let [jar-path (. path join (. context -extensionPath) "clojure-lsp.jar")
@@ -101,35 +146,44 @@
     (.. client stop)))
 
 (comment
-  (type (new (.. vscode -Selection) 1 2 3 4))
-  (-> (next document position token)
-      (. then (fn [definition]
-                (. js/console (log "definition:" definition)))))
-  (.. definition -provideClojureDefinition)
-  (.. util getConnectedState)
-  (.. state config -referencesCodeLensEnabled)
-  (.. config -default -REPL_FILE_EXT)
-  (js->clj (.. config -default) :keywordize-keys true)
-  (js->clj (.. state (config)))
+  (map (fn [command]
+         (register-lsp-command {} command))
+       lsp-commands)
+  (map (fn [x] (. js/console (log x))) #{1 2})
+   (. "m" toUpperCase)
+   (str/replace "server-info" #"-[a-z]"
+                (fn [m]
+                  (. (nth m 1) toUpperCase)))
+   (empty? (str/trim "   "))
+   (type (new (.. vscode -Selection) 1 2 3 4))
+   (-> (next document position token)
+       (. then (fn [definition]
+                 (. js/console (log "definition:" definition)))))
+   (.. definition -provideClojureDefinition)
+   (.. util getConnectedState)
+   (.. state config -referencesCodeLensEnabled)
+   (.. config -default -REPL_FILE_EXT)
+   (js->clj (.. config -default) :keywordize-keys true)
+   (js->clj (.. state (config)))
 
-  (.. state deref (get "lspClient"))
-  (.. state -cursor (set "lspClient" "hello"))
+   (.. state deref (get "lspClient"))
+   (.. state -cursor (set "lspClient" "hello"))
 
-  (.. vscode -window (setStatusBarMessage "$(sync~spin) Initializing Clojure language features via clojure-lsp"))
+   (.. vscode -window (setStatusBarMessage "$(sync~spin) Initializing Clojure language features via clojure-lsp"))
 
-  (LanguageClient. "clojure" "Clojure Language Client" {} {})
-  (. path join "/home/something" "clojure-lsp.jar")
+   (LanguageClient. "clojure" "Clojure Language Client" {} {})
+   (. path join "/home/something" "clojure-lsp.jar")
 
-  (.. vscode -workspace (createFileSystemWatcher "**/.clientrc"))
+   (.. vscode -workspace (createFileSystemWatcher "**/.clientrc"))
 
-  (js/console.log (create-client "some-path"))
+   (js/console.log (create-client "some-path"))
 
-  (js/console.log (clj->js {:run {:command "java"
-                                  :args ["-jar" "jarPath"]}
-                            :debug {:command "java"
-                                    :args ["-jar" "jarPath"]}}))
-  
+   (js/console.log (clj->js {:run {:command "java"
+                                   :args ["-jar" "jarPath"]}
+                             :debug {:command "java"
+                                     :args ["-jar" "jarPath"]}}))
 
-  (. state config)
+
+   (. state config)
   ;; Example interop
-  (.. vscode -window (showInformationMessage "hello")))
+   (.. vscode -window (showInformationMessage "hello")))
