@@ -6,17 +6,21 @@
 
 ;; THen Alt+Enter this
 "Hello World"
+;; Try to find a language where you can write a
+;; more concide Hello World program.
+;; And note that there are no parens. 😀
 
 ;; This guide will try to give you a basic
 ;; understanding of the Clojure language. Basic in
 ;; the sense that it is not extensive. Basic in the
 ;; sense that it is foundational. Building from first
 ;; principles in order to make the Clujure journey
-;; you hopefully have ahead easier to comprehend.
+;; you have ahead easier to comprehend.
 ;; With the foundations in place you'll have a good 
-;; chance of formmulating your questions, googling for
-;; information, make sense of code you stumble
-;; across, and so on.
+;; chance of having the right gut feeling for how to
+;; code something, to formmulating your questions,
+;; googling for information, make sense of code you
+;; stumble across, and so on.
 
 ;; There will be links here and there, ctrl/cmd-click
 ;; those to open them in a browser. Here's the first
@@ -32,11 +36,35 @@
 
 (str "Learning " "by" " evaluating")
 
-;; = EXPRESSIONS =
-;; In Clojure everything is an expression.
-;; (There are no statements.) Unless there is
-;; en error when evaluating the expressions there
-;; is always a return value (which is sometimes `nil`).
+(comment
+  ;; = EXPRESSIONS =
+  ;; In Clojure everything is an expression.
+  ;; (There are no statements.) Unless there is
+  ;; en error when evaluating the expressions there
+  ;; is always a return value (which is sometimes `nil`).
+
+  ;; An important aspect of this is that the result
+  ;; of an expession is always the last form/expression
+  ;; evaluated. E.g. if you have a function defined
+  ;; like so:
+  (defn last-eval-wins []
+    (println 'side-effect-1)
+    1
+    (println 'side-effect-2)
+    2)
+  ;; (Evaluate it)
+  ;; We'll come back to how functions are defined, for
+  ;; now, just accept that this defines a function named
+  ;; `last-eval-wins`, taking no arguments. The function
+  ;; body has three expressions.
+  ;; Calling the function will cause all the expressions
+  ;; to be evaluated.
+  (last-eval-wins)
+  ;; The result of the call will be the last expression
+  ;; that was evaluated. (In the output window you should
+  ;; also see the `println` calls happening). They are
+  ;; also expressions, but evaluates to `nil`
+  (println 'prints-this-evalautes-to-nil))
 
 (comment
   ;; = LITERALS =
@@ -45,16 +73,15 @@
   ;;   Alt+Enter and Ctrl+Enter)
 
   ;; Numeric types
-  42        ; integer
-  -1.5      ; floating point
+  18        ; integer
+  -1.8      ; floating point
   0.18e2    ; exponent
-  7.8M      ; big decimal
-  22/7      ; ratio
-  3N        ; big integer
+  18.0M     ; big decimal
+  108/20    ; ratio
+  18N       ; big integer
   0x12      ; hex
   022       ; octal
   2r10010   ; base 2
-  ;; (Hexadecimal and octal)
 
   ;; Character types
   "hello"         ; string
@@ -398,21 +425,99 @@ to the compiler, if it is evaluated together with the
   ;; capabilities. We'll touch on that a bit later.
   ;; Here we want to highlight that this power can
   ;; be weilded for extending the language. 
-  ;; Since Clojure code is structured and code data
-  ;; Clojure can be used to produce Clojure code from
-  ;; c
+  ;; Since Clojure code is structured and code is
+  ;; data, Clojure can be used to produce Clojure
+  ;; code from Clojure code. It is similar to the
+  ;; preprocessor fascilites that some languages
+  ;; offer, like C's `#pragma`, but it is much more
+  ;; convenient and pwerful. A lot of you will learn
+  ;; to love and recognize as Clojure is actually
+  ;; created with Clojure, as macros.
 
+  ;; This guide is mostly concerned with letting you
+  ;; know that macros are a thing, and to quickly
+  ;; realize when you are using a macro rather than
+  ;; a function. So we will not go into the subject
+  ;; of hpw to creating macros. Let's just briefly
+  ;; examine an often-used macro, `when`. This macro
+  ;; helps with writing more readable code. How?
+  ;; Let's say you want to conditionally evaluate
+  ;; something. Above you learnt about that there is
+  ;; a special form named `if` that can be used for
+  ;; this. Like so:
+  (if 'this-is-true
+    'evaluate-this
+    'else-evaluate-this)
+  ;; Now say you don't have something to evaluate
+  ;; in the else case. `if` allows you to write this
+  (if 'this-is-true
+    'evaluate-this)
+  ;; Which is fine, but you will have to scan the
+  ;; code a bit extra to see that there is no else
+  ;; branch. To address this, you could write:
+  (if 'this-is-true
+    'evaluate-this
+    nil)
+  ;; Bit that is a bit silly, what if there was a
+  ;; way to tell the human reading the code that
+  ;; there is no else? There is:
+  (when 'this-is-true
+    'evaluate-this)
+  ;; Let's look att how `when` is defined, you can
+  ;; ctrl/cmd-click `when` to navigate to where
+  ;; it is defined in Clojure core. You can also
+  ;; use the function `macroexpand`
+  (macroexpand '(when 'this-is-true
+                  'evaluate-this))
+  ;; You'll notice that `when` wraps the body in
+  ;; a `(do ...)`. This is a special form that lets
+  ;; you evaluate several expressions, returning the
+  ;; results of the last one.
+  ;; https://clojuredocs.org/clojure.core/do
+  ;; `do` is handy when you want to have some side-
+  ;; effect going in addition to evaluating something.
+  ;; In development this often happens when you 
+  ;; want to `println` something
+  (do (println "The quick brown fox jumps over the lazy dog")
+      (+ 2 2))
+  ;; The `when` macro let's you take advantage of that
+  ;; there is only one branch, so you can do this
+  (when 'this-is-true
+    (println "The quick brown fox jumps over the lazy dog")
+    (+ 2 2))
+  ;; Without `when` you would write:
+  (if 'this-is-true
+    (do
+      (println "The quick brown fox jumps over the lazy dog")
+      (+ 2 2)))
+  ;; So both the extra `do` and the extra scanning to see
+  ;; that there is no else-branch.
+
+  ;; As far as macros go, `when` is about as simple as
+  ;; they get. From two built-in special forms,
+  ;; `if` and `do`, it composes a form that helps us
+  ;; write easy to write and easy to read code. 
   )
 
 ;; To be continued...
 
+;; expressions and if
 ;; immmutabibility
+;; threading
+;; let
+;; cond
 ;; atoms
+;; nil punning
 ;; fizz-buzz
 
 ;; Learn much more Clojure at https://clojure.org/
 ;; There is also ClojureSript, the same wondeful language,
 ;; for JavaScript VMs: https://clojurescript.org
+
+;; To get help with your Clojure questions, check these
+;; resources out:
+;; https://ask.clojure.org/
+;; https://clojurians.net
 
 
 "Hello Clojure"

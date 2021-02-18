@@ -8,7 +8,22 @@
   "I'll greet you"
   [name]
   (str "Hello " name "!"))
-;; To clear inline results display, press ESC
+
+;; Forms inside `(comment ...)` are also top level
+(comment
+  (greet "World"))
+;; You should see "Hello World!" displayed inline,
+;; and also printed to the `output.calva-repl` editor,
+;; a k a ”The Outout Window”, a k a ”The REPL Window”.
+;; To clear inline results display, press ESC.
+
+;; Anything printed to stdout is not shown inline,
+;; onlt in the output window:
+(comment
+  (println (greet "World")))
+;; You should see the result of the evaluation, nil,)
+;; inline, and ”Hello World!” followed by the result
+;; printed to the output window.
 
 ;; Ctrl+Enter evaluates the ”current” form
 ;; Try with the cursor at different places
@@ -26,8 +41,10 @@
 ;; Then eval current form inside the string above
 ;; Calva sends to the REPL whatever you ask it send.
 
-;; Forms inside `(comment ...)` are also top level
-;; Try Alt+Enter at different places below
+;; Repeating an important concept: Forms inside
+;; `(comment ...)` are also concidered top level
+;; Alt+Enter at different places below to get a
+;; feel for it.
 (comment
   "I ♥️ Clojure"
   (greet "World")
@@ -45,10 +62,18 @@
 ;; Google Rich Comments, if you are new
 ;; to this style of coding.
 
-;; See hello-paredit.clj to learn the very
-;; basics of structural editing in Calva
+;; Since evaluating Clojure expressions is so
+;; easy and fun. Some times you happen to evaluate
+;; something that never finishes, or takes to long
+;; to finish. For this, Calva has a command named
+;; *Interrupt Running Evaluations*. You will need
+;; it if you top-level evaluate this:
+(comment
+  (def tmp1 (dorun (range))))
 
-;; Learn more about Calva at https://calva.io 
-;; Clojure language basics: https://clojure.org/guides/learn/syntax
+;; Pleas continue to hello-paredit.clj to learn the
+;; very basics of structural editing in Calva.
 
-"Hello REPL is ready wit some things for you to try."
+;; Learn much more about Calva at https://calva.io 
+
+"hello_repl.clj is loaded, and ready with some things for you to try."
