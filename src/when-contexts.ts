@@ -4,8 +4,8 @@ import * as docMirror from './doc-mirror'
 
 type CursorContext = 'calva-standard' | AltCursorContext;
 type AltCursorContext = 'string' | 'comment';
-const stringContext = 'calva:cursorInString';
-const commentContext = 'calva:cursorInComment';
+const STRING_CONTEXT = 'calva:cursorInString';
+const COMMENT_CONTEXT = 'calva:cursorInComment';
 let lastContext: CursorContext = null;
 
 export default function setCursorContextIfChanged(editor: vscode.TextEditor) {
@@ -21,20 +21,20 @@ function setCursorContext(currentContext: CursorContext) {
     }
     lastContext = currentContext;
    
-    vscode.commands.executeCommand('setContext', commentContext, false);
-    vscode.commands.executeCommand('setContext', stringContext, false);
+    vscode.commands.executeCommand('setContext', COMMENT_CONTEXT, false);
+    vscode.commands.executeCommand('setContext', STRING_CONTEXT, false);
 
     switch (currentContext) {
         case 'calva-standard':
             break;
         case 'comment':
-            vscode.commands.executeCommand('setContext', commentContext, true);
+            vscode.commands.executeCommand('setContext', COMMENT_CONTEXT, true);
             break;
         case 'string':
-            vscode.commands.executeCommand('setContext', stringContext, true);
+            vscode.commands.executeCommand('setContext', STRING_CONTEXT, true);
             break;
         default:
-        // TODO: throw? log?
+            const checkExhaustive: never = currentContext;
     }
 }
 
@@ -46,16 +46,11 @@ function determineCursorContext(document: vscode.TextDocument, position: vscode.
     let context: CursorContext;
     if (tokenCursor.withinString()) {
         context = 'string';
-    } else if (tokenCursorWithinComment(tokenCursor)) {
+    } else if (tokenCursor.withinComment()) {
         context = 'comment';
     } else {
         context = 'calva-standard';
     }
 
     return context;
-}
-
-function tokenCursorWithinComment(cursor: TokenCursor):boolean {
-    const token_type = cursor.getToken().type;
-    return token_type === 'comment' || (token_type === 'eol' && cursor.getPrevToken().type === 'comment');
 }
