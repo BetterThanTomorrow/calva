@@ -3,6 +3,13 @@
 ;; Start with loading this file
 ;; Ctrl+Alt+C Enter
 
+;; Search the VS Code command palltte for
+;; Paredit to see all its commands. Pay
+;; close attention to the shortcuts it displays
+;; for the commands you use often. 😀
+;; See https://calva.io/paredit for much
+;; more than we show here.
+
 ;; Clojure is a LISP and therefore the code
 ;; is structural. Everything is organized in
 ;; ”forms”, a k a S-expressions (sexprs).
@@ -76,9 +83,6 @@
   (def raise-me
     #:or-raise-me {:or-me [1 2 3 4]
                    :or-this-> #{1 2 3 4}}))
-
-;; Pay attention to the keyboard shortcuts
-;; displayed in the Command Palette 😀
 
 ;; Learn much more Paredit: https://calva.io/paredit
 

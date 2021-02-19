@@ -1,5 +1,15 @@
 (ns hello-repl)
 
+;; We will often refer to commands by their name
+;; Use the VS Code Command palette to search for
+;; commands. All Calva commands are prefixed with,
+;; yes, Calva. The default keyboard shortcut for
+;; the command palette is Ctrl+Shift+P (Win/LLnux)
+;; Cmd+Shift+P (Mac).
+;; The command palette displays any keyboard
+;; shortcut bound to the command.
+
+
 ;; Alt+Enter evaluates ”top level” forms. Top level
 ;; meaning the outermost ”container” of forms, which
 ;; is the file. Place the cursor anywhere inside this 
@@ -17,8 +27,7 @@
 ;; a k a ”The Outout Window”, a k a ”The REPL Window”.
 ;; To clear inline results display, press ESC.
 
-;; Anything printed to stdout is not shown inline,
-;; onlt in the output window:
+;; Anything printed to stdout is not shown inline
 (comment
   (println (greet "World")))
 ;; You should see the result of the evaluation, nil,)
@@ -36,8 +45,9 @@
 ;; just for fun and learning:
 
 ;; Top level eval these 
-(def three 3)
-(def four "four")
+(comment
+  (def three 3)
+  (def four "four"))
 ;; Then eval current form inside the string above
 ;; Calva sends to the REPL whatever you ask it send.
 
@@ -71,7 +81,7 @@
 (comment
   (def tmp1 (dorun (range))))
 
-;; Pleas continue to hello-paredit.clj to learn the
+;; Pleas continue to hello_paredit.clj to learn the
 ;; very basics of structural editing in Calva.
 
 ;; Learn much more about Calva at https://calva.io 
