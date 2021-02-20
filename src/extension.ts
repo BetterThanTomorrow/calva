@@ -4,6 +4,7 @@ import * as fmt from "./calva-fmt/src/extension";
 import * as highlight from "./highlight/src/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
+import * as replStart from './nrepl/repl-start';
 import * as util from './utilities'
 import status from './status';
 import connector from './connector';
@@ -133,14 +134,14 @@ async function activate(context: vscode.ExtensionContext) {
     status.update(context);
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.startOrConnectRepl', jackIn.startOrConnectRepl));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startOrConnectRepl', replStart.startOrConnectRepl));
     context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneRepl', () => {
-        jackIn.startStandaloneRepl(context, jackIn.USER_TEMPLATE_FILE_NAMES);
+        replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE_FILE_NAMES);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneHelloRepl', () => {
-        jackIn.startStandaloneRepl(context, jackIn.HELLO_TEMPLATE_FILE_NAMES);
+        replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE_FILE_NAMES);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.jackInCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', () => {
         connector.connectNonProjectREPLCommand(context)
