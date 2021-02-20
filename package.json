@@ -1984,6 +1984,7 @@
     },
     "devDependencies": {
         "@types/chai": "^4.2.6",
+        "@types/follow-redirects": "^1.13.0",
         "@types/glob": "^7.1.1",
         "@types/lodash": "^4.14.167",
         "@types/mocha": "^5.2.7",
