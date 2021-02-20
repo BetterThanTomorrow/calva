@@ -9,7 +9,7 @@ Depending on wether you want to just start a Clojure REPL or you have a project 
 
 If you are new to Calva, a good place to start is using the command **Fire up the ”Getting Started” REPL**. 
 
-![Command Palette Start Standaloe REPL](images/howto/start-hello-repl.png "Fire up the ”Getting Started” REPL")
+![Command Palette Start Standalone REPL](images/howto/start-hello-repl.png "Fire up the ”Getting Started” REPL")
 
 It will open up a three files in a temporary directory, and start and connect a REPL. The files are:
 
