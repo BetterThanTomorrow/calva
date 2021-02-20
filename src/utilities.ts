@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { https } from 'follow-redirects';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';
@@ -421,6 +422,28 @@ function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     return vscode.workspace.fs.writeFile(uri, ui8a);
 }
 
+async function downloadFromUrl(url: string, savePath: string) {
+    return new Promise((resolve, reject) => {
+        const saveFile = fs.createWriteStream(savePath);
+        https.get(url, (res) => {
+            if (res.statusCode === 200) {
+                res.pipe(saveFile);
+            } else {
+                saveFile.close();
+                reject(new Error(`Server responded with ${res.statusCode}: ${res.statusMessage}`));
+            }
+            res.on('end', () => {
+                saveFile.close()
+                resolve(true);
+            });
+            res.on('error', (err: any) => {
+                console.error(`Error downloading file from ${url}: ${err.message}`)
+                reject(err);
+            });
+        });     
+    });
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -456,5 +479,6 @@ export {
     currentFunction,
     currentTopLevelFunction,
     sortByPresetOrder,
-    writeTextToFile
+    writeTextToFile,
+    downloadFromUrl
 };
