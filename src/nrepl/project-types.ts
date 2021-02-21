@@ -7,6 +7,8 @@ import * as pprint from '../printer';
 
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
+import { pathToNs } from '../util/ns-form';
+import { connect } from '../connector';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -16,6 +18,8 @@ export type ProjectType = {
     cljsTypes: string[];
     cmd: string[];
     winCmd: string[];
+    resolveBundledPathWin?: Function,
+    resolveBundledPathUnix?: Function,
     processShellWin: boolean;
     processShellUnix: boolean;
     commandLine: (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => any;
@@ -60,7 +64,7 @@ export function nreplPortFileUri(connectSequence: ReplConnectSequence): vscode.U
         try {
             return vscode.Uri.joinPath(projectRoot, relativePath);
         } catch (e) {
-            console.log(e);
+            return vscode.Uri.file(path.join(projectRoot.fsPath, relativePath));
         }
     }
     return vscode.Uri.file(relativePath);
@@ -238,10 +242,15 @@ const cljsMiddleware: { [id: string]: string[] } = {
     "shadow-cljs": [],
     "lein-shadow": [cljsMiddlewareNames.wrapCljsRepl],
     "Nashorn": [cljsMiddlewareNames.wrapCljsRepl],
-    "User provided": [cljsMiddlewareNames.wrapCljsRepl]
+    "User provided": [cljsMiddlewareNames.wrapCljsRepl],
+    'none': []
 };
 
 const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
+
+function depsCljWindowsPath() {
+    return `"${path.join('.', '.calva', 'deps.clj.jar')}"`;
+}
 
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
@@ -265,25 +274,12 @@ const projectTypes: { [id: string]: ProjectType } = {
             return await leinCommandLine(["repl", ":headless"], cljsType, connectSequence);
         }
     },
-    /* // Works but analysing the possible launch environment is unsatisfactory for now, use the cli :)
-    "boot": {
-        name: "Boot",
-        cmd: "boot",
-        winCmd: "boot.exe",
-        useWhenExists: "build.boot",
-        commandLine: () => {
-            let out: string[] = [];
-            for(let dep in cliDependencies)
-                out.push("-d", dep+":"+cliDependencies[dep]);
-            return [...out, "-i", initEval, "repl"];
-        }
-    },
-    */
     "clj": {
         name: "deps.edn",
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: ["clojure"],
-        winCmd: [], // this will be determined at jack-in
+        winCmd: ['java', '-jar'],
+        resolveBundledPathWin: depsCljWindowsPath,
         processShellUnix: true,
         processShellWin: true,
         useWhenExists: "deps.edn",
@@ -297,67 +293,7 @@ const projectTypes: { [id: string]: ProjectType } = {
          * 6. if no main-opts => supply our own main to run nrepl with middlewares
          */
         commandLine: async (connectSequence, cljsType) => {
-            let out: string[] = [];
-            let bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "deps.edn"));
-            let data = new TextDecoder("utf-8").decode(bytes);
-            let parsed;
-            try {
-                parsed = parseEdn(data);
-            } catch (e) {
-                vscode.window.showErrorMessage("Could not parse deps.edn");
-                throw e;
-            }
-            const menuSelections = connectSequence.menuSelections,
-                launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
-            let aliases: string[] = [];
-            if (launchAliases) {
-                aliases = launchAliases.map(keywordize);
-            } else {
-                let projectAliases = parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
-                const myAliases = state.config().myCljAliases;
-                if (myAliases && myAliases.length) {
-                    projectAliases = [...projectAliases, ...myAliases];
-                }
-                if (projectAliases.length) {
-                    aliases = await utilities.quickPickMulti({
-                        values: projectAliases.map(keywordize),
-                        saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
-                        placeHolder: "Pick any aliases to launch with"
-                    });
-                }
-            }
-
-            const dependencies = {
-                ...cliDependencies(),
-                ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
-                ...serverPrinterDependencies
-            },
-                useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
-            const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-            let aliasHasMain: boolean = false;
-            for (let ali in aliases) {
-                const aliasKey = unKeywordize(aliases[ali]);
-                if (parsed.aliases) {
-                    let alias = parsed.aliases[aliasKey];
-                    aliasHasMain = alias && alias["main-opts"] != undefined;
-                }
-                if (aliasHasMain)
-                    break;
-            }
-            const q = isWin ? '"' : "'";
-            const dQ = isWin ? '""' : '"';
-            for (let dep in dependencies)
-                out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`)
-
-            let args = ["-Sdeps", `${q}${"{:deps {" + out.join(',') + "}}"}${q}`];
-
-            if (aliasHasMain) {
-                args.push(aliasesOption);
-            } else {
-                args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
-            }
-
-            return args;
+            return cljCommandLine(connectSequence, cljsType);
         }
     },
     "shadow-cljs": {
@@ -423,19 +359,94 @@ const projectTypes: { [id: string]: ProjectType } = {
         }
     },
     'generic': {
-        // There is no Jack-in supported here
         name: 'generic',
         cljsTypes: [],
-        cmd: undefined,
-        winCmd: undefined,
+        cmd: ['java', '-jar'],
+        winCmd: ['java', '-jar'],
+        resolveBundledPathWin: depsCljWindowsPath,
+        resolveBundledPathUnix: () => `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
         processShellUnix: true,
-        processShellWin: false,
+        processShellWin: true,
         useWhenExists: undefined,
         nReplPortFile: [".nrepl-port"],
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
-            return undefined;
+            return cljCommandLine(connectSequence, CljsTypes.none);
         }
     },
+}
+
+
+async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: CljsTypes) {
+    let out: string[] = [];
+    let depsUri: vscode.Uri;
+    try {
+        depsUri = vscode.Uri.joinPath(state.getProjectRootUri(), "deps.edn");
+    } catch {
+        depsUri = vscode.Uri.file(path.join(state.getProjectRootUri().fsPath, "deps.edn"))
+    }
+    let parsed;
+    if (connectSequence.projectType !== 'generic') {
+        vscode.workspace.fs.stat(depsUri);
+        let bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "deps.edn"));
+        let data = new TextDecoder("utf-8").decode(bytes);
+        try {
+            parsed = parseEdn(data);
+        } catch (e) {
+            vscode.window.showErrorMessage("Could not parse deps.edn");
+            throw e;
+        }
+    }
+    const menuSelections = connectSequence.menuSelections;
+    const launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
+    let aliases: string[] = [];
+    if (launchAliases) {
+        aliases = launchAliases.map(keywordize);
+    } else {
+        let projectAliases = parsed && parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
+        const myAliases = state.config().myCljAliases;
+        if (myAliases && myAliases.length) {
+            projectAliases = [...projectAliases, ...myAliases];
+        }
+        if (projectAliases.length) {
+            aliases = await utilities.quickPickMulti({
+                values: projectAliases.map(keywordize),
+                saveAs: `${state.getProjectRootUri().toString()}/clj-cli-aliases`,
+                placeHolder: "Pick any aliases to launch with"
+            });
+        }
+    }
+
+    const dependencies = {
+        ...cliDependencies(),
+        ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
+        ...serverPrinterDependencies
+    };
+    const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
+    const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+    let aliasHasMain: boolean = false;
+    for (let ali in aliases) {
+        const aliasKey = unKeywordize(aliases[ali]);
+        if (parsed && parsed.aliases) {
+            let alias = parsed.aliases[aliasKey];
+            aliasHasMain = alias && alias["main-opts"] != undefined;
+        }
+        if (aliasHasMain)
+            break;
+    }
+    const q = isWin ? '"' : "'";
+    const dQ = isWin ? '""' : '"';
+    for (let dep in dependencies)
+        out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`)
+
+    let args = ["-Sdeps", `${q}${"{:deps {" + out.join(',') + "}}"}${q}`];
+
+    if (aliasHasMain) {
+        args.push(aliasesOption);
+    } else {
+        args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
+    }
+
+    return args;
 }
 
 async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSequence: ReplConnectSequence) {
@@ -495,7 +506,7 @@ export async function detectProjectTypes(): Promise<string[]> {
 }
 
 export function getAllProjectTypes(): string[] {
-    return [...Object.keys(projectTypes)];
+    return ['generic', ...Object.keys(projectTypes).filter(pt => pt !== 'generic')];
 }
 
 export function getCljsTypeName(connectSequence: ReplConnectSequence) {

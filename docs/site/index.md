@@ -6,14 +6,7 @@
 
 ## Getting Started
 
-First thing you need to do is to get [Calva connected to the REPL of your project](connect.md). Then we suggest you check out [Something to Try First](try-first.md).
-
-If you are new to Clojure or ClojureScript altogether, please check out the guide material on the respective official sites:
-
-- [Getting Started with Clojure](https://clojure.org/guides/getting_started)
-- [ClojureScript Quick Start](https://clojurescript.org/guides/quick-start)
-
-There are also many great books on Clojure. [Clojure for the Brave and True](https://www.braveclojure.com/clojure-for-the-brave-and-true/) can be read for free online, and is a great resource for beginners.
+[Connect you Project!](connect.md). 🚀
 
 ## How to Contribute to Calva?
 

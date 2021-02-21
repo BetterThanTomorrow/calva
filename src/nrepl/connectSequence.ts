@@ -205,7 +205,7 @@ function getCustomConnectSequences(): ReplConnectSequence[] {
  */
 function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     const customSequences = getCustomConnectSequences();
-    const defSequences = projectTypes.reduce((seqs, projecType) => seqs.concat(defaultSequences[projecType]), []);
+    const defSequences = projectTypes.reduce((seqs, projectType) => seqs.concat(defaultSequences[projectType]), []);
     const defSequenceProjectTypes = [...new Set(defSequences.map(s => s.projectType))];
     const sequences = customSequences.filter(customSequence => defSequenceProjectTypes.includes(customSequence.projectType)).concat(defSequences);
     return sequences;
@@ -224,10 +224,12 @@ function getDefaultCljsType(cljsType: string): CljsTypeConfig {
 async function askForConnectSequence(cljTypes: string[], saveAs: string, logLabel: string): Promise<ReplConnectSequence> {
     // figure out what possible kinds of project we're in
     const sequences: ReplConnectSequence[] = getConnectSequences(cljTypes);
+    const projectRootUri = state.getProjectRootUri();
+    const saveAsFull = projectRootUri ? `${projectRootUri.toString()}/${saveAs}` : saveAs;
     const projectConnectSequenceName = await utilities.quickPickSingle({
         values: sequences.map(s => { return s.name }),
         placeHolder: "Please select a project type",
-        saveAs: `${state.getProjectRootUri().toString()}/${saveAs}`,
+        saveAs: saveAsFull,
         autoSelect: true
     });
     if (!projectConnectSequenceName || projectConnectSequenceName.length <= 0) {
@@ -244,5 +246,6 @@ export {
     getDefaultCljsType,
     CljsTypes,
     ReplConnectSequence,
-    CljsTypeConfig
+    CljsTypeConfig,
+    genericDefaults
 }

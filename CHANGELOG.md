@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Connect ”not in project” glitches](https://github.com/BetterThanTomorrow/calva/issues/814)
+- [Add two ”Start Standalone REPL” commands](https://github.com/BetterThanTomorrow/calva/issues/1003)
 
 - [Add a configuration option to disable diagnostics](https://github.com/BetterThanTomorrow/calva/pull/981)
 

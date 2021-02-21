@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as os from 'os';
 import * as state from '../state';
 import { highlight } from '../highlight/src/extension'
 import { NReplSession } from '../nrepl';
@@ -35,13 +36,18 @@ export const CLJS_CONNECT_GREETINGS = '; TIPS: You can choose which REPL to use 
 ;    *Calva: Toggle REPL connection*\n\
 ;    (There is a button in the status bar for this)';
 
-const OUTPUT_FILE_DIR = () => {
-    const projectRoot = state.getProjectRootUri();
-    return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
+
+function outputFileDir() {
+    let projectRoot = state.getProjectRootUri();
+    try {
+        return vscode.Uri.joinPath(projectRoot, ".calva", "output-window");
+    } catch {
+        return vscode.Uri.file(path.join(projectRoot.fsPath, ".calva", "output-window"));
+    }
 };
 
 const DOC_URI = () => {
-    return vscode.Uri.joinPath(OUTPUT_FILE_DIR(), RESULTS_DOC_NAME);
+    return vscode.Uri.joinPath(outputFileDir(), RESULTS_DOC_NAME);
 };
 
 let _sessionType: ReplSessionType = "clj";
@@ -100,26 +106,17 @@ function setViewColumn(column: vscode.ViewColumn) {
     return state.extensionContext.workspaceState.update(`outputWindowViewColumn`, column);
 }
 
-function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
-    const ab = new ArrayBuffer(text.length);
-    const ui8a = new Uint8Array(ab);
-    for (var i = 0, strLen = text.length; i < strLen; i++) {
-        ui8a[i] = text.charCodeAt(i);
-    }
-    return vscode.workspace.fs.writeFile(uri, ui8a);
-}
-
 export function setContextForOutputWindowActive(isActive: boolean): void {
     vscode.commands.executeCommand("setContext", "calva:outputWindowActive", isActive);
 }
 
 export async function initResultsDoc(): Promise<vscode.TextDocument> {
-    await vscode.workspace.fs.createDirectory(OUTPUT_FILE_DIR());
+    await vscode.workspace.fs.createDirectory(outputFileDir());
     let resultsDoc: vscode.TextDocument;
     try {
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
     } catch (e) {
-        await writeTextToFile(DOC_URI(), '');
+        await util.writeTextToFile(DOC_URI(), '');
         resultsDoc = await vscode.workspace.openTextDocument(DOC_URI());
     }
     const greetings = `${START_GREETINGS}\n\n`;
