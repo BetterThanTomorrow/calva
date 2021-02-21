@@ -11,7 +11,7 @@
         <meta name="description" content="Learn how to use Calva to boost your Clojure and ClojureScript coding in VS Code.">
       
       
-        <link rel="canonical" href="https://calva.io/commands-top10/">
+        <link rel="canonical" href="https://calva.io/getting-started/">
       
       
       <link rel="shortcut icon" href="../img/favicon.ico">
@@ -19,7 +19,7 @@
     
     
       
-        <title>The Top 10 Calva Commands - Calva User Guide</title>
+        <title>Getting Started - Calva User Guide</title>
       
     
     
@@ -59,7 +59,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#the-top-10-calva-commands" class="md-skip">
+        <a href="#getting-started" class="md-skip">
           Skip to content
         </a>
       
@@ -86,7 +86,7 @@
           </span>
           <span class="md-header-nav__topic md-ellipsis">
             
-              The Top 10 Calva Commands
+              Getting Started
             
           </span>
         </div>
@@ -285,12 +285,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+      <input class="md-nav__toggle md-toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
     
     <label class="md-nav__link" for="nav-3">
       Features
@@ -312,53 +310,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        The Top 10 Calva Commands
-        <span class="md-nav__icon md-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3,9H17V7H3V9M3,13H17V11H3V13M3,17H17V15H3V17M19,17H21V15H19V17M19,7V9H21V7H19M19,13H21V11H19V13Z" /></svg>
-        </span>
-      </label>
-    
-    <a href="./" title="The Top 10 Calva Commands" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../commands-top10/" title="The Top 10 Calva Commands" class="md-nav__link">
       The Top 10 Calva Commands
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
-      </span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#some-more-commands-to-try" class="md-nav__link">
-    Some More Commands to Try
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -795,8 +751,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#some-more-commands-to-try" class="md-nav__link">
-    Some More Commands to Try
+  <a href="#theres-a-getting-started-repl" class="md-nav__link">
+    There's a ”Getting Started” REPL
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#you-have-a-project" class="md-nav__link">
+    You have a Project?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clojure-resources" class="md-nav__link">
+    Clojure Resources
   </a>
   
 </li>
@@ -813,7 +783,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/commands-top10.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/getting-started.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>
                   </a>
                 
@@ -821,52 +791,37 @@
                   
                 
                 
-                <h1 id="the-top-10-calva-commands">The Top 10 Calva Commands</h1>
-<p>There are not all that many Calva commands. You can learn them all if you like, but here are the most important ones to know about for effective Clojure/ClojureScript coding:</p>
+                <h1 id="getting-started">Getting Started</h1>
+<p>Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Both start with:</p>
+<ol>
+<li>You have VS Code started</li>
+<li>You install Calva</li>
+</ol>
+<h2 id="theres-a-getting-started-repl">There's a ”Getting Started” REPL</h2>
+<p>If you are new to Calva, a good place to start is using the command <strong>Fire up the ”Getting Started” REPL</strong>. </p>
+<p><img alt="Command Palette Start Standalone REPL" src="../images/howto/start-hello-repl.png" title="Fire up the ”Getting Started” REPL" /></p>
+<p>It will open up a three files in a temporary directory, and start and connect a REPL. The files are:</p>
 <ul>
-<li><strong>Grow/expand selection</strong>: <code>ctrl+w</code> (<code>shift+alt+right</code> on Windows and Linux)</li>
-<li><strong>Load current file</strong>: <code>alt+ctrl+c enter</code>, evaluates the namespace code in the active editor tab. This also loads any required namespaces, and generally gives Calva what it needs to work.</li>
-<li><strong>Evaluate current form</strong>:  <code>ctrl+enter</code> finds the form from the cursor position, evaluates it and displays the result inline. Hit <code>esc</code> to dismiss the results display.</li>
-<li><strong>Evaluate current top-level form</strong>: <code>alt+enter</code>: inline evaluate the current top-level form. This also works inside <code>(comment)</code> forms. Use it to (re)define vars and then inside comment forms you can verify that they do what you want them to do.</li>
-<li><strong>Dismiss the display of results</strong>: <code>escape</code>: (VIM Extension users should read <a href="../vim/">Using Calva with the VIM Extension</a>).</li>
+<li><code>hello-repl.clj</code> – The basics of how to evaluate code in Calva</li>
+<li><code>hello-paredit.clj</code> - A super brief intro to Calva structural editing</li>
+<li><code>hello-clojure.clj</code> - The very basics of the Clojure language</li>
 </ul>
-<p>There are also two commands for bringing over the current form and the current top level form over to the repl window:</p>
+<p><img alt="Hello REPL" src="../images/howto/hello-repl.png" title="hello-repl.clj" /></p>
+<p>The only prerequisite here is that you have Java installed. <em>No pre-installed clojure tools required.</em> (You will want to install these tools later, of course.)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When you are more familiar with Calva, and want a standalone REPL, there is a separate command: <strong>Start a standalone REPL (not in project)</strong>. It will open up a <code>user.clj</code> in a temporary directory, containing only an <code>(ns user)</code> form, and start and connect the REPL. </p>
+</div>
+<h2 id="you-have-a-project">You have a Project?</h2>
+<p>If you are new to Calva, please consider the above option first. Then when it it will be time to get <a href="../connect/">Calva connected to the REPL of your project</a>.</p>
+<h2 id="clojure-resources">Clojure Resources</h2>
+<p>If you are new to Clojure or ClojureScript altogether, please check out the guide material on the respective official sites:</p>
 <ul>
-<li><code>ctrl+alt+c ctrl+alt+e</code> (<code>ctrl+alt+c ctrl+alt+v</code> on Windows): to paste the current form in the REPL window.</li>
-<li><code>ctrl+alt+c ctrl+alt+space</code>: to paste the current top-level form in this window</li>
+<li><a href="https://clojure.org/guides/getting_started">Getting Started with Clojure</a></li>
+<li><a href="https://clojurescript.org/guides/quick-start">ClojureScript Quick Start</a></li>
 </ul>
-<p>You can also switch the name space of the output/repl window to that of the current file: <code>alt+ctrl+c alt+n</code></p>
-<ul>
-<li><strong>Toggle pretty printing</strong> of results on and off: <code>ctrl+alt+c p</code>. It's on by default. There is a status bar button showing the status and that also can be used to toggle the setting.</li>
-</ul>
-<h2 id="some-more-commands-to-try">Some More Commands to Try</h2>
-<ul>
-<li>Code evaluation<ul>
-<li>Evaluate code and add as comment: <code>ctrl+alt+c c</code> (current form), <code>ctrl+alt+c ctrl+space</code> (current <em>top level</em> form)</li>
-<li>Evaluate code and replace it in the editor, inline: <code>ctrl+alt+c r</code></li>
-</ul>
-</li>
-<li>Integrated REPLs<ul>
-<li>Send current editor form to the REPL window: <code>ctrl+alt+c ctrl+alt+e</code> (<code>ctrl+alt+c ctrl+alt+v</code> on Windows)</li>
-<li>Send current editor <em>top level</em> form to the REPL window: <code>ctrl+alt+c ctrl+alt+space</code></li>
-</ul>
-</li>
-<li>Run tests and mark failures and errors in the Problems pane<ul>
-<li>Run namespace tests: <code>ctrl+alt+c t</code></li>
-<li>Run all tests: <code>ctrl+alt+c shift+t</code></li>
-<li>Run current test: <code>ctrl+alt+c ctrl+alt+t</code></li>
-<li>Rerun previously failing tests: <code>ctrl+alt+c ctrl+t</code></li>
-<li><strong>Caveat</strong>: Right now the tests are reported only when all are run, making it painful to run all tests in larger projects. I'll fix it. Promise!</li>
-</ul>
-</li>
-<li>Select current form: <code>ctrl+alt+c s</code>.</li>
-<li>Run custom commands, i.e. code snippets, at will: <code>ctrl+alt+c .</code></li>
-</ul>
-<p>See also:</p>
-<ul>
-<li><a href="../eval-tips/">Code Evaluation Tips</a></li>
-<li><a href="../finding-commands/">Finding Calva Commands and Shortcuts</a></li>
-</ul>
+<p>There are also many great books on Clojure. <a href="https://www.braveclojure.com/clojure-for-the-brave-and-true/">Clojure for the Brave and True</a> can be read for free online. It is a great resource for beginners.</p>
+<p>Happy coding! ♥️</p>
                 
               
               
@@ -881,41 +836,6 @@
       
         
 <footer class="md-footer">
-  
-    <div class="md-footer-nav">
-      <nav class="md-footer-nav__inner md-grid" aria-label="Footer">
-        
-          <a href="../clojure-lsp/" title="Clojure-lsp" class="md-footer-nav__link md-footer-nav__link--prev" rel="prev">
-            <div class="md-footer-nav__button md-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" /></svg>
-            </div>
-            <div class="md-footer-nav__title">
-              <div class="md-ellipsis">
-                <span class="md-footer-nav__direction">
-                  Previous
-                </span>
-                Clojure-lsp
-              </div>
-            </div>
-          </a>
-        
-        
-          <a href="../output/" title="The Output/REPL Window/File" class="md-footer-nav__link md-footer-nav__link--next" rel="next">
-            <div class="md-footer-nav__title">
-              <div class="md-ellipsis">
-                <span class="md-footer-nav__direction">
-                  Next
-                </span>
-                The Output/REPL Window/File
-              </div>
-            </div>
-            <div class="md-footer-nav__button md-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z" /></svg>
-            </div>
-          </a>
-        
-      </nav>
-    </div>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
