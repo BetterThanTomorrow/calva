@@ -1,9 +1,6 @@
 # Getting Started
 
-Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Both start with:
-
-0. You have VS Code started
-1. You install Calva
+Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Regardless, you need to install Calva in VS Code.
 
 ## There's a ”Getting Started” REPL
 
