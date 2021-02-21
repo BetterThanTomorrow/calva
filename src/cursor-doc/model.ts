@@ -8,7 +8,8 @@ export function initScanner(maxLength: number) {
 }
 
 /** A cheesy deep-equal function for matching scanner states. Good enough to compare plain old js objects. */
-function equal(x: any, y: any): boolean {
+// TODO: OK to export from here or move to util?
+export function equal(x: any, y: any): boolean {
     if(x==y) return true;
     if(x instanceof Array && y instanceof Array) {
         if(x.length == y.length) {

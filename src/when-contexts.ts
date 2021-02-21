@@ -1,56 +1,56 @@
 import * as vscode from 'vscode';
-import { TokenCursor } from './cursor-doc/token-cursor';
+import { Token } from './cursor-doc/lexer';
+import { equal as deep_equal } from './cursor-doc/model'
+import { TokenCursor, LispTokenCursor } from './cursor-doc/token-cursor';
 import * as docMirror from './doc-mirror'
 
-type CursorContext = 'calva-standard' | AltCursorContext;
-type AltCursorContext = 'string' | 'comment';
-const STRING_CONTEXT = 'calva:cursorInString';
-const COMMENT_CONTEXT = 'calva:cursorInComment';
-let lastContext: CursorContext = null;
+type CursorContext = LexerCursorContext | PreLexerCursorContext;
+type LexerCursorContext = 'calva:cursorInString' | 'calva:cursorInComment';
+type PreLexerCursorContext = 'calva:cursorAtStartOfLine' | 'calva:cursorAtEndOfLine'
+const allCursorContexts: CursorContext[] = ['calva:cursorInString', 'calva:cursorInComment', 'calva:cursorAtStartOfLine', 'calva:cursorAtEndOfLine']
+
+let lastContexts: CursorContext[] = [];
 
 export default function setCursorContextIfChanged(editor: vscode.TextEditor) {
     if (!editor || !editor.document || editor.document.languageId !== 'clojure') return;
 
-    const currentContext = determineCursorContext(editor.document, editor.selection.active);
-    setCursorContext(currentContext);
+    const currentContexts = determineCursorContexts(editor.document, editor.selection.active);
+    setCursorContexts(currentContexts);
 }
 
-function setCursorContext(currentContext: CursorContext) {
-    if (lastContext === currentContext) {
+function setCursorContexts(currentContexts: CursorContext[]) {
+    if (deep_equal(lastContexts, currentContexts)) {
         return;
     }
-    lastContext = currentContext;
-   
-    vscode.commands.executeCommand('setContext', COMMENT_CONTEXT, false);
-    vscode.commands.executeCommand('setContext', STRING_CONTEXT, false);
+    lastContexts = currentContexts;
 
-    switch (currentContext) {
-        case 'calva-standard':
-            break;
-        case 'comment':
-            vscode.commands.executeCommand('setContext', COMMENT_CONTEXT, true);
-            break;
-        case 'string':
-            vscode.commands.executeCommand('setContext', STRING_CONTEXT, true);
-            break;
-        default:
-            const checkExhaustive: never = currentContext;
-    }
+    allCursorContexts.forEach(context => {
+        vscode.commands.executeCommand('setContext', context, currentContexts.indexOf(context) > -1)
+    })
 }
 
-function determineCursorContext(document: vscode.TextDocument, position: vscode.Position): CursorContext {
+function determineCursorContexts(document: vscode.TextDocument, position: vscode.Position): CursorContext[] {
+    let contexts: CursorContext[] = [];
     const idx = document.offsetAt(position);
     const mirrorDoc = docMirror.getDocument(document);
     const tokenCursor = mirrorDoc.getTokenCursor(idx);
+    const line = document.lineAt(position);
 
-    let context: CursorContext;
-    if (tokenCursor.withinString()) {
-        context = 'string';
-    } else if (tokenCursor.withinComment()) {
-        context = 'comment';
-    } else {
-        context = 'calva-standard';
+    if (position.character <= line.firstNonWhitespaceCharacterIndex) {
+        contexts.push('calva:cursorAtStartOfLine');
+        // no line end within multiline strings
+    } else if (!tokenCursor.withinString()) {
+        const lastNonWSIndex = line.text.match(/\S(?=(\s*$))/)?.index;
+        if (position.character > lastNonWSIndex) {
+            contexts.push('calva:cursorAtEndOfLine');
+        }
     }
 
-    return context;
+    if (tokenCursor.withinString()) {
+        contexts.push('calva:cursorInString');
+    } else if (tokenCursor.withinComment()) {
+        contexts.push('calva:cursorInComment');
+    }
+
+    return contexts;
 }
