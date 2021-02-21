@@ -57,7 +57,7 @@ function update(context = state.extensionContext) {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.color = colorValue("connectedStatusColor", currentConf);
         connectionStatus.tooltip = `nrepl://${current.get('hostname')}:${current.get('port')} (Click to reset connection)`;
-        connectionStatus.command = "calva.jackInOrConnect";
+        connectionStatus.command = "calva.startOrConnectRepl";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
         const replType = namespace.getREPLSessionType();
         if (replType !== null) {
@@ -91,7 +91,7 @@ function update(context = state.extensionContext) {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.tooltip = "Click to jack-in or Connect to REPL Server";
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
-        connectionStatus.command = "calva.jackInOrConnect";
+        connectionStatus.command = "calva.startOrConnectRepl";
     }
     if (status.shouldshowReplUi(context)) {
         connectionStatus.show();
