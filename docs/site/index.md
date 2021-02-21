@@ -6,7 +6,7 @@
 
 ## Getting Started
 
-[Let's start a REPL!](getting-started.md). 🚀
+[Connect you Project!](connect.md). 🚀
 
 ## How to Contribute to Calva?
 

@@ -134,7 +134,7 @@ export async function startOrConnectRepl() {
         } else {
             commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             commands[START_REPL_OPTION] = START_REPL_COMMAND;
-            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
+            //commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         }
     } else {
         commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
