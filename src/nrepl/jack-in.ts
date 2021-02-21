@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import * as utilities from "../utilities";
 import * as _ from "lodash";
 import * as state from "../state"
@@ -145,6 +146,11 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
     if (projectTypes.isWin) {
         cmd = projectType.winCmd;
         if (projectType.resolveBundledPathWin) {
+            const jarSourceUri = vscode.Uri.file(path.join(state.extensionContext.extensionPath, 'deps.clj.jar')); 
+            const jarDestUri = vscode.Uri.file(path.join(state.getProjectRootLocal(), '.calva', 'deps.clj.jar')); 
+            try {
+                await vscode.workspace.fs.copy(jarSourceUri, jarDestUri, { overwrite: false });
+            } catch { }        
             cmd = [...cmd, projectType.resolveBundledPathWin()]; 
         }
     } else {

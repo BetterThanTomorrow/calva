@@ -248,6 +248,10 @@ const cljsMiddleware: { [id: string]: string[] } = {
 
 const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
 
+function depsCljWindowsPath() {
+    return `"${path.join('.', '.calva', 'deps.clj.jar')}"`;
+}
+
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
         name: "Leiningen",
@@ -275,7 +279,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         cljsTypes: ["Figwheel", "Figwheel Main"],
         cmd: ["clojure"],
         winCmd: ['java', '-jar'],
-        resolveBundledPathUnix: () => `"${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}"`,
+        resolveBundledPathWin: depsCljWindowsPath,
         processShellUnix: true,
         processShellWin: true,
         useWhenExists: "deps.edn",
@@ -359,7 +363,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         cljsTypes: [],
         cmd: ['java', '-jar'],
         winCmd: ['java', '-jar'],
-        resolveBundledPathWin: () => `"${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}"`,
+        resolveBundledPathWin: depsCljWindowsPath,
         resolveBundledPathUnix: () => `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
         processShellUnix: true,
         processShellWin: true,
