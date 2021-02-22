@@ -190,11 +190,11 @@
         (setStatusBarMessage
          "$(sync~spin) Initializing Clojure language features via clojure-lsp"
          (. client onReady)))
-    (go
-      (<p! (. client onReady))
-      (.. state -cursor (set client-key client))
-      (register-commands context client)
-      (register-event-handlers context))))
+    (.. (. client onReady)
+        (then #(do
+                 (.. state -cursor (set client-key client))
+                 (register-commands context client)
+                 (register-event-handlers context))))))
 
 (defn deactivate []
   (when-let [client (.. state deref (get client-key))]
