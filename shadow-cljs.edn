@@ -22,7 +22,8 @@
                              :activateLsp calva.lsp/activate
                              :deactivateLsp calva.lsp/deactivate
                              :getReferences calva.lsp/get-references
-                             :getDocumentSymbols calva.lsp/get-document-symbols}
+                             :getDocumentSymbols calva.lsp/get-document-symbols
+                             :LSP_CLIENT_KEY calva.lsp/client-key}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

@@ -3,11 +3,10 @@ import * as namespace from '../namespace';
 import * as state from '../state';
 import { LanguageClient } from 'vscode-languageclient';
 import { Position, Location, DocumentSymbol } from 'vscode-languageserver-protocol';
-import lsp from '../lsp';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import { getReferences, getDocumentSymbols } from '../../out/cljs-lib/cljs-lib';
+import { getReferences, getDocumentSymbols, LSP_CLIENT_KEY } from '../../out/cljs-lib/cljs-lib';
 
 let enabled = false;
 
@@ -95,7 +94,7 @@ function triggerUpdateAndRenderDecorations() {
         if (editor) {
             timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
-                const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
+                const lspClient = state.deref().get(LSP_CLIENT_KEY);
                 update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }

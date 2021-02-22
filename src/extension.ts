@@ -29,7 +29,6 @@ import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
-import lsp from './lsp';
 import * as snippets from './custom-snippets';
 import { activateLsp, deactivateLsp } from '../out/cljs-lib/cljs-lib';
 

@@ -11,6 +11,8 @@
 (def util (js/require "../utilities.js"))
 (def definition (js/require "../providers/definition.js"))
 
+(def client-key "lspClient")
+
 ;;;; Client middleware
 
 (defn handle-diagnostics
@@ -190,12 +192,12 @@
          (. client onReady)))
     (go
       (<p! (. client onReady))
-      (.. state -cursor (set "lspClient" client))
+      (.. state -cursor (set client-key client))
       (register-commands context client)
       (register-event-handlers context))))
 
 (defn deactivate []
-  (when-let [client (.. state deref (get "lspClient"))]
+  (when-let [client (.. state deref (get client-key))]
     (.. client stop)))
 
 (defn get-references
