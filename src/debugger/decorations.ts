@@ -7,7 +7,7 @@ import lsp from '../lsp';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import { getReferences } from '../../out/cljs-lib/cljs-lib';
+import { getReferences, getDocumentSymbols } from '../../out/cljs-lib/cljs-lib';
 
 let enabled = false;
 
@@ -42,7 +42,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
                     const namespacePath = (await cljSession.nsPath(namespace)).path;
                     const docUri = vscode.Uri.parse(namespacePath, true);
                     const decodedDocUri = decodeURIComponent(docUri.toString());
-                    const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+                    const docSymbols = (await getDocumentSymbols(lspClient, decodedDocUri))[0].children;
                     const instrumentedDocSymbols = docSymbols.filter(s => instrumentedDefs.includes(s.name));
                     const instrumentedDocSymbolsReferenceRanges = await Promise.all(instrumentedDocSymbols.map(s => {
                         const position = {

@@ -21,7 +21,8 @@
                              :parseForms calva.parse/parse-forms-js-bridge
                              :activateLsp calva.lsp/activate
                              :deactivateLsp calva.lsp/deactivate
-                             :getReferences calva.lsp/get-references}
+                             :getReferences calva.lsp/get-references
+                             :getDocumentSymbols calva.lsp/get-document-symbols}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

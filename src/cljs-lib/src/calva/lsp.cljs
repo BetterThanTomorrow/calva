@@ -200,7 +200,6 @@
 
 (defn get-references
   [^LanguageClient client uri ^Position position include-declaration]
-  (js/console.log "Getting lsp references")
   (.. client
       (sendRequest "textDocument/references"
                    (clj->js {:textDocument {:uri uri}
@@ -209,5 +208,11 @@
                                        (if (nil? include-declaration)
                                          true
                                          include-declaration)}}))))
+
+(defn get-document-symbols
+  [^LanguageClient client uri]
+  (.. client
+      (sendRequest "textDocument/documentSymbol"
+                   (clj->js {:textDocument {:uri uri}}))))
 
 (comment)
