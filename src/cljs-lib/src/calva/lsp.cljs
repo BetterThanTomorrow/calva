@@ -1,6 +1,6 @@
 (ns calva.lsp
   (:require ["vscode" :as vscode]
-            ["vscode-languageclient" :refer [LanguageClient]]
+            ["vscode-languageclient" :refer [LanguageClient Position]]
             ["path" :as path]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
@@ -197,5 +197,17 @@
 (defn deactivate []
   (when-let [client (.. state deref (get "lspClient"))]
     (.. client stop)))
+
+(defn get-references
+  [^LanguageClient client uri ^Position position include-declaration]
+  (js/console.log "Getting lsp references")
+  (.. client
+      (sendRequest "textDocument/references"
+                   (clj->js {:textDocument {:uri uri}
+                             :position position
+                             :context {:includeDeclaration 
+                                       (if (nil? include-declaration)
+                                         true
+                                         include-declaration)}}))))
 
 (comment)

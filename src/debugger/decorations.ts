@@ -7,6 +7,7 @@ import lsp from '../lsp';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
+import { getReferences } from '../../out/cljs-lib/cljs-lib';
 
 let enabled = false;
 
@@ -48,7 +49,7 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
                             line: s.selectionRange.start.line,
                             character: s.selectionRange.start.character
                         };
-                        return lsp.getReferences(lspClient, decodedDocUri, position);
+                        return getReferences(lspClient, decodedDocUri, position);
                     }));
                     const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce((currentLocations, symbol, i) => {
                         return {

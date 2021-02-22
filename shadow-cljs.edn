@@ -20,7 +20,8 @@
                              :parseEdn calva.parse/parse-edn-js-bridge
                              :parseForms calva.parse/parse-forms-js-bridge
                              :activateLsp calva.lsp/activate
-                             :deactivateLsp calva.lsp/deactivate}
+                             :deactivateLsp calva.lsp/deactivate
+                             :getReferences calva.lsp/get-references}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
