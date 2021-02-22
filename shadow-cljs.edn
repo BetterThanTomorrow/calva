@@ -27,5 +27,6 @@
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
+                 :ns-regexp "-test$"
                  :autorun   true}}}
 
