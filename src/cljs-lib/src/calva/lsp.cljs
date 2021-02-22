@@ -136,7 +136,7 @@
                     (.. (.. client (sendRequest
                                     "workspace/executeCommand"
                                     (clj->js {:command name
-                                              :arguments (if extra-param 
+                                              :arguments (if extra-param
                                                            (conj params extra-param)
                                                            params)})))
                         (catch js/console.error))))))))]
@@ -201,15 +201,15 @@
     (.. client stop)))
 
 (defn get-references
-  [^LanguageClient client uri ^Position position include-declaration]
-  (.. client
-      (sendRequest "textDocument/references"
-                   (clj->js {:textDocument {:uri uri}
-                             :position position
-                             :context {:includeDeclaration 
-                                       (if (nil? include-declaration)
-                                         true
-                                         include-declaration)}}))))
+  ([^LanguageClient client uri ^Position position]
+   (js/console.log "Calling other arity")
+   (get-references client uri position true))
+  ([^LanguageClient client uri ^Position position include-declaration]
+   (.. client
+       (sendRequest "textDocument/references"
+                    (clj->js {:textDocument {:uri uri}
+                              :position position
+                              :context {:includeDeclaration include-declaration}})))))
 
 (defn get-document-symbols
   [^LanguageClient client uri]
@@ -217,4 +217,5 @@
       (sendRequest "textDocument/documentSymbol"
                    (clj->js {:textDocument {:uri uri}}))))
 
-(comment)
+(comment
+  (js/console.error "Hello test"))
