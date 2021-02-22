@@ -202,7 +202,6 @@
 
 (defn get-references
   ([^LanguageClient client uri ^Position position]
-   (js/console.log "Calling other arity")
    (get-references client uri position true))
   ([^LanguageClient client uri ^Position position include-declaration]
    (.. client
