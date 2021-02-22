@@ -2,8 +2,7 @@
                 [zprint "0.4.16"]]
 
  :source-paths ["src/cljs-lib/src"
-                "src/cljs-lib/test"
-                "out"]
+                "src/cljs-lib/test"]
 
  :builds       {:calva-lib
                 {:target    :node-library
