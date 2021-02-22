@@ -109,24 +109,46 @@
      :category "calva.diagnostics"}})
 
 (defn register-lsp-command
-  [client command]
-  (let [category (or (:category command) "calva.refactor")
+  [client {:keys [name extra-param-fn category]}]
+  (let [category (or category "calva.refactor")
         calva-command-name (str category "."
-                                (str/replace (:name command) #"-[a-z]"
+                                (str/replace name #"-[a-z]"
                                              (fn [m]
-                                               (. (nth m 1) toUpperCase))))]
-    ;; TODO: Finish registering command
-    (. js/console (log "Registering command:" calva-command-name))))
+                                               (. (nth m 1) toUpperCase))))
+        command-callback
+        (fn []
+          (let [editor (.. vscode -window -activeTextEditor)
+                document (. util (getDocument (. editor -document)))]
+            (when (and document (= (. document -languageId) "clojure"))
+              (go
+                (let [line (.. editor -selection -start -line)
+                      column (.. editor -selection -start -character)
+                      doc-uri (str
+                               (.. document -uri -scheme)
+                               "://"
+                               (.. document -uri -path))
+                      params [doc-uri, line, column]
+                      extra-param (when extra-param-fn
+                                    (<p! (extra-param-fn)))]
+                  (when (or (not extra-param-fn) extra-param)
+                    (.. (.. client (sendRequest
+                                    "workspace/executeCommand"
+                                    (clj->js {:command name
+                                              :arguments (if extra-param 
+                                                           (conj params extra-param)
+                                                           params)})))
+                        (catch js/console.error))))))))]
+    (.. vscode -commands (registerCommand calva-command-name command-callback))))
 
-(defn register-commands 
+(defn register-commands
   [^js context client]
   ;; The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
   (.. context -subscriptions
       (push (.. vscode -commands
                 (registerCommand "code-lens-references" code-lens-references-callback))))
-  (map (fn [command] 
-         (register-lsp-command client command))
-       lsp-commands))
+  (run! (fn [command]
+          (register-lsp-command client command))
+        lsp-commands))
 
 (defn activate [^js context]
   (let [jar-path (. path join (. context -extensionPath) "clojure-lsp.jar")
@@ -145,45 +167,4 @@
   (when-let [client (.. state deref (get "lspClient"))]
     (.. client stop)))
 
-(comment
-  (map (fn [command]
-         (register-lsp-command {} command))
-       lsp-commands)
-  (map (fn [x] (. js/console (log x))) #{1 2})
-   (. "m" toUpperCase)
-   (str/replace "server-info" #"-[a-z]"
-                (fn [m]
-                  (. (nth m 1) toUpperCase)))
-   (empty? (str/trim "   "))
-   (type (new (.. vscode -Selection) 1 2 3 4))
-   (-> (next document position token)
-       (. then (fn [definition]
-                 (. js/console (log "definition:" definition)))))
-   (.. definition -provideClojureDefinition)
-   (.. util getConnectedState)
-   (.. state config -referencesCodeLensEnabled)
-   (.. config -default -REPL_FILE_EXT)
-   (js->clj (.. config -default) :keywordize-keys true)
-   (js->clj (.. state (config)))
-
-   (.. state deref (get "lspClient"))
-   (.. state -cursor (set "lspClient" "hello"))
-
-   (.. vscode -window (setStatusBarMessage "$(sync~spin) Initializing Clojure language features via clojure-lsp"))
-
-   (LanguageClient. "clojure" "Clojure Language Client" {} {})
-   (. path join "/home/something" "clojure-lsp.jar")
-
-   (.. vscode -workspace (createFileSystemWatcher "**/.clientrc"))
-
-   (js/console.log (create-client "some-path"))
-
-   (js/console.log (clj->js {:run {:command "java"
-                                   :args ["-jar" "jarPath"]}
-                             :debug {:command "java"
-                                     :args ["-jar" "jarPath"]}}))
-
-
-   (. state config)
-  ;; Example interop
-   (.. vscode -window (showInformationMessage "hello")))
+(comment)
