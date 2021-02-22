@@ -21,7 +21,7 @@ markdown_extensions:
   - codehilite
 nav:
   - index.md
-  - Getting Started:
+  - Start Here:
     - connect.md
     - try-first.md
     - finding-commands.md
