@@ -187,7 +187,7 @@
 (def windows-os? (= (. process -platform) "win32"))
 
 ;; TODO: Extract and write unit test? Can mock extension context.
-(defn get-clojure-lsp-path [^js context]
+(defn get-clojure-lsp-path [^js context windows-os?]
   (let [file-extension (when windows-os? ".exe")]
     (. path (join (. context -extensionPath) 
                   (str "clojure-lsp" file-extension)))))
