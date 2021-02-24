@@ -1,6 +1,5 @@
 (ns calva.pprint.printer
-  (:require [cljs.test :refer [is testing]]
-            [zprint.core :refer [zprint-str]]
+  (:require [zprint.core :refer [zprint-str]]
             [calva.js-utils :refer [jsify cljify]]
             [clojure.string]))
 
@@ -8,36 +7,6 @@
   "Parses the string `s` as EDN and returns it pretty printed as a string.
    Accepts that s is an EDN form already, and skips the parsing, if so.
    Formats the result to fit the width `w`."
-  {:test (fn []
-           (letfn [(pretty-line-of [n s opts]
-                     (as-> `[~@(repeat n s)] x
-                       (pretty-print x opts)
-                       (:value x)
-                       (clojure.string/split x #"\n")
-                       (take 1 x)))]
-             (let [deep [[[[[[[[[[[[[[[[[{:foo [:bar]}]]]]]]]]]]]]]]]]]
-                   shallow [[:foo]]]
-               (testing "String input"
-                 (is (= "[[[:foo]]]"
-                        (:value (pretty-print "[    [ [:foo
-                      ]]        ]" nil)))))
-               (testing "Valid and invalid EDN"
-                 (is (= "[1]"
-                        (:value (pretty-print "[   1]" nil))))
-                 (is (= "[  1"
-                        (:value (pretty-print "[  1" nil)))))
-               (testing "Default printing options" ; zprint default width 80
-                 (let [width (apply count (pretty-line-of 25 "foo" nil))]
-                   (is (> width 70))
-                   (is (<= width 80)))
-                 (is (not (re-find #"#" (:value (pretty-print deep nil))))))
-               (testing "Settings"
-                 (let [width (apply count (pretty-line-of 25 "foo" {:width 40}))]
-                   (is (> width 30))
-                   (is (<= width 40)))
-                 (let [width (apply count (pretty-line-of 25 "foo" {:max-length 2}))]
-                   (is (< width 20)))
-                 (is (re-find #"#" (:value (pretty-print shallow {:max-depth 1}))))))))}
   [s opts]
   (let [result (try
                  {:value

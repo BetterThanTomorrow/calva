@@ -2,7 +2,7 @@ import { TextDocument, Position, CancellationToken, CompletionContext, Hover, Co
 import * as state from '../state';
 import * as util from '../utilities';
 import select from '../select';
-import * as docMirror from '../doc-mirror';
+import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 

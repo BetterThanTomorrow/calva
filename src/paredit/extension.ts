@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { commands, window, ExtensionContext, workspace, ConfigurationChangeEvent } from 'vscode';
 import { Event, EventEmitter } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
-import * as docMirror from '../doc-mirror';
+import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
 
 let onPareditKeyMapChangedEmitter = new EventEmitter<String>();

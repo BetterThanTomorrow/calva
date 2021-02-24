@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Translate clojure-lsp integration to cljs](https://github.com/BetterThanTomorrow/calva/issues/1025)
 
 ## [2.0.173] - 2021-02-21
 - Fix [Connect ”not in project” glitches](https://github.com/BetterThanTomorrow/calva/issues/814)
