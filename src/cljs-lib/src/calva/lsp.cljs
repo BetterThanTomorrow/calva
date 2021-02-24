@@ -2,6 +2,8 @@
   (:require ["vscode" :as vscode]
             ["vscode-languageclient" :refer [LanguageClient Position]]
             ["path" :as path]
+            ["process" :as process]
+            ["child_process" :refer [exec execSync]]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as str]))
@@ -45,11 +47,11 @@
   (when-not (. util getConnectedState)
     (next document position context token)))
 
-(defn create-client [jarPath]
-  (let [server-options {:run {:command "java"
-                              :args ["-jar" jarPath]}
-                        :debug {:command "java"
-                                :args ["-jar" jarPath]}}
+(defn create-client [clojure-lsp-path]
+  (let [server-options {:run {:command "bash"
+                              :args ["-c" clojure-lsp-path]}
+                        :debug {:command "bash"
+                                :args ["-c" clojure-lsp-path]}}
         file-system-watcher (.. vscode -workspace (createFileSystemWatcher "**/.clientrc"))
         client-options {:documentSelector [{:scheme "file" :language "clojure"}]
                         :synchronize {:configurationSection "clojure-lsp"
@@ -182,9 +184,27 @@
       (push (.. vscode -workspace
                 (onDidChangeConfiguration handle-toggle-references-code-lens)))))
 
+(def windows-os? (= (. process -platform) "win32"))
+
+;; TODO: Extract and write unit test? Can mock extension context.
+(defn get-clojure-lsp-path [^js context]
+  (let [file-extension (when windows-os? ".exe")]
+    (. path (join (. context -extensionPath) 
+                  (str "clojure-lsp" file-extension)))))
+
+;; TODO: Make this work on windows
+(defn get-clojure-lsp-version-output [clojure-lsp-path]
+  (let [command (str "bash -c \"" clojure-lsp-path " --version\"")]
+    (. (execSync command) toString)))
+
+(defn download-clojure-lsp [version file-path]
+  (let [url-path (str "/clojure-lsp/clojure-lsp/releases/download/"
+                      version
+                      "/clojure-lsp")]))
+
 (defn activate [^js context]
-  (let [jar-path (. path join (. context -extensionPath) "clojure-lsp.jar")
-        client (create-client jar-path)]
+  (let [clojure-lsp-path (get-clojure-lsp-path context)
+        client (create-client clojure-lsp-path)]
     (. client start)
     (.. vscode -window
         (setStatusBarMessage
@@ -217,4 +237,10 @@
                    (clj->js {:textDocument {:uri uri}}))))
 
 (comment
+  (get-clojure-lsp-path (clj->js {:extensionPath "some/path"}))
+  (exec "ls", (fn [error stdout stderr]
+                (println stdout)))
+  
+  (.. (execSync "bash -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString)
+  (str "hello" nil)
   (js/console.error "Hello test"))
