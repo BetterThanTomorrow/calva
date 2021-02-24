@@ -47,6 +47,7 @@
   (when-not (. util getConnectedState)
     (next document position context token)))
 
+;; TODO: Switch bash to sh?
 (defn create-client [clojure-lsp-path]
   (let [server-options {:run {:command "bash"
                               :args ["-c" clojure-lsp-path]}
@@ -192,10 +193,13 @@
     (. path (join (. context -extensionPath) 
                   (str "clojure-lsp" file-extension)))))
 
-;; TODO: Make this work on windows
+;; TODO: Make this work on windows. Also, switch bash to sh?
 (defn get-clojure-lsp-version-output [clojure-lsp-path]
   (let [command (str "bash -c \"" clojure-lsp-path " --version\"")]
     (. (execSync command) toString)))
+
+(defn current-version-exists? [current-version version-output]
+  )
 
 (defn download-clojure-lsp [version file-path]
   (let [url-path (str "/clojure-lsp/clojure-lsp/releases/download/"
@@ -203,7 +207,7 @@
                       "/clojure-lsp")]))
 
 (defn activate [^js context]
-  (let [clojure-lsp-path (get-clojure-lsp-path context)
+  (let [clojure-lsp-path (get-clojure-lsp-path context windows-os?)
         client (create-client clojure-lsp-path)]
     (. client start)
     (.. vscode -window
@@ -241,6 +245,6 @@
   (exec "ls", (fn [error stdout stderr]
                 (println stdout)))
   
-  (.. (execSync "bash -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString)
+  (time (.. (execSync "sh -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString))
   (str "hello" nil)
   (js/console.error "Hello test"))
