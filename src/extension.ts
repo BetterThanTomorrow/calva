@@ -23,14 +23,13 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
-import debugDecorations from './debugger/decorations';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
-import lsp from './lsp';
 import * as snippets from './custom-snippets';
+import { activateLsp, deactivateLsp } from '../out/cljs-lib/cljs-lib';
 
 async function onDidSave(document) {
     let {
@@ -67,7 +66,7 @@ function setKeybindingsEnabledContext() {
 
 async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
-    lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
+    activateLsp(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -324,7 +323,7 @@ function deactivate(): Promise<void> | undefined {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate();
-    return lsp.deactivate();
+    return deactivateLsp();
 }
 
 export { activate, deactivate };

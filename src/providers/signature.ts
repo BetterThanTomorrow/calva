@@ -2,7 +2,7 @@ import { TextDocument, Position, Range, CancellationToken, SignatureHelp, Signat
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
-import * as docMirror from '../doc-mirror';
+import * as docMirror from '../doc-mirror/index';
 import * as namespace from '../namespace';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {

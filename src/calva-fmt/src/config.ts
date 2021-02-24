@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
-import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib';
+import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib.js';
 
 const defaultCljfmtContent = "\
 {:remove-surrounding-whitespace? true\n\

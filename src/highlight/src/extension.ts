@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { Position, Range } from 'vscode';
 import * as isEqual from 'lodash.isequal';
 import { isArray } from 'util';
-import * as docMirror from '../../doc-mirror'
+import * as docMirror from '../../doc-mirror/index'
 import { Token, validPair } from '../../cursor-doc/clojure-lexer';
 import { LispTokenCursor } from '../../cursor-doc/token-cursor';
 
