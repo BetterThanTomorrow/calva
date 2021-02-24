@@ -18,19 +18,28 @@
 (defn handle-diagnostics
   [uri diagnostics next]
   (let [repl-file-ext (.. config -default -REPL_FILE_EXT)]
+    (js/console.log "repl-file-ext:" repl-file-ext)
     (when-not (.. uri -path (endsWith repl-file-ext))
       (next uri diagnostics))))
 
 (defn provide-code-lenses
   [document token next]
-  (if (.. state config -referencesCodeLensEnabled)
-    (next document token)
-    []))
+  (let [references-code-lens-enabled (.. state config -referencesCodeLensEnabled)]
+    (js/console.log "references-code-lens-enabled:" references-code-lens-enabled)
+    (if references-code-lens-enabled
+      (next document token)
+      [])))
 
 (defn provide-hover
   [document position token next]
-  (when-not (.. util getConnectedState)
-    (next document position token)))
+  (js/console.log "active editor:" (.. vscode -window -activeTextEditor))
+  (js/console.log "lsp client:" (.. state deref (get client-key)))
+  (js/console.log "connected state directly from state:"
+                  (.. state deref (get "connected")))
+  (let [connected? (.. util getConnectedState)]
+    (js/console.log "connected?:" connected?)
+    (when-not connected?
+      (next document position token))))
 
 (defn provide-definition
   [document position token next]

@@ -95,6 +95,7 @@ function triggerUpdateAndRenderDecorations() {
             timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
                 const lspClient = state.deref().get(LSP_CLIENT_KEY);
+                console.log("lsp client in debug decorations:", lspClient);
                 update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }
