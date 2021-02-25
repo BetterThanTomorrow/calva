@@ -215,6 +215,3 @@
   (.. client
       (sendRequest "textDocument/documentSymbol"
                    (clj->js {:textDocument {:uri uri}}))))
-
-(comment
-  (js/console.error "Hello test"))
