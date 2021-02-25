@@ -29,7 +29,7 @@ import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
-import { activateLsp, deactivateLsp } from '../out/cljs-lib/cljs-lib';
+import lsp from './lsp';
 
 async function onDidSave(document) {
     let {
@@ -66,7 +66,7 @@ function setKeybindingsEnabledContext() {
 
 async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
-    activateLsp(context);
+    lsp.activate(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -323,7 +323,7 @@ function deactivate(): Promise<void> | undefined {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate();
-    return deactivateLsp();
+    return lsp.deactivate();
 }
 
 export { activate, deactivate };
