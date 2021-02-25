@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Issue with released cljs/js interop](https://github.com/BetterThanTomorrow/calva/issues/1044) (And switch back to using cljs for clojure-lsp integration.)
 
 ## [2.0.176] - 2021-02-24
 - Revert switch to cljs for lsp, until [the issue with released cljs/js interop](https://github.com/BetterThanTomorrow/calva/issues/1044) has been fixed
