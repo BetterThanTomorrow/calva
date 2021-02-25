@@ -18,26 +18,19 @@
 (defn handle-diagnostics
   [uri diagnostics next]
   (let [repl-file-ext (.. config -default -REPL_FILE_EXT)]
-    (js/console.log "repl-file-ext:" repl-file-ext)
     (when-not (.. uri -path (endsWith repl-file-ext))
       (next uri diagnostics))))
 
 (defn provide-code-lenses
   [document token next]
   (let [references-code-lens-enabled (.. state config -referencesCodeLensEnabled)]
-    (js/console.log "references-code-lens-enabled:" references-code-lens-enabled)
     (if references-code-lens-enabled
       (next document token)
       [])))
 
 (defn provide-hover
   [document position token next]
-  (js/console.log "active editor:" (.. vscode -window -activeTextEditor))
-  (js/console.log "lsp client:" (.. state deref (get client-key)))
-  (js/console.log "connected state directly from state:"
-                  (.. state deref (get "connected")))
   (let [connected? (.. util getConnectedState)]
-    (js/console.log "connected?:" connected?)
     (when-not connected?
       (next document position token))))
 
@@ -46,7 +39,6 @@
   (.. (.. definition (provideClojureDefinition document position token))
       (then (fn [nrepl-definition]
               (when-not nrepl-definition
-                (. js/console (log "no nrepl defintion, providing lsp definition"))
                 (next document position token))))))
 
 (defn provide-completion-item
@@ -172,7 +164,6 @@
       ;; Could not find a better way, aside from possibly changes to clojure-lsp
       ;; https://github.com/microsoft/vscode-languageserver-node/issues/705
       (run! (fn [editor]
-              (js/console.log "adding edits for:" (.. editor -document -uri toString))
               (let [edit1 ^js (new (.. vscode -WorkspaceEdit))
                     _ (.. edit1 (insert (.. editor -document -uri)
                                         (new (.. vscode -Position) 0 0)
