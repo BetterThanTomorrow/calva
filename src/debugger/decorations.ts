@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 import * as namespace from '../namespace';
 import * as state from '../state';
 import { LanguageClient } from 'vscode-languageclient';
-import { Position, Location, DocumentSymbol } from 'vscode-languageserver-protocol';
+import { Location } from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import { getReferences, getDocumentSymbols, LSP_CLIENT_KEY } from '../../out/cljs-lib/cljs-lib';
+import lsp from '../lsp';
 
 let enabled = false;
 
@@ -41,14 +41,14 @@ async function update(editor: vscode.TextEditor, cljSession: NReplSession, lspCl
                     const namespacePath = (await cljSession.nsPath(namespace)).path;
                     const docUri = vscode.Uri.parse(namespacePath, true);
                     const decodedDocUri = decodeURIComponent(docUri.toString());
-                    const docSymbols = (await getDocumentSymbols(lspClient, decodedDocUri))[0].children;
+                    const docSymbols = (await lsp.getDocumentSymbols(lspClient, decodedDocUri))[0].children;
                     const instrumentedDocSymbols = docSymbols.filter(s => instrumentedDefs.includes(s.name));
                     const instrumentedDocSymbolsReferenceRanges = await Promise.all(instrumentedDocSymbols.map(s => {
                         const position = {
                             line: s.selectionRange.start.line,
                             character: s.selectionRange.start.character
                         };
-                        return getReferences(lspClient, decodedDocUri, position);
+                        return lsp.getReferences(lspClient, decodedDocUri, position);
                     }));
                     const currentNsSymbolsReferenceLocations = instrumentedDocSymbols.reduce((currentLocations, symbol, i) => {
                         return {
@@ -94,8 +94,7 @@ function triggerUpdateAndRenderDecorations() {
         if (editor) {
             timeout = setTimeout(() => {
                 const cljSession = namespace.getSession('clj');
-                const lspClient = state.deref().get(LSP_CLIENT_KEY);
-                console.log("lsp client in debug decorations:", lspClient);
+                const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
                 update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }
