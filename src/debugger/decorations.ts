@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 import * as namespace from '../namespace';
 import * as state from '../state';
 import { LanguageClient } from 'vscode-languageclient';
-import { Position, Location, DocumentSymbol } from 'vscode-languageserver-protocol';
-import lsp from '../lsp';
+import { Location } from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
+import lsp from '../lsp';
 
 let enabled = false;
 

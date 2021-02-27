@@ -11,7 +11,7 @@ import * as namespace from '../namespace';
 import config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
-import * as docMirror from '../doc-mirror'
+import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
@@ -135,10 +135,12 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     }
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-        const isOutputWindow = isResultsDoc(event.document);
-        setContextForOutputWindowActive(isOutputWindow);
-        if (isOutputWindow) {
-            setViewColumn(event.viewColumn);
+        if (event) {
+            const isOutputWindow = isResultsDoc(event.document);
+            setContextForOutputWindowActive(isOutputWindow);
+            if (isOutputWindow) {
+                setViewColumn(event.viewColumn);
+            }
         }
     }));
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {

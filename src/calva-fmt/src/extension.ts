@@ -4,7 +4,7 @@ import { FormatOnTypeEditProvider } from './providers/ontype_formatter';
 import { RangeEditProvider } from './providers/range_formatter';
 import * as formatter from './format';
 import * as inferer from './infer';
-import * as docmirror from "../../doc-mirror"
+import * as docmirror from "../../doc-mirror/index"
 import * as config from './config'
 
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {

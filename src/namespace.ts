@@ -2,9 +2,8 @@ import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as state from './state';
 import { NReplSession } from './nrepl';
-const syntaxQuoteSymbol = "`";
 const { parseForms } = require('../out/cljs-lib/cljs-lib');
-import * as docMirror from './doc-mirror';
+import * as docMirror from './doc-mirror/index';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
