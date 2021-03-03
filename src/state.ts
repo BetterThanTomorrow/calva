@@ -3,7 +3,6 @@ import * as Immutable from 'immutable';
 import * as ImmutableCursor from 'immutable-cursor';
 import Analytics from './analytics';
 import { ReplConnectSequence } from './nrepl/connectSequence';
-import { JackInDependency } from './nrepl/project-types';
 import * as util from './utilities';
 import * as path from 'path';
 import * as os from 'os';
