@@ -14,6 +14,7 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import * as namespace from '../namespace';
+import { setStateValue } from '../../out/cljs-lib/cljs-lib';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
@@ -340,7 +341,7 @@ function handleNeedDebugInput(response: any): void {
         && typeof response.column === 'number'
         && typeof response.line === 'number') {
 
-        state.cursor.set(DEBUG_RESPONSE_KEY, response);
+        setStateValue(DEBUG_RESPONSE_KEY, response);
 
         if (!debug.activeDebugSession) {
             debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);

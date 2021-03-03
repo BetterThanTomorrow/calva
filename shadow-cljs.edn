@@ -25,7 +25,8 @@
                              :LSP_CLIENT_KEY calva.lsp/client-key
                              :setStateValue calva.state/set-state-value!
                              :getStateValue calva.state/get-state-value
-                             :getState calva.state/get-state}
+                             :getState calva.state/get-state
+                             :removeStateValue calva.state/remove-state-value!}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test

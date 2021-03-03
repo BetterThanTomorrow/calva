@@ -5,6 +5,7 @@ import * as state from './state';
 import * as util from './utilities'
 import config from './config';
 import { provideClojureDefinition } from './providers/definition';
+import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
 const LSP_CLIENT_KEY = 'lspClient';
 
@@ -232,7 +233,7 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     client.start();
     await client.onReady();
-    state.cursor.set(LSP_CLIENT_KEY, client);
+    setStateValue(LSP_CLIENT_KEY, client);
 }
 
 function deactivate(): Promise<void> {

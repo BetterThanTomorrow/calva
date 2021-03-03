@@ -9,6 +9,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
+import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -169,7 +170,7 @@ function getLaunchingState() {
 
 function setLaunchingState(value: any) {
     vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
-    state.cursor.set('launching', value);
+    setStateValue('launching', value);
 }
 
 function getConnectedState() {
@@ -178,7 +179,7 @@ function getConnectedState() {
 
 function setConnectedState(value: Boolean) {
     vscode.commands.executeCommand("setContext", "calva:connected", value);
-    state.cursor.set('connected', value);
+    setStateValue('connected', value);
 }
 
 function getConnectingState() {
@@ -188,10 +189,10 @@ function getConnectingState() {
 function setConnectingState(value: Boolean) {
     if (value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
-        state.cursor.set('connecting', true);
+        setStateValue('connecting', true);
     } else {
         vscode.commands.executeCommand("setContext", "calva:connecting", false);
-        state.cursor.set('connecting', false);
+        setStateValue('connecting', false);
     }
 }
 

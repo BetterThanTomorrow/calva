@@ -288,7 +288,6 @@ export function resolvePath(filePath?: string) {
 }
 
 export {
-    cursor,
     documentSelector,
     deref,
     reset,

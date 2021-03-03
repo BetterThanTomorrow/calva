@@ -30,6 +30,7 @@ import config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp';
+import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
 async function onDidSave(document) {
     let {
@@ -67,7 +68,7 @@ function setKeybindingsEnabledContext() {
 async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
     lsp.activate(context);
-    state.cursor.set('analytics', new Analytics(context));
+    setStateValue('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
     model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));

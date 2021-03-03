@@ -7,7 +7,8 @@ import * as docMirror from './doc-mirror/index';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
-import * as utilities from './utilities'
+import * as utilities from './utilities';
+import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
 export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
@@ -130,9 +131,9 @@ export function updateREPLSessionType() {
             sessionType = 'clj'
         }
 
-        state.cursor.set('current-session-type', sessionType);
+        setStateValue('current-session-type', sessionType);
     } else {
-        state.cursor.set('current-session-type', null);
+        setStateValue('current-session-type', null);
     }
 }
 

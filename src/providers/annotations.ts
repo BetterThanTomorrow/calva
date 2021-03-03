@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from '../state';
 import * as _ from 'lodash';
+import { setStateValue, removeStateValue } from '../../out/cljs-lib/cljs-lib';
 
 enum AnnotationStatus {
     PENDING = 0,
@@ -90,23 +91,23 @@ const evalSelectionDecorationTypes = [
 
 function setResultDecorations(editor: vscode.TextEditor, ranges) {
     let key = editor.document.uri + ':resultDecorationRanges';
-    state.cursor.set(key, ranges);
+    setStateValue(key, ranges);
     editor.setDecorations(evalResultsDecorationType, ranges);
 }
 
 function setSelectionDecorations(editor, ranges, status) {
     let key = editor.document.uri + ':selectionDecorationRanges:' + status;
-    state.cursor.set(key, ranges);
+    setStateValue(key, ranges);
     editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
 
 function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     editor = editor || vscode.window.activeTextEditor;
     if (editor) {
-        state.cursor.delete(editor.document.uri + ':resultDecorationRanges');
+        removeStateValue(editor.document.uri + ':resultDecorationRanges');
         setResultDecorations(editor, []);
         for (const status in [AnnotationStatus.PENDING, AnnotationStatus.SUCCESS, AnnotationStatus.ERROR, AnnotationStatus.REPL_WINDOW]) {
-            state.cursor.delete(editor.document.uri + ':selectionDecorationRanges:' + status);
+            removeStateValue(editor.document.uri + ':selectionDecorationRanges:' + status);
             setSelectionDecorations(editor, [], status);
         }
     }
