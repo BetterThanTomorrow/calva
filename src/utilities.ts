@@ -9,7 +9,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -165,7 +165,7 @@ function getFileType(document) {
 }
 
 function getLaunchingState() {
-    return state.deref().get('launching');
+    return getStateValue('launching');
 }
 
 function setLaunchingState(value: any) {
@@ -174,7 +174,7 @@ function setLaunchingState(value: any) {
 }
 
 function getConnectedState() {
-    return state.deref().get('connected');
+    return getStateValue('connected');
 }
 
 function setConnectedState(value: Boolean) {
@@ -183,7 +183,7 @@ function setConnectedState(value: Boolean) {
 }
 
 function getConnectingState() {
-    return state.deref().get('connecting');
+    return getStateValue('connecting');
 }
 
 function setConnectingState(value: Boolean) {
@@ -233,7 +233,7 @@ function markError(error) {
         error.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -271,7 +271,7 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);

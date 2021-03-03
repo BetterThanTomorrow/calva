@@ -12,7 +12,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import * as fs from 'fs';
+import { getStateValue } from '../out/cljs-lib/cljs-lib';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -134,11 +134,10 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
 }
 
 async function evaluateSelection(document: {}, options) {
-    const current = state.deref();
     const doc = util.getDocument(document);
     const topLevel = options.topLevel || false;
 
-    if (current.get('connected')) {
+    if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;
         const selection = editor.selection;
         let code = "";
@@ -215,13 +214,12 @@ function evaluateCurrentForm(document = {}, options = {}) {
 }
 
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
-    const current = state.deref();
     const doc = util.getDocument(document);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
     const session = namespace.getSession(util.getFileType(doc));
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && doc.languageId == "clojure" && fileType != "edn" && getStateValue('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         const docUri = outputWindow.isResultsDoc(doc) ?
             await outputWindow.getUriForCurrentNamespace() :

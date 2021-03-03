@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import * as state from '../state';
 import * as _ from 'lodash';
-import { setStateValue, removeStateValue } from '../../out/cljs-lib/cljs-lib';
+import { setStateValue, removeStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 
 enum AnnotationStatus {
     PENDING = 0,
@@ -123,7 +122,7 @@ function clearAllEvaluationDecorations() {
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor: vscode.TextEditor) {
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
-        decorationRanges = state.deref().get(key) || [],
+        decorationRanges = getStateValue(key) || [],
         decoration = evaluated(` => ${resultString} `, resultString, hasError);
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.codeRange.intersection(codeSelection) });
     decoration["codeRange"] = codeSelection;
@@ -136,7 +135,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     const uri = editor.document.uri,
         key = uri + ':selectionDecorationRanges:' + status;
     let decoration = {},
-        decorationRanges = state.deref().get(key) || [];
+        decorationRanges = getStateValue(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
     if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {

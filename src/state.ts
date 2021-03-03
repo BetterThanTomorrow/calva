@@ -289,7 +289,6 @@ export function resolvePath(filePath?: string) {
 
 export {
     documentSelector,
-    deref,
     reset,
     config,
     extensionContext,

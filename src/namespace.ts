@@ -8,7 +8,7 @@ import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
 import * as utilities from './utilities';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
 export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
@@ -90,29 +90,27 @@ export function getDocumentNamespace(document = {}) {
 }
 
 export function getSession(fileType = undefined): NReplSession {
-    let doc = utilities.getDocument({}),
-        current = state.deref();
+    let doc = utilities.getDocument({});
 
     if (fileType === undefined) {
         fileType = utilities.getFileType(doc);
     }
     if (fileType.match(/^clj[sc]?/)) {
-        return current.get(fileType);
+        return getStateValue(fileType);
     } else {
         if (outputWindow.isResultsDoc(doc)) {
             return outputWindow.getSession();
         } else {
-            return current.get('cljc');
+            return getStateValue('cljc');
         }
     }
 }
 
 export function updateREPLSessionType() {
-    let current = state.deref(),
-        doc = utilities.getDocument({}),
+    let doc = utilities.getDocument({}),
         fileType = utilities.getFileType(doc);
 
-    if (current.get('connected')) {
+    if (getStateValue('connected')) {
         let sessionType: string;
 
         if (outputWindow.isResultsDoc(doc)) {
@@ -138,6 +136,5 @@ export function updateREPLSessionType() {
 }
 
 export function getREPLSessionType() {
-    let current = state.deref();
-    return current.get('current-session-type');
+    return getStateValue('current-session-type');
 }

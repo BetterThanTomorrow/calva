@@ -15,7 +15,7 @@ import evaluate from './evaluate';
 import * as namespace from './namespace';
 import * as liveShareSupport from './liveShareSupport';
 import * as calvaDebug from './debugger/calva-debug';
-import { setStateValue } from '../out/cljs-lib/cljs-lib';
+import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -387,9 +387,9 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
             setStateValue('cljs', cljsSession = newCljsSession);
-            return [cljsSession, state.deref().get('cljsBuild')];
+            return [cljsSession, getStateValue('cljsBuild')];
         } else {
-            let build = state.deref().get('cljsBuild')
+            let build = getStateValue('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
             let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.` : "");
             outputWindow.append(`; ${failed}`);
@@ -548,10 +548,9 @@ export default {
         callback();
     },
     toggleCLJCSession: () => {
-        let current = state.deref();
         let newSession: NReplSession;
 
-        if (current.get('connected')) {
+        if (getStateValue('connected')) {
             if (namespace.getSession('cljc') == namespace.getSession('cljs')) {
                 newSession = namespace.getSession('clj');
             } else if (namespace.getSession('cljc') == namespace.getSession('clj')) {
