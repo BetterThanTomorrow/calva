@@ -1,14 +1,11 @@
 import * as state from '../state';
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as utilities from '../utilities';
 import * as pprint from '../printer';
 
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { pathToNs } from '../util/ns-form';
-import { connect } from '../connector';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);

@@ -2,7 +2,6 @@ import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
 import * as state from './../state';
 import * as util from '../utilities';
-import { prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
 import * as debug from "../debugger/calva-debug";
 import * as vscode from 'vscode';
@@ -10,7 +9,7 @@ import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 
 /** An nREPL client */
 export class NReplClient {
