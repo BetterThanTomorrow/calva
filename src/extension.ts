@@ -65,7 +65,15 @@ function setKeybindingsEnabledContext() {
     vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
 }
 
+function initializeState() {
+    setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
+    setStateValue('diagnosticCollection', vscode.window.createOutputChannel('Calva Connection Log'));
+    setStateValue('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
+}
+
 async function activate(context: vscode.ExtensionContext) {
+    initializeState();
+
     status.updateNeedReplUi(false, context);
     lsp.activate(context);
     setStateValue('analytics', new Analytics(context));

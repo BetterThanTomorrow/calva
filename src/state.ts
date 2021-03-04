@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as Immutable from 'immutable';
-import * as ImmutableCursor from 'immutable-cursor';
 import Analytics from './analytics';
 import { ReplConnectSequence } from './nrepl/connectSequence';
 import * as util from './utilities';
@@ -9,6 +7,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import { customREPLCommandSnippet } from './evaluate';
 import { PrettyPrintingOptions } from './printer';
+import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -27,37 +26,10 @@ const documentSelector = [
     { scheme: 'untitled', language: 'clojure' }
 ];
 
-var data;
-const initialData = {
-    hostname: null,
-    port: null,
-    clj: null,
-    cljs: null,
-    cljsBuild: null,
-    terminal: null,
-    connected: false,
-    connecting: false,
-    outputChannel: vscode.window.createOutputChannel("Calva says"),
-    connectionLogChannel: vscode.window.createOutputChannel("Calva Connection Log"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
-    analytics: null,
-    lspClient: null
-};
-
-reset();
-
-const cursor = ImmutableCursor.from(data, [], (nextState) => {
-    data = Immutable.fromJS(nextState);
-});
-
-function deref() {
-    return data;
-}
-
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
 function _outputChannel(name: string): vscode.OutputChannel {
-    const channel = deref().get(name);
+    const channel = getStateValue(name);
     if (channel.toJS !== undefined) {
         return channel.toJS();
     } else {
@@ -74,16 +46,12 @@ function connectionLogChannel(): vscode.OutputChannel {
 }
 
 function analytics(): Analytics {
-    const analytics = deref().get('analytics');
+    const analytics = getStateValue('analytics');
     if (analytics.toJS !== undefined) {
         return analytics.toJS();
     } else {
         return analytics;
     }
-}
-
-function reset() {
-    data = Immutable.fromJS(initialData);
 }
 
 /**
@@ -131,13 +99,13 @@ const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
 export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
-        return deref().get(PROJECT_DIR_KEY);
+        return getStateValue(PROJECT_DIR_KEY);
     }
 }
 
 export function getProjectRootUri(useCache = true): vscode.Uri {
     if (useCache) {
-        return deref().get(PROJECT_DIR_URI_KEY);
+        return getStateValue(PROJECT_DIR_URI_KEY);
     }
 }
 
@@ -158,8 +126,8 @@ export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext
         const subDir = Math.random().toString(36).substring(7);
         root = vscode.Uri.file(path.join(os.tmpdir(), subDir));
     }
-    cursor.set(PROJECT_DIR_KEY, path.resolve(root.fsPath));
-    cursor.set(PROJECT_DIR_URI_KEY, root);    
+    setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath));
+    setStateValue(PROJECT_DIR_URI_KEY, root);    
     try {
         context.workspaceState.update(NON_PROJECT_DIR_KEY, root);
     } catch {
@@ -196,8 +164,8 @@ function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     if (uri) {
-        cursor.set(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
-        cursor.set(PROJECT_DIR_URI_KEY, uri);    
+        setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
+        setStateValue(PROJECT_DIR_URI_KEY, uri);    
     } else {
         const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
         const doc = util.getDocument({});
@@ -210,8 +178,8 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
 async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        cursor.set(PROJECT_DIR_KEY, rootPath);
-        cursor.set(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+        setStateValue(PROJECT_DIR_KEY, rootPath);
+        setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
 
         let d = null;
         let prev = null;
@@ -240,8 +208,8 @@ async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Pro
         for (let projectFile in projectFileNames) {
             const p = path.resolve(rootPath, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
-                cursor.set(PROJECT_DIR_KEY, rootPath);
-                cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
+                setStateValue(PROJECT_DIR_KEY, rootPath);
+                setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
                 return;
             }
         }
@@ -259,7 +227,7 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                     const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
                     try {
                         await vscode.workspace.fs.stat(u);
-                        cursor.set(PROJECT_DIR_URI_KEY, searchUri);
+                        setStateValue(PROJECT_DIR_URI_KEY, searchUri);
                         return;
                     }
                     catch { }
@@ -289,7 +257,6 @@ export function resolvePath(filePath?: string) {
 
 export {
     documentSelector,
-    reset,
     config,
     extensionContext,
     outputChannel,
