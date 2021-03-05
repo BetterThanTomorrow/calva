@@ -12,7 +12,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -129,7 +129,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             }
         }
         outputWindow.setSession(session, context.ns || ns);
-        namespace.updateREPLSessionType();
+        setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
     }
 }
 
@@ -253,7 +253,7 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
             }
         }
         outputWindow.setSession(session, res.ns || ns);
-        namespace.updateREPLSessionType();
+        setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
     }
 }
 
@@ -333,7 +333,7 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
     try {
         const session = namespace.getSession(sessionType);
         outputWindow.setSession(session, ns);
-        namespace.updateREPLSessionType();
+        setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
         outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,

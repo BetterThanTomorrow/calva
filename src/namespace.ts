@@ -104,13 +104,12 @@ export function getSession(fileType = undefined): NReplSession {
     }
 }
 
-export function updateREPLSessionType() {
-    let doc = utilities.getDocument({}),
-        fileType = utilities.getFileType(doc);
+export function getReplSessionType(connected: boolean) {
+    const doc = utilities.getDocument({});
+    const fileType = utilities.getFileType(doc);
+    let sessionType: string = null;
 
-    if (getStateValue('connected')) {
-        let sessionType: string;
-
+    if (connected) {
         if (outputWindow.isResultsDoc(doc)) {
             sessionType = outputWindow.getSessionType();
         }
@@ -126,11 +125,9 @@ export function updateREPLSessionType() {
         else {
             sessionType = 'clj'
         }
-
-        setStateValue('current-session-type', sessionType);
-    } else {
-        setStateValue('current-session-type', null);
     }
+
+    return sessionType;
 }
 
 export function getREPLSessionType() {
