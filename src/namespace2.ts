@@ -104,7 +104,7 @@ export function getSession(fileType = undefined): NReplSession {
     }
 }
 
-function updateREPLSessionType() {
+export function updateREPLSessionType() {
     let doc = utilities.getDocument({}),
         fileType = utilities.getFileType(doc);
 
@@ -134,10 +134,5 @@ function updateREPLSessionType() {
 }
 
 export function getREPLSessionType() {
-    const outputChannel = getStateValue('outputChannel');
     return getStateValue('current-session-type');
 }
-
-export {
-    updateREPLSessionType
-};
