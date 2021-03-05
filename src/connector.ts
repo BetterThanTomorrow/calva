@@ -56,7 +56,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         setStateValue('cljc', cljSession);
         status.update();
         outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
-        setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+        util.updateReplSessionType();
 
         await initializeDebugger(cljSession);
 
@@ -105,7 +105,7 @@ async function setUpCljsRepl(session, build) {
     status.update();
     outputWindow.append(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
     outputWindow.setSession(session, 'cljs.user');
-    setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+    util.updateReplSessionType();
 }
 
 async function getFigwheelMainBuilds() {
@@ -559,7 +559,7 @@ export default {
             setStateValue('cljc', newSession);
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
                 outputWindow.setSession(newSession, undefined);
-                setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+                util.updateReplSessionType();
                 outputWindow.appendPrompt();
             }
             status.update();

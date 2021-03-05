@@ -13,7 +13,6 @@ import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
-import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -201,7 +200,7 @@ export async function setNamespaceFromCurrentFile() {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
     setSession(session, ns);
-    setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+    util.updateReplSessionType();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {

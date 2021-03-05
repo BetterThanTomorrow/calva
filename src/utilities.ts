@@ -10,6 +10,7 @@ import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as namespace from './namespace';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -444,6 +445,10 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
+function updateReplSessionType() {
+    setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -480,5 +485,6 @@ export {
     currentTopLevelFunction,
     sortByPresetOrder,
     writeTextToFile,
-    downloadFromUrl
+    downloadFromUrl,
+    updateReplSessionType
 };

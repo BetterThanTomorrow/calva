@@ -6,7 +6,6 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
-import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -106,7 +105,7 @@ async function runAllTests(document = {}) {
     const session = namespace.getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
     reportTests([await session.testAll()], "Running all tests");
-    setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+    util.updateReplSessionType();
     outputWindow.appendPrompt();
 }
 
@@ -156,7 +155,7 @@ async function runNamespaceTests(document = {}) {
     const results = await Promise.all(resultPromises);
     reportTests(results, "Running tests");
     outputWindow.setSession(session, ns);
-    setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+    util.updateReplSessionType();
     outputWindow.appendPrompt();
 }
 
