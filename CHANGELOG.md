@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
 - Fix: [Navigating to a definition in a jar file throws error in console](https://github.com/BetterThanTomorrow/calva/issues/1047)
 
 ## [2.0.176] - 2021-02-24
