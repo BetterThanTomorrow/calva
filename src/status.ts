@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as namespace from './namespace';
+import * as namespace2 from './namespace2';
 import statusbar from './statusbar';
 import * as state from './state';
 
@@ -15,6 +16,7 @@ function shouldshowReplUi(context = state.extensionContext): boolean {
 function update(context = state.extensionContext) {
     vscode.commands.executeCommand('setContext', 'calva:showReplUi', shouldshowReplUi(context));
     namespace.updateREPLSessionType();
+    namespace2.updateREPLSessionType();
     statusbar.update(context);
 }
 
