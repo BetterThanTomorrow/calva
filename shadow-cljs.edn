@@ -17,11 +17,16 @@
                              :cljify calva.js-utils/cljify
                              :prettyPrint calva.pprint.printer/pretty-print-js-bridge
                              :parseEdn calva.parse/parse-edn-js-bridge
-                             :parseForms calva.parse/parse-forms-js-bridge}
+                             :parseForms calva.parse/parse-forms-js-bridge
+                             :activateLsp calva.lsp/activate
+                             :deactivateLsp calva.lsp/deactivate
+                             :getReferences calva.lsp/get-references
+                             :getDocumentSymbols calva.lsp/get-document-symbols
+                             :LSP_CLIENT_KEY calva.lsp/client-key}
                  :output-to "out/cljs-lib/cljs-lib.js"}
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
-                 :ns-regexp ".*"
+                 :ns-regexp "-test$"
                  :autorun   true}}}
 

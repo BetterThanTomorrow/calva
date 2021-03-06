@@ -16,6 +16,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "env": {
+                "IS_DEBUG": "true",
                 "CALVA_DEV_GA": "FUBAR-69796730-4",
                 "DEBUG": "no-debug-universal-analytics"
             },
@@ -35,6 +36,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "env": {
+                "IS_DEBUG": "true",
                 "CALVA_DEV_GA": "FUBAR-69796730-4",
                 "DEBUG": "no-debug-universal-analytics"
             },
@@ -54,6 +56,27 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "env": {
+                "IS_DEBUG": "true",
+                "CALVA_DEV_GA": "FUBAR-69796730-4",
+                "DEBUG": "no-debug-universal-analytics"
+            },
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+        },
+        {
+            "name": "Launch w/ no folder",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceRoot}",
+                "--folder-uri=null"
+            ],
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "env": {
+                "IS_DEBUG": "true",
                 "CALVA_DEV_GA": "FUBAR-69796730-4",
                 "DEBUG": "no-debug-universal-analytics"
             },
@@ -77,6 +100,7 @@
             "stopOnEntry": false,
             "sourceMaps": true,
             "env": {
+                "IS_DEBUG": "true",
                 "CALVA_DEV_GA": "FUBAR-69796730-4",
                 "DEBUG": "no-debug-universal-analytics"
             },

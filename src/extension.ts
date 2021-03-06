@@ -4,6 +4,7 @@ import * as fmt from "./calva-fmt/src/extension";
 import * as highlight from "./highlight/src/extension";
 import * as state from './state';
 import * as jackIn from './nrepl/jack-in';
+import * as replStart from './nrepl/repl-start';
 import * as util from './utilities'
 import status from './status';
 import connector from './connector';
@@ -22,15 +23,14 @@ import Analytics from './analytics';
 import * as open from 'open';
 import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
-import debugDecorations from './debugger/decorations';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import config from './config';
 import handleNewCljFiles from './fileHandler';
-import lsp from './lsp';
 import * as snippets from './custom-snippets';
 import setCursorContextIfChanged from './when-contexts'
+import lsp from './lsp';
 
 async function onDidSave(document) {
     let {
@@ -67,7 +67,7 @@ function setKeybindingsEnabledContext() {
 
 async function activate(context: vscode.ExtensionContext) {
     status.updateNeedReplUi(false, context);
-    lsp.activate(context).then(debugDecorations.triggerUpdateAndRenderDecorations);
+    lsp.activate(context);
     state.cursor.set('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
@@ -134,10 +134,18 @@ async function activate(context: vscode.ExtensionContext) {
     status.update(context);
 
     // COMMANDS
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackInOrConnect', jackIn.calvaJackInOrConnect));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.calvaJackIn));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startOrConnectRepl', replStart.startOrConnectRepl));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneRepl', () => {
+        replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE_FILE_NAMES, true);
+    }));
+    //context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneHelloRepl', () => {
+    //    replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE_FILE_NAMES, false);
+    //}));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.jackInCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', connector.connectNonProjectREPLCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', () => {
+        connector.connectNonProjectREPLCommand(context)
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connect', connector.connectCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.disconnect', jackIn.calvaDisconnect));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleCLJCSession', connector.toggleCLJCSession));

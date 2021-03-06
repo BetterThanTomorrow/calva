@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { https } from 'follow-redirects';
 import * as _ from 'lodash';
 import * as state from './state';
 import * as path from 'path';
@@ -7,8 +8,7 @@ import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
-import * as docMirror from './doc-mirror';
-import status from './status';
+import * as docMirror from './doc-mirror/index';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -401,6 +401,48 @@ function currentTopLevelFunction(editor: vscode.TextEditor) {
     }
 }
 
+function sortByPresetOrder(arr: any[], presetOrder: any[]) {
+    const result = [];
+    presetOrder.forEach(preset => {
+        if (arr.indexOf(preset) != -1) {
+            result.push(preset);
+        }
+    });
+    return [...result, ...arr.filter(e => !presetOrder.includes(e))];
+}
+ 
+
+function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
+    const ab = new ArrayBuffer(text.length);
+    const ui8a = new Uint8Array(ab);
+    for (var i = 0, strLen = text.length; i < strLen; i++) {
+        ui8a[i] = text.charCodeAt(i);
+    }
+    return vscode.workspace.fs.writeFile(uri, ui8a);
+}
+
+async function downloadFromUrl(url: string, savePath: string) {
+    return new Promise((resolve, reject) => {
+        const saveFile = fs.createWriteStream(savePath);
+        https.get(url, (res) => {
+            if (res.statusCode === 200) {
+                res.pipe(saveFile);
+            } else {
+                saveFile.close();
+                reject(new Error(`Server responded with ${res.statusCode}: ${res.statusMessage}`));
+            }
+            res.on('end', () => {
+                saveFile.close()
+                resolve(true);
+            });
+            res.on('error', (err: any) => {
+                console.error(`Error downloading file from ${url}: ${err.message}`)
+                reject(err);
+            });
+        });     
+    });
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -434,5 +476,8 @@ export {
     getJarContents,
     currentFormText,
     currentFunction,
-    currentTopLevelFunction
+    currentTopLevelFunction,
+    sortByPresetOrder,
+    writeTextToFile,
+    downloadFromUrl
 };
