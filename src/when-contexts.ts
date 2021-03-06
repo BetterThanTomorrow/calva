@@ -3,11 +3,12 @@ import { deepEqual } from './util/object'
 import { LispTokenCursor, TokenCursor } from './cursor-doc/token-cursor';
 import * as docMirror from './doc-mirror'
 
-// TODO: what to do about parens not being available in when expressions?
 // TODO: unit tests
 
-type CursorContext = 'calva:cursorInString' | 'calva:cursorInComment' | 'calva:cursorAtStartOfLine' | 'calva:cursorAtEndOfLine';
-const allCursorContexts: CursorContext[] = ['calva:cursorInString', 'calva:cursorInComment', 'calva:cursorAtStartOfLine', 'calva:cursorAtEndOfLine']
+type CursorContext = CursorAtomicContext | CursorCompoundContext;
+type CursorAtomicContext = 'calva:cursorInString' | 'calva:cursorInComment' | 'calva:cursorAtStartOfLine' | 'calva:cursorAtEndOfLine';
+type CursorCompoundContext = 'calva:cursorInsideComment' | 'calva:cursorInCommentExcludingSOL' | 'calva:cursorInCommentExcludingEOL';
+const allCursorContexts: CursorContext[] = ['calva:cursorInString', 'calva:cursorInComment', 'calva:cursorAtStartOfLine', 'calva:cursorAtEndOfLine', 'calva:cursorInsideComment', 'calva:cursorInCommentExcludingSOL', 'calva:cursorInCommentExcludingEOL'];
 
 let lastContexts: CursorContext[] = [];
 
@@ -36,6 +37,16 @@ function determineCursorContexts(document: vscode.TextDocument, position: vscode
         contexts.push('calva:cursorInComment');
     }
 
+    // Compound contexts 
+    if (contexts.includes('calva:cursorInComment')){
+        if (!contexts.includes('calva:cursorAtEndOfLine')){
+            contexts.push('calva:cursorInCommentExcludingEOL')
+        }
+        if(!contexts.includes('calva:cursorAtStartOfLine')){
+            contexts.push('calva:cursorInCommentExcludingSOL')
+        }
+    }
+
     return contexts;
 }
 
@@ -52,6 +63,7 @@ function setCursorContexts(currentContexts: CursorContext[]) {
 
 
 // context predicates
+// TODO: make preds for token cursor borrowings (withinstring & wihtincomment)
 function cursorAtLineStartIncLeadingWhitespace(cursor: TokenCursor, documentOffset: number) {
     const tk = cursor.clone();
     let startOfLine = false;
