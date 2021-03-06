@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 import { deepEqual } from './util/object'
-import { LispTokenCursor, TokenCursor } from './cursor-doc/token-cursor';
 import * as docMirror from './doc-mirror'
-
-// TODO: unit tests
+import * as context  from './cursor-doc/context-predicates';
 
 type CursorContext = CursorAtomicContext | CursorCompoundContext;
 type CursorAtomicContext = 'calva:cursorInString' | 'calva:cursorInComment' | 'calva:cursorAtStartOfLine' | 'calva:cursorAtEndOfLine';
@@ -25,9 +23,9 @@ function determineCursorContexts(document: vscode.TextDocument, position: vscode
     const mirrorDoc = docMirror.getDocument(document);
     const tokenCursor = mirrorDoc.getTokenCursor(idx);
 
-    if (cursorAtLineStartIncLeadingWhitespace(tokenCursor, document.offsetAt(position))) {
+    if (context.cursorAtLineStartIncLeadingWhitespace(tokenCursor, document.offsetAt(position))) {
         contexts.push('calva:cursorAtStartOfLine');
-    } else if (cursorAtLineEndIncTrailingWhitespace(tokenCursor, document.lineAt(position), position)) {
+    } else if (context.cursorAtLineEndIncTrailingWhitespace(tokenCursor, document.lineAt(position).text, position.character)) {
         contexts.push('calva:cursorAtEndOfLine');
     }
 
@@ -60,32 +58,3 @@ function setCursorContexts(currentContexts: CursorContext[]) {
         vscode.commands.executeCommand('setContext', context, currentContexts.indexOf(context) > -1)
     })
 }
-
-
-// context predicates
-// TODO: make preds for token cursor borrowings (withinstring & wihtincomment)
-function cursorAtLineStartIncLeadingWhitespace(cursor: TokenCursor, documentOffset: number) {
-    const tk = cursor.clone();
-    let startOfLine = false;
-    //  only at start if we're in ws, or at the 1st char of a non-ws sexp
-    if (tk.getToken().type === 'ws' || tk.offsetStart >= documentOffset) {
-        while (tk.getPrevToken().type === 'ws') {
-            tk.previous();
-        }
-        startOfLine = tk.getPrevToken().type === 'eol';
-    }
-
-    return startOfLine;
-}
-
-function cursorAtLineEndIncTrailingWhitespace(tokenCursor: LispTokenCursor, line: vscode.TextLine, position: vscode.Position) {
-    //  consider a multiline string as a single line
-    if (tokenCursor.withinString()) {
-        return false;
-    }
-
-    const lastNonWSIndex = line.text.match(/\S(?=(\s*$))/)?.index;
-    
-    return position.character > lastNonWSIndex
-}
-
