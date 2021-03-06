@@ -80,7 +80,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
     }
 
     const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, docNames[0]);
-    docNames.splice(1).forEach(async docName => {
+    docNames.slice(1).forEach(async docName => {
         await openStoredDoc(storageUri, tempDirUri, docName);
     });
     const firstPos = mainEditor.document.positionAt(0);
@@ -148,5 +148,5 @@ export async function startOrConnectRepl() {
         if (commands[v]) {
             vscode.commands.executeCommand(commands[v]);
         }
-    })
+    });
 }
