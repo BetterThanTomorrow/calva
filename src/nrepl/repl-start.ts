@@ -131,6 +131,7 @@ export async function startOrConnectRepl() {
                 commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             }
             commands[CONNECT_PROJECT_OPTION] = CONNECT_PROJECT_COMMAND;
+            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         } else {
             commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             commands[START_REPL_OPTION] = START_REPL_COMMAND;
