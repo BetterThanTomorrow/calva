@@ -135,10 +135,12 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     }
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-        const isOutputWindow = isResultsDoc(event.document);
-        setContextForOutputWindowActive(isOutputWindow);
-        if (isOutputWindow) {
-            setViewColumn(event.viewColumn);
+        if (event) {
+            const isOutputWindow = isResultsDoc(event.document);
+            setContextForOutputWindowActive(isOutputWindow);
+            if (isOutputWindow) {
+                setViewColumn(event.viewColumn);
+            }
         }
     }));
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {

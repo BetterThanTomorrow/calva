@@ -443,6 +443,10 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
+function randomSlug(length = 7) {
+    return Math.random().toString(36).substring(7);
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -479,5 +483,6 @@ export {
     currentTopLevelFunction,
     sortByPresetOrder,
     writeTextToFile,
-    downloadFromUrl
+    downloadFromUrl,
+    randomSlug
 };

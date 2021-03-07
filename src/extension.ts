@@ -137,9 +137,9 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneRepl', () => {
         replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE_FILE_NAMES, true);
     }));
-    //context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneHelloRepl', () => {
-    //    replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE_FILE_NAMES, false);
-    //}));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneHelloRepl', () => {
+        replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE_FILE_NAMES, false);
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.jackInCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
     context.subscriptions.push(vscode.commands.registerCommand('calva.connectNonProjectREPL', () => {
