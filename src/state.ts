@@ -142,30 +142,45 @@ export function getProjectRootUri(useCache = true): vscode.Uri {
     }
 }
 
+const NON_PROJECT_DIR_KEY = "calva.connect.nonProjectDir";
+
+export async function getNonProjectRootDir(context: vscode.ExtensionContext): Promise<vscode.Uri> {
+    let root: vscode.Uri;
+    root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
+    if (root) {
+        const createNewOption = "Create new temp directory, download new files";
+        const useExistingOption = "Use existing temp directory, reuse any existing files";
+        root = await vscode.window.showQuickPick([useExistingOption, createNewOption], {
+             "placeHolder": "Reuse the existing REPL temp dir and its files?"
+        }).then(option => {
+            return option === useExistingOption ? root : undefined;
+        });
+    }
+    if (typeof (root) === 'object') {
+        root = vscode.Uri.file(root.path);
+    }
+    return root;
+}
+
+export async function setNonProjectRootDir(context: vscode.ExtensionContext, root: vscode.Uri) {
+    await context.globalState.update(NON_PROJECT_DIR_KEY, root);
+}
+
 export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext, preferProjectDir = false): Promise<vscode.Uri> {
-    const NON_PROJECT_DIR_KEY = "calva.connect.nonProjectDir";
     let root: vscode.Uri;
     if (preferProjectDir) {
         root = getProjectRootUri();
     }
     if (!root) {
-        try {
-            root = await context.workspaceState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
-        } catch {
-            root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
-        }
+        root = await getNonProjectRootDir(context);
     }
     if (!root) {
-        const subDir = Math.random().toString(36).substring(7);
-        root = vscode.Uri.file(path.join(os.tmpdir(), subDir));
+        const subDir = util.randomSlug();
+        root = vscode.Uri.file(path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir));
+        await setNonProjectRootDir(context, root);
     }
-    cursor.set(PROJECT_DIR_KEY, path.resolve(root.fsPath));
-    cursor.set(PROJECT_DIR_URI_KEY, root);    
-    try {
-        context.workspaceState.update(NON_PROJECT_DIR_KEY, root);
-    } catch {
-        context.globalState.update(NON_PROJECT_DIR_KEY, root);
-    }
+    cursor.set(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+    cursor.set(PROJECT_DIR_URI_KEY, root);
     return root;
 }
 
@@ -198,7 +213,7 @@ function getProjectWsFolder(): vscode.WorkspaceFolder {
 export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     if (uri) {
         cursor.set(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
-        cursor.set(PROJECT_DIR_URI_KEY, uri);    
+        cursor.set(PROJECT_DIR_URI_KEY, uri);
     } else {
         const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
         const doc = util.getDocument({});
@@ -266,7 +281,7 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                     catch { }
                 }
             }
-            catch (e) { 
+            catch (e) {
                 console.error(`Problems in search for project root directory: ${e}`);
             }
             prev = searchUri;

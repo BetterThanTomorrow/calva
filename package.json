@@ -678,6 +678,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.startStandaloneHelloRepl",
+                "title": "Fire up the ”Getting Started” REPL",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
                 "enablement": "calva:connected",
