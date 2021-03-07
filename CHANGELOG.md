@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Navigating to a definition in a jar file throws error in console](https://github.com/BetterThanTomorrow/calva/issues/1047)
+- [Add a Getting Started REPL feature](https://github.com/BetterThanTomorrow/calva/issues/1040)
 
 ## [2.0.176] - 2021-02-24
 - Revert switch to cljs for lsp, until [the issue with released cljs/js interop](https://github.com/BetterThanTomorrow/calva/issues/1044) has been fixed
