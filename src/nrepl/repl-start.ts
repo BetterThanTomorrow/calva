@@ -15,12 +15,13 @@ const TEMPLATES_SUB_DIR = 'bundled';
 
 async function downloadDram(storageUri: vscode.Uri, filePath: string) {
     const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
-    const calva = vscode.extensions.getExtension("betterthantomorrow.calva")!;
+    const calva = vscode.extensions.getExtension("betterthantomorrow.calva");
     const calvaVersion = calva.packageJSON.version;
     const isDebug = process.env["IS_DEBUG"] === "true";
     const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
     const dramBaseUrl = `${DRAM_BASE_URL}/${branch}/drams`;
     const downloadUrl = `${dramBaseUrl}/${filePath}`
+    console.log(calvaVersion, isDebug, branch, downloadUrl);
     const fileName = path.basename(filePath);
     const storeFileUri = vscode.Uri.joinPath(storageUri, fileName);
     return await utilities.downloadFromUrl(downloadUrl, storeFileUri.fsPath).catch(err => {
