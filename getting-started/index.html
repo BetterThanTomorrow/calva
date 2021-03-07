@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/getting-started/">
       
       <link rel="shortcut icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.1">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.4">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.1655a90d.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.77f3fd56.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.7fa14f5b.min.css">
@@ -220,12 +220,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
       
       <label class="md-nav__link" for="__nav_2">
         Start Here
@@ -238,6 +240,69 @@
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Getting Started
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Getting Started
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#theres-a-getting-started-repl" class="md-nav__link">
+    There's a ”Getting Started” REPL
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#you-have-a-project" class="md-nav__link">
+    You have a Project?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clojure-resources" class="md-nav__link">
+    Clojure Resources
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
           
             
   
@@ -328,7 +393,6 @@
           Features
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
-          
           
             
   
@@ -519,7 +583,6 @@
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
-          
             
   
   
@@ -670,7 +733,6 @@
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
-          
             
   
   
@@ -724,7 +786,6 @@
           In Depth
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
-          
           
             
   
@@ -822,11 +883,7 @@
                 
                 
                 <h1 id="getting-started">Getting Started</h1>
-<p>Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Both start with:</p>
-<ol>
-<li>You have VS Code started</li>
-<li>You install Calva</li>
-</ol>
+<p>Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Regardless, you need to install Calva in VS Code.</p>
 <h2 id="theres-a-getting-started-repl">There's a ”Getting Started” REPL</h2>
 <p>If you are new to Calva, a good place to start is using the command <strong>Fire up the ”Getting Started” REPL</strong>. </p>
 <p><img alt="Command Palette Start Standalone REPL" src="../images/howto/start-hello-repl.png" title="Fire up the ”Getting Started” REPL" /></p>
@@ -841,6 +898,10 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>When you are more familiar with Calva, and want a standalone REPL, there is a separate command: <strong>Start a standalone REPL (not in project)</strong>. It will open up a <code>user.clj</code> in a temporary directory, containing only an <code>(ns user)</code> form, and start and connect the REPL. </p>
+</div>
+<div class="admonition note2">
+<p class="admonition-title">Note2</p>
+<p>The command for starting the Getting Started REPL will download the files from <a href="https://github.com/BetterThanTomorrow/dram">this repository</a>. It is very much work in progress, and there is not even a finished Clojure Beginner's Guide there yet. WHen you run the command again, and from then on, you will get the option to download new files or keep using your existing. Downloading new ones will not overwrite your existing ones, because they will be downloaded to a new temp directory. You can find the directory easily using VS Codes context menu command for revealing a file in the Explorer/Finder.</p>
 </div>
 <h2 id="you-have-a-project">You have a Project?</h2>
 <p>If you are new to Calva, please consider the above option first. Then when it it will be time to get <a href="../connect/">Calva connected to the REPL of your project</a>.</p>
@@ -867,6 +928,39 @@
         
 <footer class="md-footer">
   
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href=".." class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Welcome!
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../connect/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Connect Calva to Your Project
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-footer-copyright">
@@ -885,10 +979,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.f5903571.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.fb4a9340.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.4e3fea51.min.js"></script>
+      <script src="../assets/javascripts/bundle.9b151c6a.min.js"></script>
       
     
   </body>
