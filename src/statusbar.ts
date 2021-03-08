@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import config from './config';
+import { REPL_FILE_EXT } from './config';
 import * as namespace from './namespace';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
@@ -61,7 +61,7 @@ function update(context = state.extensionContext) {
         typeStatus.color = colorValue("typeStatusColor", currentConf);
         const replType = namespace.getREPLSessionType();
         if (replType !== null) {
-            typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
+            typeStatus.text = ['cljc', REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
             if (namespace.getSession('clj') !== null && namespace.getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
                 typeStatus.tooltip = `Click to use ${(replType === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;

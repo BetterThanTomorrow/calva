@@ -3,7 +3,7 @@ import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, P
 import * as path from 'path';
 import * as state from './state';
 import * as util from './utilities'
-import config from './config';
+import { REPL_FILE_EXT } from './config';
 import { provideClojureDefinition } from './providers/definition';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
@@ -33,7 +33,7 @@ function createClient(jarPath: string): LanguageClient {
                 if (!state.config().displayDiagnostics) {
                     return next(uri, []);
                 }
-                if (uri.path.endsWith(config.REPL_FILE_EXT)) {
+                if (uri.path.endsWith(REPL_FILE_EXT)) {
                     return;
                 }
                 return next(uri, diagnostics);

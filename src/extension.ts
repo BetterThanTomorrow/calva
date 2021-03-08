@@ -26,7 +26,7 @@ import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
-import config from './config';
+import  { KEYBINDINGS_ENABLED_CONTEXT_KEY, KEYBINDINGS_ENABLED_CONFIG_KEY } from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp';
@@ -61,8 +61,8 @@ function onDidOpen(document) {
 }
 
 function setKeybindingsEnabledContext() {
-    let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
-    vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
+    let keybindingsEnabled = vscode.workspace.getConfiguration().get(KEYBINDINGS_ENABLED_CONFIG_KEY);
+    vscode.commands.executeCommand('setContext', KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
 }
 
 function initializeState() {
@@ -194,8 +194,8 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.showNextReplHistoryEntry', replHistory.showNextReplHistoryEntry));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearReplHistory', replHistory.clearHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleKeybindingsEnabled', () => {
-        let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
-        vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
+        let keybindingsEnabled = vscode.workspace.getConfiguration().get(KEYBINDINGS_ENABLED_CONFIG_KEY);
+        vscode.workspace.getConfiguration().update(KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCalvaDocs', () => {
         context.globalState.update(VIEWED_CALVA_DOCS, true);
@@ -260,7 +260,7 @@ async function activate(context: vscode.ExtensionContext) {
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((e: vscode.ConfigurationChangeEvent) => {
-        if (e.affectsConfiguration(config.KEYBINDINGS_ENABLED_CONFIG_KEY)) {
+        if (e.affectsConfiguration(KEYBINDINGS_ENABLED_CONFIG_KEY)) {
             setKeybindingsEnabledContext();
         }
     }));

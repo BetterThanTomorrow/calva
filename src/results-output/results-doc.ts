@@ -8,13 +8,13 @@ import * as util from '../utilities';
 import select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
-import config from '../config';
+import { REPL_FILE_EXT } from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 
-const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
+const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
 
 const PROMPT_HINT = '; Use `alt+enter` to evaluate';
 
