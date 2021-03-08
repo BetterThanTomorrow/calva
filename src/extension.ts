@@ -67,8 +67,10 @@ function setKeybindingsEnabledContext() {
 }
 
 function initializeState() {
+    setStateValue('connected', false);
+    setStateValue('connecting', false);
     setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
-    setStateValue('diagnosticCollection', vscode.window.createOutputChannel('Calva Connection Log'));
+    setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
     setStateValue('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
 }
 

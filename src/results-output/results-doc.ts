@@ -194,7 +194,7 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 }
 
 export async function setNamespaceFromCurrentFile() {
-    const session = namespace.getSession();
+    const session = util.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
@@ -204,7 +204,7 @@ export async function setNamespaceFromCurrentFile() {
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
-    const session = namespace.getSession();
+    const session = util.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;

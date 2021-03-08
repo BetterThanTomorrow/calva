@@ -10,7 +10,7 @@ import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
-import * as namespace from './namespace';
+import { NReplSession } from './nrepl';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -445,8 +445,58 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
+function getSession(fileType = undefined): NReplSession {
+    let doc = getDocument({});
+
+    if (fileType === undefined) {
+        fileType = getFileType(doc);
+    }
+    if (fileType.match(/^clj[sc]?/)) {
+        return getStateValue(fileType);
+    } else {
+        if (outputWindow.isResultsDoc(doc)) {
+            return outputWindow.getSession();
+        } else {
+            return getStateValue('cljc');
+        }
+    }
+}
+
+function getReplSessionType(connected: boolean) {
+    const doc = getDocument({});
+    const fileType = getFileType(doc);
+    let sessionType: string = null;
+
+    if (connected) {
+        if (outputWindow.isResultsDoc(doc)) {
+            sessionType = outputWindow.getSessionType();
+        }
+        else if (fileType == 'cljs' && getSession('cljs') !== null) {
+            sessionType = 'cljs'
+        }
+        else if (fileType == 'clj' && getSession('clj') !== null) {
+            sessionType = 'clj'
+        }
+        else if (getSession('cljc') !== null) {
+            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
+        }
+        else {
+            sessionType = 'clj'
+        }
+    }
+
+    return sessionType;
+}
+
 function updateReplSessionType() {
-    setStateValue('current-session-type', namespace.getReplSessionType(getStateValue('connected')));
+    const connected = getStateValue('connected');
+    const clj = getStateValue('clj');
+    const replSessionType = getReplSessionType(connected);
+    setStateValue('current-session-type', replSessionType);
+}
+
+function getCurrentReplSessionType() {
+    return getStateValue('current-session-type');
 }
 
 export {
@@ -486,5 +536,7 @@ export {
     sortByPresetOrder,
     writeTextToFile,
     downloadFromUrl,
-    updateReplSessionType
+    updateReplSessionType,
+    getCurrentReplSessionType,
+    getSession
 };

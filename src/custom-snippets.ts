@@ -33,7 +33,7 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const editorNS = editor && editor.document &&
         editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
     const editorRepl = editor && editor.document &&
-        editor.document.languageId === 'clojure' ? namespace.getREPLSessionType() : "clj";
+        editor.document.languageId === 'clojure' ? util.getCurrentReplSessionType() : "clj";
     snippets.forEach((c: customREPLCommandSnippet) => {
         const undefs = ["name", "snippet"].filter(k => {
             return !c[k];

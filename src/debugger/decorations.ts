@@ -94,7 +94,7 @@ function triggerUpdateAndRenderDecorations() {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             timeout = setTimeout(() => {
-                const cljSession = namespace.getSession('clj');
+                const cljSession = util.getSession('clj');
                 const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
                 update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);

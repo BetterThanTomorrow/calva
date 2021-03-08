@@ -1,7 +1,6 @@
-import { setStateValue, getStateValue, parseForms } from '../out/cljs-lib/cljs-lib';
+import { parseForms } from '../out/cljs-lib/cljs-lib';
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import { NReplSession } from './nrepl';
 import * as docMirror from './doc-mirror/index';
 import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
@@ -69,7 +68,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
         let document = utilities.getDocument(doc);
         if (document) {
             let ns = getNamespace(document);
-            let client = getSession(utilities.getFileType(document));
+            let client = utilities.getSession(utilities.getFileType(document));
             if (client) {
                 let nsList = await client.listNamespaces([]);
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {
@@ -85,51 +84,4 @@ export function getDocumentNamespace(document = {}) {
     let doc = utilities.getDocument(document);
 
     return getNamespace(doc);
-}
-
-export function getSession(fileType = undefined): NReplSession {
-    let doc = utilities.getDocument({});
-
-    if (fileType === undefined) {
-        fileType = utilities.getFileType(doc);
-    }
-    if (fileType.match(/^clj[sc]?/)) {
-        return getStateValue(fileType);
-    } else {
-        if (outputWindow.isResultsDoc(doc)) {
-            return outputWindow.getSession();
-        } else {
-            return getStateValue('cljc');
-        }
-    }
-}
-
-export function getReplSessionType(connected: boolean) {
-    const doc = utilities.getDocument({});
-    const fileType = utilities.getFileType(doc);
-    let sessionType: string = null;
-
-    if (connected) {
-        if (outputWindow.isResultsDoc(doc)) {
-            sessionType = outputWindow.getSessionType();
-        }
-        else if (fileType == 'cljs' && getSession('cljs') !== null) {
-            sessionType = 'cljs'
-        }
-        else if (fileType == 'clj' && getSession('clj') !== null) {
-            sessionType = 'clj'
-        }
-        else if (getSession('cljc') !== null) {
-            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        }
-        else {
-            sessionType = 'clj'
-        }
-    }
-
-    return sessionType;
-}
-
-export function getREPLSessionType() {
-    return getStateValue('current-session-type');
 }

@@ -92,6 +92,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         util.setConnectedState(false);
         outputWindow.append("; Failed connecting.");
         state.analytics().logEvent("REPL", "FailedConnectingCLJ").send();
+        console.error('Failed connecting:', e);
         return false;
     }
 
@@ -551,10 +552,10 @@ export default {
         let newSession: NReplSession;
 
         if (getStateValue('connected')) {
-            if (namespace.getSession('cljc') == namespace.getSession('cljs')) {
-                newSession = namespace.getSession('clj');
-            } else if (namespace.getSession('cljc') == namespace.getSession('clj')) {
-                newSession = namespace.getSession('cljs');
+            if (util.getSession('cljc') == util.getSession('cljs')) {
+                newSession = util.getSession('clj');
+            } else if (util.getSession('cljc') == util.getSession('clj')) {
+                newSession = util.getSession('cljs');
             }
             setStateValue('cljc', newSession);
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
@@ -566,7 +567,7 @@ export default {
         }
     },
     switchCljsBuild: async () => {
-        let cljSession = namespace.getSession('clj');
+        let cljSession = util.getSession('clj');
         const cljsTypeName: string = state.extensionContext.workspaceState.get('selectedCljsTypeName'),
             cljTypeName: string = state.extensionContext.workspaceState.get('selectedCljTypeName');
         state.analytics().logEvent("REPL", "switchCljsBuild", cljsTypeName).send();

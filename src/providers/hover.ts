@@ -16,7 +16,7 @@ export default class HoverProvider implements vscode.HoverProvider {
         if (util.getConnectedState()) {
             let text = util.getWordAtPosition(document, position);
             let ns = namespace.getNamespace(document);
-            let client = namespace.getSession(util.getFileType(document));
+            let client = util.getSession(util.getFileType(document));
             if(client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(document);
                 let res = await client.info(ns, text);

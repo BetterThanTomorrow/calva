@@ -40,7 +40,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 context = `${contextStart}__prefix__${contextEnd}`,
                 toplevelIsValidForm = toplevelStartCursor.withinValidList() && context != '__prefix__',
                 ns = namespace.getNamespace(document),
-                client = namespace.getSession(util.getFileType(document)),
+                client = util.getSession(util.getFileType(document)),
                 res = await client.complete(ns, text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];
                 if(results) {
@@ -65,7 +65,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
 
         if (util.getConnectedState()) {
-            let client = namespace.getSession(util.getFileType(window.activeTextEditor.document));
+            let client = util.getSession(util.getFileType(window.activeTextEditor.document));
             if (client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
                 let result = await client.info(item.insertText["ns"], item.label)

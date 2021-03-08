@@ -12,7 +12,7 @@ export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
                 idx = document.offsetAt(position),
                 symbol = this.getSymbol(document, idx);
             if (symbol) {
-                const client = namespace.getSession(util.getFileType(document));
+                const client = util.getSession(util.getFileType(document));
                 if (client) {
                     await namespace.createNamespaceFromDocumentIfNotExists(document);
                     const res = await client.info(ns, symbol),

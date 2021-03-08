@@ -59,10 +59,10 @@ function update(context = state.extensionContext) {
         connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.startOrConnectRepl";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
-        const replType = namespace.getREPLSessionType();
+        const replType = util.getCurrentReplSessionType();
         if (replType !== null) {
             typeStatus.text = ['cljc', REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
-            if (namespace.getSession('clj') !== null && namespace.getSession('cljs') !== null) {
+            if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
                 typeStatus.tooltip = `Click to use ${(replType === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
             } else {

@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as state from "../state";
 import eval from '../evaluate';
 import * as utilities from "../utilities";
-import * as namespace from "../namespace";
 import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
@@ -138,7 +137,7 @@ export async function startOrConnectRepl() {
         }
     } else {
         commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
-        if (namespace.getSession("clj")) {
+        if (utilities.getSession("clj")) {
             commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
         }
     }
