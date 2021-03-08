@@ -26,7 +26,7 @@ import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
-import  { KEYBINDINGS_ENABLED_CONTEXT_KEY, KEYBINDINGS_ENABLED_CONFIG_KEY } from './config';
+import  { KEYBINDINGS_ENABLED_CONTEXT_KEY, KEYBINDINGS_ENABLED_CONFIG_KEY, documentSelector } from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp';
@@ -216,12 +216,12 @@ async function activate(context: vscode.ExtensionContext) {
     setKeybindingsEnabledContext();
 
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.StackTraceDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(documentSelector, new CalvaCompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(documentSelector, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, new definition.ClojureDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, new definition.StackTraceDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, new definition.ResultsDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new JarContentProvider());

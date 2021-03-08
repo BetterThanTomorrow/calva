@@ -8,7 +8,7 @@ import * as util from '../utilities';
 import select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
-import { REPL_FILE_EXT } from '../config';
+import { REPL_FILE_EXT, documentSelector } from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
@@ -163,7 +163,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
         }
         vscode.commands.executeCommand("setContext", "calva:outputWindowSubmitOnEnter", submitOnEnter);
     }));
-    vscode.languages.registerCodeLensProvider(state.documentSelector, new PrintStackTraceCodelensProvider());
+    vscode.languages.registerCodeLensProvider(documentSelector, new PrintStackTraceCodelensProvider());
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused

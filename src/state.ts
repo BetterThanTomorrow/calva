@@ -17,15 +17,6 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
     }
 }
 
-// include the 'file' and 'untitled' to the
-// document selector. All other schemes are
-// not known and therefore not supported.
-const documentSelector = [
-    { scheme: 'file', language: 'clojure' },
-    { scheme: 'jar', language: 'clojure' },
-    { scheme: 'untitled', language: 'clojure' }
-];
-
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
 function _outputChannel(name: string): vscode.OutputChannel {
@@ -256,7 +247,6 @@ export function resolvePath(filePath?: string) {
 }
 
 export {
-    documentSelector,
     config,
     extensionContext,
     outputChannel,

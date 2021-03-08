@@ -6,6 +6,7 @@ import * as formatter from './format';
 import * as inferer from './infer';
 import * as docmirror from "../../doc-mirror/index"
 import * as config from './config'
+import { documentSelector } from '../../config';
 
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
     return {
@@ -33,8 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.inferParens', inferer.inferParensCommand));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabIndent', (e) => { inferer.indentCommand(e, " ", true) }));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabDedent', (e) => { inferer.indentCommand(e, " ", false) }));
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(state.documentSelector, new FormatOnTypeEditProvider, "\r", "\n"));
-    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(state.documentSelector, new RangeEditProvider));
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(documentSelector, new FormatOnTypeEditProvider, "\r", "\n"));
+    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(documentSelector, new RangeEditProvider));
     vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
     vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration("calva.fmt.formatAsYouType")) {
