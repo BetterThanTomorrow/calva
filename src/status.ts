@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import statusbar from './statusbar';
 import * as state from './state';
 import * as util from './utilities';
+import { getWorkspaceConfig } from './config';
 
 function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
     context.workspaceState.update('needReplUi', isNeeded);
@@ -9,7 +10,7 @@ function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
 }
 
 function shouldshowReplUi(context = state.extensionContext): boolean {
-    return context.workspaceState.get('needReplUi') || !state.config().hideReplUi;
+    return context.workspaceState.get('needReplUi') || !getWorkspaceConfig().hideReplUi;
 }
 
 function update(context = state.extensionContext) {

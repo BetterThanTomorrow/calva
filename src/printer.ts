@@ -1,4 +1,4 @@
-import * as state from './state';
+import { getWorkspaceConfig } from './config';
 
 export type PrettyPrintingOptions = {
     enabled: boolean,
@@ -58,7 +58,7 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
 }
 
 export function prettyPrintingOptions(): PrettyPrintingOptions {
-    return state.config().prettyPrintingOptions;
+    return getWorkspaceConfig().prettyPrintingOptions;
 }
 
 export const zprintDependencies = {

@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 import * as path from 'path';
-import * as state from "../state"
+import * as state from "../state";
 import eval from '../evaluate';
 import * as utilities from "../utilities";
 import * as namespace from "../namespace";
 import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
-import { reject } from "lodash";
+import { getWorkspaceConfig } from '../config';
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
 export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
@@ -90,7 +90,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
 
     await jackIn.jackIn(sequence.genericDefaults[0], async () => {
         await vscode.window.showTextDocument(mainDoc, { preview: false, viewColumn: vscode.ViewColumn.One, preserveFocus: false });
-        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        await eval.loadFile({}, getWorkspaceConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     });
 }

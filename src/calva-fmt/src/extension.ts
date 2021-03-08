@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
-import * as state from '../../state';
 import { FormatOnTypeEditProvider } from './providers/ontype_formatter';
 import { RangeEditProvider } from './providers/range_formatter';
 import * as formatter from './format';
 import * as inferer from './infer';
 import * as docmirror from "../../doc-mirror/index"
 import * as config from './config'
-import { documentSelector } from '../../config';
+import { documentSelector, getWorkspaceConfig } from '../../config';
 
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
     return {
-        onEnterRules: autoIndentOn && state.config().format ? [
+        onEnterRules: autoIndentOn && getWorkspaceConfig().format ? [
             // When Calva is the formatter disable all vscode default indentation
             // (By outdenting a lot, which is the only way I have found that works)
             // TODO: Make it actually consider whether Calva is the formatter or not

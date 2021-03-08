@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient';
 import * as path from 'path';
-import * as state from './state';
 import * as util from './utilities'
-import { REPL_FILE_EXT } from './config';
+import { REPL_FILE_EXT, getWorkspaceConfig } from './config';
 import { provideClojureDefinition } from './providers/definition';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
@@ -30,7 +29,7 @@ function createClient(jarPath: string): LanguageClient {
         },
         middleware: {
             handleDiagnostics(uri, diagnostics, next) {
-                if (!state.config().displayDiagnostics) {
+                if (!getWorkspaceConfig().displayDiagnostics) {
                     return next(uri, []);
                 }
                 if (uri.path.endsWith(REPL_FILE_EXT)) {
@@ -42,13 +41,13 @@ function createClient(jarPath: string): LanguageClient {
                 return next(document, range, context, token);
             },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
-                if (state.config().referencesCodeLensEnabled) {
+                if (getWorkspaceConfig().referencesCodeLensEnabled) {
                     return await next(document, token);
                 }
                 return [];
             },
             resolveCodeLens: async (codeLens, token, next) => {
-                if (state.config().referencesCodeLensEnabled) {
+                if (getWorkspaceConfig().referencesCodeLensEnabled) {
                     return await next(codeLens, token);
                 }
                 return null;

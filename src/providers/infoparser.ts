@@ -1,6 +1,6 @@
 import { SignatureInformation, ParameterInformation, MarkdownString } from 'vscode';
 import * as tokenCursor from '../cursor-doc/token-cursor';
-import { config } from "../state";
+import { getWorkspaceConfig } from "../config";
 
 export class REPLInfoParser {
     private _name: string = undefined;
@@ -223,7 +223,7 @@ export class REPLInfoParser {
                             if (!this._specialForm && !argList.match(/\?/)) {
                                 signature.parameters = this.getParameters(symbol, argList);
                             }
-                            if (this._docString && config().showDocstringInParameterHelp) {
+                            if (this._docString && getWorkspaceConfig().showDocstringInParameterHelp) {
                                 signature.documentation = this.formatDocString(this._docString);
                             }
                             return signature;

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from './state';
 import * as util from './utilities';
 import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc'
 import { customREPLCommandSnippet, evaluateInOutputWindow } from './evaluate';
+import { getWorkspaceConfig } from './config';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
     await evaluateCustomCodeSnippet(codeOrKey);
@@ -17,15 +17,15 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const currentFilename = editor.document.fileName;
     let pickCounter = 0;
     let configErrors: { "name": string; "keys": string[]; }[] = [];
-    const globalSnippets = state.config().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
-    const workspaceSnippets = state.config().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
-    const workspaceFolderSnippets = state.config().customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
+    const globalSnippets = getWorkspaceConfig().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
+    const workspaceSnippets = getWorkspaceConfig().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
+    const workspaceFolderSnippets = getWorkspaceConfig().customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
     let snippets = [
         ...(globalSnippets ? globalSnippets : []),
         ...(workspaceSnippets ? workspaceSnippets : []),
         ...(workspaceFolderSnippets ? workspaceFolderSnippets : [])];
     if (snippets.length < 1) {
-        snippets = state.config().customREPLCommandSnippets;
+        snippets = getWorkspaceConfig().customREPLCommandSnippets;
     }
     const snippetsDict = {};
     const snippetsKeyDict = {};

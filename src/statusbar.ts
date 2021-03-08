@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import { REPL_FILE_EXT } from './config';
+import { REPL_FILE_EXT, getWorkspaceConfig } from './config';
 import * as namespace from './namespace';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
@@ -35,7 +35,7 @@ function update(context = state.extensionContext) {
 
     //let disconnectedColor = "rgb(192,192,192)";
 
-    const pprint = state.config().prettyPrintingOptions.enabled;
+    const pprint = getWorkspaceConfig().prettyPrintingOptions.enabled;
     prettyPrintToggle.text = "pprint";
     prettyPrintToggle.color = pprint ? undefined : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`

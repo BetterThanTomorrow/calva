@@ -8,7 +8,7 @@ import * as util from '../utilities';
 import select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
-import { REPL_FILE_EXT, documentSelector } from '../config';
+import { REPL_FILE_EXT, documentSelector, getWorkspaceConfig } from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
@@ -126,7 +126,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
-    if (state.config().autoOpenREPLWindow) {
+    if (getWorkspaceConfig().autoOpenREPLWindow) {
         const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
         const firstPos = resultsEditor.document.positionAt(0);
         const lastPos = resultsDoc.positionAt(Infinity);

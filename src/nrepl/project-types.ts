@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as utilities from '../utilities';
 import * as pprint from '../printer';
-
+import { getWorkspaceConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
@@ -160,7 +160,7 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
             profiles = launchProfiles.map(keywordize);
         } else {
             let projectProfiles = profilesIndex > -1 ? Object.keys(defproject[profilesIndex + 1]) : [];
-            const myProfiles = state.config().myLeinProfiles;
+            const myProfiles = getWorkspaceConfig().myLeinProfiles;
             if (myProfiles && myProfiles.length) {
                 projectProfiles = [...projectProfiles, ...myProfiles];
             }
@@ -185,9 +185,9 @@ export enum JackInDependency {
     "cider/piggieback" = "cider/piggieback"
 }
 
-const NREPL_VERSION = () => state.config().jackInDependencyVersions["nrepl"],
-    CIDER_NREPL_VERSION = () => state.config().jackInDependencyVersions["cider-nrepl"],
-    PIGGIEBACK_VERSION = () => state.config().jackInDependencyVersions["cider/piggieback"];
+const NREPL_VERSION = () => getWorkspaceConfig().jackInDependencyVersions["nrepl"],
+    CIDER_NREPL_VERSION = () => getWorkspaceConfig().jackInDependencyVersions["cider-nrepl"],
+    PIGGIEBACK_VERSION = () => getWorkspaceConfig().jackInDependencyVersions["cider/piggieback"];
 
 const cliDependencies = () => {
     return {
@@ -400,7 +400,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
         aliases = launchAliases.map(keywordize);
     } else {
         let projectAliases = parsed && parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
-        const myAliases = state.config().myCljAliases;
+        const myAliases = getWorkspaceConfig().myCljAliases;
         if (myAliases && myAliases.length) {
             projectAliases = [...projectAliases, ...myAliases];
         }

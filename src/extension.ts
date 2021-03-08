@@ -26,7 +26,8 @@ import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
-import  { KEYBINDINGS_ENABLED_CONTEXT_KEY, KEYBINDINGS_ENABLED_CONFIG_KEY, documentSelector } from './config';
+import  { KEYBINDINGS_ENABLED_CONTEXT_KEY, KEYBINDINGS_ENABLED_CONFIG_KEY, 
+            documentSelector, getWorkspaceConfig } from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp';
@@ -36,7 +37,7 @@ async function onDidSave(document) {
     let {
         evaluate,
         test,
-    } = state.config();
+    } = getWorkspaceConfig();
 
     if (document.languageId !== 'clojure') {
         return;
@@ -47,7 +48,7 @@ async function onDidSave(document) {
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadFile(document, state.config().prettyPrintingOptions);
+            await eval.loadFile(document, getWorkspaceConfig().prettyPrintingOptions);
             outputWindow.appendPrompt();
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
@@ -90,8 +91,8 @@ async function activate(context: vscode.ExtensionContext) {
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
     const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
     const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
-    const customCljsRepl = state.config().customCljsRepl;
-    const replConnectSequences = state.config().replConnectSequences;
+    const customCljsRepl = getWorkspaceConfig().customCljsRepl;
+    const replConnectSequences = getWorkspaceConfig().replConnectSequences;
     const BUTTON_GOTO_DOC = "Open the docs";
     const BUTTON_OK = "Got it";
     const VIM_DOC_URL = "https://calva.io/vim/";
@@ -160,7 +161,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', async () => {
-        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        await eval.loadFile({}, getWorkspaceConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));

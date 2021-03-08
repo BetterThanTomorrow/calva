@@ -13,6 +13,7 @@ import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getWorkspaceConfig } from './config';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -45,7 +46,7 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
 }
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
-    const pprintOptions = options.pprintOptions || state.config().prettyPrintingOptions;
+    const pprintOptions = options.pprintOptions || getWorkspaceConfig().prettyPrintingOptions;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
@@ -189,27 +190,27 @@ function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): str
 }
 
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
+    evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: getWorkspaceConfig().prettyPrintingOptions }))
         .catch(printWarningForError);
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
+    evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: getWorkspaceConfig().prettyPrintingOptions }))
         .catch(printWarningForError);
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
+    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: getWorkspaceConfig().prettyPrintingOptions }))
         .catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
+    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: getWorkspaceConfig().prettyPrintingOptions }))
         .catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
+    evaluateSelection(document, Object.assign({}, options, { pprintOptions: getWorkspaceConfig().prettyPrintingOptions }))
         .catch(printWarningForError);
 }
 
@@ -322,7 +323,7 @@ async function togglePrettyPrint() {
 };
 
 async function instrumentTopLevelForm() {
-    evaluateSelection({}, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true })
+    evaluateSelection({}, { topLevel: true, pprintOptions: getWorkspaceConfig().prettyPrintingOptions, debug: true })
         .catch(printWarningForError);
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
