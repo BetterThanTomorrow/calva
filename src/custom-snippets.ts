@@ -90,12 +90,13 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         replace("$column", currentColumn).
         replace("$file", currentFilename).
         replace("$ns", ns).
-        replace("$current-form", getText.currentFormText(editor, false)).
-        replace("$top-level-form", getText.currentFormText(editor, true)).
-        replace("$current-fn", getText.currentFunction(editor)).
-        replace("$top-level-defined-symbol", getText.currentTopLevelFunction(editor)).
-        replace("$head", getText.textToStartOfList(editor)).
-        replace("$tail", getText.textToEndOfList(editor));
+        replace("$selection", editor.document.getText(editor.selection)).
+        replace("$current-form", getText.currentFormText(editor)[1]).
+        replace("$top-level-form", getText.currentTopLevelFormText(editor)[1]).
+        replace("$current-fn", getText.currentFunction(editor)[1]).
+        replace("$top-level-defined-symbol", getText.currentTopLevelFunction(editor)[1]).
+        replace("$head", getText.toStartOfList(editor)[1]).
+        replace("$tail", getText.toEndOfList(editor)[1]);
     await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns);
     outputWindow.appendPrompt();
 }
