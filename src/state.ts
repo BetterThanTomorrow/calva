@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
 import Analytics from './analytics';
-import { ReplConnectSequence } from './nrepl/connectSequence';
 import * as util from './utilities';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { customREPLCommandSnippet } from './evaluate';
-import { PrettyPrintingOptions } from './printer';
 import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 
 let extensionContext: vscode.ExtensionContext;
