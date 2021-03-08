@@ -7,7 +7,6 @@ import * as namespace from "../namespace";
 import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
-import { reject } from "lodash";
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
 export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
@@ -21,7 +20,6 @@ async function downloadDram(storageUri: vscode.Uri, filePath: string) {
     const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
     const dramBaseUrl = `${DRAM_BASE_URL}/${branch}/drams`;
     const downloadUrl = `${dramBaseUrl}/${filePath}`
-    console.log(calvaVersion, isDebug, branch, downloadUrl);
     const fileName = path.basename(filePath);
     const storeFileUri = vscode.Uri.joinPath(storageUri, fileName);
     return await utilities.downloadFromUrl(downloadUrl, storeFileUri.fsPath).catch(err => {
