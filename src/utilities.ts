@@ -9,7 +9,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
-import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 import { NReplSession } from './nrepl';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
@@ -166,34 +166,34 @@ function getFileType(document) {
 }
 
 function getLaunchingState() {
-    return getStateValue('launching');
+    return cljsLib.getStateValue('launching');
 }
 
 function setLaunchingState(value: any) {
     vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
-    setStateValue('launching', value);
+    cljsLib.setStateValue('launching', value);
 }
 
 function getConnectedState() {
-    return getStateValue('connected');
+    return cljsLib.getStateValue('connected');
 }
 
 function setConnectedState(value: Boolean) {
     vscode.commands.executeCommand("setContext", "calva:connected", value);
-    setStateValue('connected', value);
+    cljsLib.setStateValue('connected', value);
 }
 
 function getConnectingState() {
-    return getStateValue('connecting');
+    return cljsLib.getStateValue('connecting');
 }
 
 function setConnectingState(value: Boolean) {
     if (value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
-        setStateValue('connecting', true);
+        cljsLib.setStateValue('connecting', true);
     } else {
         vscode.commands.executeCommand("setContext", "calva:connecting", false);
-        setStateValue('connecting', false);
+        cljsLib.setStateValue('connecting', false);
     }
 }
 
@@ -234,7 +234,7 @@ function markError(error) {
         error.column = 0;
     }
 
-    let diagnostic = getStateValue('diagnosticCollection'),
+    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -272,7 +272,7 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let diagnostic = getStateValue('diagnosticCollection'),
+    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -452,12 +452,12 @@ function getSession(fileType = undefined): NReplSession {
         fileType = getFileType(doc);
     }
     if (fileType.match(/^clj[sc]?/)) {
-        return getStateValue(fileType);
+        return cljsLib.getStateValue(fileType);
     } else {
         if (outputWindow.isResultsDoc(doc)) {
             return outputWindow.getSession();
         } else {
-            return getStateValue('cljc');
+            return cljsLib.getStateValue('cljc');
         }
     }
 }
@@ -489,14 +489,14 @@ function getReplSessionType(connected: boolean) {
 }
 
 function updateReplSessionType() {
-    const connected = getStateValue('connected');
-    const clj = getStateValue('clj');
+    const connected = cljsLib.getStateValue('connected');
+    const clj = cljsLib.getStateValue('clj');
     const replSessionType = getReplSessionType(connected);
-    setStateValue('current-session-type', replSessionType);
+    cljsLib.setStateValue('current-session-type', replSessionType);
 }
 
 function getCurrentReplSessionType() {
-    return getStateValue('current-session-type');
+    return cljsLib.getStateValue('current-session-type');
 }
 
 export {
@@ -538,5 +538,6 @@ export {
     downloadFromUrl,
     updateReplSessionType,
     getCurrentReplSessionType,
-    getSession
+    getSession,
+    cljsLib
 };
