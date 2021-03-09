@@ -1,4 +1,3 @@
-import { parseForms } from '../out/cljs-lib/cljs-lib';
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as docMirror from './doc-mirror/index';
@@ -44,7 +43,7 @@ export function getNamespace(doc: vscode.TextDocument) {
         } catch (e) {
             console.log("Error getting ns form of this file using docMirror, trying with cljs.reader: " + e);
             try {
-                const forms = parseForms(doc.getText());
+                const forms = utilities.cljsLib.parseForms(doc.getText());
                 if (forms !== undefined) {
                     const nsFormArray = forms.filter(x => x[0] == "ns");
                     if (nsFormArray != undefined && nsFormArray.length > 0) {

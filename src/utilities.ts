@@ -490,7 +490,6 @@ function getReplSessionType(connected: boolean) {
 
 function updateReplSessionType() {
     const connected = cljsLib.getStateValue('connected');
-    const clj = cljsLib.getStateValue('clj');
     const replSessionType = getReplSessionType(connected);
     cljsLib.setStateValue('current-session-type', replSessionType);
 }
