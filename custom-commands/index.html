@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/custom-commands/">
       
       <link rel="shortcut icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.4">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.5">
     
     
       
@@ -869,11 +869,14 @@
 <li><code>$line</code>: Current line number in editor</li>
 <li><code>$column</code>: Current column number in editor</li>
 <li><code>$file</code>: Full name of current file edited</li>
-<li><code>ns</code>: The namespace used for evaluating the command</li>
+<li><code>$ns</code>: The namespace used for evaluating the command</li>
+<li><code>$selection</code>: The currently selected text</li>
 <li><code>$current-form</code>: The text of the <a href="../eval-tips/#current-form">current form</a></li>
 <li><code>$top-level-form</code> The text of the <a href="../eval-tips/#current-top-level-form">current top level form</a></li>
 <li><code>$current-fn</code>: The sexpr/form at call position in the current list, e.g. <code>str</code> with <code>(defn foo [] (str "foo" "bar|"))</code></li>
 <li><code>$top-level-defined-symbol</code>: The second symbol of the top level form, e.g. <code>foo</code> with <code>(defn foo [] (str "foo" "bar|"))</code></li>
+<li><code>$head</code>: The text between the start of the current list to the cursor</li>
+<li><code>$tail</code>: The text between the cursor and the end of the current list</li>
 </ul>
 <p>Consider these settings:</p>
 <div class="codehilite"><pre><span></span><code>        <span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -1007,6 +1010,7 @@
         <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
           Material for MkDocs
         </a>
+        
       </div>
       
     </div>
@@ -1020,7 +1024,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.fb4a9340.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.9b151c6a.min.js"></script>
+      <script src="../assets/javascripts/bundle.5cf3e710.min.js"></script>
       
     
   </body>

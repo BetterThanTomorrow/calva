@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/eval-tips/">
       
       <link rel="shortcut icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.4">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.5">
     
     
       
@@ -348,6 +348,13 @@
           <li class="md-nav__item">
   <a href="#current-top-level-form" class="md-nav__link">
     Current Top-level Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-to-cursor" class="md-nav__link">
+    Evaluate to Cursor
   </a>
   
 </li>
@@ -901,6 +908,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#evaluate-to-cursor" class="md-nav__link">
+    Evaluate to Cursor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#copying-the-inline-results" class="md-nav__link">
     Copying the inline results
   </a>
@@ -951,6 +965,7 @@
 <p>These are important concepts in Calva in order for you to create your most effective workflow.</p>
 <h3 id="current-form">Current Form</h3>
 <p>The current form either means the current selection, or otherwise is based on the cursor position. Play some with the command <strong>Calva: Select current form</strong>, <code>ctrl+alt+c s</code>, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides).</p>
+<p>Default shortcut for evaluating the current form: <code>ctrl+enter</code>.</p>
 <h3 id="current-top-level-form">Current Top-level Form</h3>
 <p>The current top-level form means top-level in a structural sense. It is <em>not</em> the topmost form in the file. Typically in a Clojure file you will find <code>def</code> and <code>defn</code> (and <code>defwhatever</code>) forms at the top level, but it can be any form not enclosed in any other form.</p>
 <p>An exception is the <code>comment</code> form. It will create a new top level context, so that any forms immediately inside a <code>(commment ...)</code> form will be considered top-level by Calva. This is to support a workflow where you</p>
@@ -960,8 +975,20 @@
 <li>Put them to test with expressions inside a <code>comment</code> form.</li>
 <li>Repeat from <em>1.</em>, until the function does what you want it to do.</li>
 </ol>
+<p>Default shortcut for evaluating the current top level form: <code>alt+enter</code>.</p>
 <p>Here's a demo of the last repetition of such a workflow, for a simple implementation of the <code>abs</code> function:</p>
 <p><img alt="top-level-eval" src="../images/howto/top-level-eval.gif" /></p>
+<h3 id="evaluate-to-cursor">Evaluate to Cursor</h3>
+<p>There is also a command for evaluating the text from the start of the current list to where the cursor is. Convenient for checking intermediate results in thread or <code>doto</code>, or similar pipelines. Assuming the cursor is right behind <code>:d</code> in this form:</p>
+<div class="codehilite"><pre><span></span><code>  <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">5</span> <span class="mi">8</span> <span class="mi">13</span> <span class="mi">21</span><span class="p">]</span>
+       <span class="p">(</span><span class="nf">partition</span> <span class="mi">2</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">zipmap </span><span class="p">[</span><span class="ss">:a</span> <span class="ss">:b</span> <span class="ss">:c</span> <span class="ss">:d</span><span class="p">])</span>
+       <span class="ss">:d</span> <span class="nv">=&gt;</span> <span class="p">(</span><span class="mi">12</span> <span class="mi">21</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">apply </span><span class="nv">-</span><span class="p">)</span>
+       <span class="p">(</span><span class="nf">Math/abs</span><span class="p">))</span>
+</code></pre></div>
+
+<p>The default shortcut for this command is <code>ctrl+alt+enter</code>.</p>
 <h3 id="copying-the-inline-results">Copying the inline results</h3>
 <p>There is a command called <strong>Copy last evaluation results</strong>, <code>ctrl+alt+c ctrl+c</code>.</p>
 <p>This works regardless if you have evaluated in a file editor or in a REPL window.</p>
@@ -1023,6 +1050,7 @@
         <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
           Material for MkDocs
         </a>
+        
       </div>
       
     </div>
@@ -1036,7 +1064,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.fb4a9340.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.9b151c6a.min.js"></script>
+      <script src="../assets/javascripts/bundle.5cf3e710.min.js"></script>
       
     
   </body>
