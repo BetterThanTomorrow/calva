@@ -713,6 +713,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateToCursor",
+                "title": "Evaluate From Start of List to Cursor",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.tapSelection",
                 "title": "Tap Current Form (or selection, if any)",
                 "enablement": "calva:connected",
@@ -1367,6 +1373,11 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateToCursor",
+                "key": "ctrl+alt+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {

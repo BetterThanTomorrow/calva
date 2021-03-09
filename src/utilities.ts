@@ -358,49 +358,6 @@ async function getJarContents(uri: vscode.Uri | string) {
     });
 }
 
-function currentFormText(editor: vscode.TextEditor, topLevel: boolean) {
-    const doc = editor.document;
-    if (doc) {
-        const codeSelection = select.getFormSelection(doc, editor.selection.active, topLevel);
-        return doc.getText(codeSelection);    
-    } else {
-        return '';
-    }
-}
-
-function currentFunction(editor: vscode.TextEditor) {
-    if (editor) {
-        const document = editor.document;
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor();
-        const [start, end] = tokenCursor.getFunctionSexpRange();
-        if (start && end) {
-            const startPos = document.positionAt(start);
-            const endPos = document.positionAt(end);
-            return document.getText(new vscode.Range(startPos, endPos));
-        }
-    }
-}
-
-function currentTopLevelFunction(editor: vscode.TextEditor) {
-    if (editor) {
-        const document = editor.document;
-        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
-        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
-        if (tokenCursor.downList()) {
-            tokenCursor.forwardWhitespace();
-            while (tokenCursor.next()) {
-                const symbol = tokenCursor.getToken();
-                if (symbol.type === 'id') {
-                    return symbol.raw;
-                }
-            }
-            return '';
-        }
-        return '';
-    }
-}
-
 function sortByPresetOrder(arr: any[], presetOrder: any[]) {
     const result = [];
     presetOrder.forEach(preset => {
@@ -478,9 +435,6 @@ export {
     getFileContents,
     jarFilePathComponents,
     getJarContents,
-    currentFormText,
-    currentFunction,
-    currentTopLevelFunction,
     sortByPresetOrder,
     writeTextToFile,
     downloadFromUrl,
