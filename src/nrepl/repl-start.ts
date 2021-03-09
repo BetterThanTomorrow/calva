@@ -7,6 +7,7 @@ import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
 import { getWorkspaceConfig } from '../config';
+import * as replSession from '../repl-session';
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
 export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
@@ -137,7 +138,7 @@ export async function startOrConnectRepl() {
         }
     } else {
         commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
-        if (utilities.getSession("clj")) {
+        if (replSession.getSession("clj")) {
             commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
         }
     }

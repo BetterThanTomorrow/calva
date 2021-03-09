@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as state from './state';
 import { NReplSession } from './nrepl';
+import * as replSession from './repl-session';
 
 function report(res, chan: vscode.OutputChannel) {
     if (res.status == "ok") {
@@ -21,7 +22,7 @@ function report(res, chan: vscode.OutputChannel) {
 
 async function refresh(document = {}) {
     let doc = util.getDocument(document),
-        client: NReplSession = util.getSession(util.getFileType(doc)),
+        client: NReplSession = replSession.getSession(util.getFileType(doc)),
         chan: vscode.OutputChannel = state.outputChannel();
     
     if (client != undefined) {
@@ -37,7 +38,7 @@ async function refresh(document = {}) {
 
 async function refreshAll(document = {}) {
     let doc = util.getDocument(document),
-        client: NReplSession = util.getSession(util.getFileType(doc)),
+        client: NReplSession = replSession.getSession(util.getFileType(doc)),
         chan: vscode.OutputChannel = state.outputChannel();
     
     if (client != undefined) {

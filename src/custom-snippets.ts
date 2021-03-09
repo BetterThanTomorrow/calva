@@ -5,6 +5,7 @@ import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc'
 import { customREPLCommandSnippet, evaluateInOutputWindow } from './evaluate';
 import { getWorkspaceConfig } from './config';
+import * as replSession from './repl-session';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
     await evaluateCustomCodeSnippet(codeOrKey);
@@ -33,7 +34,7 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const editorNS = editor && editor.document &&
         editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
     const editorRepl = editor && editor.document &&
-        editor.document.languageId === 'clojure' ? util.getCurrentReplSessionType() : "clj";
+        editor.document.languageId === 'clojure' ? replSession.getReplSessionTypeFromState() : "clj";
     snippets.forEach((c: customREPLCommandSnippet) => {
         const undefs = ["name", "snippet"].filter(k => {
             return !c[k];

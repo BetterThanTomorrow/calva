@@ -3,6 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
+import * as replSession from '../repl-session';
 
 export default class HoverProvider implements vscode.HoverProvider {
     state: any;
@@ -16,7 +17,7 @@ export default class HoverProvider implements vscode.HoverProvider {
         if (util.getConnectedState()) {
             let text = util.getWordAtPosition(document, position);
             let ns = namespace.getNamespace(document);
-            let client = util.getSession(util.getFileType(document));
+            let client = replSession.getSession(util.getFileType(document));
             if(client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(document);
                 let res = await client.info(ns, text);

@@ -5,6 +5,7 @@ import { LispTokenCursor } from './cursor-doc/token-cursor';
 import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
 import * as utilities from './utilities';
+import * as replSession from './repl-session';
 
 export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
@@ -67,7 +68,7 @@ export async function createNamespaceFromDocumentIfNotExists(doc) {
         let document = utilities.getDocument(doc);
         if (document) {
             let ns = getNamespace(document);
-            let client = utilities.getSession(utilities.getFileType(document));
+            let client = replSession.getSession(utilities.getFileType(document));
             if (client) {
                 let nsList = await client.listNamespaces([]);
                 if (nsList['ns-list'] && nsList['ns-list'].includes(ns)) {

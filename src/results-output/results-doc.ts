@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as os from 'os';
 import * as state from '../state';
 import { highlight } from '../highlight/src/extension'
 import { NReplSession } from '../nrepl';
@@ -13,6 +12,7 @@ import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
+import * as replSession from '../repl-session';
 
 const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
 
@@ -194,17 +194,17 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 }
 
 export async function setNamespaceFromCurrentFile() {
-    const session = util.getSession();
+    const session = replSession.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
     setSession(session, ns);
-    util.updateReplSessionType();
+    replSession.updateReplSessionType();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
-    const session = util.getSession();
+    const session = replSession.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;

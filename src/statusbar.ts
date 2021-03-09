@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
 import { REPL_FILE_EXT, getWorkspaceConfig } from './config';
-import * as namespace from './namespace';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getSession, getReplSessionTypeFromState } from './repl-session';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -59,10 +59,10 @@ function update(context = state.extensionContext) {
         connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.startOrConnectRepl";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
-        const replType = util.getCurrentReplSessionType();
+        const replType = getReplSessionTypeFromState();
         if (replType !== null) {
             typeStatus.text = ['cljc', REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
-            if (util.getSession('clj') !== null && util.getSession('cljs') !== null) {
+            if (getSession('clj') !== null && getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
                 typeStatus.tooltip = `Click to use ${(replType === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
             } else {

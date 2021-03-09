@@ -5,6 +5,7 @@ import select from '../select';
 import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
+import * as replSession from '../repl-session';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;
@@ -40,7 +41,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
                 context = `${contextStart}__prefix__${contextEnd}`,
                 toplevelIsValidForm = toplevelStartCursor.withinValidList() && context != '__prefix__',
                 ns = namespace.getNamespace(document),
-                client = util.getSession(util.getFileType(document)),
+                client = replSession.getSession(util.getFileType(document)),
                 res = await client.complete(ns, text, toplevelIsValidForm ? context : null),
                 results = res.completions || [];
                 if(results) {
@@ -65,7 +66,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
 
         if (util.getConnectedState()) {
-            let client = util.getSession(util.getFileType(window.activeTextEditor.document));
+            let client = replSession.getSession(util.getFileType(window.activeTextEditor.document));
             if (client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
                 let result = await client.info(item.insertText["ns"], item.label)

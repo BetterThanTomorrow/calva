@@ -14,6 +14,7 @@ import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getWorkspaceConfig } from './config';
+import * as replSession from './repl-session';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -130,7 +131,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             }
         }
         outputWindow.setSession(session, context.ns || ns);
-        util.updateReplSessionType();
+        replSession.updateReplSessionType();
     }
 }
 
@@ -156,7 +157,7 @@ async function evaluateSelection(document: {}, options) {
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;
         const filePath = doc.fileName;
-        const session = util.getSession(util.getFileType(doc));
+        const session = replSession.getSession(util.getFileType(doc));
 
         if (outputWindow.isResultsDoc(doc)) {
             replHistory.addToReplHistory(session.replType, code);
@@ -218,7 +219,7 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const doc = util.getDocument(document);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
-    const session = util.getSession(util.getFileType(doc));
+    const session = replSession.getSession(util.getFileType(doc));
 
     if (doc && doc.languageId == "clojure" && fileType != "edn" && getStateValue('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
@@ -254,13 +255,13 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
             }
         }
         outputWindow.setSession(session, res.ns || ns);
-        util.updateReplSessionType();
+        replSession.updateReplSessionType();
     }
 }
 
 async function evaluateUser(code: string) {
     const fileType = util.getFileType(util.getDocument({})),
-        session = util.getSession(fileType);
+        session = replSession.getSession(fileType);
     if (session) {
         try {
             await session.eval(code, session.client.ns).value;
@@ -280,10 +281,10 @@ async function requireREPLUtilitiesCommand() {
             ns = namespace.getDocumentNamespace(util.getDocument({})),
             CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
             CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
-            sessionType = util.getCurrentReplSessionType(),
+            sessionType = replSession.getReplSessionTypeFromState(),
             form = sessionType == "cljs" ? CLJS_FORM : CLJ_FORM,
             fileType = util.getFileType(util.getDocument({})),
-            session = util.getSession(fileType);
+            session = replSession.getSession(fileType);
 
         if (session) {
             try {
@@ -302,7 +303,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
-    let session = util.getSession(util.getFileType(util.getDocument({})));
+    let session = replSession.getSession(util.getFileType(util.getDocument({})));
 
     let value = await session.eval("*1", session.client.ns).value;
     if (value !== null) {
@@ -332,9 +333,9 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
     const outputDocument = await outputWindow.openResultsDoc();
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
-        const session = util.getSession(sessionType);
+        const session = replSession.getSession(sessionType);
         outputWindow.setSession(session, ns);
-        util.updateReplSessionType();
+        replSession.updateReplSessionType();
         outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,

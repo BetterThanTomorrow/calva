@@ -10,7 +10,6 @@ import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
-import { NReplSession } from './nrepl';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -445,59 +444,6 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
-function getSession(fileType = undefined): NReplSession {
-    let doc = getDocument({});
-
-    if (fileType === undefined) {
-        fileType = getFileType(doc);
-    }
-    if (fileType.match(/^clj[sc]?/)) {
-        return cljsLib.getStateValue(fileType);
-    } else {
-        if (outputWindow.isResultsDoc(doc)) {
-            return outputWindow.getSession();
-        } else {
-            return cljsLib.getStateValue('cljc');
-        }
-    }
-}
-
-function getReplSessionType(connected: boolean) {
-    const doc = getDocument({});
-    const fileType = getFileType(doc);
-    let sessionType: string = null;
-
-    if (connected) {
-        if (outputWindow.isResultsDoc(doc)) {
-            sessionType = outputWindow.getSessionType();
-        }
-        else if (fileType == 'cljs' && getSession('cljs') !== null) {
-            sessionType = 'cljs'
-        }
-        else if (fileType == 'clj' && getSession('clj') !== null) {
-            sessionType = 'clj'
-        }
-        else if (getSession('cljc') !== null) {
-            sessionType = getSession('cljc') == getSession('clj') ? 'clj' : 'cljs';
-        }
-        else {
-            sessionType = 'clj'
-        }
-    }
-
-    return sessionType;
-}
-
-function updateReplSessionType() {
-    const connected = cljsLib.getStateValue('connected');
-    const replSessionType = getReplSessionType(connected);
-    cljsLib.setStateValue('current-session-type', replSessionType);
-}
-
-function getCurrentReplSessionType() {
-    return cljsLib.getStateValue('current-session-type');
-}
-
 export {
     getStartExpression,
     getWordAtPosition,
@@ -535,8 +481,5 @@ export {
     sortByPresetOrder,
     writeTextToFile,
     downloadFromUrl,
-    updateReplSessionType,
-    getCurrentReplSessionType,
-    getSession,
     cljsLib
 };
