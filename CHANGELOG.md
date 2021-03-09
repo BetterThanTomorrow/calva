@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.178] - 2021-03-09
 - [Add command for evaluating from start of list to cursor](https://github.com/BetterThanTomorrow/calva/issues/1057)
 - Add custom REPL snippet variables, $selection, $head, and $tail
 
