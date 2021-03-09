@@ -3,7 +3,7 @@ import select from '../select';
 import * as paredit from '../cursor-doc/paredit'
 import * as docMirror from '../doc-mirror/index';
 
-type SelectionAndText = [vscode.Selection, string];
+export type SelectionAndText = [vscode.Selection, string];
 
 function _currentFormText(editor: vscode.TextEditor, topLevel: boolean): SelectionAndText {
     const doc = editor.document;

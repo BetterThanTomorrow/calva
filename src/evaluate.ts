@@ -183,22 +183,28 @@ function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): str
     return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? '; ' : ''}`);
 }
 
+function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
+    if (editor.selection.isEmpty) {
+        return getText.currentFormText(editor);
+    } else {
+        return [editor.selection, editor.document.getText(editor.selection)];
+    }
+}
+
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         replace: true,
         pprintOptions: state.config().prettyPrintingOptions,
-        selectionFn: getText.currentFormText
-    }))
-        .catch(printWarningForError);
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         comment: true,
         pprintOptions: state.config().prettyPrintingOptions,
-        selectionFn: getText.currentFormText
-    }))
-        .catch(printWarningForError);
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
@@ -206,30 +212,21 @@ function evaluateTopLevelFormAsComment(document = {}, options = {}) {
         comment: true,
         pprintOptions: state.config().prettyPrintingOptions,
         selectionFn: getText.currentTopLevelFormText
-    }))
-        .catch(printWarningForError);
+    })).catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: state.config().prettyPrintingOptions,
         selectionFn: getText.currentTopLevelFormText
-    }))
-        .catch(printWarningForError);
+    })).catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: state.config().prettyPrintingOptions,
-        selectionFn: (editor: vscode.TextEditor) => {
-            if (editor.selection.isEmpty) {
-                return getText.currentFormText(editor);
-            } else {
-                return [editor.selection, editor.document.getText(editor.selection)];
-            }
-        }
-    }))
-        .catch(printWarningForError);
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateToCursor(document = {}, options = {}) {
@@ -239,8 +236,7 @@ function evaluateToCursor(document = {}, options = {}) {
             let [selection, code] = getText.toStartOfList(editor);
             return [selection, `(${code})`]
         }
-    }))
-        .catch(printWarningForError);
+    })).catch(printWarningForError);
 }
 
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
