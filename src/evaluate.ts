@@ -12,7 +12,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import * as fs from 'fs';
+import * as getText from './util/get-text';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -136,22 +136,16 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
 async function evaluateSelection(document: {}, options) {
     const current = state.deref();
     const doc = util.getDocument(document);
-    const topLevel = options.topLevel || false;
+    const selectionFn: Function = options.selectionFn;
 
     if (current.get('connected')) {
         const editor = vscode.window.activeTextEditor;
         const selection = editor.selection;
         let code = "";
         let codeSelection: vscode.Selection;
-        if (selection.isEmpty || topLevel) {
-            state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
-            codeSelection = select.getFormSelection(doc, selection.active, topLevel);
-            code = doc.getText(codeSelection);
-        } else {
-            state.analytics().logEvent("Evaluation", "Selection").send();
-            codeSelection = selection;
-            code = doc.getText(selection);
-        }
+        state.analytics().logEvent("Evaluation", "selectionFn").send();
+        [codeSelection, code] = selectionFn(editor);
+
         const ns = namespace.getNamespace(doc);
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;
@@ -189,29 +183,60 @@ function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): str
     return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? '; ' : ''}`);
 }
 
+function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
+    if (editor.selection.isEmpty) {
+        return getText.currentFormText(editor);
+    } else {
+        return [editor.selection, editor.document.getText(editor.selection)];
+    }
+}
+
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        replace: true,
+        pprintOptions: state.config().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        comment: true,
+        pprintOptions: state.config().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        comment: true,
+        pprintOptions: state.config().prettyPrintingOptions,
+        selectionFn: getText.currentTopLevelFormText
+    })).catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: state.config().prettyPrintingOptions,
+        selectionFn: getText.currentTopLevelFormText
+    })).catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: state.config().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
+}
+
+function evaluateToCursor(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: state.config().prettyPrintingOptions,
+        selectionFn: (editor: vscode.TextEditor) => {
+            let [selection, code] = getText.toStartOfList(editor);
+            return [selection, `(${code})`]
+        }
+    })).catch(printWarningForError);
 }
 
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
@@ -324,8 +349,11 @@ async function togglePrettyPrint() {
 };
 
 async function instrumentTopLevelForm() {
-    evaluateSelection({}, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true })
-        .catch(printWarningForError);
+    evaluateSelection({}, {
+        pprintOptions: state.config().prettyPrintingOptions,
+        debug: true,
+        selectionFn: getText.currentTopLevelFormText
+    }).catch(printWarningForError);
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
@@ -366,6 +394,7 @@ export default {
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
+    evaluateToCursor,
     evaluateCode,
     evaluateUser,
     copyLastResultCommand,

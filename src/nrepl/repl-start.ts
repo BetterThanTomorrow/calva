@@ -7,7 +7,6 @@ import * as namespace from "../namespace";
 import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
-import { reject } from "lodash";
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
 export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
@@ -15,7 +14,7 @@ const TEMPLATES_SUB_DIR = 'bundled';
 
 async function downloadDram(storageUri: vscode.Uri, filePath: string) {
     const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
-    const calva = vscode.extensions.getExtension("betterthantomorrow.calva")!;
+    const calva = vscode.extensions.getExtension("betterthantomorrow.calva");
     const calvaVersion = calva.packageJSON.version;
     const isDebug = process.env["IS_DEBUG"] === "true";
     const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';

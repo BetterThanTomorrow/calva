@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.178] - 2021-03-09
+- [Add command for evaluating from start of list to cursor](https://github.com/BetterThanTomorrow/calva/issues/1057)
+- Add custom REPL snippet variables, $selection, $head, and $tail
+
 ## [2.0.177] - 2021-03-07
 - Fix: [Navigating to a definition in a jar file throws error in console](https://github.com/BetterThanTomorrow/calva/issues/1047)
 - [Add a Getting Started REPL feature](https://github.com/BetterThanTomorrow/calva/issues/1040)

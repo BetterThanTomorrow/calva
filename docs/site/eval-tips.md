@@ -22,6 +22,8 @@ These are important concepts in Calva in order for you to create your most effec
 
 The current form either means the current selection, or otherwise is based on the cursor position. Play some with the command **Calva: Select current form**, `ctrl+alt+c s`, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides).
 
+Default shortcut for evaluating the current form: `ctrl+enter`.
+
 ### Current Top-level Form
 
 The current top-level form means top-level in a structural sense. It is _not_ the topmost form in the file. Typically in a Clojure file you will find `def` and `defn` (and `defwhatever`) forms at the top level, but it can be any form not enclosed in any other form.
@@ -33,9 +35,26 @@ An exception is the `comment` form. It will create a new top level context, so t
 3. Put them to test with expressions inside a `comment` form.
 4. Repeat from *1.*, until the function does what you want it to do.
 
+Default shortcut for evaluating the current top level form: `alt+enter`.
+
 Here's a demo of the last repetition of such a workflow, for a simple implementation of the `abs` function:
 
 ![top-level-eval](images/howto/top-level-eval.gif)
+
+### Evaluate to Cursor
+
+There is also a command for evaluating the text from the start of the current list to where the cursor is. Convenient for checking intermediate results in thread or `doto`, or similar pipelines. Assuming the cursor is right behind `:d` in this form:
+
+```clojure
+  (->> [1 1 2 3 5 8 13 21]
+       (partition 2)
+       (zipmap [:a :b :c :d])
+       :d => (12 21)
+       (apply -)
+       (Math/abs))
+```
+
+The default shortcut for this command is `ctrl+alt+enter`.
 
 ### Copying the inline results
 
