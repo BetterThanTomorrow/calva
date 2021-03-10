@@ -7,14 +7,14 @@ import * as util from '../utilities';
 import select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
-import { REPL_FILE_EXT, documentSelector, getWorkspaceConfig } from '../config';
+import * as config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../repl-session';
 
-const RESULTS_DOC_NAME = `output.${REPL_FILE_EXT}`;
+const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
 const PROMPT_HINT = '; Use `alt+enter` to evaluate';
 
@@ -126,7 +126,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
-    if (getWorkspaceConfig().autoOpenREPLWindow) {
+    if (config.getWorkspaceConfig().autoOpenREPLWindow) {
         const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
         const firstPos = resultsEditor.document.positionAt(0);
         const lastPos = resultsDoc.positionAt(Infinity);
@@ -163,7 +163,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
         }
         vscode.commands.executeCommand("setContext", "calva:outputWindowSubmitOnEnter", submitOnEnter);
     }));
-    vscode.languages.registerCodeLensProvider(documentSelector, new PrintStackTraceCodelensProvider());
+    vscode.languages.registerCodeLensProvider(config.documentSelector, new PrintStackTraceCodelensProvider());
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused

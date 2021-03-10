@@ -26,8 +26,7 @@ import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
-import  { KEYBINDINGS_ENABLED_CONTEXT_KEY, KEYBINDINGS_ENABLED_CONFIG_KEY, 
-            documentSelector, getWorkspaceConfig } from './config';
+import * as config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp';
@@ -37,7 +36,7 @@ async function onDidSave(document) {
     let {
         evaluate,
         test,
-    } = getWorkspaceConfig();
+    } = config.getWorkspaceConfig();
 
     if (document.languageId !== 'clojure') {
         return;
@@ -48,7 +47,7 @@ async function onDidSave(document) {
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadFile(document, getWorkspaceConfig().prettyPrintingOptions);
+            await eval.loadFile(document, config.getWorkspaceConfig().prettyPrintingOptions);
             outputWindow.appendPrompt();
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
@@ -62,8 +61,8 @@ function onDidOpen(document) {
 }
 
 function setKeybindingsEnabledContext() {
-    let keybindingsEnabled = vscode.workspace.getConfiguration().get(KEYBINDINGS_ENABLED_CONFIG_KEY);
-    vscode.commands.executeCommand('setContext', KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
+    let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
+    vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
 }
 
 function initializeState() {
@@ -93,8 +92,8 @@ async function activate(context: vscode.ExtensionContext) {
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
     const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
     const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
-    const customCljsRepl = getWorkspaceConfig().customCljsRepl;
-    const replConnectSequences = getWorkspaceConfig().replConnectSequences;
+    const customCljsRepl = config.getWorkspaceConfig().customCljsRepl;
+    const replConnectSequences = config.getWorkspaceConfig().replConnectSequences;
     const BUTTON_GOTO_DOC = "Open the docs";
     const BUTTON_OK = "Got it";
     const VIM_DOC_URL = "https://calva.io/vim/";
@@ -163,7 +162,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', async () => {
-        await eval.loadFile({}, getWorkspaceConfig().prettyPrintingOptions);
+        await eval.loadFile({}, config.getWorkspaceConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
@@ -198,8 +197,8 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.showNextReplHistoryEntry', replHistory.showNextReplHistoryEntry));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearReplHistory', replHistory.clearHistory));
     context.subscriptions.push(vscode.commands.registerCommand('calva.toggleKeybindingsEnabled', () => {
-        let keybindingsEnabled = vscode.workspace.getConfiguration().get(KEYBINDINGS_ENABLED_CONFIG_KEY);
-        vscode.workspace.getConfiguration().update(KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
+        let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
+        vscode.workspace.getConfiguration().update(config.KEYBINDINGS_ENABLED_CONFIG_KEY, !keybindingsEnabled, vscode.ConfigurationTarget.Global);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.openCalvaDocs', () => {
         context.globalState.update(VIEWED_CALVA_DOCS, true);
@@ -220,12 +219,12 @@ async function activate(context: vscode.ExtensionContext) {
     setKeybindingsEnabledContext();
 
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(documentSelector, new CalvaCompletionItemProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, new definition.ClojureDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, new definition.StackTraceDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(documentSelector, new definition.ResultsDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(config.documentSelector, new CalvaCompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(config.documentSelector, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.ClojureDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.StackTraceDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.ResultsDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(config.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new JarContentProvider());
@@ -264,7 +263,7 @@ async function activate(context: vscode.ExtensionContext) {
         }
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((e: vscode.ConfigurationChangeEvent) => {
-        if (e.affectsConfiguration(KEYBINDINGS_ENABLED_CONFIG_KEY)) {
+        if (e.affectsConfiguration(config.KEYBINDINGS_ENABLED_CONFIG_KEY)) {
             setKeybindingsEnabledContext();
         }
     }));

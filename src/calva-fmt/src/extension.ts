@@ -5,11 +5,11 @@ import * as formatter from './format';
 import * as inferer from './infer';
 import * as docmirror from "../../doc-mirror/index"
 import * as config from './config'
-import { documentSelector, getWorkspaceConfig } from '../../config';
+import * as calvaConfig from '../../config';
 
 function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfiguration {
     return {
-        onEnterRules: autoIndentOn && getWorkspaceConfig().format ? [
+        onEnterRules: autoIndentOn && calvaConfig.getWorkspaceConfig().format ? [
             // When Calva is the formatter disable all vscode default indentation
             // (By outdenting a lot, which is the only way I have found that works)
             // TODO: Make it actually consider whether Calva is the formatter or not
@@ -24,7 +24,6 @@ function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfigu
     }
 }
 
-
 export function activate(context: vscode.ExtensionContext) {
     docmirror.activate();
     vscode.languages.setLanguageConfiguration("clojure", getLanguageConfiguration(config.getConfig()["format-as-you-type"]));
@@ -33,8 +32,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.inferParens', inferer.inferParensCommand));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabIndent', (e) => { inferer.indentCommand(e, " ", true) }));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabDedent', (e) => { inferer.indentCommand(e, " ", false) }));
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(documentSelector, new FormatOnTypeEditProvider, "\r", "\n"));
-    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(documentSelector, new RangeEditProvider));
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(calvaConfig.documentSelector, new FormatOnTypeEditProvider, "\r", "\n"));
+    context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(calvaConfig.documentSelector, new RangeEditProvider));
     vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
     vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration("calva.fmt.formatAsYouType")) {

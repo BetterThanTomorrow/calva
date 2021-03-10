@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as state from './state';
 import * as util from './utilities';
-import { REPL_FILE_EXT, getWorkspaceConfig } from './config';
+import * as config from './config';
 import status from './status';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getSession, getReplSessionTypeFromState } from './repl-session';
@@ -35,7 +35,7 @@ function update(context = state.extensionContext) {
 
     //let disconnectedColor = "rgb(192,192,192)";
 
-    const pprint = getWorkspaceConfig().prettyPrintingOptions.enabled;
+    const pprint = config.getWorkspaceConfig().prettyPrintingOptions.enabled;
     prettyPrintToggle.text = "pprint";
     prettyPrintToggle.color = pprint ? undefined : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`
@@ -61,7 +61,7 @@ function update(context = state.extensionContext) {
         typeStatus.color = colorValue("typeStatusColor", currentConf);
         const replType = getReplSessionTypeFromState();
         if (replType !== null) {
-            typeStatus.text = ['cljc', REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
+            typeStatus.text = ['cljc', config.REPL_FILE_EXT].includes(fileType) ? `cljc/${replType}` : replType;
             if (getSession('clj') !== null && getSession('cljs') !== null) {
                 typeStatus.command = "calva.toggleCLJCSession";
                 typeStatus.tooltip = `Click to use ${(replType === 'clj' ? 'cljs' : 'clj')} REPL for cljc`;
