@@ -29,7 +29,7 @@ const documentSelector = [
 }
 
 // TODO find a way to validate the configs
-function getWorkspaceConfig() {
+function getConfig() {
     const configOptions = vscode.workspace.getConfiguration('calva');
     return {
         format: configOptions.get("formatOnSave"),
@@ -64,5 +64,5 @@ export {
     KEYBINDINGS_ENABLED_CONTEXT_KEY,
     documentSelector,
     ReplSessionType,
-    getWorkspaceConfig
+    getConfig
 }

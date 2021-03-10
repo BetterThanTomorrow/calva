@@ -126,7 +126,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
-    if (config.getWorkspaceConfig().autoOpenREPLWindow) {
+    if (config.getConfig().autoOpenREPLWindow) {
         const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
         const firstPos = resultsEditor.document.positionAt(0);
         const lastPos = resultsDoc.positionAt(Infinity);

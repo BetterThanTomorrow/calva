@@ -36,7 +36,7 @@ async function onDidSave(document) {
     let {
         evaluate,
         test,
-    } = config.getWorkspaceConfig();
+    } = config.getConfig();
 
     if (document.languageId !== 'clojure') {
         return;
@@ -47,7 +47,7 @@ async function onDidSave(document) {
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadFile(document, config.getWorkspaceConfig().prettyPrintingOptions);
+            await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
             outputWindow.appendPrompt();
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
@@ -92,8 +92,8 @@ async function activate(context: vscode.ExtensionContext) {
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
     const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
     const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
-    const customCljsRepl = config.getWorkspaceConfig().customCljsRepl;
-    const replConnectSequences = config.getWorkspaceConfig().replConnectSequences;
+    const customCljsRepl = config.getConfig().customCljsRepl;
+    const replConnectSequences = config.getConfig().replConnectSequences;
     const BUTTON_GOTO_DOC = "Open the docs";
     const BUTTON_OK = "Got it";
     const VIM_DOC_URL = "https://calva.io/vim/";
@@ -162,7 +162,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', async () => {
-        await eval.loadFile({}, config.getWorkspaceConfig().prettyPrintingOptions);
+        await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));

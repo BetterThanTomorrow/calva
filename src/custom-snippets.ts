@@ -5,7 +5,7 @@ import * as getText from './util/get-text';
 import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc'
 import { customREPLCommandSnippet } from './evaluate';
-import { getWorkspaceConfig } from './config';
+import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
 
@@ -20,15 +20,15 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const currentFilename = editor.document.fileName;
     let pickCounter = 0;
     let configErrors: { "name": string; "keys": string[]; }[] = [];
-    const globalSnippets = getWorkspaceConfig().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
-    const workspaceSnippets = getWorkspaceConfig().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
-    const workspaceFolderSnippets = getWorkspaceConfig().customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
+    const globalSnippets = getConfig().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
+    const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
+    const workspaceFolderSnippets = getConfig().customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
     let snippets = [
         ...(globalSnippets ? globalSnippets : []),
         ...(workspaceSnippets ? workspaceSnippets : []),
         ...(workspaceFolderSnippets ? workspaceFolderSnippets : [])];
     if (snippets.length < 1) {
-        snippets = getWorkspaceConfig().customREPLCommandSnippets;
+        snippets = getConfig().customREPLCommandSnippets;
     }
     const snippetsDict = {};
     const snippetsKeyDict = {};

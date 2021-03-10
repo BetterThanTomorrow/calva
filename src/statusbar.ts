@@ -35,7 +35,7 @@ function update(context = state.extensionContext) {
 
     //let disconnectedColor = "rgb(192,192,192)";
 
-    const pprint = config.getWorkspaceConfig().prettyPrintingOptions.enabled;
+    const pprint = config.getConfig().prettyPrintingOptions.enabled;
     prettyPrintToggle.text = "pprint";
     prettyPrintToggle.color = pprint ? undefined : color.inactive;
     prettyPrintToggle.tooltip = `Turn pretty printing ${pprint ? 'off' : 'on'}`

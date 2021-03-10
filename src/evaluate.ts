@@ -13,7 +13,7 @@ import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
-import { getWorkspaceConfig } from './config';
+import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
@@ -48,7 +48,7 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
 }
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
-    const pprintOptions = options.pprintOptions || getWorkspaceConfig().prettyPrintingOptions;
+    const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
@@ -196,7 +196,7 @@ function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.Se
 function evaluateSelectionReplace(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         replace: true,
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm
     })).catch(printWarningForError);
 }
@@ -204,7 +204,7 @@ function evaluateSelectionReplace(document = {}, options = {}) {
 function evaluateSelectionAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         comment: true,
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm
     })).catch(printWarningForError);
 }
@@ -212,28 +212,28 @@ function evaluateSelectionAsComment(document = {}, options = {}) {
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         comment: true,
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: getText.currentTopLevelFormText
     })).catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: getText.currentTopLevelFormText
     })).catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: _currentSelectionElseCurrentForm
     })).catch(printWarningForError);
 }
 
 function evaluateToCursor(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: (editor: vscode.TextEditor) => {
             let [selection, code] = getText.toStartOfList(editor);
             return [selection, `(${code})`]
@@ -351,7 +351,7 @@ async function togglePrettyPrint() {
 
 async function instrumentTopLevelForm() {
     evaluateSelection({}, {
-        pprintOptions: getWorkspaceConfig().prettyPrintingOptions,
+        pprintOptions: getConfig().prettyPrintingOptions,
         debug: true,
         selectionFn: getText.currentTopLevelFormText
     }).catch(printWarningForError);

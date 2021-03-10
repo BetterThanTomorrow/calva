@@ -6,7 +6,7 @@ import * as utilities from "../utilities";
 import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
-import { getWorkspaceConfig } from '../config';
+import { getConfig } from '../config';
 import * as replSession from './repl-session';
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
@@ -90,7 +90,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
 
     await jackIn.jackIn(sequence.genericDefaults[0], async () => {
         await vscode.window.showTextDocument(mainDoc, { preview: false, viewColumn: vscode.ViewColumn.One, preserveFocus: false });
-        await eval.loadFile({}, getWorkspaceConfig().prettyPrintingOptions);
+        await eval.loadFile({}, getConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     });
 }

@@ -10,7 +10,7 @@ import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
-import { getWorkspaceConfig } from '../config';
+import { getConfig } from '../config';
 
 /** An nREPL client */
 export class NReplClient {
@@ -360,7 +360,7 @@ export class NReplSession {
     complete(ns: string, symbol: string, context?: string) {
         return new Promise<any>((resolve, reject) => {
             const id = this.client.nextId,
-                extraOpts = getWorkspaceConfig().enableJSCompletions ? { "enhanced-cljs-completion?": "t" } : {};
+                extraOpts = getConfig().enableJSCompletions ? { "enhanced-cljs-completion?": "t" } : {};
             this.messageHandlers[id] = (msg) => {
                 resolve(msg);
                 return true;

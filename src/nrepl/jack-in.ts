@@ -12,7 +12,7 @@ import * as projectTypes from './project-types';
 import * as outputWindow from '../results-output/results-doc';
 import { JackInTerminal, JackInTerminalOptions, createCommandLine } from "./jack-in-terminal";
 import * as liveShareSupport from '../liveShareSupport';
-import { getWorkspaceConfig } from '../config';
+import { getConfig } from '../config';
 
 let jackInPTY: JackInTerminal = undefined;
 let jackInTerminal: vscode.Terminal = undefined;
@@ -35,7 +35,7 @@ function resolveEnvVariables(entry: any): any {
 function getJackInEnv(): any {
     return {
         ...process.env,
-        ..._.mapValues(getWorkspaceConfig().jackInEnv as object, resolveEnvVariables)
+        ..._.mapValues(getConfig().jackInEnv as object, resolveEnvVariables)
     };
 }
 
@@ -68,7 +68,7 @@ async function executeJackInTask(terminalOptions: JackInTerminalOptions, connect
             cancelJackInTask();
         });
         jackInTerminal = (<any>vscode.window).createTerminal({ name: `Calva Jack-in: ${connectSequence.name}`, pty: jackInPTY });
-        if (getWorkspaceConfig().autoOpenJackInTerminal) {
+        if (getConfig().autoOpenJackInTerminal) {
             jackInTerminal.show();
         }
         jackInPTY.onDidClose((e) => {
