@@ -3,7 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
-- [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
+- Implementation detail: [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
 
 ## [2.0.178] - 2021-03-09
 - [Add command for evaluating from start of list to cursor](https://github.com/BetterThanTomorrow/calva/issues/1057)
