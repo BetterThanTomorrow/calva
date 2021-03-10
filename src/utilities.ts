@@ -9,6 +9,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -164,34 +165,34 @@ function getFileType(document) {
 }
 
 function getLaunchingState() {
-    return state.deref().get('launching');
+    return cljsLib.getStateValue('launching');
 }
 
 function setLaunchingState(value: any) {
     vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
-    state.cursor.set('launching', value);
+    cljsLib.setStateValue('launching', value);
 }
 
 function getConnectedState() {
-    return state.deref().get('connected');
+    return cljsLib.getStateValue('connected');
 }
 
 function setConnectedState(value: Boolean) {
     vscode.commands.executeCommand("setContext", "calva:connected", value);
-    state.cursor.set('connected', value);
+    cljsLib.setStateValue('connected', value);
 }
 
 function getConnectingState() {
-    return state.deref().get('connecting');
+    return cljsLib.getStateValue('connecting');
 }
 
 function setConnectingState(value: Boolean) {
     if (value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
-        state.cursor.set('connecting', true);
+        cljsLib.setStateValue('connecting', true);
     } else {
         vscode.commands.executeCommand("setContext", "calva:connecting", false);
-        state.cursor.set('connecting', false);
+        cljsLib.setStateValue('connecting', false);
     }
 }
 
@@ -232,7 +233,7 @@ function markError(error) {
         error.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -270,7 +271,7 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -438,5 +439,6 @@ export {
     sortByPresetOrder,
     writeTextToFile,
     downloadFromUrl,
+    cljsLib,
     randomSlug
 };
