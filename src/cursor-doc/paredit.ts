@@ -31,15 +31,15 @@ export function selectRange(doc: EditableDocument, range: [number, number]) {
     growSelectionStack(doc, range)
 }
 
-export function selectRangeFromSelectionLeft(doc: EditableDocument, range: [number, number]) {
-    const selectionLeft = Math.min(doc.selectionLeft, doc.selectionRight),
-        rangeRight = Math.max(range[0], range[1]);
+export function selectRangeForward(doc: EditableDocument, range: [number, number]) {
+    const selectionLeft = doc.selection.anchor;
+    const rangeRight = Math.max(range[0], range[1]);
     growSelectionStack(doc, [selectionLeft, rangeRight])
 }
 
-export function selectRangeFromSelectionRight(doc: EditableDocument, range: [number, number]) {
-    const selectionRight = Math.max(doc.selectionLeft, doc.selectionRight),
-        rangeLeft = Math.min(range[0], range[1]);
+export function selectRangeBackward(doc: EditableDocument, range: [number, number]) {
+    const selectionRight = doc.selection.anchor;
+    const rangeLeft = Math.min(range[0], range[1]);
     growSelectionStack(doc, [selectionRight, rangeLeft])
 }
 

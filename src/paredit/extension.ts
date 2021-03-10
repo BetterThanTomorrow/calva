@@ -69,49 +69,49 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.selectForwardSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.forwardSexpRange(doc))
+            paredit.selectRangeForward(doc, paredit.forwardSexpRange(doc))
         }
     },
     {
         command: 'paredit.selectBackwardSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.backwardSexpRange(doc))
+            paredit.selectRangeBackward(doc, paredit.backwardSexpRange(doc))
         }
     },
     {
         command: 'paredit.selectForwardDownSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardDownList(doc, doc.selectionRight))
+            paredit.selectRangeForward(doc, paredit.rangeToForwardDownList(doc, doc.selectionRight))
         }
     },
     {
         command: 'paredit.selectBackwardDownSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.rangeToBackwardDownList(doc))
+            paredit.selectRangeBackward(doc, paredit.rangeToBackwardDownList(doc))
         }
     },
     {
         command: 'paredit.selectForwardUpSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardUpList(doc, doc.selectionRight))
+            paredit.selectRangeForward(doc, paredit.rangeToForwardUpList(doc, doc.selectionRight))
         }
     },
     {
         command: 'paredit.selectBackwardUpSexp',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.rangeToBackwardUpList(doc))
+            paredit.selectRangeBackward(doc, paredit.rangeToBackwardUpList(doc))
         }
     },
     {
         command: 'paredit.selectCloseList',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardList(doc, doc.selectionRight))
+            paredit.selectRangeForward(doc, paredit.rangeToForwardList(doc, doc.selectionRight))
         }
     },
     {
         command: 'paredit.selectOpenList',
         handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.rangeToBackwardList(doc))
+            paredit.selectRangeBackward(doc, paredit.rangeToBackwardList(doc))
         }
     },
 
