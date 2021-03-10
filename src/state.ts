@@ -146,7 +146,9 @@ const NON_PROJECT_DIR_KEY = "calva.connect.nonProjectDir";
 
 export async function getNonProjectRootDir(context: vscode.ExtensionContext): Promise<vscode.Uri> {
     let root: vscode.Uri;
-    root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
+    if (!process.env["NEW_DRAMS"]) {
+        root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
+    }
     if (root) {
         const createNewOption = "Create new temp directory, download new files";
         const useExistingOption = "Use existing temp directory, reuse any existing files";
