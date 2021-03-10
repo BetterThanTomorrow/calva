@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as state from "../state";
 import * as utilities from '../utilities';
+import { getConfig } from '../config';
 
 enum ProjectTypes {
     "Leiningen" = "Leiningen",
@@ -180,7 +181,7 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
 
 /** Retrieve the replConnectSequences from the config */
 function getCustomConnectSequences(): ReplConnectSequence[] {
-    let sequences: ReplConnectSequence[] = state.config().replConnectSequences;
+    let sequences: ReplConnectSequence[] = getConfig().replConnectSequences;
 
     for (let sequence of sequences) {
         if (sequence.name == undefined ||
@@ -217,7 +218,7 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
  */
 function getDefaultCljsType(cljsType: string): CljsTypeConfig {
     // TODO: Find a less hacky way to get dynamic config for lein-figwheel
-    defaultCljsTypes["lein-figwheel"].shouldOpenUrl = state.config().openBrowserWhenFigwheelStarted;
+    defaultCljsTypes["lein-figwheel"].shouldOpenUrl = getConfig().openBrowserWhenFigwheelStarted;
     return defaultCljsTypes[cljsType];
 }
 

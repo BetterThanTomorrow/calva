@@ -26,16 +26,17 @@ import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
-import config from './config';
+import * as config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp';
+import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
 async function onDidSave(document) {
     let {
         evaluate,
         test,
-    } = state.config();
+    } = config.getConfig();
 
     if (document.languageId !== 'clojure') {
         return;
@@ -46,7 +47,7 @@ async function onDidSave(document) {
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
-            await eval.loadFile(document, state.config().prettyPrintingOptions);
+            await eval.loadFile(document, config.getConfig().prettyPrintingOptions);
             outputWindow.appendPrompt();
             state.analytics().logEvent("Calva", "OnSaveLoad").send();
         }
@@ -64,10 +65,20 @@ function setKeybindingsEnabledContext() {
     vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
 }
 
+function initializeState() {
+    setStateValue('connected', false);
+    setStateValue('connecting', false);
+    setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
+    setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
+    setStateValue('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
+}
+
 async function activate(context: vscode.ExtensionContext) {
+    initializeState();
+
     status.updateNeedReplUi(false, context);
     lsp.activate(context);
-    state.cursor.set('analytics', new Analytics(context));
+    setStateValue('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
     model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -81,8 +92,8 @@ async function activate(context: vscode.ExtensionContext) {
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
     const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
     const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
-    const customCljsRepl = state.config().customCljsRepl;
-    const replConnectSequences = state.config().replConnectSequences;
+    const customCljsRepl = config.getConfig().customCljsRepl;
+    const replConnectSequences = config.getConfig().replConnectSequences;
     const BUTTON_GOTO_DOC = "Open the docs";
     const BUTTON_OK = "Got it";
     const VIM_DOC_URL = "https://calva.io/vim/";
@@ -151,7 +162,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.switchCljsBuild', connector.switchCljsBuild));
     context.subscriptions.push(vscode.commands.registerCommand('calva.selectCurrentForm', select.selectCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.loadFile', async () => {
-        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
@@ -208,12 +219,12 @@ async function activate(context: vscode.ExtensionContext) {
     setKeybindingsEnabledContext();
 
     // PROVIDERS
-    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(state.documentSelector, new CalvaCompletionItemProvider()));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(state.documentSelector, new HoverProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ClojureDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.StackTraceDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(state.documentSelector, new definition.ResultsDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(state.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
+    context.subscriptions.push(vscode.languages.registerCompletionItemProvider(config.documentSelector, new CalvaCompletionItemProvider()));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(config.documentSelector, new HoverProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.ClojureDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.StackTraceDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.ResultsDefinitionProvider()));
+    context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(config.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
     vscode.workspace.registerTextDocumentContentProvider('jar', new JarContentProvider());

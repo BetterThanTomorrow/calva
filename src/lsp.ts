@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient';
 import * as path from 'path';
-import * as state from './state';
 import * as util from './utilities'
-import config from './config';
+import { REPL_FILE_EXT, getConfig } from './config';
 import { provideClojureDefinition } from './providers/definition';
+import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 
 const LSP_CLIENT_KEY = 'lspClient';
 
@@ -29,10 +29,10 @@ function createClient(jarPath: string): LanguageClient {
         },
         middleware: {
             handleDiagnostics(uri, diagnostics, next) {
-                if (!state.config().displayDiagnostics) {
+                if (!getConfig().displayDiagnostics) {
                     return next(uri, []);
                 }
-                if (uri.path.endsWith(config.REPL_FILE_EXT)) {
+                if (uri.path.endsWith(REPL_FILE_EXT)) {
                     return;
                 }
                 return next(uri, diagnostics);
@@ -41,13 +41,13 @@ function createClient(jarPath: string): LanguageClient {
                 return next(document, range, context, token);
             },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
-                if (state.config().referencesCodeLensEnabled) {
+                if (getConfig().referencesCodeLensEnabled) {
                     return await next(document, token);
                 }
                 return [];
             },
             resolveCodeLens: async (codeLens, token, next) => {
-                if (state.config().referencesCodeLensEnabled) {
+                if (getConfig().referencesCodeLensEnabled) {
                     return await next(codeLens, token);
                 }
                 return null;
@@ -232,11 +232,11 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     client.start();
     await client.onReady();
-    state.cursor.set(LSP_CLIENT_KEY, client);
+    setStateValue(LSP_CLIENT_KEY, client);
 }
 
 function deactivate(): Promise<void> {
-    const client = state.deref().get(LSP_CLIENT_KEY);
+    const client = getStateValue(LSP_CLIENT_KEY);
     if (client) {
         return client.stop();
     }

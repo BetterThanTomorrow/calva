@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as state from './state';
 import * as util from './utilities';
 import * as getText from './util/get-text';
 import * as namespace from './namespace';
-import * as outputWindow from './results-output/results-doc';
+import * as outputWindow from './results-output/results-doc'
+import { customREPLCommandSnippet } from './evaluate';
+import { getConfig } from './config';
+import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
@@ -18,15 +20,15 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const currentFilename = editor.document.fileName;
     let pickCounter = 0;
     let configErrors: { "name": string; "keys": string[]; }[] = [];
-    const globalSnippets = state.config().customREPLCommandSnippetsGlobal as evaluate.customREPLCommandSnippet[];
-    const workspaceSnippets = state.config().customREPLCommandSnippetsWorkspace as evaluate.customREPLCommandSnippet[];
-    const workspaceFolderSnippets = state.config().customREPLCommandSnippetsWorkspaceFolder as evaluate.customREPLCommandSnippet[];
+    const globalSnippets = getConfig().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
+    const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
+    const workspaceFolderSnippets = getConfig().customREPLCommandSnippetsWorkspaceFolder as customREPLCommandSnippet[];
     let snippets = [
         ...(globalSnippets ? globalSnippets : []),
         ...(workspaceSnippets ? workspaceSnippets : []),
         ...(workspaceFolderSnippets ? workspaceFolderSnippets : [])];
     if (snippets.length < 1) {
-        snippets = state.config().customREPLCommandSnippets;
+        snippets = getConfig().customREPLCommandSnippets;
     }
     const snippetsDict = {};
     const snippetsKeyDict = {};
@@ -34,8 +36,8 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const editorNS = editor && editor.document &&
         editor.document.languageId === 'clojure' ? namespace.getNamespace(editor.document) : undefined;
     const editorRepl = editor && editor.document &&
-        editor.document.languageId === 'clojure' ? namespace.getREPLSessionType() : "clj";
-    snippets.forEach((c: evaluate.customREPLCommandSnippet) => {
+        editor.document.languageId === 'clojure' ? replSession.getReplSessionTypeFromState() : "clj";
+    snippets.forEach((c: customREPLCommandSnippet) => {
         const undefs = ["name", "snippet"].filter(k => {
             return !c[k];
         });

@@ -1,15 +1,10 @@
 import * as vscode from 'vscode';
-import * as Immutable from 'immutable';
-import * as ImmutableCursor from 'immutable-cursor';
 import Analytics from './analytics';
-import { ReplConnectSequence } from './nrepl/connectSequence';
-import { JackInDependency } from './nrepl/project-types';
 import * as util from './utilities';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { customREPLCommandSnippet } from './evaluate';
-import { PrettyPrintingOptions } from './printer';
+import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -19,46 +14,10 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
     }
 }
 
-// include the 'file' and 'untitled' to the
-// document selector. All other schemes are
-// not known and therefore not supported.
-const documentSelector = [
-    { scheme: 'file', language: 'clojure' },
-    { scheme: 'jar', language: 'clojure' },
-    { scheme: 'untitled', language: 'clojure' }
-];
-
-var data;
-const initialData = {
-    hostname: null,
-    port: null,
-    clj: null,
-    cljs: null,
-    cljsBuild: null,
-    terminal: null,
-    connected: false,
-    connecting: false,
-    outputChannel: vscode.window.createOutputChannel("Calva says"),
-    connectionLogChannel: vscode.window.createOutputChannel("Calva Connection Log"),
-    diagnosticCollection: vscode.languages.createDiagnosticCollection('calva: Evaluation errors'),
-    analytics: null,
-    lspClient: null
-};
-
-reset();
-
-const cursor = ImmutableCursor.from(data, [], (nextState) => {
-    data = Immutable.fromJS(nextState);
-});
-
-function deref() {
-    return data;
-}
-
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
 function _outputChannel(name: string): vscode.OutputChannel {
-    const channel = deref().get(name);
+    const channel = getStateValue(name);
     if (channel.toJS !== undefined) {
         return channel.toJS();
     } else {
@@ -75,7 +34,7 @@ function connectionLogChannel(): vscode.OutputChannel {
 }
 
 function analytics(): Analytics {
-    const analytics = deref().get('analytics');
+    const analytics = getStateValue('analytics');
     if (analytics.toJS !== undefined) {
         return analytics.toJS();
     } else {
@@ -83,62 +42,18 @@ function analytics(): Analytics {
     }
 }
 
-function reset() {
-    data = Immutable.fromJS(initialData);
-}
-
-/**
- * Trims EDN alias and profile names from any surrounding whitespace or `:` characters.
- * This in order to free the user from having to figure out how the name should be entered.
- * @param  {string} name
- * @return {string} The trimmed name
- */
-function _trimAliasName(name: string): string {
-    return name.replace(/^[\s,:]*/, "").replace(/[\s,:]*$/, "")
-}
-
-// TODO find a way to validate the configs
-function config() {
-    const configOptions = vscode.workspace.getConfiguration('calva');
-    return {
-        format: configOptions.get("formatOnSave"),
-        evaluate: configOptions.get("evalOnSave"),
-        test: configOptions.get("testOnSave"),
-        showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
-        jackInEnv: configOptions.get("jackInEnv"),
-        jackInDependencyVersions: configOptions.get("jackInDependencyVersions") as { JackInDependency: string },
-        openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
-        customCljsRepl: configOptions.get("customCljsRepl", null),
-        replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
-        myLeinProfiles: configOptions.get("myLeinProfiles", []).map(_trimAliasName) as string[],
-        myCljAliases: configOptions.get("myCljAliases", []).map(_trimAliasName) as string[],
-        asyncOutputDestination: configOptions.get("sendAsyncOutputTo") as string,
-        customREPLCommandSnippets: configOptions.get("customREPLCommandSnippets", []),
-        customREPLCommandSnippetsGlobal: configOptions.inspect("customREPLCommandSnippets").globalValue as customREPLCommandSnippet[],
-        customREPLCommandSnippetsWorkspace: configOptions.inspect("customREPLCommandSnippets").workspaceValue as customREPLCommandSnippet[],
-        customREPLCommandSnippetsWorkspaceFolder: configOptions.inspect("customREPLCommandSnippets").workspaceFolderValue as customREPLCommandSnippet[],
-        prettyPrintingOptions: configOptions.get("prettyPrintingOptions") as PrettyPrintingOptions,
-        enableJSCompletions: configOptions.get("enableJSCompletions") as boolean,
-        autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
-        autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
-        referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
-        displayDiagnostics: configOptions.get('displayDiagnostics') as boolean,
-        hideReplUi: configOptions.get('hideReplUi') as boolean
-    };
-}
-
 const PROJECT_DIR_KEY = "connect.projectDir";
 const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
 export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
-        return deref().get(PROJECT_DIR_KEY);
+        return getStateValue(PROJECT_DIR_KEY);
     }
 }
 
 export function getProjectRootUri(useCache = true): vscode.Uri {
     if (useCache) {
-        return deref().get(PROJECT_DIR_URI_KEY);
+        return getStateValue(PROJECT_DIR_URI_KEY);
     }
 }
 
@@ -146,7 +61,9 @@ const NON_PROJECT_DIR_KEY = "calva.connect.nonProjectDir";
 
 export async function getNonProjectRootDir(context: vscode.ExtensionContext): Promise<vscode.Uri> {
     let root: vscode.Uri;
-    root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
+    if (!process.env["NEW_DRAMS"]) {
+        root = await context.globalState.get(NON_PROJECT_DIR_KEY) as vscode.Uri;
+    }
     if (root) {
         const createNewOption = "Create new temp directory, download new files";
         const useExistingOption = "Use existing temp directory, reuse any existing files";
@@ -179,8 +96,8 @@ export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext
         root = vscode.Uri.file(path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir));
         await setNonProjectRootDir(context, root);
     }
-    cursor.set(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-    cursor.set(PROJECT_DIR_URI_KEY, root);
+    setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+    setStateValue(PROJECT_DIR_URI_KEY, root);
     return root;
 }
 
@@ -212,8 +129,8 @@ function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     if (uri) {
-        cursor.set(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
-        cursor.set(PROJECT_DIR_URI_KEY, uri);
+        setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
+        setStateValue(PROJECT_DIR_URI_KEY, uri);
     } else {
         const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
         const doc = util.getDocument({});
@@ -226,8 +143,8 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
 async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        cursor.set(PROJECT_DIR_KEY, rootPath);
-        cursor.set(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+        setStateValue(PROJECT_DIR_KEY, rootPath);
+        setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
 
         let d = null;
         let prev = null;
@@ -256,8 +173,8 @@ async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Pro
         for (let projectFile in projectFileNames) {
             const p = path.resolve(rootPath, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
-                cursor.set(PROJECT_DIR_KEY, rootPath);
-                cursor.set(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
+                setStateValue(PROJECT_DIR_KEY, rootPath);
+                setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
                 return;
             }
         }
@@ -275,7 +192,7 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                     const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
                     try {
                         await vscode.workspace.fs.stat(u);
-                        cursor.set(PROJECT_DIR_URI_KEY, searchUri);
+                        setStateValue(PROJECT_DIR_URI_KEY, searchUri);
                         return;
                     }
                     catch { }
@@ -304,11 +221,6 @@ export function resolvePath(filePath?: string) {
 }
 
 export {
-    cursor,
-    documentSelector,
-    deref,
-    reset,
-    config,
     extensionContext,
     outputChannel,
     connectionLogChannel,
