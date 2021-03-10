@@ -21,7 +21,7 @@
     (reset! state/state {"hello" "world"})
     (is (= "world" (state/get-state-value "hello")))))
 
-(deftest get-state
+(deftest get-state-test
   (testing "Should return all state"
     (let [all-state {"hello" "world" "fizz" "buzz"}]
       (reset! state/state all-state)
