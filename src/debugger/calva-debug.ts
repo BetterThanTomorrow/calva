@@ -15,7 +15,7 @@ import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as util from '../utilities';
-import * as replSession from '../repl-session';
+import * as replSession from '../nrepl/repl-session';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',

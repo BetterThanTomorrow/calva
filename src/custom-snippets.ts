@@ -6,7 +6,7 @@ import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc'
 import { customREPLCommandSnippet } from './evaluate';
 import { getWorkspaceConfig } from './config';
-import * as replSession from './repl-session';
+import * as replSession from './nrepl/repl-session';
 import * as evaluate from './evaluate';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {

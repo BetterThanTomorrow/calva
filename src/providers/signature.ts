@@ -4,7 +4,7 @@ import * as infoparser from './infoparser';
 import { LispTokenCursor } from '../cursor-doc/token-cursor';
 import * as docMirror from '../doc-mirror/index';
 import * as namespace from '../namespace';
-import * as replSession from '../repl-session';
+import * as replSession from '../nrepl/repl-session';
 
 export class CalvaSignatureHelpProvider implements SignatureHelpProvider {
     async provideSignatureHelp(document: TextDocument, position: Position, _token: CancellationToken): Promise<SignatureHelp> {

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as util from './utilities';
 import * as state from './state';
 import { NReplSession } from './nrepl';
-import * as replSession from './repl-session';
+import * as replSession from './nrepl/repl-session';
 
 function report(res, chan: vscode.OutputChannel) {
     if (res.status == "ok") {

@@ -12,7 +12,7 @@ import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
-import * as replSession from '../repl-session';
+import * as replSession from '../nrepl/repl-session';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import statusbar from './statusbar';
 import * as state from './state';
 import { getWorkspaceConfig } from './config';
-import { updateReplSessionType } from './repl-session';
+import { updateReplSessionType } from './nrepl/repl-session';
 
 function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
     context.workspaceState.update('needReplUi', isNeeded);

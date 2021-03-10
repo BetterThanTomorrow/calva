@@ -6,7 +6,7 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
-import { getSession, updateReplSessionType } from './repl-session';
+import { getSession, updateReplSessionType } from './nrepl/repl-session';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 

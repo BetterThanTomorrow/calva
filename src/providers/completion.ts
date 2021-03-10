@@ -5,7 +5,7 @@ import select from '../select';
 import * as docMirror from '../doc-mirror/index';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
-import * as replSession from '../repl-session';
+import * as replSession from '../nrepl/repl-session';
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
     state: any;

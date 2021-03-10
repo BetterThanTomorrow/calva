@@ -1,6 +1,6 @@
-import { NReplSession } from "./nrepl";
-import { cljsLib, getDocument, getFileType } from "./utilities";
-import * as outputWindow from './results-output/results-doc';
+import { NReplSession } from ".";
+import { cljsLib, getDocument, getFileType } from "../utilities";
+import * as outputWindow from '../results-output/results-doc';
 
 function getSession(fileType = undefined): NReplSession {
     let doc = getDocument({});

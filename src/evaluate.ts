@@ -14,7 +14,7 @@ import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
 import { getStateValue } from '../out/cljs-lib/cljs-lib';
 import { getWorkspaceConfig } from './config';
-import * as replSession from './repl-session';
+import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
 function interruptAllEvaluations() {

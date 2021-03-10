@@ -3,7 +3,7 @@ import * as state from '../state';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
-import * as replSession from '../repl-session';
+import * as replSession from '../nrepl/repl-session';
 
 export default class HoverProvider implements vscode.HoverProvider {
     state: any;

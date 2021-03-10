@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { resolveNsName } from './util/ns-form';
 import * as fs from 'fs';
-import * as replSession from './repl-session';
+import * as replSession from './nrepl/repl-session';
 
 function isCljFile(filePath: string): boolean {
   return filePath && ((filePath.endsWith(".clj")

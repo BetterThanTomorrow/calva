@@ -4,7 +4,7 @@ import * as util from '../utilities';
 import annotations from './annotations';
 import * as namespace from '../namespace';
 import * as outputWindow from '../results-output/results-doc';
-import * as replSession from '../repl-session';
+import * as replSession from '../nrepl/repl-session';
 
 // Used by out LSP middleware
 export async function provideClojureDefinition(document, position: vscode.Position, token) {
