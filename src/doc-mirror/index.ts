@@ -67,7 +67,7 @@ export class DocumentModel implements EditableModel {
         builder.delete(range);
     }
 
-    getText(start: number, end: number, mustBeWithin = false) {
+    public getText(start: number, end: number, mustBeWithin = false) {
         return this.lineInputModel.getText(start, end, mustBeWithin);
     }
 

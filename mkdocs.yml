@@ -22,6 +22,7 @@ markdown_extensions:
 nav:
   - index.md
   - Start Here:
+    - getting-started.md
     - connect.md
     - try-first.md
     - finding-commands.md

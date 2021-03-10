@@ -4,7 +4,14 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
+
+## [2.0.178] - 2021-03-09
+- [Add command for evaluating from start of list to cursor](https://github.com/BetterThanTomorrow/calva/issues/1057)
+- Add custom REPL snippet variables, $selection, $head, and $tail
+
+## [2.0.177] - 2021-03-07
 - Fix: [Navigating to a definition in a jar file throws error in console](https://github.com/BetterThanTomorrow/calva/issues/1047)
+- [Add a Getting Started REPL feature](https://github.com/BetterThanTomorrow/calva/issues/1040)
 
 ## [2.0.176] - 2021-02-24
 - Revert switch to cljs for lsp, until [the issue with released cljs/js interop](https://github.com/BetterThanTomorrow/calva/issues/1044) has been fixed

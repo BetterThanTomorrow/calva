@@ -15,11 +15,14 @@ There are also substitutions available, which will take elements from the curren
 * `$line`: Current line number in editor
 * `$column`: Current column number in editor
 * `$file`: Full name of current file edited
-* `ns`: The namespace used for evaluating the command
+* `$ns`: The namespace used for evaluating the command
+* `$selection`: The currently selected text
 * `$current-form`: The text of the [current form](eval-tips.md#current-form)
 * `$top-level-form` The text of the [current top level form](eval-tips.md#current-top-level-form)
 * `$current-fn`: The sexpr/form at call position in the current list, e.g. `str` with `(defn foo [] (str "foo" "bar|"))`
 * `$top-level-defined-symbol`: The second symbol of the top level form, e.g. `foo` with `(defn foo [] (str "foo" "bar|"))`
+* `$head`: The text between the start of the current list to the cursor
+* `$tail`: The text between the cursor and the end of the current list
 
 Consider these settings:
 

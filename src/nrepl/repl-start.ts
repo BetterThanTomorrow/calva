@@ -15,7 +15,7 @@ const TEMPLATES_SUB_DIR = 'bundled';
 
 async function downloadDram(storageUri: vscode.Uri, filePath: string) {
     const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
-    const calva = vscode.extensions.getExtension("betterthantomorrow.calva")!;
+    const calva = vscode.extensions.getExtension("betterthantomorrow.calva");
     const calvaVersion = calva.packageJSON.version;
     const isDebug = process.env["IS_DEBUG"] === "true";
     const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
@@ -80,7 +80,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
     }
 
     const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, docNames[0]);
-    docNames.splice(1).forEach(async docName => {
+    docNames.slice(1).forEach(async docName => {
         await openStoredDoc(storageUri, tempDirUri, docName);
     });
     const firstPos = mainEditor.document.positionAt(0);
@@ -131,10 +131,11 @@ export async function startOrConnectRepl() {
                 commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             }
             commands[CONNECT_PROJECT_OPTION] = CONNECT_PROJECT_COMMAND;
+            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         } else {
             commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             commands[START_REPL_OPTION] = START_REPL_COMMAND;
-            //commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
+            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         }
     } else {
         commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
@@ -148,5 +149,5 @@ export async function startOrConnectRepl() {
         if (commands[v]) {
             vscode.commands.executeCommand(commands[v]);
         }
-    })
+    });
 }

@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
 import * as util from './utilities';
+import * as getText from './util/get-text';
 import * as namespace from './namespace';
 import * as outputWindow from './results-output/results-doc'
-import { customREPLCommandSnippet, evaluateInOutputWindow } from './evaluate';
+import { customREPLCommandSnippet } from './evaluate';
 import { getWorkspaceConfig } from './config';
 import * as replSession from './repl-session';
+import * as evaluate from './evaluate';
 
 export async function evaluateCustomCodeSnippetCommand(codeOrKey?: string) {
     await evaluateCustomCodeSnippet(codeOrKey);
@@ -90,10 +92,13 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         replace("$column", currentColumn).
         replace("$file", currentFilename).
         replace("$ns", ns).
-        replace("$current-form", util.currentFormText(editor, false)).
-        replace("$top-level-form", util.currentFormText(editor, true)).
-        replace("$current-fn", util.currentFunction(editor)).
-        replace("$top-level-defined-symbol", util.currentTopLevelFunction(editor));
-    await evaluateInOutputWindow(interpolatedCode, repl, ns);
+        replace("$selection", editor.document.getText(editor.selection)).
+        replace("$current-form", getText.currentFormText(editor)[1]).
+        replace("$top-level-form", getText.currentTopLevelFormText(editor)[1]).
+        replace("$current-fn", getText.currentFunction(editor)[1]).
+        replace("$top-level-defined-symbol", getText.currentTopLevelFunction(editor)[1]).
+        replace("$head", getText.toStartOfList(editor)[1]).
+        replace("$tail", getText.toEndOfList(editor)[1]);
+    await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns);
     outputWindow.appendPrompt();
 }
