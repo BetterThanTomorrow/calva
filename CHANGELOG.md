@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.179] - 2021-03-10
 - Implementation detail: [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
 
 ## [2.0.178] - 2021-03-09
