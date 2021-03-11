@@ -8,7 +8,8 @@
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as str]
-            [calva.state :as state]))
+            [calva.state :as state]
+            [calva.lsp.download :refer [download-clojure-lsp]]))
 
 (def config (js/require "../config.js"))
 (def util (js/require "../utilities.js"))
@@ -159,7 +160,7 @@
 (defn handle-toggle-references-code-lens
   [^js event]
   (when (.. event (affectsConfiguration "calva.referencesCodeLens.enabled"))
-    (let [visible-editors (filter 
+    (let [visible-editors (filter
                            (fn [editor]
                              (= (.. editor -document -uri -scheme) "file"))
                            (.. vscode -window -visibleTextEditors))]
@@ -186,29 +187,24 @@
       (push (.. vscode -workspace
                 (onDidChangeConfiguration handle-toggle-references-code-lens)))))
 
-(def windows-os? (= (. process -platform) "win32"))
-
-;; TODO: Extract and write unit test? Can mock extension context.
-(defn get-clojure-lsp-path [^js context windows-os?]
-  (let [configured-path (.. config getConfig -clojureLspPath)
-        file-extension (when windows-os? ".exe")]
-    (or configured-path
-        (. path (join (. context -extensionPath)
-                      (str "clojure-lsp" file-extension))))))
-
 (defn activate [^js context]
-  (let [clojure-lsp-path (get-clojure-lsp-path context windows-os?)
-        client (create-client clojure-lsp-path)]
-    (. client start)
-    (.. vscode -window
-        (setStatusBarMessage
-         "$(sync~spin) Initializing Clojure language features via clojure-lsp"
-         (. client onReady)))
-    (.. (. client onReady)
-        (then #(do
-                 (state/set-state-value! client-key client)
-                 (register-commands context client)
-                 (register-event-handlers context))))))
+  (let [extension-path (. context -extensionPath)
+        version (.. config getConfig -CLOJURE_LSP_VERSION)]
+    (.. (download-clojure-lsp extension-path version)
+        (then
+         (fn [clojure-lsp-path]
+           (js/console.log "clojure-lsp-path" clojure-lsp-path)
+           (let [client (create-client clojure-lsp-path)]
+             (. client start)
+             (.. vscode -window
+                 (setStatusBarMessage
+                  "$(sync~spin) Initializing Clojure language features via clojure-lsp"
+                  (. client onReady)))
+             (.. (. client onReady)
+                 (then #(do
+                          (state/set-state-value! client-key client)
+                          (register-commands context client)
+                          (register-event-handlers context))))))))))
 
 (defn deactivate []
   (when-let [client (state/get-state-value client-key)]

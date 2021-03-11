@@ -75,6 +75,7 @@ report.*
 .calva/output-window/
 .clj-kondo
 clojure-lsp
+clojure-lsp-version
 
 # MkDocs
 /site/
