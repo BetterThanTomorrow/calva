@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” foward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
 
 ## [2.0.179] - 2021-03-10
 - Implementation detail: [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
