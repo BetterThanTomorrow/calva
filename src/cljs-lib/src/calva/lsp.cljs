@@ -6,9 +6,9 @@
             ["child_process" :refer [exec execSync]]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [calva.state :as state]))
 
-(def state (js/require "../state.js"))
 (def config (js/require "../config.js"))
 (def util (js/require "../utilities.js"))
 (def definition (js/require "../providers/definition.js"))
@@ -19,13 +19,13 @@
 
 (defn handle-diagnostics
   [uri diagnostics next]
-  (let [repl-file-ext (.. config -default -REPL_FILE_EXT)]
+  (let [repl-file-ext (.. config -REPL_FILE_EXT)]
     (when-not (.. uri -path (endsWith repl-file-ext))
       (next uri diagnostics))))
 
 (defn provide-code-lenses
   [document token next]
-  (if (.. state config -referencesCodeLensEnabled)
+  (if (.. config getConfig -referencesCodeLensEnabled)
     (next document token)
     []))
 
@@ -216,12 +216,12 @@
          (. client onReady)))
     (.. (. client onReady)
         (then #(do
-                 (.. state -cursor (set client-key client))
+                 (state/set-state-value! client-key client)
                  (register-commands context client)
                  (register-event-handlers context))))))
 
 (defn deactivate []
-  (when-let [client (.. state deref (get client-key))]
+  (when-let [client (state/get-state-value client-key)]
     (.. client stop)))
 
 (defn get-references
@@ -241,10 +241,11 @@
                    (clj->js {:textDocument {:uri uri}}))))
 
 (comment
-  (get-clojure-lsp-path (clj->js {:extensionPath "some/path"}))
+  (.. config getConfig -referencesCodeLensEnabled)
+  (cljs.pprint/pprint @state/state)
   (exec "ls", (fn [error stdout stderr]
                 (println stdout)))
-  
+
   (time (.. (execSync "sh -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString))
   (str "hello" nil)
   (js/console.error "Hello test"))
