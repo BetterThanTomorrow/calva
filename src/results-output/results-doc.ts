@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as os from 'os';
 import * as state from '../state';
 import { highlight } from '../highlight/src/extension'
 import { NReplSession } from '../nrepl';
@@ -8,11 +7,12 @@ import * as util from '../utilities';
 import select from '../select';
 import { formatCode } from '../calva-fmt/src/format';
 import * as namespace from '../namespace';
-import config from '../config';
+import * as config from '../config';
 import type { ReplSessionType } from '../config';
 import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
+import * as replSession from '../nrepl/repl-session';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -126,7 +126,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     await vscode.workspace.applyEdit(edit);
     resultsDoc.save();
 
-    if (state.config().autoOpenREPLWindow) {
+    if (config.getConfig().autoOpenREPLWindow) {
         const resultsEditor = await vscode.window.showTextDocument(resultsDoc, getViewColumn(), true);
         const firstPos = resultsEditor.document.positionAt(0);
         const lastPos = resultsDoc.positionAt(Infinity);
@@ -135,10 +135,12 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
     }
     // For some reason onDidChangeTextEditorViewColumn won't fire
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(event => {
-        const isOutputWindow = isResultsDoc(event.document);
-        setContextForOutputWindowActive(isOutputWindow);
-        if (isOutputWindow) {
-            setViewColumn(event.viewColumn);
+        if (event) {
+            const isOutputWindow = isResultsDoc(event.document);
+            setContextForOutputWindowActive(isOutputWindow);
+            if (isOutputWindow) {
+                setViewColumn(event.viewColumn);
+            }
         }
     }));
     state.extensionContext.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
@@ -161,7 +163,7 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
         }
         vscode.commands.executeCommand("setContext", "calva:outputWindowSubmitOnEnter", submitOnEnter);
     }));
-    vscode.languages.registerCodeLensProvider(state.documentSelector, new PrintStackTraceCodelensProvider());
+    vscode.languages.registerCodeLensProvider(config.documentSelector, new PrintStackTraceCodelensProvider());
 
     // If the output window is active when initResultsDoc is run, these contexts won't be set properly without the below
     // until the next time it's focused
@@ -192,17 +194,17 @@ export async function revealDocForCurrentNS(preserveFocus: boolean = true) {
 }
 
 export async function setNamespaceFromCurrentFile() {
-    const session = namespace.getSession();
+    const session = replSession.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     if (getNs() !== ns) {
         await session.eval("(in-ns '" + ns + ")", session.client.ns).value;
     }
     setSession(session, ns);
-    namespace.updateREPLSessionType();
+    replSession.updateReplSessionType();
 }
 
 async function appendFormGrabbingSessionAndNS(topLevel: boolean) {
-    const session = namespace.getSession();
+    const session = replSession.getSession();
     const ns = namespace.getNamespace(util.getDocument({}));
     const editor = vscode.window.activeTextEditor;
     const doc = editor.document;

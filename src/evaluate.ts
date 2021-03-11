@@ -12,7 +12,10 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import * as fs from 'fs';
+import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { getConfig } from './config';
+import * as replSession from './nrepl/repl-session';
+import * as getText from './util/get-text';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
@@ -45,7 +48,7 @@ function addAsComment(c: number, result: string, codeSelection: vscode.Selection
 }
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
-    const pprintOptions = options.pprintOptions || state.config().prettyPrintingOptions;
+    const pprintOptions = options.pprintOptions || getConfig().prettyPrintingOptions;
     const line = options.line;
     const column = options.column;
     const filePath = options.filePath;
@@ -129,34 +132,27 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             }
         }
         outputWindow.setSession(session, context.ns || ns);
-        namespace.updateREPLSessionType();
+        replSession.updateReplSessionType();
     }
 }
 
 async function evaluateSelection(document: {}, options) {
-    const current = state.deref();
     const doc = util.getDocument(document);
-    const topLevel = options.topLevel || false;
+    const selectionFn: Function = options.selectionFn;
 
-    if (current.get('connected')) {
+    if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;
         const selection = editor.selection;
         let code = "";
         let codeSelection: vscode.Selection;
-        if (selection.isEmpty || topLevel) {
-            state.analytics().logEvent("Evaluation", topLevel ? "TopLevel" : "CurrentForm").send();
-            codeSelection = select.getFormSelection(doc, selection.active, topLevel);
-            code = doc.getText(codeSelection);
-        } else {
-            state.analytics().logEvent("Evaluation", "Selection").send();
-            codeSelection = selection;
-            code = doc.getText(selection);
-        }
+        state.analytics().logEvent("Evaluation", "selectionFn").send();
+        [codeSelection, code] = selectionFn(editor);
+
         const ns = namespace.getNamespace(doc);
         const line = codeSelection.start.line;
         const column = codeSelection.start.character;
         const filePath = doc.fileName;
-        const session = namespace.getSession(util.getFileType(doc));
+        const session = replSession.getSession(util.getFileType(doc));
 
         if (outputWindow.isResultsDoc(doc)) {
             replHistory.addToReplHistory(session.replType, code);
@@ -189,39 +185,69 @@ function normalizeNewLinesAndJoin(strings: string[], asLineComment = false): str
     return strings.map((s) => normalizeNewLines(s, asLineComment), asLineComment).join(`\n${asLineComment ? '; ' : ''}`);
 }
 
+function _currentSelectionElseCurrentForm(editor: vscode.TextEditor): getText.SelectionAndText {
+    if (editor.selection.isEmpty) {
+        return getText.currentFormText(editor);
+    } else {
+        return [editor.selection, editor.document.getText(editor.selection)];
+    }
+}
+
 function evaluateSelectionReplace(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { replace: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        replace: true,
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateSelectionAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        comment: true,
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
 }
 
 function evaluateTopLevelFormAsComment(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { comment: true, topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        comment: true,
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: getText.currentTopLevelFormText
+    })).catch(printWarningForError);
 }
 
 function evaluateTopLevelForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: getText.currentTopLevelFormText
+    })).catch(printWarningForError);
 }
 
 function evaluateCurrentForm(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, { pprintOptions: state.config().prettyPrintingOptions }))
-        .catch(printWarningForError);
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: _currentSelectionElseCurrentForm
+    })).catch(printWarningForError);
+}
+
+function evaluateToCursor(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: (editor: vscode.TextEditor) => {
+            let [selection, code] = getText.toStartOfList(editor);
+            return [selection, `(${code})`]
+        }
+    })).catch(printWarningForError);
 }
 
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
-    const current = state.deref();
     const doc = util.getDocument(document);
     const fileType = util.getFileType(doc);
     const ns = namespace.getNamespace(doc);
-    const session = namespace.getSession(util.getFileType(doc));
+    const session = replSession.getSession(util.getFileType(doc));
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && current.get('connected')) {
+    if (doc && doc.languageId == "clojure" && fileType != "edn" && getStateValue('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         const docUri = outputWindow.isResultsDoc(doc) ?
             await outputWindow.getUriForCurrentNamespace() :
@@ -255,13 +281,13 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
             }
         }
         outputWindow.setSession(session, res.ns || ns);
-        namespace.updateREPLSessionType();
+        replSession.updateReplSessionType();
     }
 }
 
 async function evaluateUser(code: string) {
     const fileType = util.getFileType(util.getDocument({})),
-        session = namespace.getSession(fileType);
+        session = replSession.getSession(fileType);
     if (session) {
         try {
             await session.eval(code, session.client.ns).value;
@@ -281,10 +307,10 @@ async function requireREPLUtilitiesCommand() {
             ns = namespace.getDocumentNamespace(util.getDocument({})),
             CLJS_FORM = "(use '[cljs.repl :only [apropos dir doc find-doc print-doc pst source]])",
             CLJ_FORM = "(clojure.core/apply clojure.core/require clojure.main/repl-requires)",
-            sessionType = namespace.getREPLSessionType(),
+            sessionType = replSession.getReplSessionTypeFromState(),
             form = sessionType == "cljs" ? CLJS_FORM : CLJ_FORM,
             fileType = util.getFileType(util.getDocument({})),
-            session = namespace.getSession(fileType);
+            session = replSession.getSession(fileType);
 
         if (session) {
             try {
@@ -303,7 +329,7 @@ async function requireREPLUtilitiesCommand() {
 
 async function copyLastResultCommand() {
     let chan = state.outputChannel();
-    let session = namespace.getSession(util.getFileType(util.getDocument({})));
+    let session = replSession.getSession(util.getFileType(util.getDocument({})));
 
     let value = await session.eval("*1", session.client.ns).value;
     if (value !== null) {
@@ -324,8 +350,11 @@ async function togglePrettyPrint() {
 };
 
 async function instrumentTopLevelForm() {
-    evaluateSelection({}, { topLevel: true, pprintOptions: state.config().prettyPrintingOptions, debug: true })
-        .catch(printWarningForError);
+    evaluateSelection({}, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        debug: true,
+        selectionFn: getText.currentTopLevelFormText
+    }).catch(printWarningForError);
     state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.INSTRUMENT_FORM).send();
 }
 
@@ -333,9 +362,9 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
     const outputDocument = await outputWindow.openResultsDoc();
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
-        const session = namespace.getSession(sessionType);
+        const session = replSession.getSession(sessionType);
         outputWindow.setSession(session, ns);
-        namespace.updateREPLSessionType();
+        replSession.updateReplSessionType();
         outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
@@ -366,6 +395,7 @@ export default {
     evaluateSelectionReplace,
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
+    evaluateToCursor,
     evaluateCode,
     evaluateUser,
     copyLastResultCommand,

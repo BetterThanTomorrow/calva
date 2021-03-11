@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { resolveNsName } from './util/ns-form';
 import * as fs from 'fs';
-import * as namespace from './namespace';
+import * as replSession from './nrepl/repl-session';
 
 function isCljFile(filePath: string): boolean {
   return filePath && ((filePath.endsWith(".clj")
@@ -25,7 +25,7 @@ async function handleNewCljFiles(e: vscode.FileCreateEvent) {
     return;
   }
   let sourcePaths: string[] = [];
-  const client = namespace.getSession();
+  const client = replSession.getSession();
   if (client) {
       const resp = await client.classpath();
       if (resp && resp.classpath) {

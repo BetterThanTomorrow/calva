@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
 import * as path from 'path';
-import * as state from "../state"
+import * as state from "../state";
 import eval from '../evaluate';
 import * as utilities from "../utilities";
-import * as namespace from "../namespace";
 import * as sequence from "./connectSequence";
 import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
-import { reject } from "lodash";
+import { getConfig } from '../config';
+import * as replSession from './repl-session';
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
 export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
@@ -15,7 +15,7 @@ const TEMPLATES_SUB_DIR = 'bundled';
 
 async function downloadDram(storageUri: vscode.Uri, filePath: string) {
     const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
-    const calva = vscode.extensions.getExtension("betterthantomorrow.calva")!;
+    const calva = vscode.extensions.getExtension("betterthantomorrow.calva");
     const calvaVersion = calva.packageJSON.version;
     const isDebug = process.env["IS_DEBUG"] === "true";
     const branch = isDebug || calvaVersion.match(/-.+$/) ? 'dev' : 'published';
@@ -80,7 +80,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
     }
 
     const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, docNames[0]);
-    docNames.splice(1).forEach(async docName => {
+    docNames.slice(1).forEach(async docName => {
         await openStoredDoc(storageUri, tempDirUri, docName);
     });
     const firstPos = mainEditor.document.positionAt(0);
@@ -90,7 +90,7 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
 
     await jackIn.jackIn(sequence.genericDefaults[0], async () => {
         await vscode.window.showTextDocument(mainDoc, { preview: false, viewColumn: vscode.ViewColumn.One, preserveFocus: false });
-        await eval.loadFile({}, state.config().prettyPrintingOptions);
+        await eval.loadFile({}, getConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     });
 }
@@ -131,14 +131,15 @@ export async function startOrConnectRepl() {
                 commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             }
             commands[CONNECT_PROJECT_OPTION] = CONNECT_PROJECT_COMMAND;
+            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         } else {
             commands[CONNECT_STANDALONE_OPTION] = CONNECT_STANDALONE_COMMAND;
             commands[START_REPL_OPTION] = START_REPL_COMMAND;
-            //commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
+            commands[START_HELLO_REPL_OPTION] = START_HELLO_REPL_COMMAND;
         }
     } else {
         commands[DISCONNECT_OPTION] = DISCONNECT_COMMAND;
-        if (namespace.getSession("clj")) {
+        if (replSession.getSession("clj")) {
             commands[OPEN_WINDOW_OPTION] = OPEN_WINDOW_COMMAND;
         }
     }
@@ -148,5 +149,5 @@ export async function startOrConnectRepl() {
         if (commands[v]) {
             vscode.commands.executeCommand(commands[v]);
         }
-    })
+    });
 }

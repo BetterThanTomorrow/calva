@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.175",
+    "version": "2.0.179",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -678,6 +678,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.startStandaloneHelloRepl",
+                "title": "Fire up the ”Getting Started” REPL",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
                 "enablement": "calva:connected",
@@ -704,6 +709,12 @@
             {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate Current Form  (or selection, if any)",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateToCursor",
+                "title": "Evaluate From Start of List to Cursor",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1362,6 +1373,11 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateToCursor",
+                "key": "ctrl+alt+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {

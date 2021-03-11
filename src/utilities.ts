@@ -9,6 +9,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
+import * as cljsLib from '../out/cljs-lib/cljs-lib';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -164,34 +165,34 @@ function getFileType(document) {
 }
 
 function getLaunchingState() {
-    return state.deref().get('launching');
+    return cljsLib.getStateValue('launching');
 }
 
 function setLaunchingState(value: any) {
     vscode.commands.executeCommand("setContext", "calva:launching", Boolean(value));
-    state.cursor.set('launching', value);
+    cljsLib.setStateValue('launching', value);
 }
 
 function getConnectedState() {
-    return state.deref().get('connected');
+    return cljsLib.getStateValue('connected');
 }
 
 function setConnectedState(value: Boolean) {
     vscode.commands.executeCommand("setContext", "calva:connected", value);
-    state.cursor.set('connected', value);
+    cljsLib.setStateValue('connected', value);
 }
 
 function getConnectingState() {
-    return state.deref().get('connecting');
+    return cljsLib.getStateValue('connecting');
 }
 
 function setConnectingState(value: Boolean) {
     if (value) {
         vscode.commands.executeCommand("setContext", "calva:connecting", true);
-        state.cursor.set('connecting', true);
+        cljsLib.setStateValue('connecting', true);
     } else {
         vscode.commands.executeCommand("setContext", "calva:connecting", false);
-        state.cursor.set('connecting', false);
+        cljsLib.setStateValue('connecting', false);
     }
 }
 
@@ -232,7 +233,7 @@ function markError(error) {
         error.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -270,7 +271,7 @@ function markWarning(warning) {
         warning.column = 0;
     }
 
-    let diagnostic = state.deref().get('diagnosticCollection'),
+    let diagnostic = cljsLib.getStateValue('diagnosticCollection'),
         editor = vscode.window.activeTextEditor;
 
     //editor.selection = new vscode.Selection(position, position);
@@ -358,49 +359,6 @@ async function getJarContents(uri: vscode.Uri | string) {
     });
 }
 
-function currentFormText(editor: vscode.TextEditor, topLevel: boolean) {
-    const doc = editor.document;
-    if (doc) {
-        const codeSelection = select.getFormSelection(doc, editor.selection.active, topLevel);
-        return doc.getText(codeSelection);    
-    } else {
-        return '';
-    }
-}
-
-function currentFunction(editor: vscode.TextEditor) {
-    if (editor) {
-        const document = editor.document;
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor();
-        const [start, end] = tokenCursor.getFunctionSexpRange();
-        if (start && end) {
-            const startPos = document.positionAt(start);
-            const endPos = document.positionAt(end);
-            return document.getText(new vscode.Range(startPos, endPos));
-        }
-    }
-}
-
-function currentTopLevelFunction(editor: vscode.TextEditor) {
-    if (editor) {
-        const document = editor.document;
-        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
-        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
-        if (tokenCursor.downList()) {
-            tokenCursor.forwardWhitespace();
-            while (tokenCursor.next()) {
-                const symbol = tokenCursor.getToken();
-                if (symbol.type === 'id') {
-                    return symbol.raw;
-                }
-            }
-            return '';
-        }
-        return '';
-    }
-}
-
 function sortByPresetOrder(arr: any[], presetOrder: any[]) {
     const result = [];
     presetOrder.forEach(preset => {
@@ -443,6 +401,10 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
+function randomSlug(length = 7) {
+    return Math.random().toString(36).substring(7);
+}
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -474,10 +436,9 @@ export {
     getFileContents,
     jarFilePathComponents,
     getJarContents,
-    currentFormText,
-    currentFunction,
-    currentTopLevelFunction,
     sortByPresetOrder,
     writeTextToFile,
-    downloadFromUrl
+    downloadFromUrl,
+    cljsLib,
+    randomSlug
 };
