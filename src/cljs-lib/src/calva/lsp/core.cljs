@@ -1,9 +1,10 @@
-(ns calva.lsp
+(ns calva.lsp.core
   (:require ["vscode" :as vscode]
             ["vscode-languageclient" :refer [LanguageClient Position]]
             ["path" :as path]
             ["process" :as process]
             ["child_process" :refer [exec execSync]]
+            ["fs" :as fs]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as str]
@@ -189,22 +190,11 @@
 
 ;; TODO: Extract and write unit test? Can mock extension context.
 (defn get-clojure-lsp-path [^js context windows-os?]
-  (let [file-extension (when windows-os? ".exe")]
-    (. path (join (. context -extensionPath) 
-                  (str "clojure-lsp" file-extension)))))
-
-;; TODO: Make this work on windows. Also, switch bash to sh?
-(defn get-clojure-lsp-version-output [clojure-lsp-path]
-  (let [command (str "bash -c \"" clojure-lsp-path " --version\"")]
-    (. (execSync command) toString)))
-
-(defn current-version-exists? [current-version version-output]
-  )
-
-(defn download-clojure-lsp [version file-path]
-  (let [url-path (str "/clojure-lsp/clojure-lsp/releases/download/"
-                      version
-                      "/clojure-lsp")]))
+  (let [configured-path (.. config getConfig -clojureLspPath)
+        file-extension (when windows-os? ".exe")]
+    (or configured-path
+        (. path (join (. context -extensionPath)
+                      (str "clojure-lsp" file-extension))))))
 
 (defn activate [^js context]
   (let [clojure-lsp-path (get-clojure-lsp-path context windows-os?)
@@ -241,11 +231,18 @@
                    (clj->js {:textDocument {:uri uri}}))))
 
 (comment
+  (.. config getConfig -clojureLspPath)
+  (time (.. fs (writeFileSync "/home/brandon/development/calva/clojure-lsp-version"
+                              "hello world")))
+  (time (.. fs (readFileSync "/home/brandon/development/calva/clojure-lsp-version" "utf8")))
   (.. config getConfig -referencesCodeLensEnabled)
   (cljs.pprint/pprint @state/state)
   (exec "ls", (fn [error stdout stderr]
                 (println stdout)))
 
-  (time (.. (execSync "sh -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString))
+  (try
+    (time (.. (execSync "sh -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString))
+    (catch js/Error e
+      (js/console.error e)))
   (str "hello" nil)
   (js/console.error "Hello test"))
