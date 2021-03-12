@@ -7,7 +7,9 @@
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as str]
             [calva.state :as state]
-            [calva.lsp.download :refer [download-clojure-lsp]]))
+            [calva.lsp.download :refer [download-clojure-lsp]]
+            [calva.utilities :as util]
+            [calva.lsp.utilities :as lsp.util]))
 
 (def config (js/require "../config.js"))
 (def util (js/require "../utilities.js"))
@@ -185,24 +187,51 @@
       (push (.. vscode -workspace
                 (onDidChangeConfiguration handle-toggle-references-code-lens)))))
 
+(defn show-initializing-status!
+  [hide-when-done]
+  (.. vscode -window
+      (setStatusBarMessage
+       "$(sync~spin) Initializing Clojure language features via clojure-lsp"
+       hide-when-done)))
+
+(defn start-client!
+  "Returns a promise that resolves once the client has been started and post-start operations are completed."
+  [clojure-lsp-path ^js context]
+  (let [client (create-client clojure-lsp-path)]
+    (js/console.log "Starting clojure-lsp at" clojure-lsp-path)
+    (. client start)
+    (let [on-ready-promise (. client onReady)]
+      (show-initializing-status! on-ready-promise)
+      (.. on-ready-promise
+          (then #(do
+                   (state/set-state-value! client-key client)
+                   (register-commands context client)
+                   (register-event-handlers context)
+                   (js/Promise.resolve)))))))
+
+(defn show-downloading-status!
+  [hide-when-done]
+  (.. vscode -window
+      (setStatusBarMessage
+       "$(sync~spin) Downloading clojure-lsp"
+       hide-when-done)))
+
 (defn activate [^js context]
   (let [extension-path (. context -extensionPath)
-        version (.. config -CLOJURE_LSP_VERSION)]
-    (.. (download-clojure-lsp extension-path version)
-        (then
-         (fn [clojure-lsp-path]
-           (let [client (create-client clojure-lsp-path)]
-             (js/console.log "Starting clojure-lsp at" clojure-lsp-path)
-             (. client start)
-             (.. vscode -window
-                 (setStatusBarMessage
-                  "$(sync~spin) Initializing Clojure language features via clojure-lsp"
-                  (. client onReady)))
-             (.. (. client onReady)
-                 (then #(do
-                          (state/set-state-value! client-key client)
-                          (register-commands context client)
-                          (register-event-handlers context))))))))))
+        configured-version (.. config -CLOJURE_LSP_VERSION)
+        current-version (lsp.util/read-version-file extension-path)
+        clojure-lsp-path (lsp.util/get-clojure-lsp-path extension-path util/windows-os?)]
+    (js/console.log "current-version = configured-version:" (= current-version configured-version))
+    (if (not= configured-version current-version)
+      (let [download-promise (download-clojure-lsp extension-path configured-version)]
+        (js/console.log "Download-promise:" download-promise)
+        (show-downloading-status! download-promise)
+        (.. download-promise
+            (then (fn [clojure-lsp-path]
+                    (start-client! clojure-lsp-path context)))))
+      (do
+        (js/console.log "Versions are equal. Starting client.")
+        (start-client! clojure-lsp-path context)))))
 
 (defn deactivate []
   (when-let [client (state/get-state-value client-key)]
