@@ -3,7 +3,9 @@
             ["process" :as process]
             ["path" :as path]
             ["follow-redirects" :refer [https]]
-            ["extract-zip" :as extract-zip]))
+            ["extract-zip" :as extract-zip]
+            [calva.lsp.utilities :as lsp.util]
+            [calva.utilities :as util]))
 
 (def version-file-name "clojure-lsp-version")
 
@@ -49,34 +51,59 @@
          (get (clj->js {:hostname "github.com"
                         :path url-path})
               (fn [^js response]
-                (js/console.log "Got response")
-                (let [write-stream (.. fs (createWriteStream file-path))]
-                  (.. response
-                      (on "end"
-                          (fn []
-                            (.. write-stream close)
-                            (js/console.log "Clojure-lsp zip file downloaded to" file-path)
-                            (resolve)))
-                      (pipe write-stream)))))))))
+                (let [status-code (. response -statusCode)]
+                  (if (= status-code 200)
+                    (let [write-stream (.. fs (createWriteStream file-path))]
+                      (.. response
+                          (on "end"
+                              (fn []
+                                (.. write-stream close)
+                                (js/console.log "Clojure-lsp zip file downloaded to" file-path)
+                                (resolve)))
+                          (pipe write-stream)))
+                    (let [error (js/Error. (. response -statusMessage))]
+                      (. response resume) ;; Consume response to free up memory
+                      (reject error))))))
+         (on "error" reject)))))
+
+(defn get-backup-path
+  [clojure-lsp-path]
+  (str clojure-lsp-path "_backup"))
+
+(defn backup-existing-file
+  [clojure-lsp-path]
+  (js/console.log "Backing up existing clojure-lsp file")
+  (try
+    (.. fs (renameSync clojure-lsp-path (get-backup-path clojure-lsp-path)))
+    (catch js/Error e
+      (js/console.log "Error while backing up existing clojure-lsp file."
+                      (. e -message)))))
 
 (defn download-clojure-lsp [extension-path version]
-  (js/console.log "Downloading clojure-lsp version" version)
+  (js/console.log "Downloading clojure-lsp version" version "if necessary")
   (let [current-version (read-version-file extension-path)
         url-path (str "/clojure-lsp/clojure-lsp/releases/download/"
                       version
                       "/" zip-file-name)
-        zip-file-path (get-zip-file-path extension-path)]
+        zip-file-path (get-zip-file-path extension-path)
+        clojure-lsp-path (lsp.util/get-clojure-lsp-path extension-path util/windows-os?)]
     (if (not= current-version version)
-      (.. (download-zip-file url-path zip-file-path)
-          (then (fn []
-                  (unzip-file zip-file-path extension-path)))
-          (then (fn []
-                  (write-version-file extension-path version)
-                  (js/Promise.resolve))))
+      (do
+        (backup-existing-file clojure-lsp-path)
+        (.. (download-zip-file url-path zip-file-path)
+            (then (fn []
+                    (unzip-file zip-file-path extension-path)))
+            (then (fn []
+                    (write-version-file extension-path version)
+                    (js/Promise.resolve clojure-lsp-path)))
+            (catch (fn [error]
+                     (js/console.log "Error downloading clojure-lsp." error)
+                     (js/Promise.resolve (get-backup-path clojure-lsp-path))))))
       (do (js/console.log "Version" version "already exists.")
-          (js/Promise.resolve)))))
+          (js/Promise.resolve clojure-lsp-path)))))
 
 (comment
+  (backup-existing-file "/home/brandon/development/calva/clojure-lsp")
   (extract-zip "/home/brandon/development/calva/clojure-lsp-native-linux-amd64.zip"
                (clj->js {:dir "/home/brandon/development/calva"}))
   
