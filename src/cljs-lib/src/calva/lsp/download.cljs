@@ -39,19 +39,18 @@
          (get (clj->js {:hostname "github.com"
                         :path url-path})
               (fn [^js response]
-                (let [status-code (. response -statusCode)]
-                  (if (= status-code 200)
-                    (let [write-stream (.. fs (createWriteStream file-path))]
-                      (.. response
-                          (on "end"
-                              (fn []
-                                (.. write-stream close)
-                                (js/console.log "Clojure-lsp zip file downloaded to" file-path)
-                                (resolve)))
-                          (pipe write-stream)))
-                    (let [error (js/Error. (. response -statusMessage))]
-                      (. response resume) ;; Consume response to free up memory
-                      (reject error))))))
+                (if (= (. response -statusCode) 200)
+                  (let [write-stream (.. fs (createWriteStream file-path))]
+                    (.. response
+                        (on "end"
+                            (fn []
+                              (.. write-stream close)
+                              (js/console.log "Clojure-lsp zip file downloaded to" file-path)
+                              (resolve)))
+                        (pipe write-stream)))
+                  (let [error (js/Error. (. response -statusMessage))]
+                    (. response resume) ;; Consume response to free up memory
+                    (reject error)))))
          (on "error" reject)))))
 
 (defn get-backup-path
