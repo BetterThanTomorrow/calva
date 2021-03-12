@@ -252,20 +252,3 @@
   (.. client
       (sendRequest "textDocument/documentSymbol"
                    (clj->js {:textDocument {:uri uri}}))))
-
-(comment
-  (.. config getConfig -clojureLspPath)
-  (time (.. fs (writeFileSync "/home/brandon/development/calva/clojure-lsp-version"
-                              "hello world")))
-  (time (.. fs (readFileSync "/home/brandon/development/calva/clojure-lsp-version" "utf8")))
-  (.. config getConfig -referencesCodeLensEnabled)
-  (cljs.pprint/pprint @state/state)
-  (exec "ls", (fn [error stdout stderr]
-                (println stdout)))
-
-  (try
-    (time (.. (execSync "sh -c \"/home/brandon/development/calva/clojure-lsp --version\"") toString))
-    (catch js/Error e
-      (js/console.error e)))
-  (str "hello" nil)
-  (js/console.error "Hello test"))

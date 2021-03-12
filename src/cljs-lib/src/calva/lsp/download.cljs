@@ -90,15 +90,3 @@
         (catch (fn [error]
                  (js/console.log "Error downloading clojure-lsp." error)
                  (js/Promise.resolve (get-backup-path clojure-lsp-path)))))))
-
-(comment
-  (backup-existing-file "/home/brandon/development/calva/clojure-lsp")
-  (extract-zip "/home/brandon/development/calva/clojure-lsp-native-linux-amd64.zip"
-               (clj->js {:dir "/home/brandon/development/calva"}))
-  
-  (lsp.util/read-version-file "/home/brandon/development/calva/clojure-lsp-version")
-
-  (.. (js/Promise. (fn [resolve reject]
-                     (resolve "hello")))
-      (then (fn [value]
-              (js/console.log value)))))
