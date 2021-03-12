@@ -1979,6 +1979,7 @@
         "acorn": "^6.4.1",
         "ansi-to-html": "^0.6.13",
         "escape-html": "^1.0.3",
+        "extract-zip": "^2.0.1",
         "find": "0.2.9",
         "follow-redirects": "^1.10.0",
         "immutable": "3.8.1",

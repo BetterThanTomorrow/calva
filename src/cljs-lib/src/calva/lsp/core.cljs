@@ -1,10 +1,10 @@
 (ns calva.lsp.core
   (:require ["vscode" :as vscode]
             ["vscode-languageclient" :refer [LanguageClient Position]]
-            ["path" :as path]
-            ["process" :as process]
             ["child_process" :refer [exec execSync]]
             ["fs" :as fs]
+            ["path" :as path]
+            ["process" :as process]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as str]
@@ -16,6 +16,8 @@
 (def definition (js/require "../providers/definition.js"))
 
 (def client-key "lspClient")
+
+(def windows-os? (= (. process -platform) "win32"))
 
 ;;;; Client middleware
 
@@ -187,14 +189,21 @@
       (push (.. vscode -workspace
                 (onDidChangeConfiguration handle-toggle-references-code-lens)))))
 
+;; TODO: Extract and write unit test? Can mock extension context.
+(defn get-clojure-lsp-path [extension-path windows-os?]
+  (let [file-extension (when windows-os? ".exe")]
+    (. path (join extension-path
+                  (str "clojure-lsp" file-extension)))))
+
 (defn activate [^js context]
   (let [extension-path (. context -extensionPath)
-        version (.. config getConfig -CLOJURE_LSP_VERSION)]
+        version (.. config -CLOJURE_LSP_VERSION)]
     (.. (download-clojure-lsp extension-path version)
         (then
-         (fn [clojure-lsp-path]
-           (js/console.log "clojure-lsp-path" clojure-lsp-path)
-           (let [client (create-client clojure-lsp-path)]
+         (fn []
+           (let [clojure-lsp-path (get-clojure-lsp-path extension-path windows-os?)
+                 client (create-client clojure-lsp-path)]
+             (js/console.log "Starting clojure-lsp at" clojure-lsp-path)
              (. client start)
              (.. vscode -window
                  (setStatusBarMessage

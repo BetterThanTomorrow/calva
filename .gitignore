@@ -76,6 +76,7 @@ report.*
 .clj-kondo
 clojure-lsp
 clojure-lsp-version
+clojure-lsp*.zip
 
 # MkDocs
 /site/
