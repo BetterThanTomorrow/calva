@@ -31,16 +31,58 @@ export function selectRange(doc: EditableDocument, range: [number, number]) {
     growSelectionStack(doc, range)
 }
 
-export function selectRangeFromSelectionLeft(doc: EditableDocument, range: [number, number]) {
-    const selectionLeft = Math.min(doc.selectionLeft, doc.selectionRight),
-        rangeRight = Math.max(range[0], range[1]);
+export function selectRangeForward(doc: EditableDocument, range: [number, number]) {
+    const selectionLeft = doc.selection.anchor;
+    const rangeRight = Math.max(range[0], range[1]);
     growSelectionStack(doc, [selectionLeft, rangeRight])
 }
 
-export function selectRangeFromSelectionRight(doc: EditableDocument, range: [number, number]) {
-    const selectionRight = Math.max(doc.selectionLeft, doc.selectionRight),
-        rangeLeft = Math.min(range[0], range[1]);
+export function selectRangeBackward(doc: EditableDocument, range: [number, number]) {
+    const selectionRight = doc.selection.anchor;
+    const rangeLeft = Math.min(range[0], range[1]);
     growSelectionStack(doc, [selectionRight, rangeLeft])
+}
+
+export function selectForwardSexp(doc: EditableDocument) {
+    const rangeFn = doc.selection.active >= doc.selection.anchor ?
+        forwardSexpRange : (doc: EditableDocument) => forwardSexpRange(doc, doc.selection.active, true);
+    selectRangeForward(doc, rangeFn(doc));
+}
+
+export function selectBackwardSexp(doc: EditableDocument) {
+    const rangeFn = doc.selection.active <= doc.selection.anchor ?
+        backwardSexpRange : (doc: EditableDocument) => backwardSexpRange(doc, doc.selection.active, false);
+    selectRangeBackward(doc, rangeFn(doc));
+}
+
+export function selectForwardDownSexp(doc: EditableDocument) {
+    const rangeFn = doc.selection.active >= doc.selection.anchor ?
+        (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selection.active, true) :
+        (doc: EditableDocument) => rangeToForwardDownList(doc, doc.selection.active, true);
+    selectRangeForward(doc, rangeFn(doc));
+}
+
+export function selectBackwardDownSexp(doc: EditableDocument) {
+    selectRangeBackward(doc, rangeToBackwardDownList(doc));
+}
+
+export function selectForwardUpSexp(doc: EditableDocument) {
+    selectRangeForward(doc, rangeToForwardUpList(doc, doc.selectionRight));
+}
+
+export function selectBackwardUpSexp(doc: EditableDocument) {
+    const rangeFn = doc.selection.active <= doc.selection.anchor ?
+        (doc: EditableDocument) => rangeToBackwardUpList(doc, doc.selection.active, false) :
+        (doc: EditableDocument) => rangeToBackwardUpList(doc, doc.selection.active, false);
+    selectRangeBackward(doc, rangeFn(doc));
+}
+
+export function selectCloseList(doc: EditableDocument) {
+    selectRangeForward(doc, rangeToForwardList(doc, doc.selectionRight));
+}
+
+export function selectOpenList(doc: EditableDocument) {
+    selectRangeBackward(doc, rangeToBackwardList(doc));
 }
 
 
@@ -53,17 +95,20 @@ export function rangeForDefun(doc: EditableDocument, offset: number = doc.select
     return cursor.rangeForDefun(offset);
 }
 
-export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
+export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardWhitespace();
     if (cursor.forwardSexp()) {
+        if (goPastWhitespace) {
+            cursor.forwardWhitespace();
+        }
         return [offset, cursor.offsetStart];
     } else {
         return [offset, offset];
     }
 }
 
-export function backwardSexpRange(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
+export function backwardSexpRange(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     if (!cursor.isWhiteSpace() && cursor.offsetStart < offset) {
         // This is because cursor.backwardSexp() can't move backwards when "on" the first sexp inside a list
@@ -72,33 +117,42 @@ export function backwardSexpRange(doc: EditableDocument, offset: number = Math.m
     }
     cursor.backwardWhitespace();
     if (cursor.backwardSexp()) {
+        if (goPastWhitespace) {
+            cursor.backwardWhitespace();
+        }
         return [cursor.offsetStart, offset];
     } else {
         return [offset, offset];
     }
 }
 
-export function rangeToForwardUpList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
+export function rangeToForwardUpList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardList();
     if (cursor.upList()) {
+        if (goPastWhitespace) {
+            cursor.forwardWhitespace();
+        }
         return [offset, cursor.offsetStart];
     } else {
         return [offset, offset];
     }
 }
 
-export function rangeToBackwardUpList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
+export function rangeToBackwardUpList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.backwardList();
     if (cursor.backwardUpList()) {
+        if (goPastWhitespace) {
+            cursor.backwardWhitespace();
+        }
         return [cursor.offsetStart, offset];
     } else {
         return [offset, offset];
     }
 }
 
-export function rangeToForwardDownList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active)): [number, number] {
+export function rangeToForwardDownList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     do {
         cursor.forwardThroughAnyReader();
@@ -108,13 +162,16 @@ export function rangeToForwardDownList(doc: EditableDocument, offset: number = M
         }
     } while (cursor.forwardSexp());
     if (cursor.downList()) {
+        if (goPastWhitespace) {
+            cursor.forwardWhitespace();
+        }
         return [offset, cursor.offsetStart];
     } else {
         return [offset, offset];
     }
 }
 
-export function rangeToBackwardDownList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active)): [number, number] {
+export function rangeToBackwardDownList(doc: EditableDocument, offset: number = Math.min(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     do {
         cursor.backwardWhitespace();
@@ -123,6 +180,9 @@ export function rangeToBackwardDownList(doc: EditableDocument, offset: number = 
         }
     } while (cursor.backwardSexp());
     if (cursor.backwardDownList()) {
+        if (goPastWhitespace) {
+            cursor.backwardWhitespace();
+        }
         return [cursor.offsetStart, offset];
     } else {
         return [offset, offset];
@@ -676,7 +736,7 @@ function currentSexpsRange(doc: EditableDocument, cursor: LispTokenCursor, offse
     if (usePairs) {
         const ranges = cursor.rangesForSexpsInList();
         if (ranges.length > 1) {
-            const indexOfCurrentSingle = ranges.findIndex(r => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1] );
+            const indexOfCurrentSingle = ranges.findIndex(r => r[0] === currentSingleRange[0] && r[1] === currentSingleRange[1]);
             if (indexOfCurrentSingle % 2 == 0) {
                 const pairCursor = doc.getTokenCursor(currentSingleRange[1]);
                 pairCursor.forwardSexp();

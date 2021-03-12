@@ -68,51 +68,35 @@ const pareditCommands: PareditCommand[] = [
 
     {
         command: 'paredit.selectForwardSexp',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.forwardSexpRange(doc))
-        }
+        handler: paredit.selectForwardSexp
     },
     {
         command: 'paredit.selectBackwardSexp',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.backwardSexpRange(doc))
-        }
+        handler: paredit.selectBackwardSexp
     },
     {
         command: 'paredit.selectForwardDownSexp',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardDownList(doc, doc.selectionRight))
-        }
+        handler: paredit.selectForwardDownSexp
     },
     {
         command: 'paredit.selectBackwardDownSexp',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.rangeToBackwardDownList(doc))
-        }
+        handler: paredit.selectBackwardDownSexp
     },
     {
         command: 'paredit.selectForwardUpSexp',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardUpList(doc, doc.selectionRight))
-        }
+        handler: paredit.selectForwardUpSexp
     },
     {
         command: 'paredit.selectBackwardUpSexp',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.rangeToBackwardUpList(doc))
-        }
+        handler: paredit.selectBackwardUpSexp
     },
     {
         command: 'paredit.selectCloseList',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionLeft(doc, paredit.rangeToForwardList(doc, doc.selectionRight))
-        }
+        handler: paredit.selectCloseList
     },
     {
         command: 'paredit.selectOpenList',
-        handler: (doc: EditableDocument) => {
-            paredit.selectRangeFromSelectionRight(doc, paredit.rangeToBackwardList(doc))
-        }
+        handler: paredit.selectOpenList
     },
 
     // EDITING
