@@ -20,7 +20,21 @@
   [extension-path]
   (let [file-path (. path (join extension-path
                                 version-file-name))]
-    (.. fs (readFileSync file-path "utf8"))))
+    (try 
+      (.. fs (readFileSync file-path "utf8"))
+      (catch js/Error e
+        (js/console.log "Could not read clojure-lsp version file." (. e -message))
+        ""))))
+
+(defn write-version-file
+  [extension-path version]
+  (js/console.log "Writing version file")
+  (let [file-path (. path (join extension-path
+                                version-file-name))]
+    (try
+      (.. fs (writeFileSync file-path version))
+      (catch js/Error e
+        (js/console.log "Could not write clojure-lsp version file." (. e -message))))))
 
 (defn unzip-file [zip-file-path extension-path]
   (js/console.log "Unzipping file")
@@ -46,18 +60,20 @@
                       (pipe write-stream)))))))))
 
 (defn download-clojure-lsp [extension-path version]
-  (js/console.log "Downloading clojure-lsp")
+  (js/console.log "Downloading clojure-lsp version" version)
   (let [current-version (read-version-file extension-path)
         url-path (str "/clojure-lsp/clojure-lsp/releases/download/"
                       version
                       "/" zip-file-name)
         zip-file-path (get-zip-file-path extension-path)]
-    (js/console.log "Current version of clojure-lsp is" current-version)
     (if (not= current-version version)
       (.. (download-zip-file url-path zip-file-path)
           (then (fn []
-                  (unzip-file zip-file-path extension-path))))
-      (do (js/console.log "Not downloading clojure-lsp")
+                  (unzip-file zip-file-path extension-path)))
+          (then (fn []
+                  (write-version-file extension-path version)
+                  (js/Promise.resolve))))
+      (do (js/console.log "Version" version "already exists.")
           (js/Promise.resolve)))))
 
 (comment
