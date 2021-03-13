@@ -4,7 +4,7 @@ Calva uses a mix of static and dynamic analysis to power the experience. A lot o
 
 ## Starting the LSP server
 
-You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. Calva will download the correct binary for your operating system if necessary (this should only happen when the clojure-lsp version is updated in a new release of Calva), and then start it. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
+You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. Calva downloads the correct binary for your operating system if necessary (this should only happen when the clojure-lsp version is updated in a new release of Calva) and then starts it. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
 
 Calva will show a status bar message during the download and while the server is starting, which will go away once the server is ready. However, _much of Calva's functionality is available regardless of the LSP server_, so please start using Calva while this server is starting.
 
