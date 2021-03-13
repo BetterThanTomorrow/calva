@@ -8,7 +8,7 @@ You don't need to do anything to start clojure-lsp. No install, no commands, no 
 
 Calva will show a status bar message during the download and while the server is starting, which will go away once the server is ready. However, _much of Calva's functionality is available regardless of the LSP server_, so please start using Calva while this server is starting.
 
-!["Clojure-lsp status bar downloading and intializing messages"](images/lsp-status-bar-message-2.gif "Clojure-lsp status bar downloading and intializing messages")
+!["Clojure-lsp status bar downloading and intializing messages"](images/clojure-lsp/lsp-status-bar-messages.gif "Clojure-lsp status bar downloading and intializing messages")
 
 ## Ignoring LSP cache files
 
@@ -19,6 +19,14 @@ Clojure-lsp stores its project analysis information in your project. Git users c
 .clj-kondo/.cache/
 .lsp/sqlite.*.db
 ```
+
+## Troubleshooting
+
+If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set `Clojure > Trace: Server` to `versbose`, then in the VS Code output tab, select the `Clojure Language Client` output channel.
+
+!["Clojure trace server setting"](images/clojure-lsp/trace-server-setting.png "Clojure trace server setting")
+
+It may be helpful to clear the output channel, then perform the action with which you're experiencing a problem, then read through the log for clues or paste the logs into a related issue in the Calva repo.
 
 ## Related
 
