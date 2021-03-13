@@ -352,6 +352,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#related" class="md-nav__link">
     Related
   </a>
@@ -876,6 +883,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    Troubleshooting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#related" class="md-nav__link">
     Related
   </a>
@@ -904,7 +918,7 @@
 <h2 id="starting-the-lsp-server">Starting the LSP server</h2>
 <p>You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
 <p>Calva will show a status bar message while the server is starting, which will go away once the server is ready. However, <em>much of Calva's functionality is available regardless of the LSP server</em>, so please start using Calva while this server is starting.</p>
-<p><img alt="&quot;Clojure-lsp status bar intializing message&quot;" src="../images/lsp-status-bar-message.gif" title="Clojure-lsp status bar intializing message" /></p>
+<p><img alt="&quot;Clojure-lsp status bar intializing message&quot;" src="../images/clojure-lsp/lsp-status-bar-message.gif" title="Clojure-lsp status bar intializing message" /></p>
 <h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files</h2>
 <p>clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="na">.clj-kondo</span><span class="err">/</span><span class="no">cache</span><span class="err">/</span>
@@ -912,6 +926,10 @@
 <span class="na">.lsp</span><span class="err">/</span><span class="no">sqlite.</span><span class="p">*.</span><span class="no">db</span>
 </code></pre></div>
 
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set <code>Clojure &gt; Trace: Server</code> to <code>versbose</code>, then in the VS Code output tab, select the <code>Clojure Language Client</code> output channel.</p>
+<p><img alt="&quot;Clojure trace server setting&quot;" src="../images/clojure-lsp/trace-server-setting.png" title="Clojure trace server setting" /></p>
+<p>It may be helpful to clear the output channel, then perform the action with which you're experiencing a problem, then read through the log for clues or paste the logs into a related issue in the Calva repo.</p>
 <h2 id="related">Related</h2>
 <p>See also:</p>
 <ul>
