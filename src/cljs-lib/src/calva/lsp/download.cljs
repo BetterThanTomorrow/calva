@@ -94,7 +94,3 @@
         (catch (fn [error]
                  (js/console.log "Error downloading clojure-lsp." error)
                  (js/Promise.resolve backup-path))))))
-
-(comment
-  (-> (lsp.util/get-clojure-lsp-path "C:\\Users\\brand\\development\\calva" util/windows-os?)
-      (get-backup-path util/windows-os?)))
