@@ -6,7 +6,7 @@ import { PrettyPrintingOptions } from './printer';
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
 const KEYBINDINGS_ENABLED_CONTEXT_KEY = 'calva:keybindingsEnabled';
-const CLOJURE_LSP_VERSION = '2021.03.06-17.05.35';
+const CLOJURE_LSP_VERSION = '2021.02.10-03.01.19';
 
 type ReplSessionType = 'clj' | 'cljs';
 
