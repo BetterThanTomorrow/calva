@@ -48,10 +48,8 @@
     (next document position context token)))
 
 (defn create-client [clojure-lsp-path]
-  (let [server-options {:run {:command "sh"
-                              :args ["-c" clojure-lsp-path]}
-                        :debug {:command "sh"
-                                :args ["-c" clojure-lsp-path]}}
+  (let [server-options {:run {:command clojure-lsp-path}
+                        :debug {:command clojure-lsp-path}}
         file-system-watcher (.. vscode -workspace (createFileSystemWatcher "**/.clientrc"))
         client-options {:documentSelector [{:scheme "file" :language "clojure"}]
                         :synchronize {:configurationSection "clojure-lsp"

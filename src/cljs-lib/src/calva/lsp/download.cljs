@@ -6,7 +6,8 @@
             ["extract-zip" :as extract-zip]
             ["vscode" :as vscode]
             [calva.lsp.utilities :as lsp.util]
-            [calva.utilities :as util]))
+            [calva.utilities :as util]
+            [clojure.string :as str]))
 
 (def zip-file-name
   (condp = (.. process -platform)
@@ -54,14 +55,16 @@
          (on "error" reject)))))
 
 (defn get-backup-path
-  [clojure-lsp-path]
-  (str clojure-lsp-path "_backup"))
+  [clojure-lsp-path windows-os?]
+  (cond-> clojure-lsp-path
+    (not windows-os?) (str "_backup")
+    windows-os? (str/replace #"\.exe" "_backup.exe")))
 
 (defn backup-existing-file
-  [clojure-lsp-path]
+  [clojure-lsp-path backup-path]
   (js/console.log "Backing up existing clojure-lsp file")
   (try
-    (.. fs (renameSync clojure-lsp-path (get-backup-path clojure-lsp-path)))
+    (.. fs (renameSync clojure-lsp-path (get-backup-path clojure-lsp-path util/windows-os?)))
     (catch js/Error e
       (js/console.log "Error while backing up existing clojure-lsp file."
                       (. e -message)))))
@@ -79,8 +82,9 @@
                       version
                       "/" zip-file-name)
         zip-file-path (get-zip-file-path extension-path)
-        clojure-lsp-path (lsp.util/get-clojure-lsp-path extension-path util/windows-os?)]
-    (backup-existing-file clojure-lsp-path)
+        clojure-lsp-path (lsp.util/get-clojure-lsp-path extension-path util/windows-os?)
+        backup-path (get-backup-path clojure-lsp-path util/windows-os?)]
+    (backup-existing-file clojure-lsp-path backup-path)
     (.. (download-zip-file url-path zip-file-path)
         (then (fn []
                 (unzip-file zip-file-path extension-path)))
@@ -89,4 +93,8 @@
                 (js/Promise.resolve clojure-lsp-path)))
         (catch (fn [error]
                  (js/console.log "Error downloading clojure-lsp." error)
-                 (js/Promise.resolve (get-backup-path clojure-lsp-path)))))))
+                 (js/Promise.resolve backup-path))))))
+
+(comment
+  (-> (lsp.util/get-clojure-lsp-path "C:\\Users\\brand\\development\\calva" util/windows-os?)
+      (get-backup-path util/windows-os?)))
