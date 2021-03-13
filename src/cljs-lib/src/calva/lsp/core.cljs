@@ -1,8 +1,6 @@
 (ns calva.lsp.core
   (:require ["vscode" :as vscode]
             ["vscode-languageclient" :refer [LanguageClient Position]]
-            ["child_process" :refer [exec execSync]]
-            ["fs" :as fs]
             [cljs.core.async :refer [go]]
             [cljs.core.async.interop :refer-macros [<p!]]
             [clojure.string :as str]
@@ -49,11 +47,10 @@
   (when-not (. util getConnectedState)
     (next document position context token)))
 
-;; TODO: Switch bash to sh?
 (defn create-client [clojure-lsp-path]
-  (let [server-options {:run {:command "bash"
+  (let [server-options {:run {:command "sh"
                               :args ["-c" clojure-lsp-path]}
-                        :debug {:command "bash"
+                        :debug {:command "sh"
                                 :args ["-c" clojure-lsp-path]}}
         file-system-watcher (.. vscode -workspace (createFileSystemWatcher "**/.clientrc"))
         client-options {:documentSelector [{:scheme "file" :language "clojure"}]
@@ -168,7 +165,6 @@
       ;; Could not find a better way, aside from possibly changes to clojure-lsp
       ;; https://github.com/microsoft/vscode-languageserver-node/issues/705
       (run! (fn [editor]
-              (js/console.log "adding edits for:" (.. editor -document -uri toString))
               (let [edit1 ^js (new (.. vscode -WorkspaceEdit))
                     _ (.. edit1 (insert (.. editor -document -uri)
                                         (new (.. vscode -Position) 0 0)
@@ -221,17 +217,13 @@
         configured-version (.. config -CLOJURE_LSP_VERSION)
         current-version (lsp.util/read-version-file extension-path)
         clojure-lsp-path (lsp.util/get-clojure-lsp-path extension-path util/windows-os?)]
-    (js/console.log "current-version = configured-version:" (= current-version configured-version))
     (if (not= configured-version current-version)
       (let [download-promise (download-clojure-lsp extension-path configured-version)]
-        (js/console.log "Download-promise:" download-promise)
         (show-downloading-status! download-promise)
         (.. download-promise
             (then (fn [clojure-lsp-path]
                     (start-client! clojure-lsp-path context)))))
-      (do
-        (js/console.log "Versions are equal. Starting client.")
-        (start-client! clojure-lsp-path context)))))
+      (start-client! clojure-lsp-path context))))
 
 (defn deactivate []
   (when-let [client (state/get-state-value client-key)]
