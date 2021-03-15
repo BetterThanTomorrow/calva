@@ -22,7 +22,6 @@
                              :deactivateLsp calva.lsp.core/deactivate
                              :getReferences calva.lsp.core/get-references
                              :getDocumentSymbols calva.lsp.core/get-document-symbols
-                             :LSP_CLIENT_KEY calva.lsp.core/client-key
                              :setStateValue calva.state/set-state-value!
                              :getStateValue calva.state/get-state-value
                              :getState calva.state/get-state

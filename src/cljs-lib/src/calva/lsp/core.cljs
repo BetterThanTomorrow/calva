@@ -10,10 +10,6 @@
             [calva.lsp.utilities :as lsp.util]))
 
 (def config (js/require "../config.js"))
-(def util (js/require "../utilities.js"))
-(def definition (js/require "../providers/definition.js"))
-
-(def client-key "lspClient")
 
 ;;;; Client middleware
 
@@ -31,20 +27,12 @@
 
 (defn provide-hover
   [document position token next]
-  (when-not (.. util getConnectedState)
+  (when-not (util/connected?)
     (next document position token)))
-
-(defn provide-definition
-  [document position token next]
-  (.. (.. definition (provideClojureDefinition document position token))
-      (then (fn [nrepl-definition]
-              (when-not nrepl-definition
-                (. js/console (log "no nrepl defintion, providing lsp definition"))
-                (next document position token))))))
 
 (defn provide-completion-item
   [document position context token next]
-  (when-not (. util getConnectedState)
+  (when-not (util/connected?)
     (next document position context token)))
 
 (defn create-client [clojure-lsp-path]
@@ -64,7 +52,6 @@
                         {:handleDiagnostics handle-diagnostics
                          :provideCodeLenses provide-code-lenses
                          :provideHover provide-hover
-                         :provideDefinition provide-definition
                          :provideCompletionItem provide-completion-item}}]
     (LanguageClient. "clojure" "Clojure Language Client"
                      (clj->js server-options)
@@ -120,7 +107,7 @@
         command-callback
         (fn []
           (let [editor (.. vscode -window -activeTextEditor)
-                document (. util (getDocument (. editor -document)))]
+                document (. editor -document)]
             (when (and document (= (. document -languageId) "clojure"))
               (go
                 (let [line (.. editor -selection -start -line)
@@ -198,7 +185,7 @@
       (show-initializing-status! on-ready-promise)
       (.. on-ready-promise
           (then #(do
-                   (state/set-state-value! client-key client)
+                   (state/set-state-value! (. config -LSP_CLIENT_KEY) client)
                    (register-commands context client)
                    (register-event-handlers context)
                    (js/Promise.resolve)))))))
@@ -224,7 +211,7 @@
       (start-client! clojure-lsp-path context))))
 
 (defn deactivate []
-  (when-let [client (state/get-state-value client-key)]
+  (when-let [client (state/get-state-value (. config -LSP_CLIENT_KEY))]
     (.. client stop)))
 
 (defn get-references
