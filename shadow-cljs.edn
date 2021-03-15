@@ -5,32 +5,40 @@
                 "src/cljs-lib/test"]
 
  :builds       {:calva-lib
-                {:target    :node-library
-                 :exports   {:formatText calva.fmt.formatter/format-text-bridge
-                             :formatTextAtRange calva.fmt.formatter/format-text-at-range-bridge
-                             :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
-                             :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
-                             :cljfmtOptions calva.fmt.formatter/read-cljfmt-js-bridge
-                             :inferIndents calva.fmt.inferer/infer-indents-bridge
-                             :inferParens calva.fmt.inferer/infer-parens-bridge
-                             :jsify calva.js-utils/jsify
-                             :cljify calva.js-utils/cljify
-                             :prettyPrint calva.pprint.printer/pretty-print-js-bridge
-                             :parseEdn calva.parse/parse-edn-js-bridge
-                             :parseForms calva.parse/parse-forms-js-bridge
-                             :activateLsp calva.lsp.core/activate
-                             :deactivateLsp calva.lsp.core/deactivate
-                             :getReferences calva.lsp.core/get-references
-                             :getDocumentSymbols calva.lsp.core/get-document-symbols
-                             :LSP_CLIENT_KEY calva.lsp.core/client-key
-                             :setStateValue calva.state/set-state-value!
-                             :getStateValue calva.state/get-state-value
-                             :getState calva.state/get-state
-                             :removeStateValue calva.state/remove-state-value!}
-                 :output-to "out/cljs-lib/cljs-lib.js"}
+                {:target    :npm-module
+                 :externs [calva.fmt.formatter
+                           calva.fmt.inferer
+                           calva.js-utils
+                           calva.pprint.printer
+                           calva.parse
+                           calva.lsp.core
+                           calva.state]
+                 :output-dir "node_modules/shadow-cljs"}
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"
                  :ns-regexp "-test$"
                  :autorun   true}}}
+
+;; {:formatText calva.fmt.formatter/format-text-bridge
+;;  :formatTextAtRange calva.fmt.formatter/format-text-at-range-bridge
+;;  :formatTextAtIdx calva.fmt.formatter/format-text-at-idx-bridge
+;;  :formatTextAtIdxOnType calva.fmt.formatter/format-text-at-idx-on-type-bridge
+;;  :cljfmtOptions calva.fmt.formatter/read-cljfmt-js-bridge
+;;  :inferIndents calva.fmt.inferer/infer-indents-bridge
+;;  :inferParens calva.fmt.inferer/infer-parens-bridge
+;;  :jsify calva.js-utils/jsify
+;;  :cljify calva.js-utils/cljify
+;;  :prettyPrint calva.pprint.printer/pretty-print-js-bridge
+;;  :parseEdn calva.parse/parse-edn-js-bridge
+;;  :parseForms calva.parse/parse-forms-js-bridge
+;;  :activateLsp calva.lsp.core/activate
+;;  :deactivateLsp calva.lsp.core/deactivate
+;;  :getReferences calva.lsp.core/get-references
+;;  :getDocumentSymbols calva.lsp.core/get-document-symbols
+;;  :LSP_CLIENT_KEY calva.lsp.core/client-key
+;;  :setStateValue calva.state/set-state-value!
+;;  :getStateValue calva.state/get-state-value
+;;  :getState calva.state/get-state
+;;  :removeStateValue calva.state/remove-state-value!}
 
