@@ -2,9 +2,15 @@
 
 Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Regardless, you need to install Calva in VS Code.
 
+If you have a Clojure or ClojureScript project, you will be interested in how to get [Calva connected to the REPL of your project](connect.md). But before you run over there, you might want to familiarize yourself with Calva a bit, which you can do without a project.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/O6GrXXhCzCc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+The demo tells you about the command (and some about the Clojure Beginner's material that it makes available).
+
 ## There's a ”Getting Started” REPL
 
-If you are new to Calva, a good place to start is using the command **Fire up the ”Getting Started” REPL**. 
+If you are new to Calva, a good place to start is using the command **Fire up the ”Getting Started” REPL**. Demo:
 
 ![Command Palette Start Standalone REPL](images/howto/start-hello-repl.png "Fire up the ”Getting Started” REPL")
 
