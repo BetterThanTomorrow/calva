@@ -278,43 +278,43 @@ describe('paredit', () => {
     });
 
     describe('selection', () => {
-        describe('selectRangeFromSelectionRight', () => {
+        describe('selectRangeBackward', () => {
             // TODO: Fix #498
             it('(def foo [:foo >|:bar>| <:baz<]) => (def foo [:foo <:bar :baz<])', () => {
                 const bazSelection = new ModelEditSelection(24, 20),
                     barRange = [15, 19] as [number, number],
                     barBazSelection = new ModelEditSelection(24, 15);
                 doc.selection = bazSelection;
-                paredit.selectRangeFromSelectionRight(doc, barRange);
+                paredit.selectRangeBackward(doc, barRange);
                 expect(doc.selection).toEqual(barBazSelection);
             });
         });
 
-        describe('selectRangeFromSelectionLeft', () => {
+        describe('selectRangeForward', () => {
             it('(def foo [:foo >:bar> >|:baz>|]) => (def foo [:foo >:bar :baz>])', () => {
                 const barSelection = new ModelEditSelection(15, 19),
                     bazRange = [20, 24] as [number, number],
                     barBazSelection = new ModelEditSelection(15, 24);
                 doc.selection = barSelection;
-                paredit.selectRangeFromSelectionLeft(doc, bazRange);
+                paredit.selectRangeForward(doc, bazRange);
                 expect(doc.selection).toEqual(barBazSelection);
             });
             it('(def foo [<:foo :bar< >|:baz>|]) => (def foo [>:foo :bar :baz>])', () => {
                 const [fooLeft, barRight] = [10, 19],
                     barFooSelection = new ModelEditSelection(barRight, fooLeft),
                     bazRange = [20, 24] as [number, number],
-                    fooBazSelection = new ModelEditSelection(10, 24);
+                    fooBazSelection = new ModelEditSelection(19, 24);
                 doc.selection = barFooSelection;
-                paredit.selectRangeFromSelectionLeft(doc, bazRange);
+                paredit.selectRangeForward(doc, bazRange);
                 expect(doc.selection).toEqual(fooBazSelection);
             });
             it('(def foo [<:foo :bar< <|:baz<|]) => (def foo [>:foo :bar :baz>])', () => {
                 const [fooLeft, barRight] = [10, 19],
                     barFooSelection = new ModelEditSelection(barRight, fooLeft),
                     bazRange = [24, 20] as [number, number],
-                    fooBazSelection = new ModelEditSelection(10, 24);
+                    fooBazSelection = new ModelEditSelection(19, 24);
                 doc.selection = barFooSelection;
-                paredit.selectRangeFromSelectionLeft(doc, bazRange);
+                paredit.selectRangeForward(doc, bazRange);
                 expect(doc.selection).toEqual(fooBazSelection);
             });
         });
