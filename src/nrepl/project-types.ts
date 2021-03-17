@@ -6,7 +6,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
+import { parse_forms_js_bridge, parse_edn_js_bridge } from 'shadow-cljs/calva.parse';
 
 export const isWin = /^win/.test(process.platform);
 
@@ -73,7 +73,7 @@ export function shadowConfigFile(): vscode.Uri {
 
 export async function shadowBuilds(): Promise<string[]> {
     const data = await vscode.workspace.fs.readFile(shadowConfigFile());
-    const parsed = parseEdn(new TextDecoder("utf-8").decode(data));
+    const parsed = parse_edn_js_bridge(new TextDecoder("utf-8").decode(data));
     return [...Object.keys(parsed.builds).map((key: string) => { return ":" + key }), ...["node-repl", "browser-repl"]];
 }
 
@@ -111,7 +111,7 @@ async function leinDefProject(): Promise<any> {
     const bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "project.clj"));
     const data = new TextDecoder("utf-8").decode(bytes);
     try {
-        const parsed = parseForms(data);
+        const parsed = parse_forms_js_bridge(data);
         return parsed.find(x => x[0] == "defproject");
     } catch (e) {
         vscode.window.showErrorMessage("Could not parse project.clj");
@@ -387,7 +387,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
         let bytes = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(state.getProjectRootUri(), "deps.edn"));
         let data = new TextDecoder("utf-8").decode(bytes);
         try {
-            parsed = parseEdn(data);
+            parsed = parse_edn_js_bridge(data);
         } catch (e) {
             vscode.window.showErrorMessage("Could not parse deps.edn");
             throw e;
