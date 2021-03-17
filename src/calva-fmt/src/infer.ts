@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { infer_parens_bridge, infer_indents_bridge } from 'shadow-cljs/calva.fmt.inferer';
+import { infer_parens_bridge, infer_indents_bridge } from '../../../out/cljs-lib/calva.fmt.inferer';
 
 interface CFEdit {
     edit: string,

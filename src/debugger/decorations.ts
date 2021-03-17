@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
 import lsp from '../lsp';
-import { get_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value } from '../../out/cljs-lib/calva.state';
 import * as replSession from '../nrepl/repl-session';
 
 let enabled = false;

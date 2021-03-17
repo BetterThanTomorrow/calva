@@ -3,8 +3,9 @@ import * as config from './config';
 import * as outputWindow from '../../results-output/results-doc'
 import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror/index";
 import { format_text_at_range_bridge, format_text_bridge, 
-    format_text_at_idx_bridge, format_text_at_idx_on_type_bridge } from 'shadow-cljs/calva.fmt.formatter';
-import { cljify, jsify } from 'shadow-cljs/calva.js_utils';
+    format_text_at_idx_bridge, format_text_at_idx_on_type_bridge } 
+    from '../../../out/cljs-lib/calva.fmt.formatter';
+import { cljify, jsify } from '../../../out/cljs-lib/calva.js_utils';
 
 
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {

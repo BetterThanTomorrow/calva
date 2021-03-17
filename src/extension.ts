@@ -29,8 +29,8 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
-import { set_state_value } from 'shadow-cljs/calva.state';
-import * as lsp from 'shadow-cljs/calva.lsp.core';
+import { set_state_value } from '../out/cljs-lib/calva.state';
+import * as lsp from '../out/cljs-lib/calva.lsp.core';
 
 async function onDidSave(document) {
     let {

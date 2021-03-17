@@ -4,7 +4,7 @@ import * as util from './utilities';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value, set_state_value } from '../out/cljs-lib/calva.state';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {

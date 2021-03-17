@@ -13,7 +13,7 @@ import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
-import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value, set_state_value } from '../../out/cljs-lib/calva.state';
 import * as replSession from '../nrepl/repl-session';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {

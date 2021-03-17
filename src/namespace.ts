@@ -6,7 +6,7 @@ import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
-import { parse_forms_js_bridge } from 'shadow-cljs/calva.parse';
+import { parse_forms_js_bridge } from '../out/cljs-lib/calva.parse';
 
 export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {

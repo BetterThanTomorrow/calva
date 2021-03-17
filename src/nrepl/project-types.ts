@@ -6,7 +6,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { parse_forms_js_bridge, parse_edn_js_bridge } from 'shadow-cljs/calva.parse';
+import { parse_forms_js_bridge, parse_edn_js_bridge } from '../../out/cljs-lib/calva.parse';
 
 export const isWin = /^win/.test(process.platform);
 

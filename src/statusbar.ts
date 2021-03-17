@@ -3,7 +3,7 @@ import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
 import status from './status';
-import { get_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value } from '../out/cljs-lib/calva.state';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);

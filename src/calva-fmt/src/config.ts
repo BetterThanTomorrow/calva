@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
-import { read_cljfmt_js_bridge } from 'shadow-cljs/calva.fmt.formatter';
+import { read_cljfmt_js_bridge } from '../../../out/cljs-lib/calva.fmt.formatter';
 
 const defaultCljfmtContent = "\
 {:remove-surrounding-whitespace? true\n\

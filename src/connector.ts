@@ -14,7 +14,7 @@ import * as outputWindow from './results-output/results-doc';
 import evaluate from './evaluate';
 import * as liveShareSupport from './liveShareSupport';
 import * as calvaDebug from './debugger/calva-debug';
-import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value, set_state_value } from '../out/cljs-lib/calva.state';
 import * as replSession from './nrepl/repl-session';
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {

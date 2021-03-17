@@ -1,7 +1,7 @@
 import { NReplSession } from ".";
 import { getDocument, getFileType } from "../utilities";
 import * as outputWindow from '../results-output/results-doc';
-import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value, set_state_value } from '../../out/cljs-lib/calva.state';
 
 function getSession(fileType = undefined): NReplSession {
     let doc = getDocument({});

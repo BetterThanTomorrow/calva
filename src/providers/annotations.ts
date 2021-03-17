@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import { get_state_value, set_state_value, remove_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value, set_state_value, remove_state_value } from '../../out/cljs-lib/calva.state';
 
 enum AnnotationStatus {
     PENDING = 0,

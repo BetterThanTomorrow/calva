@@ -9,8 +9,8 @@ import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { get_state_value } from 'shadow-cljs/calva.state';
-import { pretty_print } from 'shadow-cljs/calva.pprint.printer';
+import { get_state_value } from '../../out/cljs-lib/calva.state';
+import { pretty_print } from '../../out/cljs-lib/calva.pprint.printer';
 import { getConfig } from '../config';
 
 /** An nREPL client */

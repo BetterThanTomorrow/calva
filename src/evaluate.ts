@@ -11,7 +11,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import { get_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value } from '../out/cljs-lib/calva.state';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';

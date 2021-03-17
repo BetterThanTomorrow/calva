@@ -9,7 +9,7 @@ import * as JSZip from 'jszip';
 import select from './select';
 import * as outputWindow from './results-output/results-doc';
 import * as docMirror from './doc-mirror/index';
-import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
+import { get_state_value, set_state_value } from '../out/cljs-lib/calva.state';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";

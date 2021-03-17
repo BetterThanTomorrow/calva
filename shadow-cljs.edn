@@ -13,7 +13,7 @@
                            calva.parse
                            calva.lsp.core
                            calva.state]
-                 :output-dir "node_modules/shadow-cljs"}
+                 :output-dir "out/cljs-lib"}
                 :test
                 {:target    :node-test
                  :output-to "out/cljs-lib/test/cljs-lib-tests.js"

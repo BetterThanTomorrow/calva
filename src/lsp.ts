@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as util from './utilities'
 import { REPL_FILE_EXT, getConfig } from './config';
 import { provideClojureDefinition } from './providers/definition';
-import { set_state_value, get_state_value } from 'shadow-cljs/calva.state';
+import { set_state_value, get_state_value } from '../out/cljs-lib/calva.state';
 
 const LSP_CLIENT_KEY = 'lspClient';
 
