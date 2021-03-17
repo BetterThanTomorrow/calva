@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import annotations from './providers/annotations';
 import * as path from 'path';
-import select from './select';
 import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
@@ -12,7 +11,7 @@ import { DEBUG_ANALYTICS } from './debugger/calva-debug';
 import * as namespace from './namespace';
 import * as replHistory from './results-output/repl-history';
 import { formatAsLineComments } from './results-output/util';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { get_state_value } from 'shadow-cljs/calva.state';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
@@ -140,7 +139,7 @@ async function evaluateSelection(document: {}, options) {
     const doc = util.getDocument(document);
     const selectionFn: Function = options.selectionFn;
 
-    if (getStateValue('connected')) {
+    if (get_state_value('connected')) {
         const editor = vscode.window.activeTextEditor;
         const selection = editor.selection;
         let code = "";
@@ -247,7 +246,7 @@ async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));
 
-    if (doc && doc.languageId == "clojure" && fileType != "edn" && getStateValue('connected')) {
+    if (doc && doc.languageId == "clojure" && fileType != "edn" && get_state_value('connected')) {
         state.analytics().logEvent("Evaluation", "LoadFile").send();
         const docUri = outputWindow.isResultsDoc(doc) ?
             await outputWindow.getUriForCurrentNamespace() :

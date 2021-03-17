@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as util from './utilities'
 import { REPL_FILE_EXT, getConfig } from './config';
 import { provideClojureDefinition } from './providers/definition';
-import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
+import { set_state_value, get_state_value } from 'shadow-cljs/calva.state';
 
 const LSP_CLIENT_KEY = 'lspClient';
 
@@ -232,11 +232,11 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
 
     client.start();
     await client.onReady();
-    setStateValue(LSP_CLIENT_KEY, client);
+    set_state_value(LSP_CLIENT_KEY, client);
 }
 
 function deactivate(): Promise<void> {
-    const client = getStateValue(LSP_CLIENT_KEY);
+    const client = get_state_value(LSP_CLIENT_KEY);
     if (client) {
         return client.stop();
     }

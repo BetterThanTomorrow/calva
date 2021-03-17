@@ -6,6 +6,7 @@ import { Token } from './cursor-doc/clojure-lexer';
 import * as outputWindow from './results-output/results-doc'
 import * as utilities from './utilities';
 import * as replSession from './nrepl/repl-session';
+import { parse_forms_js_bridge } from 'shadow-cljs/calva.parse';
 
 export function getNamespace(doc: vscode.TextDocument) {
     if (outputWindow.isResultsDoc(doc)) {
@@ -44,7 +45,7 @@ export function getNamespace(doc: vscode.TextDocument) {
         } catch (e) {
             console.log("Error getting ns form of this file using docMirror, trying with cljs.reader: " + e);
             try {
-                const forms = utilities.cljsLib.parseForms(doc.getText());
+                const forms = parse_forms_js_bridge(doc.getText());
                 if (forms !== undefined) {
                     const nsFormArray = forms.filter(x => x[0] == "ns");
                     if (nsFormArray != undefined && nsFormArray.length > 0) {

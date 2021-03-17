@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 import * as config from './config';
 import * as outputWindow from '../../results-output/results-doc'
 import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror/index";
-const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, formatText, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
+import { format_text_at_range_bridge, format_text_bridge, 
+    format_text_at_idx_bridge, format_text_at_idx_on_type_bridge } from 'shadow-cljs/calva.fmt.formatter';
+import { cljify, jsify } from 'shadow-cljs/calva.js_utils';
 
 
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
@@ -112,7 +114,7 @@ export function formatCode(code: string, eol: number) {
         "eol": eol == 2 ? "\r\n" : "\n",
         "config": config.getConfig()
     });
-    const result = jsify(formatText(d));
+    const result = jsify(format_text_bridge(d));
     if (!result["error"]) {
         return result["range-text"];
     }
@@ -130,7 +132,7 @@ function _formatIndex(allText: string, range: [number, number], index: number, e
         "range": range,
         "config": { ...config.getConfig(), ...extraConfig }
     }),
-        result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));
+        result = jsify(onType ? format_text_at_idx_on_type_bridge(d) : format_text_at_idx_bridge(d));
     if (!result["error"]) {
         return result;
     }
@@ -150,7 +152,7 @@ function _formatRange(rangeText: string, allText: string, range: number[], eol: 
         "config": config.getConfig()
     };
     const cljData = cljify(d);
-    const result = jsify(formatTextAtRange(cljData));
+    const result = jsify(format_text_at_range_bridge(cljData));
     if (!result["error"]) {
         return result["range-text"];
     }

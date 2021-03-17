@@ -1,6 +1,7 @@
 import { NReplSession } from ".";
-import { cljsLib, getDocument, getFileType } from "../utilities";
+import { getDocument, getFileType } from "../utilities";
 import * as outputWindow from '../results-output/results-doc';
+import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
 
 function getSession(fileType = undefined): NReplSession {
     let doc = getDocument({});
@@ -9,12 +10,12 @@ function getSession(fileType = undefined): NReplSession {
         fileType = getFileType(doc);
     }
     if (fileType.match(/^clj[sc]?/)) {
-        return cljsLib.getStateValue(fileType);
+        return get_state_value(fileType);
     } else {
         if (outputWindow.isResultsDoc(doc)) {
             return outputWindow.getSession();
         } else {
-            return cljsLib.getStateValue('cljc');
+            return get_state_value('cljc');
         }
     }
 }
@@ -46,13 +47,13 @@ function getReplSessionType(connected: boolean): string {
 }
 
 function updateReplSessionType() {
-    const connected = cljsLib.getStateValue('connected');
+    const connected = get_state_value('connected');
     const replSessionType = getReplSessionType(connected);
-    cljsLib.setStateValue('current-session-type', replSessionType);
+    set_state_value('current-session-type', replSessionType);
 }
 
 function getReplSessionTypeFromState() {
-    return cljsLib.getStateValue('current-session-type');
+    return get_state_value('current-session-type');
 }
 
 export {

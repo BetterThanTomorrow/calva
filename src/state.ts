@@ -4,7 +4,7 @@ import * as util from './utilities';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
-import { getStateValue, setStateValue } from '../out/cljs-lib/cljs-lib';
+import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
 
 let extensionContext: vscode.ExtensionContext;
 export function setExtensionContext(context: vscode.ExtensionContext) {
@@ -17,7 +17,7 @@ export function setExtensionContext(context: vscode.ExtensionContext) {
 // Super-quick fix for: https://github.com/BetterThanTomorrow/calva/issues/144
 // TODO: Revisit the whole state management business.
 function _outputChannel(name: string): vscode.OutputChannel {
-    const channel = getStateValue(name);
+    const channel = get_state_value(name);
     if (channel.toJS !== undefined) {
         return channel.toJS();
     } else {
@@ -34,7 +34,7 @@ function connectionLogChannel(): vscode.OutputChannel {
 }
 
 function analytics(): Analytics {
-    const analytics = getStateValue('analytics');
+    const analytics = get_state_value('analytics');
     if (analytics.toJS !== undefined) {
         return analytics.toJS();
     } else {
@@ -47,13 +47,13 @@ const PROJECT_DIR_URI_KEY = "connect.projectDirNew";
 
 export function getProjectRootLocal(useCache = true): string {
     if (useCache) {
-        return getStateValue(PROJECT_DIR_KEY);
+        return get_state_value(PROJECT_DIR_KEY);
     }
 }
 
 export function getProjectRootUri(useCache = true): vscode.Uri {
     if (useCache) {
-        return getStateValue(PROJECT_DIR_URI_KEY);
+        return get_state_value(PROJECT_DIR_URI_KEY);
     }
 }
 
@@ -96,8 +96,8 @@ export async function getOrCreateNonProjectRoot(context: vscode.ExtensionContext
         root = vscode.Uri.file(path.join(os.tmpdir(), 'betterthantomorrow.calva', subDir));
         await setNonProjectRootDir(context, root);
     }
-    setStateValue(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
-    setStateValue(PROJECT_DIR_URI_KEY, root);
+    set_state_value(PROJECT_DIR_KEY, path.resolve(root.fsPath ? root.fsPath : root.path));
+    set_state_value(PROJECT_DIR_URI_KEY, root);
     return root;
 }
 
@@ -129,8 +129,8 @@ function getProjectWsFolder(): vscode.WorkspaceFolder {
  */
 export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
     if (uri) {
-        setStateValue(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
-        setStateValue(PROJECT_DIR_URI_KEY, uri);
+        set_state_value(PROJECT_DIR_KEY, path.resolve(uri.fsPath));
+        set_state_value(PROJECT_DIR_URI_KEY, uri);
     } else {
         const projectFileNames: string[] = ["project.clj", "shadow-cljs.edn", "deps.edn"];
         const doc = util.getDocument({});
@@ -143,8 +143,8 @@ export async function initProjectDir(uri?: vscode.Uri): Promise<void> {
 async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Promise<void> {
     if (workspaceFolder) {
         let rootPath: string = path.resolve(workspaceFolder.uri.fsPath);
-        setStateValue(PROJECT_DIR_KEY, rootPath);
-        setStateValue(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
+        set_state_value(PROJECT_DIR_KEY, rootPath);
+        set_state_value(PROJECT_DIR_URI_KEY, workspaceFolder.uri);
 
         let d = null;
         let prev = null;
@@ -173,8 +173,8 @@ async function findLocalProjectRoot(projectFileNames, doc, workspaceFolder): Pro
         for (let projectFile in projectFileNames) {
             const p = path.resolve(rootPath, projectFileNames[projectFile]);
             if (fs.existsSync(p)) {
-                setStateValue(PROJECT_DIR_KEY, rootPath);
-                setStateValue(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
+                set_state_value(PROJECT_DIR_KEY, rootPath);
+                set_state_value(PROJECT_DIR_URI_KEY, vscode.Uri.file(rootPath));
                 return;
             }
         }
@@ -192,7 +192,7 @@ async function findProjectRootUri(projectFileNames, doc, workspaceFolder): Promi
                     const u = vscode.Uri.joinPath(searchUri, projectFileNames[projectFile]);
                     try {
                         await vscode.workspace.fs.stat(u);
-                        setStateValue(PROJECT_DIR_URI_KEY, searchUri);
+                        set_state_value(PROJECT_DIR_URI_KEY, searchUri);
                         return;
                     }
                     catch { }

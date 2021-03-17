@@ -14,7 +14,7 @@ import * as outputWindow from './results-output/results-doc';
 import evaluate from './evaluate';
 import * as liveShareSupport from './liveShareSupport';
 import * as calvaDebug from './debugger/calva-debug';
-import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
+import { get_state_value, set_state_value } from 'shadow-cljs/calva.state';
 import * as replSession from './nrepl/repl-session';
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
@@ -52,8 +52,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         util.setConnectingState(false);
         util.setConnectedState(true);
         state.analytics().logEvent("REPL", "ConnectedCLJ").send();
-        setStateValue('clj', cljSession);
-        setStateValue('cljc', cljSession);
+        set_state_value('clj', cljSession);
+        set_state_value('cljc', cljSession);
         status.update();
         outputWindow.append(`; Connected session: clj\n${outputWindow.CLJ_CONNECT_GREETINGS}`);
         replSession.updateReplSessionType();
@@ -102,7 +102,7 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
 }
 
 async function setUpCljsRepl(session, build) {
-    setStateValue("cljs", session);
+    set_state_value("cljs", session);
     status.update();
     outputWindow.append(`; Connected session: cljs${(build ? ", repl: " + build : "")}\n${outputWindow.CLJS_CONNECT_GREETINGS}`);
     outputWindow.setSession(session, 'cljs.user');
@@ -158,7 +158,7 @@ async function evalConnectCode(newCljsSession: NReplSession, code: string, name:
         });
     if (checkSuccess(valueResult, out, err)) {
         state.analytics().logEvent("REPL", "ConnectedCLJS", name).send();
-        setStateValue('cljs', cljsSession = newCljsSession)
+        set_state_value('cljs', cljsSession = newCljsSession)
         return true
     } else {
         return false;
@@ -293,7 +293,7 @@ function createCLJSReplType(cljsType: CljsTypeConfig, cljsTypeName: string, conn
                 return;
             }
 
-            setStateValue('cljsBuild', build);
+            set_state_value('cljsBuild', build);
 
             return evalConnectCode(session, initCode, name, checkFn, [startAppNowProcessor, printThisPrinter], [allPrinter]);
         },
@@ -381,20 +381,20 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
             } else {
                 state.analytics().logEvent("REPL", "FailedStartingCLJS", repl.name).send();
                 outputWindow.append("; Failed starting cljs repl");
-                setStateValue('cljsBuild', null);
+                set_state_value('cljsBuild', null);
                 return [null, null];
             }
         }
         if (await repl.connect(newCljsSession, repl.name, repl.connected)) {
             state.analytics().logEvent("REPL", "ConnectedCLJS", repl.name).send();
-            setStateValue('cljs', cljsSession = newCljsSession);
-            return [cljsSession, getStateValue('cljsBuild')];
+            set_state_value('cljs', cljsSession = newCljsSession);
+            return [cljsSession, get_state_value('cljsBuild')];
         } else {
-            let build = getStateValue('cljsBuild')
+            let build = get_state_value('cljsBuild')
             state.analytics().logEvent("REPL", "FailedConnectingCLJS", repl.name).send();
             let failed = "Failed starting cljs repl" + (build != null ? ` for build: ${build}. Is the build running and connected?\n   See the Output channel "Calva Connection Log" for any hints on what went wrong.` : "");
             outputWindow.append(`; ${failed}`);
-            setStateValue('cljsBuild', null);
+            set_state_value('cljsBuild', null);
             vscode.window.showInformationMessage(
                 failed,
                 { modal: true },
@@ -421,8 +421,8 @@ async function promptForNreplUrlAndConnect(port, connectSequence: ReplConnectSeq
         let [hostname, port] = url.split(':'),
             parsedPort = parseFloat(port);
         if (parsedPort && parsedPort > 0 && parsedPort < 65536) {
-            setStateValue("hostname", hostname);
-            setStateValue("port", parsedPort);
+            set_state_value("hostname", hostname);
+            set_state_value("port", parsedPort);
             await connectToHost(hostname, parsedPort, connectSequence);
         } else {
             outputWindow.append("; Bad url: " + url);
@@ -465,8 +465,8 @@ export async function connect(connectSequence: ReplConnectSequence,
         if (port) {
             hostname = hostname !== undefined ? hostname : "localhost";
             if (isAutoConnect) {
-                setStateValue("hostname", hostname);
-                setStateValue("port", port);
+                set_state_value("hostname", hostname);
+                set_state_value("port", port);
                 await connectToHost(hostname, parseInt(port), connectSequence);
             } else {
                 await promptForNreplUrlAndConnect(port, connectSequence);
@@ -528,10 +528,10 @@ export default {
     disconnect: (options = null, callback = () => { }) => {
         status.updateNeedReplUi(false);
         ['clj', 'cljs'].forEach(sessionType => {
-            setStateValue(sessionType, null);
+            set_state_value(sessionType, null);
         });
         util.setConnectedState(false);
-        setStateValue('cljc', null);
+        set_state_value('cljc', null);
         status.update();
 
         if (nClient) {
@@ -551,13 +551,13 @@ export default {
     toggleCLJCSession: () => {
         let newSession: NReplSession;
 
-        if (getStateValue('connected')) {
+        if (get_state_value('connected')) {
             if (replSession.getSession('cljc') == replSession.getSession('cljs')) {
                 newSession = replSession.getSession('clj');
             } else if (replSession.getSession('cljc') == replSession.getSession('clj')) {
                 newSession = replSession.getSession('cljs');
             }
-            setStateValue('cljc', newSession);
+            set_state_value('cljc', newSession);
             if (outputWindow.isResultsDoc(vscode.window.activeTextEditor.document)) {
                 outputWindow.setSession(newSession, undefined);
                 replSession.updateReplSessionType();

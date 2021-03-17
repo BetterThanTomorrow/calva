@@ -5,7 +5,7 @@ import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
 import lsp from '../lsp';
-import { getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { get_state_value } from 'shadow-cljs/calva.state';
 import * as replSession from '../nrepl/repl-session';
 
 let enabled = false;
@@ -94,7 +94,7 @@ function triggerUpdateAndRenderDecorations() {
         if (editor) {
             timeout = setTimeout(() => {
                 const cljSession = replSession.getSession('clj');
-                const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
+                const lspClient = get_state_value(lsp.LSP_CLIENT_KEY);
                 update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }

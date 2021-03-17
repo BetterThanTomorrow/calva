@@ -9,7 +9,8 @@ import debugDecorations from '../debugger/decorations';
 import * as outputWindow from '../results-output/results-doc';
 import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
-import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
+import { get_state_value } from 'shadow-cljs/calva.state';
+import { pretty_print } from 'shadow-cljs/calva.pprint.printer';
 import { getConfig } from '../config';
 
 /** An nREPL client */
@@ -265,7 +266,7 @@ export class NReplSession {
 
     private _createEvalOperationMessage(code: string, ns: string, opts: any) {
         if (vscode.debug.activeDebugSession && this.replType === 'clj') {
-            const debugResponse = getStateValue(debug.DEBUG_RESPONSE_KEY);
+            const debugResponse = get_state_value(debug.DEBUG_RESPONSE_KEY);
             state.analytics().logEvent(debug.DEBUG_ANALYTICS.CATEGORY, debug.DEBUG_ANALYTICS.EVENT_ACTIONS.EVALUATE_IN_DEBUG_CONTEXT).send();
             return {
                 id: debugResponse.id,
@@ -837,7 +838,7 @@ export class NReplEvaluation {
                 } else {
                     let printValue = this.msgValue;
                     if (pprintOptions.enabled && pprintOptions.printEngine === 'calva') {
-                        const pretty = prettyPrint(this.msgValue, pprintOptions);
+                        const pretty = pretty_print(this.msgValue, pprintOptions);
                         if (!pretty.error) {
                             printValue = pretty.value;
                         } else {

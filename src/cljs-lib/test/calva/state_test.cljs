@@ -7,13 +7,13 @@
 
 (deftest set-state-value!-test
   (testing "Should write value to state, given key"
-    (state/set-state-value! "hello" "world")
+    (state/set-state-value "hello" "world")
     (is (= {"hello" "world"} @state/state))))
 
 (deftest remove-state-value!-test
   (testing "Should remove value from state, given key"
     (reset! state/state {"hello" "world"})
-    (state/remove-state-value! "hello")
+    (state/remove-state-value "hello")
     (is (= {} @state/state))))
 
 (deftest get-state-value-test

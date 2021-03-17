@@ -198,7 +198,7 @@
       (show-initializing-status! on-ready-promise)
       (.. on-ready-promise
           (then #(do
-                   (state/set-state-value! client-key client)
+                   (state/set-state-value client-key client)
                    (register-commands context client)
                    (register-event-handlers context)
                    (js/Promise.resolve)))))))

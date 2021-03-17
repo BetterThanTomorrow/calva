@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as _ from 'lodash';
-import * as util from '../utilities';
+import { get_state_value, set_state_value, remove_state_value } from 'shadow-cljs/calva.state';
 
 enum AnnotationStatus {
     PENDING = 0,
@@ -90,23 +90,23 @@ const evalSelectionDecorationTypes = [
 
 function setResultDecorations(editor: vscode.TextEditor, ranges) {
     let key = editor.document.uri + ':resultDecorationRanges';
-    util.cljsLib.setStateValue(key, ranges);
+    set_state_value(key, ranges);
     editor.setDecorations(evalResultsDecorationType, ranges);
 }
 
 function setSelectionDecorations(editor, ranges, status) {
     let key = editor.document.uri + ':selectionDecorationRanges:' + status;
-    util.cljsLib.setStateValue(key, ranges);
+    set_state_value(key, ranges);
     editor.setDecorations(evalSelectionDecorationTypes[status], ranges);
 }
 
 function clearEvaluationDecorations(editor?: vscode.TextEditor) {
     editor = editor || vscode.window.activeTextEditor;
     if (editor) {
-        util.cljsLib.removeStateValue(editor.document.uri + ':resultDecorationRanges');
+        remove_state_value(editor.document.uri + ':resultDecorationRanges');
         setResultDecorations(editor, []);
         for (const status in [AnnotationStatus.PENDING, AnnotationStatus.SUCCESS, AnnotationStatus.ERROR, AnnotationStatus.REPL_WINDOW]) {
-            util.cljsLib.removeStateValue(editor.document.uri + ':selectionDecorationRanges:' + status);
+            remove_state_value(editor.document.uri + ':selectionDecorationRanges:' + status);
             setSelectionDecorations(editor, [], status);
         }
     }
@@ -122,7 +122,7 @@ function clearAllEvaluationDecorations() {
 function decorateResults(resultString, hasError, codeSelection: vscode.Range, editor: vscode.TextEditor) {
     let uri = editor.document.uri,
         key = uri + ':resultDecorationRanges',
-        decorationRanges = util.cljsLib.getStateValue(key) || [],
+        decorationRanges = get_state_value(key) || [],
         decoration = evaluated(` => ${resultString} `, resultString, hasError);
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.codeRange.intersection(codeSelection) });
     decoration["codeRange"] = codeSelection;
@@ -135,7 +135,7 @@ function decorateSelection(resultString: string, codeSelection: vscode.Selection
     const uri = editor.document.uri;
     const key = uri + ':selectionDecorationRanges:' + status;
     let decoration = {};
-    let decorationRanges = util.cljsLib.getStateValue(key) || [];
+    let decorationRanges = get_state_value(key) || [];
     decorationRanges = _.filter(decorationRanges, (o) => { return !o.range.intersection(codeSelection) });
     decoration["range"] = codeSelection;
     if (status != AnnotationStatus.PENDING && status != AnnotationStatus.REPL_WINDOW) {

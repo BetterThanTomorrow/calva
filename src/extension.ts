@@ -29,7 +29,8 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
-import { setStateValue, activateLsp, deactivateLsp } from '../out/cljs-lib/cljs-lib';
+import { set_state_value } from 'shadow-cljs/calva.state';
+import * as lsp from 'shadow-cljs/calva.lsp.core';
 
 async function onDidSave(document) {
     let {
@@ -65,19 +66,19 @@ function setKeybindingsEnabledContext() {
 }
 
 function initializeState() {
-    setStateValue('connected', false);
-    setStateValue('connecting', false);
-    setStateValue('outputChannel', vscode.window.createOutputChannel('Calva says'));
-    setStateValue('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
-    setStateValue('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
+    set_state_value('connected', false);
+    set_state_value('connecting', false);
+    set_state_value('outputChannel', vscode.window.createOutputChannel('Calva says'));
+    set_state_value('connectionLogChannel', vscode.window.createOutputChannel('Calva Connection Log'));
+    set_state_value('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
 }
 
 async function activate(context: vscode.ExtensionContext) {
     initializeState();
 
     status.updateNeedReplUi(false, context);
-    activateLsp(context);
-    setStateValue('analytics', new Analytics(context));
+    lsp.activate(context);
+    set_state_value('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
     model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
@@ -334,7 +335,7 @@ function deactivate(): Promise<void> | undefined {
     state.analytics().logEvent("LifeCycle", "Deactivated").send();
     jackIn.calvaJackout();
     paredit.deactivate();
-    return deactivateLsp();
+    return lsp.deactivate();
 }
 
 export { activate, deactivate };

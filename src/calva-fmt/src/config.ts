@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as filesCache from '../../files-cache';
-import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib.js';
+import { read_cljfmt_js_bridge } from 'shadow-cljs/calva.fmt.formatter';
 
 const defaultCljfmtContent = "\
 {:remove-surrounding-whitespace? true\n\
@@ -13,7 +13,7 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtStr
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
         "cljfmt-string": cljfmtString,
-        "cljfmt-options": cljfmtOptions(cljfmtString)
+        "cljfmt-options": read_cljfmt_js_bridge(cljfmtString)
     };
 }
 

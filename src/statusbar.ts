@@ -3,7 +3,7 @@ import * as state from './state';
 import * as util from './utilities';
 import * as config from './config';
 import status from './status';
-import { getStateValue } from '../out/cljs-lib/cljs-lib';
+import { get_state_value } from 'shadow-cljs/calva.state';
 import { getSession, getReplSessionTypeFromState } from './nrepl/repl-session';
 
 const connectionStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
@@ -26,7 +26,7 @@ function update(context = state.extensionContext) {
 
     let doc = util.getDocument({}),
         fileType = util.getFileType(doc),
-        cljsBuild = getStateValue('cljsBuild');
+        cljsBuild = get_state_value('cljsBuild');
 
     const replTypeNames = {
         clj: "Clojure",
@@ -53,10 +53,10 @@ function update(context = state.extensionContext) {
     cljsBuildStatus.command = "calva.switchCljsBuild";
     cljsBuildStatus.tooltip = null;
 
-    if (getStateValue('connected')) {
+    if (get_state_value('connected')) {
         connectionStatus.text = "nREPL $(zap)";
         connectionStatus.color = colorValue("connectedStatusColor", currentConf);
-        connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue('port')} (Click to reset connection)`;
+        connectionStatus.tooltip = `nrepl://${get_state_value('hostname')}:${get_state_value('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.startOrConnectRepl";
         typeStatus.color = colorValue("typeStatusColor", currentConf);
         const replType = getReplSessionTypeFromState();
