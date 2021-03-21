@@ -45,7 +45,7 @@ There are also these settings:
 
 #### Command not found errors
 
-If you get `command not found` error when Calva tries to start your project, and you know you have the command installed. It probably is because VS Code starts from an environment where the command is not on the `$PATH`. It can look like so:
+If you get `command not found` error when Calva tries to start your project, and you know you have the command installed, it's probably because VS Code starts from an environment where the command is not on the `$PATH`. It can look like so:
 
 ```sh
 lein update-in :dependencies conj '[nrepl,"0.8.3"]' -- update-in :plugins conj '[cider/cider-nrepl,"0.25.8"]' -- update-in '[:repl-options,:nrepl-middleware]' conj '["cider.nrepl/cider-middleware"]' -- repl :headless

@@ -4,6 +4,8 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Use graalvm-compiled native image for clojure-lsp instead of jar](https://github.com/BetterThanTomorrow/calva/issues/1017)
+
+## [2.0.180] - 2021-03-21
 - [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” foward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
 
 ## [2.0.179] - 2021-03-10
