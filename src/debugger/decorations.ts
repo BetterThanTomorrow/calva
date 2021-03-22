@@ -4,7 +4,7 @@ import { Location } from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import lsp from '../lsp';
+import lsp from '../lsp/lsp';
 import { getStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 

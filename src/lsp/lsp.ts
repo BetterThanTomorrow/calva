@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient';
 import * as path from 'path';
-import * as util from './utilities'
-import { REPL_FILE_EXT, getConfig } from './config';
-import { provideClojureDefinition } from './providers/definition';
-import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
+import * as util from '../utilities'
+import { REPL_FILE_EXT, getConfig } from '../config';
+import { provideClojureDefinition } from '../providers/definition';
+import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 
 const LSP_CLIENT_KEY = 'lspClient';
 

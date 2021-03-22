@@ -29,7 +29,7 @@ import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
-import lsp from './lsp';
+import lsp from './lsp/lsp';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
 async function onDidSave(document) {
