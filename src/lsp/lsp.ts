@@ -1,17 +1,18 @@
 import * as vscode from 'vscode';
 import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient';
-import * as path from 'path';
 import * as util from '../utilities'
-import { REPL_FILE_EXT, getConfig } from '../config';
+import * as config from '../config';
 import { provideClojureDefinition } from '../providers/definition';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
+import { downloadClojureLsp } from './download';
+import { readVersionFile, getClojureLspPath } from './utilities';
 
 const LSP_CLIENT_KEY = 'lspClient';
 
-function createClient(jarPath: string): LanguageClient {
+function createClient(clojureLspPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
-        run: { command: 'java', args: ['-jar', jarPath] },
-        debug: { command: 'java', args: ['-jar', jarPath] },
+        run: { command: clojureLspPath},
+        debug: { command: clojureLspPath},
     };
     const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'clojure' }],
@@ -29,10 +30,10 @@ function createClient(jarPath: string): LanguageClient {
         },
         middleware: {
             handleDiagnostics(uri, diagnostics, next) {
-                if (!getConfig().displayDiagnostics) {
+                if (!config.getConfig().displayDiagnostics) {
                     return next(uri, []);
                 }
-                if (uri.path.endsWith(REPL_FILE_EXT)) {
+                if (uri.path.endsWith(config.REPL_FILE_EXT)) {
                     return;
                 }
                 return next(uri, diagnostics);
@@ -41,13 +42,13 @@ function createClient(jarPath: string): LanguageClient {
                 return next(document, range, context, token);
             },
             provideCodeLenses: async (document, token, next): Promise<vscode.CodeLens[]> => {
-                if (getConfig().referencesCodeLensEnabled) {
+                if (config.getConfig().referencesCodeLensEnabled) {
                     return await next(document, token);
                 }
                 return [];
             },
             resolveCodeLens: async (codeLens, token, next) => {
-                if (getConfig().referencesCodeLensEnabled) {
+                if (config.getConfig().referencesCodeLensEnabled) {
                     return await next(codeLens, token);
                 }
                 return null;
@@ -221,18 +222,28 @@ function registerEventHandlers(context: vscode.ExtensionContext, client: Languag
     }));
 }
 
-async function activate(context: vscode.ExtensionContext): Promise<void> {
-    const jarPath = path.join(context.extensionPath, 'clojure-lsp.jar');
-    const client = createClient(jarPath);
-
+async function startClient(clojureLspPath: string, context: vscode.ExtensionContext): Promise<void> {
+    const client = createClient(clojureLspPath);
+    console.log('Starting clojure-lsp at', clojureLspPath);
+    const onReadyPromise = client.onReady();
+    vscode.window.setStatusBarMessage('$(sync~spin) Initializing Clojure language features via clojure-lsp', onReadyPromise);
+    client.start();
+    await onReadyPromise;
+    setStateValue(LSP_CLIENT_KEY, client);
     registerCommands(context, client);
     registerEventHandlers(context, client);
+}
 
-    vscode.window.setStatusBarMessage('$(sync~spin) Initializing Clojure language features via clojure-lsp', client.onReady());
-
-    client.start();
-    await client.onReady();
-    setStateValue(LSP_CLIENT_KEY, client);
+async function activate(context: vscode.ExtensionContext): Promise<void> {
+    const extensionPath = context.extensionPath;
+    const currentVersion = readVersionFile(extensionPath);
+    let clojureLspPath = getClojureLspPath(extensionPath, util.isWindows);
+    if (currentVersion !== config.CLOJURE_LSP_VERSION) {
+        const downloadPromise = downloadClojureLsp(context.extensionPath, config.CLOJURE_LSP_VERSION);
+        vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
+        clojureLspPath = await downloadPromise;
+    }
+    await startClient(clojureLspPath, context);
 }
 
 function deactivate(): Promise<void> {
