@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Update clojure-lsp to 2021.03.21-23.29.19
 
 ## [2.0.180] - 2021-03-21
 - [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” foward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
