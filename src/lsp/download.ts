@@ -23,6 +23,7 @@ function getBackupPath(clojureLspPath: string, isWindows: boolean): string {
 }
 
 function backupExistingFile(clojureLspPath: string, backupPath: string): void {
+    console.log('Backing up existing clojure-lsp to', backupPath);
     try {
         fs.renameSync(clojureLspPath, backupPath);
     } catch (e) {
