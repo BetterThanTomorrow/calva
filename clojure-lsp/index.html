@@ -895,11 +895,11 @@
                 <h1 id="clojure-lsp">Clojure-lsp</h1>
 <p>Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from <a href="https://github.com/snoe/clojure-lsp">clojure-lsp</a>. This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)</p>
 <h2 id="starting-the-lsp-server">Starting the LSP server</h2>
-<p>You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
-<p>Calva will show a status bar message while the server is starting, which will go away once the server is ready. However, <em>much of Calva's functionality is available regardless of the LSP server</em>, so please start using Calva while this server is starting.</p>
-<p><img alt="&quot;Clojure-lsp status bar intializing message&quot;" src="../images/clojure-lsp/lsp-status-bar-message.gif" title="Clojure-lsp status bar intializing message" /></p>
+<p>You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. Calva downloads the correct binary for your operating system if necessary (this should only happen when the clojure-lsp version is updated in a new release of Calva) and then starts it. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via <code>clj-kondo</code>) indexes the project files.</p>
+<p>Calva will show a status bar message during the download and while the server is starting, which will go away once the server is ready. However, <em>much of Calva's functionality is available regardless of the LSP server</em>, so please start using Calva while this server is starting.</p>
+<p><img alt="&quot;Clojure-lsp status bar downloading and intializing messages&quot;" src="../images/clojure-lsp/lsp-status-bar-message.gif" title="Clojure-lsp status bar downloading and intializing messages" /></p>
 <h2 id="ignoring-lsp-cache-files">Ignoring LSP cache files</h2>
-<p>clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
+<p>Clojure-lsp stores its project analysis information in your project. Git users can add these lines to their project root directory <code>.gitignore</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="na">.clj-kondo</span><span class="err">/</span><span class="no">cache</span><span class="err">/</span>
 <span class="na">.clj-kondo</span><span class="err">/</span><span class="no">.cache</span><span class="err">/</span>
 <span class="na">.lsp</span><span class="err">/</span><span class="no">sqlite.</span><span class="p">*.</span><span class="no">db</span>
