@@ -307,6 +307,10 @@ export function clearEditQueue(): void {
     editQueue = [];
 }
 
+export function getEditQueueLength(): number {
+    return editQueue.length;
+}
+
 export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
 
 let _lastStacktrace: any[] = [];
