@@ -27,7 +27,6 @@ import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import * as config from './config';
-import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
@@ -267,7 +266,6 @@ async function activate(context: vscode.ExtensionContext) {
             setKeybindingsEnabledContext();
         }
     }));
-    context.subscriptions.push(vscode.workspace.onDidCreateFiles(handleNewCljFiles));
 
     // Clojure debug adapter setup
     const provider = new debug.CalvaDebugConfigurationProvider();

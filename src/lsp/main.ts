@@ -22,8 +22,7 @@ function createClient(clojureLspPath: string): LanguageClient {
         },
         initializationOptions: {
             "dependency-scheme": "jar",
-            // LSP-TODO: Use lsp's feature and remove Calva's feature for this 
-            "auto-add-ns-to-new-files?": false,
+            "auto-add-ns-to-new-files?": true,
             "document-formatting?": false,
             "document-range-formatting?": false,
             "keep-require-at-start?": true,
