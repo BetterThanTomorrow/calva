@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)
 
 ## [2.0.182] - 2021-03-26
 - [Use graalvm-compiled native image for clojure-lsp instead of jar](https://github.com/BetterThanTomorrow/calva/issues/1017)

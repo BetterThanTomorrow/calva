@@ -19,6 +19,7 @@ import * as getText from './util/get-text';
 
 function interruptAllEvaluations() {
     if (util.getConnectedState()) {
+        outputWindow.clearEditQueue();
         let msgs: string[] = [];
         let nums = NReplEvaluation.interruptAll((msg) => {
             msgs.push(msg);
@@ -34,6 +35,7 @@ function interruptAllEvaluations() {
         } else {
             vscode.window.showInformationMessage('Interruption command finished (unknown results)');
         }
+        outputWindow.appendPrompt();
         return;
     }
     vscode.window.showInformationMessage("Not connected to a REPL server");
