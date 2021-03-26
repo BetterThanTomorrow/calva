@@ -405,6 +405,8 @@ function randomSlug(length = 7) {
     return Math.random().toString(36).substring(7);
 }
 
+const isWindows = process.platform === 'win32';
+
 export {
     getStartExpression,
     getWordAtPosition,
@@ -440,5 +442,6 @@ export {
     writeTextToFile,
     downloadFromUrl,
     cljsLib,
-    randomSlug
+    randomSlug,
+    isWindows
 };
