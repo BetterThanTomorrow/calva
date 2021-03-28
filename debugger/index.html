@@ -573,13 +573,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#no-reader-function-for-tag-error" class="md-nav__link">
-    "No reader function for tag" error
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -813,6 +806,18 @@
     <li class="md-nav__item">
       <a href="../re-frame-template/" class="md-nav__link">
         How to Use Calva With the re-frame Template
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../polylith/" class="md-nav__link">
+        How to Use Calva with Polylith
       </a>
     </li>
   
@@ -1135,13 +1140,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#no-reader-function-for-tag-error" class="md-nav__link">
-    "No reader function for tag" error
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1272,11 +1270,6 @@
 <p>If you're using the test commands like "Run current test" to run your tests, breakpoints will not be hit. This is because Calva loads the file before running the tests to make sure the latest version of test code is being run, and when the file is loaded, breakpoints are unset.</p>
 <p>If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.</p>
 <p><img alt="Hitting a breakpoint in a test" src="../images/debugger/breakpoint-in-test.png" title="Hitting a breakpoint in a test" /></p>
-<h3 id="no-reader-function-for-tag-error">"No reader function for tag" error</h3>
-<p>If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper depednencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.</p>
-<p>Most importantly, make sure you have <code>cider/cider-nrepl</code> as a dependency, and <code>cider.nrepl/cider-middleware</code> as middleware loaded in your REPL. For example, this is a jack-in command for a deps.edn project:</p>
-<div class="codehilite"><pre><span></span><code>clojure -Sdeps <span class="s1">&#39;{:deps {nrepl/nrepl {:mvn/version,&quot;0.8.3&quot;},cider/cider-nrepl {:mvn/version,&quot;0.25.8&quot;}}}&#39;</span> -m nrepl.cmdline --middleware <span class="s2">&quot;[cider.nrepl/cider-middleware]&quot;</span>
-</code></pre></div>
                 
               
               
