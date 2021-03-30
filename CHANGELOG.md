@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.183] - 2021-03-30
 - [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)
 - Fix: [Completion not working with babashka](https://github.com/BetterThanTomorrow/calva/issues/1083)
 
