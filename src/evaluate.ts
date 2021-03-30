@@ -33,10 +33,7 @@ function interruptAllEvaluations() {
         } else {
             vscode.window.showInformationMessage('Interruption command finished (unknown results)');
         }
-        if (outputWindow.getEditQueueLength() > 0) {
-            outputWindow.clearEditQueue();
-            outputWindow.appendPrompt();
-        }
+        outputWindow.discardPendingPrints();
         return;
     }
     vscode.window.showInformationMessage("Not connected to a REPL server");

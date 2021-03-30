@@ -303,12 +303,9 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
     };
 }
 
-export function clearEditQueue(): void {
+export function discardPendingPrints(): void {
     editQueue = [];
-}
-
-export function getEditQueueLength(): number {
-    return editQueue.length;
+    appendPrompt();
 }
 
 export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };
