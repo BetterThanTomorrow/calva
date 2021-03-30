@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Completion not working with babashka](https://github.com/BetterThanTomorrow/calva/issues/1083)
 
 ## [2.0.182] - 2021-03-26
 - [Use graalvm-compiled native image for clojure-lsp instead of jar](https://github.com/BetterThanTomorrow/calva/issues/1017)
