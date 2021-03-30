@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import * as state from './state';
 import annotations from './providers/annotations';
 import * as path from 'path';
-import select from './select';
 import * as util from './utilities';
 import { NReplSession, NReplEvaluation } from './nrepl';
 import statusbar from './statusbar';
@@ -34,6 +33,7 @@ function interruptAllEvaluations() {
         } else {
             vscode.window.showInformationMessage('Interruption command finished (unknown results)');
         }
+        outputWindow.discardPendingPrints();
         return;
     }
     vscode.window.showInformationMessage("Not connected to a REPL server");

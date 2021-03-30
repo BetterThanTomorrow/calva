@@ -51,6 +51,7 @@ nav:
     - live-share.md
     - luminus.md
     - re-frame-template.md
+    - polylith.md
     - static-only.md
     - parinfer.md
   - Etcetera:

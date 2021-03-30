@@ -64,13 +64,13 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
     }
 
     async resolveCompletionItem(item: CompletionItem, token: CancellationToken) {
-
         if (util.getConnectedState()) {
             let client = replSession.getSession(util.getFileType(window.activeTextEditor.document));
             if (client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
-                let result = await client.info(item.insertText["ns"], item.label)
-                let [doc, details] = infoparser.getCompletion(result);
+                const ns = namespace.getDocumentNamespace();
+                const result = await client.info(ns, item.label)
+                const [doc, details] = infoparser.getCompletion(result);
                 item.documentation = doc;
                 item.detail = details;
             }
