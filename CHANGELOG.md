@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make clojure-lsp version configurable](Make clojure-lsp version configurable by the user) and bump to `2021.03.30-20.42.34`
 
 ## [2.0.183] - 2021-03-30
 - [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)
