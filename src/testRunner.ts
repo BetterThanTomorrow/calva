@@ -7,6 +7,7 @@ import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
+import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -160,11 +161,18 @@ async function runNamespaceTests(document = {}) {
     outputWindow.appendPrompt();
 }
 
+function getTestUnderCursor() {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+        return getText.currentTopLevelFunction(editor)[1];
+    }
+}
+
 async function runTestUnderCursor() {
     const doc = util.getDocument({});
     const session = getSession(util.getFileType(doc));
     const ns = namespace.getNamespace(doc);
-    const test = util.getTestUnderCursor();
+    const test = getTestUnderCursor();
 
     if (test) {
         await evaluate.loadFile(doc, disabledPrettyPrinter);
