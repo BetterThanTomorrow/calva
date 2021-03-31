@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Remove warning about clj-kondo extension](https://github.com/BetterThanTomorrow/calva/issues/1091)
+- [Remove the display diagnostics setting in favor of the user managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
 
 ## [2.0.183] - 2021-03-30
 - [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)

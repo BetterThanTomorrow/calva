@@ -30,9 +30,6 @@ function createClient(clojureLspPath: string): LanguageClient {
         },
         middleware: {
             handleDiagnostics(uri, diagnostics, next) {
-                if (!config.getConfig().displayDiagnostics) {
-                    return next(uri, []);
-                }
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
                     return;
                 }
