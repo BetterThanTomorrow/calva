@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make clojure-lsp version configurable by the user](https://github.com/BetterThanTomorrow/calva/issues/1088) and bump to `2021.03.30-20.42.34`
 - [Remove warning about clj-kondo extension](https://github.com/BetterThanTomorrow/calva/issues/1091)
 
 ## [2.0.183] - 2021-03-30
