@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import select from '../select';
 import * as paredit from '../cursor-doc/paredit'
 import * as docMirror from '../doc-mirror/index';
+import * as cursorTextGetter from './cursor-get-text';
 
 export type SelectionAndText = [vscode.Selection, string];
 
@@ -41,18 +42,11 @@ export function currentFunction(editor: vscode.TextEditor): SelectionAndText {
 export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAndText {
     if (editor) {
         const document = editor.document;
-        const selection = select.getFormSelection(document, editor.selection.active, true);
-        const startPositionOfTopLevelForm = selection.start;
-        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
-        if (tokenCursor.downList()) {
-            tokenCursor.forwardWhitespace();
-            while (tokenCursor.next()) {
-                const symbol = tokenCursor.getToken();
-                if (symbol.type === 'id') {
-                    return [selection, symbol.raw];
-                }
-            }
+        const cursorOffset = document.offsetAt(editor.selection.active);
+        const tokenCursor = docMirror.getDocument(document).getTokenCursor(cursorOffset);
+        const [range, text] = cursorTextGetter.currentTopLevelFunction(tokenCursor);
+        if (range) {
+            return [select.selectionFromOffsetRange(document, range), text]; // TODO: Figure out which selection to return...
         }
     }
     return [undefined, ''];
