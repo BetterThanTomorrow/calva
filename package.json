@@ -268,6 +268,11 @@
                             "cider/piggieback": "0.5.2"
                         }
                     },
+                    "calva.clojureLspVersion": {
+                        "type": "string",
+                        "default": "2021.03.30-20.42.34",
+                        "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
+                    },
                     "calva.openBrowserWhenFigwheelStarted": {
                         "type": "boolean",
                         "default": true,
