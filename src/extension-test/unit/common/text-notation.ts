@@ -14,7 +14,7 @@ import * as model from '../../../cursor-doc/model';
  *   * Selections with direction left->right are denoted with `|<|` at the range boundaries
  */
 
-export function dotToNl(s: string): [string, model.ModelEditSelection] {
+function dotToNl(s: string): [string, model.ModelEditSelection] {
     const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
     let anchor = undefined;
     let active = undefined;

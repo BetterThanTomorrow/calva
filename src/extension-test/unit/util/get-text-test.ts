@@ -1,7 +1,6 @@
 import * as expect from 'expect';
-import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import * as mock from '../common/mock';
-import { docFromDot, textAndSelection, dotToNl } from '../common/text-notation';
+import { docFromDot } from '../common/text-notation';
 import * as getText from '../../../util/cursor-get-text';
 
 describe('getTopLevelFunction', () => {
