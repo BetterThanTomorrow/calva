@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import select from '../select';
 import * as paredit from '../cursor-doc/paredit'
 import * as docMirror from '../doc-mirror/index';
+import * as cursorTextGetter from './cursor-get-text';
 
 export type SelectionAndText = [vscode.Selection, string];
 
@@ -41,18 +42,10 @@ export function currentFunction(editor: vscode.TextEditor): SelectionAndText {
 export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAndText {
     if (editor) {
         const document = editor.document;
-        const selection = select.getFormSelection(document, editor.selection.active, true);
-        const startPositionOfTopLevelForm = selection.start;
-        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
-        if (tokenCursor.downList()) {
-            tokenCursor.forwardWhitespace();
-            while (tokenCursor.next()) {
-                const symbol = tokenCursor.getToken();
-                if (symbol.type === 'id') {
-                    return [selection, symbol.raw];
-                }
-            }
+        const mirrorDoc = docMirror.getDocument(document);
+        const [range, text] = cursorTextGetter.currentTopLevelFunction(mirrorDoc);
+        if (range) {
+            return [select.selectionFromOffsetRange(document, range), text];
         }
     }
     return [undefined, ''];
@@ -63,9 +56,7 @@ function fromFn(editor: vscode.TextEditor, cursorDocFn: Function): SelectionAndT
         const document = editor.document;
         const cursorDoc = docMirror.getDocument(document);
         const range = cursorDocFn(cursorDoc);
-        const selection = new vscode.Selection(
-            document.positionAt(range[0]),
-            document.positionAt(range[1]))
+        const selection = select.selectionFromOffsetRange(document, range);
         const text = document.getText(selection);
         return [selection, text];
     }

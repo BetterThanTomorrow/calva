@@ -6,9 +6,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as JSZip from 'jszip';
-import select from './select';
 import * as outputWindow from './results-output/results-doc';
-import * as docMirror from './doc-mirror/index';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
@@ -86,33 +84,6 @@ function getCljsReplStartCode() {
 
 function getShadowCljsReplStartCode(build) {
     return '(shadow.cljs.devtools.api/nrepl-select ' + build + ')';
-}
-
-function getTestUnderCursor() {
-    const editor = vscode.window.activeTextEditor;
-    if (editor) {
-        const document = editor.document;
-        const startPositionOfTopLevelForm = select.getFormSelection(document, editor.selection.active, true).start;
-        const cursorOffset = editor.document.offsetAt(startPositionOfTopLevelForm);
-        const tokenCursor = docMirror.getDocument(editor.document).getTokenCursor(cursorOffset);
-        while (tokenCursor.downList()) {
-            tokenCursor.forwardWhitespace();
-            if (tokenCursor.getToken().raw.startsWith('def')) {
-                tokenCursor.forwardSexp();
-                tokenCursor.forwardWhitespace();
-                return tokenCursor.getToken().raw;
-            } else {
-                tokenCursor.forwardSexp();
-                tokenCursor.forwardWhitespace();
-            }
-        }
-    }
-    return undefined;
-}
-
-function getStartExpression(text) {
-    let match = text.match(/^\(([^\)]+)[\)]+/g);
-    return match ? match[0] : "(ns user)";
 }
 
 function getActualWord(document, position, selected, word) {
@@ -339,7 +310,7 @@ async function getFileContents(path: string) {
 }
 
 function jarFilePathComponents(uri: vscode.Uri | string) {
-    const rawPath = typeof(uri) === "string" ? uri : uri.path;
+    const rawPath = typeof (uri) === "string" ? uri : uri.path;
     const replaceRegex = os.platform() === 'win32' ? /file:\/*/ : /file:/;
     return rawPath.replace(replaceRegex, '').split('!/');
 }
@@ -368,7 +339,7 @@ function sortByPresetOrder(arr: any[], presetOrder: any[]) {
     });
     return [...result, ...arr.filter(e => !presetOrder.includes(e))];
 }
- 
+
 
 function writeTextToFile(uri: vscode.Uri, text: string): Thenable<void> {
     const ab = new ArrayBuffer(text.length);
@@ -397,7 +368,7 @@ async function downloadFromUrl(url: string, savePath: string) {
                 console.error(`Error downloading file from ${url}: ${err.message}`)
                 reject(err);
             });
-        });     
+        });
     });
 }
 
@@ -408,7 +379,6 @@ function randomSlug(length = 7) {
 const isWindows = process.platform === 'win32';
 
 export {
-    getStartExpression,
     getWordAtPosition,
     getDocument,
     getFileType,
@@ -430,7 +400,6 @@ export {
     quickPick,
     quickPickSingle,
     quickPickMulti,
-    getTestUnderCursor,
     promptForUserInputString,
     debounce,
     filterVisibleRanges,

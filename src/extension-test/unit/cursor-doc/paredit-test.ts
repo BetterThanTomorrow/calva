@@ -1,6 +1,7 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
 import * as mock from '../common/mock';
+import { docFromDot, textAndSelection, dotToNl } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 /**
@@ -21,37 +22,6 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
  *   * Single position ranges are denoted with a single `|`.
  * * Newlines are denoted with `•`
  */
-
-/**
- * Utility function to get text and selection from dot-notated strings
- * Only handles translation of `•` to newline and `|` to selection for now
- */
-function dotToNl(s: string): [string, ModelEditSelection] {
-    return [
-        s.replace(/•/g, '\n').replace(/\|/, ''),
-        new ModelEditSelection(s.indexOf('|'))
-    ];
-}
-
-/**
- * Utility function to create a doc from dot-notated strings
- * Only handles translation of `•` to newline and `|` to selection for now
- */
-function docFromDot(s: string): mock.MockDocument {
-    const [text, selection] = dotToNl(s);
-    const doc = new mock.MockDocument();
-    doc.insertString(text);
-    doc.selection = selection;
-    return doc;
-}
-
-/**
- * Utility function to create a comparable structure with the text and 
- * selection from a document
- */
-function textAndSelection(doc: mock.MockDocument): [string, [number, number]] {
-    return [doc.model.getText(0, Infinity), [doc.selection.anchor, doc.selection.active]]
-}
 
 describe('paredit', () => {
     const docText = '(def foo [:foo :bar :baz])';
