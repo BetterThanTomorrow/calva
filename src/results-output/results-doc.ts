@@ -237,7 +237,7 @@ let scrollToBottomSub: vscode.Disposable;
 export interface OnAppendedCallback {
     (insertLocation: vscode.Location, newPosition?: vscode.Location): any
 }
-const editQueue: [string, OnAppendedCallback][] = [];
+let editQueue: [string, OnAppendedCallback][] = [];
 let applyingEdit = false;
 /* Because this function can be called several times asynchronously by the handling of incoming nrepl messages and those,
    we should never await it, because that await could possibly not return until way later, after edits that came in from elsewhere
@@ -301,6 +301,11 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
             }
         });
     };
+}
+
+export function discardPendingPrints(): void {
+    editQueue = [];
+    appendPrompt();
 }
 
 export type OutputStacktraceEntry = { uri: vscode.Uri, line: number };

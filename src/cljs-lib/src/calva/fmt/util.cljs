@@ -1,6 +1,5 @@
 (ns calva.fmt.util
-  (:require [clojure.string]
-            [calva.js-utils :refer [cljify jsify]]))
+  (:require [clojure.string]))
 
 
 (defn log
