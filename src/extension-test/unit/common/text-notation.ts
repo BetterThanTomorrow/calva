@@ -1,23 +1,46 @@
 import * as mock from './mock';
-import { ModelEditSelection } from '../../../cursor-doc/model';
+import * as model from '../../../cursor-doc/model';
+
 
 /**
- * Utility function to get text and selection from dot-notated strings
- * Only handles translation of `•` to newline and `|` to selection for now
- * Also only considers left->right selections for now (left is anchor)
+ * Text Notation for expressing states of a document, including
+ * current text and selection. 
+ * * Since JavasScript makes it clumsy with multiline strings,
+ *   newlines are denoted with a middle dot character: `•`
+ * * Selections are denoted like so
+ *   * Single position selections are denoted with a single `|`.
+ *   * Selections w/o direction are denoted with `|` at the range's boundaries.
+ *   * Selections with direction left->right are denoted with `|>|` at the range boundaries
+ *   * Selections with direction left->right are denoted with `|<|` at the range boundaries
  */
-export function dotToNl(s: string): [string, ModelEditSelection] {
-    const text = s.replace(/•/g, '\n').replace(/\|/, '');
-    const left = s.indexOf('|');
-    let right = s.lastIndexOf('|');
-    if (right === left) {
-        right = undefined;
+
+export function dotToNl(s: string): [string, model.ModelEditSelection] {
+    const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
+    let anchor = undefined;
+    let active = undefined;
+    anchor = s.indexOf('|>|')
+    if (anchor >= 0) {
+        active = s.lastIndexOf('|>|') - 3;
     } else {
-        right--;
+        anchor = s.lastIndexOf('|<|');
+        if (anchor >= 0) {
+            anchor -= 3;
+            active = s.indexOf('|<|');
+        } else {
+            anchor = s.indexOf('|');
+            if (anchor >= 0) {
+                active = s.lastIndexOf('|');
+                if (active !== anchor) {
+                    active -= 1;
+                } else {
+                    active = undefined;
+                }
+            }
+        }
     }
     return [
         text,
-        new ModelEditSelection(left, right)
+        new model.ModelEditSelection(anchor, active)
     ];
 }
 
