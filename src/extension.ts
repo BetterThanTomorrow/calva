@@ -27,7 +27,6 @@ import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import * as config from './config';
-import handleNewCljFiles from './fileHandler';
 import * as snippets from './custom-snippets';
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
@@ -90,7 +89,6 @@ async function activate(context: vscode.ExtensionContext) {
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
     const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
-    const cljKondoExtension = vscode.extensions.getExtension('borkdude.clj-kondo');
     const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
     const customCljsRepl = config.getConfig().customCljsRepl;
     const replConnectSequences = config.getConfig().replConnectSequences;
@@ -117,10 +115,6 @@ async function activate(context: vscode.ExtensionContext) {
     }
 
     state.setExtensionContext(context);
-
-    if (cljKondoExtension) {
-        vscode.window.showWarningMessage("The clj-kondo extension is detected. You will see duplicate linting reports in some cases. Please uninstall the clj-kondo extension.", "Got it!");
-    }
 
     if (!fmtExtension) {
         try {
@@ -267,7 +261,6 @@ async function activate(context: vscode.ExtensionContext) {
             setKeybindingsEnabledContext();
         }
     }));
-    context.subscriptions.push(vscode.workspace.onDidCreateFiles(handleNewCljFiles));
 
     // Clojure debug adapter setup
     const provider = new debug.CalvaDebugConfigurationProvider();
