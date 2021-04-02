@@ -5,22 +5,7 @@ import { docFromDot, textAndSelection, dotToNl } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
 
 /**
- * Prose gets a bit clumsy when describing the expectations of many Paredit operations and functions.
- * Therefore we here use a made-up ”language” to denote things. We have:
- * * Forms, lists and symbols of different kinds.
- *   * The current form is denoted surrounded by `*`.
- * * Positions, identifying a position in the text
- *   * Positions that are port of something else are denoted differently depending, read on.
- * * Selections, something selected in the editor.
- *   * Selections have direction, an anchor position and an active position, the active position is where the caret is shown.
- *   * selections are denoted with `>` before and after forward selections, and using`<` for backward selections.
- *   * Single position selections are denoted with `><`.
- * * Ranges, used more internally (even if visible in the API) by Paredit to denote a range of positions in the text.
- *   * Ranges can have direction, but most often they don't.
- *   * Ranges w/o direction are denoted with `|` at the range's boundaries.
- *   * Ranges with direction are denoted with `>|` and `<|`, using the same semantics as selections.
- *   * Single position ranges are denoted with a single `|`.
- * * Newlines are denoted with `•`
+ * TODO: Use text-notation for these tests
  */
 
 describe('paredit', () => {
@@ -250,14 +235,21 @@ describe('paredit', () => {
     describe('selection', () => {
         describe('selectRangeBackward', () => {
             // TODO: Fix #498
-            it('(def foo [:foo >|:bar>| <:baz<]) => (def foo [:foo <:bar :baz<])', () => {
-                const bazSelection = new ModelEditSelection(24, 20),
-                    barRange = [15, 19] as [number, number],
-                    barBazSelection = new ModelEditSelection(24, 15);
-                doc.selection = bazSelection;
-                paredit.selectRangeBackward(doc, barRange);
-                expect(doc.selection).toEqual(barBazSelection);
+            it('Extends backward selections backwards', () => {
+                const a = docFromDot('(def foo [:foo :bar |<|:baz|<|])');
+                const selDoc = docFromDot('(def foo [:foo |:bar| :baz])');
+                const b = docFromDot('(def foo [:foo |<|:bar :baz|<|])');
+                paredit.selectRangeBackward(a, [selDoc.selection.anchor, selDoc.selection.active]);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
+            it('Contracts forward selection and extends backwards', () => {
+                const a = docFromDot('(def foo [:foo :bar |>|:baz|>|])');
+                const selDoc = docFromDot('(def foo [:foo |:bar| :baz])');
+                const b = docFromDot('(def foo [:foo |<|:bar |<|:baz])');
+                paredit.selectRangeBackward(a, [selDoc.selection.anchor, selDoc.selection.active]);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+
         });
 
         describe('selectRangeForward', () => {
