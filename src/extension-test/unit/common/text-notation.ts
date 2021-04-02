@@ -14,7 +14,7 @@ import * as model from '../../../cursor-doc/model';
  *   * Selections with direction left->right are denoted with `|<|` at the range boundaries
  */
 
-function dotToNl(s: string): [string, model.ModelEditSelection] {
+function textNotationToTextAndSelection(s: string): [string, { anchor: number, active: number }] {
     const text = s.replace(/•/g, '\n').replace(/\|?[<>]?\|/g, '');
     let anchor = undefined;
     let active = undefined;
@@ -40,19 +40,18 @@ function dotToNl(s: string): [string, model.ModelEditSelection] {
     }
     return [
         text,
-        new model.ModelEditSelection(anchor, active)
+        { anchor, active }
     ];
 }
 
 /**
- * Utility function to create a doc from dot-notated strings
- * Only handles translation of `•` to newline and `|` to selection for now
+ * Utility function to create a doc from text-notated strings
  */
-export function docFromDot(s: string): mock.MockDocument {
-    const [text, selection] = dotToNl(s);
+export function docFromTextNotation(s: string): mock.MockDocument {
+    const [text, selection] = textNotationToTextAndSelection(s);
     const doc = new mock.MockDocument();
     doc.insertString(text);
-    doc.selection = selection;
+    doc.selection = new model.ModelEditSelection(selection.anchor, selection.active);
     return doc;
 }
 
