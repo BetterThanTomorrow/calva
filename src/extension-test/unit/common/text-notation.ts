@@ -4,11 +4,20 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
 /**
  * Utility function to get text and selection from dot-notated strings
  * Only handles translation of `•` to newline and `|` to selection for now
+ * Also only considers left->right selections for now (left is anchor)
  */
- export function dotToNl(s: string): [string, ModelEditSelection] {
+export function dotToNl(s: string): [string, ModelEditSelection] {
+    const text = s.replace(/•/g, '\n').replace(/\|/, '');
+    const left = s.indexOf('|');
+    let right = s.lastIndexOf('|');
+    if (right === left) {
+        right = undefined;
+    } else {
+        right--;
+    }
     return [
-        s.replace(/•/g, '\n').replace(/\|/, ''),
-        new ModelEditSelection(s.indexOf('|'))
+        text,
+        new ModelEditSelection(left, right)
     ];
 }
 

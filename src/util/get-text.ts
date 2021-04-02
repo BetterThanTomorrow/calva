@@ -42,11 +42,10 @@ export function currentFunction(editor: vscode.TextEditor): SelectionAndText {
 export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAndText {
     if (editor) {
         const document = editor.document;
-        const cursorOffset = document.offsetAt(editor.selection.active);
-        const tokenCursor = docMirror.getDocument(document).getTokenCursor(cursorOffset);
-        const [range, text] = cursorTextGetter.currentTopLevelFunction(tokenCursor);
+        const mirrorDoc = docMirror.getDocument(document);
+        const [range, text] = cursorTextGetter.currentTopLevelFunction(mirrorDoc);
         if (range) {
-            return [select.selectionFromOffsetRange(document, range), text]; // TODO: Figure out which selection to return...
+            return [select.selectionFromOffsetRange(document, range), text];
         }
     }
     return [undefined, ''];
@@ -57,9 +56,7 @@ function fromFn(editor: vscode.TextEditor, cursorDocFn: Function): SelectionAndT
         const document = editor.document;
         const cursorDoc = docMirror.getDocument(document);
         const range = cursorDocFn(cursorDoc);
-        const selection = new vscode.Selection(
-            document.positionAt(range[0]),
-            document.positionAt(range[1]))
+        const selection = select.selectionFromOffsetRange(document, range);
         const text = document.getText(selection);
         return [selection, text];
     }

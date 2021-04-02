@@ -1,14 +1,16 @@
-/* Functions for getting text given only a cursor
+/* Functions for getting text given only cursor-doc related input
  * Can be unit tested since vscode and stuff is not imported 
- */
+*/
+
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
+import { EditableDocument } from "../cursor-doc/model";
 
 export type RangeAndText = [[number, number], string];
 
-export function currentTopLevelFunction(tokenCursor: LispTokenCursor): RangeAndText {
-    const defunCursor = tokenCursor.doc.getTokenCursor(0);
-    const defunStart = defunCursor.rangeForDefun(tokenCursor.offsetStart)[0];
-    const cursor = tokenCursor.doc.getTokenCursor(defunStart);
+export function currentTopLevelFunction(doc: EditableDocument): RangeAndText {
+    const defunCursor = doc.getTokenCursor(0);
+    const defunStart = defunCursor.rangeForDefun(doc.selection.active)[0];
+    const cursor = doc.getTokenCursor(defunStart);
     while (cursor.downList()) {
         cursor.forwardWhitespace();
         while (cursor.forwardSexp(true, true, true)) {
