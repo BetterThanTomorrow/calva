@@ -534,27 +534,54 @@ describe('paredit', () => {
             expect(doc.selection).toEqual(new ModelEditSelection(caret + 1));
         });
         it('slurps form after list', () => {
-            const doc: mock.MockDocument = new mock.MockDocument();
-            const oldText = '(str) "foo"';
-            const newText = '(str "foo")';
-            const caret = 2;
-            doc.insertString(oldText);
-            doc.selection = new ModelEditSelection(caret);
-            paredit.forwardSlurpSexp(doc);
-            expect(doc.model.getText(0, Infinity)).toBe(newText);
-            expect(doc.selection).toEqual(new ModelEditSelection(caret));
+            const a = docFromTextNotation('(str|) "foo"');
+            const b = docFromTextNotation('(str| "foo")');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
-        it('slurps and adds leading space if form after list lacks it', () => {
-            const doc: mock.MockDocument = new mock.MockDocument();
-            const oldText = '(str)#(foo)';
-            const newText = '(str #(foo))';
-            const caret = 2;
-            doc.insertString(oldText);
-            doc.selection = new ModelEditSelection(caret);
-            paredit.forwardSlurpSexp(doc);
-            expect(doc.model.getText(0, Infinity)).toBe(newText);
-            expect(doc.selection).toEqual(new ModelEditSelection(caret));
+        it('slurps, in multiline document', () => {
+            const a = docFromTextNotation('(foo• (str| ) "foo")');
+            const b = docFromTextNotation('(foo• (str| "foo"))');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
+        it('slurps and adds leading space', () => {
+            const a = docFromTextNotation('(s|tr)#(foo)');
+            const b = docFromTextNotation('(s|tr #(foo))');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps without adding a space', () => {
+            const a = docFromTextNotation('(s|tr )#(foo)');
+            const b = docFromTextNotation('(s|tr #(foo))');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps, trimming inside whitespace', () => {
+            const a = docFromTextNotation('(str|   )"foo"');
+            const b = docFromTextNotation('(str| "foo")');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps, trimming outside whitespace', () => {
+            const a = docFromTextNotation('(str|)   "foo"');
+            const b = docFromTextNotation('(str| "foo")');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps, trimming inside and outside whitespace', () => {
+            const a = docFromTextNotation('(str|   )   "foo"');
+            const b = docFromTextNotation('(str| "foo")');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+        it('slurps form after empty list', () => {
+            const a = docFromTextNotation('(|) "foo"');
+            const b = docFromTextNotation('(| "foo")');
+            paredit.forwardSlurpSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        });
+
         it('raises the current form when cursor is preceeding', () => {
             const doc: mock.MockDocument = new mock.MockDocument();
             const oldText = '(str #(foo))';

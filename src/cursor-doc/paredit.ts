@@ -334,16 +334,22 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
     if (cursor.getToken().type == "close") {
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
+        const insideWsCursor = cursor.clone();
+        insideWsCursor.backwardWhitespace(false);
+        const tokenInside = insideWsCursor.getToken();
+        const hasWsInside = tokenInside.type === 'ws';
+        const insideWs = hasWsInside ? tokenInside.raw : '';
+        const insideWsStart = insideWsCursor.offsetStart;
         cursor.next();
-        const hasWs = cursor.getToken().type === 'ws';
+        const tokenOutside = cursor.getToken();
+        const hasWsOutside = tokenOutside.type === 'ws';
+        const outsideWs = hasWsOutside ? tokenOutside.raw : '';
         cursor.forwardSexp();
         cursor.backwardWhitespace(false);
         if (cursor.offsetStart !== offset + close.length) {
             doc.model.edit([
                 new ModelEdit('insertString', [cursor.offsetStart, close]),
-                !hasWs ?
-                    new ModelEdit('changeRange', [offset, offset + close.length, ' ']) :
-                    new ModelEdit('deleteRange', [offset, close.length])
+                new ModelEdit('changeRange', [insideWsStart, insideWsStart + insideWs.length + close.length + outsideWs.length, ' '])
             ], {
                 ...{
                     undoStopBefore: true
