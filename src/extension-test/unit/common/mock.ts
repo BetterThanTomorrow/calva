@@ -30,8 +30,16 @@ export class MockDocument implements model.EditableDocument {
 
     getSelectionText: () => string;
 
-    delete: () => void;
-
+    delete(){
+        // TODO: Figure if this mock really should implement this
+        //       Maybe this class should be a more complete implementation
+        //       in the cursor-doc (i.e. not a test utility)?
+        const p = this.selectionLeft;
+        this.model.edit([
+            new model.ModelEdit('deleteRange', [p, 1])
+        ], { selection: new model.ModelEditSelection(p) });
+    };
+    
     backspace() {
         // TODO: Figure if this mock really should implement this
         //       Maybe this class should be a more complete implementation

@@ -451,7 +451,6 @@ export function close(doc: EditableDocument, close: string, start: number = doc.
     }
 }
 
-const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
@@ -493,11 +492,13 @@ export function deleteForward(doc: EditableDocument, start: number = doc.selecti
     if (start != end || cursor.withinString()) {
         doc.delete();
     } else {
+        const prevToken = cursor.getPrevToken();
+        const nextToken = cursor.getToken();
         const p = start;
-        if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
+        if (prevToken.type === 'open' && nextToken.type === 'close') {
             doc.model.edit([
-                new ModelEdit('deleteRange', [p - 1, 2])
-            ], {});
+                new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
+            ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
             const nextChar = doc.model.getText(p, p + 1);
             if (openParen.has(nextChar) && cursor.forwardSexp() || closeParen.has(nextChar) && cursor.backwardList()) {

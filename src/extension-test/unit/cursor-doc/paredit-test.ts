@@ -592,8 +592,8 @@ describe('paredit', () => {
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
-        describe('Backspace', () => {
-            it('Leaves closing paren alone', () => {
+        describe('Kill character backwards (backspace)', () => {
+            it('Leaves closing paren of empty list alone', () => {
                 const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
                 paredit.backspace(a);
@@ -628,6 +628,46 @@ describe('paredit', () => {
                 const a = docFromTextNotation('{::foo #(|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
                 paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+        });
+
+        describe('Kill character forwards (delete)', () => {
+            it('Leaves opening paren of empty list alone', () => {
+                const a = docFromTextNotation('{::foo |()• ::bar :foo}');
+                const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                paredit.deleteForward(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Leaves opening paren of non-empty list alone', () => {
+                const a = docFromTextNotation('{::foo |(a)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo (|a)• ::bar :foo}');
+                paredit.deleteForward(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes contents in list', () => {
+                const a = docFromTextNotation('{::foo (|a)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                paredit.deleteForward(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes empty list function gracefully', () => {
+                const a = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |• ::bar :foo}');
+                paredit.deleteForward(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes empty set ', () => {
+                const a = docFromTextNotation('#{|}');
+                const b = docFromTextNotation('|');
+                paredit.deleteForward(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes empty literal function with trailing newline', () => {
+                // https://github.com/BetterThanTomorrow/calva/issues/1079
+                const a = docFromTextNotation('{::foo #(|)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |• ::bar :foo}');
+                paredit.deleteForward(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
