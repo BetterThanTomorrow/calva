@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.185",
+    "version": "2.0.185-monorepo-proj-root-dir",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -371,6 +371,11 @@
                                 "afterCLJReplJackInCode": {
                                     "type": "string",
                                     "description": "Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.",
+                                    "required": false
+                                },
+                                "projectRootDir": {
+                                    "type": "string",
+                                    "descripion": "The root directory to execute the Jack-in command from.  This will override the default behavior for determining the root directory relative to the current open file.  This is useful for working in monorepos.",
                                     "required": false
                                 },
                                 "menuSelections": {

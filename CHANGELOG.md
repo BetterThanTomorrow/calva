@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add option to specify project root directory](https://github.com/BetterThanTomorrow/calva/issues/579)
 
 ## [2.0.184] - 2021-04-02
 - Fix: [Calva not detecting tests with aliased clojure.test namespace](https://github.com/BetterThanTomorrow/calva/issues/1086)

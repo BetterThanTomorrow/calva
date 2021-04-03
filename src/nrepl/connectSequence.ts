@@ -46,6 +46,7 @@ interface ReplConnectSequence {
     name: string,
     projectType: ProjectTypes,
     afterCLJReplJackInCode?: string,
+    projectRootDir?: string,
     cljsType: CljsTypes | CljsTypeConfig,
     menuSelections?: MenuSelections,
     nReplPortFile?: string[]

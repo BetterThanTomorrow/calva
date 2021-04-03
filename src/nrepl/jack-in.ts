@@ -212,14 +212,20 @@ export async function jackIn(connectSequence: ReplConnectSequence, cb?: Function
             return;
         }
     }
-    if (projectConnectSequence) {
-        const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
-        if (terminalJackInOptions) {
-            await executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
-        }
-    } else {
+
+    if (!projectConnectSequence) {
         vscode.window.showInformationMessage('No supported project types detected. Maybe try starting your project manually and use the Connect command?');
         return;
+    }
+
+    if (projectConnectSequence.projectRootDir) {
+      const rootDirPath = state.resolvePath(projectConnectSequence.projectRootDir);
+      await state.initProjectDir(vscode.Uri.parse(rootDirPath))
+    }
+
+    const terminalJackInOptions = await getJackInTerminalOptions(projectConnectSequence);
+    if (terminalJackInOptions) {
+        await executeJackInTask(terminalJackInOptions, projectConnectSequence, cb);
     }
 
     liveShareSupport.didJackIn();
