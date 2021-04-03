@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
 
 ## [2.0.184] - 2021-04-02
 - Fix: [Calva not detecting tests with aliased clojure.test namespace](https://github.com/BetterThanTomorrow/calva/issues/1086)
