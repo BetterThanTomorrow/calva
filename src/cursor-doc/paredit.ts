@@ -460,10 +460,12 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
     if (start != end || cursor.withinString()) {
         doc.backspace();
     } else {
+        const prevToken = cursor.getPrevToken();
+        const nextToken = cursor.getToken();
         const p = start;
-        if (cursor.getPrevToken().type == 'prompt') {
+        if (prevToken.type == 'prompt') {
             return;
-        } else if (cursor.getToken().type == 'prompt') {
+        } else if (nextToken.type == 'prompt') {
             return;
         } else if (doc.model.getText(p - 3, p, true) == '\\""') {
             doc.selection = new ModelEditSelection(p - 1);
@@ -471,10 +473,10 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
             doc.model.edit([
                 new ModelEdit('deleteRange', [p - 2, 2])
             ], { selection: new ModelEditSelection(p - 2) });
-        } else if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
+        } else if (prevToken.type === 'open' && nextToken.type === 'close') {
             doc.model.edit([
-                new ModelEdit('deleteRange', [p - 1, 2])
-            ], { selection: new ModelEditSelection(p - 1) });
+                new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
+            ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
             const prevChar = doc.model.getText(p - 1, p);
             if (openParen.has(prevChar) && cursor.forwardList() || closeParen.has(prevChar) && cursor.backwardSexp()) {

@@ -513,78 +513,123 @@ describe('paredit', () => {
         });
     });
     describe('edits', () => {
-        it('Closes list', () => {
-            const a = docFromTextNotation('(str "foo"|)');
-            const b = docFromTextNotation('(str "foo")|');
-            paredit.close(a, ')');
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        describe('Close lists', () => {
+            it('Leaves closed list alone when at end of list', () => {
+                const a = docFromTextNotation('(str "foo"|)');
+                const b = docFromTextNotation('(str "foo")|');
+                paredit.close(a, ')');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
         });
-        it('Closes quote at end of string', () => {
-            const a = docFromTextNotation('(str "foo|")');
-            const b = docFromTextNotation('(str "foo"|)');
-            paredit.stringQuote(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        describe('String quoting', () => {
+            it('Closes quote at end of string', () => {
+                const a = docFromTextNotation('(str "foo|")');
+                const b = docFromTextNotation('(str "foo"|)');
+                paredit.stringQuote(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
         });
-        it('slurps form after list', () => {
-            const a = docFromTextNotation('(str|) "foo"');
-            const b = docFromTextNotation('(str| "foo")');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps, in multiline document', () => {
-            const a = docFromTextNotation('(foo• (str| ) "foo")');
-            const b = docFromTextNotation('(foo• (str| "foo"))');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps and adds leading space', () => {
-            const a = docFromTextNotation('(s|tr)#(foo)');
-            const b = docFromTextNotation('(s|tr #(foo))');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps without adding a space', () => {
-            const a = docFromTextNotation('(s|tr )#(foo)');
-            const b = docFromTextNotation('(s|tr #(foo))');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps, trimming inside whitespace', () => {
-            const a = docFromTextNotation('(str|   )"foo"');
-            const b = docFromTextNotation('(str| "foo")');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps, trimming outside whitespace', () => {
-            const a = docFromTextNotation('(str|)   "foo"');
-            const b = docFromTextNotation('(str| "foo")');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps, trimming inside and outside whitespace', () => {
-            const a = docFromTextNotation('(str|   )   "foo"');
-            const b = docFromTextNotation('(str| "foo")');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
-        it('slurps form after empty list', () => {
-            const a = docFromTextNotation('(|) "foo"');
-            const b = docFromTextNotation('(| "foo")');
-            paredit.forwardSlurpSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
-        });
+        describe('Slurping', () => {
+            it('slurps form after list', () => {
+                const a = docFromTextNotation('(str|) "foo"');
+                const b = docFromTextNotation('(str| "foo")');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps, in multiline document', () => {
+                const a = docFromTextNotation('(foo• (str| ) "foo")');
+                const b = docFromTextNotation('(foo• (str| "foo"))');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps and adds leading space', () => {
+                const a = docFromTextNotation('(s|tr)#(foo)');
+                const b = docFromTextNotation('(s|tr #(foo))');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps without adding a space', () => {
+                const a = docFromTextNotation('(s|tr )#(foo)');
+                const b = docFromTextNotation('(s|tr #(foo))');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps, trimming inside whitespace', () => {
+                const a = docFromTextNotation('(str|   )"foo"');
+                const b = docFromTextNotation('(str| "foo")');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps, trimming outside whitespace', () => {
+                const a = docFromTextNotation('(str|)   "foo"');
+                const b = docFromTextNotation('(str| "foo")');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps, trimming inside and outside whitespace', () => {
+                const a = docFromTextNotation('(str|   )   "foo"');
+                const b = docFromTextNotation('(str| "foo")');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps form after empty list', () => {
+                const a = docFromTextNotation('(|) "foo"');
+                const b = docFromTextNotation('(| "foo")');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
 
-        it('raises the current form when cursor is preceeding', () => {
-            const a = docFromTextNotation('(comment•  (str |#(foo)))');
-            const b = docFromTextNotation('(comment•  |#(foo))');
-            paredit.raiseSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            it('raises the current form when cursor is preceeding', () => {
+                const a = docFromTextNotation('(comment•  (str |#(foo)))');
+                const b = docFromTextNotation('(comment•  |#(foo))');
+                paredit.raiseSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('raises the current form when cursor is trailing', () => {
+                const a = docFromTextNotation('(comment•  (str #(foo)|))');
+                const b = docFromTextNotation('(comment•  #(foo)|)');
+                paredit.raiseSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
         });
-        it('raises the current form when cursor is trailing', () => {
-            const a = docFromTextNotation('(comment•  (str #(foo)|))');
-            const b = docFromTextNotation('(comment•  #(foo)|)');
-            paredit.raiseSexp(a);
-            expect(textAndSelection(a)).toEqual(textAndSelection(b));
+        describe('Backspace', () => {
+            it('Leaves closing paren alone', () => {
+                const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
+                const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Leaves opening paren of non-empty list alone', () => {
+                const a = docFromTextNotation('{::foo (|a)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |(a)• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes contents in list', () => {
+                const a = docFromTextNotation('{::foo (a|)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes empty list function gracefully', () => {
+                const a = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes empty set ', () => {
+                const a = docFromTextNotation('#{|}');
+                const b = docFromTextNotation('|');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes empty literal function with trailing newline', () => {
+                // https://github.com/BetterThanTomorrow/calva/issues/1079
+                const a = docFromTextNotation('{::foo #(|)• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
         });
     });
 });
