@@ -514,24 +514,16 @@ describe('paredit', () => {
     });
     describe('edits', () => {
         it('Closes list', () => {
-            const doc: mock.MockDocument = new mock.MockDocument(),
-                text = '(str "foo")',
-                caret = 10;
-            doc.insertString(text);
-            doc.selection = new ModelEditSelection(caret);
-            paredit.close(doc, ')');
-            expect(doc.model.getText(0, Infinity)).toBe(text);
-            expect(doc.selection).toEqual(new ModelEditSelection(caret + 1));
+            const a = docFromTextNotation('(str "foo"|)');
+            const b = docFromTextNotation('(str "foo")|');
+            paredit.close(a, ')');
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
         it('Closes quote at end of string', () => {
-            const doc: mock.MockDocument = new mock.MockDocument(),
-                text = '(str "foo")',
-                caret = 9;
-            doc.insertString(text);
-            doc.selection = new ModelEditSelection(caret);
-            paredit.stringQuote(doc);
-            expect(doc.model.getText(0, Infinity)).toBe(text);
-            expect(doc.selection).toEqual(new ModelEditSelection(caret + 1));
+            const a = docFromTextNotation('(str "foo|")');
+            const b = docFromTextNotation('(str "foo"|)');
+            paredit.stringQuote(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
         it('slurps form after list', () => {
             const a = docFromTextNotation('(str|) "foo"');
@@ -583,28 +575,16 @@ describe('paredit', () => {
         });
 
         it('raises the current form when cursor is preceeding', () => {
-            const doc: mock.MockDocument = new mock.MockDocument();
-            const oldText = '(str #(foo))';
-            const newText = '#(foo)';
-            const oldCaret = 5;
-            const newCaret = 0;
-            doc.insertString(oldText);
-            doc.selection = new ModelEditSelection(oldCaret);
-            paredit.raiseSexp(doc);
-            expect(doc.model.getText(0, Infinity)).toBe(newText);
-            expect(doc.selection).toEqual(new ModelEditSelection(newCaret));
+            const a = docFromTextNotation('(comment•  (str |#(foo)))');
+            const b = docFromTextNotation('(comment•  |#(foo))');
+            paredit.raiseSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
         it('raises the current form when cursor is trailing', () => {
-            const doc: mock.MockDocument = new mock.MockDocument();
-            const oldText = '(str #(foo))\n';
-            const newText = '#(foo)\n';
-            const oldCaret = 11;
-            const newCaret = 6;
-            doc.insertString(oldText);
-            doc.selection = new ModelEditSelection(oldCaret);
-            paredit.raiseSexp(doc);
-            expect(doc.model.getText(0, Infinity)).toBe(newText);
-            expect(doc.selection).toEqual(new ModelEditSelection(newCaret));
+            const a = docFromTextNotation('(comment•  (str #(foo)|))');
+            const b = docFromTextNotation('(comment•  #(foo)|)');
+            paredit.raiseSexp(a);
+            expect(textAndSelection(a)).toEqual(textAndSelection(b));
         });
     });
 });
