@@ -209,7 +209,10 @@ function getConnectSequences(projectTypes: string[]): ReplConnectSequence[] {
     const customSequences = getCustomConnectSequences();
     const defSequences = projectTypes.reduce((seqs, projectType) => seqs.concat(defaultSequences[projectType]), []);
     const defSequenceProjectTypes = [...new Set(defSequences.map(s => s.projectType))];
-    const sequences = customSequences.filter(customSequence => defSequenceProjectTypes.includes(customSequence.projectType)).concat(defSequences);
+  const sequences = customSequences.filter(customSequence =>
+      !!customSequence.projectRootDir
+      || defSequenceProjectTypes.includes(customSequence.projectType)
+  ).concat(defSequences);
     return sequences;
 }
 
