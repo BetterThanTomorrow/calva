@@ -448,11 +448,12 @@ function docIsBalanced(doc: EditableDocument, start: number = doc.selection.acti
 
 export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
+    const inString = cursor.withinString();
     cursor.forwardWhitespace(false);
     if (cursor.getToken().raw === close) {
         doc.selection = new ModelEditSelection(cursor.offsetEnd);
     } else {
-        if (docIsBalanced(doc)) {
+        if (!inString && docIsBalanced(doc)) {
             // Do nothing when there is balance
         } else {
             doc.model.edit([
