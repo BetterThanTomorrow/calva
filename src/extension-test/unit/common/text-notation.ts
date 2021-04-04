@@ -33,7 +33,7 @@ function textNotationToTextAndSelection(s: string): [string, { anchor: number, a
                 if (active !== anchor) {
                     active -= 1;
                 } else {
-                    active = undefined;
+                    active = anchor;
                 }
             }
         }

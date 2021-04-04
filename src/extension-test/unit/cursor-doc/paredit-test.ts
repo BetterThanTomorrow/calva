@@ -631,6 +631,30 @@ describe('paredit', () => {
                 paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
+            it('Leaves opening quote of non-empty string alone', () => {
+                const a = docFromTextNotation('{::foo "|a"• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |"a"• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Leaves closing quote of non-empty string alone', () => {
+                const a = docFromTextNotation('{::foo "a"|• ::bar :foo}');
+                const b = docFromTextNotation('{::foo "a|"• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes contents in strings', () => {
+                const a = docFromTextNotation('{::foo "a|"• ::bar :foo}');
+                const b = docFromTextNotation('{::foo "|"• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes contents in strings 2', () => {
+                const a = docFromTextNotation('{::foo "a|a"• ::bar :foo}');
+                const b = docFromTextNotation('{::foo "|a"• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
             it('Deletes contents in list', () => {
                 const a = docFromTextNotation('{::foo (a|)• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');

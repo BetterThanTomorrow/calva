@@ -468,12 +468,12 @@ const closeParen = new Set([")", "]", "}", '"'])
 
 export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
-    if (start != end || cursor.withinString()) {
+    if (start != end /*|| cursor.withinString()*/) {
         return doc.backspace();
     } else {
-        const prevToken = cursor.getPrevToken();
         const nextToken = cursor.getToken();
         const p = start;
+        const prevToken = p > cursor.offsetStart ? nextToken : cursor.getPrevToken();
         if (prevToken.type == 'prompt') {
             return new Promise<boolean>(resolve => resolve(true));
         } else if (nextToken.type == 'prompt') {
