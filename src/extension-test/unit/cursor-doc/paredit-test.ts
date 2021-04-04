@@ -514,9 +514,27 @@ describe('paredit', () => {
     });
     describe('edits', () => {
         describe('Close lists', () => {
-            it('Leaves closed list alone when at end of list', () => {
+            it('Advances cursor if at end of list of the same type', () => {
                 const a = docFromTextNotation('(str "foo"|)');
                 const b = docFromTextNotation('(str "foo")|');
+                paredit.close(a, ')');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Does not enter new closing parens in balanced doc', () => {
+                const a = docFromTextNotation('(str |"foo")');
+                const b = docFromTextNotation('(str |"foo")');
+                paredit.close(a, ')');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Enter new closing parens in unbalanced doc', () => {
+                const a = docFromTextNotation('(str |"foo"');
+                const b = docFromTextNotation('(str )|"foo"');
+                paredit.close(a, ')');
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Enter new closing parens in string', () => {
+                const a = docFromTextNotation('(str "|foo"');
+                const b = docFromTextNotation('(str ")|foo"');
                 paredit.close(a, ')');
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
@@ -596,6 +614,12 @@ describe('paredit', () => {
             it('Leaves closing paren of empty list alone', () => {
                 const a = docFromTextNotation('{::foo ()|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo (|)• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes closing paren if unbalance', () => {
+                const a = docFromTextNotation('{::foo )|• ::bar :foo}');
+                const b = docFromTextNotation('{::foo |• ::bar :foo}');
                 paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });

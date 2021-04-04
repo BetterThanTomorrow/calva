@@ -35,7 +35,7 @@ export class MockDocument implements model.EditableDocument {
         //       Maybe this class should be a more complete implementation
         //       in the cursor-doc (i.e. not a test utility)?
         const p = this.selectionLeft;
-        this.model.edit([
+        return this.model.edit([
             new model.ModelEdit('deleteRange', [p, 1])
         ], { selection: new model.ModelEditSelection(p) });
     };
@@ -45,7 +45,7 @@ export class MockDocument implements model.EditableDocument {
         //       Maybe this class should be a more complete implementation
         //       in the cursor-doc (i.e. not a test utility)?
         const p = this.selectionLeft;
-        this.model.edit([
+        return this.model.edit([
             new model.ModelEdit('deleteRange', [p - 1, 1])
         ], { selection: new model.ModelEditSelection(p - 1) });
     };

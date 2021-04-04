@@ -439,49 +439,71 @@ export function open(doc: EditableDocument, open: string, close: string, start: 
     }
 }
 
+function docIsBalanced(doc: EditableDocument, start: number = doc.selection.active): boolean {
+    const cursor = doc.getTokenCursor(0);
+    while (cursor.forwardSexp(true, true, true));
+    cursor.forwardWhitespace(true);
+    return cursor.atEnd();
+}
+
 export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
     cursor.forwardWhitespace(false);
-    if (cursor.getToken().raw == close) {
-        doc.selection = new ModelEditSelection(start + close.length);
+    if (cursor.getToken().raw === close) {
+        doc.selection = new ModelEditSelection(cursor.offsetEnd);
     } else {
-        doc.model.edit([
-            new ModelEdit('changeRange', [start, start, close])
-        ], { selection: new ModelEditSelection(start + close.length) });
+        if (docIsBalanced(doc)) {
+            // Do nothing when there is balance
+        } else {
+            doc.model.edit([
+                new ModelEdit('insertString', [start, close])
+            ], { selection: new ModelEditSelection(start + close.length) });
+        }
     }
 }
 
 const openParen = new Set(["(", "[", "{", '"'])
 const closeParen = new Set([")", "]", "}", '"'])
 
-export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
+export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     if (start != end || cursor.withinString()) {
-        doc.backspace();
+        return doc.backspace();
     } else {
         const prevToken = cursor.getPrevToken();
         const nextToken = cursor.getToken();
         const p = start;
         if (prevToken.type == 'prompt') {
-            return;
+            return new Promise<boolean>(resolve => resolve(true));
         } else if (nextToken.type == 'prompt') {
-            return;
+            return new Promise<boolean>(resolve => resolve(true));
         } else if (doc.model.getText(p - 3, p, true) == '\\""') {
             doc.selection = new ModelEditSelection(p - 1);
+            return new Promise<boolean>(resolve => resolve(true));
         } else if (doc.model.getText(p - 2, p - 1, true) == '\\') {
-            doc.model.edit([
+            return doc.model.edit([
                 new ModelEdit('deleteRange', [p - 2, 2])
             ], { selection: new ModelEditSelection(p - 2) });
         } else if (prevToken.type === 'open' && nextToken.type === 'close') {
-            doc.model.edit([
+            return doc.model.edit([
                 new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
             ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
-            const prevChar = doc.model.getText(p - 1, p);
-            if (openParen.has(prevChar) && cursor.forwardList() || closeParen.has(prevChar) && cursor.backwardSexp()) {
+            let balanceProtection = false;
+            let isBalance = false;
+            if (prevToken.type === 'close') {
+                balanceProtection = true;
+                isBalance = docIsBalanced(doc);
+            }
+            else if (prevToken.type === 'open') {
+                balanceProtection = true;
+                isBalance = docIsBalanced(doc);
+            }
+            if (balanceProtection && isBalance) {
                 doc.selection = new ModelEditSelection(p - 1);
+                return new Promise<boolean>(resolve => resolve(true));
             } else {
-                doc.backspace();
+                return doc.backspace();
             }
         }
     }
