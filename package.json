@@ -538,6 +538,11 @@
                             "none"
                         ],
                         "scope": "window"
+                    },
+                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
+                        "type": "boolean",
+                        "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "default": false
                     }
                 }
             },

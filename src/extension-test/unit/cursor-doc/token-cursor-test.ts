@@ -1,6 +1,7 @@
 import * as expect from 'expect';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import * as mock from '../common/mock';
+import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Token Cursor', () => {
     const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';
@@ -76,11 +77,26 @@ describe('Token Cursor', () => {
             expect(cursor.offsetStart).toBe(14);
         });
 
+        xit('Does not move past unbalanced top level form', () => {
+            //TODO: Figure out why this doesn't work
+            const d = docFromTextNotation('|(foo "bar"');
+            const cursor: LispTokenCursor = d.getTokenCursor(d.selectionLeft);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).toBe(d.selectionLeft);
+        });
+        xit('Does not move past unbalanced top level form', () => {
+            //TODO: Figure out why this breaks some tests run after this one
+            const d = docFromTextNotation('|(foo "bar');
+            const cursor: LispTokenCursor = d.getTokenCursor(d.selectionLeft);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).toBe(d.selectionLeft);
+        });
     });
 
     describe('backardSexp', () => {
         it('backwardSexp x4: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(31);
+            const d = docFromTextNotation(docText);
+            const cursor: LispTokenCursor = d.getTokenCursor(31);
             cursor.backwardSexp();
             expect(cursor.offsetStart).toBe(27);
             cursor.backwardSexp();

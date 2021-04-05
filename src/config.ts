@@ -31,6 +31,7 @@ const documentSelector = [
 // TODO find a way to validate the configs
 function getConfig() {
     const configOptions = vscode.workspace.getConfiguration('calva');
+    const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
@@ -55,7 +56,8 @@ function getConfig() {
         autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
         displayDiagnostics: configOptions.get('displayDiagnostics') as boolean,
-        hideReplUi: configOptions.get('hideReplUi') as boolean
+        hideReplUi: configOptions.get('hideReplUi') as boolean,
+        strictPreventUnmatchedClosingBracket: pareditOptions.get('strictPreventUnmatchedClosingBracket')
     };
 }
 

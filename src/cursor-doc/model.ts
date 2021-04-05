@@ -131,8 +131,8 @@ export interface EditableDocument {
     getTokenCursor: (offset?: number, previous?: boolean) => LispTokenCursor,
     insertString: (text: string) => void,
     getSelectionText: () => string,
-    delete: () => void,
-    backspace: () => void;
+    delete: () => Thenable<boolean>,
+    backspace: () => Thenable<boolean>;
 }
 
 /** The underlying model for the REPL readline. */
