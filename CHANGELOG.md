@@ -3,6 +3,17 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.185] - 2021-04-05
+- Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
+- Fix: [Delete empty literal function causes newline to be removed](https://github.com/BetterThanTomorrow/calva/issues/1079)
+- Add experimental setting to: [Prevent extra closing brackets in strict mode](https://github.com/BetterThanTomorrow/calva/issues/650)
+- Bump `clojure-lsp` to `2021.04.03-18.43.55`
+
+## [2.0.184] - 2021-04-02
+- Fix: [Calva not detecting tests with aliased clojure.test namespace](https://github.com/BetterThanTomorrow/calva/issues/1086)
+- Fix: [Auto-generated namespaces not working correctly in some cases](https://github.com/BetterThanTomorrow/calva/issues/1060)
+- [Make clojure-lsp version configurable by the user](https://github.com/BetterThanTomorrow/calva/issues/1088) and bump to `2021.03.30-20.42.34`
 - [Remove warning about clj-kondo extension](https://github.com/BetterThanTomorrow/calva/issues/1091)
 - [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
 

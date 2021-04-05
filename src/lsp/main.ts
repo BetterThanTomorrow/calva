@@ -22,8 +22,7 @@ function createClient(clojureLspPath: string): LanguageClient {
         },
         initializationOptions: {
             "dependency-scheme": "jar",
-            // LSP-TODO: Use lsp's feature and remove Calva's feature for this 
-            "auto-add-ns-to-new-files?": false,
+            "auto-add-ns-to-new-files?": true,
             "document-formatting?": false,
             "document-range-formatting?": false,
             "keep-require-at-start?": true,
@@ -235,8 +234,9 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     let clojureLspPath = getClojureLspPath(extensionPath, util.isWindows);
-    if (currentVersion !== config.CLOJURE_LSP_VERSION) {
-        const downloadPromise = downloadClojureLsp(context.extensionPath, config.CLOJURE_LSP_VERSION);
+    const configuredVersion: string = config.getConfig().clojureLspVersion;
+    if (currentVersion !== configuredVersion) {
+        const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
         vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
         clojureLspPath = await downloadPromise;
     }

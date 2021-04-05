@@ -55,7 +55,7 @@ You are in charge of how brackets and comments are highlighted via the `calva.hi
 !!! Note
     The VS Code built-in settings `editor.renderIndentGuides` and `editor.highlightActiveIndent` do not have any effect, since the former is switched off by the **Clojure Defaults**, mentioned above. Use Calva Highlight's `rainbowIndentGuides` and `highlightActiveIndent` instead. They are different from the built in ones in that they are independent, meaning you can choose to have active indent highlighted while the guides generally are not rendered (this is the default, even).
 
-## Automatic Parmaeter Hints Poppup
+## Automatic Parameter Hints Poppup
 
 Calva has helpful parameter hints to aid when typing function calls. They look like so:
 

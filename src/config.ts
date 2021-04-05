@@ -6,7 +6,6 @@ import { PrettyPrintingOptions } from './printer';
 const REPL_FILE_EXT = 'calva-repl';
 const KEYBINDINGS_ENABLED_CONFIG_KEY = 'calva.keybindingsEnabled';
 const KEYBINDINGS_ENABLED_CONTEXT_KEY = 'calva:keybindingsEnabled';
-const CLOJURE_LSP_VERSION = '2021.03.24-00.41.55';
 
 type ReplSessionType = 'clj' | 'cljs';
 
@@ -32,6 +31,7 @@ const documentSelector = [
 // TODO find a way to validate the configs
 function getConfig() {
     const configOptions = vscode.workspace.getConfiguration('calva');
+    const pareditOptions = vscode.workspace.getConfiguration('calva.paredit');
     return {
         format: configOptions.get("formatOnSave"),
         evaluate: configOptions.get("evalOnSave"),
@@ -39,6 +39,7 @@ function getConfig() {
         showDocstringInParameterHelp: configOptions.get("showDocstringInParameterHelp") as boolean,
         jackInEnv: configOptions.get("jackInEnv"),
         jackInDependencyVersions: configOptions.get("jackInDependencyVersions") as { JackInDependency: string },
+        clojureLspVersion: configOptions.get("clojureLspVersion") as string,
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
@@ -54,7 +55,8 @@ function getConfig() {
         autoOpenREPLWindow: configOptions.get("autoOpenREPLWindow") as boolean,
         autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
-        hideReplUi: configOptions.get('hideReplUi') as boolean
+        hideReplUi: configOptions.get('hideReplUi') as boolean,
+        strictPreventUnmatchedClosingBracket: pareditOptions.get('strictPreventUnmatchedClosingBracket')
     };
 }
 
@@ -62,7 +64,6 @@ export {
     REPL_FILE_EXT,
     KEYBINDINGS_ENABLED_CONFIG_KEY,
     KEYBINDINGS_ENABLED_CONTEXT_KEY,
-    CLOJURE_LSP_VERSION,
     documentSelector,
     ReplSessionType,
     getConfig
