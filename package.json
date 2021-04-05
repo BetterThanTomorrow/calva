@@ -512,11 +512,6 @@
                         "default": true,
                         "scope": "window"
                     },
-                    "calva.displayDiagnostics": {
-                        "type": "boolean",
-                        "markdownDescription": "Show linter warnings and other diagnostics",
-                        "default": true
-                    },
                     "calva.hideReplUi": {
                         "type": "boolean",
                         "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features.)",
