@@ -270,7 +270,7 @@
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.03.30-20.42.34",
+                        "default": "2021.04.03-18.43.55",
                         "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
                     },
                     "calva.openBrowserWhenFigwheelStarted": {

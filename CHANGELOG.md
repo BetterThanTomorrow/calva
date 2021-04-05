@@ -6,6 +6,7 @@ Changes to Calva.
 - Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
 - Fix: [Delete empty literal function causes newline to be removed](https://github.com/BetterThanTomorrow/calva/issues/1079)
 - Add experimental setting to: [Prevent extra closing brackets in strict mode](https://github.com/BetterThanTomorrow/calva/issues/650)
+- Bump `clojure-lsp` to `2021.04.03-18.43.55`
 
 ## [2.0.184] - 2021-04-02
 - Fix: [Calva not detecting tests with aliased clojure.test namespace](https://github.com/BetterThanTomorrow/calva/issues/1086)
