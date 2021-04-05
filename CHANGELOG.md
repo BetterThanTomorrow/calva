@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.185] - 2021-04-05
 - Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
 - Fix: [Delete empty literal function causes newline to be removed](https://github.com/BetterThanTomorrow/calva/issues/1079)
 - Add experimental setting to: [Prevent extra closing brackets in strict mode](https://github.com/BetterThanTomorrow/calva/issues/650)
