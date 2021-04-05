@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.184",
+    "version": "2.0.185",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -270,7 +270,7 @@
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.03.30-20.42.34",
+                        "default": "2021.04.03-18.43.55",
                         "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
@@ -538,6 +538,11 @@
                             "none"
                         ],
                         "scope": "window"
+                    },
+                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
+                        "type": "boolean",
+                        "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "default": false
                     }
                 }
             },

@@ -334,16 +334,22 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
     if (cursor.getToken().type == "close") {
         let offset = cursor.offsetStart;
         let close = cursor.getToken().raw;
+        const insideWsCursor = cursor.clone();
+        insideWsCursor.backwardWhitespace(false);
+        const tokenInside = insideWsCursor.getToken();
+        const hasWsInside = tokenInside.type === 'ws';
+        const insideWs = hasWsInside ? tokenInside.raw : '';
+        const insideWsStart = insideWsCursor.offsetStart;
         cursor.next();
-        const hasWs = cursor.getToken().type === 'ws';
+        const tokenOutside = cursor.getToken();
+        const hasWsOutside = tokenOutside.type === 'ws';
+        const outsideWs = hasWsOutside ? tokenOutside.raw : '';
         cursor.forwardSexp();
         cursor.backwardWhitespace(false);
         if (cursor.offsetStart !== offset + close.length) {
             doc.model.edit([
                 new ModelEdit('insertString', [cursor.offsetStart, close]),
-                !hasWs ?
-                    new ModelEdit('changeRange', [offset, offset + close.length, ' ']) :
-                    new ModelEdit('deleteRange', [offset, close.length])
+                new ModelEdit('changeRange', [insideWsStart, insideWsStart + insideWs.length + close.length + outsideWs.length, ' '])
             ], {
                 ...{
                     undoStopBefore: true
@@ -433,48 +439,56 @@ export function open(doc: EditableDocument, open: string, close: string, start: 
     }
 }
 
+function docIsBalanced(doc: EditableDocument, start: number = doc.selection.active): boolean {
+    const cursor = doc.getTokenCursor(0);
+    while (cursor.forwardSexp(true, true, true));
+    cursor.forwardWhitespace(true);
+    return cursor.atEnd();
+}
+
 export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
+    const inString = cursor.withinString();
     cursor.forwardWhitespace(false);
-    if (cursor.getToken().raw == close) {
-        doc.selection = new ModelEditSelection(start + close.length);
+    if (cursor.getToken().raw === close) {
+        doc.selection = new ModelEditSelection(cursor.offsetEnd);
     } else {
-        doc.model.edit([
-            new ModelEdit('changeRange', [start, start, close])
-        ], { selection: new ModelEditSelection(start + close.length) });
+        if (!inString && docIsBalanced(doc)) {
+            // Do nothing when there is balance
+        } else {
+            doc.model.edit([
+                new ModelEdit('insertString', [start, close])
+            ], { selection: new ModelEditSelection(start + close.length) });
+        }
     }
 }
 
-const parenPair = new Set(["()", "[]", "{}", '""', '\\"'])
-const openParen = new Set(["(", "[", "{", '"'])
-const closeParen = new Set([")", "]", "}", '"'])
-
-export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
+export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
-    if (start != end || cursor.withinString()) {
-        doc.backspace();
+    if (start != end) {
+        return doc.backspace();
     } else {
+        const nextToken = cursor.getToken();
         const p = start;
-        if (cursor.getPrevToken().type == 'prompt') {
-            return;
-        } else if (cursor.getToken().type == 'prompt') {
-            return;
-        } else if (doc.model.getText(p - 3, p, true) == '\\""') {
-            doc.selection = new ModelEditSelection(p - 1);
-        } else if (doc.model.getText(p - 2, p - 1, true) == '\\') {
-            doc.model.edit([
+        const prevToken = p > cursor.offsetStart ? nextToken : cursor.getPrevToken();
+        if (prevToken.type == 'prompt') {
+            return new Promise<boolean>(resolve => resolve(true));
+        } else if (nextToken.type == 'prompt') {
+            return new Promise<boolean>(resolve => resolve(true));
+        } else if (doc.model.getText(p - 2, p, true) == '\\"') {
+            return doc.model.edit([
                 new ModelEdit('deleteRange', [p - 2, 2])
             ], { selection: new ModelEditSelection(p - 2) });
-        } else if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
-            doc.model.edit([
-                new ModelEdit('deleteRange', [p - 1, 2])
-            ], { selection: new ModelEditSelection(p - 1) });
+        } else if (prevToken.type === 'open' && nextToken.type === 'close') {
+            return doc.model.edit([
+                new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
+            ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
-            const prevChar = doc.model.getText(p - 1, p);
-            if (openParen.has(prevChar) && cursor.forwardList() || closeParen.has(prevChar) && cursor.backwardSexp()) {
+            if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p - 1);
+                return new Promise<boolean>(resolve => resolve(true));
             } else {
-                doc.backspace();
+                return doc.backspace();
             }
         }
     }
@@ -482,20 +496,26 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
 
 export function deleteForward(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
     const cursor = doc.getTokenCursor(start);
-    if (start != end || cursor.withinString()) {
+    if (start != end) {
         doc.delete();
     } else {
+        const prevToken = cursor.getPrevToken();
+        const nextToken = cursor.getToken();
         const p = start;
-        if (parenPair.has(doc.model.getText(p - 1, p + 1, true))) {
+        if (doc.model.getText(p, p + 2, true) == '\\"') {
+            return doc.model.edit([
+                new ModelEdit('deleteRange', [p, 2])
+            ], { selection: new ModelEditSelection(p) });
+        } else if (prevToken.type === 'open' && nextToken.type === 'close') {
             doc.model.edit([
-                new ModelEdit('deleteRange', [p - 1, 2])
-            ], {});
+                new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
+            ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
-            const nextChar = doc.model.getText(p, p + 1);
-            if (openParen.has(nextChar) && cursor.forwardSexp() || closeParen.has(nextChar) && cursor.backwardList()) {
+            if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p + 1);
+                return new Promise<boolean>(resolve => resolve(true));
             } else {
-                doc.delete();
+                return doc.delete();
             }
         }
     }

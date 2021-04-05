@@ -1,269 +1,352 @@
 import * as expect from 'expect';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import * as mock from '../common/mock';
+import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Token Cursor', () => {
-    const docText = '(a(b(c\n#f\n(#b \n[:f :b :z])\n#z\n1)))';
-    let doc: mock.MockDocument;
-    let scratchDoc: mock.MockDocument;
-
-    beforeEach(() => {
-        doc = new mock.MockDocument();
-        doc.insertString(docText);
-
-        scratchDoc = new mock.MockDocument();
-    });
-
     describe('forwardSexp', () => {
-        it('forwardSexp x4: (a(b(|c•#f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(5);
+        it('moves from beginning to end of symbol', () => {
+            const a = docFromTextNotation('(a(b(|c•#f•(#b •[:f :b :z])•#z•1)))')
+            const b = docFromTextNotation('(a(b(c|•#f•(#b •[:f :b :z])•#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
-            expect(cursor.offsetStart).toBe(6);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('moves from beginning to end of nested list ', () => {
+            const a = docFromTextNotation('|(a(b(c•#f•(#b •[:f :b :z])•#z•1)))')
+            const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1)))|')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
-            expect(cursor.offsetStart).toBe(26);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Includes reader tag as part of a list form', () => {
+            const a = docFromTextNotation('(a(b(c|•#f•(#b •[:f :b :z])•#z•1)))')
+            const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])|•#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
-            expect(cursor.offsetStart).toBe(31);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Includes reader tag as part of a symbol', () => {
+            const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])|•#z•1)))')
+            const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp();
-            expect(cursor.offsetStart).toBe(31);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip over metadata if skipMetadata is true: (a| ^{:a 1} (= 1 1)) => (a ^{:a 1} (= 1 1)|)', () => {
-            scratchDoc.insertString('(a ^{:a 1} (= 1 1))');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Does not move out of a list', () => {
+            const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))')
+            const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Skip metadata if skipMetadata is true', () => {
+            const a = docFromTextNotation('(a |^{:a 1} (= 1 1))');
+            const b = docFromTextNotation('(a ^{:a 1} (= 1 1)|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true);
-            expect(cursor.offsetStart).toBe(18);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip over multiple metadata maps if skipMetadata is true: (a| ^{:a 1} ^{:b 2} (= 1 1)) => (a ^{:a 1} ^{:b 2} (= 1 1)|)', () => {
-            scratchDoc.insertString('(a ^{:a 1} ^{:b 2} (= 1 1)|');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Skips multiple metadata maps if skipMetadata is true', () => {
+            const a = docFromTextNotation('(a |^{:a 1} ^{:b 2} (= 1 1))');
+            const b = docFromTextNotation('(a ^{:a 1} ^{:b 2} (= 1 1)|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true);
-            expect(cursor.offsetStart).toBe(26);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip over symbol shorthand for metadata if skipMetadata is true: (a| ^String (= 1 1)) => (a ^String (= 1 1)|)', () => {
-            scratchDoc.insertString('(a ^String (= 1 1))');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Skips symbol shorthand for metadata if skipMetadata is true', () => {
+            const a = docFromTextNotation('(a| ^String (= 1 1))');
+            const b = docFromTextNotation('(a ^String (= 1 1)|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true);
-            expect(cursor.offsetStart).toBe(18);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip over keyword shorthand for metadata if skipMetadata is true: (a| ^:hello (= 1 1)) => (a ^:hello (= 1 1)|)', () => {
-            scratchDoc.insertString('(a ^:hello (= 1 1))');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Skips keyword shorthand for metadata if skipMetadata is true', () => {
+            const a = docFromTextNotation('(a| ^:hello (= 1 1))');
+            const b = docFromTextNotation('(a ^:hello (= 1 1)|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true);
-            expect(cursor.offsetStart).toBe(18);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip over multiple keyword shorthands for metadata if skipMetadata is true: (a| ^:hello ^:world (= 1 1)) => (a ^:hello ^:world (= 1 1)|)', () => {
-            scratchDoc.insertString('(a ^:hello ^:world (= 1 1))');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Skips multiple keyword shorthands for metadata if skipMetadata is true', () => {
+            const a = docFromTextNotation('(a| ^:hello ^:world (= 1 1))');
+            const b = docFromTextNotation('(a ^:hello ^:world (= 1 1)|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true);
-            expect(cursor.offsetStart).toBe(26);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip ignored forms if skipIgnoredForms is true: (a| #_1 #_2 3) => (a #_1 #_2 3|)', () => {
-            scratchDoc.insertString('(a #_1 #_2 3)');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Does not skip ignored forms if skipIgnoredForms is false', () => {
+            const a = docFromTextNotation('(a| #_1 #_2 3)');
+            const b = docFromTextNotation('(a #_|1 #_2 3)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
+            cursor.forwardSexp(true, true);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Skip ignored forms if skipIgnoredForms is true', () => {
+            const a = docFromTextNotation('(a| #_1 #_2 3)');
+            const b = docFromTextNotation('(a #_1 #_2 3|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true, true);
-            expect(cursor.offsetStart).toBe(12);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip stacked ignored forms if skipIgnoredForms is true: (a| #_ #_ 1 2 3) => (a #_ #_ 1 2 3|)', () => {
-            scratchDoc.insertString('(a #_ #_ 1 2 3)');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('should skip stacked ignored forms if skipIgnoredForms is true', () => {
+            const a = docFromTextNotation('(a| #_ #_ 1 2 3)');
+            const b = docFromTextNotation('(a #_ #_ 1 2 3|)');
+            const cursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardSexp(true, true, true);
-            expect(cursor.offsetStart).toBe(14);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
+        it.skip('Does not move past unbalanced top level form', () => {
+            //TODO: Figure out why this doesn't work
+            const d = docFromTextNotation('|(foo "bar"');
+            const cursor: LispTokenCursor = d.getTokenCursor(d.selectionLeft);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).toBe(d.selectionLeft);
+        });
+        it.skip('Does not move past unbalanced top level form', () => {
+            //TODO: Figure out why this breaks some tests run after this one
+            const d = docFromTextNotation('|(foo "bar');
+            const cursor: LispTokenCursor = d.getTokenCursor(d.selectionLeft);
+            cursor.forwardSexp();
+            expect(cursor.offsetStart).toBe(d.selectionLeft);
+        });
     });
 
     describe('backardSexp', () => {
-        it('backwardSexp x4: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(31);
+        it('moves from end to beginning of symbol', () => {
+            const a = docFromTextNotation('(a(b(c|•#f•(#b •[:f :b :z])•#z•1)))')
+            const b = docFromTextNotation('(a(b(|c•#f•(#b •[:f :b :z])•#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.backwardSexp();
-            expect(cursor.offsetStart).toBe(27);
-            cursor.backwardSexp();
-            expect(cursor.offsetStart).toBe(7);
-            cursor.backwardSexp();
-            expect(cursor.offsetStart).toBe(5);
-            cursor.backwardSexp();
-            expect(cursor.offsetStart).toBe(5);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
+        it('moves from end to beginning of nested list ', () => {
+            const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1)))|')
+            const b = docFromTextNotation('|(a(b(c•#f•(#b •[:f :b :z])•#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Includes reader tag as part of a list form', () => {
+            const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])|•#z•1)))')
+            const b = docFromTextNotation('(a(b(c•|#f•(#b •[:f :b :z])•#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Includes reader tag as part of a symbol', () => {
+            const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))')
+            const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•|#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Does not move out of a list', () => {
+            const a = docFromTextNotation('(a(|b(c•#f•(#b •[:f :b :z])•#z•1)))')
+            const b = docFromTextNotation('(a(|b(c•#f•(#b •[:f :b :z])•#z•1)))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
     });
 
     describe('downList', () => {
 
-        it('should put cursor to the right of the following open paren: (a |(b 1) => (a (|b 1)', () => {
-            scratchDoc.insertString('(a (b 1))');
-            const cursor = scratchDoc.getTokenCursor(3);
+        it('Puts cursor to the right of the following open paren', () => {
+            const a = docFromTextNotation('(a |(b 1))')
+            const b = docFromTextNotation('(a (|b 1))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList();
-            expect(cursor.offsetStart).toBe(4);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should put cursor to the right of the following open curly brace: (a |{:b 1})) => (a {|:b 1}))', () => {
-            scratchDoc.insertString('(a {:b 1}))');
-            const cursor = scratchDoc.getTokenCursor(3);
+        it('Puts cursor to the right of the following open curly brace:', () => {
+            const a = docFromTextNotation('(a |{:b 1}))')
+            const b = docFromTextNotation('(a {|:b 1}))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList();
-            expect(cursor.offsetStart).toBe(4);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should put cursor to the right of the following open bracket: (a |[1 2])) => (a [|1 2]))', () => {
-            scratchDoc.insertString('(a [1 2]))');
-            const cursor = scratchDoc.getTokenCursor(3);
+        it('Puts cursor to the right of the following open bracket', () => {
+            const a = docFromTextNotation('(a| [1 2]))')
+            const b = docFromTextNotation('(a [|1 2]))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList();
-            expect(cursor.offsetStart).toBe(4);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it(`should put cursor to the right of the following open paren that starts a list literal: (a |'(1 2)) => (a '(|1 2))`, () => {
-            scratchDoc.insertString(`(a '(1 2))`);
-            const cursor = scratchDoc.getTokenCursor(3);
+        it(`Puts cursor to the right of the following opening quoted list`, () => {
+            const a = docFromTextNotation(`(a| '(b 1))`)
+            const b = docFromTextNotation(`(a '(|b 1))`)
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList();
-            expect(cursor.offsetStart).toBe(5);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip whitespace: (a| (b 1)) => (a (|b 1))', () => {
-            scratchDoc.insertString('(a (b 1))');
-            const cursor = scratchDoc.getTokenCursor(2);
+        it('Skips whitespace', () => {
+            const a = docFromTextNotation('(a|•  (b 1))')
+            const b = docFromTextNotation('(a•  (|b 1))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList();
-            expect(cursor.offsetStart).toBe(4);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
-
-        it('should skip metadata when skipMetadata is true: (a |^{:x 1} (b 1)) => (a ^{:x 1} (|b 1))', () => {
-            scratchDoc.insertString('(a ^{:x 1} (b 1))');
-            const cursor = scratchDoc.getTokenCursor(3);
+        it('Does not skip metadata by default', () => {
+            const a = docFromTextNotation('(a| ^{:x 1} (b 1))')
+            const b = docFromTextNotation('(a ^{|:x 1} (b 1))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.downList();
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
+        });
+        it('Skips metadata when skipMetadata is true', () => {
+            const a = docFromTextNotation('(a| ^{:x 1} (b 1))')
+            const b = docFromTextNotation('(a ^{:x 1} (|b 1))')
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.downList(true);
-            expect(cursor.offsetStart).toBe(12);
+            expect(cursor.offsetStart).toBe(b.selectionLeft);
         });
     });
 
-    it('forwardList: (a(b(c•#|f•(#b •[:f :b :z])•#z•1))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1|)))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(8);
+    it('forwardList', () => {
+        const a = docFromTextNotation('(a(b(c•|#f•(#b •[:f :b :z])•#z•1)))');
+        const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
         cursor.forwardList();
-        expect(cursor.offsetStart).toBe(31);
+        expect(cursor.offsetStart).toBe(b.selectionLeft);
     });
-    it('upList: (a(b(c•#f•(#b •[:f :b :z])•#z•1|))) => (a(b(c•#f•(#b •[:f :b :z])•#z•1)|))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(31);
+    it('upList', () => {
+        const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1|)))');
+        const b = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•1)|))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
         cursor.upList();
-        expect(cursor.offsetStart).toBe(32);
+        expect(cursor.offsetStart).toBe(b.selectionLeft);
     });
-    it('backwardList: (a(b(c•#f•(#b •[:f :b :z])•#z•|1))) => (a(b(|c•#f•(#b •[:f :b :z])•#z•1)))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(30);
+    it('backwardList', () => {
+        const a = docFromTextNotation('(a(b(c•#f•(#b •[:f :b :z])•#z•|1)))');
+        const b = docFromTextNotation('(a(b(|c•#f•(#b •[:f :b :z])•#z•1)))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
         cursor.backwardList();
-        expect(cursor.offsetStart).toBe(5);
+        expect(cursor.offsetStart).toBe(b.selectionLeft);
     });
 
-    it('backwardUpList: (a(b(c•#f•(#b •|[:f :b :z])•#z•1))) => (a(b(c•|#f•(#b •[:f :b :z])•#z•1)))', () => {
-        const cursor: LispTokenCursor = doc.getTokenCursor(15);
+    it('backwardUpList', () => {
+        const a = docFromTextNotation('(a(b(c•#f•(#b •|[:f :b :z])•#z•1)))');
+        const b = docFromTextNotation('(a(b(c•|#f•(#b •[:f :b :z])•#z•1)))');
+        const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
         cursor.backwardUpList();
-        expect(cursor.offsetStart).toBe(7);
+        expect(cursor.offsetStart).toBe(b.selectionLeft);
     });
 
     // TODO: Figure out why adding these tests make other test break!
     describe('Navigation in and around strings', () => {
         it('backwardList moves to start of string', () => {
-            const doc = new mock.MockDocument();
-            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
-            const cursor: LispTokenCursor = doc.getTokenCursor(21);
+            const a = docFromTextNotation('(str [] "", "foo" "f |  b  b"   "   f b b   " "\\"" \\")');
+            const b = docFromTextNotation('(str [] "", "foo" "|f   b  b"   "   f b b   " "\\"" \\")');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.backwardList();
-            expect(cursor.offsetStart).toBe(19);
+            expect(cursor.offsetStart).toEqual(b.selectionLeft);
         });
         it('forwardList moves to end of string', () => {
-            const doc = new mock.MockDocument();
-            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
-            const cursor: LispTokenCursor = doc.getTokenCursor(21);
+            const a = docFromTextNotation('(str [] "", "foo" "f |  b  b"   "   f b b   " "\\"" \\")');
+            const b = docFromTextNotation('(str [] "", "foo" "f   b  b|"   "   f b b   " "\\"" \\")');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.forwardList();
-            expect(cursor.offsetStart).toBe(27);
+            expect(cursor.offsetStart).toEqual(b.selectionLeft);
         });
         it('backwardSexpr inside string moves past quoted characters', () => {
-            const doc = new mock.MockDocument();
-            doc.insertString('(str [] "foo \\" bar")');
-            const cursor: LispTokenCursor = doc.getTokenCursor(15);
+            const a = docFromTextNotation('(str [] "foo \\"| bar")');
+            const b = docFromTextNotation('(str [] "foo |\\" bar")');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
             cursor.backwardSexp();
-            expect(cursor.offsetStart).toBe(13);
+            expect(cursor.offsetStart).toEqual(b.selectionLeft);
         });
     })
 
     describe('Current Form', () => {
-        const docText = '(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))'.replace(/•/g, '\n'),
-            doc: mock.MockDocument = new mock.MockDocument();
-
-        beforeEach(() => {
-            doc.insertString(docText);
-        });
-
         it('0: selects from within non-list form', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(1);
-            expect(cursor.rangeForCurrentForm(2)).toEqual([1, 4]);
+            const a = docFromTextNotation('(a|aa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(|aaa| (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('1: selects from adjanent after form', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(54);
-            expect(cursor.rangeForCurrentForm(49)).toEqual([46, 54]);
+        it('1: selects from adjacent after form', () => {
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c)|)•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•|#(a b c)|)•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('1: selects from adjanent after form, including readers', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(43);
-            expect(cursor.rangeForCurrentForm(43)).toEqual([22, 43]);
+        it('1: selects from adjacent after form, including reader tags', () => {
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]|•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(|#bar •#baz•[:a :b :c]|•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('2: selects from adjanent before form', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(46);
-            expect(cursor.rangeForCurrentForm(46)).toEqual([46, 54]);
+        it('2: selects from adjacent before form', () => {
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•|#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•|#(a b c)|)•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('2: selects from adjanent before form, including readers', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(22);
-            expect(cursor.rangeForCurrentForm(22)).toEqual([22, 43]);
+        it('2: selects from adjacent before form, including reader tags', () => {
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(|#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(|#bar •#baz•[:a :b :c]|•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('2: selects from adjanent before form, or in readers', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(21);
-            expect(cursor.rangeForCurrentForm(21)).toEqual([16, 55]);
+        it('2: selects from adjacent before form, or in readers', () => {
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•|(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •|#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))|•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('2: selects from adjanent before a form tagged with readers', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(27);
-            expect(cursor.rangeForCurrentForm(22)).toEqual([22, 43]);
+        it('2: selects from adjacent before a form with reader tags', () => {
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar |•#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(|#bar •#baz•[:a :b :c]|•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('3: selects previous form, if on the same line', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(76);
-            expect(cursor.rangeForCurrentForm(76)).toEqual([72, 73]);
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z  | •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z |z|   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('4: selects next form, if on the same line', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(65);
-            expect(cursor.rangeForCurrentForm(65)).toEqual([68, 69]);
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•|   z z z   •foo•   •   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   |z| z z   •foo•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('5: selects previous form, if any', () => {
-            const cursor: LispTokenCursor = doc.getTokenCursor(84);
-            expect(cursor.rangeForCurrentForm(84)).toEqual([77, 80]);
+            const a = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   |•   bar)))');
+            const b = docFromTextNotation('(aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •|foo|•   •   bar)))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('6: selects next form, if any', () => {
-            const doc: mock.MockDocument = new mock.MockDocument();
-            doc.insertString('  •  (foo {:a b})•(c)'.replace(/•/g, '\n'));
-            const cursor: LispTokenCursor = doc.getTokenCursor(1);
-            expect(cursor.rangeForCurrentForm(1)).toEqual([5, 17]);
+            const a = docFromTextNotation(' | •  (foo {:a b})•(c)');
+            const b = docFromTextNotation('  •  |(foo {:a b})|•(c)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('7: selects enclosing form, if any', () => {
-            const doc: mock.MockDocument = new mock.MockDocument();
-            doc.insertString('()  •  (foo {:a b})•(c)'.replace(/•/g, '\n'));
-            const cursor: LispTokenCursor = doc.getTokenCursor(1);
-            expect(cursor.rangeForCurrentForm(1)).toEqual([0, 2]);
+            const a = docFromTextNotation('(|)  •  (foo {:a b})•(c)');
+            const b = docFromTextNotation('|()|  •  (foo {:a b})•(c)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('2: selects anonymous function when cursor is before #', () => {
-            const doc = new mock.MockDocument();
-            doc.insertString('(map #(println %) [1 2])');
-            const cursor = doc.getTokenCursor(5);
-            const range = cursor.rangeForCurrentForm(5);
-            expect(range).toEqual([5, 17]);
+            const a = docFromTextNotation('(map |#(println %) [1 2])');
+            const b = docFromTextNotation('(map |#(println %)| [1 2])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
         it('2: selects anonymous function when cursor is after # and before (', () => {
-            const doc = new mock.MockDocument();
-            doc.insertString('(map #(println %) [1 2])');
-            const cursor = doc.getTokenCursor(6);
-            const range = cursor.rangeForCurrentForm(6);
-            expect(range).toEqual([5, 17]);
+            const a = docFromTextNotation('(map #|(println %) [1 2])');
+            const b = docFromTextNotation('(map |#(println %)| [1 2])');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            expect(cursor.rangeForCurrentForm(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
     });
     describe('Location State', () => {
         it('Knows when inside string', () => {
-            const doc = new mock.MockDocument();
-            doc.insertString('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
+            const doc = docFromTextNotation('(str [] "", "foo" "f   b  b"   "   f b b   " "\\"" \\")');
             const withinEmpty = doc.getTokenCursor(9);
             expect(withinEmpty.withinString()).toBe(true);
             const adjacentOutsideLeft = doc.getTokenCursor(8);

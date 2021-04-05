@@ -30,7 +30,9 @@ export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Ra
     if (!cursor.withinString()) {
         const rangeTuple: number[] = [startIndex, endIndex];
         const newText: string = _formatRange(text, document.getText(), rangeTuple, document.eol == 2 ? "\r\n" : "\n");
-        return [vscode.TextEdit.replace(range, newText)];
+        if (newText) {
+            return [vscode.TextEdit.replace(range, newText)];
+        }
     }
 }
 
@@ -153,8 +155,5 @@ function _formatRange(rangeText: string, allText: string, range: number[], eol: 
     const result = jsify(formatTextAtRange(cljData));
     if (!result["error"]) {
         return result["range-text"];
-    }
-    else {
-        throw result["error"];
     }
 }
