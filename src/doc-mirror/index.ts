@@ -67,7 +67,7 @@ export class DocumentModel implements EditableModel {
         builder.delete(range);
     }
 
-    getText(start: number, end: number, mustBeWithin = false) {
+    public getText(start: number, end: number, mustBeWithin = false) {
         return this.lineInputModel.getText(start, end, mustBeWithin);
     }
 
@@ -128,12 +128,12 @@ export class MirroredDocument implements EditableDocument {
         return this.document.getText(selection);
     }
 
-    public delete() {
-        vscode.commands.executeCommand('deleteRight');
+    public delete(): Thenable<boolean> {
+        return vscode.commands.executeCommand('deleteRight');
     }
 
-    public backspace() {
-        vscode.commands.executeCommand('deleteLeft');
+    public backspace(): Thenable<boolean> {
+        return vscode.commands.executeCommand('deleteLeft');
     }
 }
 

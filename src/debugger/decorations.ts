@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import * as namespace from '../namespace';
-import * as state from '../state';
 import { LanguageClient } from 'vscode-languageclient';
 import { Location } from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';
 import * as util from '../utilities';
-import lsp from '../lsp';
+import lsp from '../lsp/main';
+import { getStateValue } from '../../out/cljs-lib/cljs-lib';
+import * as replSession from '../nrepl/repl-session';
 
 let enabled = false;
 
@@ -93,8 +93,8 @@ function triggerUpdateAndRenderDecorations() {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             timeout = setTimeout(() => {
-                const cljSession = namespace.getSession('clj');
-                const lspClient = state.deref().get(lsp.LSP_CLIENT_KEY);
+                const cljSession = replSession.getSession('clj');
+                const lspClient = getStateValue(lsp.LSP_CLIENT_KEY);
                 update(editor, cljSession, lspClient).then(renderInAllVisibleEditors);
             }, 50);
         }

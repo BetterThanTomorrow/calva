@@ -6,6 +6,8 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as namespace from './namespace';
+import { getSession, updateReplSessionType } from './nrepl/repl-session';
+import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
@@ -102,10 +104,10 @@ function reportTests(results, errorStr, log = true) {
 
 // FIXME: use cljs session where necessary
 async function runAllTests(document = {}) {
-    const session = namespace.getSession(util.getFileType(document));
+    const session = getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
     reportTests([await session.testAll()], "Running all tests");
-    namespace.updateREPLSessionType();
+    updateReplSessionType();
     outputWindow.appendPrompt();
 }
 
@@ -142,7 +144,7 @@ async function runNamespaceTests(document = {}) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    const session = namespace.getSession(util.getFileType(document));
+    const session = getSession(util.getFileType(document));
     const ns = namespace.getNamespace(doc);
     let nss = [ns];
     await evaluate.loadFile({}, disabledPrettyPrinter);
@@ -155,15 +157,22 @@ async function runNamespaceTests(document = {}) {
     const results = await Promise.all(resultPromises);
     reportTests(results, "Running tests");
     outputWindow.setSession(session, ns);
-    namespace.updateREPLSessionType();
+    updateReplSessionType();
     outputWindow.appendPrompt();
+}
+
+function getTestUnderCursor() {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+        return getText.currentTopLevelFunction(editor)[1];
+    }
 }
 
 async function runTestUnderCursor() {
     const doc = util.getDocument({});
-    const session = namespace.getSession(util.getFileType(doc));
+    const session = getSession(util.getFileType(doc));
     const ns = namespace.getNamespace(doc);
-    const test = util.getTestUnderCursor();
+    const test = getTestUnderCursor();
 
     if (test) {
         await evaluate.loadFile(doc, disabledPrettyPrinter);
@@ -193,7 +202,7 @@ function runNamespaceTestsCommand() {
 }
 
 async function rerunTests(document = {}) {
-    let session = namespace.getSession(util.getFileType(document))
+    let session = getSession(util.getFileType(document))
     await evaluate.loadFile({}, disabledPrettyPrinter);
     outputWindow.append("; Running previously failed tests…");
     reportTests([await session.retest()], "Retesting");

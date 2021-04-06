@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import * as namespace from './namespace';
 import statusbar from './statusbar';
 import * as state from './state';
+import { getConfig } from './config';
+import { updateReplSessionType } from './nrepl/repl-session';
 
 function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
     context.workspaceState.update('needReplUi', isNeeded);
@@ -9,12 +10,12 @@ function updateNeedReplUi(isNeeded: boolean, context = state.extensionContext) {
 }
 
 function shouldshowReplUi(context = state.extensionContext): boolean {
-    return context.workspaceState.get('needReplUi') || !state.config().hideReplUi;
+    return context.workspaceState.get('needReplUi') || !getConfig().hideReplUi;
 }
 
 function update(context = state.extensionContext) {
     vscode.commands.executeCommand('setContext', 'calva:showReplUi', shouldshowReplUi(context));
-    namespace.updateREPLSessionType();
+    updateReplSessionType();
     statusbar.update(context);
 }
 

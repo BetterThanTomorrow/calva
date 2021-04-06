@@ -4,6 +4,7 @@ import * as util from '../utilities';
 import annotations from './annotations';
 import * as namespace from '../namespace';
 import * as outputWindow from '../results-output/results-doc';
+import * as replSession from '../nrepl/repl-session';
 
 // Used by out LSP middleware
 export async function provideClojureDefinition(document, position: vscode.Position, token) {
@@ -11,7 +12,7 @@ export async function provideClojureDefinition(document, position: vscode.Positi
   const posIsEvalPos = evalPos && position.isEqual(evalPos);
   if (util.getConnectedState() && !posIsEvalPos) {
     const text = util.getWordAtPosition(document, position);
-    const client = namespace.getSession(util.getFileType(document));
+    const client = replSession.getSession(util.getFileType(document));
     const info = await client.info(namespace.getNamespace(document), text);
     if (info.file && info.file.length > 0) {
       const pos = new vscode.Position(info.line - 1, info.column || 0);

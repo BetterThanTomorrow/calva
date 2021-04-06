@@ -1,13 +1,16 @@
 # Getting Started
 
-Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Both start with:
+Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Regardless, you need to install Calva in VS Code.
 
-0. You have VS Code started
-1. You install Calva
+If you have a Clojure or ClojureScript project, you will be interested in how to get [Calva connected to the REPL of your project](connect.md). But before you run over there, you might want to familiarize yourself with Calva a bit, which you can do without a project.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/O6GrXXhCzCc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+The demo tells you about the command (and some about the Clojure Beginner's material that it makes available).
 
 ## There's a ”Getting Started” REPL
 
-If you are new to Calva, a good place to start is using the command **Fire up the ”Getting Started” REPL**. 
+If you are new to Calva, a good place to start is using the command **Fire up the ”Getting Started” REPL**. Demo:
 
 ![Command Palette Start Standalone REPL](images/howto/start-hello-repl.png "Fire up the ”Getting Started” REPL")
 
@@ -24,6 +27,9 @@ The only prerequisite here is that you have Java installed. _No pre-installed cl
 
 !!! Note
     When you are more familiar with Calva, and want a standalone REPL, there is a separate command: **Start a standalone REPL (not in project)**. It will open up a `user.clj` in a temporary directory, containing only an `(ns user)` form, and start and connect the REPL. 
+
+!!! Note2
+    The command for starting the Getting Started REPL will download the files from [this repository](https://github.com/BetterThanTomorrow/dram). It is very much work in progress, and there is not even a finished Clojure Beginner's Guide there yet. WHen you run the command again, and from then on, you will get the option to download new files or keep using your existing. Downloading new ones will not overwrite your existing ones, because they will be downloaded to a new temp directory. You can find the directory easily using VS Codes context menu command for revealing a file in the Explorer/Finder.
 
 ## You have a Project?
 

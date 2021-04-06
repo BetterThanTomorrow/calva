@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.177",
+    "version": "2.0.186",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -268,6 +268,11 @@
                             "cider/piggieback": "0.5.2"
                         }
                     },
+                    "calva.clojureLspVersion": {
+                        "type": "string",
+                        "default": "2021.04.03-18.43.55",
+                        "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
+                    },
                     "calva.openBrowserWhenFigwheelStarted": {
                         "type": "boolean",
                         "default": true,
@@ -507,11 +512,6 @@
                         "default": true,
                         "scope": "window"
                     },
-                    "calva.displayDiagnostics": {
-                        "type": "boolean",
-                        "markdownDescription": "Show linter warnings and other diagnostics",
-                        "default": true
-                    },
                     "calva.hideReplUi": {
                         "type": "boolean",
                         "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features.)",
@@ -533,6 +533,11 @@
                             "none"
                         ],
                         "scope": "window"
+                    },
+                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
+                        "type": "boolean",
+                        "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "default": false
                     }
                 }
             },
@@ -678,6 +683,11 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.startStandaloneHelloRepl",
+                "title": "Fire up the ”Getting Started” REPL",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.toggleCLJCSession",
                 "title": "Toggle the REPL Connection (clj or cljs) used for CLJC Files",
                 "enablement": "calva:connected",
@@ -704,6 +714,12 @@
             {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate Current Form  (or selection, if any)",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateToCursor",
+                "title": "Evaluate From Start of List to Cursor",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1365,6 +1381,11 @@
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
+                "command": "calva.evaluateToCursor",
+                "key": "ctrl+alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
                 "command": "calva.tapSelection",
                 "key": "ctrl+shift+t t",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
@@ -1944,7 +1965,7 @@
         "watch": "tsc -watch -p ./tsconfig.json",
         "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
-        "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && tsc -p ./tsconfig.json && webpack --mode production",
+        "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
         "compile-test": "tsc -p ./",
         "postrelease": "",
         "vscode:prepublish": "npm run release",
@@ -1963,6 +1984,7 @@
         "acorn": "^6.4.1",
         "ansi-to-html": "^0.6.13",
         "escape-html": "^1.0.3",
+        "extract-zip": "^2.0.1",
         "find": "0.2.9",
         "follow-redirects": "^1.10.0",
         "immutable": "3.8.1",
@@ -2013,14 +2035,14 @@
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
         "tar": "^4.4.13",
-        "ts-loader": "^5.4.5",
+        "ts-loader": "^8.0.18",
         "ts-node-register": "^1.0.0",
         "tslint": "^5.20.1",
         "typescript": "^3.7.2",
         "url-loader": "^1.1.2",
         "vsce": "^1.75.0",
         "vscode-test": "^1.3.0",
-        "webpack": "^4.43.0",
-        "webpack-cli": "^3.3.11"
+        "webpack": "^5.27.1",
+        "webpack-cli": "^4.5.0"
     }
 }

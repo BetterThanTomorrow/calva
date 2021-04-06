@@ -4,7 +4,43 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
+
+## [2.0.185] - 2021-04-05
+- Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
+- Fix: [Delete empty literal function causes newline to be removed](https://github.com/BetterThanTomorrow/calva/issues/1079)
+- Add experimental setting to: [Prevent extra closing brackets in strict mode](https://github.com/BetterThanTomorrow/calva/issues/650)
+- Bump `clojure-lsp` to `2021.04.03-18.43.55`
+
+## [2.0.184] - 2021-04-02
+- Fix: [Calva not detecting tests with aliased clojure.test namespace](https://github.com/BetterThanTomorrow/calva/issues/1086)
+- Fix: [Auto-generated namespaces not working correctly in some cases](https://github.com/BetterThanTomorrow/calva/issues/1060)
+- [Make clojure-lsp version configurable by the user](https://github.com/BetterThanTomorrow/calva/issues/1088) and bump to `2021.03.30-20.42.34`
+- [Remove warning about clj-kondo extension](https://github.com/BetterThanTomorrow/calva/issues/1091)
+- [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
+
+## [2.0.183] - 2021-03-30
+- [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)
+- Fix: [Completion not working with babashka](https://github.com/BetterThanTomorrow/calva/issues/1083)
+
+## [2.0.182] - 2021-03-26
+- [Use graalvm-compiled native image for clojure-lsp instead of jar](https://github.com/BetterThanTomorrow/calva/issues/1017)
+
+## [2.0.181] - 2021-03-22
+- Update clojure-lsp to 2021.03.21-23.29.19
+
+## [2.0.180] - 2021-03-21
+- [Make Paredit forward, then backward selections (and vice versa) behave like ”normal” foward/backward selection does](https://github.com/BetterThanTomorrow/calva/pull/1062)
+
+## [2.0.179] - 2021-03-10
+- Implementation detail: [Use cljs for state](https://github.com/BetterThanTomorrow/calva/pull/1053)
+
+## [2.0.178] - 2021-03-09
+- [Add command for evaluating from start of list to cursor](https://github.com/BetterThanTomorrow/calva/issues/1057)
+- Add custom REPL snippet variables, $selection, $head, and $tail
+
+## [2.0.177] - 2021-03-07
 - Fix: [Navigating to a definition in a jar file throws error in console](https://github.com/BetterThanTomorrow/calva/issues/1047)
+- [Add a Getting Started REPL feature](https://github.com/BetterThanTomorrow/calva/issues/1040)
 
 ## [2.0.176] - 2021-02-24
 - Revert switch to cljs for lsp, until [the issue with released cljs/js interop](https://github.com/BetterThanTomorrow/calva/issues/1044) has been fixed
