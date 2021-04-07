@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import * as context from '../../../cursor-doc/context-predicates';
+import * as context from '../../../cursor-doc/cursor-context';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
 import * as mock from '../common/mock';
 

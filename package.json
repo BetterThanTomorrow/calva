@@ -1490,19 +1490,19 @@
                 "mac": "alt+right",
                 "win": "ctrl+right",
                 "linux": "ctrl+right",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/  && !calva:cursorInCommentExcludingEOL"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment || calva:cursorAfterComment"
             },
             {
                 "command": "paredit.backwardSexp",
                 "mac": "alt+left",
                 "win": "ctrl+left",
                 "linux": "ctrl+left",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInCommentExcludingSOL"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment || calva:cursorBeforeComment"
             },
             {
                 "command": "paredit.forwardDownSexp",
                 "key": "ctrl+down",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ " 
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.backwardDownSexp",

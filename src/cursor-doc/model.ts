@@ -96,6 +96,7 @@ export interface EditableModel {
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
 
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
+    getLineText: (line: number) => string;
     getOffsetForLine: (line: number) => number;
     getTokenCursor: (offset: number, previous?: boolean) => LispTokenCursor;
 }
@@ -226,6 +227,15 @@ export class LineInputModel implements EditableModel {
         for(let i=0; i<line; i++)
             max += this.lines[i].text.length + this.lineEndingLength;
         return max;
+    }
+
+    /**
+     * Returns the text of the given line
+     *
+     * @param line the line to get the text of
+     */
+    getLineText(line: number): string {
+        return this.lines[line].text;
     }
 
     /**
