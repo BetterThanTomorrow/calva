@@ -11,8 +11,8 @@ const LSP_CLIENT_KEY = 'lspClient';
 
 function createClient(clojureLspPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
-        run: { command: clojureLspPath},
-        debug: { command: clojureLspPath},
+        run: { command: clojureLspPath },
+        debug: { command: clojureLspPath },
     };
     const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'clojure' }],
@@ -88,9 +88,11 @@ function createClient(clojureLspPath: string): LanguageClient {
     );
 }
 
+type ExtraParamFn = () => Thenable<string>;
+
 type ClojureLspCommand = {
     command: string,
-    extraParamFn?: () => Thenable<string>,
+    extraParamFns?: ExtraParamFn[],
     category?: string;
 }
 
@@ -144,15 +146,15 @@ const clojureLspCommands: ClojureLspCommand[] = [
     },
     {
         command: 'introduce-let',
-        extraParamFn: makePromptForInput('Bind to')
+        extraParamFns: [makePromptForInput('Bind to')]
     },
     {
         command: 'move-to-let',
-        extraParamFn: makePromptForInput('Bind to')
+        extraParamFns: [makePromptForInput('Bind to')]
     },
     {
         command: 'extract-function',
-        extraParamFn: makePromptForInput('Function name')
+        extraParamFns: [makePromptForInput('Function name')]
     },
     {
         command: 'server-info',
@@ -171,15 +173,13 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             const column = editor.selection.start.character;
             const docUri = `${document.uri.scheme}://${document.uri.path}`;
             const params = [docUri, line, column];
-            const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
-            if (!command.extraParamFn || command.extraParamFn && extraParam) {
-                client.sendRequest('workspace/executeCommand', {
-                    'command': command.command,
-                    'arguments': extraParam ? [...params, extraParam] : params
-                }).catch(e => {
-                    console.error(e);
-                });
-            }
+            const extraParams = command.extraParamFns ? await Promise.all(command.extraParamFns.map(fn => fn())) : [];
+            client.sendRequest('workspace/executeCommand', {
+                'command': command.command,
+                'arguments': [...params, ...extraParams]
+            }).catch(e => {
+                console.error(e);
+            });
         }
     });
 }
