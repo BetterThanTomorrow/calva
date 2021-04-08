@@ -3,6 +3,24 @@ import * as context from '../../../cursor-doc/cursor-context';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Cursor Contexts', () => {
+    describe('cursorInString', () => {
+        it('is true in string', () => {
+            const contexts = context.determineContexts(docFromTextNotation('foo•   "bar•  |baz"•gaz'));
+            expect(contexts.includes('calva:cursorInString')).toBe(true);
+        });
+        it('is false outside after string', () => {
+            const contexts = context.determineContexts(docFromTextNotation('foo•   "bar•  baz"|•gaz'));
+            expect(contexts.includes('calva:cursorInString')).toBe(false);
+        });
+        it('is true in regexp', () => {
+            const contexts = context.determineContexts(docFromTextNotation('foo•   #"bar•  ba|z"•gaz'));
+            expect(contexts.includes('calva:cursorInString')).toBe(true);
+        });
+        it('is false in regexp open token', () => {
+            const contexts = context.determineContexts(docFromTextNotation('foo•   #|"bat bar•  baz"•gaz'));
+            expect(contexts.includes('calva:cursorInString')).toBe(false);
+        });
+    });
     describe('cursorInComment', () => {
         it('is true in comment', () => {
             const contexts = context.determineContexts(docFromTextNotation(';; f|oo•   ;; bar•  ;; baz  •gaz'));

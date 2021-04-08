@@ -662,7 +662,7 @@ export class LispTokenCursor extends TokenCursor {
     withinString() {
         const cursor = this.clone();
         cursor.backwardList();
-        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw === '"') {
+        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw.endsWith('"')) {
             return true;
         };
         return false;
