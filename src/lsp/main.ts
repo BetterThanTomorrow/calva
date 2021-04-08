@@ -208,10 +208,14 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
             'clojure.core/->>',
             'clj-kondo.lint-as/def-catch-all'
         ]);
-        const cljKondoConfigPath = await vscode.window.showQuickPick([
-            '~/.clj-kondo/config.edn',
-            'project/.clj-kondo/config.edn'
-        ]);
+        const rootWorkspaceFolder = vscode.workspace.workspaceFolders[0];
+        // TODO: Make config paths that work on windows
+        const configPaths = ['~/.clj-kondo/config.edn'];
+        if (rootWorkspaceFolder) {
+            configPaths.push(`${rootWorkspaceFolder.uri.fsPath}/.clj-kondo/config.edn`);
+        }
+        // TODO: Add description / title to quickpick via options
+        const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths);
         if (macroToResolveAs && cljKondoConfigPath) {
             const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
             sendCommandRequest(client, resolveMacroAsCommand, args);
