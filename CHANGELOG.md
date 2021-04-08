@@ -3,7 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
+- [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
 - Fix: [The unbalanced closing-bracket feature is active in line comments](https://github.com/BetterThanTomorrow/calva/issues/1105)
 
 ## [2.0.185] - 2021-04-05
