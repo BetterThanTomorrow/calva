@@ -27,19 +27,27 @@ function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selection.activ
  * Returns true if position is after the last char of the last lisp token on the line, including
  * any trailing whitespace or EOL, otherwise false
  */
-function cursorAtLineEndIncTrailingWhitespace(doc: EditableDocument, offset = doc.selection.active) {
+function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selection.active) {
     const tokenCursor = doc.getTokenCursor(offset);
-    //  consider a multiline string as a single line
-    if (tokenCursor.withinString()) {
+    if (tokenCursor.getToken().type === 'eol') {
+        return true;
+    }
+    if (tokenCursor.getPrevToken().type === 'eol' && tokenCursor.getToken().type !== 'ws') {
         return false;
     }
-
-    const line = tokenCursor.doc.getLineText(tokenCursor.line);
-    const column = tokenCursor.rowCol[1]
-    // don't consider commas as whitepace on comment lines
-    const lastNonWSIndex = line.match(/\S(?=(\s*$))/)?.index;
-    
-    return column > lastNonWSIndex
+    if (tokenCursor.getToken().type === 'ws') {
+        tokenCursor.next();
+        if (tokenCursor.getToken().type !== 'eol') {
+            return false;
+        }
+        tokenCursor.previous();
+    }
+    tokenCursor.forwardWhitespace();
+    const textFromOffset = doc.model.getText(offset, tokenCursor.offsetStart);
+    if (textFromOffset.match(/^\s+/)) {
+        return true;
+    }
+    return false;
 }
 
 function determineContexts(doc: EditableDocument, offset = doc.selection.active): CursorContext[] {
@@ -48,7 +56,7 @@ function determineContexts(doc: EditableDocument, offset = doc.selection.active)
 
     if (isAtLineStartInclWS(doc)) {
         contexts.push('calva:cursorAtStartOfLine');
-    } else if (cursorAtLineEndIncTrailingWhitespace(doc)) {
+    } else if (isAtLineEndInclWS(doc)) {
         contexts.push('calva:cursorAtEndOfLine');
     }
 
@@ -80,6 +88,6 @@ export {
     allCursorContexts,
     CursorContext,
     isAtLineStartInclWS,
-    cursorAtLineEndIncTrailingWhitespace,
+    isAtLineEndInclWS,
     determineContexts
 }
