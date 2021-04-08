@@ -13,10 +13,8 @@ export default function setCursorContextIfChanged(editor: vscode.TextEditor) {
 }
 
 function determineCursorContexts(document: vscode.TextDocument, position: vscode.Position): context.CursorContext[] {
-    const idx = document.offsetAt(position);
     const mirrorDoc = docMirror.getDocument(document);
-    const tokenCursor = mirrorDoc.getTokenCursor(idx);
-    return context.determineContexts(tokenCursor, idx);
+    return context.determineContexts(mirrorDoc);
 }
 
 function setCursorContexts(currentContexts: context.CursorContext[]) {
