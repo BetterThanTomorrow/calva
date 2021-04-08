@@ -1,4 +1,3 @@
-import { LispTokenCursor } from "./token-cursor";
 import { EditableDocument } from "./model";
 
 const allCursorContexts = ['calva:cursorInString', 'calva:cursorInComment', 'calva:cursorAtStartOfLine', 'calva:cursorAtEndOfLine', 'calva:cursorBeforeComment', 'calva:cursorAfterComment'] as const;

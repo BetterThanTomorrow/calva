@@ -83,7 +83,29 @@ Dependency | Version | Description
 
 ## Key bindings
 
-Here are a collection of custom keybindings from here and there.
+Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when claus contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated. 
+
+### When Clause Contexts
+
+The following contexts are available with Calva:
+
+* `calva:keybindingsEnabled`: a master switch that you find in the settings
+* `paredit:keyMap`: `strict`, `original`, or `none` from the corresponding Calva setting (see [Paredit](paredit.md))
+* `calva:connected`: `true` when Calva is connected to a REPL (there is also `calva:connecting` || `calva:launching`)
+* `calva:outputWindowActive`: `true` when the [Output/REPL window](output.md) has input focus
+* `calva:replHistoryCommandsActive`: `true` when the cursor is in the Output/REPL window at the top level after the last prompt
+* `calva:outputWindowSubmitOnEnter`: `true` when the cursor is adjacent after the last top level form in the Output/REPL window
+* `calva:cursorInString`: `true` when the cursor/caret is in a string or a regexp
+* `calva:cursorInComment`: `true` when the cursor is in, or adjacent to a line comment
+* `calva:cursorBeforeComment`: `true` when the cursor is adjacent before a line comment
+* `calva:cursorAfterComment`: `true` when the cursor is adjacent after a line comment
+* `calva:cursorAtStartOfLine`: `true` when the cursor is at the start of a line including any leading whitespace
+* `calva:cursorAtEndOfLine`: `true` when the cursor is at the end of a line including any trailing whitespace
+* `calva:showReplUi`: `false` when Calva's REPL UI is disabled through the corresponding setting
+
+### Some Custom Bindings 
+
+Here is a collection of custom keybindings from here and there.
 
 * Replace all Calva `ctrl+alt+...` key bindings with `ctrl+shift+...`, for keyboards lacking `alt` key: [this gist](https://gist.github.com/PEZ/3fc22e015e0d33fb9b73074fd6abf292)
 * Replace the default Calva ”prefix”, `ctrl+alt+c` to just `alt+v`: [WebWItch's keybindings.json](https://gist.github.com/conan/aa38688d7daa50804c8a433215dc6dc9) (Please note, that `alt+v` does not work for some locales, but for when it works it is much less clunky than the default prefix).
@@ -94,7 +116,9 @@ Are you a vim extension user? See: [Using with VIM extension](vim.md).
 
 ### Move by word
 
-If you sometimes navigate by word, you might find that Calva defaults gets a bit in the way. Here are some settings that retain the default word movement shortcuts for Windows and Mac:
+By default Calva changes the move-by-word key bindings to move by sexpr/form when the cursor is in structural Clojure code. _Within line comments the editor default word movement is active._
+
+If you want the VS Code default word movement shortcuts, use these settings:
 
 ```json
     {
@@ -125,7 +149,7 @@ If you sometimes navigate by word, you might find that Calva defaults gets a bit
     }
 ```
 
-Use it as an inspiration for customizing these things to your own liking. 😄
+Use it as an inspiration for customizing things to your own liking. 😄
 
 ### Wrap using `(`, `[`, `{` (like Cursive)
 
