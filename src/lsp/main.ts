@@ -160,7 +160,16 @@ const clojureLspCommands: ClojureLspCommand[] = [
         command: 'server-info',
         category: 'calva.diagnostics'
     }
-]
+];
+
+function sendCommandRequest(client: LanguageClient, command: string, args: (number | string)[]): void {
+    client.sendRequest('workspace/executeCommand', {
+        command,
+        arguments: args
+    }).catch(e => {
+        console.error(e);
+    });
+}
 
 function registerLspCommand(client: LanguageClient, command: ClojureLspCommand): vscode.Disposable {
     const category = command.category ? command.category : 'calva.refactor';
@@ -174,21 +183,39 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             const docUri = `${document.uri.scheme}://${document.uri.path}`;
             const params = [docUri, line, column];
             const extraParams = command.extraParamFns ? await Promise.all(command.extraParamFns.map(fn => fn())) : [];
-            client.sendRequest('workspace/executeCommand', {
-                'command': command.command,
-                'arguments': [...params, ...extraParams]
-            }).catch(e => {
-                console.error(e);
-            });
+            sendCommandRequest(client, command.command, [...params, ...extraParams]);
         }
     });
 }
 
+async function codeLensReferencesHandler(_, line, character): Promise<void> {
+    vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
+    await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
+}
+
 function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
-    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', async (_, line, character) => {
-        vscode.window.activeTextEditor.selection = new vscode.Selection(line - 1, character - 1, line - 1, character - 1);
-        await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
+    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', codeLensReferencesHandler));
+
+    const resolveMacroAsCommand = 'resolve-macro-as';
+    context.subscriptions.push(vscode.commands.registerCommand(resolveMacroAsCommand, async (document, line, character) => {
+        const macroToResolveAs = await vscode.window.showQuickPick([
+            'clojure.core/def',
+            'clojure.core/defn',
+            'clojure.core/let',
+            'clojure.core/for',
+            'clojure.core/->',
+            'clojure.core/->>',
+            'clj-kondo.lint-as/def-catch-all'
+        ]);
+        const cljKondoConfigPath = await vscode.window.showQuickPick([
+            '~/.clj-kondo/config.edn',
+            'project/.clj-kondo/config.edn'
+        ]);
+        if (macroToResolveAs && cljKondoConfigPath) {
+            const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
+            sendCommandRequest(client, resolveMacroAsCommand, args);
+        }
     }));
 
     context.subscriptions.push(
