@@ -184,7 +184,6 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             if (!command.extraParamFn || command.extraParamFn && extraParam) {
                 sendCommandRequest(client, command.command, (extraParam ? [...params, extraParam] : params));
             }
-            
         }
     });
 }
