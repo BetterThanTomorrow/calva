@@ -88,11 +88,9 @@ function createClient(clojureLspPath: string): LanguageClient {
     );
 }
 
-type ExtraParamFn = () => Thenable<string>;
-
 type ClojureLspCommand = {
     command: string,
-    extraParamFns?: ExtraParamFn[],
+    extraParamFn?: () => Thenable<string>,
     category?: string;
 }
 
@@ -146,15 +144,15 @@ const clojureLspCommands: ClojureLspCommand[] = [
     },
     {
         command: 'introduce-let',
-        extraParamFns: [makePromptForInput('Bind to')]
+        extraParamFn: makePromptForInput('Bind to')
     },
     {
         command: 'move-to-let',
-        extraParamFns: [makePromptForInput('Bind to')]
+        extraParamFn: makePromptForInput('Bind to')
     },
     {
         command: 'extract-function',
-        extraParamFns: [makePromptForInput('Function name')]
+        extraParamFn: makePromptForInput('Function name')
     },
     {
         command: 'server-info',
@@ -182,8 +180,11 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             const column = editor.selection.start.character;
             const docUri = `${document.uri.scheme}://${document.uri.path}`;
             const params = [docUri, line, column];
-            const extraParams = command.extraParamFns ? await Promise.all(command.extraParamFns.map(fn => fn())) : [];
-            sendCommandRequest(client, command.command, [...params, ...extraParams]);
+            const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
+            if (!command.extraParamFn || command.extraParamFn && extraParam) {
+                sendCommandRequest(client, command.command, (extraParam ? [...params, extraParam] : params));
+            }
+            
         }
     });
 }
