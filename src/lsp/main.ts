@@ -214,8 +214,7 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
         if (rootWorkspaceFolder) {
             configPaths.push(`${rootWorkspaceFolder.uri.fsPath}/.clj-kondo/config.edn`);
         }
-        // TODO: Add description / title to quickpick via options
-        const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths);
+        const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths, {placeHolder: 'To which config should this be written?'});
         if (macroToResolveAs && cljKondoConfigPath) {
             const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
             sendCommandRequest(client, resolveMacroAsCommand, args);
