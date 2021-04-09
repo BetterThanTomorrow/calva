@@ -5,6 +5,8 @@ Changes to Calva.
 ## [Unreleased]
 - [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
 - Fix: [The unbalanced closing-bracket feature is active in line comments](https://github.com/BetterThanTomorrow/calva/issues/1105)
+- [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
+
 
 ## [2.0.185] - 2021-04-05
 - Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
@@ -17,7 +19,6 @@ Changes to Calva.
 - Fix: [Auto-generated namespaces not working correctly in some cases](https://github.com/BetterThanTomorrow/calva/issues/1060)
 - [Make clojure-lsp version configurable by the user](https://github.com/BetterThanTomorrow/calva/issues/1088) and bump to `2021.03.30-20.42.34`
 - [Remove warning about clj-kondo extension](https://github.com/BetterThanTomorrow/calva/issues/1091)
-- [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
 
 ## [2.0.183] - 2021-03-30
 - [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)
