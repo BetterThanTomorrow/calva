@@ -6,6 +6,8 @@ Changes to Calva.
 - [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
 - Fix: [The unbalanced closing-bracket feature is active in line comments](https://github.com/BetterThanTomorrow/calva/issues/1105)
 - [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
+- Bump `clojure-lsp` to [2021.04.07-16.34.10](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.04.07-16.34.10)
+- Bump `cider-nrepl` to [0.25.10](https://github.com/clojure-emacs/cider-nrepl/blob/master/CHANGELOG.md#02510-2021-04-08)
 
 
 ## [2.0.185] - 2021-04-05

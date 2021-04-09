@@ -264,13 +264,13 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.8",
+                            "cider-nrepl": "0.25.10",
                             "cider/piggieback": "0.5.2"
                         }
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.04.03-18.43.55",
+                        "default": "2021.04.07-16.34.10",
                         "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
