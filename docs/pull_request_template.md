@@ -11,7 +11,7 @@
 Fixes #
 
 ## My Calva PR Checklist
-<!-- Remove the checkboxes that do not apply, as Github reports how many are not ticked. If you want to add checkboxes, please do. -->
+<!-- Strike out (using `~`) items that do not apply, as Github reports how many are not ticked. If you want to add checkboxes, please do. -->
 
 I have:
 
@@ -20,7 +20,8 @@ I have:
 - [ ] Made sure I have changed the PR base branch, so that it is not `published`. (Sorry for the nagging.)
 - [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
 - [ ] Figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and either tested it there if so, or mentioned it in the PR.
-- [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test. NB: *There is a CircleCI bug that makes the Artifacts hard to find. Please see [this issue](https://discuss.circleci.com/t/artifacts-tab-not-showing-unless-logged-in/32433) for workarounds.*
+- [ ] Added to or updated docs in this branch, if appropriate
+- [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test. NB: *You need to sign in/up at Circle CI to find the _Artifacts_ tab.*
      - [ ] Tested the particular change
      - [ ] Figured if the change might have some side effects and tested those as well.
      - [ ] Smoke tested the extension as such.
@@ -28,7 +29,6 @@ I have:
      - [ ] If I am fixing the issue, I have used [GitHub's fixes/closes syntax](https://help.github.com/en/articles/closing-issues-using-keywords)
      - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
-- [ ] Added to or updated docs in this branch, if appropriate
 
 ## The Calva Team PR Checklist:
 <!-- Please read the list, since you'll get a better idea about what to expect by doing so. 😄 -->
@@ -45,6 +45,6 @@ Before merging we (at least one of us) have:
      - [ ] Smoke tested the extension as such.
 - [ ] If need be, had a chat within the team about particular changes.
 
-Ping @pez, @kstehn, @cfehse, @bpringe
+Ping @pez, @bpringe
 
 <!-- This is a nice book to read about the power of checklists: https://www.samuelthomasdavies.com/book-summaries/health-fitness/the-checklist-manifesto/ -->
