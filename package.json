@@ -536,7 +536,7 @@
                     },
                     "calva.paredit.hijackVSCodeDefaults": {
                         "type": "boolean",
-                        "markdownDescription": "When enabled, more VS Code builtin shortcuts are overriden with their ”corresponding” Paredit commands.",
+                        "markdownDescription": "When enabled, more VS Code built-in shortcuts are overridden with their ”corresponding” Paredit commands.",
                         "default": true,
                         "scope": "window"
                     },
