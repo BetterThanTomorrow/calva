@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.186] - 2021-04-10
 - [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
 - [Use alt+up/down for drag sexpr backward/forward](https://github.com/BetterThanTomorrow/calva/issues/1111)
 - [Make it possible to disable some of Paredits hijacking of VS Code default shortcuts](https://github.com/BetterThanTomorrow/calva/issues/1112)
