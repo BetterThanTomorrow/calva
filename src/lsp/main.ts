@@ -225,6 +225,10 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
         }
     }));
 
+    context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', () => {
+        // TODO: Get document uri, line, and character and execute the resolve-macro-as command with those args
+    }));
+
     context.subscriptions.push(
         ...clojureLspCommands.map(command => registerLspCommand(client, command))
     );

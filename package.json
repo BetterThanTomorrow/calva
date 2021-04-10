@@ -627,6 +627,12 @@
         ],
         "commands": [
             {
+                "command": "calva.linting.resolveMacroAs",
+                "title": "Resolve Macro As",
+                "category": "Calva Linting",
+                "enablement": "editorLangId == clojure"
+            },
+            {
                 "command": "calva.copyJackInCommandToClipboard",
                 "title": "Copy Jack-In Command to Clipboard",
                 "category": "Calva",
