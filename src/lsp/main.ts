@@ -210,7 +210,9 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
         ]);
         const rootWorkspaceFolder = vscode.workspace.workspaceFolders[0];
         // TODO: Make config paths that work on windows
-        const configPaths = ['~/.clj-kondo/config.edn'];
+        // TODO: Make this work even on linux (can't use ~/, need to expand the path)
+        //       See if there's a cross-platform way to get the user's home/user directory - on Windows it's C:\Users\<username>
+        const configPaths = ['~/.config/clj-kondo/config.edn'];
         if (rootWorkspaceFolder) {
             configPaths.push(`${rootWorkspaceFolder.uri.fsPath}/.clj-kondo/config.edn`);
         }
