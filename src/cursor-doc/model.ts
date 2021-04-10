@@ -1,33 +1,11 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { LispTokenCursor } from "./token-cursor";
+import { deepEqual as equal} from "../util/object"
 
 let scanner: Scanner;
 
 export function initScanner(maxLength: number) {
     scanner = new Scanner(maxLength);
-}
-
-/** A cheesy deep-equal function for matching scanner states. Good enough to compare plain old js objects. */
-function equal(x: any, y: any): boolean {
-    if(x==y) return true;
-    if(x instanceof Array && y instanceof Array) {
-        if(x.length == y.length) {
-            for(let i = 0; i<x.length; i++)
-                if(!equal(x[i], y[i]))
-                    return false;
-            return true;
-        } else
-            return false;
-    } else if (!(x instanceof Array) && !(y instanceof Array) && x instanceof Object && y instanceof Object) {
-        for(let f in x)
-            if(!equal(x[f], y[f]))
-                return false;
-        for(let f in y)
-            if(!x.hasOwnProperty(f))
-                return false
-        return true;
-    }
-    return false;
 }
 
 export class TextLine {
@@ -118,6 +96,7 @@ export interface EditableModel {
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
 
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
+    getLineText: (line: number) => string;
     getOffsetForLine: (line: number) => number;
     getTokenCursor: (offset: number, previous?: boolean) => LispTokenCursor;
 }
@@ -248,6 +227,15 @@ export class LineInputModel implements EditableModel {
         for(let i=0; i<line; i++)
             max += this.lines[i].text.length + this.lineEndingLength;
         return max;
+    }
+
+    /**
+     * Returns the text of the given line
+     *
+     * @param line the line to get the text of
+     */
+    getLineText(line: number): string {
+        return this.lines[line].text;
     }
 
     /**

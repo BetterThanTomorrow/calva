@@ -175,7 +175,6 @@ export class LispTokenCursor extends TokenCursor {
                 case "ws":
                     this.next();
                     if (["comment", "prompt"].includes(this.getToken().type) && !includeComments) {
-                        this.previous();
                         return;
                     }
                     continue;
@@ -200,7 +199,6 @@ export class LispTokenCursor extends TokenCursor {
                 case "ws":
                     this.previous();
                     if (["comment", "prompt"].includes(this.getPrevToken().type) && !includeComments) {
-                        this.next();
                         return;
                     }
                     continue;
@@ -664,10 +662,27 @@ export class LispTokenCursor extends TokenCursor {
     withinString() {
         const cursor = this.clone();
         cursor.backwardList();
-        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw === '"') {
+        if (cursor.getPrevToken().type === 'open' && cursor.getPrevToken().raw.endsWith('"')) {
             return true;
         };
         return false;
+    }
+
+    /**
+     * Indicates if the current token is in a comment line
+     */
+    withinComment() {
+        const cursor = this.clone();
+        let isComment = cursor.getToken().type === 'comment' || cursor.getPrevToken().type === 'comment';
+        if (!isComment && this.withinWhiteSpace()) {
+            cursor.forwardWhitespace(false);
+            isComment = cursor.getToken().type === 'comment';
+            if (!isComment) {
+                cursor.backwardWhitespace(false);
+                isComment = cursor.getPrevToken().type === 'comment';
+            }
+        }
+        return isComment;
     }
 
     /**

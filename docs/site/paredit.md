@@ -94,7 +94,7 @@ Default keybinding                | Action | Description
  `ctrl+shift+j`                  | **Join Sexps/Forms** | Joins two strings, or two lists of the same type, into one form (string/list). <br> ![](images/paredit/join.gif)
  `ctrl+alt+p ctrl+alt+r`                        | **Raise Sexp** | Replaces the enclosing list with the current form. <br> ![](images/paredit/raise.gif)
  `ctrl+alt+t`                        | **Transpose Sexps/Forms** | Swaps place of the two forms surrounding the cursor. <br> ![](images/paredit/transpose.gif)
- `ctrl+alt+shift` `b`<br> `ctrl+alt+shift` `f` | **Drag Sexp Backward/Forward** | Moves the current form to the behind/in front of the previous/next one. (See below about behavior in maps and binding boxes.) <br> ![](images/paredit/drag-backward-forward.gif)
+ `alt+up`<br>`alt+down` | **Drag Sexp Backward/Forward** | Moves the current form to the behind/in front of the previous/next one. (See below about behavior in maps and binding boxes.) <br> ![](images/paredit/drag-backward-forward.gif)
  `ctrl+alt+shift` `u`<br>`ctrl+alt+shift` `d` | **Drag Sexp Backward Up**<br>**Drag Sexp Forward Down** | Moves the current form up/out of the current list, *backwards*, and down/in to the following list, *forwards*, keeping the cursor within the sexpr being dragged.<br> ![](images/paredit/drag-backward-up-forward-down.gif)
  `ctrl+alt+shift` `k`<br>`ctrl+alt+shift` `j` | **Drag Sexp Forward Up**<br>**Drag Sexp Backward Down** | Moves the current form up/out of the current list, *forwards*, and down/in to the preceding list, *backwards*, keeping the cursor within the sexpr being dragged.<br> ![](images/paredit/drag-forward-up-backward-down.gif)
  `ctrl+shift+c`                      | **Convolute** | ¯\\\_(ツ)_/¯ <br> ![](images/paredit/convolute.gif)
@@ -124,6 +124,13 @@ And like so (wait for it):
 
 Care has been put in to making the default keybindings somewhat logical, easy to use, and work with most keyboard layouts. Slurp and barf forward are extra accessible to go with the recommendation to learn using these two super handy editing commands.
 
-Note: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+
+You can relax how Paredit's shortcuts replace VS Code built in shortcuts a bit by setting `calva.paredit.hijackVSCodeDefaults` to `false`.
+
+There are some context keys you can utilize to configure keyboard shortcuts with precision. See [Customizing Keyboard Shortcuts](customizing.md#when-clause-contexts).
+
+*The Nuclear Option*: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+
 
 Happy Editing! ❤️

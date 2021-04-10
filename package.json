@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.185",
+    "version": "2.0.186",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -264,13 +264,13 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.8",
+                            "cider-nrepl": "0.25.10",
                             "cider/piggieback": "0.5.2"
                         }
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.04.03-18.43.55",
+                        "default": "2021.04.07-16.34.10",
                         "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
@@ -512,11 +512,6 @@
                         "default": true,
                         "scope": "window"
                     },
-                    "calva.displayDiagnostics": {
-                        "type": "boolean",
-                        "markdownDescription": "Show linter warnings and other diagnostics",
-                        "default": true
-                    },
                     "calva.hideReplUi": {
                         "type": "boolean",
                         "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features.)",
@@ -539,10 +534,17 @@
                         ],
                         "scope": "window"
                     },
+                    "calva.paredit.hijackVSCodeDefaults": {
+                        "type": "boolean",
+                        "markdownDescription": "When enabled, more VS Code built-in shortcuts are overridden with their ”corresponding” Paredit commands.",
+                        "default": true,
+                        "scope": "window"
+                    },
                     "calva.paredit.strictPreventUnmatchedClosingBracket": {
                         "type": "boolean",
                         "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-                        "default": false
+                        "default": false,
+                        "scope": "window"
                     }
                 }
             },
@@ -1495,14 +1497,28 @@
                 "mac": "alt+right",
                 "win": "ctrl+right",
                 "linux": "ctrl+right",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
             },
             {
                 "command": "paredit.backwardSexp",
                 "mac": "alt+left",
                 "win": "ctrl+left",
                 "linux": "ctrl+left",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
+            },
+            {
+                "command": "paredit.forwardSexp",
+                "mac": "ctrl+right",
+                "win": "alt+right",
+                "linux": "alt+right",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
+            },
+            {
+                "command": "paredit.backwardSexp",
+                "mac": "ctrl+left",
+                "win": "alt+left",
+                "linux": "alt+left",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
             },
             {
                 "command": "paredit.forwardDownSexp",
@@ -1588,14 +1604,14 @@
                 "mac": "ctrl+w",
                 "win": "shift+alt+right",
                 "linux": "shift+alt+right",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
             },
             {
                 "command": "paredit.sexpRangeContraction",
                 "mac": "ctrl+shift+w",
                 "win": "shift+alt+left",
                 "linux": "shift+alt+left",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
             },
             {
                 "command": "paredit.slurpSexpForward",
@@ -1647,12 +1663,22 @@
             {
                 "command": "paredit.dragSexprBackward",
                 "key": "ctrl+shift+alt+b",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
             },
             {
                 "command": "paredit.dragSexprForward",
                 "key": "ctrl+shift+alt+f",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !calva:cursorInComment"
+            },
+            {
+                "command": "paredit.dragSexprBackward",
+                "key": "alt+up",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
+            },
+            {
+                "command": "paredit.dragSexprForward",
+                "key": "alt+down",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment"
             },
             {
                 "command": "paredit.dragSexprBackwardUp",
@@ -1752,12 +1778,12 @@
             {
                 "command": "paredit.deleteForward",
                 "key": "delete",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
                 "command": "paredit.forceDeleteForward",
