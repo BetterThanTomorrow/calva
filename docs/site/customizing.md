@@ -83,7 +83,7 @@ Dependency | Version | Description
 
 ## Key bindings
 
-Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when claus contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated. 
+Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some [when clause contexts](https://code.visualstudio.com/api/references/when-clause-contexts) updated. 
 
 ### When Clause Contexts
 
