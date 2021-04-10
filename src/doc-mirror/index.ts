@@ -71,6 +71,10 @@ export class DocumentModel implements EditableModel {
         return this.lineInputModel.getText(start, end, mustBeWithin);
     }
 
+    public getLineText(line: number) {
+        return this.lineInputModel.getLineText(line);
+    }
+
     getOffsetForLine(line: number) {
         return this.lineInputModel.getOffsetForLine(line);
     }

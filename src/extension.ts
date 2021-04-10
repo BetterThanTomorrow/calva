@@ -28,6 +28,7 @@ import * as outputWindow from './results-output/results-doc';
 import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
+import setCursorContextIfChanged from './when-contexts'
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 
@@ -57,6 +58,11 @@ function onDidOpen(document) {
     if (document.languageId !== 'clojure') {
         return;
     }
+}
+
+function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
+    replHistory.setReplHistoryCommandsActiveContext(editor);
+    setCursorContextIfChanged(editor);
 }
 
 function setKeybindingsEnabledContext() {
@@ -232,7 +238,7 @@ async function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
-        replHistory.setReplHistoryCommandsActiveContext(editor);
+        onDidChangeEditorOrSelection(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
@@ -244,7 +250,7 @@ async function activate(context: vscode.ExtensionContext) {
         statusbar.update();
     }));
     context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
-        replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
+        onDidChangeEditorOrSelection(event.textEditor);
     }));
     context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(document => {
         if (outputWindow.isResultsDoc(document)) {

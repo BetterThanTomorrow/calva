@@ -28,6 +28,10 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         if ([')', ']', '}'].includes(ch)) {
             if (keyMap === 'strict' && getConfig().strictPreventUnmatchedClosingBracket) {
                 const mDoc: EditableDocument = docMirror.getDocument(document);
+                const tokenCursor = mDoc.getTokenCursor();
+                if (tokenCursor.withinComment()) {
+                    return null;
+                }
                 return paredit.backspace(mDoc).then(fulfilled => {
                     paredit.close(mDoc, ch);
                     return null;
