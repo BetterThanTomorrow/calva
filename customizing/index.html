@@ -582,6 +582,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#when-clause-contexts" class="md-nav__link">
+    When Clause Contexts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#some-custom-bindings" class="md-nav__link">
+    Some Custom Bindings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#move-by-word" class="md-nav__link">
     Move by word
   </a>
@@ -963,6 +977,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#when-clause-contexts" class="md-nav__link">
+    When Clause Contexts
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#some-custom-bindings" class="md-nav__link">
+    Some Custom Bindings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#move-by-word" class="md-nav__link">
     Move by word
   </a>
@@ -1126,7 +1154,26 @@
 </tbody>
 </table>
 <h2 id="key-bindings">Key bindings</h2>
-<p>Here are a collection of custom keybindings from here and there.</p>
+<p>Most of Calva's commands have default keybindings. They are only defaults, though, and you can change keybindings as you wish. To facilitate precision in binding keys Calva keeps some <a href="https://code.visualstudio.com/api/references/when-clause-contexts">when clause contexts</a> updated. </p>
+<h3 id="when-clause-contexts">When Clause Contexts</h3>
+<p>The following contexts are available with Calva:</p>
+<ul>
+<li><code>calva:keybindingsEnabled</code>: a master switch that you find in the settings</li>
+<li><code>paredit:keyMap</code>: <code>strict</code>, <code>original</code>, or <code>none</code> from the corresponding Calva setting (see <a href="../paredit/">Paredit</a>)</li>
+<li><code>calva:connected</code>: <code>true</code> when Calva is connected to a REPL (there is also <code>calva:connecting</code> || <code>calva:launching</code>)</li>
+<li><code>calva:outputWindowActive</code>: <code>true</code> when the <a href="../output/">Output/REPL window</a> has input focus</li>
+<li><code>calva:replHistoryCommandsActive</code>: <code>true</code> when the cursor is in the Output/REPL window at the top level after the last prompt</li>
+<li><code>calva:outputWindowSubmitOnEnter</code>: <code>true</code> when the cursor is adjacent after the last top level form in the Output/REPL window</li>
+<li><code>calva:cursorInString</code>: <code>true</code> when the cursor/caret is in a string or a regexp</li>
+<li><code>calva:cursorInComment</code>: <code>true</code> when the cursor is in, or adjacent to a line comment</li>
+<li><code>calva:cursorBeforeComment</code>: <code>true</code> when the cursor is adjacent before a line comment</li>
+<li><code>calva:cursorAfterComment</code>: <code>true</code> when the cursor is adjacent after a line comment</li>
+<li><code>calva:cursorAtStartOfLine</code>: <code>true</code> when the cursor is at the start of a line including any leading whitespace</li>
+<li><code>calva:cursorAtEndOfLine</code>: <code>true</code> when the cursor is at the end of a line including any trailing whitespace</li>
+<li><code>calva:showReplUi</code>: <code>false</code> when Calva's REPL UI is disabled through the corresponding setting</li>
+</ul>
+<h3 id="some-custom-bindings">Some Custom Bindings</h3>
+<p>Here is a collection of custom keybindings from here and there.</p>
 <ul>
 <li>Replace all Calva <code>ctrl+alt+...</code> key bindings with <code>ctrl+shift+...</code>, for keyboards lacking <code>alt</code> key: <a href="https://gist.github.com/PEZ/3fc22e015e0d33fb9b73074fd6abf292">this gist</a></li>
 <li>Replace the default Calva ”prefix”, <code>ctrl+alt+c</code> to just <code>alt+v</code>: <a href="https://gist.github.com/conan/aa38688d7daa50804c8a433215dc6dc9">WebWItch's keybindings.json</a> (Please note, that <code>alt+v</code> does not work for some locales, but for when it works it is much less clunky than the default prefix).</li>
@@ -1135,7 +1182,8 @@
 </ul>
 <p>Are you a vim extension user? See: <a href="../vim/">Using with VIM extension</a>.</p>
 <h3 id="move-by-word">Move by word</h3>
-<p>If you sometimes navigate by word, you might find that Calva defaults gets a bit in the way. Here are some settings that retain the default word movement shortcuts for Windows and Mac:</p>
+<p>By default Calva changes the move-by-word key bindings to move by sexpr/form when the cursor is in structural Clojure code. <em>Within line comments the editor default word movement is active.</em></p>
+<p>If you want the VS Code default word movement shortcuts, use these settings:</p>
 <div class="codehilite"><pre><span></span><code>    <span class="p">{</span>
         <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
         <span class="nt">&quot;win&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+right&quot;</span><span class="p">,</span>
@@ -1164,7 +1212,7 @@
     <span class="p">}</span>
 </code></pre></div>
 
-<p>Use it as an inspiration for customizing these things to your own liking. 😄</p>
+<p>Use it as an inspiration for customizing things to your own liking. 😄</p>
 <h3 id="wrap-using-like-cursive">Wrap using <code>(</code>, <code>[</code>, <code>{</code> (like Cursive)</h3>
 <p>Something I use in IntelliJ/Cursive is the ability to select an expression and hit one of <code>(</code>, <code>[</code>, <code>{</code> to wrap it. And after wrapping the expression I don't want the selection anymore, so if I were wrapping <code>(foo)</code> then I would want to get <code>( | (foo))</code> where <code>|</code> would be my cursor.</p>
 <p>Here's how you can make this work with Calva Paredit: Update all of the <code>Paredit: Wrap Around ...</code> commands so that their respective shortcuts are the wrappers themselves and update the <code>when</code> clause to include <code>editorHasSelection</code> (otherwise when you open a paren the next expression would get slurped in).</p>
