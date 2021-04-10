@@ -6,6 +6,8 @@ import { provideClojureDefinition } from '../providers/definition';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { downloadClojureLsp } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
+import * as os from 'os';
+import * as path from 'path';
 
 const LSP_CLIENT_KEY = 'lspClient';
 
@@ -212,11 +214,14 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
         // TODO: Make config paths that work on windows
         // TODO: Make this work even on linux (can't use ~/, need to expand the path)
         //       See if there's a cross-platform way to get the user's home/user directory - on Windows it's C:\Users\<username>
-        const configPaths = ['~/.config/clj-kondo/config.edn'];
+        const homeDirectory = os.homedir();
+        const cljKondoUserConfig = path.join(homeDirectory, '.config', 'clj-kondo', 'config.edn');
+        const configPaths = [cljKondoUserConfig];
         if (rootWorkspaceFolder) {
-            configPaths.push(`${rootWorkspaceFolder.uri.fsPath}/.clj-kondo/config.edn`);
+            const cljKondoProjectConfig = path.join(rootWorkspaceFolder.uri.fsPath, '.clj-kondo', 'config.edn');
+            configPaths.push(cljKondoProjectConfig);
         }
-        const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths, {placeHolder: 'To which config should this be written?'});
+        const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths, {placeHolder: 'Select where this setting should be saved:'});
         if (macroToResolveAs && cljKondoConfigPath) {
             const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
             sendCommandRequest(client, resolveMacroAsCommand, args);
