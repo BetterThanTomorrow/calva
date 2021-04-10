@@ -210,6 +210,12 @@ const cljsDependencies = () =>  {
         "lein-shadow": {
             "cider/cider-nrepl": CIDER_NREPL_VERSION()
         },
+        "Plain CLJS Browser": {
+            "cider/piggieback": PIGGIEBACK_VERSION()
+        },
+        "Plain CLJS Node": {
+            "cider/piggieback": PIGGIEBACK_VERSION()
+        },
         "Nashorn": {
             "cider/piggieback": PIGGIEBACK_VERSION()
         },
@@ -238,6 +244,8 @@ const cljsMiddleware: { [id: string]: string[] } = {
     "Figwheel Main": [cljsMiddlewareNames.wrapCljsRepl],
     "shadow-cljs": [],
     "lein-shadow": [cljsMiddlewareNames.wrapCljsRepl],
+    "Plain CLJS Browser": [cljsMiddlewareNames.wrapCljsRepl],
+    "Plain CLJS Node": [cljsMiddlewareNames.wrapCljsRepl],
     "Nashorn": [cljsMiddlewareNames.wrapCljsRepl],
     "User provided": [cljsMiddlewareNames.wrapCljsRepl],
     'none': []
@@ -252,7 +260,7 @@ function depsCljWindowsPath() {
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
         name: "Leiningen",
-        cljsTypes: ["Figwheel", "Figwheel Main"],
+        cljsTypes: ["Figwheel", "Figwheel Main", "Plain CLJS Browser", "Plain CLJS Node"],
         cmd: ["lein"],
         winCmd: ["cmd.exe", "/d", "/c", "lein"],
         processShellUnix: true,
@@ -273,7 +281,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     },
     "clj": {
         name: "deps.edn",
-        cljsTypes: ["Figwheel", "Figwheel Main"],
+        cljsTypes: ["Figwheel", "Figwheel Main", "Plain CLJS Browser", "Plain CLJS Node"],
         cmd: ["clojure"],
         winCmd: ['java', '-jar'],
         resolveBundledPathWin: depsCljWindowsPath,

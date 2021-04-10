@@ -16,6 +16,8 @@ enum CljsTypes {
     "lein-figwheel" = "lein-figwheel",
     "shadow-cljs" = "shadow-cljs",
     "Nashorn" = "Nashorn",
+    "Plain CLJS Browser" = "Plain CLJS Browser",
+    "Plain CLJS Node" = "Plain CLJS Node",
     "User provided" = "User provided",
     "none" = "none"
 }
@@ -74,6 +76,16 @@ const leiningenDefaults: ReplConnectSequence[] =
         cljsType: CljsTypes["lein-figwheel"]
     },
     {
+        name: "Leiningen + Plain CLJS Browser",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["Plain CLJS Browser"]
+    },
+    {
+        name: "Leiningen + Plain CLJS Node",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["Plain CLJS Node"]
+    },
+    {
         name: "Leiningen + Nashorn",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["Nashorn"]
@@ -100,6 +112,16 @@ const cljDefaults: ReplConnectSequence[] =
         name: "deps.edn + Legacy Figwheel",
         projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["lein-figwheel"]
+    },
+    {
+        name: "deps.edn + Plain CLJS Browser",
+        projectType: ProjectTypes["deps.edn"],
+        cljsType: CljsTypes["Plain CLJS Browser"]
+    },
+    {
+        name: "deps.edn + Plain CLJS Node",
+        projectType: ProjectTypes["deps.edn"],
+        cljsType: CljsTypes["Plain CLJS Node"]
     },
     {
         name: "deps.edn + Nashorn",
@@ -175,6 +197,20 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         buildsRequired: false,
         isStarted: true,
         connectCode: "(do (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env)))",
+        isConnectedRegExp: "To quit, type: :cljs/quit"
+    },
+    "Plain CLJS Browser": {
+        name: "Plain CLJS Browser",
+        buildsRequired: false,
+        isStarted: true,
+        connectCode: "(do (require 'cljs.repl.browser) (cider.piggieback/cljs-repl (cljs.repl.browser/repl-env)))",
+        isConnectedRegExp: "To quit, type: :cljs/quit"
+    },
+    "Plain CLJS Node": {
+        name: "Plain CLJS Node",
+        buildsRequired: false,
+        isStarted: true,
+        connectCode: "(do (require 'cljs.repl.node) (cider.piggieback/cljs-repl (cljs.repl.node/repl-env)))",
         isConnectedRegExp: "To quit, type: :cljs/quit"
     }
 };
