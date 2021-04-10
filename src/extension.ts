@@ -60,6 +60,11 @@ function onDidOpen(document) {
     }
 }
 
+function onDidChangeEditorOrSelection(editor: vscode.TextEditor) {
+    replHistory.setReplHistoryCommandsActiveContext(editor);
+    setCursorContextIfChanged(editor);
+}
+
 function setKeybindingsEnabledContext() {
     let keybindingsEnabled = vscode.workspace.getConfiguration().get(config.KEYBINDINGS_ENABLED_CONFIG_KEY);
     vscode.commands.executeCommand('setContext', config.KEYBINDINGS_ENABLED_CONTEXT_KEY, keybindingsEnabled);
@@ -233,8 +238,7 @@ async function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();
-        replHistory.setReplHistoryCommandsActiveContext(editor);
-        setCursorContextIfChanged(editor);
+        onDidChangeEditorOrSelection(editor);
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(annotations.onDidChangeTextDocument));
     context.subscriptions.push(new vscode.Disposable(() => {
@@ -246,8 +250,7 @@ async function activate(context: vscode.ExtensionContext) {
         statusbar.update();
     }));
     context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(event => {
-        replHistory.setReplHistoryCommandsActiveContext(event.textEditor);
-        setCursorContextIfChanged(event.textEditor);
+        onDidChangeEditorOrSelection(event.textEditor);
     }));
     context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(document => {
         if (outputWindow.isResultsDoc(document)) {
