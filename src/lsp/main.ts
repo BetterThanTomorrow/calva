@@ -211,9 +211,6 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
             'clj-kondo.lint-as/def-catch-all'
         ]);
         const rootWorkspaceFolder = vscode.workspace.workspaceFolders[0];
-        // TODO: Make config paths that work on windows
-        // TODO: Make this work even on linux (can't use ~/, need to expand the path)
-        //       See if there's a cross-platform way to get the user's home/user directory - on Windows it's C:\Users\<username>
         const homeDirectory = os.homedir();
         const cljKondoUserConfig = path.join(homeDirectory, '.config', 'clj-kondo', 'config.edn');
         const configPaths = [cljKondoUserConfig];
