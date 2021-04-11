@@ -227,6 +227,13 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', () => {
         // TODO: Get document uri, line, and character and execute the resolve-macro-as command with those args
+        const activeTextEditor = vscode.window.activeTextEditor;
+        if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
+            // TODO: Make sure this works with clojure-lsp
+            const documentUri = activeTextEditor.document.uri.fsPath;
+            const { line, character } = activeTextEditor.selection.active;
+            vscode.commands.executeCommand(resolveMacroAsCommand, documentUri, line, character);
+        }
     }));
 
     context.subscriptions.push(
