@@ -424,7 +424,8 @@
                                                 "Figwheel Main",
                                                 "lein-figwheel",
                                                 "shadow-cljs",
-                                                "Nashorn",
+                                                "ClojureScript built-in for browser",
+                                                "ClojureScript built-in for node",
                                                 "none"
                                             ]
                                         },
@@ -441,7 +442,8 @@
                                                         "Figwheel Main",
                                                         "lein-figwheel",
                                                         "shadow-cljs",
-                                                        "Nashorn",
+                                                        "ClojureScript built-in for browser",
+                                                        "ClojureScript built-in for node",
                                                         "User provided"
                                                     ],
                                                     "description": "The ClojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed."

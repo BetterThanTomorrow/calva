@@ -15,9 +15,8 @@ enum CljsTypes {
     "Figwheel Main" = "Figwheel Main",
     "lein-figwheel" = "lein-figwheel",
     "shadow-cljs" = "shadow-cljs",
-    "Nashorn" = "Nashorn",
-    "Plain CLJS Browser" = "Plain CLJS Browser",
-    "Plain CLJS Node" = "Plain CLJS Node",
+    "ClojureScript built-in for browser" = "ClojureScript built-in for browser",
+    "ClojureScript built-in for node" = "ClojureScript built-in for node",
     "User provided" = "User provided",
     "none" = "none"
 }
@@ -71,24 +70,19 @@ const leiningenDefaults: ReplConnectSequence[] =
         nReplPortFile: [".shadow-cljs", "nrepl.port"]
     },
     {
+        name: "Leiningen + ClojureScript built-in for browser",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["ClojureScript built-in for browser"]
+    },
+    {
+        name: "Leiningen + ClojureScript built-in for node",
+        projectType: ProjectTypes.Leiningen,
+        cljsType: CljsTypes["ClojureScript built-in for node"]
+    },
+    {
         name: "Leiningen + Legacy Figwheel",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["lein-figwheel"]
-    },
-    {
-        name: "Leiningen + Plain CLJS Browser",
-        projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Plain CLJS Browser"]
-    },
-    {
-        name: "Leiningen + Plain CLJS Node",
-        projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Plain CLJS Node"]
-    },
-    {
-        name: "Leiningen + Nashorn",
-        projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["Nashorn"]
     }];
 
 const cljDefaults: ReplConnectSequence[] =
@@ -109,24 +103,19 @@ const cljDefaults: ReplConnectSequence[] =
         nReplPortFile: [".shadow-cljs", "nrepl.port"]
     },
     {
+        name: "deps.edn + ClojureScript built-in for browser",
+        projectType: ProjectTypes["deps.edn"],
+        cljsType: CljsTypes["ClojureScript built-in for browser"]
+    },
+    {
+        name: "deps.edn + ClojureScript built-in for node",
+        projectType: ProjectTypes["deps.edn"],
+        cljsType: CljsTypes["ClojureScript built-in for node"]
+    },
+    {
         name: "deps.edn + Legacy Figwheel",
         projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["lein-figwheel"]
-    },
-    {
-        name: "deps.edn + Plain CLJS Browser",
-        projectType: ProjectTypes["deps.edn"],
-        cljsType: CljsTypes["Plain CLJS Browser"]
-    },
-    {
-        name: "deps.edn + Plain CLJS Node",
-        projectType: ProjectTypes["deps.edn"],
-        cljsType: CljsTypes["Plain CLJS Node"]
-    },
-    {
-        name: "deps.edn + Nashorn",
-        projectType: ProjectTypes["deps.edn"],
-        cljsType: CljsTypes["Nashorn"]
     }];
 
 const shadowCljsDefaults: ReplConnectSequence[] = [{
@@ -192,22 +181,15 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         isConnectedRegExp: /To quit, type: :cljs\/quit/
         //isConnectedRegExp: /:selected/
     },
-    "Nashorn": {
-        name: "Nashorn",
-        buildsRequired: false,
-        isStarted: true,
-        connectCode: "(do (require 'cljs.repl.nashorn) (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env)))",
-        isConnectedRegExp: "To quit, type: :cljs/quit"
-    },
-    "Plain CLJS Browser": {
-        name: "Plain CLJS Browser",
+    "ClojureScript built-in for browser": {
+        name: "ClojureScript built-in for browser",
         buildsRequired: false,
         isStarted: true,
         connectCode: "(do (require 'cljs.repl.browser) (cider.piggieback/cljs-repl (cljs.repl.browser/repl-env)))",
         isConnectedRegExp: "To quit, type: :cljs/quit"
     },
-    "Plain CLJS Node": {
-        name: "Plain CLJS Node",
+    "ClojureScript built-in for node": {
+        name: "ClojureScript built-in for node",
         buildsRequired: false,
         isStarted: true,
         connectCode: "(do (require 'cljs.repl.node) (cider.piggieback/cljs-repl (cljs.repl.node/repl-env)))",

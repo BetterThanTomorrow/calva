@@ -210,13 +210,10 @@ const cljsDependencies = () =>  {
         "lein-shadow": {
             "cider/cider-nrepl": CIDER_NREPL_VERSION()
         },
-        "Plain CLJS Browser": {
+        "ClojureScript built-in for browser": {
             "cider/piggieback": PIGGIEBACK_VERSION()
         },
-        "Plain CLJS Node": {
-            "cider/piggieback": PIGGIEBACK_VERSION()
-        },
-        "Nashorn": {
+        "ClojureScript built-in for node": {
             "cider/piggieback": PIGGIEBACK_VERSION()
         },
         "User provided": {
@@ -244,9 +241,8 @@ const cljsMiddleware: { [id: string]: string[] } = {
     "Figwheel Main": [cljsMiddlewareNames.wrapCljsRepl],
     "shadow-cljs": [],
     "lein-shadow": [cljsMiddlewareNames.wrapCljsRepl],
-    "Plain CLJS Browser": [cljsMiddlewareNames.wrapCljsRepl],
-    "Plain CLJS Node": [cljsMiddlewareNames.wrapCljsRepl],
-    "Nashorn": [cljsMiddlewareNames.wrapCljsRepl],
+    "ClojureScript built-in for browser": [cljsMiddlewareNames.wrapCljsRepl],
+    "ClojureScript built-in for node": [cljsMiddlewareNames.wrapCljsRepl],
     "User provided": [cljsMiddlewareNames.wrapCljsRepl],
     'none': []
 };
@@ -260,7 +256,7 @@ function depsCljWindowsPath() {
 const projectTypes: { [id: string]: ProjectType } = {
     "lein": {
         name: "Leiningen",
-        cljsTypes: ["Figwheel", "Figwheel Main", "Plain CLJS Browser", "Plain CLJS Node"],
+        cljsTypes: ["Figwheel", "Figwheel Main", "ClojureScript built-in for browser", "ClojureScript built-in for node"],
         cmd: ["lein"],
         winCmd: ["cmd.exe", "/d", "/c", "lein"],
         processShellUnix: true,
@@ -281,7 +277,7 @@ const projectTypes: { [id: string]: ProjectType } = {
     },
     "clj": {
         name: "deps.edn",
-        cljsTypes: ["Figwheel", "Figwheel Main", "Plain CLJS Browser", "Plain CLJS Node"],
+        cljsTypes: ["Figwheel", "Figwheel Main", "ClojureScript built-in for browser", "ClojureScript built-in for node"],
         cmd: ["clojure"],
         winCmd: ['java', '-jar'],
         resolveBundledPathWin: depsCljWindowsPath,
