@@ -63,9 +63,9 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 * View doc strings on hover
 * View function signatures on hover, including help with knowing which argument you are typing
 * [Debugger](https://calva.io/debugger/)
-* Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and [Figwheel Main](https://figwheel.org), and Nashorn repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in yet.)
-* Your [Custom Connect Sequences](https://calva.io/connect-sequences/), including fully customized CLJS REPLs.
-* Switch the CLJS REPL connection between your different CLJS builds at will.
+* Support for [Clojure tools/deps](https://clojure.org/guides/deps_and_cli), [Leiningen](https://leiningen.org), [shadow-cljs](http://shadow-cljs.org), [Figwheel Main](https://figwheel.org), [lein-figwheel](https://github.com/bhauman/lein-figwheel), and the built-in ClojureScript browser/node repls. (For [Boot](https://boot-clj.com), only Connect scenarios work, there is no Jack-in there.)
+* Your [Custom Connect Sequences](https://calva.io/connect-sequences/), including fully customized ClojureScript REPLs.
+* Switch the ClojureScript REPL connection between your different builds at will.
 * When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 * And more
 

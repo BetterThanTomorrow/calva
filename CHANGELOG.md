@@ -5,6 +5,20 @@ Changes to Calva.
 ## [Unreleased]
 - [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
 
+## [2.0.187] - 2021-04-11
+- [Add built-in REPL Connect Sequences for ClojureScript built-in for browser and Node REPLs](https://github.com/BetterThanTomorrow/calva/issues/1114)
+- [Remove Nashorn ClojureScript Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1117)
+
+## [2.0.186] - 2021-04-10
+- [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
+- [Use alt+up/down for drag sexpr backward/forward](https://github.com/BetterThanTomorrow/calva/issues/1111)
+- [Make it possible to disable some of Paredits hijacking of VS Code default shortcuts](https://github.com/BetterThanTomorrow/calva/issues/1112)
+- Fix: [The unbalanced closing-bracket feature is active in line comments](https://github.com/BetterThanTomorrow/calva/issues/1105)
+- [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
+- Bump `clojure-lsp` to [2021.04.07-16.34.10](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.04.07-16.34.10)
+- Bump `cider-nrepl` to [0.25.10](https://github.com/clojure-emacs/cider-nrepl/blob/master/CHANGELOG.md#02510-2021-04-08)
+
+
 ## [2.0.185] - 2021-04-05
 - Fix: [Paredit slurp sometimes leaves an extra space](https://github.com/BetterThanTomorrow/calva/issues/1098)
 - Fix: [Delete empty literal function causes newline to be removed](https://github.com/BetterThanTomorrow/calva/issues/1079)
@@ -16,7 +30,6 @@ Changes to Calva.
 - Fix: [Auto-generated namespaces not working correctly in some cases](https://github.com/BetterThanTomorrow/calva/issues/1060)
 - [Make clojure-lsp version configurable by the user](https://github.com/BetterThanTomorrow/calva/issues/1088) and bump to `2021.03.30-20.42.34`
 - [Remove warning about clj-kondo extension](https://github.com/BetterThanTomorrow/calva/issues/1091)
-- [Remove the display diagnostics setting in favor of managing diagnostics entirely via clojure-lsp config](https://github.com/BetterThanTomorrow/calva/issues/1067)
 
 ## [2.0.183] - 2021-03-30
 - [Stop printing to the output window when all evaluations are interrupted](https://github.com/BetterThanTomorrow/calva/issues/978)
