@@ -79,8 +79,6 @@ In order for Calva to provide REPL power for ClojureScript projects, several thi
    1. Your ClojureScript app needs to be started.
    1. The Clojure nREPL session needs to be promoted to a ClojureScript nREPL session. (This is what piggieback helps with.)
 
-(It's also possible to connect Calva directly to a Nashorn, bare nodejs, or browser REPL, but let's stick to the scenario where you get a REPL into your running application.)
-
 ### Compiling the App and Watchers
 
 Depending on ClojureScript project type, Calva uses different methods to start the compilation and the watcher:
@@ -100,7 +98,7 @@ What Calva does instead is to monitor the output of the commands it uses for sta
 
 Meanwhile, Calva is monitoring the output and when it sees that the app is started, it continues to hook up the REPL connection to the editor.
 
-This whole connection sequence is quite configurable, using [Custom Connect Sequences](connect-sequences.md). In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and Nashorn) are all built using those same settings mechanisms.
+This whole connection sequence is quite configurable, using [Custom Connect Sequences](connect-sequences.md). In fact, Calva's built in ClojureScript sequences (Figwheel Main, lein-figwheel, shadow-cljs, and ClojureScript built-ins for both Browser and Node) are all built using those same settings mechanisms.
 
 #### shadow-cljs is Less Managed by Calva
 
@@ -117,12 +115,12 @@ Once the REPL is connected you might want to change which ClojureScript build yo
 
 ### Play With Starting the `cljs-repl` Yourself
 
-To get a good grip on what is going on when creating and connecting the ClojureScript REPL, I can recommend making a custom connect sequence which leaves the REPL unpromoted (e.g. give it `nil` as `connectCode`), and then evaluate the `cljs-repl` start commands yourself. So for instance, promoting it to a Nashorn ClojureScript REPL looks something like so:
+To get a good grip on what is going on when creating and connecting the ClojureScript REPL, I can recommend making a custom connect sequence which leaves the REPL unpromoted (e.g. give it `nil` as `connectCode`), and then evaluate the `cljs-repl` start commands yourself. So for instance, promoting it to a ClojureScript Node.js REPL looks something like so:
 
 ```clojure
-user=> (require 'cljs.repl.nashorn)
-user=> (cider.piggieback/cljs-repl (cljs.repl.nashorn/repl-env))
-ClojureScript 1.10.145
+user=> (require 'cljs.repl.node)
+user=> (cider.piggieback/cljs-repl (cljs.repl.node/repl-env))
+ClojureScript 1.10.844
 To quit, type: :cljs/quit
 nil
 cljs.user=> |
