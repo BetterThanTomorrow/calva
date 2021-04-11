@@ -4,7 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add built-in REPL Connect Sequences for ClojureScript built-in for browser and Node REPLs](https://github.com/BetterThanTomorrow/calva/issues/1114)
-- [Remove Nashorn ClojureScript Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1114)
+- [Remove Nashorn ClojureScript Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1117)
 
 ## [2.0.186] - 2021-04-10
 - [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
