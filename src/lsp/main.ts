@@ -10,6 +10,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 const LSP_CLIENT_KEY = 'lspClient';
+const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 
 function createClient(clojureLspPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -162,13 +163,16 @@ const clojureLspCommands: ClojureLspCommand[] = [
     }
 ];
 
-function sendCommandRequest(client: LanguageClient, command: string, args: (number | string)[]): void {
-    client.sendRequest('workspace/executeCommand', {
-        command,
-        arguments: args
-    }).catch(e => {
-        console.error(e);
-    });
+function sendCommandRequest(command: string, args: (number | string)[]): void {
+    const client = getStateValue(LSP_CLIENT_KEY);
+    if (client) {
+        client.sendRequest('workspace/executeCommand', {
+            command,
+            arguments: args
+        }).catch(e => {
+            console.error(e);
+        });
+    }
 }
 
 function registerLspCommand(client: LanguageClient, command: ClojureLspCommand): vscode.Disposable {
@@ -184,7 +188,7 @@ function registerLspCommand(client: LanguageClient, command: ClojureLspCommand):
             const params = [docUri, line, column];
             const extraParam = command.extraParamFn ? await command.extraParamFn() : undefined;
             if (!command.extraParamFn || command.extraParamFn && extraParam) {
-                sendCommandRequest(client, command.command, (extraParam ? [...params, extraParam] : params));
+                sendCommandRequest(command.command, (extraParam ? [...params, extraParam] : params));
             }
         }
     });
@@ -195,46 +199,49 @@ async function codeLensReferencesHandler(_, line, character): Promise<void> {
     await vscode.commands.executeCommand('editor.action.referenceSearch.trigger');
 }
 
+
+async function resolveMacroAsCodeActionCommandHandler(document: string, line: number, character: number): Promise<void> {
+    const macroToResolveAs = await vscode.window.showQuickPick([
+        'clojure.core/def',
+        'clojure.core/defn',
+        'clojure.core/let',
+        'clojure.core/for',
+        'clojure.core/->',
+        'clojure.core/->>',
+        'clj-kondo.lint-as/def-catch-all'
+    ]);
+    const rootWorkspaceFolder = vscode.workspace.workspaceFolders[0];
+    const homeDirectory = os.homedir();
+    const cljKondoUserConfig = path.join(homeDirectory, '.config', 'clj-kondo', 'config.edn');
+    const configPaths = [cljKondoUserConfig];
+    if (rootWorkspaceFolder) {
+        const cljKondoProjectConfig = path.join(rootWorkspaceFolder.uri.fsPath, '.clj-kondo', 'config.edn');
+        configPaths.push(cljKondoProjectConfig);
+    }
+    const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths, { placeHolder: 'Select where this setting should be saved:' });
+    if (macroToResolveAs && cljKondoConfigPath) {
+        const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
+        sendCommandRequest(RESOLVE_MACRO_AS_COMMAND, args);
+    }
+}
+
+function resolveMacroAsCommandHandler(): void {
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
+        const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
+        const { line, character } = activeTextEditor.selection.active;
+        resolveMacroAsCodeActionCommandHandler(documentUri, line + 1, character + 1);
+    }
+}
+
 function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
-    // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens above a symbol
+    // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', codeLensReferencesHandler));
 
-    const resolveMacroAsCommand = 'resolve-macro-as';
-    context.subscriptions.push(vscode.commands.registerCommand(resolveMacroAsCommand, async (document, line, character) => {
-        const macroToResolveAs = await vscode.window.showQuickPick([
-            'clojure.core/def',
-            'clojure.core/defn',
-            'clojure.core/let',
-            'clojure.core/for',
-            'clojure.core/->',
-            'clojure.core/->>',
-            'clj-kondo.lint-as/def-catch-all'
-        ]);
-        const rootWorkspaceFolder = vscode.workspace.workspaceFolders[0];
-        const homeDirectory = os.homedir();
-        const cljKondoUserConfig = path.join(homeDirectory, '.config', 'clj-kondo', 'config.edn');
-        const configPaths = [cljKondoUserConfig];
-        if (rootWorkspaceFolder) {
-            const cljKondoProjectConfig = path.join(rootWorkspaceFolder.uri.fsPath, '.clj-kondo', 'config.edn');
-            configPaths.push(cljKondoProjectConfig);
-        }
-        const cljKondoConfigPath = await vscode.window.showQuickPick(configPaths, {placeHolder: 'Select where this setting should be saved:'});
-        if (macroToResolveAs && cljKondoConfigPath) {
-            const args = [document, line, character, macroToResolveAs, cljKondoConfigPath];
-            sendCommandRequest(client, resolveMacroAsCommand, args);
-        }
-    }));
+    // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
+    context.subscriptions.push(vscode.commands.registerCommand(RESOLVE_MACRO_AS_COMMAND, resolveMacroAsCodeActionCommandHandler));
 
-    context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', () => {
-        // TODO: Get document uri, line, and character and execute the resolve-macro-as command with those args
-        const activeTextEditor = vscode.window.activeTextEditor;
-        if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
-            // TODO: Make sure this works with clojure-lsp
-            const documentUri = activeTextEditor.document.uri.fsPath;
-            const { line, character } = activeTextEditor.selection.active;
-            vscode.commands.executeCommand(resolveMacroAsCommand, documentUri, line, character);
-        }
-    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', resolveMacroAsCommandHandler));
 
     context.subscriptions.push(
         ...clojureLspCommands.map(command => registerLspCommand(client, command))
