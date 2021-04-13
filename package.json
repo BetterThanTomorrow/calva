@@ -639,7 +639,7 @@
                 "command": "calva.linting.resolveMacroAs",
                 "title": "Resolve Macro As",
                 "category": "Calva Linting",
-                "enablement": "editorLangId == clojure"
+                "enablement": "editorLangId == clojure && workspaceFolderCount > 0"
             },
             {
                 "command": "calva.copyJackInCommandToClipboard",

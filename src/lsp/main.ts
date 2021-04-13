@@ -210,7 +210,8 @@ async function resolveMacroAsCodeActionCommandHandler(document: string, line: nu
         'clojure.core/->>',
         'clj-kondo.lint-as/def-catch-all'
     ]);
-    const rootWorkspaceFolder = vscode.workspace.workspaceFolders[0];
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    const rootWorkspaceFolder = workspaceFolders && workspaceFolders[0];
     const homeDirectory = os.homedir();
     const cljKondoUserConfig = path.join(homeDirectory, '.config', 'clj-kondo', 'config.edn');
     const configPaths = [cljKondoUserConfig];
@@ -230,7 +231,7 @@ function resolveMacroAsCommandHandler(): void {
     if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
         const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
         const { line, character } = activeTextEditor.selection.active;
-        resolveMacroAsCodeActionCommandHandler(documentUri, line + 1, character + 1);
+        resolveMacroAsCodeActionCommandHandler(documentUri, line, character);
     }
 }
 
