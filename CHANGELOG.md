@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.188] - 2021-04-16
 - Fix: [Getting Started REPL failing on Windows when username has spaces (on some machines)](https://github.com/BetterThanTomorrow/calva/issues/1085)
 
 ## [2.0.187] - 2021-04-11
