@@ -670,6 +670,32 @@ describe('paredit', () => {
                 paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
+            it('Deletes open paren prefix characters', () => {
+                // https://github.com/BetterThanTomorrow/calva/issues/1122
+                const a = docFromTextNotation('#|(foo)');
+                const b = docFromTextNotation('|(foo)');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes open map curly prefix/ns characters', () => {
+                const a = docFromTextNotation('#:same|{:thing :here}');
+                const b = docFromTextNotation('#:sam|{:thing :here}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Deletes open set hash characters', () => {
+                // https://github.com/BetterThanTomorrow/calva/issues/1122
+                const a = docFromTextNotation('#|{:thing :here}');
+                const b = docFromTextNotation('|{:thing :here}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Moves cursor past entire open paren, including prefix characters', () => {
+                const a = docFromTextNotation('#(|foo)');
+                const b = docFromTextNotation('|#(foo)');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
         });
 
         describe('Kill character forwards (delete)', () => {
