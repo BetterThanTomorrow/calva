@@ -1809,7 +1809,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "ctrl+alt+f ctrl+alt+p",
+                "key": "shift+tab",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
