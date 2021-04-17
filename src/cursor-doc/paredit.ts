@@ -463,7 +463,7 @@ export function close(doc: EditableDocument, close: string, start: number = doc.
     }
 }
 
-export function backspace(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight): Thenable<boolean> {
+export function backspace(doc: EditableDocument, start: number = doc.selection.anchor, end: number = doc.selection.active): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     if (start != end) {
         return doc.backspace();
@@ -485,7 +485,7 @@ export function backspace(doc: EditableDocument, start: number = doc.selectionLe
             ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
             if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
-                doc.selection = new ModelEditSelection(p - 1);
+                doc.selection = new ModelEditSelection(p - prevToken.raw.length);
                 return new Promise<boolean>(resolve => resolve(true));
             } else {
                 return doc.backspace();
