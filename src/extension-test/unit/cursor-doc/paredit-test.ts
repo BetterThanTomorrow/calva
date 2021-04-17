@@ -633,6 +633,12 @@ describe('paredit', () => {
                 paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
+            it('Deletes contents in strings 3', () => {
+                const a = docFromTextNotation('{::foo "aa|"• ::bar :foo}');
+                const b = docFromTextNotation('{::foo "a|"• ::bar :foo}');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
             it('Deletes quoted quote', () => {
                 const a = docFromTextNotation('{::foo \\"|• ::bar :foo}');
                 const b = docFromTextNotation('{::foo |• ::bar :foo}');
@@ -693,6 +699,13 @@ describe('paredit', () => {
             it('Moves cursor past entire open paren, including prefix characters', () => {
                 const a = docFromTextNotation('#(|foo)');
                 const b = docFromTextNotation('|#(foo)');
+                paredit.backspace(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Moves cursor only past the open curly for namespaced maps', () => {
+                // Could be argued it should move past the entire reader tag, but anyway
+                const a = docFromTextNotation('#:same{|:thing :here}');
+                const b = docFromTextNotation('#:same|{:thing :here}');
                 paredit.backspace(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });

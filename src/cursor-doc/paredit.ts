@@ -470,7 +470,7 @@ export function backspace(doc: EditableDocument, start: number = doc.selection.a
     } else {
         const nextToken = cursor.getToken();
         const p = start;
-        const prevToken = p > cursor.offsetStart ? nextToken : cursor.getPrevToken();
+        const prevToken = p > cursor.offsetStart && !['open', 'close'].includes(nextToken.type) ? nextToken : cursor.getPrevToken();
         if (prevToken.type == 'prompt') {
             return new Promise<boolean>(resolve => resolve(true));
         } else if (nextToken.type == 'prompt') {
