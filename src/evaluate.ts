@@ -54,6 +54,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     const filePath = options.filePath;
     const session: NReplSession = options.session;
     const ns = options.ns;
+    const editor = vscode.window.activeTextEditor;
 
     if (code.length > 0) {
         let err: string[] = [];
@@ -79,7 +80,6 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             outputWindow.append(value, (resultLocation) => {
                 if (selection) {
                     const c = selection.start.character;
-                    const editor = vscode.window.activeTextEditor;
                     if (options.replace) {
                         const indent = `${' '.repeat(c)}`,
                             edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, "\n" + indent)),
@@ -112,7 +112,6 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
             outputWindow.append(outputWindowError, async (resultLocation, afterResultLocation) => {
                 if (selection) {
-                    const editor = vscode.window.activeTextEditor;
                     const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
                     const currentCursorPos = editor.selection.active;
                     if (!outputWindow.isResultsDoc(editor.document)) {
@@ -142,7 +141,6 @@ async function evaluateSelection(document: {}, options) {
 
     if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;
-        const selection = editor.selection;
         let code = "";
         let codeSelection: vscode.Selection;
         state.analytics().logEvent("Evaluation", "selectionFn").send();
