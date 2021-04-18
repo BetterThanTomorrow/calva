@@ -1,5 +1,5 @@
-{:dependencies [[pez/cljfmt "0.0.4-SNAPSHOT"]
-                [zprint "0.4.16"]]
+{:dependencies [[cljfmt "0.7.0-align-pairs"]
+                [zprint "0.4.16" :exclusions [rewrite-clj rewrite-cljs]]]
 
  :source-paths ["src/cljs-lib/src"
                 "src/cljs-lib/test"]
