@@ -178,6 +178,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', eval.copyLastResultCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.requireREPLUtilities', eval.requireREPLUtilitiesCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.refresh', refresh.refresh));
@@ -222,7 +223,6 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerHoverProvider(config.documentSelector, new HoverProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.ClojureDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.StackTraceDefinitionProvider()));
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(config.documentSelector, new definition.ResultsDefinitionProvider()));
     context.subscriptions.push(vscode.languages.registerSignatureHelpProvider(config.documentSelector, new CalvaSignatureHelpProvider(), ' ', ' '));
 
 
