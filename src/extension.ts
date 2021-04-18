@@ -105,7 +105,6 @@ async function activate(context: vscode.ExtensionContext) {
     const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
     const CALVA_DOCS_URL = "https://calva.io/";
     const VIEWED_CALVA_DOCS = "viewedCalvaDocs";
-    const VIEWED_SHORTCUT_CHANGE_MSG = "viewedShortcutsChangeMessage";
     if (customCljsRepl && replConnectSequences.length == 0) {
         chan.appendLine("Old customCljsRepl settings detected.");
         vscode.window.showErrorMessage("Old customCljsRepl settings detected. You need to specify it using the new calva.customConnectSequence setting. See the Calva user documentation for instructions.", ...[BUTTON_GOTO_DOC, BUTTON_OK])
@@ -281,17 +280,6 @@ async function activate(context: vscode.ExtensionContext) {
 
     greetings.activationGreetings(chan);
 
-    if (!context.globalState.get(VIEWED_SHORTCUT_CHANGE_MSG)) {
-        vscode.window.showInformationMessage("Dear Calva user, some default keyboard shortcuts have changed. See calva.io/paredit and calva.io/custom-commands for the current defaults.", ...[BUTTON_OK])
-            .then(v => {
-                if (v == BUTTON_OK) {
-                    context.globalState.update(VIEWED_SHORTCUT_CHANGE_MSG, true);
-                    state.analytics().logEvent("LifeCycle", "Shortcut change message dismissed")
-                }
-            });
-    }
-
-
     if (vimExtension) {
         chan.appendLine(`VIM Extension detected. Please read: ${VIM_DOC_URL} now and then.\n`);
         if (!context.globalState.get(VIEWED_VIM_DOCS)) {
@@ -314,14 +302,7 @@ async function activate(context: vscode.ExtensionContext) {
             console.error("Failed activating Highlight: " + e.message)
         }
     } else {
-        vscode.window.showErrorMessage("Clojure Warrior extension detected. This will not work well together with Calva's highlighting (which is an improvement on Clojure Warrior). Please uninstall ut before continuing to use Calva.", ...["Got it.", "Will do!"]);
-    }
-
-    for (const config of ["enableBracketColors", "bracketColors", "cycleBracketColors", "misplacedBracketStyle", "matchedBracketStyle", "commentFormStyle", "ignoredFormStyle"]) {
-        if (cwConfig.get(config) !== undefined) {
-            vscode.window.showWarningMessage("Legacy Clojure Warrior settings detected. These settings have changed prefix/namespace to from `clojureWarrior´ to `calva.highlight`. You should update `settings.json`.", ...["Roger that!"]);
-            break;
-        }
+        vscode.window.showErrorMessage("Clojure Warrior extension detected. This will not work well together with Calva's highlighting (which is an improvement on Clojure Warrior). Please uninstall/disable it.", ...["Got it.", "Will do!"]);
     }
 
     return {
