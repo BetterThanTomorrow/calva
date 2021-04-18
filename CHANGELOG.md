@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
 - [Use `shift+tab` for the ”Infer parens from indentation” command](https://github.com/BetterThanTomorrow/calva/issues/1126)
+- Fix: [Inline evaluation results can show up in the wrong editor](https://github.com/BetterThanTomorrow/calva/issues/1120)
 
 ## [2.0.188] - 2021-04-16
 - Fix: [Getting Started REPL failing on Windows when username has spaces (on some machines)](https://github.com/BetterThanTomorrow/calva/issues/1085)
