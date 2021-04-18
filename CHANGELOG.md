@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.189] - 2021-04-18
 - [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
 - [Use `shift+tab` for the ”Infer parens from indentation” command](https://github.com/BetterThanTomorrow/calva/issues/1126)
 - Fix: [Inline evaluation results can show up in the wrong editor](https://github.com/BetterThanTomorrow/calva/issues/1120)
