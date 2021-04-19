@@ -823,6 +823,11 @@
                 "enablement": "calva:connected"
             },
             {
+                "command": "calva.continueComment",
+                "title": "Continue Comment (add a commented line below).",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.switchCljsBuild",
                 "title": "Select CLJS Build Connection",
                 "enablement": "calva:connected",
@@ -1488,6 +1493,11 @@
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space",
                 "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.continueComment",
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment"
             },
             {
                 "command": "paredit.togglemode",

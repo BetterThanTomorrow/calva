@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Replace automatic comment continuation with an on-demand one](https://github.com/BetterThanTomorrow/calva/issues/644)
 
 ## [2.0.189] - 2021-04-18
 - [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
