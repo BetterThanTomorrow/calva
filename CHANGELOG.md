@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [REPL evaluation hangs if an error is raised during debug session](https://github.com/BetterThanTomorrow/calva/issues/1118)
 
 ## [2.0.189] - 2021-04-18
 - [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
