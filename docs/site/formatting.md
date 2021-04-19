@@ -13,6 +13,9 @@ With the default settings, Calva's formatting behaves like so:
 * formats according to community standards (see above link)
 * formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`.
 
+!!! Tips
+    Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to `shift+tab` to form a nicely balanced pair with the `tab` formatting.
+
 Also: If you have **Format on Save** enabled in VS Code, it will be Calva doing the formatting for Clojure files.
 
 Calva's formatting is mostly about indenting, but it also (again, defaults):

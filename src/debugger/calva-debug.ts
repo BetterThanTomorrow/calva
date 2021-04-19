@@ -327,7 +327,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
 }
 
 function onNreplMessage(data: any): void {
-    if (vscode.debug.activeDebugSession && data['value'] !== undefined) {
+    if (vscode.debug.activeDebugSession && (data['value'] || data['err'])) {
         annotations.clearAllEvaluationDecorations();
         vscode.debug.activeDebugSession.customRequest(REQUESTS.SEND_TERMINATED_EVENT);
     } else if (data['status'] && data['status'].indexOf(NEED_DEBUG_INPUT_STATUS) !== -1) {

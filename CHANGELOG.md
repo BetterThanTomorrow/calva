@@ -4,6 +4,23 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.190] - 2021-04-19
+- [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
+- Fix: [REPL evaluation hangs if an error is raised during debug session](https://github.com/BetterThanTomorrow/calva/issues/1118)
+
+## [2.0.189] - 2021-04-18
+- [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
+- [Use `shift+tab` for the ”Infer parens from indentation” command](https://github.com/BetterThanTomorrow/calva/issues/1126)
+- Fix: [Inline evaluation results can show up in the wrong editor](https://github.com/BetterThanTomorrow/calva/issues/1120)
+- [Bring back results in hovers](https://github.com/BetterThanTomorrow/calva/issues/736)
+
+## [2.0.188] - 2021-04-16
+- Fix: [Getting Started REPL failing on Windows when username has spaces (on some machines)](https://github.com/BetterThanTomorrow/calva/issues/1085)
+
+## [2.0.187] - 2021-04-11
+- [Add built-in REPL Connect Sequences for ClojureScript built-in for browser and Node REPLs](https://github.com/BetterThanTomorrow/calva/issues/1114)
+- [Remove Nashorn ClojureScript Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1117)
+
 ## [2.0.186] - 2021-04-10
 - [Allow keybindings to target when the cursor is inside a comment or a string](https://github.com/BetterThanTomorrow/calva/issues/1023)
 - [Use alt+up/down for drag sexpr backward/forward](https://github.com/BetterThanTomorrow/calva/issues/1111)

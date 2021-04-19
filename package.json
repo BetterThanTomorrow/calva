@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.186",
+    "version": "2.0.190",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -424,7 +424,8 @@
                                                 "Figwheel Main",
                                                 "lein-figwheel",
                                                 "shadow-cljs",
-                                                "Nashorn",
+                                                "ClojureScript built-in for browser",
+                                                "ClojureScript built-in for node",
                                                 "none"
                                             ]
                                         },
@@ -441,7 +442,8 @@
                                                         "Figwheel Main",
                                                         "lein-figwheel",
                                                         "shadow-cljs",
-                                                        "Nashorn",
+                                                        "ClojureScript built-in for browser",
+                                                        "ClojureScript built-in for node",
                                                         "User provided"
                                                     ],
                                                     "description": "The ClojureScript REPL dependencies this customization needs. NB: If it is `User provided`, then you need to provide the dependencies in the project, or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed."
@@ -633,6 +635,12 @@
             }
         ],
         "commands": [
+            {
+                "command": "calva.linting.resolveMacroAs",
+                "title": "Resolve Macro As",
+                "category": "Calva Linting",
+                "enablement": "editorLangId == clojure && workspaceFolderCount > 0"
+            },
             {
                 "command": "calva.copyJackInCommandToClipboard",
                 "title": "Copy Jack-In Command to Clipboard",
@@ -1807,7 +1815,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "ctrl+alt+f ctrl+alt+p",
+                "key": "shift+tab",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {

@@ -51,13 +51,3 @@ export class StackTraceDefinitionProvider implements vscode.DefinitionProvider {
     }
   }
 }
-
-export class ResultsDefinitionProvider implements vscode.DefinitionProvider {
-  state: any;
-  constructor() {
-    this.state = state;
-  }
-  async provideDefinition(document, position, token) {
-    return annotations.getResultsLocation(position);
-  }
-}

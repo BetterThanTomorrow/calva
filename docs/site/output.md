@@ -63,21 +63,6 @@ If you have typed some text after the prompt before you start traversing up the 
 
 You can clear the repl history by running the command "Clear REPL History" from the command palette.
 
-## Peek at Results
-
-On smaller screens (or just depending on your taste) you might not have the output window visible side-by-side with your code, but rather in a tab in the same editor group.
-
-Then your immediate feedback will be the inline display, which is limited to the first line of the results. All is not lost, however, you can peek at the full results using VS Code's command **Peek Definition**. Calva adds a definition pointer ”in” to the evaluated code in the output window.
-
-![Peek at results](images/howto/output/peek-last-result.gif)
-
-(On Mac the default keyboard shortcut for the peek command is `alt+f12`.)
-
-In the demo gif we utilize two things about this peek widget:
-
-1. It stays open until you close it. So you can keep evaluating different versions of your form and see the results get printed.
-2. The widget displays a ”full” Calva editor, so you can use Paredit to conveniently select forms.
-
 ## Stack Traces
 
 When an evaluation produces an error, the output window will automatically print the the error message. If there is a stack trace associated with the error, this can now be printed on demand using the **Calva: Print Last Stacktrace to the Output Window** command. The output window will also have a Codelense button below the error message that will print the stack trace..
