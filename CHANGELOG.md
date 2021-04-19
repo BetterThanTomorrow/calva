@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.190] - 2021-04-19
+- [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
+- Fix: [REPL evaluation hangs if an error is raised during debug session](https://github.com/BetterThanTomorrow/calva/issues/1118)
+
 ## [2.0.189] - 2021-04-18
 - [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
 - [Use `shift+tab` for the ”Infer parens from indentation” command](https://github.com/BetterThanTomorrow/calva/issues/1126)

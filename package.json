@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.189",
+    "version": "2.0.190",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -635,6 +635,12 @@
             }
         ],
         "commands": [
+            {
+                "command": "calva.linting.resolveMacroAs",
+                "title": "Resolve Macro As",
+                "category": "Calva Linting",
+                "enablement": "editorLangId == clojure && workspaceFolderCount > 0"
+            },
             {
                 "command": "calva.copyJackInCommandToClipboard",
                 "title": "Copy Jack-In Command to Clipboard",
