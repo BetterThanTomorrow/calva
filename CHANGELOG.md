@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.190] - 2021-04-19
 - [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
 - Fix: [REPL evaluation hangs if an error is raised during debug session](https://github.com/BetterThanTomorrow/calva/issues/1118)
 
