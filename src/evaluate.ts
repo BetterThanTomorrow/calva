@@ -42,9 +42,8 @@ function interruptAllEvaluations() {
 async function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
     const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
     wsEdit.set(editor.document.uri, [edit]);
-    await vscode.workspace.applyEdit(wsEdit).then(_v => {
-        editor.selection = selection;
-    });
+    await vscode.workspace.applyEdit(wsEdit);
+    editor.selection = selection;
 }
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
