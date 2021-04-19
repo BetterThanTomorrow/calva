@@ -231,7 +231,7 @@ function resolveMacroAsCommandHandler(): void {
     if (activeTextEditor && activeTextEditor.document && activeTextEditor.document.languageId === 'clojure') {
         const documentUri = decodeURIComponent(activeTextEditor.document.uri.toString());
         const { line, character } = activeTextEditor.selection.active;
-        resolveMacroAsCodeActionCommandHandler(documentUri, line, character);
+        resolveMacroAsCodeActionCommandHandler(documentUri, line + 1, character + 1);
     }
 }
 
