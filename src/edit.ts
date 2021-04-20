@@ -15,6 +15,9 @@ export function continueCommentCommand() {
             } else {
                 cursor.next();
             }
+            if (!(cursor.getToken().type == 'comment')) {
+                return;
+            }
         }
         const commentOffset = cursor.rowCol[1];
         const commentText = cursor.getToken().raw;
