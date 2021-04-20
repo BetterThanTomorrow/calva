@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Bump `cider-nrepl` to [0.25.11](https://github.com/clojure-emacs/cider-nrepl/blob/master/CHANGELOG.md#02511-2021-04-12)
 
 ## [2.0.190] - 2021-04-19
 - [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
