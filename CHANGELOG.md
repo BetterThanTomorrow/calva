@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Replace automatic comment continuation with an on-demand one](https://github.com/BetterThanTomorrow/calva/issues/644)
 - Fix: [Wrong selection restored after eval-to-comment](https://github.com/BetterThanTomorrow/calva/issues/1131)
 - Bump `cider-nrepl` to [0.25.11](https://github.com/clojure-emacs/cider-nrepl/blob/master/CHANGELOG.md#02511-2021-04-12)
 
