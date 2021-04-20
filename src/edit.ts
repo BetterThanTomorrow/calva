@@ -19,9 +19,11 @@ export function continueCommentCommand() {
         const commentOffset = cursor.rowCol[1];
         const commentText = cursor.getToken().raw;
         const [_1, startText, bullet, num] =
-            commentText.match(/^([;\s]+)([*-] +|(\d+)\. )?/);
+            commentText.match(/^([;\s]+)([*-] +|(\d+)\. +)?/);
+        const newNum = num ? parseInt(num) + 1 : undefined;
+        const bulletText = newNum ? bullet.replace(/\d+/, '' + newNum) : bullet;
         const pad = ' '.repeat(commentOffset);
-        const newText = `${pad}${startText}${num ? (parseInt(num) + 1) + '. ' : bullet ? bullet : ''}`;
+        const newText = `${pad}${startText}${bullet ? bulletText : ''}`;
         editor.edit(edits => edits.insert(eolPosition, `\n${newText}`), { undoStopAfter: false, undoStopBefore: true }).then(fulfilled => {
             if (fulfilled) {
                 const newEolPosition = eolPosition.with(eolPosition.line + 1, newText.length);
