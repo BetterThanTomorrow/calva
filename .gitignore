@@ -72,7 +72,7 @@ report.*
 
 # clojure-lsp
 .lsp
-.calva/output-window/
+output.calva-repl
 .clj-kondo
 clojure-lsp*
 
@@ -81,3 +81,4 @@ clojure-lsp*
 
 # Calva dev
 clojure.tmLanguage.json
+.cpcache/
