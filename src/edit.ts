@@ -14,9 +14,6 @@ export function continueCommentCommand() {
             if (cursor.getPrevToken().type === 'comment') {
                 cursor.previous();
             } else {
-                cursor.next();
-            }
-            if (!(cursor.getToken().type == 'comment')) {
                 return;
             }
         }
