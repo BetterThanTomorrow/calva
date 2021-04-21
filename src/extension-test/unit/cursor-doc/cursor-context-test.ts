@@ -54,6 +54,10 @@ describe('Cursor Contexts', () => {
             const contexts = context.determineContexts(docFromTextNotation(';; foo •   ;; bar•  ;; baz  •gaz   |;;  '));
             expect(contexts.includes('calva:cursorInComment')).toBe(true);
         });
+        it('is false in leading ws on line after comment', () => {
+            const contexts = context.determineContexts(docFromTextNotation('(+• ;foo• | 2)'));
+            expect(contexts.includes('calva:cursorInComment')).toBe(false);
+        });
     });
     describe('cursorBeforeComment', () => {
         it('is false in comment', () => {
