@@ -1,14 +1,14 @@
 import { EditableDocument } from "./model";
 
-const allCursorContexts = ['calva:cursorInString', 'calva:cursorInComment', 'calva:cursorAtStartOfLine', 'calva:cursorAtEndOfLine', 'calva:cursorBeforeComment', 'calva:cursorAfterComment'] as const;
+export const allCursorContexts = ['calva:cursorInString', 'calva:cursorInComment', 'calva:cursorAtStartOfLine', 'calva:cursorAtEndOfLine', 'calva:cursorBeforeComment', 'calva:cursorAfterComment'] as const;
 
-type CursorContext = typeof allCursorContexts[number];
+export type CursorContext = typeof allCursorContexts[number];
 
 /**
  * Returns true if documentOffset is either at the first char of the token under the cursor, or
  * in the whitespace between the token and the first preceding EOL, otherwise false
  */
-function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selection.active) {
+export function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selection.active) {
     const tokenCursor = doc.getTokenCursor(offset);
     let startOfLine = false;
     //  only at start if we're in ws, or at the 1st char of a non-ws sexp
@@ -26,7 +26,7 @@ function isAtLineStartInclWS(doc: EditableDocument, offset = doc.selection.activ
  * Returns true if position is after the last char of the last lisp token on the line, including
  * any trailing whitespace or EOL, otherwise false
  */
-function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selection.active) {
+export function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selection.active) {
     const tokenCursor = doc.getTokenCursor(offset);
     if (tokenCursor.getToken().type === 'eol') {
         return true;
@@ -49,7 +49,7 @@ function isAtLineEndInclWS(doc: EditableDocument, offset = doc.selection.active)
     return false;
 }
 
-function determineContexts(doc: EditableDocument, offset = doc.selection.active): CursorContext[] {
+export function determineContexts(doc: EditableDocument, offset = doc.selection.active): CursorContext[] {
     const tokenCursor = doc.getTokenCursor(offset);
     const contexts: CursorContext[] = [];
 
@@ -81,12 +81,4 @@ function determineContexts(doc: EditableDocument, offset = doc.selection.active)
     }
 
     return contexts;
-}
-
-export {
-    allCursorContexts,
-    CursorContext,
-    isAtLineStartInclWS,
-    isAtLineEndInclWS,
-    determineContexts
 }
