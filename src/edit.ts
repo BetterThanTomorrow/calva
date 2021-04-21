@@ -18,7 +18,7 @@ export function continueCommentCommand() {
             }
         }
         const commentOffset = cursor.rowCol[1];
-        const commentText = cursor.getToken().raw.substring(0, commentOffset);
+        const commentText = cursor.getToken().raw;
         const [_1, startText, bullet, num] =
             commentText.match(/^([;\s]+)([*-] +|(\d+)\. +)?/);
         const newNum = num ? parseInt(num) + 1 : undefined;
