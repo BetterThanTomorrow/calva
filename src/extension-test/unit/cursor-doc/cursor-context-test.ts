@@ -68,6 +68,10 @@ describe('Cursor Contexts', () => {
             const contexts = context.determineContexts(docFromTextNotation('|;; foo•   ;; bar•  ;; baz  •gaz'));
             expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
         });
+        it('is false adjacent before comment on line with leading witespace and preceding comment line', () => {
+            const contexts = context.determineContexts(docFromTextNotation(' ;; foo• |;; bar'));
+            expect(contexts.includes('calva:cursorBeforeComment')).toBe(false);
+        });
         it('is true after symbol in whitespace between SOL and comment', () => {
             const contexts = context.determineContexts(docFromTextNotation(' foo•|   ;; bar•  ;; baz  •gaz'));
             expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
