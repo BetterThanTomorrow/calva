@@ -1503,7 +1503,7 @@
             {
                 "command": "calva.continueComment",
                 "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment && !calva:cursorAtStartOfLine"
             },
             {
                 "command": "paredit.togglemode",

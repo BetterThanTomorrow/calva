@@ -679,7 +679,7 @@ export class LispTokenCursor extends TokenCursor {
             isComment = cursor.getToken().type === 'comment';
             if (!isComment) {
                 cursor.backwardWhitespace(false);
-                isComment = cursor.getPrevToken().type === 'comment';
+                isComment = cursor.getPrevToken().type === 'comment' && cursor.getToken().type !== 'eol';
             }
         }
         return isComment;

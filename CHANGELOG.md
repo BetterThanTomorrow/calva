@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Evaluating top level form sometimes does nothing](https://github.com/BetterThanTomorrow/calva/issues/1136)
+- Fix: [Line comment continuation needs some tweaking](https://github.com/BetterThanTomorrow/calva/issues/1137)
 
 ## [2.0.191] - 2021-04-20
 - [Replace automatic comment continuation with an on-demand one](https://github.com/BetterThanTomorrow/calva/issues/644)

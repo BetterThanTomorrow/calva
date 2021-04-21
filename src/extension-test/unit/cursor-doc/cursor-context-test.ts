@@ -54,6 +54,10 @@ describe('Cursor Contexts', () => {
             const contexts = context.determineContexts(docFromTextNotation(';; foo •   ;; bar•  ;; baz  •gaz   |;;  '));
             expect(contexts.includes('calva:cursorInComment')).toBe(true);
         });
+        it('is false in leading ws on line after comment', () => {
+            const contexts = context.determineContexts(docFromTextNotation('(+• ;foo• | 2)'));
+            expect(contexts.includes('calva:cursorInComment')).toBe(false);
+        });
     });
     describe('cursorBeforeComment', () => {
         it('is false in comment', () => {
@@ -63,6 +67,10 @@ describe('Cursor Contexts', () => {
         it('is true adjacent before comment', () => {
             const contexts = context.determineContexts(docFromTextNotation('|;; foo•   ;; bar•  ;; baz  •gaz'));
             expect(contexts.includes('calva:cursorBeforeComment')).toBe(true);
+        });
+        it('is false adjacent before comment on line with leading witespace and preceding comment line', () => {
+            const contexts = context.determineContexts(docFromTextNotation(' ;; foo• |;; bar'));
+            expect(contexts.includes('calva:cursorBeforeComment')).toBe(false);
         });
         it('is true after symbol in whitespace between SOL and comment', () => {
             const contexts = context.determineContexts(docFromTextNotation(' foo•|   ;; bar•  ;; baz  •gaz'));
