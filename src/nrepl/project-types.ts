@@ -398,12 +398,23 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
         }
     }
     const menuSelections = connectSequence.menuSelections;
+
     const launchAliases = menuSelections ? menuSelections.cljAliases : undefined;
     let aliases: string[] = [];
+    let aliasesWithMain = [];
     if (launchAliases) {
         aliases = launchAliases.map(keywordize);
     } else {
         let projectAliases = parsed && parsed.aliases != undefined ? Object.keys(parsed.aliases) : [];
+        for (let a in projectAliases) {
+            const aliasKey = unKeywordize(projectAliases[a]);
+            if (parsed && parsed.aliases) {
+                let alias = parsed.aliases[aliasKey];
+                if (alias && alias["main-opts"] != undefined) {
+                    aliasesWithMain.push(`:${projectAliases[a]}`);
+                }
+            }
+        }    
         const myAliases = getConfig().myCljAliases;
         if (myAliases && myAliases.length) {
             projectAliases = [...projectAliases, ...myAliases];
@@ -416,6 +427,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
             });
         }
     }
+    let selectedAliasesHasMain = aliases.filter(a => aliasesWithMain.includes(a)).length > 0;
 
     const dependencies = {
         ...cliDependencies(),
@@ -424,16 +436,6 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     };
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-    let aliasHasMain: boolean = false;
-    for (let ali in aliases) {
-        const aliasKey = unKeywordize(aliases[ali]);
-        if (parsed && parsed.aliases) {
-            let alias = parsed.aliases[aliasKey];
-            aliasHasMain = alias && alias["main-opts"] != undefined;
-        }
-        if (aliasHasMain)
-            break;
-    }
     const q = isWin ? '"' : "'";
     const dQ = isWin ? '""' : '"';
     for (let dep in dependencies)
@@ -441,7 +443,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
 
     let args = ["-Sdeps", `${q}${"{:deps {" + out.join(',') + "}}"}${q}`];
 
-    if (aliasHasMain) {
+    if (selectedAliasesHasMain) {
         args.push(aliasesOption);
     } else {
         args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
