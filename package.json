@@ -489,6 +489,11 @@
                                             }
                                         }
                                     ]
+                                },
+                                "jackInEnv": {
+                                    "type": "object",
+                                    "default": {},
+                                    "description": "Specifies any environment variables for the given connect sequence. Will overwrite \"calva.jackInEnv\" keys of the same name"
                                 }
                             }
                         }

@@ -167,7 +167,7 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
         name: `Calva Jack-in: ${projectConnectSequence.name}`,
         executable,
         args,
-        env: getJackInEnv(),
+        env: { ...getJackInEnv(), ...projectConnectSequence.jackInEnv },
         isWin: projectTypes.isWin,
         cwd: state.getProjectRootLocal(),
         useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix

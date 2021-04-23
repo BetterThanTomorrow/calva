@@ -32,6 +32,7 @@ A connect sequence configures the following:
     * `cljAliases`: At Jack-in to a deps.edn project, use these aliases to launch the repl.
     * `cljsLaunchBuilds`: The cljs builds to start/watch at Jack-in/connect.
     * `cljsDefaultBuild`: Which cljs build to attach to at the initial connect.
+* `jackInEnv`: An object with environment variables that will be added to the environment of the Jack-in process. Will overwrite keys set at the global `calva.jackInEnv`.
 
 The [Calva built-in sequences](https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts) also use this format, check them out to get a clearer picture of how these settings work.
 
