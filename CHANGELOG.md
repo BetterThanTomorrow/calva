@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)
 
 ## [2.0.192] - 2021-04-21
 - Fix: [Evaluating top level form sometimes does nothing](https://github.com/BetterThanTomorrow/calva/issues/1136)
