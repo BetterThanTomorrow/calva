@@ -39,12 +39,11 @@ function interruptAllEvaluations() {
     vscode.window.showInformationMessage("Not connected to a REPL server");
 }
 
-function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
+async function addAsComment(c: number, result: string, codeSelection: vscode.Selection, editor: vscode.TextEditor, selection: vscode.Selection) {
     const indent = `${' '.repeat(c)}`, output = result.replace(/\n\r?$/, "").split(/\n\r?/).join(`\n${indent};;    `), edit = vscode.TextEdit.insert(codeSelection.end, `\n${indent};; => ${output}\n`), wsEdit = new vscode.WorkspaceEdit();
     wsEdit.set(editor.document.uri, [edit]);
-    vscode.workspace.applyEdit(wsEdit).then((_v) => {
-        editor.selection = selection;
-    });
+    await vscode.workspace.applyEdit(wsEdit);
+    editor.selection = selection;
 }
 
 async function evaluateCode(code: string, options, selection?: vscode.Selection): Promise<void> {
@@ -54,6 +53,7 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
     const filePath = options.filePath;
     const session: NReplSession = options.session;
     const ns = options.ns;
+    const editor = vscode.window.activeTextEditor;
 
     if (code.length > 0) {
         let err: string[] = [];
@@ -76,22 +76,24 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
         try {
             let value = await context.value;
             value = util.stripAnsi(context.pprintOut || value);
-            outputWindow.append(value, (resultLocation) => {
+            outputWindow.append(value, async (resultLocation) => {
                 if (selection) {
                     const c = selection.start.character;
-                    const editor = vscode.window.activeTextEditor;
                     if (options.replace) {
                         const indent = `${' '.repeat(c)}`,
                             edit = vscode.TextEdit.replace(selection, value.replace(/\n/gm, "\n" + indent)),
                             wsEdit = new vscode.WorkspaceEdit();
                         wsEdit.set(editor.document.uri, [edit]);
                         vscode.workspace.applyEdit(wsEdit);
-                    } else if (options.comment) {
-                        addAsComment(c, value, selection, editor, selection);
                     } else {
+                        if (options.comment) {
+                            await addAsComment(c, value, selection, editor, editor.selection);
+                        }
                         if (!outputWindow.isResultsDoc(editor.document)) {
                             annotations.decorateSelection(value, selection, editor, editor.selection.active, resultLocation, annotations.AnnotationStatus.SUCCESS);
-                            annotations.decorateResults(value, false, selection, editor);
+                            if (!options.comment) {
+                                annotations.decorateResults(value, false, selection, editor);
+                            }
                         }
                     }
                 }
@@ -112,15 +114,16 @@ async function evaluateCode(code: string, options, selection?: vscode.Selection)
             const outputWindowError = err.length ? `; ${normalizeNewLinesAndJoin(err, true)}` : formatAsLineComments(e);
             outputWindow.append(outputWindowError, async (resultLocation, afterResultLocation) => {
                 if (selection) {
-                    const editor = vscode.window.activeTextEditor;
                     const editorError = util.stripAnsi(err.length ? err.join("\n") : e);
                     const currentCursorPos = editor.selection.active;
+                    if (options.comment) {
+                        await addAsComment(selection.start.character, editorError, selection, editor, editor.selection);
+                    }
                     if (!outputWindow.isResultsDoc(editor.document)) {
                         annotations.decorateSelection(editorError, selection, editor, currentCursorPos, resultLocation, annotations.AnnotationStatus.ERROR);
-                        annotations.decorateResults(editorError, true, selection, editor);
-                    }
-                    if (options.asComment) {
-                        addAsComment(selection.start.character, editorError, selection, editor, selection);
+                        if (!options.comment) {
+                            annotations.decorateResults(editorError, true, selection, editor);
+                        }
                     }
                 }
                 if (context.stacktrace && context.stacktrace.stacktrace) {
@@ -142,7 +145,6 @@ async function evaluateSelection(document: {}, options) {
 
     if (getStateValue('connected')) {
         const editor = vscode.window.activeTextEditor;
-        const selection = editor.selection;
         let code = "";
         let codeSelection: vscode.Selection;
         state.analytics().logEvent("Evaluation", "selectionFn").send();

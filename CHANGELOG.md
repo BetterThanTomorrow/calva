@@ -3,7 +3,27 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)
 - [Makes it possible to add a jackInEnv per replConnectSequences](https://github.com/BetterThanTomorrow/calva/issues/1124)
+
+## [2.0.192] - 2021-04-21
+- Fix: [Evaluating top level form sometimes does nothing](https://github.com/BetterThanTomorrow/calva/issues/1136)
+- Fix: [Line comment continuation needs some tweaking](https://github.com/BetterThanTomorrow/calva/issues/1137)
+
+## [2.0.191] - 2021-04-20
+- [Replace automatic comment continuation with an on-demand one](https://github.com/BetterThanTomorrow/calva/issues/644)
+- Fix: [Wrong selection restored after eval-to-comment](https://github.com/BetterThanTomorrow/calva/issues/1131)
+- Bump `cider-nrepl` to [0.25.11](https://github.com/clojure-emacs/cider-nrepl/blob/master/CHANGELOG.md#02511-2021-04-12)
+
+## [2.0.190] - 2021-04-19
+- [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
+- Fix: [REPL evaluation hangs if an error is raised during debug session](https://github.com/BetterThanTomorrow/calva/issues/1118)
+
+## [2.0.189] - 2021-04-18
+- [Paredit backspace should delete non-bracket parts of the opening token](https://github.com/BetterThanTomorrow/calva/issues/1122)
+- [Use `shift+tab` for the ”Infer parens from indentation” command](https://github.com/BetterThanTomorrow/calva/issues/1126)
+- Fix: [Inline evaluation results can show up in the wrong editor](https://github.com/BetterThanTomorrow/calva/issues/1120)
+- [Bring back results in hovers](https://github.com/BetterThanTomorrow/calva/issues/736)
 
 ## [2.0.188] - 2021-04-16
 - Fix: [Getting Started REPL failing on Windows when username has spaces (on some machines)](https://github.com/BetterThanTomorrow/calva/issues/1085)

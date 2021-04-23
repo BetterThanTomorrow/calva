@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.189",
+    "version": "2.0.193",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -264,7 +264,7 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.10",
+                            "cider-nrepl": "0.25.11",
                             "cider/piggieback": "0.5.2"
                         }
                     },
@@ -641,6 +641,12 @@
         ],
         "commands": [
             {
+                "command": "calva.linting.resolveMacroAs",
+                "title": "Resolve Macro As",
+                "category": "Calva Linting",
+                "enablement": "editorLangId == clojure && workspaceFolderCount > 0"
+            },
+            {
                 "command": "calva.copyJackInCommandToClipboard",
                 "title": "Copy Jack-In Command to Clipboard",
                 "category": "Calva",
@@ -826,6 +832,11 @@
                 "title": "Run Custom REPL Command",
                 "category": "Calva",
                 "enablement": "calva:connected"
+            },
+            {
+                "command": "calva.continueComment",
+                "title": "Continue Comment (add a commented line below).",
+                "category": "Calva"
             },
             {
                 "command": "calva.switchCljsBuild",
@@ -1495,6 +1506,11 @@
                 "when": "calva:connected && calva:keybindingsEnabled"
             },
             {
+                "command": "calva.continueComment",
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment && !calva:cursorAtStartOfLine"
+            },
+            {
                 "command": "paredit.togglemode",
                 "key": "ctrl+alt+p ctrl+alt+m",
                 "when": "editorLangId == clojure calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
@@ -1814,7 +1830,7 @@
             },
             {
                 "command": "calva-fmt.inferParens",
-                "key": "ctrl+alt+f ctrl+alt+p",
+                "key": "shift+tab",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {

@@ -152,3 +152,13 @@ If you're using the test commands like "Run current test" to run your tests, bre
 If you want a breakpoint to work within the test, evaluate the test form with a breakpoint tag in it, then call the test directly.
 
 ![Hitting a breakpoint in a test](images/debugger/breakpoint-in-test.png "Hitting a breakpoint in a test")
+
+### "No reader function for tag" error
+
+If you get an error like this, it's likely that you connected to a REPL instead of jacking in, and you don't have the proper depednencies loaded in your REPL. You can run the command "Copy Jack-in Command to Clipboard" to see what command would be run if you jacked in.
+
+Most importantly, make sure you have `cider/cider-nrepl` as a dependency, and `cider.nrepl/cider-middleware` as middleware loaded in your REPL. For example, this is a jack-in command for a deps.edn project:
+
+```sh
+clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"0.8.3"},cider/cider-nrepl {:mvn/version,"0.25.8"}}}' -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"
+```
