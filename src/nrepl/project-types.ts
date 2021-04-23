@@ -6,6 +6,7 @@ import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
+import { config } from '../calva-fmt/src/state';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -196,7 +197,7 @@ const cliDependencies = () => {
     }
 }
 
-const cljsDependencies = () =>  {
+const cljsDependencies = () => {
     return {
         "lein-figwheel": {
             "cider/piggieback": PIGGIEBACK_VERSION()
@@ -414,7 +415,18 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
                     aliasesWithMain.push(`:${projectAliases[a]}`);
                 }
             }
-        }    
+        }
+        if (aliasesWithMain.length > 0) {
+            const alertKey = "calva.jackInMainOptsWarningEnabled";
+            if (state.extensionContext.workspaceState.get(alertKey, true)) {
+                vscode.window.showInformationMessage(`The aliases [${aliasesWithMain.join(' ')}] specify :main-opts. Unless the options start an nREPL server, Jack-in will not work with such an alias selected.`, "OK, Don't show again", "OK")
+                    .then(answer => {
+                        if (answer === "OK, Don't show again") {
+                            state.extensionContext.workspaceState.update(alertKey, false);
+                        }
+                    });
+            }
+        }
         const myAliases = getConfig().myCljAliases;
         if (myAliases && myAliases.length) {
             projectAliases = [...projectAliases, ...myAliases];
