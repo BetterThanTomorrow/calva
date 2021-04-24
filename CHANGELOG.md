@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.193] - 2021-04-24
 - [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)
 - Update clojure-lsp to [2021.04.23-15.49.47](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.04.23-15.49.47)
 
