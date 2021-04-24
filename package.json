@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.190",
+    "version": "2.0.193",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -264,13 +264,13 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.10",
+                            "cider-nrepl": "0.25.11",
                             "cider/piggieback": "0.5.2"
                         }
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.04.07-16.34.10",
+                        "default": "2021.04.23-15.49.47",
                         "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
@@ -827,6 +827,11 @@
                 "title": "Run Custom REPL Command",
                 "category": "Calva",
                 "enablement": "calva:connected"
+            },
+            {
+                "command": "calva.continueComment",
+                "title": "Continue Comment (add a commented line below).",
+                "category": "Calva"
             },
             {
                 "command": "calva.switchCljsBuild",
@@ -1494,6 +1499,11 @@
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space",
                 "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.continueComment",
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && calva:cursorInComment && !calva:cursorAtStartOfLine"
             },
             {
                 "command": "paredit.togglemode",

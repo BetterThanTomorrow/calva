@@ -31,7 +31,7 @@ import * as snippets from './custom-snippets';
 import setCursorContextIfChanged from './when-contexts'
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
-
+import * as edit from './edit';
 async function onDidSave(document) {
     let {
         evaluate,
@@ -210,6 +210,7 @@ async function activate(context: vscode.ExtensionContext) {
                 console.error(`Problems visiting calva docs: ${e}`);
             });
     }))
+    context.subscriptions.push(vscode.commands.registerCommand('calva.continueComment', edit.continueCommentCommand));
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);

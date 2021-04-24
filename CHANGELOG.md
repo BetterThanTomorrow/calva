@@ -4,6 +4,19 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.193] - 2021-04-24
+- [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)
+- Update clojure-lsp to [2021.04.23-15.49.47](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.04.23-15.49.47)
+
+## [2.0.192] - 2021-04-21
+- Fix: [Evaluating top level form sometimes does nothing](https://github.com/BetterThanTomorrow/calva/issues/1136)
+- Fix: [Line comment continuation needs some tweaking](https://github.com/BetterThanTomorrow/calva/issues/1137)
+
+## [2.0.191] - 2021-04-20
+- [Replace automatic comment continuation with an on-demand one](https://github.com/BetterThanTomorrow/calva/issues/644)
+- Fix: [Wrong selection restored after eval-to-comment](https://github.com/BetterThanTomorrow/calva/issues/1131)
+- Bump `cider-nrepl` to [0.25.11](https://github.com/clojure-emacs/cider-nrepl/blob/master/CHANGELOG.md#02511-2021-04-12)
+
 ## [2.0.190] - 2021-04-19
 - [Add Resolve Macro As (clojure-lsp) support](https://github.com/BetterThanTomorrow/calva/issues/1077)
 - Fix: [REPL evaluation hangs if an error is raised during debug session](https://github.com/BetterThanTomorrow/calva/issues/1118)
