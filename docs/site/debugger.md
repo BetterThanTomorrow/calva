@@ -36,6 +36,9 @@ The debugger itself relies pretty heavily on [cider-nrepl](https://github.com/cl
 
 If you're new to Clojure or expression-based debuggers, this debugger may function differently than what you're used to. Instead of placing breakpoints in the side margin and then hitting F5 to start debugging, you instead use Clojure reader tags, `#break` and `#dbg`, to denote breakpoints anywhere in a Clojure form. When you evaluate a call to a function that has been evaluated with that reader tag, the debugger will start when execution reaches the first breakpoint. There's also a convenience command to instrument functions. Read below about both options.
 
+!!! note
+    The debugger is not configured via a `launch.json` file, and is not started in the same way as you may be used to when working with other languages in VS Code. The debugger is used by way of the REPL. If you are new to Clojure, please visit the [Getting Started](/getting-started) section of the documentation and get familiar with evaluating code using the REPL before using the debugger.
+
 ### Instrumenting a Function
 
 You can instrument a top level function for debugging with `ctrl+alt+c i`. This places invisible breakpoints throughout the function where pausing makes sense. When you evaluate a call to this function, the debugger will start and execution will pause at the first breakpoint. Annotations show the value of the form at the cursor.
