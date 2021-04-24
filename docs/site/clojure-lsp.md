@@ -28,6 +28,10 @@ If something doesn't seem to be working correctly, and you suspect the issue is 
 
 It may be helpful to clear the output channel, then perform the action with which you're experiencing a problem, then read through the log for clues or paste the logs into a related issue in the Calva repo.
 
+### Server Info Command
+
+You can run the `Clojure-lsp Server Info` command to get information about the running clojure-lsp server, such as the version being used, the version of clj-kondo it's using, and more.
+
 ## Related
 
 See also:
