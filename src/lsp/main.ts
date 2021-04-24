@@ -156,10 +156,6 @@ const clojureLspCommands: ClojureLspCommand[] = [
     {
         command: 'extract-function',
         extraParamFn: makePromptForInput('Function name')
-    },
-    {
-        command: 'server-info',
-        category: 'calva.diagnostics'
     }
 ];
 
@@ -283,7 +279,17 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     registerEventHandlers(context, client);
 }
 
+async function serverInfoCommandHandler(): Promise<void> {
+    const client = getStateValue(LSP_CLIENT_KEY);
+    if (client) {
+        sendCommandRequest('server-info', []);
+    } else {
+        vscode.window.showInformationMessage('There is no clojure-lsp server running.')
+    }
+}
+
 async function activate(context: vscode.ExtensionContext): Promise<void> {
+    vscode.commands.registerCommand('calva.diagnostics.clojure-lspServerInfo', serverInfoCommandHandler);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     let clojureLspPath = getClojureLspPath(extensionPath, util.isWindows);
