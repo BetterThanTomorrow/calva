@@ -289,7 +289,7 @@ async function serverInfoCommandHandler(): Promise<void> {
 }
 
 async function activate(context: vscode.ExtensionContext): Promise<void> {
-    vscode.commands.registerCommand('calva.diagnostics.clojure-lspServerInfo', serverInfoCommandHandler);
+    vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     let clojureLspPath = getClojureLspPath(extensionPath, util.isWindows);
