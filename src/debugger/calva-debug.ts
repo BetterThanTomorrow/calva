@@ -178,6 +178,11 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
+
+        const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+        const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+        const stacktrace = await cljSession.sendDebugInput(':stacktrace', id, key);
+
         const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(uri);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
