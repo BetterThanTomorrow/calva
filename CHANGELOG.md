@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Make Clojure-lsp Server Info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1143)
+- [Add docs about using Calva with Krell](https://calva.io/krell)
 
 ## [2.0.193] - 2021-04-24
 - [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)
