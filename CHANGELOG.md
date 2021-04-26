@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.194] - 2021-04-26
 - [Make Clojure-lsp Server Info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1143)
 - [Add docs about using Calva with Krell](https://calva.io/krell)
 
