@@ -57,9 +57,9 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     /**
-	 * The 'initialize' request is the first request called by the frontend
-	 * to interrogate the features the debug adapter provides.
-	 */
+     * The 'initialize' request is the first request called by the frontend
+     * to interrogate the features the debug adapter provides.
+     */
     protected async initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): Promise<void> {
 
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
@@ -181,7 +181,24 @@ class CalvaDebugSession extends LoggingDebugSession {
 
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
-        const stacktrace = await cljSession.sendDebugInput(':stacktrace', id, key);
+        const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
+        const stackFrameData = stackTraceResponse.causes[0].stacktrace.filter(frame => {
+            return !frame.flags.includes('dup') &&
+                !frame.flags.includes('tooling') &&
+                !frame.flags.includes('dup') &&
+                (frame.flags.includes('project') || frame.flags.includes('clj'));
+        }).map(frame => {
+            const data: any = {
+                name: frame.name,
+                line: frame.line,
+                flags: frame.flags
+            };
+            if (typeof frame['file-url'] === 'string') {
+                data.source = new Source(basename(frame['file-url']), frame['file-url']);
+            }
+            return data;
+        });
+
 
         const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(uri);
@@ -287,10 +304,10 @@ CalvaDebugSession.run(CalvaDebugSession);
 
 class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
 
-	/**
-	 * Massage a debug configuration just before a debug session is being launched,
-	 * e.g. add all missing attributes to the debug configuration.
-	 */
+    /**
+     * Massage a debug configuration just before a debug session is being launched,
+     * e.g. add all missing attributes to the debug configuration.
+     */
     resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
 
         // If launch.json is missing or empty
