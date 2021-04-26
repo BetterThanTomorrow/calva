@@ -183,6 +183,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
         const stackFrameData = stackTraceResponse.causes[0].stacktrace.filter(frame => {
+            // TODO: Besides removing duplicates, maybe only keep ones with 'project' flag
             return !frame.flags.includes('dup') &&
                 !frame.flags.includes('tooling') &&
                 !frame.flags.includes('dup') &&
@@ -191,11 +192,13 @@ class CalvaDebugSession extends LoggingDebugSession {
             const data: any = {
                 name: frame.name,
                 line: frame.line,
-                flags: frame.flags
+                flags: frame.flags,
+                file: frame.file
             };
             if (typeof frame['file-url'] === 'string') {
                 data.source = new Source(basename(frame['file-url']), frame['file-url']);
             }
+            // TODO: Maybe set source for ones with 'NO_SOURCE_FILE' using file path from debugResponse, and line number from stack frame
             return data;
         });
 
