@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Update cider-nrepl to [0.26.0](https://github.com/clojure-emacs/cider-nrepl/releases/tag/v0.26.0)
 
 ## [2.0.194] - 2021-04-26
 - [Make Clojure-lsp Server Info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1143)
