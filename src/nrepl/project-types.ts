@@ -448,8 +448,8 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     };
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-    const q = isWin ? '"' : "'";
-    const dQ = isWin ? '""' : '"';
+    const q = isWin ? '' : "'";
+    const dQ = '"';
     for (let dep in dependencies)
         out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`)
 

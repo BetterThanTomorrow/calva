@@ -162,13 +162,6 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
     }
     executable = cmd[0];
     args = [...cmd.slice(1), ...args];
-    if (projectTypes.isWin && projectType.resolveBundledPathWin) {
-        const cmdFile = path.join('.calva', 'jack-in.cmd');
-        const cmdFileUri = vscode.Uri.file(path.join(state.getProjectRootLocal(), '.calva', 'jack-in.cmd'))
-        await utilities.writeTextToFile(cmdFileUri, createCommandLine(executable, args))
-        executable = cmdFile;
-        args = [];
-    }
 
     const terminalOptions: JackInTerminalOptions = {
         name: `Calva Jack-in: ${projectConnectSequence.name}`,
