@@ -493,7 +493,7 @@
                                 "jackInEnv": {
                                     "type": "object",
                                     "default": {},
-                                    "description": "Environment variables that will be merged with any global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win."
+                                    "markdownDescription": "Environment variables that will be merged with any global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win."
                                 }
                             }
                         }
