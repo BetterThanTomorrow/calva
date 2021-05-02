@@ -3,6 +3,13 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Update cider-nrepl to [0.26.0](https://github.com/clojure-emacs/cider-nrepl/releases/tag/v0.26.0)
+
+## [2.0.194] - 2021-04-26
+- [Make Clojure-lsp Server Info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1143)
+- [Add docs about using Calva with Krell](https://calva.io/krell)
+
+## [2.0.193] - 2021-04-24
 - [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)
 - [Makes it possible to add a jackInEnv per replConnectSequences](https://github.com/BetterThanTomorrow/calva/issues/1124)
 - Update clojure-lsp to [2021.04.23-15.49.47](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.04.23-15.49.47)

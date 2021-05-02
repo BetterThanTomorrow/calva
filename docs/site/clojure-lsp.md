@@ -20,13 +20,31 @@ Clojure-lsp stores its project analysis information in your project. Git users c
 .lsp/sqlite.*.db
 ```
 
+## Configuration
+
+For information about how to configure clojure-lsp, see the [settings](https://clojure-lsp.github.io/clojure-lsp/settings/) page of the clojure-lsp docs.
+
+### Changing the Version of Clojure-lsp Used by Calva
+
+You can change the version of clojure-lsp used by Calva by setting the `calva.clojureLspVersion` property to a version of clojure-lsp found in its GitHub [releases](https://github.com/clojure-lsp/clojure-lsp/releases). This can be helpful if you're debugging an issue with clojure-lsp or you want to try out a feature of a new release that Calva does not yet use. However, you must remember to reset this setting in order for Calva to automatically use newer versions of clojure-lsp that are released with new versions of Calva.
+
+Example value for this setting:
+
+```json
+"calva.clojureLspVersion": "2021.04.07-16.34.10"
+```
+
 ## Troubleshooting
 
-If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set `Clojure > Trace: Server` to `versbose`, then in the VS Code output tab, select the `Clojure Language Client` output channel.
+If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set `clojure.trace.server` to `verbose`, then in the VS Code output tab, select the `Clojure Language Client` output channel.
 
 !["Clojure trace server setting"](images/clojure-lsp/trace-server-setting.png "Clojure trace server setting")
 
 It may be helpful to clear the output channel, then perform the action with which you're experiencing a problem, then read through the log for clues or paste the logs into a related issue in the Calva repo.
+
+### Server Info Command
+
+You can run the `Clojure-lsp Server Info` command to get information about the running clojure-lsp server, such as the version being used, the version of clj-kondo it's using, and more.
 
 ## Related
 
