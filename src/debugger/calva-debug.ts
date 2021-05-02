@@ -183,25 +183,28 @@ class CalvaDebugSession extends LoggingDebugSession {
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
         const stackFrameData = stackTraceResponse.causes[0].stacktrace.filter(frame => {
-            // TODO: Besides removing duplicates, maybe only keep ones with 'project' flag
             return !frame.flags.includes('dup') &&
                 !frame.flags.includes('tooling') &&
                 !frame.flags.includes('dup') &&
-                (frame.flags.includes('project') || frame.flags.includes('clj'));
-        }).map(frame => {
+                frame.flags.includes('project');
+        }).map((frame, index) => {
             const data: any = {
                 name: frame.name,
-                line: frame.line,
+                // For some reason, the first frame's line number always seems to be off by +1
+                line: index === 0 ? frame.line - 1 : frame.line,
                 flags: frame.flags,
                 file: frame.file
             };
             if (typeof frame['file-url'] === 'string') {
                 data.source = new Source(basename(frame['file-url']), frame['file-url']);
+            } else {
+                // Assuming here that if there's no source file, it's the file from the debug response.
+                // TODO: Fix this. Figure out how to make frames for initial eval command contain the source file.
+                //       Maybe we need to pass something to eval about the file and position.
+                data.source = new Source(basename(debugResponse.file), debugResponse.file);
             }
-            // TODO: Maybe set source for ones with 'NO_SOURCE_FILE' using file path from debugResponse, and line number from stack frame
             return data;
         });
-
 
         const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(uri);
@@ -225,7 +228,8 @@ class CalvaDebugSession extends LoggingDebugSession {
         // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
         const source = new Source(basename(debugResponse.file), debugResponse.file);
         const name = tokenCursor.getFunctionName();
-        const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
+        const breakPointStackFrame = new StackFrame(0, name, source, line + 1, column + 1);
+        const stackFrames = [breakPointStackFrame, ...stackFrameData.map((d, index) => new StackFrame(index + 1, d.name, d.source, d.line))];
 
         response.body = {
             stackFrames,
