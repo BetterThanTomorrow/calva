@@ -251,7 +251,7 @@ const cljsMiddleware: { [id: string]: string[] } = {
 const serverPrinterDependencies = pprint.getServerSidePrinterDependencies();
 
 function depsCljWindowsPath() {
-    return `"${path.join('.', '.calva', 'deps.clj.jar')}"`;
+    return `${path.join('.', '.calva', 'deps.clj.jar')}`;
 }
 
 const projectTypes: { [id: string]: ProjectType } = {
@@ -368,7 +368,7 @@ const projectTypes: { [id: string]: ProjectType } = {
         resolveBundledPathWin: depsCljWindowsPath,
         resolveBundledPathUnix: () => `'${path.join(state.extensionContext.extensionPath, 'deps.clj.jar')}'`,
         processShellUnix: true,
-        processShellWin: true,
+        processShellWin: false,
         useWhenExists: undefined,
         nReplPortFile: [".nrepl-port"],
         commandLine: async (connectSequence: ReplConnectSequence, cljsType: CljsTypes) => {
@@ -448,8 +448,8 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     };
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
-    const q = isWin ? '"' : "'";
-    const dQ = isWin ? '""' : '"';
+    const q = isWin ? '' : "'";
+    const dQ = '"';
     for (let dep in dependencies)
         out.push(dep + ` {:mvn/version,${dQ}${dependencies[dep]}${dQ}}`)
 
@@ -458,7 +458,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     if (selectedAliasesHasMain) {
         args.push(aliasesOption);
     } else {
-        args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `"[${useMiddleware.join(' ')}]"`);
+        args.push(aliasesOption, "-m", "nrepl.cmdline", "--middleware", `${q}[${useMiddleware.join(' ')}]${q}`);
     }
 
     return args;
