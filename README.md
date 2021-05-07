@@ -177,6 +177,9 @@ We are Clojure and Visual Studio Code fans who care about the ergonomics of usin
 
 * [Peter Strömberg](https://github.com/PEZ)
 * [Brandon Ringe](https://github.com/bpringe)
+
+### Soon? returning
+
 * [Kevin Ahlbrecht](https://github.com/kstehn)
 
 ### Alumni
