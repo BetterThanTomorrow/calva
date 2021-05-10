@@ -484,6 +484,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#user-and-workspace-settings" class="md-nav__link">
+    User and Workspace settings
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#binding-keyboard-shortcuts" class="md-nav__link">
     Binding keyboard shortcuts
   </a>
@@ -854,6 +861,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#user-and-workspace-settings" class="md-nav__link">
+    User and Workspace settings
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#binding-keyboard-shortcuts" class="md-nav__link">
     Binding keyboard shortcuts
   </a>
@@ -901,82 +915,62 @@
 <li><code>$head</code>: The text between the start of the current list to the cursor</li>
 <li><code>$tail</code>: The text between the cursor and the end of the current list</li>
 </ul>
-<p>Consider these settings:</p>
-<div class="codehilite"><pre><span></span><code>        <span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Foo&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(println :foo)&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;ns&quot;</span><span class="p">:</span> <span class="s2">&quot;acme.test.foo-test&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;cljs&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Bar&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(println :bar $line)&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;ns&quot;</span><span class="p">:</span> <span class="s2">&quot;acme.test.bar-test&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Refresh&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(refresh)&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span>
-        <span class="p">},</span>
+<h2 id="user-and-workspace-settings">User and Workspace settings</h2>
+<p>Settings from your User (global) level and the workspace are merged.</p>
+<p>With these <strong>User</strong> settings:</p>
+<div class="codehilite"><pre><span></span><code>    <span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Call Current Form&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span>
             <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;($current-form)&quot;</span>
         <span class="p">},</span>
         <span class="p">{</span>
             <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Call Current Top Level Form&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;call-t&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span>
             <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;($top-level-form)&quot;</span>
         <span class="p">},</span>
         <span class="p">{</span>
-            <span class="err">//</span> <span class="err">You</span> <span class="err">do</span><span class="kc">n</span><span class="err">&#39;</span><span class="kc">t</span> <span class="kc">nee</span><span class="err">d</span> <span class="kc">t</span><span class="err">o</span> <span class="err">co</span><span class="kc">nf</span><span class="err">igure</span> <span class="kc">t</span><span class="err">his</span> <span class="err">o</span><span class="kc">ne</span><span class="p">,</span>
-            <span class="err">//</span> <span class="kc">t</span><span class="err">here</span> <span class="err">is</span> <span class="err">a</span> <span class="err">buil</span><span class="kc">t</span><span class="mi">-</span><span class="err">i</span><span class="kc">n</span> <span class="err">comma</span><span class="kc">n</span><span class="err">d</span> <span class="kc">f</span><span class="err">or</span> <span class="kc">ta</span><span class="err">ppi</span><span class="kc">n</span><span class="err">g</span> <span class="kc">t</span><span class="err">he</span> <span class="err">curre</span><span class="kc">nt</span> <span class="kc">f</span><span class="err">orm</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Tap Current Form&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;tap&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;CLJ Test Top Level Defined Symbol&quot;</span><span class="p">,</span>
             <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(tap&gt; $current-form)&quot;</span>
+            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(clojure.test/test-var #&#39;$top-level-defined-symbol)&quot;</span>
         <span class="p">},</span>
         <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Evaluate Current Function Symbol&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;$current-fn&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Call Top Level Defined Symbol&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;clj&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;($top-level-defined-symbol)&quot;</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;CLJS Test Top Level Defined Symbol&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;cljs&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(cljs.test/test-var #&#39;$top-level-defined-symbol)&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;tab&quot;</span>
         <span class="p">}</span>
-    <span class="p">]</span>
+    <span class="p">],</span>
+</code></pre></div>
+
+<p>And these <strong>Workspace</strong> settings:</p>
+<div class="codehilite"><pre><span></span><code>    <span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Remount CLJS App&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;repl&quot;</span><span class="p">:</span> <span class="s2">&quot;cljs&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;ns&quot;</span><span class="p">:</span> <span class="s2">&quot;example.app&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(start)&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
 </code></pre></div>
 
 <p>Issuing <strong>Run Custom REPL Command</strong> will then render this VS Code menu:</p>
 <p><img alt="" src="../images/custom-command-menu.png" /></p>
-<p>The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is <code>ctrl+alt+space</code>. Which means that to execute the <strong>Call Current Form</strong> custom command, you could do:</p>
-<p><code>ctrl+alt+space 4 enter</code>.</p>
+<p>The default keyboard shortcut for the command is <code>ctrl+alt+space space</code>.</p>
 <h2 id="binding-keyboard-shortcuts">Binding keyboard shortcuts</h2>
-<p>Some custom REPL commands might be so central to your workflow that you want to bind keyboard shortcuts to them directly. There are two ways to do this:</p>
+<p>There are three ways to bind shortcuts to custom commands:</p>
 <ol>
+<li>Use a predefined <code>key</code> shortcut. These are predefined as <code>ctrl+alt+space &lt;something&gt;</code>, where <code>&lt;something&gt;</code> is one of:<ul>
+<li>The digits <code>0</code> through <code>9</code></li>
+<li>The English letters <code>a</code> through <code>z</code></li>
+<li>Arrow keys <code>right</code>, <code>left</code>, <code>up</code>, or <code>down</code></li>
+<li>One of <code>tab</code>, <code>backspace</code>, <code>,</code>, <code>.</code>, or <code>-</code> </li>
+</ul>
+</li>
 <li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut with whatever code you want to evaluate in <code>args</code> key. You have access to the substitution variables here as well.</li>
-<li>Bind <code>calva.runCustomREPLCommand</code> to a shortcut referencing the <code>key</code> of on of your <code>calva.customREPLCommandSnippets</code>.</li>
+<li>Bind <code>calva.runCustomREPLCommand</code> to a keyboard shortcut referencing the <code>key</code> of on of your <code>calva.customREPLCommandSnippets</code>. (If not using any of the <code>key</code>s mentioned in <strong>1.</strong>)</li>
 </ol>
-<p>Given the above example settings, here are two shortcut definitions that both <code>tap&gt;</code> the current form:</p>
-<div class="codehilite"><pre><span></span><code>    <span class="p">{</span>
-        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+alt+shift+t t&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;calva.runCustomREPLCommand&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;args&quot;</span><span class="p">:</span> <span class="s2">&quot;(tap&gt; $current-form)&quot;</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;ctrl+alt+shift+t t&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;calva.runCustomREPLCommand&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;args&quot;</span><span class="p">:</span> <span class="s2">&quot;tap&quot;</span>
-    <span class="p">}</span>
-</code></pre></div>
-
-<p>(Again, none of them is needed, the built in command for tapping the current form is default bound to the shortcut <code>ctrl+shift+t t</code>.)</p>
                 
               
               
