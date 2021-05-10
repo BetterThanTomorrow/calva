@@ -328,28 +328,28 @@ export function killForwardList(doc: EditableDocument, start: number = doc.selec
     ], { selection: new ModelEditSelection(start) });
 }
 
-export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight, extraOpts = {}) {
-    let cursor = doc.getTokenCursor(start);
+export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight, extraOpts = {"formatDepth": 1}) {
+    const cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
-        let offset = cursor.offsetStart;
-        let close = cursor.getToken().raw;
-        const insideWsCursor = cursor.clone();
-        insideWsCursor.backwardWhitespace(false);
-        const tokenInside = insideWsCursor.getToken();
-        const hasWsInside = tokenInside.type === 'ws';
-        const insideWs = hasWsInside ? tokenInside.raw : '';
-        const insideWsStart = insideWsCursor.offsetStart;
-        cursor.next();
-        const tokenOutside = cursor.getToken();
-        const hasWsOutside = tokenOutside.type === 'ws';
-        const outsideWs = hasWsOutside ? tokenOutside.raw : '';
-        cursor.forwardSexp();
-        cursor.backwardWhitespace(false);
-        if (cursor.offsetStart !== offset + close.length) {
+        const currentCloseOffset = cursor.offsetStart;
+        const close = cursor.getToken().raw;
+        const wsInsideCursor = cursor.clone();
+        wsInsideCursor.backwardWhitespace(false);
+        const wsStartOffset = wsInsideCursor.offsetStart;
+        cursor.upList();
+        const wsOutSideCursor = cursor.clone();        
+        if (cursor.forwardSexp()) {
+            wsOutSideCursor.forwardWhitespace(false);
+            const wsEndOffset = wsOutSideCursor.offsetStart;
+            const newCloseOffset = cursor.offsetStart;
+            const replacedText = doc.model.getText(wsStartOffset, wsEndOffset);
+            const changeArgs = replacedText.indexOf('\n') >= 0 ?
+                [currentCloseOffset, currentCloseOffset + close.length, ''] :
+                [wsStartOffset, wsEndOffset, ' '];
             doc.model.edit([
-                new ModelEdit('insertString', [cursor.offsetStart, close]),
-                new ModelEdit('changeRange', [insideWsStart, insideWsStart + insideWs.length + close.length + outsideWs.length, ' '])
+                new ModelEdit('insertString', [newCloseOffset, close]),
+                new ModelEdit('changeRange', changeArgs)
             ], {
                 ...{
                     undoStopBefore: true
