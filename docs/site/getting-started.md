@@ -16,9 +16,9 @@ If you are new to Calva, a good place to start is using the command **Fire up th
 
 It will open up a three files in a temporary directory, and start and connect a REPL. The files are:
 
-- `hello-repl.clj` – The basics of how to evaluate code in Calva
-- `hello-paredit.clj` - A super brief intro to Calva structural editing
-- `hello-clojure.clj` - The very basics of the Clojure language
+- `hello_repl.clj` – The basics of how to evaluate code in Calva
+- `hello_paredit.clj` - A super brief intro to Calva structural editing
+- `welcome_to_clojure.clj` - The very basics of the Clojure language
 
 ![Hello REPL](images/howto/hello-repl.png "hello-repl.clj")
 
