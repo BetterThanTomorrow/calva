@@ -10,7 +10,7 @@ import { getConfig } from '../config';
 import * as replSession from './repl-session';
 
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
-export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'hello_clojure.clj'];
+export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'welcome_to_clojure.clj'];
 const TEMPLATES_SUB_DIR = 'bundled';
 
 async function downloadDram(storageUri: vscode.Uri, filePath: string) {
