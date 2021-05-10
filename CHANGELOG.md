@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Pre-bind some keyboard shortcuts to custom REPL commands](https://github.com/BetterThanTomorrow/calva/issues/1173)
 
 ## [2.0.195] - 2021-05-07
 - Update cider-nrepl to [0.26.0](https://github.com/clojure-emacs/cider-nrepl/releases/tag/v0.26.0)
