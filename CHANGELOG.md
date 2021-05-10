@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Forward slurp with closing paren after newline, breaks the structure](https://github.com/BetterThanTomorrow/calva/issues/1171)
+- [Pre-bind some keyboard shortcuts to custom REPL commands](https://github.com/BetterThanTomorrow/calva/issues/1173)
 
 ## [2.0.195] - 2021-05-07
 - Update cider-nrepl to [0.26.0](https://github.com/clojure-emacs/cider-nrepl/releases/tag/v0.26.0)
