@@ -233,6 +233,14 @@ function evaluateCurrentForm(document = {}, options = {}) {
     })).catch(printWarningForError);
 }
 
+function evaluateEnclosingForm(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: getText.currentEnclosingFormText
+    })).catch(printWarningForError);
+}
+
+
 function evaluateToCursor(document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: getConfig().prettyPrintingOptions,
@@ -393,6 +401,7 @@ export default {
     interruptAllEvaluations,
     loadFile,
     evaluateCurrentForm,
+    evaluateEnclosingForm,
     evaluateTopLevelForm,
     evaluateSelectionReplace,
     evaluateSelectionAsComment,

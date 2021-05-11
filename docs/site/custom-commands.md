@@ -18,6 +18,7 @@ There are also substitutions available, which will take elements from the curren
 * `$ns`: The namespace used for evaluating the command
 * `$selection`: The currently selected text
 * `$current-form`: The text of the [current form](eval-tips.md#current-form)
+* `$enclosing-form`: The text of the [current enclosing form](eval-tips.md#evaluate-enclosing-form)
 * `$top-level-form` The text of the [current top level form](eval-tips.md#current-top-level-form)
 * `$current-fn`: The sexpr/form at call position in the current list, e.g. `str` with `(defn foo [] (str "foo" "bar|"))`
 * `$top-level-defined-symbol`: The second symbol of the top level form, e.g. `foo` with `(defn foo [] (str "foo" "bar|"))`

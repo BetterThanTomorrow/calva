@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add command for evaluating enclosing form](https://github.com/BetterThanTomorrow/calva/issues/1176)
 
 ## [2.0.196] - 2021-05-10
 - Fix: [Forward slurp with closing paren after newline, breaks the structure](https://github.com/BetterThanTomorrow/calva/issues/1171)
