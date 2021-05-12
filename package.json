@@ -61,6 +61,12 @@
         "onDebugResolve:type"
     ],
     "main": "./out/extension",
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false,
+            "description": "With Calva you might evaluate any code in the project."
+        }
+    },
     "contributes": {
         "debuggers": [
             {
