@@ -88,4 +88,4 @@ There are three ways to bind shortcuts to custom commands:
     * Arrow keys `right`, `left`, `up`, or `down`
     * One of `tab`, `backspace`, `,`, `.`, or `-` 
 2. Bind `calva.runCustomREPLCommand` to a shortcut with whatever code you want to evaluate in `args` key. You have access to the substitution variables here as well.
-3. Bind `calva.runCustomREPLCommand` to a keyboard shortcut referencing the `key` of on of your `calva.customREPLCommandSnippets`. (If not using any of the `key`s mentioned in **1.**)
+3. Bind `calva.runCustomREPLCommand` to a keyboard shortcut referencing the `key` of one of your `calva.customREPLCommandSnippets`. (If not using any of the `key`s mentioned in **1.**)
