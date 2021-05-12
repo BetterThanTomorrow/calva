@@ -14,7 +14,7 @@ Add this *REPL Connect Sequence* to your workspace `settings.json`:
             "name": "deps.edn + Krell",
             "projectType": "deps.edn",
             "cljsType": {
-                "connectCode": "(require '[clojure.edn :as edn] '[clojure.java.io :as io] '[cider.piggieback] '[krell.api :as krell] '[krell.repl]) (def config(edn/read-string(slurp(io/file \"build.edn\")))) (krell/build config) (apply cider.piggieback/cljs-repl (krell.repl/repl-env)(mapcat identity config))",
+                "connectCode": "(require '[clojure.edn :as edn] \n    '[clojure.java.io :as io]\n    '[cider.piggieback] \n    '[krell.api :as krell]\n    '[krell.repl])\n\n(def config (edn/read-string (slurp (io/file \"build.edn\"))))\n(apply cider.piggieback/cljs-repl (krell.repl/repl-env) (mapcat identity config))",
                 "dependsOn": "User provided"
             }
         }
