@@ -582,7 +582,7 @@ describe('paredit', () => {
                 paredit.forwardSlurpSexp(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
-            it('slurps properly when closing paren is on new linef', () => {
+            it('slurps properly when closing paren is on new line', () => {
                 // https://github.com/BetterThanTomorrow/calva/issues/1171
                 const a = docFromTextNotation('(def foo•  (str|•   )•  42)');
                 const b = docFromTextNotation('(def foo•  (str|•   •  42))');

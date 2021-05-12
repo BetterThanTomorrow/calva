@@ -166,6 +166,7 @@ async function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateEnclosingForm', eval.evaluateEnclosingForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateToCursor', eval.evaluateToCursor));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateUser', eval.evaluateUser));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', eval.evaluateTopLevelForm));

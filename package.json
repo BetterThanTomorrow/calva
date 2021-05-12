@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.196",
+    "version": "2.0.197",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -61,6 +61,12 @@
         "onDebugResolve:type"
     ],
     "main": "./out/extension",
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false,
+            "description": "With Calva you might evaluate any code in the project."
+        }
+    },
     "contributes": {
         "debuggers": [
             {
@@ -738,6 +744,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateEnclosingForm",
+                "title": "Evaluate Current Enclosing Form",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.evaluateToCursor",
                 "title": "Evaluate From Start of List to Cursor",
                 "enablement": "calva:connected",
@@ -1402,6 +1414,11 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateEnclosingForm",
+                "key": "ctrl+shift+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
@@ -2369,7 +2386,7 @@
         "tslint": "^5.20.1",
         "typescript": "^3.7.2",
         "url-loader": "^1.1.2",
-        "vsce": "^1.75.0",
+        "vsce": "^1.88.0",
         "vscode-test": "^1.3.0",
         "webpack": "^5.27.1",
         "webpack-cli": "^4.5.0"

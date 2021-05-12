@@ -13,7 +13,6 @@ function _currentFormText(editor: vscode.TextEditor, topLevel: boolean): Selecti
         return [codeSelection, doc.getText(codeSelection)];
     }
     return [undefined, ''];
-
 }
 
 export function currentTopLevelFormText(editor: vscode.TextEditor): SelectionAndText {
@@ -22,6 +21,15 @@ export function currentTopLevelFormText(editor: vscode.TextEditor): SelectionAnd
 
 export function currentFormText(editor: vscode.TextEditor): SelectionAndText {
     return _currentFormText(editor, false);
+}
+
+export function currentEnclosingFormText(editor: vscode.TextEditor): SelectionAndText {
+    const doc = editor.document;
+    if (doc) {
+        const codeSelection = select.getEnclosingFormSelection(doc, editor.selection.active);
+        return [codeSelection, doc.getText(codeSelection)];
+    }
+    return [undefined, ''];
 }
 
 export function currentFunction(editor: vscode.TextEditor): SelectionAndText {

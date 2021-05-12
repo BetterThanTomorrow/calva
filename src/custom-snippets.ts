@@ -92,6 +92,7 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         replace("$ns", ns).
         replace("$selection", editor.document.getText(editor.selection)).
         replace("$current-form", getText.currentFormText(editor)[1]).
+        replace("$enclosing-form", getText.currentEnclosingFormText(editor)[1]).
         replace("$top-level-form", getText.currentTopLevelFormText(editor)[1]).
         replace("$current-fn", getText.currentFunction(editor)[1]).
         replace("$top-level-defined-symbol", getText.currentTopLevelFunction(editor)[1]).
