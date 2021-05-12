@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.197] - 2021-05-12
 - [Add command for evaluating enclosing form](https://github.com/BetterThanTomorrow/calva/issues/1176)
 
 ## [2.0.196] - 2021-05-10
