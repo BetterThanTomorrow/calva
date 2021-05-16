@@ -182,26 +182,22 @@ class CalvaDebugSession extends LoggingDebugSession {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
-        const stackFrameData = stackTraceResponse.causes[0].stacktrace.filter(frame => {
+        const projectFrames = stackTraceResponse.causes[0].stacktrace.filter(frame => {
             return !frame.flags.includes('dup') &&
                 !frame.flags.includes('tooling') &&
                 !frame.flags.includes('dup') &&
+                !frame.flags.includes('repl') &&
                 frame.flags.includes('project');
-        }).map((frame, index) => {
+        });
+        const stackFrameData = projectFrames.map((frame, index) => {
             const data: any = {
-                name: frame.name,
-                // For some reason, the first frame's line number always seems to be off by +1
-                line: index === 0 ? frame.line - 1 : frame.line,
+                name: frame.var || frame.name,
+                line: frame.line,
                 flags: frame.flags,
                 file: frame.file
             };
             if (typeof frame['file-url'] === 'string') {
                 data.source = new Source(basename(frame['file-url']), frame['file-url']);
-            } else {
-                // Assuming here that if there's no source file, it's the file from the debug response.
-                // TODO: Fix this. Figure out how to make frames for initial eval command contain the source file.
-                //       Maybe we need to pass something to eval about the file and position.
-                data.source = new Source(basename(debugResponse.file), debugResponse.file);
             }
             return data;
         });
@@ -229,7 +225,9 @@ class CalvaDebugSession extends LoggingDebugSession {
         const source = new Source(basename(debugResponse.file), debugResponse.file);
         const name = tokenCursor.getFunctionName();
         const breakPointStackFrame = new StackFrame(0, name, source, line + 1, column + 1);
-        const stackFrames = [breakPointStackFrame, ...stackFrameData.map((d, index) => new StackFrame(index + 1, d.name, d.source, d.line))];
+        const stackFrames = [breakPointStackFrame, ...stackFrameData.map((d, index) =>
+            new StackFrame(index + 1, d.name, d.source, d.line)
+        )];
 
         response.body = {
             stackFrames,
