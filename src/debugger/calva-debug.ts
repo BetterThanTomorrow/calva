@@ -14,7 +14,6 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
-import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
@@ -183,11 +182,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
         const projectFrames = stackTraceResponse.causes[0].stacktrace.filter(frame => {
-            return !frame.flags.includes('dup') &&
-                !frame.flags.includes('tooling') &&
-                !frame.flags.includes('dup') &&
-                !frame.flags.includes('repl') &&
-                frame.flags.includes('project');
+            return frame.flags.includes('project') && !['repl'].some(f => frame.flags.includes(f));
         });
         const stackFrameData = projectFrames.map((frame, index) => {
             const data: any = {
