@@ -182,7 +182,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
         const projectFrames = stackTraceResponse.causes[0].stacktrace.filter(frame => {
-            return frame.flags.includes('project') && !['repl'].some(f => frame.flags.includes(f));
+            return frame.flags.includes('project') && !['repl', 'dup'].some(f => frame.flags.includes(f));
         });
         const stackFrameData = projectFrames.map((frame, index) => {
             const data: any = {
