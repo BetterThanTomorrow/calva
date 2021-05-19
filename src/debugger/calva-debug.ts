@@ -252,12 +252,10 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
-
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':quit', id, key);
         }
-
         this.sendResponse(response);
     }
 
