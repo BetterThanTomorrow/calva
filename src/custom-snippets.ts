@@ -18,7 +18,6 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const currentLine = editor.selection.active.line;
     const currentColumn = editor.selection.active.character;
     const currentFilename = editor.document.fileName;
-    let pickCounter = 0;
     let configErrors: { "name": string; "keys": string[]; }[] = [];
     const globalSnippets = getConfig().customREPLCommandSnippetsGlobal as customREPLCommandSnippet[];
     const workspaceSnippets = getConfig().customREPLCommandSnippetsWorkspace as customREPLCommandSnippet[];
@@ -47,9 +46,8 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         const entry = { ...c };
         entry.ns = entry.ns ? entry.ns : editorNS;
         entry.repl = entry.repl ? entry.repl : editorRepl;
-        pickCounter++;
-        const prefix = entry.key !== undefined ? entry.key : pickCounter;
-        const item = `${prefix}: ${entry.name} (${entry.repl})`;
+        const prefix = entry.key !== undefined ? `${entry.key}: ` : '';
+        const item = `${prefix}${entry.name} (${entry.repl})`;
         snippetsMenuItems.push(item);
         snippetsDict[item] = entry;
         snippetsKeyDict[entry.key] = item;
@@ -94,6 +92,7 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
         replace("$ns", ns).
         replace("$selection", editor.document.getText(editor.selection)).
         replace("$current-form", getText.currentFormText(editor)[1]).
+        replace("$enclosing-form", getText.currentEnclosingFormText(editor)[1]).
         replace("$top-level-form", getText.currentTopLevelFormText(editor)[1]).
         replace("$current-fn", getText.currentFunction(editor)[1]).
         replace("$top-level-defined-symbol", getText.currentTopLevelFunction(editor)[1]).

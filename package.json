@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.194",
+    "version": "2.0.198",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -61,6 +61,12 @@
         "onDebugResolve:type"
     ],
     "main": "./out/extension",
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false,
+            "description": "With Calva you might evaluate any code in the project."
+        }
+    },
     "contributes": {
         "debuggers": [
             {
@@ -264,7 +270,7 @@
                         },
                         "default": {
                             "nrepl": "0.8.3",
-                            "cider-nrepl": "0.25.11",
+                            "cider-nrepl": "0.26.0",
                             "cider/piggieback": "0.5.2"
                         }
                     },
@@ -489,6 +495,11 @@
                                             }
                                         }
                                     ]
+                                },
+                                "jackInEnv": {
+                                    "type": "object",
+                                    "default": {},
+                                    "markdownDescription": "Environment variables that will be merged with any global `calva.jackInEnv` and then applied to the Jack-in process. The merge is very similar to how Clojure's `merge` works. So for any common keys between the global setting and this one, the ones from this setting will win."
                                 }
                             }
                         }
@@ -729,6 +740,12 @@
             {
                 "command": "calva.evaluateSelection",
                 "title": "Evaluate Current Form  (or selection, if any)",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateEnclosingForm",
+                "title": "Evaluate Current Enclosing Form",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
@@ -1400,6 +1417,11 @@
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
+                "command": "calva.evaluateEnclosingForm",
+                "key": "ctrl+shift+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
                 "command": "calva.evaluateToCursor",
                 "key": "ctrl+alt+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
@@ -1493,11 +1515,6 @@
                 "command": "calva.runTestUnderCursor",
                 "key": "ctrl+alt+c ctrl+alt+t",
                 "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
-            },
-            {
-                "command": "calva.runCustomREPLCommand",
-                "key": "ctrl+alt+space",
-                "when": "calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.continueComment",
@@ -1872,6 +1889,287 @@
                 "command": "calva.showNextReplHistoryEntry",
                 "key": "alt+down",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && calva:outputWindowActive"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space space",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space enter",
+                "args": "enter",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space ,",
+                "args": ",",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space .",
+                "args": ".",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space -",
+                "args": "-",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space backspace",
+                "args": "backspace",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space left",
+                "args": "left",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space right",
+                "args": "right",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space up",
+                "args": "up",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space down",
+                "args": "down",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space tab",
+                "args": "tab",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 0",
+                "args": "0",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 1",
+                "args": "1",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 2",
+                "args": "2",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 3",
+                "args": "3",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 4",
+                "args": "4",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 5",
+                "args": "5",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 6",
+                "args": "6",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 7",
+                "args": "7",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 8",
+                "args": "8",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space 9",
+                "args": "9",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space a",
+                "args": "a",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space b",
+                "args": "b",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space c",
+                "args": "c",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space d",
+                "args": "d",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space e",
+                "args": "e",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space f",
+                "args": "f",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space g",
+                "args": "g",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space h",
+                "args": "h",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space i",
+                "args": "i",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space j",
+                "args": "j",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space k",
+                "args": "k",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space l",
+                "args": "l",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space m",
+                "args": "m",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space n",
+                "args": "n",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space o",
+                "args": "o",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space p",
+                "args": "p",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space q",
+                "args": "q",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space r",
+                "args": "r",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space s",
+                "args": "s",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space t",
+                "args": "t",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space u",
+                "args": "u",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space v",
+                "args": "v",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space w",
+                "args": "w",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space x",
+                "args": "x",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space y",
+                "args": "y",
+                "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space z",
+                "args": "z",
+                "when": "calva:connected && calva:keybindingsEnabled"
             }
         ],
         "menus": {
@@ -2071,7 +2369,7 @@
         "fast-check": "^1.22.2",
         "glob": "^7.1.6",
         "jest": "^26.6.2",
-        "json": "^9.0.6",
+        "json": "^10.0.0",
         "minimist": "^1.2.5",
         "mocha": "^7.1.1",
         "mocha-junit-reporter": "^1.23.1",
@@ -2088,7 +2386,7 @@
         "tslint": "^5.20.1",
         "typescript": "^3.7.2",
         "url-loader": "^1.1.2",
-        "vsce": "^1.75.0",
+        "vsce": "^1.88.0",
         "vscode-test": "^1.3.0",
         "webpack": "^5.27.1",
         "webpack-cli": "^4.5.0"

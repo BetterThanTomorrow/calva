@@ -18,95 +18,74 @@ There are also substitutions available, which will take elements from the curren
 * `$ns`: The namespace used for evaluating the command
 * `$selection`: The currently selected text
 * `$current-form`: The text of the [current form](eval-tips.md#current-form)
+* `$enclosing-form`: The text of the [current enclosing form](eval-tips.md#evaluate-enclosing-form)
 * `$top-level-form` The text of the [current top level form](eval-tips.md#current-top-level-form)
 * `$current-fn`: The sexpr/form at call position in the current list, e.g. `str` with `(defn foo [] (str "foo" "bar|"))`
 * `$top-level-defined-symbol`: The second symbol of the top level form, e.g. `foo` with `(defn foo [] (str "foo" "bar|"))`
 * `$head`: The text between the start of the current list to the cursor
 * `$tail`: The text between the cursor and the end of the current list
 
-Consider these settings:
+## User and Workspace settings
+
+Settings from your User (global) level and the workspace are merged.
+
+With these **User** settings:
 
 ```json
-        "calva.customREPLCommandSnippets": [
-        {
-            "name": "Foo",
-            "snippet": "(println :foo)",
-            "ns": "acme.test.foo-test",
-            "repl": "cljs"
-        },
-        {
-            "name": "Bar",
-            "snippet": "(println :bar $line)",
-            "ns": "acme.test.bar-test",
-            "repl": "clj"
-        },
-        {
-            "name": "Refresh",
-            "key": "r",
-            "snippet": "(refresh)",
-            "repl": "clj"
-        },
+    "calva.customREPLCommandSnippets": [
         {
             "name": "Call Current Form",
-            "repl": "clj",
+            "key": "c",
             "snippet": "($current-form)"
         },
         {
             "name": "Call Current Top Level Form",
-            "key": "call-t",
-            "repl": "clj",
+            "key": "t",
             "snippet": "($top-level-form)"
         },
         {
-            // You don't need to configure this one,
-            // there is a built-in command for tapping the current form
-            "name": "Tap Current Form",
-            "key": "tap",
+            "name": "CLJ Test Top Level Defined Symbol",
             "repl": "clj",
-            "snippet": "(tap> $current-form)"
+            "snippet": "(clojure.test/test-var #'$top-level-defined-symbol)"
         },
         {
-            "name": "Evaluate Current Function Symbol",
-            "repl": "clj",
-            "snippet": "$current-fn"
-        },
-        {
-            "name": "Call Top Level Defined Symbol",
-            "repl": "clj",
-            "snippet": "($top-level-defined-symbol)"
+            "name": "CLJS Test Top Level Defined Symbol",
+            "repl": "cljs",
+            "snippet": "(cljs.test/test-var #'$top-level-defined-symbol)",
+            "key": "tab"
         }
-    ]
+    ],
 ```
 
+And these **Workspace** settings:
+
+```json
+    "calva.customREPLCommandSnippets": [
+        {
+            "name": "Remount CLJS App",
+            "key": "r",
+            "repl": "cljs",
+            "ns": "example.app",
+            "snippet": "(start)"
+        }
+    ],
+
+```
 
 Issuing **Run Custom REPL Command** will then render this VS Code menu:
 
 ![](images/custom-command-menu.png)
 
-The items are numbered for you so that you can choose them in predictable way. The default keyboard shortcut for the command is `ctrl+alt+space`. Which means that to execute the **Call Current Form** custom command, you could do:
-
-`ctrl+alt+space 4 enter`.
+The default keyboard shortcut for the command is `ctrl+alt+space space`.
 
 ## Binding keyboard shortcuts
 
-Some custom REPL commands might be so central to your workflow that you want to bind keyboard shortcuts to them directly. There are two ways to do this:
+There are three ways to bind shortcuts to custom commands:
 
-1. Bind `calva.runCustomREPLCommand` to a shortcut with whatever code you want to evaluate in `args` key. You have access to the substitution variables here as well.
-2. Bind `calva.runCustomREPLCommand` to a shortcut referencing the `key` of on of your `calva.customREPLCommandSnippets`.
-
-Given the above example settings, here are two shortcut definitions that both `tap>` the current form:
-
-```json
-    {
-        "key": "ctrl+alt+shift+t t",
-        "command": "calva.runCustomREPLCommand",
-        "args": "(tap> $current-form)"
-    },
-    {
-        "key": "ctrl+alt+shift+t t",
-        "command": "calva.runCustomREPLCommand",
-        "args": "tap"
-    }
-```
-
-(Again, none of them is needed, the built in command for tapping the current form is default bound to the shortcut `ctrl+shift+t t`.)
+1. Use a predefined `key` shortcut. These are predefined as `ctrl+alt+space <something>`, where `<something>` is one of:
+    * The digits `0` through `9`
+    * The English letters `a` through `z`
+    * Arrow keys `right`, `left`, `up`, or `down`
+    * One of `tab`, `backspace`, `,`, `.`, or `-` 
+2. Bind `calva.runCustomREPLCommand` to a shortcut with whatever code you want to evaluate in `args` key. You have access to the substitution variables here as well.
+3. Bind `calva.runCustomREPLCommand` to a keyboard shortcut referencing the `key` of one of your `calva.customREPLCommandSnippets`. (If not using any of the `key`s mentioned in **1.**)

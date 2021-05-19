@@ -32,10 +32,14 @@ function resolveEnvVariables(entry: any): any {
     }
 }
 
-function getJackInEnv(): any {
+function processEnvObject(env: any){
+    return _.mapValues(env, resolveEnvVariables)
+}
+
+function getGlobalJackInEnv() {
     return {
         ...process.env,
-        ..._.mapValues(getConfig().jackInEnv as object, resolveEnvVariables)
+        ...processEnvObject(getConfig().jackInEnv as object)
     };
 }
 
@@ -167,7 +171,10 @@ async function getJackInTerminalOptions(projectConnectSequence: ReplConnectSeque
         name: `Calva Jack-in: ${projectConnectSequence.name}`,
         executable,
         args,
-        env: getJackInEnv(),
+        env: { 
+            ...getGlobalJackInEnv(), 
+            ...processEnvObject(projectConnectSequence.jackInEnv)
+        },
         isWin: projectTypes.isWin,
         cwd: state.getProjectRootLocal(),
         useShell: projectTypes.isWin ? projectType.processShellWin : projectType.processShellUnix

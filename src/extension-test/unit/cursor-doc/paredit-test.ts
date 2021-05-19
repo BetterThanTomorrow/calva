@@ -576,7 +576,22 @@ describe('paredit', () => {
                 paredit.forwardSlurpSexp(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
+            it('leaves newlines when slurp', () => {
+                const a = docFromTextNotation('(fo|o•)  bar');
+                const b = docFromTextNotation('(fo|o•  bar)');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('slurps properly when closing paren is on new line', () => {
+                // https://github.com/BetterThanTomorrow/calva/issues/1171
+                const a = docFromTextNotation('(def foo•  (str|•   )•  42)');
+                const b = docFromTextNotation('(def foo•  (str|•   •  42))');
+                paredit.forwardSlurpSexp(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+        });
 
+        describe('Raise', () => {
             it('raises the current form when cursor is preceeding', () => {
                 const a = docFromTextNotation('(comment•  (str |#(foo)))');
                 const b = docFromTextNotation('(comment•  |#(foo))');

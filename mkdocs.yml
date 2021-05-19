@@ -52,6 +52,7 @@ nav:
     - luminus.md
     - re-frame-template.md
     - polylith.md
+    - krell.md
     - static-only.md
     - parinfer.md
   - Etcetera:

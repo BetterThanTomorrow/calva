@@ -7,29 +7,47 @@ function selectionFromOffsetRange(doc: vscode.TextDocument, range: [number, numb
 }
 
 function getFormSelection(doc: vscode.TextDocument, pos: vscode.Position, topLevel): vscode.Selection {
-    const idx = doc.offsetAt(pos),
-        cursor = docMirror.getDocument(doc).getTokenCursor(topLevel ? 0 : idx),
-        range = topLevel ? cursor.rangeForDefun(idx) : cursor.rangeForCurrentForm(idx);
+    const idx = doc.offsetAt(pos);
+    const cursor = docMirror.getDocument(doc).getTokenCursor(topLevel ? 0 : idx);
+    const range = topLevel ? cursor.rangeForDefun(idx) : cursor.rangeForCurrentForm(idx);
     if (range) {
         return selectionFromOffsetRange(doc, range);
     }
 }
 
-function selectCurrentForm(document = {}) {
+function getEnclosingFormSelection(doc: vscode.TextDocument, pos: vscode.Position): vscode.Selection {
+    const idx = doc.offsetAt(pos);
+    const cursor = docMirror.getDocument(doc).getTokenCursor(idx);
+    if (cursor.backwardList()) {
+        cursor.backwardUpList();
+        const start = cursor.offsetStart;
+        if (cursor.forwardSexp()) {
+            const end = cursor.offsetStart;
+            return selectionFromOffsetRange(doc, [start, end]);
+        }
+    }
+}
+
+function selectForm(document = {}, selectionFn: Function, args?: any[]) {
     let editor = vscode.window.activeTextEditor,
         doc = util.getDocument(document),
         selection = editor.selection;
 
     if (selection.isEmpty) {
-        let codeSelection = getFormSelection(doc, selection.active, false);
+        let codeSelection = selectionFn(doc, selection.active, ...args);
         if (codeSelection) {
             editor.selection = codeSelection;
         }
     }
 }
 
+function selectCurrentForm(document = {}) {
+    selectForm(document, getFormSelection, [false])
+}
+
 export default {
-    getFormSelection: getFormSelection,
-    selectCurrentForm: selectCurrentForm,
+    getFormSelection,
+    getEnclosingFormSelection,
+    selectCurrentForm,
     selectionFromOffsetRange
 };

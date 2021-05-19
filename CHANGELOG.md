@@ -3,7 +3,21 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.197] - 2021-05-12
+- [Add command for evaluating enclosing form](https://github.com/BetterThanTomorrow/calva/issues/1176)
+
+## [2.0.196] - 2021-05-10
+- Fix: [Forward slurp with closing paren after newline, breaks the structure](https://github.com/BetterThanTomorrow/calva/issues/1171)
+- [Pre-bind some keyboard shortcuts to custom REPL commands](https://github.com/BetterThanTomorrow/calva/issues/1173)
+
+## [2.0.195] - 2021-05-07
+- Update cider-nrepl to [0.26.0](https://github.com/clojure-emacs/cider-nrepl/releases/tag/v0.26.0)
+- [Makes it possible to add a jackInEnv per replConnectSequences](https://github.com/BetterThanTomorrow/calva/issues/1124)
+
+## [2.0.194] - 2021-04-26
 - [Make Clojure-lsp Server Info command always enabled](https://github.com/BetterThanTomorrow/calva/issues/1143)
+- [Add docs about using Calva with Krell](https://calva.io/krell)
 
 ## [2.0.193] - 2021-04-24
 - [Give the user some help to choose the right deps.edn jack-in alias when there are aliases with :main-opts](https://github.com/BetterThanTomorrow/calva/issues/1140)

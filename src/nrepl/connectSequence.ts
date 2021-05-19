@@ -50,6 +50,7 @@ interface ReplConnectSequence {
     cljsType: CljsTypes | CljsTypeConfig,
     menuSelections?: MenuSelections,
     nReplPortFile?: string[]
+    jackInEnv?: Record<string, string>
 }
 
 const leiningenDefaults: ReplConnectSequence[] =
