@@ -181,10 +181,11 @@ class CalvaDebugSession extends LoggingDebugSession {
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
         const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
-        const projectFrames = stackTraceResponse.causes[0].stacktrace.filter(frame => {
+        const allStackFrames = stackTraceResponse.causes[0].stacktrace;
+        const projectFrames = allStackFrames.filter(frame => {
             return frame.flags.includes('project') && !['repl', 'dup'].some(f => frame.flags.includes(f));
         });
-        const stackFrameData = projectFrames.map((frame, index) => {
+        const stackFrameData = projectFrames.map(frame => {
             const data: any = {
                 name: frame.var || frame.name,
                 line: frame.line,
@@ -196,7 +197,8 @@ class CalvaDebugSession extends LoggingDebugSession {
             }
             return data;
         });
-
+        const mostRecentProjectReplFrame = allStackFrames.filter(frame => frame.flags.includes('project') && frame.flags.includes('repl'))[0];
+        const breakpointFrameName = `${mostRecentProjectReplFrame.ns}/${mostRecentProjectReplFrame.fn.split('/')[1]}`;
         const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(uri);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
