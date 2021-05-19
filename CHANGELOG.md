@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Improve debugger call stack](https://github.com/BetterThanTomorrow/calva/issues/1150)
 
 ## [2.0.197] - 2021-05-12
 - [Add command for evaluating enclosing form](https://github.com/BetterThanTomorrow/calva/issues/1176)
