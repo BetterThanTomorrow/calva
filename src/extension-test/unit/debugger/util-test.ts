@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import { moveTokenCursorToBreakpoint, getProjectStackFrames } from '../../../debugger/util';
+import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
 import * as mock from '../common/mock';
 import * as fs from "fs";
 
@@ -65,52 +65,6 @@ describe('Debugger Util', async () => {
 
         it('syntax quote', () => {
             expectBreakpointToBeFound('syntax-quote.clj');
-        });
-    });
-
-    describe('getProjectStackFrames', () => {
-        const frames = [
-            {
-                var: 'some/var',
-                line: 100,
-                flags: ['project', 'repl'],
-                file: 'some-file'
-            },
-            {
-                var: 'some/var',
-                line: 100,
-                flags: ['project', 'repl', 'dup'],
-                file: 'some-file'
-            },
-            {
-                var: 'some/var2',
-                line: 100,
-                flags: ['tooling'],
-                file: 'some-file'
-            }  
-        ];
-
-        it('returns only frames flagged with "project"', () => {
-            const projectFrames = getProjectStackFrames(frames);
-            const areOnlyProjectFrames = projectFrames.every(frame => frame.flags.includes('project'));
-            expect(areOnlyProjectFrames).toBe(true);
-        });
-
-        it('returns no duplicate frames', () => {
-            const projectFrames = getProjectStackFrames(frames);
-            const duplicates = projectFrames.some(frame => frame.flags.includes('dup'));
-            expect(duplicates).toBe(false);
-        });
-
-        it('returns name, line, flags and file for each frame', () => {
-            const projectFrames = getProjectStackFrames(frames);
-            const requiredPropsExist = projectFrames.every(frame => {
-                return frame.name !== undefined &&
-                    frame.line !== undefined &&
-                    frame.file !== undefined &&
-                    frame.flags !== undefined;
-            });
-            expect(requiredPropsExist).toBe(true);
         });
     });
 });

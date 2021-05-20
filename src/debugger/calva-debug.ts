@@ -9,7 +9,7 @@ import * as state from '../state';
 import { basename } from 'path';
 import * as docMirror from '../doc-mirror/index';
 import * as vscode from 'vscode';
-import { moveTokenCursorToBreakpoint, getProjectStackFrames } from './util';
+import { moveTokenCursorToBreakpoint } from './util';
 import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
@@ -199,15 +199,21 @@ class CalvaDebugSession extends LoggingDebugSession {
         const [line, column] = tokenCursor.rowCol;
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
         const allStackFrames = stackTraceResponse.causes[0].stacktrace;
-        const projectStackFrames = getProjectStackFrames(allStackFrames);
+        const projectStackFrames = allStackFrames.filter(frame => {
+            return ['project', 'repl', 'clj'].some(f => frame.flags.includes(f)) && 
+                !['dup', 'tooling'].some(f => frame.flags.includes(f));
+        });
         const mostRecentProjectReplFrame = allStackFrames.filter(frame => frame.flags.includes('project') && frame.flags.includes('repl'))[0];
         const breakpointFrameName = `${mostRecentProjectReplFrame.ns}/${mostRecentProjectReplFrame.fn.split('/')[1]}`;
         // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
         const source = new Source(basename(debugResponse.file), debugResponse.file);
         const breakPointStackFrame = new StackFrame(0, breakpointFrameName, source, line + 1, column + 1);
-        const stackFrames = [breakPointStackFrame, ...projectStackFrames.map((d, index) =>
-            new StackFrame(index + 1, d.name, d.source, d.line)
-        )];
+        const stackFrames = [breakPointStackFrame, ...projectStackFrames.map((frame, index) => {
+            const name = frame.var || frame.name;
+            const fileUrl = frame['file-url'];
+            const source = (typeof fileUrl === 'string') ? new Source(basename(fileUrl), fileUrl) : undefined;
+            return new StackFrame(index + 1, name, source, frame.line);
+        })];
 
         response.body = {
             stackFrames,

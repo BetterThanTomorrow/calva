@@ -89,25 +89,6 @@ function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse
     return tokenCursor;
 }
 
-function getProjectStackFrames(stackFrames: any[]) {
-    const projectFrames = stackFrames.filter(frame => {
-        return frame.flags.includes('project') && !['repl', 'dup'].some(f => frame.flags.includes(f));
-    });
-    return projectFrames.map(frame => {
-        const data: any = {
-            name: frame.var || frame.name,
-            line: frame.line,
-            flags: frame.flags,
-            file: frame.file
-        };
-        if (typeof frame['file-url'] === 'string') {
-            data.source = new Source(basename(frame['file-url']), frame['file-url']);
-        }
-        return data;
-    });
-}
-
 export {
-    moveTokenCursorToBreakpoint,
-    getProjectStackFrames
+    moveTokenCursorToBreakpoint
 };
