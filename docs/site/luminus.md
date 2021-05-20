@@ -14,6 +14,11 @@ Basically this is the same wokflow as with **Server only**. Behind the scenes th
     ```sh
     $ lein new luminus my-luminus-shadow +reagent +shadow-cljs
     ```
+0. Install npm dependencies
+    ```sh
+    $ npm i
+    ```
+    (Or `yarn` if you prefer.)
 0. This creates the folder `my-luminus-shadow`. Open it in VS Code:
     ```sh
     $ code my-luminus-shadow
