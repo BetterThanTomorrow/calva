@@ -8,13 +8,21 @@ import * as jackIn from "./jack-in";
 import * as outputWindow from '../results-output/results-doc';
 import { getConfig } from '../config';
 import * as replSession from './repl-session';
+import * as cljsLib from  '../../out/cljs-lib/cljs-lib';
 
+const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
 export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
-export const HELLO_TEMPLATE_FILE_NAMES = ['hello_repl.clj', 'hello_paredit.clj', 'welcome_to_clojure.clj'];
+export const HELLO_TEMPLATE_FILE_NAMES = 'calva_getting_started';
 const TEMPLATES_SUB_DIR = 'bundled';
+type DramConfig = { "name": string, "files": [{ "path": string, "open?": boolean }] }
+
+async function fetchConfig(configName: string): Promise<DramConfig> {
+    const configEdn = await utilities.fetchFromUrl(`${DRAM_BASE_URL}/dev/drams/${HELLO_TEMPLATE_FILE_NAMES}/dram.edn`);
+    const config: DramConfig = cljsLib.parseEdn(configEdn);
+    return config;
+}
 
 async function downloadDram(storageUri: vscode.Uri, filePath: string) {
-    const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
     const calva = vscode.extensions.getExtension("betterthantomorrow.calva");
     const calvaVersion = calva.packageJSON.version;
     const isDebug = process.env["IS_DEBUG"] === "true";
@@ -62,7 +70,11 @@ async function extractBundledFiles(context: vscode.ExtensionContext, storageUri:
     }));
 }
 
-export async function startStandaloneRepl(context: vscode.ExtensionContext, docNames: string[], areBundled: boolean) {
+export async function startStandaloneRepl(context: vscode.ExtensionContext, docNames: string | string[], areBundled: boolean) {
+    if (typeof (docNames) === 'string') {
+        const dramConfig = await fetchConfig(docNames);
+        docNames = dramConfig.files.map(f => f.path);
+    }
     let tempDirUri = await state.getOrCreateNonProjectRoot(context);
     await state.initProjectDir(tempDirUri);
 
