@@ -10,11 +10,14 @@ import { getConfig } from '../config';
 import * as replSession from './repl-session';
 import * as cljsLib from  '../../out/cljs-lib/cljs-lib';
 
+type DramConfig = { name: string, files: [{ path: string, "open?": boolean }] }
+
 const DRAM_BASE_URL = 'https://raw.githubusercontent.com/BetterThanTomorrow/dram';
-export const USER_TEMPLATE_FILE_NAMES = ['user.clj'];
 export const HELLO_TEMPLATE_FILE_NAMES = 'calva_getting_started';
 const TEMPLATES_SUB_DIR = 'bundled';
-type DramConfig = { "name": string, "files": [{ "path": string, "open?": boolean }] }
+export const USER_TEMPLATE_FILE_NAMES: DramConfig = {
+    name: "Standalone REPL", files: [{ path: 'user.clj', "open?": true }]
+};
 
 async function fetchConfig(configName: string): Promise<DramConfig> {
     const configEdn = await utilities.fetchFromUrl(`${DRAM_BASE_URL}/dev/drams/${HELLO_TEMPLATE_FILE_NAMES}/dram.edn`);
@@ -70,11 +73,9 @@ async function extractBundledFiles(context: vscode.ExtensionContext, storageUri:
     }));
 }
 
-export async function startStandaloneRepl(context: vscode.ExtensionContext, docNames: string | string[], areBundled: boolean) {
-    if (typeof (docNames) === 'string') {
-        const dramConfig = await fetchConfig(docNames);
-        docNames = dramConfig.files.map(f => f.path);
-    }
+export async function startStandaloneRepl(context: vscode.ExtensionContext, dramConfig: string | DramConfig, areBundled: boolean) {
+    let config = typeof (dramConfig) === 'string' ? await fetchConfig(dramConfig) : dramConfig;
+    const docNames = config.files.map(f => f.path);
     let tempDirUri = await state.getOrCreateNonProjectRoot(context);
     await state.initProjectDir(tempDirUri);
 
@@ -92,8 +93,10 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, docN
     }
 
     const [mainDoc, mainEditor] = await openStoredDoc(storageUri, tempDirUri, docNames[0]);
-    docNames.slice(1).forEach(async docName => {
-        await openStoredDoc(storageUri, tempDirUri, docName);
+    config.files.slice(1).forEach(async file => {
+        if (file["open?"]) {
+            await openStoredDoc(storageUri, tempDirUri, file.path);
+        }
     });
     const firstPos = mainEditor.document.positionAt(0);
     mainEditor.selection = new vscode.Selection(firstPos, firstPos);
