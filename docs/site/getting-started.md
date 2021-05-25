@@ -28,6 +28,19 @@ The only prerequisite here is that you have Java installed. _No pre-installed cl
 !!! Note
     On Windows the Oracle Java installer sets Java up in some funny way so that the Getting Started REPL fails to start. We are figuring about workarounds for this, but for now, if you are on Windows, you will need to make VS Code have some other Java in the `PATH` of its environment for this feature to work. See [this issue on the Calva repo](https://github.com/BetterThanTomorrow/calva/issues/1162) for more on this, including any progress.
 
+## There are standalone ”ClojureScript Quick Start” REPLs
+
+Without creating a project structure or installing anything but Calva, you can start standalone ClojureScirpt REPLs both in a browser and for node:
+
+* Fire up the ClojureScript Quick Start **Browser** REPL
+* Fire up the ClojureScript Quick Start **Node** REPL
+
+The browser REPL app looks like so:
+
+![ClojureScript Quick Start Browser REPL](images/howto/clojurescript-quick-start.png "clojurescipt-quick-start")
+
+
+
 ## You have a Project?
 
 If you are new to Calva, please consider the above option first. Then when it it will be time to get [Calva connected to the REPL of your project](connect.md).

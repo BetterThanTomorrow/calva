@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add Standalone ClojureScript Quick Start REPLs](https://github.com/BetterThanTomorrow/calva/issues/1185)
 
 ## [2.0.197] - 2021-05-12
 - [Add command for evaluating enclosing form](https://github.com/BetterThanTomorrow/calva/issues/1176)
