@@ -145,10 +145,16 @@ async function activate(context: vscode.ExtensionContext) {
     // COMMANDS
     context.subscriptions.push(vscode.commands.registerCommand('calva.startOrConnectRepl', replStart.startOrConnectRepl));
     context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneRepl', () => {
-        replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE_FILE_NAMES, true);
+        replStart.startStandaloneRepl(context, replStart.USER_TEMPLATE, true);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneHelloRepl', () => {
-        replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE_FILE_NAMES, false);
+        replStart.startStandaloneRepl(context, replStart.HELLO_TEMPLATE, false);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneCljsBrowserRepl', () => {
+        replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_BROWSER_TEMPLATE, false);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.startStandaloneCljsNodeRepl', () => {
+        replStart.startStandaloneRepl(context, replStart.HELLO_CLJS_NODE_TEMPLATE, false);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.jackIn', jackIn.jackInCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyJackInCommandToClipboard', jackIn.copyJackInCommandToClipboard));
