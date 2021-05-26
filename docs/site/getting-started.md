@@ -33,7 +33,9 @@ The only prerequisite here is that you have Java installed. _No pre-installed cl
 Without creating a project structure or installing anything but Calva, you can start standalone ClojureScirpt REPLs both in a browser and for node:
 
 * Fire up the ClojureScript Quick Start **Browser** REPL
+    * Opens the files `core.cljs` and `index.html` and starts the ClojureScript app, opening it in the browser.
 * Fire up the ClojureScript Quick Start **Node** REPL
+    * Opens a file, `core.cljs`, and starts a nodejs REPL where it loads the file.
 
 The browser REPL app looks like so:
 
