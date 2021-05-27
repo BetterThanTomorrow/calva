@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 function isWindows(openedFilename) {
     return openedFilename.includes('\\');
@@ -26,7 +27,7 @@ async function createNewFile(dir, file) {
 
 function askToCreateANewFile(dir, file) {
     function srcOrTest() {
-        if(file.includes('_test'))
+        if (file.includes('_test'))
             return 'test';
         return 'src';
     }
@@ -44,9 +45,9 @@ function askToCreateANewFile(dir, file) {
 
 function isCodeFile(openedFilename) {
     if (isWindows(openedFilename)) {
-        return openedFilename.match(/(.*\\)(test|src)(.*\\)(.*)(\.\w+)$/);
+        return openedFilename.match(/(.*\\)(test|src|main)(.*\\)(.*)(\.\w+)$/);
     }
-    return openedFilename.match(/(.*\/)(test|src)(.*\/)(.*)(\.\w+)$/);
+    return openedFilename.match(/(.*\/)(test|src|main)(.*\/)(.*)(\.\w+)$/);
 }
 
 export async function toggleBetweenImplAndTest() {
@@ -62,23 +63,30 @@ export async function toggleBetweenImplAndTest() {
     const testOrSrc = openedFile[2];
     const postDir = openedFile[3];
     const fileName = openedFile[4];
-    const replacedSrcOrTest = testOrSrc === 'src' ? 'test' : 'src';
+    const extension = openedFile[5];
+    const isMavenStyle = (openedFilename.includes(path.join('src', 'main'))
+        || openedFilename.includes(path.join('src', 'test'))) ? true : false;
+
+    let replacedFolderName = (testOrSrc === 'src' || testOrSrc === 'main') ? 'test' : 'src';
+    if (isMavenStyle && replacedFolderName === 'src') {
+        replacedFolderName = 'main';
+    }
 
     let newFilename = '';
 
     if (fileName.includes('_test')) {
         const strippedFileName = fileName.replace('_test', '');
-        newFilename = `${strippedFileName}.clj`;
+        newFilename = `${strippedFileName}${extension}`;
     } else {
-        newFilename = `${fileName}_test.clj`;
+        newFilename = `${fileName}_test${extension}`;
     }
-    const fileToOpen = vscode.workspace.asRelativePath(
-        startDir + replacedSrcOrTest + postDir + newFilename,
-    );
+
+    const filePath = path.join(startDir, replacedFolderName, postDir, newFilename);
+    const fileToOpen = vscode.workspace.asRelativePath(filePath);
 
     vscode.workspace.findFiles(fileToOpen, '**/.calva/**').then((files) => {
         if (!files.length) {
-            askToCreateANewFile(startDir + replacedSrcOrTest + postDir, newFilename);
+            askToCreateANewFile(startDir + replacedFolderName + postDir, newFilename);
         } else {
             const file = files[0].fsPath;
             openFile(file);
