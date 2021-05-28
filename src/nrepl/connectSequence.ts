@@ -267,5 +267,6 @@ export {
     CljsTypes,
     ReplConnectSequence,
     CljsTypeConfig,
-    genericDefaults
+    genericDefaults,
+    cljDefaults
 }

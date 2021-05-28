@@ -372,6 +372,23 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
+async function fetchFromUrl(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+            let data = '';
+            res.on('data', (chunk: any) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                resolve(data);
+            });
+        }).on('error', (err: any) => {
+            console.error(`Error downloading file from ${url}: ${err.message}`)
+            reject(err);
+        });;
+    });
+}
+
 function randomSlug(length = 7) {
     return Math.random().toString(36).substring(7);
 }
@@ -410,6 +427,7 @@ export {
     sortByPresetOrder,
     writeTextToFile,
     downloadFromUrl,
+    fetchFromUrl,
     cljsLib,
     randomSlug,
     isWindows

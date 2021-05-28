@@ -17,12 +17,12 @@ I'm glad you asked! Please see the [Calva Development Wiki](https://github.com/B
 <div style="display:flex; flex: 1; flex-direction: row; justify-content: flex-start; margin-bottom: 16px;">
 
 <div style="margin-right: 30px">
-<div><a href="https://liftoff.io" title="Scale your growth on mobile"><img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="45px" alt="Liftoff"/></a></div>
+<div><a href="https://liftoff.io" title="Scale your growth on mobile"><img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" style="height: 80px;" alt="Liftoff"/></a></div>
 <div>Scale your growth on mobile</div>
 </div>
 
 <div>
-<div><a href="https://cognitect.com" title="MAKE. DO. SHIP."><img src="https://cognitect.com/assets/cognitect-logo-horizontal.svg" height="45px" alt="Cognitect"/></a></div>
+<div><a href="https://cognitect.com" title="MAKE. DO. SHIP."><img src="https://cognitect.com/assets/cognitect-logo-horizontal.svg" style="height: 80px;" alt="Cognitect"/></a></div>
 <div>MAKE. DO. SHIP.</div>
 </div>
 
