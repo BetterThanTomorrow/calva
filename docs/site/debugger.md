@@ -89,7 +89,7 @@ While debugging, you can view the values of variables in VS Code's debugger side
 
 ### Viewing the Call Stack
 
-While debugging, you can view the call stack in VS Code's call stack side pane. Only stack frames related to project code show up here (tooling and repl frames are omitted). Clicking the stack frames will show the related line of code in an editor.
+While debugging, you can view the call stack in VS Code's call stack side pane. Clicking the stack frames will show the related line of code in an editor.
 
 ![Debugger call stack](images/debugger/debugger-call-stack.gif "Viewing the call stack")
 
