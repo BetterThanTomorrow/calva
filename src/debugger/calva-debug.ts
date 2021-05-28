@@ -198,7 +198,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
         const allStackFrames = stackTraceResponse.causes[0].stacktrace;
         const projectStackFrames = allStackFrames.filter(frame => {
-            return ['project', 'repl', 'clj'].some(f => frame.flags.includes(f)) && 
+            return ['project', 'repl', 'clj'].some(f => frame.flags.includes(f)) &&
                 !['dup', 'tooling'].some(f => frame.flags.includes(f));
         });
         const mostRecentProjectReplFrame = allStackFrames.filter(frame => frame.flags.includes('project') && frame.flags.includes('repl'))[0];
@@ -207,7 +207,7 @@ class CalvaDebugSession extends LoggingDebugSession {
         const source = new Source(basename(debugResponse.file), debugResponse.file);
         const breakPointStackFrame = new StackFrame(0, breakpointFrameName, source, line + 1, column + 1);
         const stackFrames = [breakPointStackFrame, ...projectStackFrames.map((frame, index) => {
-            const name = frame.var || frame.name;
+            const name = `${frame.ns}/${frame.fn}`;
             const fileUrl = frame['file-url'];
             const source = (typeof fileUrl === 'string') ? new Source(basename(fileUrl), fileUrl) : undefined;
             return new StackFrame(index + 1, name, source, frame.line);
@@ -222,11 +222,12 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
+        // If not frame 0, return empty scopes array because we cannot get the variables and values for other frames, as far as I know
+        const scopes = args.frameId && args.frameId !== 0 ? [] :
+            [new Scope("Locals", this._variableHandles.create('locals'), false)];
 
         response.body = {
-            scopes: [
-                new Scope("Locals", this._variableHandles.create('locals'), false)
-            ]
+            scopes
         };
 
         this.sendResponse(response);
