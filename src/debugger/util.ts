@@ -1,3 +1,4 @@
+import { Token } from "../cursor-doc/clojure-lexer";
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
 
 function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
@@ -18,6 +19,30 @@ function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): vo
     }
 }
 
+function syntaxQuoteBegins(token: Token) {
+    // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
+    // `(. .) is read as (seq (concat (list .) (list .))).
+    if (/.*\`(\[|\{|\()$/.test(token.raw)) {
+        return true;
+    }
+    return false;
+}
+
+function syntaxQuoteEnds(token: Token) {
+        // A syntax quote is ending - this happens if ~ or ~@ precedes a form
+        if (token.raw.match(/~@?/)) {
+        return true;
+    }
+    return false;
+}
+
+function listBegins(token: Token) {
+    if(token.raw.endsWith('(')) {
+        return true;
+    }
+    return false;
+}
+
 function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse: any): LispTokenCursor {
 
     const errorMessage = "Error finding position of breakpoint";
@@ -32,29 +57,22 @@ function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse
         }
         const previousToken = tokenCursor.getPrevToken();
 
-        // Check if we just entered a syntax quote, since we have to account for how syntax quoted forms are read
-        // `(. .) is read as (seq (concat (list .) (list .))).
-        if (/.*\`(\[|\{|\()$/.test(previousToken.raw)) {
-            inSyntaxQuote = true;
+        inSyntaxQuote = syntaxQuoteBegins(previousToken);
+
+        if (syntaxQuoteEnds(previousToken)) {
+            inSyntaxQuote = false;
         }
 
         if (inSyntaxQuote) {
-            i++; // Ignore this coor and move to the next
-
-            // A syntax quote is ending - this happens if ~ or ~@ precedes a form
-            if (previousToken.raw.match(/~@?/)) {
-                inSyntaxQuote = false;
-            }
-        }
-
-        if (inSyntaxQuote) {
-            if (!previousToken.raw.endsWith('(')) {
-                // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
+            // Ignore this coor and move to the next
+            i++;
+            // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
+            i++;
+            // Non-list seqs like `[] and `{} are read with an extra (apply vector ...) or (apply hash-map ...)
+            if (!listBegins(previousToken)) {
                 // Ignore this coor too
                 i++;
             }
-            // Now we're inside the `concat` form, but we need to ignore the actual `concat` symbol
-            coor[i]--;
         }
 
         // #() expands to (fn* ([] ...)) and this is what coor is calculated with, so ignore this coor and move to the next
