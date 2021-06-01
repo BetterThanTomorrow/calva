@@ -1384,8 +1384,7 @@
             {
                 "category": "Calva",
                 "command": "calva.toggleBetweenImplAndTest",
-                "title": "Toggle between implementation and test",
-                "enablement": "calva:connected"
+                "title": "Toggle between implementation and test"
             }
         ],
         "keybindings": [
@@ -2202,7 +2201,7 @@
             {
                 "command": "calva.toggleBetweenImplAndTest",
                 "key": "ctrl+alt+s t",
-                "when": "calva:keybindingsEnabled && calva:connected"
+                "when": "calva:keybindingsEnabled"
             }
         ],
         "menus": {
@@ -2232,7 +2231,7 @@
                 },
                 {
                     "command": "calva.toggleBetweenImplAndTest",
-                    "when": "editorLangId == clojure && calva:connected"
+                    "when": "editorLangId == clojure"
                 }
             ],
             "editor/title": [
