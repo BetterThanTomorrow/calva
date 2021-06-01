@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as util from './util';
 
 function openFile(file) {
     return vscode.workspace
@@ -39,41 +40,10 @@ function askToCreateANewFile(dir, file) {
     });
 }
 
-function isFileValid(openedFilename) {
-    return openedFilename.includes('src')
-    || openedFilename.includes('test')
-    || openedFilename.includes('main');
-}
-
-function getNewFilename(fileName, extension) {
-    if (fileName.includes('_test')) {
-        const strippedFileName = fileName.replace('_test', '');
-        return `${strippedFileName}${extension}`;
-    }
-    return `${fileName}_test${extension}`;
-}
-
-function getNewSourcePath(sourcePath) {
-    let replacedSourcePath = '';
-    const srcMainPath = path.join('src', 'main');
-    const srcTestPath = path.join('src', 'test');
-
-    if (sourcePath.includes(srcMainPath)) {
-        replacedSourcePath = sourcePath.replace(srcMainPath, srcTestPath);
-    } else if (sourcePath.includes(srcTestPath)) {
-        replacedSourcePath = sourcePath.replace(srcTestPath, srcMainPath);
-    } else if (sourcePath.includes('src')) {
-        replacedSourcePath = sourcePath.replace('src', 'test');
-    } else if (sourcePath.includes('test')) {
-        replacedSourcePath = sourcePath.replace('test', 'src');
-    }
-    return path.dirname(replacedSourcePath);
-}
-
 export async function toggleBetweenImplAndTest() {
     const activeFile = vscode.window.activeTextEditor;
     const openedFilename = activeFile.document.fileName;
-    const valid = isFileValid(openedFilename);
+    const valid = util.isFileValid(openedFilename);
 
     if (!valid) {
         return;
@@ -84,8 +54,8 @@ export async function toggleBetweenImplAndTest() {
     const fileName = fullFileName.split('.')[0];
     const extension = '.' + fullFileName.split('.')[1];
 
-    const sourcePath = getNewSourcePath(openedFilename);
-    const newFilename = getNewFilename(fileName, extension);
+    const sourcePath = util.getNewSourcePath(openedFilename);
+    const newFilename = util.getNewFilename(fileName, extension);
 
     const filePath = path.join(sourcePath, newFilename);
     const fileToOpen = vscode.workspace.asRelativePath(filePath);
