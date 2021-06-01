@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-function isWindows(openedFilename) {
-    return openedFilename.includes('\\');
-}
-
 function openFile(file) {
     return vscode.workspace
         .openTextDocument(vscode.Uri.file(file))
@@ -17,7 +13,7 @@ function showConfirmationDialog(text, button) {
 
 async function createNewFile(dir, file) {
     const uriDir = vscode.Uri.file(dir);
-    const uriFile = vscode.Uri.file(`${dir}${file}`);
+    const uriFile = vscode.Uri.file(path.join(dir, file));
     const ws = new vscode.WorkspaceEdit();
 
     await vscode.workspace.fs.createDirectory(uriDir);
@@ -37,56 +33,66 @@ function askToCreateANewFile(dir, file) {
     ).then((answer) => {
         if (answer === 'Create') {
             createNewFile(dir, file).then(() => {
-                openFile(`${dir}${file}`);
+                openFile(path.join(dir, file));
             });
         }
     });
 }
 
-function isCodeFile(openedFilename) {
-    if (isWindows(openedFilename)) {
-        return openedFilename.match(/(.*\\)(test|src|main)(.*\\)(.*)(\.\w+)$/);
+function isFileValid(openedFilename) {
+    return openedFilename.includes('src')
+    || openedFilename.includes('test')
+    || openedFilename.includes('main');
+}
+
+function getNewFilename(fileName, extension) {
+    if (fileName.includes('_test')) {
+        const strippedFileName = fileName.replace('_test', '');
+        return `${strippedFileName}${extension}`;
     }
-    return openedFilename.match(/(.*\/)(test|src|main)(.*\/)(.*)(\.\w+)$/);
+    return `${fileName}_test${extension}`;
+}
+
+function getNewSourcePath(sourcePath) {
+    let replacedSourcePath = '';
+    const srcMainPath = path.join('src', 'main');
+    const srcTestPath = path.join('src', 'test');
+
+    if (sourcePath.includes(srcMainPath)) {
+        replacedSourcePath = sourcePath.replace(srcMainPath, srcTestPath);
+    } else if (sourcePath.includes(srcTestPath)) {
+        replacedSourcePath = sourcePath.replace(srcTestPath, srcMainPath);
+    } else if (sourcePath.includes('src')) {
+        replacedSourcePath = sourcePath.replace('src', 'test');
+    } else if (sourcePath.includes('test')) {
+        replacedSourcePath = sourcePath.replace('test', 'src');
+    }
+    return path.dirname(replacedSourcePath);
 }
 
 export async function toggleBetweenImplAndTest() {
     const activeFile = vscode.window.activeTextEditor;
     const openedFilename = activeFile.document.fileName;
-    const openedFile = isCodeFile(openedFilename);
+    const valid = isFileValid(openedFilename);
 
-    if (!openedFile) {
+    if (!valid) {
         return;
     }
 
-    const startDir = openedFile[1];
-    const testOrSrc = openedFile[2];
-    const postDir = openedFile[3];
-    const fileName = openedFile[4];
-    const extension = openedFile[5];
-    const isMavenStyle = (openedFilename.includes(path.join('src', 'main'))
-        || openedFilename.includes(path.join('src', 'test'))) ? true : false;
+    const fullFileName = openedFilename.split(path.sep).slice(-1)[0];
+    // Assumption: File names can't contain dots.
+    const fileName = fullFileName.split('.')[0];
+    const extension = '.' + fullFileName.split('.')[1];
 
-    let replacedFolderName = (testOrSrc === 'src' || testOrSrc === 'main') ? 'test' : 'src';
-    if (isMavenStyle && replacedFolderName === 'src') {
-        replacedFolderName = 'main';
-    }
+    const sourcePath = getNewSourcePath(openedFilename);
+    const newFilename = getNewFilename(fileName, extension);
 
-    let newFilename = '';
-
-    if (fileName.includes('_test')) {
-        const strippedFileName = fileName.replace('_test', '');
-        newFilename = `${strippedFileName}${extension}`;
-    } else {
-        newFilename = `${fileName}_test${extension}`;
-    }
-
-    const filePath = path.join(startDir, replacedFolderName, postDir, newFilename);
+    const filePath = path.join(sourcePath, newFilename);
     const fileToOpen = vscode.workspace.asRelativePath(filePath);
 
     vscode.workspace.findFiles(fileToOpen, '**/.calva/**').then((files) => {
         if (!files.length) {
-            askToCreateANewFile(startDir + replacedFolderName + postDir, newFilename);
+            askToCreateANewFile(sourcePath, newFilename);
         } else {
             const file = files[0].fsPath;
             openFile(file);
