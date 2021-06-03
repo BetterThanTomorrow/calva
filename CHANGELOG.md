@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Support custom clojure-lsp path](https://github.com/BetterThanTomorrow/calva/issues/1181)
+- [Improve debugger call stack](https://github.com/BetterThanTomorrow/calva/issues/1150)
 
 ## [2.0.198] - 2021-05-26
 - [Add Standalone ClojureScript Quick Start REPLs](https://github.com/BetterThanTomorrow/calva/issues/1185)
