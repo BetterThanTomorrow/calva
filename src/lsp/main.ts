@@ -307,7 +307,6 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
             clojureLspPath = await downloadPromise;
         }
     }
-    
     await startClient(clojureLspPath, context);
 }
 
