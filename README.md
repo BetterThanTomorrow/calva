@@ -148,7 +148,6 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 
 [<img src="https://avatars.githubusercontent.com/u/71524" width="32" alt="Aram Zadikian">](https://github.com/brancusi)
 
-
 ### Calva Fans
 
 [<img src="https://avatars0.githubusercontent.com/u/103882" width="32" alt="Bozhidar Batsov">](https://github.com/bbatsov)
