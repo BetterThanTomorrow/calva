@@ -102,7 +102,7 @@ jobs:
           command: sudo apt-get update
       - run:
           name: Install some pre-requisite packages
-          command: sudo apt-get --assume-yes --quiet install curl xvfb libasound2
+          command: sudo apt-get --assume-yes --quiet install curl xvfb libasound2 libgbm-dev
       - run:
           name: Start display server for Atom
           command: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1024x768x16 +extension RANDR
