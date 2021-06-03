@@ -292,12 +292,15 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
     vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
-    let clojureLspPath = getClojureLspPath(extensionPath, util.isWindows);
-    const configuredVersion: string = config.getConfig().clojureLspVersion;
-    if (currentVersion !== configuredVersion) {
-        const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
-        vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
-        clojureLspPath = await downloadPromise;
+    const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
+    let clojureLspPath = userConfiguredClojureLspPath === "" ? getClojureLspPath(extensionPath, util.isWindows) : userConfiguredClojureLspPath;
+    if (userConfiguredClojureLspPath === "") {
+        const configuredVersion: string = config.getConfig().clojureLspVersion;
+        if (currentVersion !== configuredVersion) {
+            const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
+            vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
+            clojureLspPath = await downloadPromise;
+        }
     }
     await startClient(clojureLspPath, context);
 }
