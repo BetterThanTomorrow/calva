@@ -1,5 +1,3 @@
-import { basename } from "path";
-import { Source } from "vscode-debugadapter";
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
 
 function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): void {
