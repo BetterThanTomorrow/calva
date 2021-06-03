@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Improve debugger call stack](https://github.com/BetterThanTomorrow/calva/issues/1150)
 
 ## [2.0.198] - 2021-05-26
 - [Add Standalone ClojureScript Quick Start REPLs](https://github.com/BetterThanTomorrow/calva/issues/1185)

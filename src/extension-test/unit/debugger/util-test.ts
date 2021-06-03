@@ -20,19 +20,19 @@ function getTestFileText(fileName: string): string {
 
 describe('Debugger Util', async () => {
 
-    let doc: mock.MockDocument;
-    let debugResponse: any;
-
-    beforeEach(() => {
-        doc = new mock.MockDocument();
-
-        debugResponse = {
-            line: 0,
-            column: 0
-        };
-    });
-
     describe('moveTokenCursorToBreakpoint', () => {
+
+        let doc: mock.MockDocument;
+        let debugResponse: any;
+
+        beforeEach(() => {
+            doc = new mock.MockDocument();
+
+            debugResponse = {
+                line: 0,
+                column: 0
+            };
+        });
 
         function expectBreakpointToBeFound(fileName: string) {
             const docText = getTestFileText(fileName);
