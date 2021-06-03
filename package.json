@@ -281,6 +281,11 @@
                         "default": "2021.04.23-15.49.47",
                         "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.)"
                     },
+                    "calva.clojureLspPath": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "The path to the `clojure-lsp` native binary you want Calva to use. The binary at the path set here will be used and the `calva.clojureLspVersion` setting will be ignored."
+                    },
                     "calva.openBrowserWhenFigwheelStarted": {
                         "type": "boolean",
                         "default": true,
