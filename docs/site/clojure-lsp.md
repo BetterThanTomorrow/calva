@@ -34,6 +34,10 @@ Example value for this setting:
 "calva.clojureLspVersion": "2021.04.07-16.34.10"
 ```
 
+### Using a Custom Clojure-lsp Native Binary
+
+You can set a path to a clojure-lsp binary to be used by Calva by setting the `calva.clojureLspPath` setting. This should be an absolute path. When this is set, the binary at the path will be used and the `calva.clojureLspVersion` setting will be ignored.
+
 ## Troubleshooting
 
 If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set `clojure.trace.server` to `verbose`, then in the VS Code output tab, select the `Clojure Language Client` output channel.

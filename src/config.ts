@@ -40,6 +40,7 @@ function getConfig() {
         jackInEnv: configOptions.get("jackInEnv"),
         jackInDependencyVersions: configOptions.get("jackInDependencyVersions") as { JackInDependency: string },
         clojureLspVersion: configOptions.get("clojureLspVersion") as string,
+        clojureLspPath: configOptions.get('clojureLspPath') as string,
         openBrowserWhenFigwheelStarted: configOptions.get("openBrowserWhenFigwheelStarted") as boolean,
         customCljsRepl: configOptions.get("customCljsRepl", null),
         replConnectSequences: configOptions.get("replConnectSequences") as ReplConnectSequence[],
