@@ -133,14 +133,20 @@ The following people are helping to keep Calva maintained and improved by sponso
 
 ### Calva Gold Sponsors
 
-_Companies that benefit from Calva's existence and see it as an important piece of the Clojure and ClojureScript ecosystem._
-
 [<img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="40px" alt="Liftoff"/>](https://liftoff.io)
-   [<img src="assets/images/cognitect-logo.jpg" height="40px" alt="Cognitect"/>](https://cognitect.com)
+    [<img src="assets/images/cognitect-logo.jpg" height="40px" alt="Cognitect"/>](https://cognitect.com)
 
 Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
 
 Gold sponsors are also displayed here: https://calva.io/#sponsors.
+
+### Calva Silver Sponsors
+
+[<img src="assets/images/pitch-logo.png" height="40px" alt="pitch.io"/>](https://pitch.io)
+
+### Calva Super Fans
+
+[<img src="https://avatars.githubusercontent.com/u/71524" width="32" alt="Aram Zadikian">](https://github.com/brancusi)
 
 ### Calva Fans
 
@@ -149,25 +155,27 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars2.githubusercontent.com/u/891" width="32" alt="Matthew Lyon">](https://github.com/mattly)
 [<img src="https://avatars0.githubusercontent.com/u/636651" width="32" alt="Brian Scaturro">](https://github.com/brianium)
 [<img src="https://avatars2.githubusercontent.com/u/522318" width="32" alt="Jochen Bedersdorfer">](https://github.com/beders)
+[<img src="https://avatars2.githubusercontent.com/u/522318" width="32" alt="Chris Smothers">](https://github.com/smothers)
+[<img src="https://avatars1.githubusercontent.com/u/4200280" width="32" alt="Janne Sauvala">](https://github.com/sauvala)
+[<img src="https://avatars0.githubusercontent.com/u/486355" width="32" alt="ajoberstar">](https://github.com/ajoberstar)
+[<img src="https://avatars0.githubusercontent.com/u/22004226" width="32" alt="glebovmaksim">](https://github.com/glebovmaksim)
+[<img src="https://avatars3.githubusercontent.com/u/124385" width="32" alt="Chris Smothers">](https://github.com/smothers)
 
 ### Calva Friends
+
 [<img src="https://avatars3.githubusercontent.com/u/97496" width="32" alt="Martin Klepsch">](https://github.com/martinklepsch)
 [<img src="https://avatars2.githubusercontent.com/u/585191" width="32" alt="Pedro Girardi">](https://github.com/pedrorgirardi)
-[<img src="https://avatars1.githubusercontent.com/u/1461719" width="32" alt="Byron Miller">](https://github.com/supernovae)
 [<img src="https://avatars2.githubusercontent.com/u/6209" width="32" alt="Terje">](https://github.com/terjesb)
 [<img src="https://avatars3.githubusercontent.com/u/703980" width="32" alt="Scott Archer">](https://github.com/scarcher2)
 [<img src="https://avatars0.githubusercontent.com/u/3316334" width="32" alt="Norman Eckstein">](https://github.com/ITSecMedia)
-[<img src="https://avatars0.githubusercontent.com/u/1081640" width="32" alt="David Brear">](https://github.com/DavidBrear)
 [<img src="https://avatars0.githubusercontent.com/u/19359748" width="32" alt="Sergei Udris">](https://github.com/sergeiudris)
-[<img src="https://avatars1.githubusercontent.com/u/4200280" width="32" alt="Janne Sauvala">](https://github.com/sauvala)
 [<img src="https://avatars1.githubusercontent.com/u/4172079" width="32" alt="Filipe Silva">](https://github.com/filipesilva)
-[<img src="https://avatars0.githubusercontent.com/u/22004226" width="32" alt="glebovmaksim">](https://github.com/glebovmaksim)
-[<img src="https://avatars3.githubusercontent.com/u/124385" width="32" alt="Chris Smothers">](https://github.com/smothers)
 [<img src="https://avatars2.githubusercontent.com/u/781014" width="32" alt="Snorre Magnus Davøen">](https://github.com/snorremd)
-[<img src="https://avatars1.githubusercontent.com/u/11031952" width="32" alt="Alid Lorenzo">](https://github.com/alidlorenzo)
-[<img src="https://avatars2.githubusercontent.com/u/505737" width="32" alt="ikrima">](https://github.com/ikrima)
-[<img src="https://avatars0.githubusercontent.com/u/583120" width="32" alt="nnichols">](https://github.com/nnichols)
-[<img src="https://avatars0.githubusercontent.com/u/486355" width="32" alt="ajoberstar">](https://github.com/ajoberstar)
+[<img src="https://avatars0.githubusercontent.com/u/583120" width="32" alt="Nick A Nichols">](https://github.com/nnichols)
+[<img src="https://avatars.githubusercontent.com/u/4666313" width="32" alt="Ryan Jerue">](https://github.com/rjerue)
+[<img src="https://avatars.githubusercontent.com/u/3889351" width="32" alt="Tim Zöller">](https://github.com/javahippie)
+[<img src="https://avatars.githubusercontent.com/u/316381" width="32" alt="Kailashnath">](https://github.com/kailashnath)
+[<img src="https://avatars.githubusercontent.com/u/1596350" width="32" alt="Russell Matney">](https://github.com/russmatney)
 
 ## The Calva Team
 

@@ -8,6 +8,7 @@ import { downloadClojureLsp } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
 import * as os from 'os';
 import * as path from 'path';
+import * as fs from 'fs';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -292,12 +293,20 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
     vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
-    let clojureLspPath = getClojureLspPath(extensionPath, util.isWindows);
-    const configuredVersion: string = config.getConfig().clojureLspVersion;
-    if (currentVersion !== configuredVersion) {
-        const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
-        vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
-        clojureLspPath = await downloadPromise;
+    const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
+    let clojureLspPath = userConfiguredClojureLspPath === '' ? getClojureLspPath(extensionPath, util.isWindows) : userConfiguredClojureLspPath;
+    if (userConfiguredClojureLspPath === '') {
+        const configuredVersion: string = config.getConfig().clojureLspVersion;
+        if (configuredVersion === '') {
+            // This should never be an empty string and can cause issues with clojure-lsp starting, particularly if there is no version file yet from a previous download and no custom clojure-lsp path set. Inform the user.
+            vscode.window.showWarningMessage('The calva.clojureLspVersion setting is blank and calva.clojureLspPath is also blank, so clojure-lsp will not be started. Please reset the calva.clojureLspVersion setting to use the default version of clojure-lsp, or set it to a clojure-lsp version you want to use. Alternatively, you can set the calva.clojureLspPath to use a downloaded binary of clojure-lsp.');
+            return;
+        }
+        if (currentVersion !== configuredVersion) {
+            const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
+            vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
+            clojureLspPath = await downloadPromise;
+        }
     }
     await startClient(clojureLspPath, context);
 }

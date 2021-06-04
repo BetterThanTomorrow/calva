@@ -81,11 +81,17 @@ When execution is paused at a breakpoint, you can evaluate code in that context.
 
 ![Evaluating code in the paused context from the editor](images/debugger/eval-editor.gif "Evaluating code in the paused context from the editor")
 
-### Viewing Variable Values While Debugging
+### Viewing Variable Values
 
 While debugging, you can view the values of variables in VS Code's debugger side pane. You can also view values by hovering over the variables in the editor. Currently, values for collections and maps are shown as strings, but we plan to make them structured in the future. For now, if you want to see the value of a large structured variable, you can evaluate the variable from the editor or from the REPL window.
 
 ![Viewing variable values in the side pane](images/debugger/viewing-variable-values.png "Viewing variable values in the side pane")
+
+### Viewing the Call Stack
+
+While debugging, you can view the call stack in VS Code's call stack side pane. Clicking the stack frames will show the related line of code in an editor.
+
+![Debugger call stack](images/debugger/debugger-call-stack.gif "Viewing the call stack")
 
 ### Stepping Commands
 
