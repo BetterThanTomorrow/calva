@@ -1,8 +1,10 @@
 import * as path from 'path';
 
 function isFileValid(openedFilename) {
-    return openedFilename.includes('src')
-        || openedFilename.includes('test');
+    const fullFileName = openedFilename.split(path.sep).slice(-1)[0];
+    return (openedFilename.includes('src')
+        || openedFilename.includes('test'))
+        && (fullFileName.includes('.'));
 }
 
 function getNewFilename(fileName, extension) {

@@ -50,9 +50,8 @@ export async function toggleBetweenImplAndTest() {
     }
 
     const fullFileName = openedFilename.split(path.sep).slice(-1)[0];
-    // Assumption: File names can't contain dots.
-    const fileName = fullFileName.split('.')[0];
-    const extension = '.' + fullFileName.split('.')[1];
+    const extension = '.' + fullFileName.split('.').pop();
+    const fileName = fullFileName.replace(extension, '');
 
     const sourcePath = util.getNewSourcePath(openedFilename);
     const newFilename = util.getNewFilename(fileName, extension);

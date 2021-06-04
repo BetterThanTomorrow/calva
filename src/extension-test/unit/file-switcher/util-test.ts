@@ -1,27 +1,27 @@
 import * as expect from 'expect';
 import * as util from '../../../file-switcher/util';
-
+import * as path from 'path';
 
 describe('getNewSourcePath', () => {
     it('should get new source path for maven style src folder', () => {
-        const path = '~/test.check/src/test/clojure/clojure/test/check/generators_test.cljc';
-        const expected = '~/test.check/src/main/clojure/clojure/test/check';
-        expect(util.getNewSourcePath(path)).toBe(expected);
+        const filePath = path.join('~', 'test.check', 'src', 'test', 'clojure', 'clojure', 'test', 'check', 'generators_test.cljc');
+        const expected = path.join('~', 'test.check', 'src', 'main', 'clojure', 'clojure', 'test', 'check');
+        expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should get new source path for maven style test folder', () => {
-        const path = '~/test.check/src/main/clojure/clojure/test/check/generators.cljc';
-        const expected = '~/test.check/src/test/clojure/clojure/test/check';
-        expect(util.getNewSourcePath(path)).toBe(expected);
+        const filePath = path.join('~', 'test.check', 'src', 'main', 'clojure', 'clojure', 'test', 'check', 'generators.cljc');
+        const expected = path.join('~', 'test.check', 'src', 'test', 'clojure', 'clojure', 'test', 'check');
+        expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should get new source path for leiningen style src folder', () => {
-        const path = '~/leiningen/src/leiningen/change.clj';
-        const expected = '~/leiningen/test/leiningen';
-        expect(util.getNewSourcePath(path)).toBe(expected);
+        const filePath = path.join('~', 'leiningen', 'src', 'leiningen', 'change.clj');
+        const expected = path.join('~', 'leiningen', 'test', 'leiningen');
+        expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
     it('should get new source path for leiningen style test folder', () => {
-        const path = '~/leiningen/test/leiningen/change_test.clj';
-        const expected = '~/leiningen/src/leiningen';
-        expect(util.getNewSourcePath(path)).toBe(expected);
+        const filePath = path.join('~', 'leiningen', 'test', 'leiningen', 'change_test.clj');
+        const expected = path.join('~', 'leiningen', 'src', 'leiningen');
+        expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
 });
 
@@ -38,15 +38,29 @@ describe('getNewFileName', () => {
         const expected = 'utils.cljs';
         expect(util.getNewFilename(fileName, extension)).toBe(expected);
     });
+    it('should handle the case where src file name has multiple dots', () => {
+        const fileName = 'one.two.three';
+        const extension = '.clj';
+        const expected = 'one.two.three_test.clj';
+        expect(util.getNewFilename(fileName, extension)).toBe(expected);
+    });
+    it('should handle the case where test file name has multiple dots', () => {
+        const fileName = 'one.two.three_test';
+        const extension = '.clj';
+        const expected = 'one.two.three.clj';
+        expect(util.getNewFilename(fileName, extension)).toBe(expected);
+    });
 });
 
 describe('isFileValid', () => {
     it('should return true if the file path is valid', () => {
-        const path = '~/leiningen/src/leiningen/change.clj';
-        expect(util.isFileValid(path)).toBeTruthy();
+        const filePath = path.join('~', 'leiningen', 'src', 'leiningen', 'change.clj');
+        expect(util.isFileValid(filePath)).toBeTruthy();
     });
-    it('should return true if the file path is valid', () => {
-        const path = '~/leiningen/main.cljc';
-        expect(util.isFileValid(path)).toBeFalsy();
+    it('should return false if the file path is valid', () => {
+        const filePath = path.join('~', 'leiningen', 'main.cljc');
+        expect(util.isFileValid(filePath)).toBeFalsy();
+        const anotherFilePath = path.join('~', 'leiningen', 'src', 'leiningen', 'foo');
+        expect(util.isFileValid(anotherFilePath)).toBeFalsy();
     });
 });
