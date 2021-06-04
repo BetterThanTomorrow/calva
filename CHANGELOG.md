@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.199] - 2021-06-04
 - [Support custom clojure-lsp path](https://github.com/BetterThanTomorrow/calva/issues/1181)
 - [Improve debugger call stack](https://github.com/BetterThanTomorrow/calva/issues/1150)
 
