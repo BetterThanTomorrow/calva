@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Update clojure-lsp to version `2021.06.01-16.19.44`
 
 ## [2.0.199] - 2021-06-04
 - [Support custom clojure-lsp path](https://github.com/BetterThanTomorrow/calva/issues/1181)

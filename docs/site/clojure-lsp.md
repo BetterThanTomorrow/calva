@@ -2,6 +2,9 @@
 
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp). This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)
 
+!!! Note
+    Calva determines the version of clojure-lsp it uses by default. This means it may not be using the latest version of clojure-lsp. You can see what version is being used by running the `Clojure-lsp Server Info` command, which will also show the version of clj-kondo that's being used as well as other info. To use a different version of clojure-lsp, see the [configuration](#configuration) section. **Calva does not use the clojure-lsp installed on your system, unless you [set the path for clojure-lsp](#using-a-custom-clojure-lsp-native-binary) to the installed binary in your settings**.
+
 ## Starting the LSP server
 
 You don't need to do anything to start clojure-lsp. No install, no commands, no nothing. Calva downloads the correct binary for your operating system if necessary (this should only happen when the clojure-lsp version is updated in a new release of Calva) and then starts it. It does take a while for clojure-lsp to start, though, especially the first time for a new project, when clojure-lsp (via `clj-kondo`) indexes the project files.
@@ -28,7 +31,7 @@ For information about how to configure clojure-lsp, see the [settings](https://c
 
 You can change the version of clojure-lsp used by Calva by setting the `calva.clojureLspVersion` property to a version of clojure-lsp found in its GitHub [releases](https://github.com/clojure-lsp/clojure-lsp/releases). This can be helpful if you're debugging an issue with clojure-lsp or you want to try out a feature of a new release that Calva does not yet use. However, you must remember to reset this setting in order for Calva to automatically use newer versions of clojure-lsp that are released with new versions of Calva.
 
-Example value for this setting:
+Example:
 
 ```json
 "calva.clojureLspVersion": "2021.04.07-16.34.10"
@@ -37,6 +40,12 @@ Example value for this setting:
 ### Using a Custom Clojure-lsp Native Binary
 
 You can set a path to a clojure-lsp binary to be used by Calva by setting the `calva.clojureLspPath` setting. This should be an absolute path. When this is set, the binary at the path will be used and the `calva.clojureLspVersion` setting will be ignored.
+
+Example:
+
+```json
+"calva.clojureLspPath": "/usr/local/bin/clojure-lsp"
+```
 
 ## Troubleshooting
 
