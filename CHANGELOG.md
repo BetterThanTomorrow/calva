@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.200] - 2021-06-06
 - Update clojure-lsp to version `2021.06.01-16.19.44`
 
 ## [2.0.199] - 2021-06-04
