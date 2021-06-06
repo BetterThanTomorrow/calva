@@ -23,6 +23,11 @@ describe('getNewSourcePath', () => {
         const expected = path.join('~', 'leiningen', 'src', 'leiningen');
         expect(util.getNewSourcePath(filePath)).toBe(expected);
     });
+    it('should handle the case where source path has "src" or "test" keyword in it', () => {
+        const filePath = path.join('~', 'tests', 'project-name', 'src', 'change.clj');
+        const expected = path.join('~', 'tests', 'project-name', 'test');
+        expect(util.getNewSourcePath(filePath)).toBe(expected);
+    });
 });
 
 describe('getNewFileName', () => {

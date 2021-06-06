@@ -17,17 +17,19 @@ function getNewFilename(fileName, extension) {
 
 function getNewSourcePath(sourcePath) {
     let replacedSourcePath = '';
-    const srcMainPath = path.join('src', 'main');
-    const srcTestPath = path.join('src', 'test');
+    const srcMainPath = path.join(path.sep, 'src', 'main', path.sep);
+    const srcTestPath = path.join(path.sep, 'src', 'test', path.sep);
+    const srcPath = path.sep + 'src' + path.sep;
+    const testPath = path.sep + 'test' + path.sep;
 
     if (sourcePath.includes(srcMainPath)) {
         replacedSourcePath = sourcePath.replace(srcMainPath, srcTestPath);
     } else if (sourcePath.includes(srcTestPath)) {
         replacedSourcePath = sourcePath.replace(srcTestPath, srcMainPath);
-    } else if (sourcePath.includes('src')) {
-        replacedSourcePath = sourcePath.replace('src', 'test');
-    } else if (sourcePath.includes('test')) {
-        replacedSourcePath = sourcePath.replace('test', 'src');
+    } else if (sourcePath.includes(srcPath)) {
+        replacedSourcePath = sourcePath.replace(srcPath, testPath);
+    } else if (sourcePath.includes(testPath)) {
+        replacedSourcePath = sourcePath.replace(testPath, srcPath);
     }
     return path.dirname(replacedSourcePath);
 }
