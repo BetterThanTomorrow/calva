@@ -2,14 +2,26 @@ import * as path from 'path';
 
 function isFileValid(openedFilename) {
     const fullFileName = openedFilename.split(path.sep).slice(-1)[0];
-    return (openedFilename.includes('src')
-        || openedFilename.includes('test'))
-        && (fullFileName.includes('.'));
+    if (!fullFileName.includes('.'))
+        return {
+            success: false, message: "Toggle between implementation and file command doesn't"
+                + " work with extension-less files."
+        }
+    if (!openedFilename.includes('src') && !openedFilename.includes('test'))
+        return {
+            success: false, message: "File path should include src or test to switch between " +
+                "implementation and test."
+        }
+    return { success: true, message: '' }
 }
 
 function getNewFilename(fileName, extension) {
     if (fileName.includes('_test')) {
         const strippedFileName = fileName.replace('_test', '');
+        return `${strippedFileName}${extension}`;
+    }
+    if (fileName.includes('test_')) {
+        const strippedFileName = fileName.replace('test_', '');
         return `${strippedFileName}${extension}`;
     }
     return `${fileName}_test${extension}`;

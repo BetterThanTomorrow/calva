@@ -55,17 +55,26 @@ describe('getNewFileName', () => {
         const expected = 'one.two.three.clj';
         expect(util.getNewFilename(fileName, extension)).toBe(expected);
     });
+    it('should handle the case where test file starts with "_test"', () => {
+        const fileName = 'test_abc';
+        const extension = '.cljs';
+        const expected = 'abc.cljs';
+        expect(util.getNewFilename(fileName, extension)).toBe(expected);
+    });
 });
 
 describe('isFileValid', () => {
     it('should return true if the file path is valid', () => {
         const filePath = path.join('~', 'leiningen', 'src', 'leiningen', 'change.clj');
-        expect(util.isFileValid(filePath)).toBeTruthy();
+        const { success } = util.isFileValid(filePath);
+        expect(success).toBeTruthy();
     });
-    it('should return false if the file path is valid', () => {
+    it('should return false if the file path is invalid', () => {
         const filePath = path.join('~', 'leiningen', 'main.cljc');
-        expect(util.isFileValid(filePath)).toBeFalsy();
+        var { success } = util.isFileValid(filePath);
+        expect(success).toBeFalsy();
         const anotherFilePath = path.join('~', 'leiningen', 'src', 'leiningen', 'foo');
-        expect(util.isFileValid(anotherFilePath)).toBeFalsy();
+        var { success } = util.isFileValid(anotherFilePath);
+        expect(success).toBeFalsy();
     });
 });
