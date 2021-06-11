@@ -24,18 +24,14 @@ async function createNewFile(dir, file) {
 }
 
 function askToCreateANewFile(dir, file) {
-    function srcOrTest() {
-        if (file.includes('_test'))
-            return 'test';
-        return 'src';
-    }
+    const filePath = path.join(dir, file)
     return showConfirmationDialog(
-        `Create the ${srcOrTest()} file at ${dir}?`,
+        `Create ${filePath}?`,
         'Create',
     ).then((answer) => {
         if (answer === 'Create') {
             createNewFile(dir, file).then(() => {
-                openFile(path.join(dir, file));
+                openFile(filePath);
             });
         }
     });

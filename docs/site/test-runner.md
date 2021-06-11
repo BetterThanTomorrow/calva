@@ -30,3 +30,11 @@ If you have tests in a test directory separate from your source directory, and t
 ```
 
 Having added the above to your deps.edn, when you jack-in, choose the `:dev` alias and the `test` directory will be added to your paths, which will allow tests located in the directory to be found by the test runner.
+
+### Toggle between implementation and test command not working as intended
+
+This feature mostly works with projects that has leiningen style folder structure and makes some assumption about your folder structure and test file names.
+- It assumes that the test files ends with `_test` prefix.
+- It assumes that your implementation files are in `src` folder and the test files are in `test` folder.
+
+If you are using any non leiningen style folder structure, you may have to add source paths inside `.lsp/config.edn`.
