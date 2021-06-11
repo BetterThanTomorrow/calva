@@ -1,13 +1,12 @@
 import * as path from 'path';
 
-function isFileValid(openedFilename) {
-    const fullFileName = openedFilename.split(path.sep).slice(-1)[0];
-    if (!fullFileName.includes('.'))
+function isFileValid(fileName, pathAfterRoot) {
+    if (!fileName.includes('.'))
         return {
             success: false, message: "Toggle between implementation and file command doesn't"
                 + " work with extension-less files."
         }
-    if (!openedFilename.includes('src') && !openedFilename.includes('test'))
+    if (!pathAfterRoot.includes('src') && !pathAfterRoot.includes('test'))
         return {
             success: false, message: "File path should include src or test to switch between " +
                 "implementation and test."

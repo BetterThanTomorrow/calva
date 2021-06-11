@@ -65,16 +65,19 @@ describe('getNewFileName', () => {
 
 describe('isFileValid', () => {
     it('should return true if the file path is valid', () => {
-        const filePath = path.join('~', 'leiningen', 'src', 'leiningen', 'change.clj');
-        const { success } = util.isFileValid(filePath);
+        const fileName = 'change.clj'
+        const pathAfterRoot = path.join('src', 'leiningen');
+        const { success } = util.isFileValid(fileName, pathAfterRoot);
         expect(success).toBeTruthy();
     });
     it('should return false if the file path is invalid', () => {
-        const filePath = path.join('~', 'leiningen', 'main.cljc');
-        var { success } = util.isFileValid(filePath);
+        const fileName = 'main.cljc'
+        const pathAfterRoot = path.join('');
+        var { success } = util.isFileValid(fileName, pathAfterRoot);
         expect(success).toBeFalsy();
-        const anotherFilePath = path.join('~', 'leiningen', 'src', 'leiningen', 'foo');
-        var { success } = util.isFileValid(anotherFilePath);
+        const anotherFileName = 'foo';
+        const anotherPathAfterRoot = path.join('leiningen');
+        var { success } = util.isFileValid(anotherFileName, anotherPathAfterRoot);
         expect(success).toBeFalsy();
     });
 });

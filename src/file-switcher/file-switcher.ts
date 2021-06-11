@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as util from './util';
-import * as state from '../state';
+import * as projectRoot from '../project-root';
 
 function openFile(file) {
     return vscode.workspace
@@ -44,33 +44,29 @@ function askToCreateANewFile(dir, file) {
 export async function toggleBetweenImplAndTest() {
     const activeFile = vscode.window.activeTextEditor;
     const openedFilename = activeFile.document.fileName;
-    const { success, message } = util.isFileValid(openedFilename);
 
+    const projectRootUri = await projectRoot.getProjectRootUri();
+    const projectRootPath = projectRootUri.fsPath;
+    const pathAfterRoot = openedFilename.replace(projectRootPath, '');
+    const fullFileName = pathAfterRoot.split(path.sep).slice(-1)[0];
+    const extension = '.' + fullFileName.split('.').pop();
+    const fileName = fullFileName.replace(extension, '');
+
+    const { success, message } = util.isFileValid(fullFileName, pathAfterRoot);
     if (!success) {
         vscode.window.showErrorMessage(message);
         return;
     }
 
-    let projectRootUri = state.getProjectRootUri();
-    if (!projectRootUri) {
-        await state.initProjectDir();
-        projectRootUri = state.getProjectRootUri();
-    }
-    const projectRoot = projectRootUri.fsPath;
-    const pathAfterRoot = openedFilename.replace(projectRoot, '');
-    const fullFileName = pathAfterRoot.split(path.sep).slice(-1)[0];
-    const extension = '.' + fullFileName.split('.').pop();
-    const fileName = fullFileName.replace(extension, '');
-
     const sourcePath = util.getNewSourcePath(pathAfterRoot);
     const newFilename = util.getNewFilename(fileName, extension);
 
-    const filePath = path.join(projectRoot, sourcePath, newFilename);
+    const filePath = path.join(projectRootPath, sourcePath, newFilename);
     const fileToOpen = vscode.workspace.asRelativePath(filePath);
 
     vscode.workspace.findFiles(fileToOpen, '**/.calva/**').then((files) => {
         if (!files.length) {
-            askToCreateANewFile(path.join(projectRoot, sourcePath), newFilename);
+            askToCreateANewFile(path.join(projectRootPath, sourcePath), newFilename);
         } else {
             const file = files[0].fsPath;
             openFile(file);
