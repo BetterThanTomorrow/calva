@@ -2392,7 +2392,7 @@
         "mocha-multi-reporters": "^1.1.7",
         "node-gyp": "^5.0.5",
         "nodemon": "^2.0.3",
-        "ovsx": "0.1.0-next.4742dff",
+        "ovsx": "0.1.0-next.e000fdb",
         "rimraf": "^2.7.1",
         "shadow-cljs": "^2.11.18",
         "source-map-support": "^0.5.16",
