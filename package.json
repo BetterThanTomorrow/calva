@@ -536,6 +536,11 @@
                         "type": "boolean",
                         "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features.)",
                         "default": false
+                    },
+                    "calva.showCalvaSaysOnStart": {
+                        "type": "boolean",
+                        "markdownDescription": "Show the Calva Says output panel on start?",
+                        "default": true
                     }
                 }
             },
