@@ -5,6 +5,7 @@ export function activationGreetings(chan: vscode.OutputChannel) {
     const conf = config.getConfig();
     const jackInDependencyVersions = conf.jackInDependencyVersions;
     const clojureLspVersion = conf.clojureLspVersion;
+    const clojureLspPath = conf.clojureLspPath;
 
     if (conf.showCalvaSaysOnStart) {
         chan.show();
@@ -24,7 +25,11 @@ export function activationGreetings(chan: vscode.OutputChannel) {
     for (const dep in jackInDependencyVersions) {
         chan.appendLine(`    ${dep}: ${jackInDependencyVersions[dep]}`)
     }
-    chan.appendLine(` clojure-lsp version configured:  ${clojureLspVersion}`);
+    if (clojureLspPath) {
+        chan.appendLine(` clojure-lsp path configured: ${clojureLspPath}`);
+    } else {
+        chan.appendLine(` clojure-lsp version configured: ${clojureLspVersion}`);
+    }
     chan.appendLine("");
     chan.appendLine("If you are new to Calva, please consider starting with the command:");
     chan.appendLine("  **Calva: Fire up the Getting Started REPL**");
