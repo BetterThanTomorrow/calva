@@ -8,7 +8,7 @@ export function activationGreetings(chan: vscode.OutputChannel) {
     const clojureLspPath = conf.clojureLspPath;
 
     if (conf.showCalvaSaysOnStart) {
-        chan.show();
+        chan.show(true);
     }
 
     chan.appendLine("Welcome to Calva. Happy Clojure and ClojureScript coding! ❤️")
@@ -33,7 +33,7 @@ export function activationGreetings(chan: vscode.OutputChannel) {
     chan.appendLine("");
     chan.appendLine("If you are new to Calva, please consider starting with the command:");
     chan.appendLine("  **Calva: Fire up the Getting Started REPL**");
-    chan.appendLine("  https://calva.io/getting-started/");    
+    chan.appendLine("  https://calva.io/getting-started/");
     chan.appendLine("");
     chan.appendLine("(See `showCalvaSaysOnStart` in Settings to control the auto-showing of this message panel.)");
 }
