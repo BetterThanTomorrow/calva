@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Custom repl commands are not evaluated in specified ns if different than current ns](https://github.com/BetterThanTomorrow/calva/issues/1196)
 
 ## [2.0.200] - 2021-06-06
 - Update clojure-lsp to version `2021.06.01-16.19.44`
