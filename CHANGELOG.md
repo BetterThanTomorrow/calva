@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Improvement: [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942)
 
 ## [2.0.200] - 2021-06-06
 - Update clojure-lsp to version `2021.06.01-16.19.44`

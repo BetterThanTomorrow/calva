@@ -294,8 +294,17 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                         onAppended(new vscode.Location(DOC_URI(), insertPosition),
                             new vscode.Location(DOC_URI(), doc.positionAt(Infinity)));
                     }
-                    if (editQueue.length > 0) {
-                        return append.apply(null, editQueue.shift());
+                    
+                    const queueLength = editQueue.length
+                    if (queueLength > 0) {                    
+                        var allTexts = [];
+                        var lastOnAppendCallback: OnAppendedCallback;
+                        for (var i=0; i<queueLength; i++) {                            
+                            var [text, onAppendCallback] = editQueue.shift();                            
+                            allTexts.push(text);                            
+                            lastOnAppendCallback = onAppendCallback;
+                        }                                                 
+                        return append(allTexts.join('\n'), lastOnAppendCallback)
                     }
                 });
             }
