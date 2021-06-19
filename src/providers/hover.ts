@@ -4,6 +4,7 @@ import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
+import { updateInfoPanel } from '../info-panel/web-view';
 
 export default class HoverProvider implements vscode.HoverProvider {
     state: any;
@@ -20,8 +21,12 @@ export default class HoverProvider implements vscode.HoverProvider {
             let client = replSession.getSession(util.getFileType(document));
             if(client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(document);
-                let res = await client.info(ns, text);
-                return new vscode.Hover(infoparser.getHover(res));
+                const res = await client.info(ns, text);
+                const info = infoparser.getHover(res)
+
+                updateInfoPanel({type: "UpdateContent", content: info})
+
+                return new vscode.Hover(info);
             }
             return new vscode.Hover(infoparser.getHoverNotAvailable(text));
         }

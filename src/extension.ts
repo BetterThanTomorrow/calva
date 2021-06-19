@@ -32,6 +32,7 @@ import setCursorContextIfChanged from './when-contexts'
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
+import { updateInfoPanel } from './info-panel/web-view';
 async function onDidSave(document) {
     let {
         evaluate,
@@ -216,8 +217,11 @@ async function activate(context: vscode.ExtensionContext) {
             .catch((e) => {
                 console.error(`Problems visiting calva docs: ${e}`);
             });
-    }))
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.continueComment', edit.continueCommentCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.openInfoPanel', () => {
+        updateInfoPanel({type: "Initialise"})
+    }));
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);
