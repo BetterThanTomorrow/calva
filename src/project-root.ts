@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as util from './utilities';
 
+// TODO - this module has some code common with `state`. We can refactor `state` to use this functions.
+
 export function getProjectWsFolder(): vscode.WorkspaceFolder {
     const doc = util.getDocument({});
     if (doc) {
