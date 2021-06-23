@@ -17,6 +17,7 @@ These are the two designs you will find, in some different colors:
 This t-shirt is currently available at:
 
 * [https://www.amazon.com/dp/B097JJ4W63](https://www.amazon.com/dp/B097JJ4W63)
+* [https://www.amazon.de/dp/B097Q7V8PL](https://www.amazon.de/dp/B097Q7V8PL)
 
 ### Symbol Only
 
