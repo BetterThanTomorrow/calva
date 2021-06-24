@@ -4,8 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.201] - 2021-06-24
+- [Add nrepl and clojure-lsp versions to Calva says greetings](https://github.com/BetterThanTomorrow/calva/issues/1199)
+- Workaround: [Command Palette shows wrong keyboard shortcuts for Paredit Forward/Backward Sexp](https://github.com/BetterThanTomorrow/calva/issues/1161)
+- Update clojure-lsp to version `2021.06.24-01.20.01`
+
 ## [2.0.200] - 2021-06-06
-- Update clojure-lsp to version `2021.06.01-16.19.44`
 
 ## [2.0.199] - 2021-06-04
 - [Support custom clojure-lsp path](https://github.com/BetterThanTomorrow/calva/issues/1181)

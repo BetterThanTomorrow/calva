@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.200",
+    "version": "2.0.201",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -278,13 +278,13 @@
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.06.01-16.19.44",
-                        "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.) Reset this setting to switch it back to the current Calva default."
+                        "default": "2021.06.24-01.20.01",
+                        "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.) Remove this setting to switch back to using the current Calva default."
                     },
                     "calva.clojureLspPath": {
                         "type": "string",
                         "default": "",
-                        "markdownDescription": "The absolute path to the `clojure-lsp` native binary you want Calva to use. When this setting is not blank, the binary at the path set here will be used and the `calva.clojureLspVersion` setting will be ignored. (Will take effect after a reload of the project window.)"
+                        "markdownDescription": "The absolute path to the `clojure-lsp` native binary you want Calva to use. When this setting is non-blank, the `calva.clojureLspVersion` setting will be ignored. The binary at the path set here will be used and Calva will not overwrite it. (Will take effect after a reload of the project window.)"
                     },
                     "calva.openBrowserWhenFigwheelStarted": {
                         "type": "boolean",
@@ -536,6 +536,11 @@
                         "type": "boolean",
                         "markdownDescription": "Don't surface REPL UI elements when avoidable. (For when using another REPL extension together with Calva's static features.)",
                         "default": false
+                    },
+                    "calva.showCalvaSaysOnStart": {
+                        "type": "boolean",
+                        "markdownDescription": "Show the Calva Says output panel on start?",
+                        "default": true
                     }
                 }
             },
@@ -1544,11 +1549,11 @@
                 "when": "editorLangId == clojure calva:keybindingsEnabled && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.forwardSexp",
-                "mac": "alt+right",
-                "win": "ctrl+right",
-                "linux": "ctrl+right",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
+                "command": "paredit.backwardSexp",
+                "mac": "ctrl+left",
+                "win": "alt+left",
+                "linux": "alt+left",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
             },
             {
                 "command": "paredit.backwardSexp",
@@ -1565,11 +1570,11 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
             },
             {
-                "command": "paredit.backwardSexp",
-                "mac": "ctrl+left",
-                "win": "alt+left",
-                "linux": "alt+left",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && !config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorBeforeComment"
+                "command": "paredit.forwardSexp",
+                "mac": "alt+right",
+                "win": "ctrl+right",
+                "linux": "ctrl+right",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/ && config.calva.paredit.hijackVSCodeDefaults && !calva:cursorInComment || calva:cursorAfterComment"
             },
             {
                 "command": "paredit.forwardDownSexp",
@@ -2358,7 +2363,6 @@
         "net": "1.0.2",
         "npm": "^7.0.7",
         "open": "^6.3.0",
-        "ovsx": "0.1.0-next.e000fdb",
         "parinfer": "^3.12.0",
         "tree-kill": "^1.2.2",
         "universal-analytics": "^0.4.20",
@@ -2393,6 +2397,7 @@
         "mocha-multi-reporters": "^1.1.7",
         "node-gyp": "^5.0.5",
         "nodemon": "^2.0.3",
+        "ovsx": "0.1.0-next.e000fdb",
         "rimraf": "^2.7.1",
         "shadow-cljs": "^2.11.18",
         "source-map-support": "^0.5.16",
