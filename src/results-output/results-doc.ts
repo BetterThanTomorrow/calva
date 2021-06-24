@@ -13,6 +13,7 @@ import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
+import { max } from 'lodash';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -296,15 +297,27 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                     }
                     
                     const queueLength = editQueue.length
-                    if (queueLength > 0) {                    
-                        var allTexts = [];
-                        var lastOnAppendCallback: OnAppendedCallback;
-                        for (var i=0; i<queueLength; i++) {                            
-                            var [text, onAppendCallback] = editQueue.shift();                            
-                            allTexts.push(text);                            
-                            lastOnAppendCallback = onAppendCallback;
-                        }                                                 
-                        return append(allTexts.join('\n'), lastOnAppendCallback)
+                    if (queueLength > 0) {                        
+                        var numOfQueueItemsWithoutCallback: number = 0;
+                        for (var i=0; i<queueLength; i++) {
+                            var [_, onAppendCallback] = editQueue[i];
+                            if (onAppendCallback != null) {
+                                numOfQueueItemsWithoutCallback = i;
+                                break;
+                            }
+                        }
+                        if (numOfQueueItemsWithoutCallback > 0) {
+                            const maxTextsToGroup = 1000;
+                            var textGroup = [];
+                            for (var i=0; i<Math.min(queueLength, maxTextsToGroup); i++) {
+                                var [text] = editQueue.shift();
+                                textGroup.push(text);
+                            }
+                            return append(textGroup.join('\n'), null)
+                        } else {
+                            var [text, onAppendCallback] = editQueue.shift();
+                            return append(text, onAppendCallback)
+                        }
                     }
                 });
             }
