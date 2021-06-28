@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [clojure-lsp statusbar messages move the nREPL button around](https://github.com/BetterThanTomorrow/calva/issues/1205)
+- [Add command for toggling between implementation and test](https://github.com/BetterThanTomorrow/calva/issues/1168)
 
 ## [2.0.201] - 2021-06-24
 - [Add nrepl and clojure-lsp versions to Calva says greetings](https://github.com/BetterThanTomorrow/calva/issues/1199)
@@ -11,6 +12,7 @@ Changes to Calva.
 - Update clojure-lsp to version `2021.06.24-01.20.01`
 
 ## [2.0.200] - 2021-06-06
+- Update clojure-lsp to version 2021.06.01-16.19.44
 
 ## [2.0.199] - 2021-06-04
 - [Support custom clojure-lsp path](https://github.com/BetterThanTomorrow/calva/issues/1181)

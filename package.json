@@ -1380,6 +1380,11 @@
                 "command": "calva.diagnostics.clojureLspServerInfo",
                 "title": "Clojure-lsp Server Info",
                 "category": "Calva Diagnostics"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.toggleBetweenImplAndTest",
+                "title": "Toggle between implementation and test"
             }
         ],
         "keybindings": [
@@ -2192,6 +2197,10 @@
                 "key": "ctrl+alt+space z",
                 "args": "z",
                 "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.toggleBetweenImplAndTest",
+                "when": "calva:keybindingsEnabled"
             }
         ],
         "menus": {
@@ -2218,6 +2227,10 @@
                 },
                 {
                     "command": "calva.showFileForOutputWindowNS"
+                },
+                {
+                    "command": "calva.toggleBetweenImplAndTest",
+                    "when": "editorLangId == clojure"
                 }
             ],
             "editor/title": [
