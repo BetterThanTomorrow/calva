@@ -12,6 +12,7 @@ import * as fs from 'fs';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
+const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
 
 function createClient(clojureLspPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -272,9 +273,11 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     const client = createClient(clojureLspPath);
     console.log('Starting clojure-lsp at', clojureLspPath);
     const onReadyPromise = client.onReady();
-    vscode.window.setStatusBarMessage('$(sync~spin) Initializing Clojure language features via clojure-lsp', onReadyPromise);
+    lspStatus.text = '$(sync~spin) Initializing Clojure language features via clojure-lsp';
+    lspStatus.show();
     client.start();
     await onReadyPromise;
+    lspStatus.hide();
     setStateValue(LSP_CLIENT_KEY, client);
     registerCommands(context, client);
     registerEventHandlers(context, client);
@@ -304,8 +307,10 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
         }
         if (currentVersion !== configuredVersion) {
             const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
-            vscode.window.setStatusBarMessage('$(sync~spin) Downloading clojure-lsp', downloadPromise);
+            lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
+            lspStatus.show();
             clojureLspPath = await downloadPromise;
+            lspStatus.hide();
         }
     }
     await startClient(clojureLspPath, context);
