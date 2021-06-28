@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add command for toggling between implementation and test](https://github.com/BetterThanTomorrow/calva/issues/1168)
+- [Add command for evaluating top level form up to cursor](https://github.com/BetterThanTomorrow/calva/issues/1215)
 
 ## [2.0.201] - 2021-06-24
 - [Add nrepl and clojure-lsp versions to Calva says greetings](https://github.com/BetterThanTomorrow/calva/issues/1199)

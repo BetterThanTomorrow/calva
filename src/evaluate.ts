@@ -251,6 +251,16 @@ function evaluateToCursor(document = {}, options = {}) {
     })).catch(printWarningForError);
 }
 
+function evaluateTopLevelFormToCursor(document = {}, options = {}) {
+    evaluateSelection(document, Object.assign({}, options, {
+        pprintOptions: getConfig().prettyPrintingOptions,
+        selectionFn: (editor: vscode.TextEditor) => {
+            let [selection, code] = getText.currentTopLevelFormToCursor(editor);
+            return [selection, `${code}`]
+        }
+    })).catch(printWarningForError);
+}
+
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const doc = util.getDocument(document);
     const fileType = util.getFileType(doc);
@@ -407,6 +417,7 @@ export default {
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
     evaluateToCursor,
+    evaluateTopLevelFormToCursor,
     evaluateCode,
     evaluateUser,
     copyLastResultCommand,

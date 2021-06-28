@@ -59,6 +59,19 @@ export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAnd
     return [undefined, ''];
 }
 
+export function currentTopLevelFormToCursor(editor: vscode.TextEditor): SelectionAndText {
+    if (editor) {
+        const document = editor.document;
+        const mirrorDoc = docMirror.getDocument(document);
+        const [range, text] = cursorTextGetter.currentTopLevelFormToCursor(mirrorDoc);
+        if (range) {
+            return [select.selectionFromOffsetRange(document, range), text];
+        }
+    }
+    return [undefined, ''];
+}
+
+
 function fromFn(editor: vscode.TextEditor, cursorDocFn: Function): SelectionAndText{
     if (editor) {
         const document = editor.document;
