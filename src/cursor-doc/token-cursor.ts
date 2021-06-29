@@ -606,18 +606,19 @@ export class LispTokenCursor extends TokenCursor {
 
     /**
      * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
-     * If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
+     * With `commentIsTopLevel` as false (default): If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
      * @param offset The ”current” position
      * @param depth Controls if the cursor should consider `comment` top level (if > 0, it will not)
+     * @param commentIsTopLevel? Controls
      */
-    rangeForDefun(offset: number, depth = 0): [number, number] {
+    rangeForDefun(offset: number, depth = 0, commentIsTopLevel = false): [number, number] {
         const cursor = this.clone();
         while (cursor.forwardSexp()) {
             if (cursor.offsetEnd >= offset) {
                 if (depth < 1 && cursor.getPrevToken().raw === ')') {
                     const commentCursor = cursor.clone();
                     commentCursor.previous();
-                    if (commentCursor.getFunctionName() === 'comment') {
+                    if (commentCursor.getFunctionName() === 'comment' && !commentIsTopLevel) {
                         commentCursor.backwardList();
                         commentCursor.forwardWhitespace();
                         commentCursor.forwardSexp();

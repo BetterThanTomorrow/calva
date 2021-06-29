@@ -778,6 +778,18 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateTopLevelFormToCursor",
+                "title": "Evaluate From Start of Top Level Form to Cursor",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateStartOfFileToCursor",
+                "title": "Evaluate From Start of File to Cursor",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.tapSelection",
                 "title": "Tap Current Form (or selection, if any)",
                 "enablement": "calva:connected",
@@ -1451,6 +1463,16 @@
             {
                 "command": "calva.evaluateToCursor",
                 "key": "ctrl+alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateTopLevelFormToCursor",
+                "key": "shift+alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateStartOfFileToCursor",
+                "key": "ctrl+shift+alt+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
