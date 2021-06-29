@@ -240,15 +240,26 @@ function evaluateEnclosingForm(document = {}, options = {}) {
     })).catch(printWarningForError);
 }
 
-
-function evaluateToCursor(document = {}, options = {}) {
+function evaluateUsingTextAndSelectionGetter(getter: (editor: vscode.TextEditor) => getText.SelectionAndText, formatter: (s: string) => string, document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: (editor: vscode.TextEditor) => {
-            let [selection, code] = getText.toStartOfList(editor);
-            return [selection, `(${code})`]
+            let [selection, code] = getter(editor);
+            return [selection, formatter(code)]
         }
     })).catch(printWarningForError);
+}
+
+function evaluateToCursor(document = {}, options = {}) {
+    evaluateUsingTextAndSelectionGetter(getText.toStartOfList, code => `(${code})`, document, options);
+}
+
+function evaluateTopLevelFormToCursor(document = {}, options = {}) {
+    evaluateUsingTextAndSelectionGetter(getText.currentTopLevelFormToCursor, code => `${code}`, document, options);
+}
+
+function evaluateStartOfFileToCursor(document = {}, options = {}) {
+    evaluateUsingTextAndSelectionGetter(getText.startOFileToCursor, code => `${code}`, document, options);
 }
 
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
@@ -373,8 +384,12 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
         const session = replSession.getSession(sessionType);
-        outputWindow.setSession(session, ns);
         replSession.updateReplSessionType();
+        if (outputWindow.getNs() !== ns) {
+            await session.eval(`(in-ns '${ns})`, session.client.ns).value;
+            outputWindow.setSession(session, ns);
+            outputWindow.appendPrompt();
+        }
         outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,
@@ -407,6 +422,8 @@ export default {
     evaluateSelectionAsComment,
     evaluateTopLevelFormAsComment,
     evaluateToCursor,
+    evaluateTopLevelFormToCursor,
+    evaluateStartOfFileToCursor,
     evaluateCode,
     evaluateUser,
     copyLastResultCommand,

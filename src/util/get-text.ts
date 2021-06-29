@@ -3,6 +3,7 @@ import select from '../select';
 import * as paredit from '../cursor-doc/paredit'
 import * as docMirror from '../doc-mirror/index';
 import * as cursorTextGetter from './cursor-get-text';
+import { EditableDocument } from "../cursor-doc/model";
 
 export type SelectionAndText = [vscode.Selection, string];
 
@@ -47,16 +48,28 @@ export function currentFunction(editor: vscode.TextEditor): SelectionAndText {
     return [undefined, ''];
 }
 
-export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAndText {
+function selectionAndText(editor: vscode.TextEditor, textGetter: (doc: EditableDocument) => cursorTextGetter.RangeAndText): SelectionAndText {
     if (editor) {
         const document = editor.document;
         const mirrorDoc = docMirror.getDocument(document);
-        const [range, text] = cursorTextGetter.currentTopLevelFunction(mirrorDoc);
+        const [range, text] = textGetter(mirrorDoc);
         if (range) {
             return [select.selectionFromOffsetRange(document, range), text];
         }
     }
     return [undefined, ''];
+}
+
+export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAndText {
+    return selectionAndText(editor, cursorTextGetter.currentTopLevelFunction);
+}
+
+export function currentTopLevelFormToCursor(editor: vscode.TextEditor): SelectionAndText {
+    return selectionAndText(editor, cursorTextGetter.currentTopLevelFormToCursor);
+}
+
+export function startOFileToCursor(editor: vscode.TextEditor): SelectionAndText {
+    return selectionAndText(editor, cursorTextGetter.startOfFileToCursor);
 }
 
 function fromFn(editor: vscode.TextEditor, cursorDocFn: Function): SelectionAndText{

@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.201",
+    "version": "2.0.202",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -778,6 +778,18 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.evaluateTopLevelFormToCursor",
+                "title": "Evaluate From Start of Top Level Form to Cursor",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.evaluateStartOfFileToCursor",
+                "title": "Evaluate From Start of File to Cursor",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.tapSelection",
                 "title": "Tap Current Form (or selection, if any)",
                 "enablement": "calva:connected",
@@ -1380,6 +1392,11 @@
                 "command": "calva.diagnostics.clojureLspServerInfo",
                 "title": "Clojure-lsp Server Info",
                 "category": "Calva Diagnostics"
+            },
+            {
+                "category": "Calva",
+                "command": "calva.toggleBetweenImplAndTest",
+                "title": "Toggle between implementation and test"
             }
         ],
         "keybindings": [
@@ -1446,6 +1463,16 @@
             {
                 "command": "calva.evaluateToCursor",
                 "key": "ctrl+alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateTopLevelFormToCursor",
+                "key": "shift+alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
+            },
+            {
+                "command": "calva.evaluateStartOfFileToCursor",
+                "key": "ctrl+shift+alt+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
@@ -2192,6 +2219,10 @@
                 "key": "ctrl+alt+space z",
                 "args": "z",
                 "when": "calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.toggleBetweenImplAndTest",
+                "when": "calva:keybindingsEnabled"
             }
         ],
         "menus": {
@@ -2218,6 +2249,10 @@
                 },
                 {
                     "command": "calva.showFileForOutputWindowNS"
+                },
+                {
+                    "command": "calva.toggleBetweenImplAndTest",
+                    "when": "editorLangId == clojure"
                 }
             ],
             "editor/title": [
