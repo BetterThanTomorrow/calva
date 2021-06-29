@@ -68,6 +68,10 @@ export function currentTopLevelFormToCursor(editor: vscode.TextEditor): Selectio
     return selectionAndText(editor, cursorTextGetter.currentTopLevelFormToCursor);
 }
 
+export function startOFileToCursor(editor: vscode.TextEditor): SelectionAndText {
+    return selectionAndText(editor, cursorTextGetter.startOfFileToCursor);
+}
+
 function fromFn(editor: vscode.TextEditor, cursorDocFn: Function): SelectionAndText{
     if (editor) {
         const document = editor.document;

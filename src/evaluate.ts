@@ -258,6 +258,10 @@ function evaluateTopLevelFormToCursor(document = {}, options = {}) {
     evaluateUsingTextAndSelectionGetter(getText.currentTopLevelFormToCursor, code => `${code}`, document, options);
 }
 
+function evaluateStartOfFileToCursor(document = {}, options = {}) {
+    evaluateUsingTextAndSelectionGetter(getText.startOFileToCursor, code => `${code}`, document, options);
+}
+
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
     const doc = util.getDocument(document);
     const fileType = util.getFileType(doc);
@@ -415,6 +419,7 @@ export default {
     evaluateTopLevelFormAsComment,
     evaluateToCursor,
     evaluateTopLevelFormToCursor,
+    evaluateStartOfFileToCursor,
     evaluateCode,
     evaluateUser,
     copyLastResultCommand,
