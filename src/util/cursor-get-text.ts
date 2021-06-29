@@ -36,13 +36,14 @@ export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText
     const defunCursor = doc.getTokenCursor(0);
     const defunRange = defunCursor.rangeForDefun(doc.selection.active);
     if (defunRange) {
-        const textUpToCursor = doc.model.getText(defunRange[0], doc.selection.active);
         const closeBrackets: string[] = [];
         const bracketCursor = doc.getTokenCursor(doc.selection.active);
+        bracketCursor.backwardWhitespace(true);
+        const eoc = bracketCursor.offsetStart;
         while (bracketCursor.offsetStart !== defunRange[1] && bracketCursor.forwardList() && bracketCursor.upList()) {
             closeBrackets.push(bracketCursor.getPrevToken().raw);
         }
-        const range: [number, number] = [defunRange[0], doc.selection.active];
+        const range: [number, number] = [defunRange[0], eoc];
         return [range, doc.model.getText(...range) + closeBrackets.join('')];
     }
     return [undefined, ''];

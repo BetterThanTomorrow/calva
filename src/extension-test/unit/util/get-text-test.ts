@@ -35,8 +35,8 @@ describe('getTopLevelForm', () => {
 
 describe('getTopLevelFormToCursor', () => {
     it('Finds top level form from start to cursor', () => {
-        const doc: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest a-test•  [baz |gaz])');
-        const selDoc: mock.MockDocument = docFromTextNotation('(foo bar)•|(deftest a-test•  [baz |gaz])');
-        expect(getText.currentTopLevelFormToCursor(doc)).toEqual([[selDoc.selectionLeft, doc.selectionRight], '(deftest a-test\n  [baz ])']);
+        const a: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])');
+        const b: mock.MockDocument = docFromTextNotation('(foo bar)•|(deftest a-test•  [baz| ; foo•     gaz])');
+        expect(getText.currentTopLevelFormToCursor(a)).toEqual([[b.selectionLeft, b.selectionRight], '(deftest a-test\n  [baz])']);
     });
 });
