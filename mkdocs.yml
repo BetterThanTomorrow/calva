@@ -29,9 +29,9 @@ nav:
     - try-first.md
     - finding-commands.md
     - eval-tips.md
-    - clojure-lsp.md
   - Features:
     - commands-top10.md
+    - evaluation.md
     - output.md
     - formatting.md
     - paredit.md
@@ -43,6 +43,7 @@ nav:
     - custom-commands.md
     - linting.md
     - ns-form-deriving.md
+  - clojure-lsp.md
   - customizing.md
   - Using Calva with X:
     - rebl.md
