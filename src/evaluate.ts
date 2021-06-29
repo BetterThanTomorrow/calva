@@ -240,25 +240,22 @@ function evaluateEnclosingForm(document = {}, options = {}) {
     })).catch(printWarningForError);
 }
 
-
-function evaluateToCursor(document = {}, options = {}) {
+function evaluateUsingTextAndSelectionGetter(getter: (editor: vscode.TextEditor) => getText.SelectionAndText, formatter: (s: string) => string, document = {}, options = {}) {
     evaluateSelection(document, Object.assign({}, options, {
         pprintOptions: getConfig().prettyPrintingOptions,
         selectionFn: (editor: vscode.TextEditor) => {
-            let [selection, code] = getText.toStartOfList(editor);
-            return [selection, `(${code})`]
+            let [selection, code] = getter(editor);
+            return [selection, formatter(code)]
         }
     })).catch(printWarningForError);
 }
 
+function evaluateToCursor(document = {}, options = {}) {
+    evaluateUsingTextAndSelectionGetter(getText.toStartOfList, code => `(${code})`, document, options);
+}
+
 function evaluateTopLevelFormToCursor(document = {}, options = {}) {
-    evaluateSelection(document, Object.assign({}, options, {
-        pprintOptions: getConfig().prettyPrintingOptions,
-        selectionFn: (editor: vscode.TextEditor) => {
-            let [selection, code] = getText.currentTopLevelFormToCursor(editor);
-            return [selection, `${code}`]
-        }
-    })).catch(printWarningForError);
+    evaluateUsingTextAndSelectionGetter(getText.currentTopLevelFormToCursor, code => `${code}`, document, options);
 }
 
 async function loadFile(document, pprintOptions: PrettyPrintingOptions) {
