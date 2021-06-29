@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://calva.io/live-share/">
+        <link rel="canonical" href="https://calva.io/evaluation/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.9">
     
     
       
-        <title>Using Calva with Live Share - Calva User Guide</title>
+        <title>Code Evaluation - Calva User Guide</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#using-calva-with-live-share" class="md-skip">
+        <a href="#code-evaluation" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Using Calva with Live Share
+              Code Evaluation
             
           </span>
         </div>
@@ -315,12 +315,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
       
       <label class="md-nav__link" for="__nav_3">
         Features
@@ -348,11 +350,113 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../evaluation/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Code Evaluation
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Code Evaluation
       </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-in-a-file-editor" class="md-nav__link">
+    Evaluation in a File Editor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wait-current-form-top-level-form" class="md-nav__link">
+    Wait, Current Form? Top-level Form?
+  </a>
+  
+    <nav class="md-nav" aria-label="Wait, Current Form? Top-level Form?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-form" class="md-nav__link">
+    Current Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-top-level-form" class="md-nav__link">
+    Current Top-level Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-to-cursor" class="md-nav__link">
+    Evaluate to Cursor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-top-level-form-to-cursor" class="md-nav__link">
+    Evaluate Top Level Form to Cursor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-enclosing-form" class="md-nav__link">
+    Evaluate Enclosing Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copying-the-inline-results" class="md-nav__link">
+    Copying the inline results
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluating-in-a-repl-window" class="md-nav__link">
+    Evaluating in a REPL window
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -531,14 +635,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
       
       <label class="md-nav__link" for="__nav_6">
         Using Calva with X
@@ -614,65 +716,11 @@
             
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Using Calva with Live Share
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../live-share/" class="md-nav__link">
         Using Calva with Live Share
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#calva-supports-live-share" class="md-nav__link">
-    Calva Supports Live Share
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#control-visibility-of-calva-folder" class="md-nav__link">
-    Control Visibility of .calva Folder
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#some-things-to-keep-in-mind" class="md-nav__link">
-    Some Things To Keep In Mind
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -907,22 +955,70 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#calva-supports-live-share" class="md-nav__link">
-    Calva Supports Live Share
+  <a href="#evaluation-in-a-file-editor" class="md-nav__link">
+    Evaluation in a File Editor
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#control-visibility-of-calva-folder" class="md-nav__link">
-    Control Visibility of .calva Folder
+  <a href="#wait-current-form-top-level-form" class="md-nav__link">
+    Wait, Current Form? Top-level Form?
   </a>
+  
+    <nav class="md-nav" aria-label="Wait, Current Form? Top-level Form?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-form" class="md-nav__link">
+    Current Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-top-level-form" class="md-nav__link">
+    Current Top-level Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-to-cursor" class="md-nav__link">
+    Evaluate to Cursor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-top-level-form-to-cursor" class="md-nav__link">
+    Evaluate Top Level Form to Cursor
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluate-enclosing-form" class="md-nav__link">
+    Evaluate Enclosing Form
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#copying-the-inline-results" class="md-nav__link">
+    Copying the inline results
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#some-things-to-keep-in-mind" class="md-nav__link">
-    Some Things To Keep In Mind
+  <a href="#evaluating-in-a-repl-window" class="md-nav__link">
+    Evaluating in a REPL window
   </a>
   
 </li>
@@ -939,83 +1035,103 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/live-share.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/evaluation.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="using-calva-with-live-share">Using Calva with Live Share</h1>
-<p><a href="https://docs.microsoft.com/en-us/visualstudio/liveshare/">Live Share</a> is a Microsoft provided VS Code extension. 
-It allows you to share the workspace that you have open in your
-computer with somebody else. Everybody is then working on the same source code
-files, namely those on your computer. You can edit files at the same time,
-everyone has their own caret. You can follow each other (i.e. when someone
-switches to a different file, you will as well). This is great for remote pair
-programming, for example.</p>
-<p>An extra nice thing is that each participant is using their own VSCode configuration, including fonts, colors,
-keyboard shortcuts, etc.</p>
-<h2 id="calva-supports-live-share">Calva Supports Live Share</h2>
-<p>When using Calva, you can use Live Share as well. Editing works exactly the same
-as for any other programming language. What makes Calva a bit special, is the
-REPL. When using Live Share, Calva allows the host to share the REPL with guests
-as well. If you use any of the supported configuration, this will be pretty much
-automatic.</p>
-<p>This is what a typical scenario looks like:</p>
+                <h1 id="code-evaluation">Code Evaluation</h1>
+<p>Calva tries to make it easy to evaluate code, supporting interactive development. The fastest path to learning about it is to use the <strong>Fire up the Getting Started REPL</strong> command, which you can learn more about in the <a href="../getting-started/">Getting Started</a> section.</p>
+<p>NB: <em>The below assumes you have read about <a href="../finding-commands/">Finding Calva Commands and Shortcuts</a>.</em></p>
+<h2 id="evaluation-in-a-file-editor">Evaluation in a File Editor</h2>
+<p>Calva has commands for evaluating the <strong>current form</strong> and the <strong>current top-level form</strong>.</p>
+<p>You can also choose what should happen with the results:</p>
 <ol>
-<li><strong>The host</strong> jacks-in.</li>
-<li><strong>The host</strong> shares its workspace using Live Share. Calva will detect that
-   the workspace is being shared, so it will offer to share the REPL port that
-   was opened when jacking in. The host clicks "Allow" to start sharing the
-   port. (Note: steps 1 and two can also be done in the reverse order.)
-   <img alt="Starting Live Share" src="../images/howto/live-share-port.png" /></li>
-<li><strong>The host</strong> sends the Live Share URL to the guest(s).</li>
-<li><strong>The guest</strong> joins the Live Share session using the URL it received.</li>
-<li><strong>The guest</strong> connects to the host's REPL using the command "Connect to a
-   running REPL server in the project". If needed, the guest chooses the same
-   build configuration as the host.</li>
+<li><strong>Inline.</strong> This will display the results (or some of it, if it is long) inline in the editor. <em>You find the full results in the <a href="../output/">output window</a></em>, from where it is easy to copy it to the clipboard.</li>
+<li><strong>To comments.</strong> This will add the results as comment lines below the current line.</li>
+<li><strong>Replace the evaluated code.</strong> This will do what it says, the evaluated code will be replaced with its results.</li>
 </ol>
-<p>Voila! Both the guest and the host can now use the REPL that is running on the
-host. Things like documentation lookup now also work on the guest's machine.</p>
-<h2 id="control-visibility-of-calva-folder">Control Visibility of <code>.calva</code> Folder</h2>
-<p>Calva depends on the <code>output.calva-repl</code> file to be available. If you have the
-<code>.calva</code> folder listed in your <code>.gitignore</code>, this also causes the folder to be
-hidden from guests in Live Share by default. In order to make the folder
-visible, you can put a file called <code>.vsls.json</code> in your project. In its simplest
-form, the contents can be this:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-  <span class="nt">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json.schemastore.org/vsls&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;hideFiles&quot;</span><span class="p">:</span> <span class="p">[</span>
-    <span class="s2">&quot;!.calva&quot;</span>
-  <span class="p">]</span>
-<span class="p">}</span>
+<h2 id="wait-current-form-top-level-form">Wait, Current Form? Top-level Form?</h2>
+<p>These are important concepts in Calva in order for you to create your most effective workflow.</p>
+<h3 id="current-form">Current Form</h3>
+<p>Default shortcut for evaluating the current form: <code>ctrl+enter</code>.</p>
+<p>The current form either means the current selection, or otherwise is based on the cursor position. Play some with the command <strong>Calva: Select current form</strong>, <code>ctrl+alt+c s</code>, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides). Generally the current form is determined like so:</p>
+<p>If text is selected, then that text</p>
+<p>If the cursor is ”in” a symbol, then that symbol
+<div class="highlight"><pre><span></span><code><span class="nv">foob|ar</span> <span class="c1">; foobar</span>
+</code></pre></div></p>
+<p>If the cursor is adjacent to a form (a symbol or a list of some kind), then that form
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span> <span class="nv">bar</span> <span class="nv">|</span><span class="p">(</span><span class="nf">baz</span><span class="p">))</span> <span class="c1">; (baz)</span>
+</code></pre></div></p>
+<p>If the cursor is between to forms, then the left side form
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span> <span class="nv">bar</span> <span class="nv">|</span> <span class="p">(</span><span class="nf">baz</span><span class="p">))</span> <span class="c1">; bar</span>
+</code></pre></div></p>
+<p>If the cursor is before the first form of a line, then that form
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo</span>
+ <span class="nv">|</span> <span class="nv">bar</span> <span class="p">(</span><span class="nf">baz</span><span class="p">))</span> <span class="c1">; bar</span>
+</code></pre></div></p>
+<h3 id="current-top-level-form">Current Top-level Form</h3>
+<p>Default shortcut for evaluating the current top level form: <code>alt+enter</code>.</p>
+<p>The current top-level form means top-level in a structural sense. It is <em>not</em> the topmost form in the file. Typically in a Clojure file you will find <code>def</code> and <code>defn</code> (and <code>defwhatever</code>) forms at the top level, but it can be any form not enclosed in any other form.</p>
+<p>An exception is the <code>comment</code> form. It will create a new top level context, so that any forms immediately inside a <code>(commment ...)</code> form will be considered top-level by Calva. This is to support a workflow where you</p>
+<ol>
+<li>Iterate on your functions.</li>
+<li>Evaluate the function (top level).</li>
+<li>Put them to test with expressions inside a <code>comment</code> form.</li>
+<li>Repeat from <em>1.</em>, until the function does what you want it to do.</li>
+</ol>
+<p>Here's a demo of the last repetition of such a workflow, for a simple implementation of the <code>abs</code> function:</p>
+<p><img alt="top-level-eval" src="../images/howto/top-level-eval.gif" /></p>
+<h3 id="evaluate-to-cursor">Evaluate to Cursor</h3>
+<p>There is also a command for evaluating the text from the start of the current list to where the cursor is. Convenient for checking intermediate results in thread or <code>doto</code>, or similar pipelines. The cursor is right behind <code>:d</code> in this form:</p>
+<div class="highlight"><pre><span></span><code>  <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="p">[</span><span class="mi">1</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">5</span> <span class="mi">8</span> <span class="mi">13</span> <span class="mi">21</span><span class="p">]</span>
+       <span class="p">(</span><span class="nf">partition</span> <span class="mi">2</span><span class="p">)</span>
+       <span class="p">(</span><span class="nb">zipmap </span><span class="p">[</span><span class="ss">:a</span> <span class="ss">:b</span> <span class="ss">:c</span> <span class="ss">:d</span><span class="p">])</span>
+       <span class="ss">:d|</span> <span class="c1">; =&gt; (12 21)</span>
+       <span class="p">(</span><span class="nb">apply </span><span class="nv">-</span><span class="p">)</span>
+       <span class="p">(</span><span class="nf">Math/abs</span><span class="p">))</span>
 </code></pre></div>
-<p>Now the <code>.calva</code> folder is shared as well. But also any other file and folder
-that you may have in your <code>.gitignore</code>. If you want to have more fine-grained
-control, please refer to the section <a href="https://docs.microsoft.com/en-us/visualstudio/liveshare/reference/security#controlling-file-access-and-visibility">Controlling file access and
-visibility</a> of the Live Share documentation.</p>
-<h2 id="some-things-to-keep-in-mind">Some Things To Keep In Mind</h2>
-<ul>
-<li>As a guest, you're connected to a REPL running on the host's machine. With
-  power comes responsibility; <strong>be nice, and be careful</strong>!</li>
-<li>There is only one <code>output.calva-repl</code> file, which all participants are
-  sharing. It may work better to <strong>evaluate things in the source code editors</strong>
-  instead of from the REPL window. Otherwise you will end up in a situation
-  where one person is typing something in the <code>output.calva-repl</code> window, and
-  somebody else is evaluating something (hence sending the output there) at the
-  same time. That gets confusing quickly.</li>
-<li>When you're working on a <strong>CLJS-based web development</strong> project, things may
-  get extra confusing. By default, Live Share will share any HTTP ports on the
-  host automatically, and also offer to open the URL on the guest. (You can
-  disable using the setting "Liveshare: Open Shared Servers".) As a guest, you
-  <strong>do not</strong> want to open that browser window normally. Think about it: where is
-  the REPL running? Yes: in the browser! But Calva connects to the REPL running
-  in the browser on the host's machine, so if you open a browser as a guest, you
-  will also get a REPL there, but you won't be connected to it in Calva.</li>
-<li>Currently Live Share does not allow Calva to know whether the workspace is
-  shared read-only or read-write. If you share read-only, and you don't want the
-  guests to have access to your REPL, don't click "Allow" when VSCode asks you
-  to share the REPL port.</li>
-</ul>
+<p>The default shortcut for this command is <code>ctrl+alt+enter</code>.</p>
+<h3 id="evaluate-top-level-form-to-cursor">Evaluate Top Level Form to Cursor</h3>
+<p>This command has a default shortcut keybinding of <code>shift+alt+enter</code>. It will create a form from the start of the current top level form, up to the cursor, then fold the form, closing all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point.</p>
+<p>Take this example and paste it in a file loaded into the REPL, then place the cursor in front of each line comment and try the command.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+ <span class="p">(</span><span class="nf">do</span>
+   <span class="p">(</span><span class="k">def </span><span class="nv">colt-express</span>
+     <span class="p">{</span><span class="ss">:name</span> <span class="s">&quot;Colt Express&quot;</span>
+      <span class="ss">:categories</span> <span class="p">[</span><span class="s">&quot;Family&quot;</span>
+                   <span class="s">&quot;Strategy&quot;</span><span class="p">]</span>
+      <span class="ss">:play-time</span> <span class="mi">40</span>
+      <span class="ss">:ratings</span> <span class="p">{</span><span class="ss">:pez</span> <span class="mf">5.0</span>
+                <span class="ss">:kat</span> <span class="mf">5.0</span>
+                <span class="ss">:wiw</span> <span class="mf">5.0</span>   <span class="c1">; 1, then eval `colt-express`</span>
+                <span class="ss">:vig</span> <span class="mf">3.0</span>
+                <span class="ss">:rex</span> <span class="mf">5.0</span>
+                <span class="ss">:lun</span> <span class="mf">4.0</span><span class="p">}})</span>
+
+   <span class="p">(</span><span class="kd">defn </span><span class="nv">average</span> <span class="p">[</span><span class="nv">coll</span><span class="p">]</span>
+     <span class="p">(</span><span class="nb">/ </span><span class="p">(</span><span class="nb">apply + </span><span class="nv">coll</span><span class="p">)</span> <span class="p">(</span><span class="nb">count </span><span class="nv">coll</span><span class="p">)))</span>
+
+   <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo-express</span> <span class="p">(</span><span class="nb">-&gt; </span><span class="nv">colt-express</span>
+                         <span class="p">(</span><span class="nb">assoc </span><span class="ss">:name</span> <span class="s">&quot;Foo Express&quot;</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nf">assoc-in</span> <span class="p">[</span><span class="ss">:ratings</span> <span class="ss">:lyr</span><span class="p">]</span> <span class="mf">5.0</span><span class="p">)</span>
+                         <span class="p">(</span><span class="nf">update-in</span> <span class="p">[</span><span class="ss">:ratings</span> <span class="ss">:vig</span><span class="p">]</span> <span class="nv">inc</span><span class="p">))]</span>
+     <span class="p">(</span><span class="nf">-&gt;&gt;</span> <span class="nv">foo-express</span>   <span class="c1">; 2</span>
+          <span class="ss">:ratings</span>      <span class="c1">; 3</span>
+          <span class="nb">vals </span>         <span class="c1">; 4</span>
+          <span class="nv">average</span>       <span class="c1">; 5</span>
+          <span class="p">))))</span>
+</code></pre></div>
+<h3 id="evaluate-enclosing-form">Evaluate Enclosing Form</h3>
+<p>The default keyboard shortcut for evaluating the current enclosing form (the list the cursor is in) is <code>ctrl+shift+enter</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">foo</span> <span class="ss">:bar</span><span class="p">]</span>
+  <span class="p">(</span><span class="nb">when </span><span class="nv">false</span> <span class="p">(</span><span class="nf">str|</span> <span class="nv">foo</span><span class="p">)))</span> <span class="c1">; =&gt; &quot;:bar&quot;</span>
+</code></pre></div>
+<h3 id="copying-the-inline-results">Copying the inline results</h3>
+<p>There is a command called <strong>Copy last evaluation results</strong>, <code>ctrl+alt+c ctrl+c</code>.</p>
+<p>This works regardless if you have evaluated in a file editor or in a REPL window.</p>
+<h2 id="evaluating-in-a-repl-window">Evaluating in a REPL window</h2>
+<p>Since the REPL Window is mostly just a regular file, things work pretty similar at the REPL prompt. You use <code>alt+enter</code> to evaluate. Selecting the current form (default key binding <code>ctrl+w</code> on Mac and <code>shift+alt+right</code> on Windows and Linux) after evaluating will select the result.</p>
                 
               
               
@@ -1035,7 +1151,7 @@ visibility</a> of the Live Share documentation.</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../remote-development/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Using Calva with Remote Development" rel="prev">
+        <a href="../commands-top10/" class="md-footer__link md-footer__link--prev" aria-label="Previous: The Top 10 Calva Commands" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1044,20 +1160,20 @@ visibility</a> of the Live Share documentation.</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Using Calva with Remote Development
+              The Top 10 Calva Commands
             </div>
           </div>
         </a>
       
       
         
-        <a href="../luminus/" class="md-footer__link md-footer__link--next" aria-label="Next: How to Use Calva with Luminus" rel="next">
+        <a href="../output/" class="md-footer__link md-footer__link--next" aria-label="Next: The Output/REPL Window/File" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              How to Use Calva with Luminus
+              The Output/REPL Window/File
             </div>
           </div>
           <div class="md-footer__button md-icon">
