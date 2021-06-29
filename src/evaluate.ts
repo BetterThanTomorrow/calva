@@ -384,8 +384,12 @@ export async function evaluateInOutputWindow(code: string, sessionType: string, 
     const evalPos = outputDocument.positionAt(outputDocument.getText().length);
     try {
         const session = replSession.getSession(sessionType);
-        outputWindow.setSession(session, ns);
         replSession.updateReplSessionType();
+        if (outputWindow.getNs() !== ns) {
+            await session.eval(`(in-ns '${ns})`, session.client.ns).value;
+            outputWindow.setSession(session, ns);
+            outputWindow.appendPrompt();
+        }
         outputWindow.append(code);
         await evaluateCode(code, {
             filePath: outputDocument.fileName,

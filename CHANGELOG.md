@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Custom repl commands are not evaluated in specified ns if different than current ns](https://github.com/BetterThanTomorrow/calva/issues/1196)
 - Fix: [clojure-lsp statusbar messages move the nREPL button around](https://github.com/BetterThanTomorrow/calva/issues/1205)
 - [Add command for toggling between implementation and test](https://github.com/BetterThanTomorrow/calva/issues/1168)
 - [Add command for evaluating the current top level form up to cursor](https://github.com/BetterThanTomorrow/calva/issues/1215)
