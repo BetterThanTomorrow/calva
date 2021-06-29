@@ -19,7 +19,8 @@ edit_uri: edit/published/docs/site
 strict: true
 markdown_extensions:
   - admonition
-  - codehilite
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
 nav:
   - index.md
   - Start Here:
