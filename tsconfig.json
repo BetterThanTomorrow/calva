@@ -20,7 +20,8 @@
         "outDir": "out",
         "lib": [
             "es7",
-            "dom"
+            "dom",
+            "ESNext.String"
         ],
         "sourceMap": true,
         "rootDir": "src",

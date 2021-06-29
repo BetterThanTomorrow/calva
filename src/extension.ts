@@ -25,6 +25,7 @@ import statusbar from './statusbar';
 import * as debug from './debugger/calva-debug';
 import * as model from './cursor-doc/model';
 import * as outputWindow from './results-output/results-doc';
+import * as fileSwitcher from './file-switcher/file-switcher';
 import * as replHistory from './results-output/repl-history';
 import * as config from './config';
 import * as snippets from './custom-snippets';
@@ -174,6 +175,8 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateEnclosingForm', eval.evaluateEnclosingForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateToCursor', eval.evaluateToCursor));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormToCursor', eval.evaluateTopLevelFormToCursor));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateStartOfFileToCursor', eval.evaluateStartOfFileToCursor));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateUser', eval.evaluateUser));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateCurrentTopLevelForm', eval.evaluateTopLevelForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionReplace', eval.evaluateSelectionReplace));
@@ -196,6 +199,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.tapCurrentTopLevelForm', () => snippets.evaluateCustomCodeSnippetCommand("(tap> $top-level-form)")));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showOutputWindow', () => { outputWindow.revealResultsDoc(false) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.showFileForOutputWindowNS', () => { outputWindow.revealDocForCurrentNS(false) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleBetweenImplAndTest', () => { fileSwitcher.toggleBetweenImplAndTest() }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.setOutputWindowNamespace', outputWindow.setNamespaceFromCurrentFile));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentFormToOutputWindow', outputWindow.appendCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.sendCurrentTopLevelFormToOutputWindow', outputWindow.appendCurrentTopLevelForm));
