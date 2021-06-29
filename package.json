@@ -1461,7 +1461,7 @@
             },
             {
                 "command": "calva.evaluateTopLevelFormToCursor",
-                "key": "ctrl+shift+alt+enter",
+                "key": "shift+alt+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {

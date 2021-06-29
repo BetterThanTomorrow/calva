@@ -81,7 +81,7 @@ The default shortcut for this command is `ctrl+alt+enter`.
 
 ### Evaluate Top Level Form to Cursor
 
-This command has a default shortcut keybinding of `ctrl+shift+alt+enter`. It will create a form from the start of the current top level form, up to the cursor, then fold the form, closing all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point.
+This command has a default shortcut keybinding of `shift+alt+enter`. It will create a form from the start of the current top level form, up to the cursor, then fold the form, closing all brackets, and this will then be evaluated. Good for examining code blocks up to a certain point.
 
 Take this example and paste it in a file loaded into the REPL, then place the cursor in front of each line comment and try the command.
 
