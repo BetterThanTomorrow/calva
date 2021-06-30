@@ -14,6 +14,7 @@ import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
 import { max, takeWhile } from 'lodash';
+import { splitEditQueueForTextBatching } from './util';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -297,17 +298,13 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                     }
                     
                     if (editQueue.length > 0) {
-                        const batchSize = 1000;
-                        const textBatch = takeWhile(editQueue, (value, index) => {
-                            return index <= batchSize && !value[1];
-                        }).map(value => value[0]);
+                        const [textBatch, remainingEditQueue] = splitEditQueueForTextBatching(editQueue, 1000);                    
                         if (textBatch.length > 0) {
-                            editQueue.splice(0, textBatch.length);
+                            editQueue = remainingEditQueue;
                             return append(textBatch.join('\n'));
                         } else {
                             return append.apply(null, editQueue.shift());
                         }
-                    }
                     }
                 });
             }
