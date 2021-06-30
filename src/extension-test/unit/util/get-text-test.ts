@@ -1,5 +1,4 @@
 import * as expect from 'expect';
-import * as mock from '../common/mock';
 import { docFromTextNotation } from '../common/text-notation';
 import * as getText from '../../../util/cursor-get-text';
 
@@ -7,52 +6,62 @@ describe('get text', () => {
 
     describe('getTopLevelFunction', () => {
         it('Finds top level function at top', () => {
-            const doc: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest a-test•  (baz |gaz))');
-            const selDoc: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest |a-test|•  (baz gaz))');
-            expect(getText.currentTopLevelFunction(doc)).toEqual([[selDoc.selectionLeft, selDoc.selectionRight], 'a-test']);
+            const a = docFromTextNotation('(foo bar)•(deftest a-test•  (baz |gaz))');
+            const b = docFromTextNotation('(foo bar)•(deftest |a-test|•  (baz gaz))');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(getText.currentTopLevelFunction(a)).toEqual([range, b.model.getText(...range)]);
         });
 
         it('Finds top level function when nested', () => {
-            const doc: mock.MockDocument = docFromTextNotation('(foo bar)•(with-test•  (deftest a-test•    (baz |gaz)))');
-            const selDoc: mock.MockDocument = docFromTextNotation('(foo bar)•(with-test•  (deftest |a-test|•    (baz gaz)))');
-            expect(getText.currentTopLevelFunction(doc)).toEqual([[selDoc.selectionLeft, selDoc.selectionRight], 'a-test']);
+            const a = docFromTextNotation('(foo bar)•(with-test•  (deftest a-test•    (baz |gaz)))');
+            const b = docFromTextNotation('(foo bar)•(with-test•  (deftest |a-test|•    (baz gaz)))');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(getText.currentTopLevelFunction(a)).toEqual([range, b.model.getText(...range)]);
         });
 
         it('Finds top level function when namespaced def-macro', () => {
             // https://github.com/BetterThanTomorrow/calva/issues/1086
-            const doc: mock.MockDocument = docFromTextNotation('(foo bar)•(with-test•  (t/deftest a-test•    (baz |gaz)))');
-            const selDoc: mock.MockDocument = docFromTextNotation('(foo bar)•(with-test•  (t/deftest |a-test|•    (baz gaz)))');
-            expect(getText.currentTopLevelFunction(doc)).toEqual([[selDoc.selectionLeft, selDoc.selectionRight], 'a-test']);
+            const a = docFromTextNotation('(foo bar)•(with-test•  (t/deftest a-test•    (baz |gaz)))');
+            const b = docFromTextNotation('(foo bar)•(with-test•  (t/deftest |a-test|•    (baz gaz)))');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(getText.currentTopLevelFunction(a)).toEqual([range, b.model.getText(...range)]);
         });
 
     });
 
     describe('getTopLevelForm', () => {
         it('Finds top level form', () => {
-            const doc: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest a-test•  (baz |gaz))');
-            const selDoc: mock.MockDocument = docFromTextNotation('(foo bar)•|(deftest a-test•  (baz gaz))|');
-            expect(getText.currentTopLevelForm(doc)).toEqual([[selDoc.selectionLeft, selDoc.selectionRight], '(deftest a-test\n  (baz gaz))']);
+            const a = docFromTextNotation('(foo bar)•(deftest a-test•  (baz |gaz))');
+            const b = docFromTextNotation('(foo bar)•|(deftest a-test•  (baz gaz))|');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            expect(getText.currentTopLevelForm(a)).toEqual([range, b.model.getText(...range)]);
         });
     });
 
     describe('topLevelFormToCursor', () => {
         it('Finds top level form from start to cursor', () => {
-            const a: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])');
-            const b: mock.MockDocument = docFromTextNotation('(foo bar)•|(deftest a-test•  [baz| ; foo•     gaz])');
-            expect(getText.currentTopLevelFormToCursor(a)).toEqual([[b.selectionLeft, b.selectionRight], '(deftest a-test\n  [baz])']);
+            const a = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])');
+            const b = docFromTextNotation('(foo bar)•|(deftest a-test•  [baz| ; foo•     gaz])');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            const trail = '])';
+            expect(getText.currentTopLevelFormToCursor(a)).toEqual([range, `${b.model.getText(...range)}${trail}`]);
         });
     });
 
     describe('startOfFileToCursor', () => {
         it('Builds form from start of file to cursor, when cursor in line comment', () => {
-            const a: mock.MockDocument = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])•(bar baz)');
-            const b: mock.MockDocument = docFromTextNotation('|(foo bar)•(deftest a-test•  [baz| ; foo•     gaz])•(bar baz)');
-            expect(getText.startOfFileToCursor(a)).toEqual([[b.selectionLeft, b.selectionRight], '(foo bar)\n(deftest a-test\n  [baz])']);
+            const a = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])•(bar baz)');
+            const b = docFromTextNotation('|(foo bar)•(deftest a-test•  [baz| ; foo•     gaz])•(bar baz)');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            const trail = '])';
+            expect(getText.startOfFileToCursor(a)).toEqual([range, `${b.model.getText(...range)}${trail}`]);
         });
         it('Builds form from start of file to cursor, when cursor in comment macro', () => {
-            const a: mock.MockDocument = docFromTextNotation('(foo bar)(comment• (deftest a-test•  [baz ; f|oo•     gaz])•(bar baz))');
-            const b: mock.MockDocument = docFromTextNotation('|(foo bar)(comment• (deftest a-test•  [baz| ; foo•     gaz])•(bar baz))');
-            expect(getText.startOfFileToCursor(a)).toEqual([[b.selectionLeft, b.selectionRight], '(foo bar)(comment\n (deftest a-test\n  [baz]))']);
+            const a = docFromTextNotation('(foo bar)(comment• (deftest a-test•  [baz ; f|oo•     gaz])•(bar baz))');
+            const b = docFromTextNotation('|(foo bar)(comment• (deftest a-test•  [baz| ; foo•     gaz])•(bar baz))');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            const trail = ']))';
+            expect(getText.startOfFileToCursor(a)).toEqual([range, `${b.model.getText(...range)}${trail}`]);
         });
     });
 });
