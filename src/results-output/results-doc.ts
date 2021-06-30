@@ -296,28 +296,18 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                             new vscode.Location(DOC_URI(), doc.positionAt(Infinity)));
                     }
                     
-                    const queueLength = editQueue.length
-                    if (queueLength > 0) {                        
-                        var numOfQueueItemsWithoutCallback: number = 0;
-                        for (var i=0; i<queueLength; i++) {
-                            var [_, onAppendCallback] = editQueue[i];
-                            if (onAppendCallback != null) {
-                                numOfQueueItemsWithoutCallback = i;
-                                break;
-                            }
-                        }
-                        if (numOfQueueItemsWithoutCallback > 0) {
-                            const maxTextsToGroup = 1000;
-                            var textGroup = [];
-                            for (var i=0; i<Math.min(queueLength, maxTextsToGroup); i++) {
-                                var [text] = editQueue.shift();
-                                textGroup.push(text);
-                            }
-                            return append(textGroup.join('\n'), null)
+                    if (editQueue.length > 0) {
+                        const batchSize = 1000;
+                        const textBatch = takeWhile(editQueue, (value, index) => {
+                            return index <= batchSize && !value[1];
+                        }).map(value => value[0]);
+                        if (textBatch.length > 0) {
+                            editQueue.splice(0, textBatch.length);
+                            return append(textBatch.join('\n'));
                         } else {
-                            var [text, onAppendCallback] = editQueue.shift();
-                            return append(text, onAppendCallback)
+                            return append.apply(null, editQueue.shift());
                         }
+                    }
                     }
                 });
             }
