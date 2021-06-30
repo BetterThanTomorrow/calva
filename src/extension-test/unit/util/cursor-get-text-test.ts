@@ -38,6 +38,16 @@ describe('get text', () => {
         });
     });
 
+    describe('currentEnclosingFormToCursor', () => {
+        it('Current enclosing form from start to cursor, then folded', () => {
+            const a = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])');
+            const b = docFromTextNotation('(foo bar)•(deftest a-test•  |[baz| ; foo•     gaz])');
+            const range: [number, number] = [b.selectionLeft, b.selectionRight];
+            const trail = ']';
+            expect(getText.currentEnclosingFormToCursor(a)).toEqual([range, `${b.model.getText(...range)}${trail}`]);
+        });
+    });
+
     describe('topLevelFormToCursor', () => {
         it('Finds top level form from start to cursor', () => {
             const a = docFromTextNotation('(foo bar)•(deftest a-test•  [baz ; f|oo•     gaz])');

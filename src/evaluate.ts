@@ -251,7 +251,7 @@ function evaluateUsingTextAndSelectionGetter(getter: (editor: vscode.TextEditor)
 }
 
 function evaluateToCursor(document = {}, options = {}) {
-    evaluateUsingTextAndSelectionGetter(getText.toStartOfList, code => `(${code})`, document, options);
+    evaluateUsingTextAndSelectionGetter(getText.currentEnclosingFormToCursor, code => `${code}`, document, options);
 }
 
 function evaluateTopLevelFormToCursor(document = {}, options = {}) {

@@ -60,6 +60,10 @@ function selectionAndText(editor: vscode.TextEditor, textGetter: (doc: EditableD
     return [undefined, ''];
 }
 
+export function currentEnclosingFormToCursor(editor: vscode.TextEditor): SelectionAndText {
+    return selectionAndText(editor, cursorTextGetter.currentEnclosingFormToCursor);
+}
+
 export function currentTopLevelFunction(editor: vscode.TextEditor): SelectionAndText {
     return selectionAndText(editor, cursorTextGetter.currentTopLevelFunction);
 }
