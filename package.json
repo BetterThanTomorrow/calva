@@ -877,7 +877,7 @@
                 "command": "calva.runCustomREPLCommand",
                 "title": "Run Custom REPL Command",
                 "category": "Calva",
-                "enablement": "calva:connected"
+                "enablement": "calva:connected && editorLangId == clojure"
             },
             {
                 "command": "calva.continueComment",
@@ -1941,284 +1941,284 @@
             },
             {
                 "command": "calva.runCustomREPLCommand",
-                "key": "ctrl+alt+space space",
-                "when": "calva:connected && calva:keybindingsEnabled"
-            },
-            {
-                "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space enter",
                 "args": "enter",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space ,",
                 "args": ",",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space .",
                 "args": ".",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space -",
                 "args": "-",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space backspace",
                 "args": "backspace",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space left",
                 "args": "left",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space right",
                 "args": "right",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space up",
                 "args": "up",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space down",
                 "args": "down",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space tab",
                 "args": "tab",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 0",
                 "args": "0",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 1",
                 "args": "1",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 2",
                 "args": "2",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 3",
                 "args": "3",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 4",
                 "args": "4",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 5",
                 "args": "5",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 6",
                 "args": "6",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 7",
                 "args": "7",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 8",
                 "args": "8",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space 9",
                 "args": "9",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space a",
                 "args": "a",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space b",
                 "args": "b",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space c",
                 "args": "c",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space d",
                 "args": "d",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space e",
                 "args": "e",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space f",
                 "args": "f",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space g",
                 "args": "g",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space h",
                 "args": "h",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space i",
                 "args": "i",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space j",
                 "args": "j",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space k",
                 "args": "k",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space l",
                 "args": "l",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space m",
                 "args": "m",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space n",
                 "args": "n",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space o",
                 "args": "o",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space p",
                 "args": "p",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space q",
                 "args": "q",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space r",
                 "args": "r",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space s",
                 "args": "s",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space t",
                 "args": "t",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space u",
                 "args": "u",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space v",
                 "args": "v",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space w",
                 "args": "w",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space x",
                 "args": "x",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space y",
                 "args": "y",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.runCustomREPLCommand",
                 "key": "ctrl+alt+space z",
                 "args": "z",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.runCustomREPLCommand",
+                "key": "ctrl+alt+space space",
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
                 "command": "calva.toggleBetweenImplAndTest",
