@@ -13,7 +13,7 @@ import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
-import { max } from 'lodash';
+import { max, takeWhile } from 'lodash';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
