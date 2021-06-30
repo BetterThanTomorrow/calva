@@ -31,18 +31,16 @@ export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
     return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
 }
 
-function topLevelFormOrStartOfFileToCursor(doc: EditableDocument, useTopLevelForm: boolean): RangeAndText {
-    const defunCursor = doc.getTokenCursor(0);
-    const defunRange = defunCursor.rangeForDefun(doc.selection.active, 0, !useTopLevelForm);
-    if (defunRange) {
+function rangeOrStartOfFileToCursor(doc: EditableDocument, foldRange: [number, number], startFrom: number): RangeAndText {
+    if (foldRange) {
         const closeBrackets: string[] = [];
         const bracketCursor = doc.getTokenCursor(doc.selection.active);
         bracketCursor.backwardWhitespace(true);
         const rangeEnd = bracketCursor.offsetStart;
-        while (bracketCursor.offsetStart !== defunRange[1] && bracketCursor.forwardList() && bracketCursor.upList()) {
+        while (bracketCursor.offsetStart !== foldRange[1] && bracketCursor.forwardList() && bracketCursor.upList()) {
             closeBrackets.push(bracketCursor.getPrevToken().raw);
         }
-        const range: [number, number] = [useTopLevelForm ? defunRange[0] : 0, rangeEnd];
+        const range: [number, number] = [startFrom, rangeEnd];
         return [range, doc.model.getText(...range) + closeBrackets.join('')];
     }
     return [undefined, ''];
@@ -50,9 +48,13 @@ function topLevelFormOrStartOfFileToCursor(doc: EditableDocument, useTopLevelFor
 
 
 export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
-    return topLevelFormOrStartOfFileToCursor(doc, true);
+    const defunCursor = doc.getTokenCursor(0);
+    const defunRange = defunCursor.rangeForDefun(doc.selection.active, 0);
+    return rangeOrStartOfFileToCursor(doc, defunRange, defunRange[0]);
 }
 
 export function startOfFileToCursor(doc: EditableDocument): RangeAndText {
-    return topLevelFormOrStartOfFileToCursor(doc, false);
+    const defunCursor = doc.getTokenCursor(0);
+    const defunRange = defunCursor.rangeForDefun(doc.selection.active, 0, false);
+    return rangeOrStartOfFileToCursor(doc, defunRange, 0);
 }
