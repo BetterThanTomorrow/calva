@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Workaround: [Paredit commands don't propagate to multiple cursors](https://github.com/BetterThanTomorrow/calva/issues/610)
+- Improvement: [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942)
 
 ## [2.0.202] - 2021-06-29
 - Fix: [Custom repl commands are not evaluated in specified ns if different than current ns](https://github.com/BetterThanTomorrow/calva/issues/1196)

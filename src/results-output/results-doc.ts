@@ -13,6 +13,7 @@ import * as replHistory from './repl-history';
 import * as docMirror from '../doc-mirror/index'
 import { PrintStackTraceCodelensProvider } from '../providers/codelense';
 import * as replSession from '../nrepl/repl-session';
+import { splitEditQueueForTextBatching } from './util';
 
 const RESULTS_DOC_NAME = `output.${config.REPL_FILE_EXT}`;
 
@@ -294,8 +295,15 @@ export function append(text: string, onAppended?: OnAppendedCallback): void {
                         onAppended(new vscode.Location(DOC_URI(), insertPosition),
                             new vscode.Location(DOC_URI(), doc.positionAt(Infinity)));
                     }
+                    
                     if (editQueue.length > 0) {
-                        return append.apply(null, editQueue.shift());
+                        const [textBatch, remainingEditQueue] = splitEditQueueForTextBatching(editQueue, 1000);                    
+                        if (textBatch.length > 0) {
+                            editQueue = remainingEditQueue;
+                            return append(textBatch.join('\n'));
+                        } else {
+                            return append.apply(null, editQueue.shift());
+                        }
                     }
                 });
             }
