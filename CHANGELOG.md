@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Custom repl commands show error if run from non-clojure file](https://github.com/BetterThanTomorrow/calva/issues/1203)
 - Improvement: [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942)
 
 ## [2.0.202] - 2021-06-29
