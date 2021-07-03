@@ -338,7 +338,7 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
         wsInsideCursor.backwardWhitespace(false);
         const wsStartOffset = wsInsideCursor.offsetStart;
         cursor.upList();
-        const wsOutSideCursor = cursor.clone();        
+        const wsOutSideCursor = cursor.clone();
         if (cursor.forwardSexp()) {
             wsOutSideCursor.forwardWhitespace(false);
             const wsEndOffset = wsOutSideCursor.offsetStart;
@@ -830,8 +830,8 @@ export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRi
         leftWsCursor = doc.getTokenCursor(leftWsRight),
         rightWsLeft = currentRange[1],
         rightWsCursor = doc.getTokenCursor(rightWsLeft);
-    leftWsCursor.backwardWhitespace();
-    rightWsCursor.forwardWhitespace();
+    leftWsCursor.backwardWhitespace(false);
+    rightWsCursor.forwardWhitespace(false);
     const leftWsLeft = leftWsCursor.offsetStart,
         leftWs = doc.model.getText(leftWsLeft, leftWsRight),
         leftWsHasNewline = leftWs.indexOf('\n') !== -1,
@@ -851,19 +851,22 @@ export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRi
 }
 
 export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRight) {
-    const wsInfo = collectWhitespaceInfo(doc, p),
-        cursor = doc.getTokenCursor(p),
-        currentRange = cursor.rangeForCurrentForm(p);
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const cursor = doc.getTokenCursor(p);
+    const currentRange = cursor.rangeForCurrentForm(p);
     if (cursor.backwardList() && cursor.backwardUpList()) {
-        const listStart = cursor.offsetStart,
-            newPosOffset = p - currentRange[0],
-            newCursorPos = listStart + newPosOffset,
-            listIndent = cursor.getToken().offset;
+        const listStart = cursor.offsetStart;
+        const newPosOffset = p - currentRange[0];
+        const newCursorPos = listStart + newPosOffset;
+        const listIndent = cursor.getToken().offset;
         let dragText: string,
             deleteEdit: ModelEdit;
         if (wsInfo.hasLeftWs) {
             dragText = doc.model.getText(...currentRange) + (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
-            deleteEdit = new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], currentRange[1] - wsInfo.leftWsRange[0]]);
+            const lineCommentCursor = doc.getTokenCursor(wsInfo.leftWsRange[0]);
+            const havePrecedingLineComment = lineCommentCursor.getPrevToken().type === 'comment';
+            const wsLeftStart = wsInfo.leftWsRange[0] + (havePrecedingLineComment ? 1 : 0);
+            deleteEdit = new ModelEdit('deleteRange', [wsLeftStart, currentRange[1] - wsInfo.leftWsRange[0]]);
         } else {
             dragText = doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
             deleteEdit = new ModelEdit('deleteRange', [currentRange[0], wsInfo.rightWsRange[1] - currentRange[0]]);

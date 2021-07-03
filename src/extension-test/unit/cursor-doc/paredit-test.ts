@@ -390,6 +390,12 @@ describe('paredit', () => {
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
+            it('Drags up without killing preceding line commments', () => {
+                const b = docFromTextNotation(`(;;foo•de|f foo [:foo :bar :baz])`);
+                const a = docFromTextNotation(`de|f•(;;foo•foo [:foo :bar :baz])`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
         });
         describe('backwardUp - multi-line', () => {
             it('Drags up from indented vector', () => {
@@ -410,6 +416,12 @@ describe('paredit', () => {
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
+            it('Drags up from indented vector w/o killing preceding comment', () => {
+                const b = docFromTextNotation(`((fn foo•  [x]•  [:foo•   ;; foo•   :b|ar•   :baz])• 1)`);
+                const a = docFromTextNotation(`((fn foo•  [x]•  :b|ar•  [:foo•   ;; foo•   :baz])• 1)`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
         });
         describe('forwardDown - one line', () => {
             it('Drags down into vector', () => {
@@ -424,6 +436,12 @@ describe('paredit', () => {
                 paredit.dragSexprForwardDown(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
+            it('Drags down into vector w/o killing line comments on the way', () => {
+                const b = docFromTextNotation(`(d|ef ;; foo• [:foo :bar :baz])`);
+                const a = docFromTextNotation(`(;; foo• [d|ef :foo :bar :baz])`);
+                paredit.dragSexprForwardDown(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
         });
         describe('forwardUp', () => {
             it('Drags forward out of vector', () => {
@@ -432,11 +450,23 @@ describe('paredit', () => {
                 paredit.dragSexprForwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
+            it('Drags forward out of vector w/o killing line comments on the way', () => {
+                const b = docFromTextNotation(`((fn foo [x] [:foo :b|ar ;; bar•])) :baz`);
+                const a = docFromTextNotation(`((fn foo [x] [:foo ;; bar•] :b|ar)) :baz`);
+                paredit.dragSexprForwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
         });
         describe('backwardDown', () => {
-            it('Drags down into list', () => {
+            it('Drags backward down into list', () => {
                 const b = docFromTextNotation(`((fn foo [x] [:foo :bar])) :b|az`);
                 const a = docFromTextNotation(`((fn foo [x] [:foo :bar]) :b|az)`);
+                paredit.dragSexprBackwardDown(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
+            it('Drags backward down into list w/o killing line comments on the way', () => {
+                const b = docFromTextNotation(`((fn foo [x] [:foo :bar])) ;; baz•:b|az`);
+                const a = docFromTextNotation(`((fn foo [x] [:foo :bar]) :b|az) ;; baz`);
                 paredit.dragSexprBackwardDown(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
