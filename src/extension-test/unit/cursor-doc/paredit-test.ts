@@ -366,127 +366,85 @@ describe('paredit', () => {
         });
 
         describe('backwardUp - one line', () => {
-            it('(def foo [:><foo :bar :baz]) => (def foo :><foo [:bar :baz])', () => {
-                const inKwFoo = 11;
-                doc.selection = new ModelEditSelection(inKwFoo);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('(def foo :foo [:bar :baz])');
-                expect(doc.selection).toEqual(new ModelEditSelection(10));
+            it('Drags up from start of vector', () => {
+                const b = docFromTextNotation(`(def foo [:|foo :bar :baz])`);
+                const a = docFromTextNotation(`(def foo :|foo [:bar :baz])`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('(def foo [:foo ><:bar :baz]) => (def foo ><:bar [:foo :baz])', () => {
-                const kwBarLeft = 15;
-                doc.selection = new ModelEditSelection(kwBarLeft);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('(def foo :bar [:foo :baz])');
-                expect(doc.selection).toEqual(new ModelEditSelection(9));
+            it('Drags up from middle of vector', () => {
+                const b = docFromTextNotation(`(def foo [:foo |:bar :baz])`);
+                const a = docFromTextNotation(`(def foo |:bar [:foo :baz])`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('(def foo [:foo :bar :baz><]) => (def foo :baz>< [:foo :bar])', () => {
-                const kwBazRight = 24;
-                doc.selection = new ModelEditSelection(kwBazRight);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('(def foo :baz [:foo :bar])');
-                expect(doc.selection).toEqual(new ModelEditSelection(13));
+            it('Drags up from end of vector', () => {
+                const b = docFromTextNotation(`(def foo [:foo :bar :baz|])`);
+                const a = docFromTextNotation(`(def foo :baz| [:foo :bar])`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('(d>|e>|f foo [:foo :bar :baz]) => de><f (foo [:foo :bar :baz])', () => {
-                const eSel = [2, 3];
-                doc.selection = new ModelEditSelection(eSel[0], eSel[1]);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('def (foo [:foo :bar :baz])');
-                expect(doc.selection).toEqual(new ModelEditSelection(2));
+            it('Drags up from start of list', () => {
+                const b = docFromTextNotation(`(d|e|f foo [:foo :bar :baz])`);
+                const a = docFromTextNotation(`de|f (foo [:foo :bar :baz])`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
         });
         describe('backwardUp - multi-line', () => {
-            const docText = '((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n 1)';
-            let doc: mock.MockDocument,
-                startSelection = new ModelEditSelection(0, 0);
-
-            beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
-                doc.selection = startSelection.clone();
+            it('Drags up from indented vector', () => {
+                const b = docFromTextNotation(`((fn foo•  [x]•  [|:foo•   :bar•   :baz])• 1)`);
+                const a = docFromTextNotation(`((fn foo•  [x]•  |:foo•  [:bar•   :baz])• 1)`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-
-            it('((fn foo\n  [x]\n  [><:foo\n   :bar\n   :baz])\n 1) => (fn foo\n  [x]\n  ><:foo\n  [:bar\n   :baz])\n(1)', () => {
-                const kwFoo = 18;
-                doc.selection = new ModelEditSelection(kwFoo);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('((fn foo\n  [x]\n  :foo\n  [:bar\n   :baz])\n 1)');
-                expect(doc.selection).toEqual(new ModelEditSelection(17));
+            it('Drags up from indented list', () => {
+                const b = docFromTextNotation(`(|(fn foo•  [x]•  [:foo•   :bar•   :baz])• 1)`);
+                const a = docFromTextNotation(`|(fn foo•  [x]•  [:foo•   :bar•   :baz])•(1)`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('(><(fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n 1) => ><(fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n(1)', () => {
-                const fnList = 1;
-                doc.selection = new ModelEditSelection(fnList);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('(fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n(1)');
-                expect(doc.selection).toEqual(new ModelEditSelection(0));
-            });
-            it('((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz])\n ><1) => ><1\n((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz]))', () => {
-                const one = 42;
-                doc.selection = new ModelEditSelection(one);
-                paredit.dragSexprBackwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('1\n((fn foo\n  [x]\n  [:foo\n   :bar\n   :baz]))');
-                expect(doc.selection).toEqual(new ModelEditSelection(0));
+            it('Drags up from end of indented list', () => {
+                const b = docFromTextNotation(`((fn foo•  [x]•  [:foo•   :bar•   :baz])• |1)`);
+                const a = docFromTextNotation(`|1•((fn foo•  [x]•  [:foo•   :bar•   :baz]))`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
         });
         describe('forwardDown - one line', () => {
-            it('(def f><oo [:foo :bar :baz]) => (def [f><oo :foo :bar :baz])', () => {
-                const inFoo = 6;
-                doc.selection = new ModelEditSelection(inFoo);
-                paredit.dragSexprForwardDown(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('(def [foo :foo :bar :baz])');
-                expect(doc.selection).toEqual(new ModelEditSelection(7));
+            it('Drags down into vector', () => {
+                const b = docFromTextNotation(`(def f|oo [:foo :bar :baz])`);
+                const a = docFromTextNotation(`(def [f|oo :foo :bar :baz])`);
+                paredit.dragSexprForwardDown(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-            it('(d>|ef>| foo [:foo :bar :baz]) => (foo [def>< :foo :bar :baz])', () => {
-                const eSel = [2, 4];
-                doc.selection = new ModelEditSelection(eSel[0], eSel[1]);
-                paredit.dragSexprForwardDown(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('(foo [def :foo :bar :baz])');
-                expect(doc.selection).toEqual(new ModelEditSelection(9));
+            it('Drags down into vector past sexpression on the same level', () => {
+                const b = docFromTextNotation(`(d|ef| foo [:foo :bar :baz])`);
+                const a = docFromTextNotation(`(foo [def| :foo :bar :baz])`);
+                paredit.dragSexprForwardDown(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
         });
         describe('forwardUp', () => {
-            const docText = '((fn foo [x] [:foo :bar])) :baz';
-            let doc: mock.MockDocument,
-                startSelection = new ModelEditSelection(0, 0);
-
-            beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
-                doc.selection = startSelection.clone();
-            });
-
-            it('((fn foo [x] [:foo :b><ar])) :baz => ((fn foo [x] [:foo] :b><ar)) :baz', () => {
-                const inBazKw = 21;
-                doc.selection = new ModelEditSelection(inBazKw);
-                paredit.dragSexprForwardUp(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('((fn foo [x] [:foo] :bar)) :baz');
-                expect(doc.selection).toEqual(new ModelEditSelection(22));
+            it('Drags forward out of vector', () => {
+                const b = docFromTextNotation(`((fn foo [x] [:foo :b|ar])) :baz`);
+                const a = docFromTextNotation(`((fn foo [x] [:foo] :b|ar)) :baz`);
+                paredit.dragSexprForwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
         });
         describe('backwardDown', () => {
-            const docText = '((fn foo [x] [:foo :bar])) :baz';
-            let doc: mock.MockDocument,
-                startSelection = new ModelEditSelection(0, 0);
-
-            beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
-                doc.selection = startSelection.clone();
+            it('Drags down into list', () => {
+                const b = docFromTextNotation(`((fn foo [x] [:foo :bar])) :b|az`);
+                const a = docFromTextNotation(`((fn foo [x] [:foo :bar]) :b|az)`);
+                paredit.dragSexprBackwardDown(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
-
-            it('((fn foo [x] [:foo :b><ar])) :baz => ((fn foo [x] [:foo :b><ar])) :baz', () => {
-                const inBazKw = 21;
-                doc.selection = new ModelEditSelection(inBazKw);
-                paredit.dragSexprBackwardDown(doc);
-                expect(doc.model.getText(0, Infinity)).toBe(docText);
-                expect(doc.selection).toEqual(new ModelEditSelection(21));
-            });
-            it('((fn foo [x] [:foo :bar])) :b><az => ((fn foo [x] [:foo :bar]) :b><az)', () => {
-                const inBazKw = 29;
-                doc.selection = new ModelEditSelection(inBazKw);
-                paredit.dragSexprBackwardDown(doc);
-                expect(doc.model.getText(0, Infinity)).toBe('((fn foo [x] [:foo :bar]) :baz)');
-                expect(doc.selection).toEqual(new ModelEditSelection(28));
+            it("Does not drag when can't drag down", () => {
+                const b = docFromTextNotation(`((fn foo [x] [:foo :b|ar])) :baz`);
+                const a = docFromTextNotation(`((fn foo [x] [:foo :b|ar])) :baz`);
+                paredit.dragSexprBackwardDown(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
         });
     });
@@ -809,7 +767,3 @@ describe('paredit', () => {
         });
     });
 });
-
-
-
-
