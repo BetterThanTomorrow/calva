@@ -1,6 +1,6 @@
 # Calva Merch
 
-In this video, I (PEZ) was asked where you can buy the Calva T-shirt I am wearing:
+In this video, there is a question about where you can buy the Calva T-shirt:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/NIk5hVzA_fY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -46,6 +46,16 @@ Available at:
 
 * [https://www.amazon.com/dp/B098D8LF4D](https://www.amazon.com/dp/B098D8LF4D)
 * [https://www.amazon.de/dp/B098F7ZXDB](https://www.amazon.de/dp/B098F7ZXDB)
+
+### We do it with Rich Comments 2
+
+The Calva symbol front, Rich Comments Back.
+
+![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-rich-comments-2.png)
+
+Available at:
+
+* [https://www.amazon.com/dp/B098M34FKJ](https://www.amazon.com/dp/B098M34FKJ)
 
 
 !!! Note
