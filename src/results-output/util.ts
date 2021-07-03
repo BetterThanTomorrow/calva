@@ -1,3 +1,6 @@
+import { takeWhile } from "lodash";
+import { OnAppendedCallback } from "./results-doc";
+
 function addToHistory(history: string[], content: string): string[] {
     if (content) {
         const entry = content.trim();
@@ -14,7 +17,16 @@ function formatAsLineComments(error: string): string {
     return `; ${error.trim().replace(/\n\r?/, '\n; ')}`;
 }
 
+function splitEditQueueForTextBatching(editQueue: [string, OnAppendedCallback][], maxBatchSize: number = 1000): [String[], [string, OnAppendedCallback][]]  {
+    const textBatch = takeWhile(editQueue, (value, index) => {
+        return index < maxBatchSize && !value[1];
+    }).map(value => value[0]);
+    const remainingEditQueue = [...editQueue].slice(textBatch.length);
+    return [textBatch, remainingEditQueue]
+}
+
 export {
     addToHistory,
-    formatAsLineComments
+    formatAsLineComments,
+    splitEditQueueForTextBatching
 };
