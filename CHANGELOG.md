@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.203] - 2021-07-04
 - Fix: [Custom repl commands show error if run from non-clojure file](https://github.com/BetterThanTomorrow/calva/issues/1203)
 - Improvement: [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942)
 - Fix: [Paredit drag up/down kills line comments](https://github.com/BetterThanTomorrow/calva/issues/1222)
