@@ -392,7 +392,13 @@ describe('paredit', () => {
             });
             it('Drags up without killing preceding line commments', () => {
                 const b = docFromTextNotation(`(;;foo•de|f foo [:foo :bar :baz])`);
-                const a = docFromTextNotation(`de|f•(;;foo•foo [:foo :bar :baz])`);
+                const a = docFromTextNotation(`de|f•(;;foo• foo [:foo :bar :baz])`);
+                paredit.dragSexprBackwardUp(b);
+                expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
+            });
+            it('Drags up without killing preceding line commments or trailing parens', () => {
+                const b = docFromTextNotation(`(def ;; foo•  |:foo)`);
+                const a = docFromTextNotation(`|:foo•(def ;; foo•)`);
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });
@@ -418,7 +424,7 @@ describe('paredit', () => {
             });
             it('Drags up from indented vector w/o killing preceding comment', () => {
                 const b = docFromTextNotation(`((fn foo•  [x]•  [:foo•   ;; foo•   :b|ar•   :baz])• 1)`);
-                const a = docFromTextNotation(`((fn foo•  [x]•  :b|ar•  [:foo•   ;; foo•   :baz])• 1)`);
+                const a = docFromTextNotation(`((fn foo•  [x]•  :b|ar•  [:foo•   ;; foo••   :baz])• 1)`);
                 paredit.dragSexprBackwardUp(b);
                 expect(textAndSelection(b)).toStrictEqual(textAndSelection(a));
             });

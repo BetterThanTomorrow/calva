@@ -866,7 +866,7 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRigh
             const lineCommentCursor = doc.getTokenCursor(wsInfo.leftWsRange[0]);
             const havePrecedingLineComment = lineCommentCursor.getPrevToken().type === 'comment';
             const wsLeftStart = wsInfo.leftWsRange[0] + (havePrecedingLineComment ? 1 : 0);
-            deleteEdit = new ModelEdit('deleteRange', [wsLeftStart, currentRange[1] - wsInfo.leftWsRange[0]]);
+            deleteEdit = new ModelEdit('deleteRange', [wsLeftStart, currentRange[1] - wsLeftStart]);
         } else {
             dragText = doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
             deleteEdit = new ModelEdit('deleteRange', [currentRange[0], wsInfo.rightWsRange[1] - currentRange[0]]);
