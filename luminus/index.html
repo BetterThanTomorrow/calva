@@ -951,7 +951,7 @@
 <p>Basically this is the same wokflow as with <strong>Server only</strong>. Behind the scenes there is more happening, though. Such as the ClojureScript app being built and the CLJS REPL connected once the web app is running.</p>
 <ol>
 <li>If you haven't created the project yet, create a new shadow-cljs Luminus project. E.g.:
-    <div class="highlight"><pre><span></span><code>$ lein new luminus my-luminus-shadow +reagent +shadow-cljs
+    <div class="highlight"><pre><span></span><code>$ lein new luminus my-luminus-shadow +reagent +re-frame +shadow-cljs
 </code></pre></div></li>
 <li>Install npm dependencies
     <div class="highlight"><pre><span></span><code>$ npm i
@@ -961,7 +961,7 @@
     <div class="highlight"><pre><span></span><code>$ code my-luminus-shadow
 </code></pre></div></li>
 <li>Use the Calva command <strong>Start a Project REPL and Connect (aka Jack-in)</strong>: <code>ctrl+alt+c ctrl+alt+j</code></li>
-<li>Select to start <strong>Server + Client – my-luminus-shadow</strong>, and wait for the <em>Terminal</em> <strong>Calva Jack-in</strong> output to say <code>[:app] Build completed.</code></li>
+<li>Select to start <strong>my-luminus-shadow Server + Client</strong>, and wait for the <em>Terminal</em> <strong>Calva Jack-in</strong> output to say <code>[:app] Build completed.</code></li>
 <li>Open <a href="http://127.0.0.1:3000">127.0.0.1:3000</a> in your web browser and start hacking.</li>
 </ol>
 <div class="admonition note">
@@ -977,7 +977,10 @@
 <li>This creates the folder <code>my-luminus-server</code>. Open it in VS Code:
     <div class="highlight"><pre><span></span><code>$ code my-luminus-server
 </code></pre></div></li>
-<li>Use the Calva command <strong>Start a Project REPL and Connect (aka Jack-in)</strong>: <code>ctrl+alt+c ctrl+alt+j</code> and wait until you see <code>Jack-in done.</code> in the output window.</li>
+<li>Use the Calva command <strong>Start a Project REPL and Connect (aka Jack-in)</strong>: <code>ctrl+alt+c ctrl+alt+j</code><ul>
+<li>Select to start <strong>my-luminus-shadow Server</strong> and wait until you see <code>Jack-in done.</code> in the output window.</li>
+</ul>
+</li>
 <li>Open <a href="http://127.0.0.1:3000">127.0.0.1:3000</a> in your web browser and start hacking.</li>
 </ol>
 <h2 id="server-figwheel">Server + Figwheel</h2>
