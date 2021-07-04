@@ -12,7 +12,7 @@ Basically this is the same wokflow as with **Server only**. Behind the scenes th
 
 0. If you haven't created the project yet, create a new shadow-cljs Luminus project. E.g.:
     ```sh
-    $ lein new luminus my-luminus-shadow +reagent +shadow-cljs
+    $ lein new luminus my-luminus-shadow +reagent +re-frame +shadow-cljs
     ```
 0. Install npm dependencies
     ```sh
@@ -24,7 +24,7 @@ Basically this is the same wokflow as with **Server only**. Behind the scenes th
     $ code my-luminus-shadow
     ```
 0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`
-   * Select to start **Server + Client – my-luminus-shadow**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
+   * Select to start **my-luminus-shadow Server + Client**, and wait for the _Terminal_ **Calva Jack-in** output to say `[:app] Build completed.`
 0. Open [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
 
 !!! Note
@@ -42,7 +42,8 @@ The workflow here is really just: Jack-in and start hacking. However, the first 
     ```sh
     $ code my-luminus-server
     ```
-0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j` and wait until you see `Jack-in done.` in the output window.
+0. Use the Calva command **Start a Project REPL and Connect (aka Jack-in)**: `ctrl+alt+c ctrl+alt+j`
+    * Select to start **my-luminus-shadow Server** and wait until you see `Jack-in done.` in the output window.
 0. Open [127.0.0.1:3000](http://127.0.0.1:3000) in your web browser and start hacking.
 
 ## Server + Figwheel
