@@ -47,7 +47,7 @@ Available at:
 * [https://www.amazon.com/dp/B098D8LF4D](https://www.amazon.com/dp/B098D8LF4D)
 * [https://www.amazon.de/dp/B098F7ZXDB](https://www.amazon.de/dp/B098F7ZXDB)
 
-### We do it with Rich Comments 2
+### Symbol + We do it with Rich Comments
 
 The Calva symbol front, Rich Comments Back.
 
@@ -56,6 +56,7 @@ The Calva symbol front, Rich Comments Back.
 Available at:
 
 * [https://www.amazon.com/dp/B098M34FKJ](https://www.amazon.com/dp/B098M34FKJ)
+* [https://www.amazon.de/dp/B098MF14PV](https://www.amazon.de/dp/B098MF14PV)
 
 
 !!! Note
