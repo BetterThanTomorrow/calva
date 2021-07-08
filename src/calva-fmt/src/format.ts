@@ -49,6 +49,7 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
     const mirroredDoc: MirroredDocument = getDocument(doc);
     const cursor = mirroredDoc.getTokenCursor(index);
     const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
+    const isFormattingComment = cursor.getFunctionName() === 'comment';
     let formatRange = cursor.rangeForList(formatDepth);
     if (!formatRange) {
         formatRange = cursor.rangeForCurrentForm(index);
@@ -60,7 +61,7 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
         "range-text": string,
         "range": number[],
         "new-index": number
-    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, extraConfig);
+    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, isFormattingComment, extraConfig);
     const range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1]));
     const newIndex: number = doc.offsetAt(range.start) + formatted["new-index"];
     const previousText: string = doc.getText(range);
@@ -124,12 +125,13 @@ export function formatCode(code: string, eol: number) {
     }
 }
 
-function _formatIndex(allText: string, range: [number, number], index: number, eol: string, onType: boolean = false, extraConfig = {}): { "range-text": string, "range": number[], "new-index": number } {
+function _formatIndex(allText: string, range: [number, number], index: number, eol: string, onType: boolean = false, isFormattingComment: boolean, extraConfig = {}): { "range-text": string, "range": number[], "new-index": number } {
     const d = cljify({
         "all-text": allText,
         "idx": index,
         "eol": eol,
         "range": range,
+        "formatting-comment?": isFormattingComment,
         "config": { ...config.getConfig(), ...extraConfig }
     }),
         result = jsify(onType ? formatTextAtIdxOnType(d) : formatTextAtIdx(d));
