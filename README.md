@@ -177,6 +177,7 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars.githubusercontent.com/u/316381" width="32" alt="Kailashnath">](https://github.com/kailashnath)
 [<img src="https://avatars.githubusercontent.com/u/1596350" width="32" alt="Russell Matney">](https://github.com/russmatney)
 [<img src="https://avatars.githubusercontent.com/u/45542" width="32" alt="Bertrand Cachet">](https://github.com/bcachet)
+[<img src="https://avatars.githubusercontent.com/u/293162" width="32" alt="José Diaz Seng">](https://github.com/joseds)
 
 ## The Calva Team
 

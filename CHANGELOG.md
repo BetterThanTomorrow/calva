@@ -4,7 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 - Workaround: [Paredit commands don't propagate to multiple cursors](https://github.com/BetterThanTomorrow/calva/issues/610)
+
+## [2.0.203] - 2021-07-04
+- Fix: [Custom repl commands show error if run from non-clojure file](https://github.com/BetterThanTomorrow/calva/issues/1203)
 - Improvement: [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942)
+- Fix: [Paredit drag up/down kills line comments](https://github.com/BetterThanTomorrow/calva/issues/1222)
+- Bump clojure-lsp [2021.07.01-13.46.18](https://github.com/clojure-lsp/clojure-lsp/releases/tag/2021.07.01-13.46.18)
 
 ## [2.0.202] - 2021-06-29
 - Fix: [Custom repl commands are not evaluated in specified ns if different than current ns](https://github.com/BetterThanTomorrow/calva/issues/1196)

@@ -1,14 +1,21 @@
 # Calva Merch
 
-I (PEZ) was asked where you can buy the Calva T-shirt I am wearing in this video:
+In this video, there is a question about where you can buy the Calva T-shirt:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/NIk5hVzA_fY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 You couldn't, then. But now you can! On Amazon.
 
+## Zero profit
+
+To keep the admin of this shop to a minimum the merch is sold at production prize. There is no royalty going to anyone in the Calva team when you buy one of these t-shirts. You will represent, which is certainly a way to support the project. You are of course encouraged to support us via sponsoring as well:
+
+* [Sponsor Peter Strömberg](https://github.com/sponsors/PEZ)
+* [Sponsor Brandon Ringe](https://github.com/sponsors/bpringe)
+
 ## The designs
 
-These are the two designs you will find, in some different colors:
+These are the three designs you will find, in some different colors:
 
 ### Symbol + Logo
 
@@ -17,7 +24,9 @@ These are the two designs you will find, in some different colors:
 This t-shirt is currently available at:
 
 * [https://www.amazon.com/dp/B097JJ4W63](https://www.amazon.com/dp/B097JJ4W63)
-* [https://www.amazon.de/dp/B097Q7V8PL](https://www.amazon.de/dp/B097Q7V8PL)
+* [https://www.amazon.de/dp/B098GWQC6M](https://www.amazon.de/dp/B098GWQC6M)
+* [https://www.amazon.co.uk/dp/B098KM9XMF9](https://www.amazon.co.uk/dp/B098KM9XMF)
+* [https://www.amazon.co.jp/dp/B097YZVMC4](https://www.amazon.co.jp/dp/B097YZVMC4)
 
 ### Symbol Only
 
@@ -25,7 +34,29 @@ This t-shirt is currently available at:
 
 Available at:
 
-* [https://www.amazon.co.uk/dp/B097J7JRSK](https://www.amazon.co.uk/dp/B097J7JRSK)
+* [https://www.amazon.com/dp/B097TB5QFW](https://www.amazon.com/dp/B097TB5QFW)
+* [https://www.amazon.co.uk/dp/B098KNGPBB](https://www.amazon.co.uk/dp/B098KNGPBB)
+* [https://www.amazon.de/dp/B098434W9M](https://www.amazon.de/dp/B098434W9M)
+
+### We do it with Rich Comments
+
+![Calva T-shirt We do it with Rich Comments](/images/merch/t-shirt-rich-comments.png)
+
+Available at:
+
+* [https://www.amazon.com/dp/B098D8LF4D](https://www.amazon.com/dp/B098D8LF4D)
+* [https://www.amazon.de/dp/B098F7ZXDB](https://www.amazon.de/dp/B098F7ZXDB)
+
+### Symbol + We do it with Rich Comments
+
+The Calva symbol front, Rich Comments Back.
+
+![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-rich-comments-2.png)
+
+Available at:
+
+* [https://www.amazon.com/dp/B098M34FKJ](https://www.amazon.com/dp/B098M34FKJ)
+* [https://www.amazon.de/dp/B098MF14PV](https://www.amazon.de/dp/B098MF14PV)
 
 
 !!! Note

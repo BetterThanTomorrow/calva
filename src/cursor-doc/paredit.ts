@@ -338,7 +338,7 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
         wsInsideCursor.backwardWhitespace(false);
         const wsStartOffset = wsInsideCursor.offsetStart;
         cursor.upList();
-        const wsOutSideCursor = cursor.clone();        
+        const wsOutSideCursor = cursor.clone();
         if (cursor.forwardSexp()) {
             wsOutSideCursor.forwardWhitespace(false);
             const wsEndOffset = wsOutSideCursor.offsetStart;
@@ -824,20 +824,20 @@ export type WhitespaceInfo = {
  * @param p the position in `doc` from where to determine the current form
  */
 export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRight): WhitespaceInfo {
-    const cursor = doc.getTokenCursor(p),
-        currentRange = cursor.rangeForCurrentForm(p),
-        leftWsRight = currentRange[0],
-        leftWsCursor = doc.getTokenCursor(leftWsRight),
-        rightWsLeft = currentRange[1],
-        rightWsCursor = doc.getTokenCursor(rightWsLeft);
-    leftWsCursor.backwardWhitespace();
-    rightWsCursor.forwardWhitespace();
-    const leftWsLeft = leftWsCursor.offsetStart,
-        leftWs = doc.model.getText(leftWsLeft, leftWsRight),
-        leftWsHasNewline = leftWs.indexOf('\n') !== -1,
-        rightWsRight = rightWsCursor.offsetStart,
-        rightWs = doc.model.getText(rightWsLeft, rightWsRight),
-        rightWsHasNewline = rightWs.indexOf('\n') !== -1;;
+    const cursor = doc.getTokenCursor(p);
+    const currentRange = cursor.rangeForCurrentForm(p);
+    const leftWsRight = currentRange[0];
+    const leftWsCursor = doc.getTokenCursor(leftWsRight);
+    const rightWsLeft = currentRange[1];
+    const rightWsCursor = doc.getTokenCursor(rightWsLeft);
+    leftWsCursor.backwardWhitespace(false);
+    rightWsCursor.forwardWhitespace(false);
+    const leftWsLeft = leftWsCursor.offsetStart;
+    const leftWs = doc.model.getText(leftWsLeft, leftWsRight);
+    const leftWsHasNewline = leftWs.indexOf('\n') !== -1;
+    const rightWsRight = rightWsCursor.offsetStart;
+    const rightWs = doc.model.getText(rightWsLeft, rightWsRight);
+    const rightWsHasNewline = rightWs.indexOf('\n') !== -1;
     return {
         hasLeftWs: leftWs !== '',
         leftWsRange: [leftWsLeft, leftWsRight],
@@ -851,19 +851,22 @@ export function collectWhitespaceInfo(doc: EditableDocument, p = doc.selectionRi
 }
 
 export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRight) {
-    const wsInfo = collectWhitespaceInfo(doc, p),
-        cursor = doc.getTokenCursor(p),
-        currentRange = cursor.rangeForCurrentForm(p);
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const cursor = doc.getTokenCursor(p);
+    const currentRange = cursor.rangeForCurrentForm(p);
     if (cursor.backwardList() && cursor.backwardUpList()) {
-        const listStart = cursor.offsetStart,
-            newPosOffset = p - currentRange[0],
-            newCursorPos = listStart + newPosOffset,
-            listIndent = cursor.getToken().offset;
+        const listStart = cursor.offsetStart;
+        const newPosOffset = p - currentRange[0];
+        const newCursorPos = listStart + newPosOffset;
+        const listIndent = cursor.getToken().offset;
         let dragText: string,
             deleteEdit: ModelEdit;
         if (wsInfo.hasLeftWs) {
             dragText = doc.model.getText(...currentRange) + (wsInfo.leftWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
-            deleteEdit = new ModelEdit('deleteRange', [wsInfo.leftWsRange[0], currentRange[1] - wsInfo.leftWsRange[0]]);
+            const lineCommentCursor = doc.getTokenCursor(wsInfo.leftWsRange[0]);
+            const havePrecedingLineComment = lineCommentCursor.getPrevToken().type === 'comment';
+            const wsLeftStart = wsInfo.leftWsRange[0] + (havePrecedingLineComment ? 1 : 0);
+            deleteEdit = new ModelEdit('deleteRange', [wsLeftStart, currentRange[1] - wsLeftStart]);
         } else {
             dragText = doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' + ' '.repeat(listIndent) : ' ');
             deleteEdit = new ModelEdit('deleteRange', [currentRange[0], wsInfo.rightWsRange[1] - currentRange[0]]);
@@ -880,20 +883,19 @@ export function dragSexprBackwardUp(doc: EditableDocument, p = doc.selectionRigh
 }
 
 export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRight) {
-    const wsInfo = collectWhitespaceInfo(doc, p),
-        currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p),
-        newPosOffset = p - currentRange[0],
-        cursor = doc.getTokenCursor(currentRange[0]);
+    const wsInfo = collectWhitespaceInfo(doc, p)
+    const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+    const newPosOffset = p - currentRange[0];
+    const cursor = doc.getTokenCursor(currentRange[0]);
     while (cursor.forwardSexp()) {
         cursor.forwardWhitespace();
         const token = cursor.getToken();
         if (token.type === 'open') {
-            const listStart = cursor.offsetStart,
-                deleteLength = wsInfo.rightWsRange[1] - currentRange[0],
-                insertStart = listStart + token.raw.length,
-                newCursorPos = insertStart - deleteLength + newPosOffset;
-            let insertText = doc.model.getText(...currentRange);
-            insertText += wsInfo.rightWsHasNewline ? '\n' : ' ';
+            const listStart = cursor.offsetStart;
+            const deleteLength = wsInfo.rightWsRange[1] - currentRange[0];
+            const insertStart = listStart + token.raw.length;
+            const newCursorPos = insertStart - deleteLength + newPosOffset;
+            const insertText = doc.model.getText(...currentRange) + (wsInfo.rightWsHasNewline ? '\n' : ' ');
             doc.model.edit([
                 new ModelEdit('insertString', [insertStart, insertText, [p, p], [newCursorPos, newCursorPos]]),
                 new ModelEdit('deleteRange', [currentRange[0], deleteLength])
@@ -908,16 +910,16 @@ export function dragSexprForwardDown(doc: EditableDocument, p = doc.selectionRig
 }
 
 export function dragSexprForwardUp(doc: EditableDocument, p = doc.selectionRight) {
-    const wsInfo = collectWhitespaceInfo(doc, p),
-        cursor = doc.getTokenCursor(p),
-        currentRange = cursor.rangeForCurrentForm(p);
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const cursor = doc.getTokenCursor(p);
+    const currentRange = cursor.rangeForCurrentForm(p);
     if (cursor.forwardList() && cursor.upList()) {
-        const listEnd = cursor.offsetStart,
-            newPosOffset = p - currentRange[0],
-            listWsInfo = collectWhitespaceInfo(doc, listEnd),
-            dragText = (listWsInfo.rightWsHasNewline ? '\n' : ' ') + doc.model.getText(...currentRange);
-        let deleteStart = wsInfo.leftWsRange[0],
-            deleteLength = currentRange[1] - deleteStart;
+        const listEnd = cursor.offsetStart;
+        const newPosOffset = p - currentRange[0];
+        const listWsInfo = collectWhitespaceInfo(doc, listEnd);
+        const dragText = (listWsInfo.rightWsHasNewline ? '\n' : ' ') + doc.model.getText(...currentRange);
+        let deleteStart = wsInfo.leftWsRange[0];
+        let deleteLength = currentRange[1] - deleteStart;
         if (wsInfo.hasRightWs) {
             deleteStart = currentRange[0];
             deleteLength = wsInfo.rightWsRange[1] - deleteStart;
@@ -935,10 +937,10 @@ export function dragSexprForwardUp(doc: EditableDocument, p = doc.selectionRight
 }
 
 export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRight) {
-    const wsInfo = collectWhitespaceInfo(doc, p),
-        currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p),
-        newPosOffset = p - currentRange[0],
-        cursor = doc.getTokenCursor(currentRange[1]);
+    const wsInfo = collectWhitespaceInfo(doc, p);
+    const currentRange = doc.getTokenCursor(p).rangeForCurrentForm(p);
+    const newPosOffset = p - currentRange[0];
+    const cursor = doc.getTokenCursor(currentRange[1]);
     while (cursor.backwardSexp()) {
         cursor.backwardWhitespace();
         const token = cursor.getPrevToken();
@@ -946,10 +948,10 @@ export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRi
             cursor.previous();
             const listEnd = cursor.offsetStart;
             cursor.backwardWhitespace();
-            const siblingWsInfo = collectWhitespaceInfo(doc, cursor.offsetStart),
-                deleteLength = currentRange[1] - wsInfo.leftWsRange[0],
-                insertStart = listEnd,
-                newCursorPos = insertStart + newPosOffset + 1;
+            const siblingWsInfo = collectWhitespaceInfo(doc, cursor.offsetStart);
+            const deleteLength = currentRange[1] - wsInfo.leftWsRange[0];
+            const insertStart = listEnd;
+            const newCursorPos = insertStart + newPosOffset + 1;
             let insertText = doc.model.getText(...currentRange);
             insertText = (siblingWsInfo.leftWsHasNewline ? '\n' : ' ') + insertText;
             doc.model.edit([

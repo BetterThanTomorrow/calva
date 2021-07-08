@@ -27,7 +27,7 @@ Indicator | Paredit Mode
 `(λ)`     | Cave Man (strict mode off)
  `λ`      | No default key bindings
 
-Toggle bewteen Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
+Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
 ### Prevent Unbalanced Closing Brackets
 
