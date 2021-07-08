@@ -122,7 +122,7 @@ bar))")
   (is (= 8
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n)" :range [0 8] :idx 6}))))
   #_(is (= 8 ;; Fails due to a bug in rewrite-cljs
-         (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :range [0 10] :idx 6}))))
+           (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn\n\n#_)" :range [0 10] :idx 6}))))
   (is (= 9
          (:new-index (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(defn \n)" :range [0 8] :idx 7}))))
   (is (= 7
@@ -154,7 +154,7 @@ bar))")
          (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(defn \r\n\r\n)" :range [0 11] :idx 10}))))
   (is (= 15
          (:new-index (sut/format-text-at-idx-on-type {:eol "\r\n" :all-text "(foo\r\n (bar)\r\n)" :range [0 15] :idx 14})))))
-  
+
 
 (deftest index-for-tail-in-range
   (is (= 7
@@ -208,6 +208,31 @@ bar))" :range [22 25]})))
 [])" :range [4 9]}))))
 
 
+(deftest read-cljfmt
+  (is (= (count cljfmt/default-indents)
+         (count (:indents (sut/read-cljfmt "{}"))))
+      "by default uses cljfmt indent rules")
+  (is (= (+ 2 (count cljfmt/default-indents))
+         (count (:indents (sut/read-cljfmt "{:indents {foo [[:inner 0]] bar [[:block 1]]}}"))))
+      "merges indents on top of cljfmt indent rules")
+  (is (= {'a [[:inner 0]]}
+         (:indents (sut/read-cljfmt "{:indents ^:replace {a [[:inner 0]]}}")))
+      "with :replace metadata hint overrides default indents")
+  (is (= false
+         (:align-associative? (sut/read-cljfmt "{}")))
+      ":align-associative? is false by default.")
+  (is (= true
+         (:align-associative? (sut/read-cljfmt "{:align-associative? true}")))
+      "including keys in cljfmt such as :align-associative? will override defaults.")
+  (is (= true
+         (:remove-surrounding-whitespace? (sut/read-cljfmt "{}")))
+      ":remove-surrounding-whitespace? is true by default.")
+  (is (= false
+         (:remove-surrounding-whitespace? (sut/read-cljfmt "{:remove-surrounding-whitespace? false}")))
+      "including keys in cljfmt such as :remove-surrounding-whitespace? will override defaults.")
+  (is (nil? (:foo (sut/read-cljfmt "{:bar false}")))
+      "most keys don't have any defaults."))
+
 (deftest cljfmt-options
   (is (= (count cljfmt/default-indents)
          (count (:indents (sut/cljfmt-options {}))))
@@ -221,4 +246,9 @@ bar))" :range [22 25]})))
   (is (= true
          (:align-associative? (sut/cljfmt-options {:align-associative? true
                                                    :cljfmt-string "{:align-associative? false}"})))
-      "cljfmt :align-associative? has lower priority than config's option"))
+      "cljfmt :align-associative? has lower priority than config's option")
+  (is (= false
+         (:align-associative? (sut/cljfmt-options {:cljfmt-string "{}"})))
+      ":align-associative? is false by default")
+  (is (nil? (:foo (sut/read-cljfmt {:cljfmt-string "{:bar false}"})))
+      "most keys don't have any defaults."))

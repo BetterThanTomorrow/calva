@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Calva formatting defaults do not get applied when including any kind of .cljfmt.edn config](https://github.com/BetterThanTomorrow/calva/issues/1228)
+- Workaround: [Paredit commands don't propagate to multiple cursors](https://github.com/BetterThanTomorrow/calva/issues/610)
 
 ## [2.0.203] - 2021-07-04
 - Fix: [Custom repl commands show error if run from non-clojure file](https://github.com/BetterThanTomorrow/calva/issues/1203)

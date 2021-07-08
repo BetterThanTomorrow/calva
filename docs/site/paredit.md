@@ -27,7 +27,7 @@ Indicator | Paredit Mode
 `(λ)`     | Cave Man (strict mode off)
  `λ`      | No default key bindings
 
-Toggle bewteen Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
+Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
 ### Prevent Unbalanced Closing Brackets
 
@@ -131,6 +131,8 @@ You can relax how Paredit's shortcuts replace VS Code built in shortcuts a bit b
 There are some context keys you can utilize to configure keyboard shortcuts with precision. See [Customizing Keyboard Shortcuts](customizing.md#when-clause-contexts).
 
 *The Nuclear Option*: You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
+
+In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
 
 Happy Editing! ❤️
