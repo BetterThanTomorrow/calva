@@ -34,7 +34,7 @@ You configure Calva's formatting using [cljfmt's configuration EDN](https://gith
 !!! Note
     The `cljfmt` docs mention the `:cljfmt` config key of Leiningen projects. Calva does not yet read the config from there, so if your Leiningen project has such a configuration, you will need to copy it out into a file.
 
-To start changing the defaults, paste the following map into a file and save it. It could be somewhere in the project workspace, or some other place, dependig on your requirements:
+To start changing the Calva formatting defaults, paste the following map into a file and save it. It could be somewhere in the project workspace, or some other place, depending on your requirements:
 
 ```clojure
 {:remove-surrounding-whitespace? true

@@ -14,13 +14,21 @@
     indents
     (merge cljfmt/default-indents indents)))
 
+(def ^:private default-fmt
+  {:remove-surrounding-whitespace? true
+   :remove-trailing-whitespace? true
+   :remove-consecutive-blank-lines? false
+   :insert-missing-whitespace? true
+   :align-associative? false})
+
 (defn- read-cljfmt
   [s]
-  #_ (println "*** parsing config")
+  #_(println "*** parsing config")
   (try
-    (-> s
-        (parse-clj-edn) 
-        (update :indents merge-default-indents))
+    (as-> s $
+      (parse-clj-edn $)
+      (update $ :indents merge-default-indents)
+      (merge default-fmt $))
     (catch js/Error e
       {:error (.-message e)})))
 
@@ -44,7 +52,7 @@
     (catch js/Error e
       (assoc m :error (.-message e)))))
 
-(defn format-text-bridge 
+(defn format-text-bridge
   [m]
   (format-text m))
 
@@ -146,8 +154,8 @@
                          :tail "[])"
                          :current-line "[])"
                          :range [4 9]})
-  (format-text-at-range {:eol "\n" 
-                         :all-text "[:foo\n\n(foo)(bar)]" 
+  (format-text-at-range {:eol "\n"
+                         :all-text "[:foo\n\n(foo)(bar)]"
                          :idx 6
                          :range [0 18]}))
 
@@ -157,7 +165,7 @@
   [{:keys [head tail range] :as m}]
   (let [indent-token "0"]
     (if (current-line-empty? m)
-      (assoc m 
+      (assoc m
              :all-text (str head indent-token tail)
              :range [(first range) (inc (last range))])
       m)))
@@ -205,9 +213,9 @@
 (comment
   (:range-text (format-text-at-idx-on-type {:all-text "  '([]\n[])" :idx 7})))
 
-(comment 
- {:remove-surrounding-whitespace? false
-  :remove-trailing-whitespace? false
-  :remove-consecutive-blank-lines? false
-  :insert-missing-whitespace? true
-  :align-associative? true})
+(comment
+  {:remove-surrounding-whitespace? false
+   :remove-trailing-whitespace? false
+   :remove-consecutive-blank-lines? false
+   :insert-missing-whitespace? true
+   :align-associative? true})
