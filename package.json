@@ -590,6 +590,11 @@
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "Use the structural editor for indentation (instead of `cljfmt`)."
+                    },
+                    "calva.fmt.keepCommentTrailParenOnOwnLine": {
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "Treat `(comment...)` forms special and keep its closing paren on a line of its own."
                     }
                 }
             },
