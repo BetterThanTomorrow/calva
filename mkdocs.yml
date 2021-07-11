@@ -32,6 +32,7 @@ nav:
   - Features:
     - commands-top10.md
     - evaluation.md
+    - rich-comments.md
     - output.md
     - formatting.md
     - paredit.md

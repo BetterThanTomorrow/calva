@@ -49,6 +49,8 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
     const mirroredDoc: MirroredDocument = getDocument(doc);
     const cursor = mirroredDoc.getTokenCursor(index);
     const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
+    const isComment = cursor.getFunctionName() === 'comment';
+    const config = {...extraConfig, "comment-form?": isComment};
     let formatRange = cursor.rangeForList(formatDepth);
     if (!formatRange) {
         formatRange = cursor.rangeForCurrentForm(index);
@@ -60,7 +62,7 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
         "range-text": string,
         "range": number[],
         "new-index": number
-    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, extraConfig);
+    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, config);
     const range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1]));
     const newIndex: number = doc.offsetAt(range.start) + formatted["new-index"];
     const previousText: string = doc.getText(range);

@@ -67,6 +67,9 @@
                          :remove-trailing-whitespace? false
                          :remove-consecutive-blank-lines? false
                          :align-associative? true}}))
+(defn extract-range-text
+  [{:keys [all-text range]}]
+  (subs all-text (first range) (last range)))
 
 (defn current-line-empty?
   "Figure out if `:current-line` is empty"
@@ -131,10 +134,10 @@
 
 (defn format-text-at-range
   "Formats text from all-text at the range"
-  [{:keys [all-text range idx] :as m}]
+  [{:keys [range idx] :as m}]
   (let [indent-before (indent-before-range m)
         padding (apply str (repeat indent-before " "))
-        range-text (subs all-text (first range) (last range))
+        range-text (extract-range-text m)
         padded-text (str padding range-text)
         range-index (- idx (first range))
         tail (subs range-text range-index)
@@ -163,11 +166,13 @@
 (defn add-indent-token-if-empty-current-line
   "If `:current-line` is empty add an indent token at `:idx`"
   [{:keys [head tail range] :as m}]
-  (let [indent-token "0"]
+  (let [indent-token "0"
+        new-range [(first range) (inc (last range))]]
     (if (current-line-empty? m)
-      (assoc m
-             :all-text (str head indent-token tail)
-             :range [(first range) (inc (last range))])
+      (let [m1 (assoc m
+                      :all-text (str head indent-token tail)
+                      :range new-range)]
+        (assoc m1 :range-text (extract-range-text m1)))
       m)))
 
 
@@ -179,18 +184,69 @@
            :range [(first range) (dec (second range))])
     m))
 
+(def trailing-bracket_symbol "_calva-fmt-trail-symbol_")
+(def trailing-bracket_pattern (re-pattern (str "_calva-fmt-trail-symbol_\\)$")))
+
+(defn add-trail-symbol-if-comment
+  "If the `range-text` is a comment, add a symbol at the end, preventing the last paren from folding"
+  [{:keys [range all-text config idx] :as m}]
+  (let [keep-trailing-bracket-on-own-line?
+        (and (:keep-comment-forms-trail-paren-on-own-line? config)
+             (:comment-form? config))]
+    (if keep-trailing-bracket-on-own-line?
+      (let [range-text (extract-range-text m)
+            new-range-text (clojure.string/replace
+                            range-text
+                            #"\n{0,1}[ \t]*\)$"
+                            (str "\n" trailing-bracket_symbol ")"))
+            added-text-length (- (count new-range-text)
+                                 (count range-text))
+            new-range-end (+ (second range) added-text-length)
+            new-all-text (str (subs all-text 0 (first range))
+                              new-range-text
+                              (subs all-text (second range)))
+            new-idx (if (>= idx (- (second range) 1))
+                      (+ idx added-text-length)
+                      idx)]
+        (-> m
+            (assoc :all-text new-all-text
+                   :range-text new-range-text
+                   :idx new-idx)
+            (assoc-in [:range 1] new-range-end)))
+      m)))
+
+(defn remove-trail-symbol-if-commment
+  "If the `range-text` is a comment, remove the symbol at the end"
+  [{:keys [range range-text new-index idx config] :as m} original-range]
+  (let [keep-trailing-bracket-on-own-line?
+        (and (:keep-comment-forms-trail-paren-on-own-line? config)
+             (:comment-form? config))]
+    (if keep-trailing-bracket-on-own-line?
+      (let [new-range-text (clojure.string/replace
+                            range-text
+                            trailing-bracket_pattern
+                            ")")]
+        (-> m
+            (assoc :range-text new-range-text
+                   :new-index (if (>= idx (- (second range) 1))
+                                (- (count new-range-text)
+                                   (- (second range) idx))
+                                new-index)
+                   :range original-range)))
+      m)))
 
 (defn format-text-at-idx
   "Formats the enclosing range of text surrounding idx"
-  [m]
+  [{:keys [range] :as m}]
   (-> m
+      (add-trail-symbol-if-comment)
       (add-head-and-tail)
       (add-current-line)
       (add-indent-token-if-empty-current-line)
-      #_(enclosing-range)
       (format-text-at-range)
       (index-for-tail-in-range)
-      (remove-indent-token-if-empty-current-line)))
+      (remove-indent-token-if-empty-current-line)
+      (remove-trail-symbol-if-commment range)))
 
 (defn format-text-at-idx-bridge
   [m]

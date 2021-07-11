@@ -11,7 +11,8 @@ With the default settings, Calva's formatting behaves like so:
 * formats the current enclosing form when you hit `tab`
 * formats pasted code
 * formats according to community standards (see above link)
-* formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`.
+* formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`
+* formats `(comment ..)` forms special, see [rich comments](#rich-comments)
 
 !!! Tips
     Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to `shift+tab` to form a nicely balanced pair with the `tab` formatting.
@@ -89,6 +90,6 @@ Save, then hit `tab`, and the code should get formatted like so:
 
 That's somewhat similar to Nikita Prokopov's [Better Clojure Formatting](https://tonsky.me/blog/clojurefmt/) suggestion. (Please be aware that this setting might not be sufficient to get complete **Tonsky Formatting**, please share any settings you use to get full compliance.)
 
-## Under Construction
+## Rich Comments
 
-Much of this formatting configurability is recent work. There might be dragons. And also, we probably should make Calva pick the `:cljfmt` config up from Leiningen project files. If you agree, and there isn't an issue about that already, please file one.
+To encourage use of `(comment ...)` forms for development, these forms get a special treatment when formatting. See [Rich Comments](rich-comments.md).

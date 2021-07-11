@@ -6,12 +6,16 @@ NB: _The below assumes you have read about [Finding Calva Commands and Shortcuts
 
 ## Evaluation in a File Editor
 
-Calva has commands for evaluating the **current form** and the **current top-level form**.
+Calva has many commands for evaluating forms, including the **current form** and the **current top-level form**.
 
-You can also choose what should happen with the results:
+Some of the commands also let you choose what should happen with the results:
 
-1. **Inline.** This will display the results (or some of it, if it is long) inline in the editor. _You find the full results in the [output window](output.md)_, from where it is easy to copy it to the clipboard.
-1. **To comments.** This will add the results as comment lines below the current line.
+1. **Inline.** This will display the results (or some of it, if it is long) inline in the editor.
+    * This also creates a hover pane including the full results and a button which will copy the results to the clipboard.
+    * There is also a command for copying the last result to the clipboard.
+    * The full results are always available in the [output window](output.md).
+        * There is a command for showing the output window, allowing for a workflow where you either generally have it closed, or have it as one of the tabs in the same editor group as the files you are working with.
+1. **To comments.** This will add the results as line comments below the current line.
 1. **Replace the evaluated code.** This will do what it says, the evaluated code will be replaced with its results.
 
 ## Wait, Current Form? Top-level Form?
@@ -22,47 +26,36 @@ These are important concepts in Calva in order for you to create your most effec
 
 Default shortcut for evaluating the current form: `ctrl+enter`.
 
-The current form either means the current selection, or otherwise is based on the cursor position. Play some with the command **Calva: Select current form**, `ctrl+alt+c s`, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides). Generally the current form is determined like so:
+The **current form** either means the current selection, or otherwise is based on the cursor position. Play some with the command **Calva: Select current form**, `ctrl+alt+c s`, to figure out what Calva thinks is the current form for some different situations. Try it inside a symbol, adjacent to a symbol (both sides) and adjacent to an opening or closing bracket (again, both sides). Generally the current form is determined like so:
 
-If text is selected, then that text
-
-If the cursor is ”in” a symbol, then that symbol
-```clojure
-foob|ar ; foobar
-```
-
-If the cursor is adjacent to a form (a symbol or a list of some kind), then that form
-```clojure
-(foo bar |(baz)) ; (baz)
-```
-
-If the cursor is between to forms, then the left side form
-```clojure
-(foo bar | (baz)) ; bar
-```
-
-If the cursor is before the first form of a line, then that form
-```clojure
-(foo
- | bar (baz)) ; bar
-```
+1. If text is selected, then that text
+1. If the cursor is ”in” a symbol, then that symbol
+    ```clojure
+    foob|ar ; foobar
+    ```
+1. If the cursor is adjacent to a form (a symbol or a list of some kind), then that form
+    ```clojure
+    (foo bar |(baz)) ; (baz)
+    ```
+1. If the cursor is between to forms, then the left side form
+    ```clojure
+    (foo bar | (baz)) ; bar
+    ```
+1. If the cursor is before the first form of a line, then that form
+    ```clojure
+    (foo
+    | bar (baz)) ; bar
+    ```
 
 ### Current Top-level Form
 
 Default shortcut for evaluating the current top level form: `alt+enter`.
 
-The current top-level form means top-level in a structural sense. It is _not_ the topmost form in the file. Typically in a Clojure file you will find `def` and `defn` (and `defwhatever`) forms at the top level, but it can be any form not enclosed in any other form.
+The **current top-level form** means top-level in a structural sense. It is _not_ the topmost form in the file. Typically in a Clojure file you will find `def` and `defn` (and `defwhatever`) forms at the top level, which also is one major intended use for evaluating top level form: _to define and redefine variables_. However, Calva does not check the contents of the form in order to determine it as a top-level forms: _all forms not enclosed in any other form are top level forms_.
 
-An exception is the `comment` form. It will create a new top level context, so that any forms immediately inside a `(commment ...)` form will be considered top-level by Calva. This is to support a workflow where you
+An ”exception” is introduced by the `comment` form. It will create a new top level context, so that any forms immediately inside a `(commment ...)` form will be considered top-level by Calva. This is to support a workflow with what is often referred to the [Rich Comments](rich-comments.md).
 
-1. Iterate on your functions.
-2. Evaluate the function (top level).
-3. Put them to test with expressions inside a `comment` form.
-4. Repeat from *1.*, until the function does what you want it to do.
-
-Here's a demo of the last repetition of such a workflow, for a simple implementation of the `abs` function:
-
-![top-level-eval](images/howto/top-level-eval.gif)
+At the top level the selection of which form is the current top level form follows the same rules as those for [the current form](#current-form).
 
 ### Evaluate to Cursor
 

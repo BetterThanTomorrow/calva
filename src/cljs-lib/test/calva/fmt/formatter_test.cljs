@@ -27,6 +27,40 @@ baz)")
   (is (= [10 38]
          (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11})))))
 
+(def a-comment
+  {:eol "\n"
+   :all-text "  (foo)
+(comment
+  (defn bar
+         [x]
+
+baz))"
+   :range [8 48]
+   :idx 47
+   :config {:keep-comment-forms-trail-paren-on-own-line? true
+            :comment-form? true}})
+
+(deftest format-text-w-comments-at-idx
+  (is (= {:new-index 38
+          :range-text "(comment
+  (defn bar
+    [x]
+
+    baz))"}
+         (select-keys (sut/format-text-at-idx
+                       (assoc-in a-comment [:config :comment-form?] false))
+                      [:range-text :new-index])))
+  
+  (is (= {:new-index 41
+          :range-text "(comment
+  (defn bar
+    [x]
+
+    baz)
+  )"}
+         (select-keys (sut/format-text-at-idx 
+                       (assoc a-comment :idx 47))
+                      [:range-text :new-index]))))
 
 (deftest new-index
   (is (= 1

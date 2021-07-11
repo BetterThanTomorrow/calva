@@ -12,6 +12,7 @@ const defaultCljfmtContent = "\
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtString: string) {
     return {
         "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
+        "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine") as boolean,
         "cljfmt-string": cljfmtString,
         "cljfmt-options": cljfmtOptions(cljfmtString)
     };
