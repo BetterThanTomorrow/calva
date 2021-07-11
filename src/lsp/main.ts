@@ -8,7 +8,7 @@ import { downloadClojureLsp } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
 import * as os from 'os';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as state from '../state';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -161,16 +161,15 @@ const clojureLspCommands: ClojureLspCommand[] = [
     }
 ];
 
-async function sendCommandRequest(command: string, args: (number | string)[]): Promise<any> {
+function sendCommandRequest(command: string, args: (number | string)[]): void {
     const client = getStateValue(LSP_CLIENT_KEY);
     if (client) {
-        const result = await client.sendRequest('workspace/executeCommand', {
+        client.sendRequest('workspace/executeCommand', {
             command,
             arguments: args
         }).catch(e => {
             console.error(e);
         });
-        return result;
     }
 }
 
@@ -287,14 +286,15 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
 async function serverInfoCommandHandler(): Promise<void> {
     const client = getStateValue(LSP_CLIENT_KEY);
     if (client) {
-        sendCommandRequest('server-info', []);
+        const serverInfo = await getServerInfo(client);
+        const calvaSaysChannel = state.outputChannel();
+        calvaSaysChannel.appendLine(`Clojure-lsp server info:`);
+        const serverInfoPretty = JSON.stringify(serverInfo, null, 2);
+        calvaSaysChannel.appendLine(serverInfoPretty);
+        calvaSaysChannel.show(true);
     } else {
-        vscode.window.showInformationMessage('There is no clojure-lsp server running.')
+        vscode.window.showInformationMessage('There is no clojure-lsp server running.');
     }
-}
-
-async function serverInfoRaw(): Promise<any> {
-    return sendCommandRequest('clojure/serverInfo/raw', []);
 }
 
 async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -319,9 +319,6 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
         }
     }
     await startClient(clojureLspPath, context);
-    // TODO: Test code, remove
-    const serverInfo = await serverInfoRaw();
-    console.log(serverInfo);
 }
 
 function deactivate(): Promise<void> {
@@ -352,6 +349,10 @@ async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promi
         }
     });
     return result;
+}
+
+async function getServerInfo(lspClient: LanguageClient): Promise<any> {
+    return lspClient.sendRequest('clojure/serverInfo/raw');
 }
 
 export default {
