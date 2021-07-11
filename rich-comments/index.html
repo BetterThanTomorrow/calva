@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://calva.io/reveal/">
+        <link rel="canonical" href="https://calva.io/rich-comments/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.10">
     
     
       
-        <title>How to use Calva and Reveal together - Calva User Guide</title>
+        <title>Rich Comments Support - Calva User Guide</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to-use-calva-and-reveal-together" class="md-skip">
+        <a href="#rich-comments-support" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              How to use Calva and Reveal together
+              Rich Comments Support
             
           </span>
         </div>
@@ -315,12 +315,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
       
       <label class="md-nav__link" for="__nav_3">
         Features
@@ -360,11 +362,112 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../rich-comments/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Rich Comments Support
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Rich Comments Support
       </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#things-in-comment-is-not-evaluated" class="md-nav__link">
+    Things in comment is not evaluated
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calva-encourages-rich-comments" class="md-nav__link">
+    Calva encourages Rich comments
+  </a>
+  
+    <nav class="md-nav" aria-label="Calva encourages Rich comments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comment-is-top-level" class="md-nav__link">
+    comment is top-level
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#special-formatting" class="md-nav__link">
+    Special formatting
+  </a>
+  
+    <nav class="md-nav" aria-label="Special formatting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#thinking-space-is-kept" class="md-nav__link">
+    Thinking space is kept
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fold-when-done" class="md-nav__link">
+    Fold when done
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabled-by-default" class="md-nav__link">
+    Enabled by default
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#only-for-the-current-form" class="md-nav__link">
+    Only for the Current Form
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -543,14 +646,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
       
       <label class="md-nav__link" for="__nav_6">
         Using Calva with X
@@ -578,85 +679,11 @@
             
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          How to use Calva and Reveal together
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../reveal/" class="md-nav__link">
         How to use Calva and Reveal together
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#when-using-toolsdeps" class="md-nav__link">
-    When using tools.deps
-  </a>
-  
-    <nav class="md-nav" aria-label="When using tools.deps">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#use-reveal-nrepl-middleware" class="md-nav__link">
-    Use Reveal nrepl middleware
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dependencies-only" class="md-nav__link">
-    Dependencies only
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#when-using-leiningen" class="md-nav__link">
-    When using Leiningen
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tips-about-font-size" class="md-nav__link">
-    Tips about font size
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -939,23 +966,59 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#when-using-toolsdeps" class="md-nav__link">
-    When using tools.deps
+  <a href="#things-in-comment-is-not-evaluated" class="md-nav__link">
+    Things in comment is not evaluated
   </a>
   
-    <nav class="md-nav" aria-label="When using tools.deps">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calva-encourages-rich-comments" class="md-nav__link">
+    Calva encourages Rich comments
+  </a>
+  
+    <nav class="md-nav" aria-label="Calva encourages Rich comments">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#use-reveal-nrepl-middleware" class="md-nav__link">
-    Use Reveal nrepl middleware
+  <a href="#comment-is-top-level" class="md-nav__link">
+    comment is top-level
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#dependencies-only" class="md-nav__link">
-    Dependencies only
+  <a href="#special-formatting" class="md-nav__link">
+    Special formatting
+  </a>
+  
+    <nav class="md-nav" aria-label="Special formatting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#thinking-space-is-kept" class="md-nav__link">
+    Thinking space is kept
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fold-when-done" class="md-nav__link">
+    Fold when done
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enabled-by-default" class="md-nav__link">
+    Enabled by default
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#only-for-the-current-form" class="md-nav__link">
+    Only for the Current Form
   </a>
   
 </li>
@@ -964,18 +1027,9 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#when-using-leiningen" class="md-nav__link">
-    When using Leiningen
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tips-about-font-size" class="md-nav__link">
-    Tips about font size
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -991,66 +1045,104 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/reveal.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/rich-comments.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="how-to-use-calva-and-reveal-together">How to use Calva and Reveal together</h1>
-<p><a href="https://vlaaad.github.io/reveal">Reveal</a> is a "Read Eval Visualize Loop for
-Clojure". This page describes how to use Reveal in your development setup based
-on Calva.</p>
-<h2 id="when-using-toolsdeps">When using tools.deps</h2>
-<p>You can go for the nrepl middleware or just add the dependency. </p>
-<h3 id="use-reveal-nrepl-middleware">Use Reveal nrepl middleware</h3>
-<p>This will make Reveal to start together with your project.</p>
+                <h1 id="rich-comments-support">Rich Comments Support</h1>
+<p>Why bother with <strong>Rich comments</strong>? Read on. Consider watching <a href="https://www.youtube.com/watch?v=d0K1oaFGvuQ">this Youtube video</a> for a demo of the workflow using the (in?)famous FizzBuzz problem as an example.</p>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/d0K1oaFGvuQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h2 id="things-in-comment-is-not-evaluated">Things in <code>comment</code> is not evaluated</h2>
+<p>The Clojure <code>comment</code> macro is defined like so:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defmacro </span><span class="nv">comment</span>
+  <span class="s">&quot;Ignores body, yields nil&quot;</span>
+  <span class="p">{</span><span class="ss">:added</span> <span class="s">&quot;1.0&quot;</span><span class="p">}</span>
+  <span class="p">[</span><span class="o">&amp;</span> <span class="nv">body</span><span class="p">])</span>
+</code></pre></div>
+<p>It has no forms in its body and will therefore always (as long as the Clojure Reader can read it) evaluate to <code>nil</code>. That is: <em>nothing in the <code>(comment ...)</code> form will get evaluated when the file is loaded</em>.</p>
+<p>This makes it a very good ”place” where you can develop code, experiment with code, and keep example code. Since you will be able to load/evaluate the current file without worrying about that the code in the <code>comment</code> form will get evaluated. This also holds true for when using tools that hot-reloads the code on save, such as <a href="https://figwheel.org">Figwheel</a>, <a href="https://github.com/thheller/shadow-cljs">shadow-cljs</a> and <a href="https://calva.io/krell/">Krell</a>.</p>
+<p>To develop or refine a function you might:</p>
+<ol>
+<li>Open up a <code>(comment ...)</code> form</li>
+<li>Inside this form, type a first, super simple, version (or refinement) of your function and evaluate it</li>
+<li>Inside the same <code>comment</code> form, type some code to test your function and evaluate that<ul>
+<li>Or type and evaluate some code you might need for your function</li>
+</ul>
+</li>
+<li>Repeat from <em>2.</em>, until the function does what you want it to do</li>
+<li>Move the function definition out of the <code>comment</code> form</li>
+<li>Clean up the <code>comment</code> form to keep some of the test code as example use, or ”design decision log” for the function.</li>
+</ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This will make all Calva evaluations go to Reveal. Too chatty for you? Take the <em>dependencies only</em> approach.</p>
+<p>Using <code>(comment ...)</code> forms for developing code is very common among Clojure coders. Rich Hickey is known for using it, which is why they are called <strong>Rich comments</strong> to begin with (even if it also is a very rich experience).</p>
 </div>
-<p>Add this alias <code>deps.edn</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="ss">:aliases</span>
-<span class="p">{</span><span class="ss">:reveal-nrepl-middleware</span>
-    <span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">vlaaad/reveal</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;1.3.194&quot;</span><span class="p">}}</span>
-     <span class="ss">:main-opts</span>  <span class="p">[</span><span class="s">&quot;-m&quot;</span> <span class="s">&quot;nrepl.cmdline&quot;</span>
-                  <span class="s">&quot;--middleware&quot;</span> <span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
+<h2 id="calva-encourages-rich-comments">Calva encourages Rich comments</h2>
+<p>Calva has several features to facilitate the Rich comments workflow, e.g.</p>
+<ol>
+<li>Secial <a href="../customizing/#calva-highlight">Syntax highlight</a>. By default <code>comment</code> forms are rendered in <em>italics</em></li>
+<li>Special <a href="../evaluation/#current-top-level-form">top-level form</a> context</li>
+<li>Special formatting</li>
+</ol>
+<h3 id="comment-is-top-level"><code>comment</code> is top-level</h3>
+<p>To make it easy to evaluate forms in <code>(commment ...)</code> forms, they create a new top-level context. Instead of you having to place the cursor with precision before evaluating the <strong>current form</strong>, you can have the cursor anywhere within a <code>comment</code> enclosed form and <a href="../evaluation/#current-top-level-form"><strong>Evaluate Top-Level Form</strong></a>.</p>
+<p>This carries over to all commands in Calva which deal with the top level form. Including <a href="../custom-commands/">custom command snippets</a>.</p>
+<h3 id="special-formatting">Special formatting</h3>
+<p>To invite a <strong>Rich comments</strong> workflow, the Calva command <strong>Format Current Form</strong> will not fold the closing bracket of the <code>(comment ...)</code> form. Instead it will place this bracket on a line of its own (or keep it there).</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">)</span>
 </code></pre></div>
-<p>And then jack-in choosing the deps.edn option and then pick the <code>:reveal-nrepl-middleware</code> alias.</p>
-<h3 id="dependencies-only">Dependencies only</h3>
-<p>If you don't want to use the nrepl-middleware you can configure just the dependency and then start Reveal yourself.</p>
-<p>The alias:</p>
-<div class="highlight"><pre><span></span><code><span class="ss">:reveal-dep-only</span>
-  <span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">vlaaad/reveal</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;1.3.194&quot;</span><span class="p">}}}</span>
+<p>With the cursor somewhere directly inside the comment form (denoted with a <code>|</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
+<span class="ss">:foo</span><span class="p">)</span><span class="nv">|</span><span class="p">)</span>
 </code></pre></div>
-<p>A custom REPL command for starting Reveal in your project:</p>
-<div class="highlight"><pre><span></span><code>    <span class="nt">&quot;calva.customREPLCommandSnippets&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="err">...</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Start Reveal Tapper&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;snippet&quot;</span><span class="p">:</span> <span class="s2">&quot;(require &#39;[vlaaad.reveal :as reveal])(add-tap (reveal/ui))&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;sr&quot;</span>
-        <span class="p">},</span>
-        <span class="err">...</span>
-    <span class="p">]</span>
+<p><kbd>tab</kbd></p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
+    <span class="ss">:foo</span><span class="p">)</span>
+  <span class="nv">|</span><span class="p">)</span>
 </code></pre></div>
-<p>See <a href="../custom-commands/">Custom REPL Command</a> for how to configure more commands, and bind shortcuts to them, to make Reveal integration nice for you.</p>
-<h2 id="when-using-leiningen">When using Leiningen</h2>
-<p>In your <code>project.clj</code>, add a profile named "reveal":</p>
-<div class="highlight"><pre><span></span><code><span class="ss">:profiles</span> <span class="p">{</span><span class="ss">:reveal</span> <span class="p">{</span><span class="ss">:dependencies</span> <span class="p">[[</span><span class="nv">vlaaad/reveal</span> <span class="s">&quot;1.3.194&quot;</span><span class="p">]]</span>
-                    <span class="ss">:repl-options</span> <span class="p">{</span><span class="ss">:nrepl-middleware</span> <span class="p">[</span><span class="nv">vlaaad.reveal.nrepl/middleware</span><span class="p">]}}}</span>
+<h4 id="thinking-space-is-kept">Thinking space is kept</h4>
+<p>The formatter will not remove newlines between the cursor and the closing bracket. So if you have entered a few lines to get ”thinking” room:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
+<span class="ss">:foo</span><span class="p">)</span>
+
+<span class="nv">|</span>
+
+<span class="p">)</span>
 </code></pre></div>
-<p>Now when you jack-in using Calva, you enable this profile and Reveal will be
-started automatically. Please note that Reveal requires Java 8 or higher, and
-uses JavaFX. Depending on your setup, you may need to make sure it is available.</p>
-<h2 id="tips-about-font-size">Tips about font size</h2>
-<p>If you find the font to small you can add a <code>:jvm-opts</code> key to make it a little bigger:</p>
-<div class="highlight"><pre><span></span><code><span class="ss">:aliases</span>
-<span class="p">{</span><span class="ss">:reveal</span>
-    <span class="p">{</span><span class="ss">:extra-deps</span> <span class="p">{</span><span class="nv">vlaaad/reveal</span> <span class="p">{</span><span class="ss">:mvn/version</span> <span class="s">&quot;1.3.194&quot;</span><span class="p">}}</span>
-     <span class="ss">:jvm-opts</span>   <span class="p">[</span><span class="s">&quot;-Dvlaaad.reveal.prefs={:font-size,17}&quot;</span><span class="p">]</span>
-     <span class="ss">:main-opts</span>  <span class="p">[</span><span class="s">&quot;-m&quot;</span> <span class="s">&quot;nrepl.cmdline&quot;</span>
-                  <span class="s">&quot;--middleware&quot;</span> <span class="s">&quot;[vlaaad.reveal.nrepl/middleware,cider.nrepl/cider-middleware]&quot;</span><span class="p">]}}</span>
+<p><kbd>tab</kbd></p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
+    <span class="ss">:foo</span><span class="p">)</span>
+
+  <span class="nv">|</span>
+
+  <span class="p">)</span>
 </code></pre></div>
+<h4 id="fold-when-done">Fold when done</h4>
+<p>To fold the trailing paren automatically, place the cursor immediately outside (before or after) the form:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
+<span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
+</code></pre></div>
+<p><kbd>tab</kbd></p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">comment</span>
+  <span class="p">(</span><span class="k">def </span><span class="nv">foo</span>
+    <span class="ss">:foo</span><span class="p">))</span><span class="nv">|</span>
+</code></pre></div>
+<h4 id="enabled-by-default">Enabled by default</h4>
+<p>You can disable this behavior with the setting: <code>calva.fmt.keepCommentTrailParenOnOwnLine</code>.</p>
+<p>But why would you? It is awesome! 😄</p>
+<h4 id="only-for-the-current-form">Only for the Current Form</h4>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This treatment only applies to formatting of <a href="../evaluation/#current-form">the current form</a>. With <a href="#fold-when-done">fold when done</a> as an exception.</p>
+</div>
                 
               
               
@@ -1070,7 +1162,7 @@ uses JavaFX. Depending on your setup, you may need to make sure it is available.
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../rebl/" class="md-footer__link md-footer__link--prev" aria-label="Previous: How to Use Calva and REBL Together" rel="prev">
+        <a href="../evaluation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Code Evaluation" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1079,20 +1171,20 @@ uses JavaFX. Depending on your setup, you may need to make sure it is available.
               <span class="md-footer__direction">
                 Previous
               </span>
-              How to Use Calva and REBL Together
+              Code Evaluation
             </div>
           </div>
         </a>
       
       
         
-        <a href="../vim/" class="md-footer__link md-footer__link--next" aria-label="Next: Calva and the VIM Extension" rel="next">
+        <a href="../output/" class="md-footer__link md-footer__link--next" aria-label="Next: The Output/REPL Window/File" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Calva and the VIM Extension
+              The Output/REPL Window/File
             </div>
           </div>
           <div class="md-footer__button md-icon">

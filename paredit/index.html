@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/paredit/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.9">
+      <meta name="generator" content="mkdocs-1.2.1, mkdocs-material-7.1.10">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ca7ac06f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.1fe995fd.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.f1a3b89f.min.css">
@@ -354,6 +354,18 @@
     <li class="md-nav__item">
       <a href="../evaluation/" class="md-nav__link">
         Code Evaluation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rich-comments/" class="md-nav__link">
+        Rich Comments Support
       </a>
     </li>
   
@@ -1127,7 +1139,7 @@
 </tr>
 </tbody>
 </table>
-<p>Toggle bewteen Strict and Cave Man using: <code>ctrl+alt+p ctrl+alt+m</code></p>
+<p>Toggle between Strict and Cave Man using: <code>ctrl+alt+p ctrl+alt+m</code></p>
 <h3 id="prevent-unbalanced-closing-brackets">Prevent Unbalanced Closing Brackets</h3>
 <p>There is also a setting, <code>calva.paredit.strictPreventUnmatchedClosingBracket</code>, that will help you to not enter unbalanced closing brackets into the code. </p>
 <h2 id="commands">Commands</h2>
@@ -1404,6 +1416,7 @@
 <p>You can relax how Paredit's shortcuts replace VS Code built in shortcuts a bit by setting <code>calva.paredit.hijackVSCodeDefaults</code> to <code>false</code>.</p>
 <p>There are some context keys you can utilize to configure keyboard shortcuts with precision. See <a href="../customizing/#when-clause-contexts">Customizing Keyboard Shortcuts</a>.</p>
 <p><em>The Nuclear Option</em>: You can choose to disable all default key bindings by configuring <code>calva.paredit.defaultKeyMap</code> to <code>none</code>. (Then you probably also want to register your own shortcuts for the commands you often use.)</p>
+<p>In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of <em>Expand Selection</em> and <em>Shrink Selection</em> for Windows/Linux when multiple lines are selected. In this particular case adding <code>!editorHasMultipleSelections</code> to the <code>when</code> clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right <code>when</code> clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.</p>
 <p>Happy Editing! ❤️</p>
                 
               
@@ -1478,7 +1491,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.477d984a.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.82b56eb2.min.js"></script>
+      <script src="../assets/javascripts/bundle.ddd52ceb.min.js"></script>
       
     
   </body>
