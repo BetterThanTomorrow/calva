@@ -57,7 +57,7 @@ It may be helpful to clear the output channel, then perform the action with whic
 
 ### Server Info Command
 
-You can run the `Clojure-lsp Server Info` command to get information about the running clojure-lsp server, such as the version being used, the version of clj-kondo it's using, and more.
+You can run the `Clojure-lsp Server Info` command to get information about the running clojure-lsp server, such as the version the server being used, the version of clj-kondo it's using, and more. This info is printed to the "Calva says" output channel.
 
 ## Related
 

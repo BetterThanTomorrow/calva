@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Clojure-lsp Server Info command: use new custom LSP method and print info in Calva says output channel](https://github.com/BetterThanTomorrow/calva/issues/1211)
 
 ## [2.0.204] - 2021-07-11
 - [Put closing paren of rich comments on separate line](https://github.com/BetterThanTomorrow/calva/issues/1224)
