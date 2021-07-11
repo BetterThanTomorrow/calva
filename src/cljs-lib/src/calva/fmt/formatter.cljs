@@ -187,7 +187,7 @@
 (def trailing-bracket_symbol "_calva-fmt-trail-symbol_")
 (def trailing-bracket_pattern (re-pattern (str "_calva-fmt-trail-symbol_\\)$")))
 
-(defn add-trail-token-if-comment
+(defn add-trail-symbol-if-comment
   "If the `range-text` is a comment, add a symbol at the end, preventing the last paren from folding"
   [{:keys [range all-text config idx] :as m}]
   (let [keep-trailing-bracket-on-own-line?
@@ -215,7 +215,7 @@
             (assoc-in [:range 1] new-range-end)))
       m)))
 
-(defn remove-trail-token-if-commment
+(defn remove-trail-symbol-if-commment
   "If the `range-text` is a comment, remove the symbol at the end"
   [{:keys [range range-text new-index idx config] :as m} original-range]
   (let [keep-trailing-bracket-on-own-line?
@@ -239,14 +239,14 @@
   "Formats the enclosing range of text surrounding idx"
   [{:keys [range] :as m}]
   (-> m
-      (add-trail-token-if-comment)
+      (add-trail-symbol-if-comment)
       (add-head-and-tail)
       (add-current-line)
       (add-indent-token-if-empty-current-line)
       (format-text-at-range)
       (index-for-tail-in-range)
       (remove-indent-token-if-empty-current-line)
-      (remove-trail-token-if-commment range)))
+      (remove-trail-symbol-if-commment range)))
 
 (defn format-text-at-idx-bridge
   [m]
