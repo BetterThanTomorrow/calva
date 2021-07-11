@@ -57,6 +57,12 @@ Available at:
 
 * [https://www.amazon.com/dp/B098M34FKJ](https://www.amazon.com/dp/B098M34FKJ)
 * [https://www.amazon.de/dp/B098MF14PV](https://www.amazon.de/dp/B098MF14PV)
+* [https://www.amazon.com/dp/B0993VCG7P](https://www.amazon.com/dp/B0993VCG7P) (Premium T-shirt)
+* [https://www.amazon.co.uk/dp/B098P1MV44](https://www.amazon.co.uk/dp/B098P1MV44)
+* [https://www.amazon.es/dp/B098RDPK55](https://www.amazon.es/dp/B098RDPK55)
+* [https://www.amazon.fr/dp/B098TPQFCJ](https://www.amazon.fr/dp/B098TPQFCJ)
+* [https://www.amazon.it/dp/B098YP33ZL](https://www.amazon.it/dp/B098YP33ZL)
+* [https://www.amazon.co.jp/dp/B0992MQYG6](https://www.amazon.co.jp/dp/B0992MQYG6)
 
 
 !!! Note
