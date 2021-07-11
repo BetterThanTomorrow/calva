@@ -161,15 +161,16 @@ const clojureLspCommands: ClojureLspCommand[] = [
     }
 ];
 
-function sendCommandRequest(command: string, args: (number | string)[]): void {
+async function sendCommandRequest(command: string, args: (number | string)[]): Promise<any> {
     const client = getStateValue(LSP_CLIENT_KEY);
     if (client) {
-        client.sendRequest('workspace/executeCommand', {
+        const result = await client.sendRequest('workspace/executeCommand', {
             command,
             arguments: args
         }).catch(e => {
             console.error(e);
         });
+        return result;
     }
 }
 
@@ -292,6 +293,10 @@ async function serverInfoCommandHandler(): Promise<void> {
     }
 }
 
+async function serverInfoRaw(): Promise<any> {
+    return sendCommandRequest('clojure/serverInfo/raw', []);
+}
+
 async function activate(context: vscode.ExtensionContext): Promise<void> {
     vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler);
     const extensionPath = context.extensionPath;
@@ -314,6 +319,9 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
         }
     }
     await startClient(clojureLspPath, context);
+    // TODO: Test code, remove
+    const serverInfo = await serverInfoRaw();
+    console.log(serverInfo);
 }
 
 function deactivate(): Promise<void> {
