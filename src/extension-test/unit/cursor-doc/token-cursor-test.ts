@@ -346,9 +346,21 @@ describe('Token Cursor', () => {
     });
 
     describe('Top Level Form', () => {
-        it('Finds range for a regular top level form', () => {
+        it('Finds range when nested down a some forms', () => {
             const a = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b| :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
             const b = docFromTextNotation('aaa |(bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar))| (ddd eee)');
+            const cursor: LispTokenCursor = a.getTokenCursor(0);
+            expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds range when in current form is top level', () => { // Bug, documenting how it behaves
+            const a = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) |(ddd eee)');
+            const b = docFromTextNotation('aaa |(bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar))| (ddd eee)');
+            const cursor: LispTokenCursor = a.getTokenCursor(0);
+            expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds range when in ”solid” top level form', () => {
+            const a = docFromTextNotation('a|aa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
+            const b = docFromTextNotation('|aaa| (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
             const cursor: LispTokenCursor = a.getTokenCursor(0);
             expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
@@ -364,11 +376,23 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(0);
             expect(cursor.rangeForDefun(a.selectionLeft, 0, false)).toEqual(textAndSelection(b)[1]);
         });
+        it('Finds empty range for empty comment form', () => { // Unimportant use case, just documenting how it behaves
+            const a = docFromTextNotation('aaa (comment |  ) bbb');
+            const b = docFromTextNotation('aaa (comment |  ) bbb');
+            const cursor: LispTokenCursor = a.getTokenCursor(0);
+            expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
+        });
         it('Finds comment range when comments are nested', () => { // TODO: Consider changing this behavior
             const a = docFromTextNotation('aaa (comment (comment [bbb ccc] | ddd))');
             const b = docFromTextNotation('aaa (comment |(comment [bbb ccc]  ddd)|)');
             const cursor: LispTokenCursor = a.getTokenCursor(0);
             expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds comment range when current form is top level comment form', () => {
+            const a = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (comment eee)| fff');
+            const b = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) |(comment eee)| fff');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+            expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
         });
         it('Includes reader tag', () => {
             const a = docFromTextNotation('aaa (comment #r [bbb ccc|]  ddd)');
@@ -376,7 +400,7 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(0);
             expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-        it('Finds the preceding range when cursor is between to forms on the same line', () => {
+        it('Finds the preceding range when cursor is between two forms on the same line', () => {
             const a = docFromTextNotation('aaa (comment [bbb ccc] | ddd)');
             const b = docFromTextNotation('aaa (comment |[bbb ccc]|  ddd)');
             const cursor: LispTokenCursor = a.getTokenCursor(0);
@@ -388,12 +412,23 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(0);
             expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
-
     });
     describe('Top Level Form 2', () => {
-        it('Finds range for a regular top level form', () => {
+        it('Finds range when nested down a some forms', () => {
             const a = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b| :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
             const b = docFromTextNotation('aaa |(bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar))| (ddd eee)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+            expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds range when in current form is top level', () => {
+            const a = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) |(ddd eee)');
+            const b = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) |(ddd eee)|');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+            expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds range when in ”solid” top level form', () => {
+            const a = docFromTextNotation('a|aa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
+            const b = docFromTextNotation('|aaa| (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
             expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
         });
@@ -409,9 +444,21 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
             expect(cursor.rangeForDefun2(a.selection.active, false)).toEqual(textAndSelection(b)[1]);
         });
-        it('Finds comment range when comments are nested', () => { // TODO: Consider changing this behavior
+        it('Finds comment range for empty comment form', () => { // Unimportant use case, just documenting how it behaves
+            const a = docFromTextNotation('aaa (comment |  ) bbb');
+            const b = docFromTextNotation('aaa (|comment|   ) bbb');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+            expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Does not find comment range when comments are nested', () => {
             const a = docFromTextNotation('aaa (comment (comment [bbb ccc] | ddd))');
             const b = docFromTextNotation('aaa (comment (comment |[bbb ccc]|  ddd))');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+            expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds comment range when current form is top level comment form', () => {
+            const a = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) |(comment eee)');
+            const b = docFromTextNotation('aaa (bbb (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) |(comment eee)|');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
             expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
         });
