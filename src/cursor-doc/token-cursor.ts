@@ -613,6 +613,7 @@ export class LispTokenCursor extends TokenCursor {
      */
     rangeForDefun(offset: number, depth = 0, commentCreatesTopLevel = true): [number, number] {
         const cursor = this.clone();
+
         while (cursor.forwardSexp()) {
             if (cursor.offsetEnd >= offset) {
                 if (depth < 1 && cursor.getPrevToken().raw === ')') {
@@ -631,6 +632,19 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         return [offset, offset]
+    }
+
+    rangeForDefun2(offset: number, commentCreatesTopLevel = true): [number, number] {
+        const cursor = this.clone();
+        let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
+        while (cursor.forwardList() && cursor.upList()) {
+            const commentCursor = cursor.clone();
+            commentCursor.backwardDownList();
+            if (!commentCreatesTopLevel || commentCursor.getToken().raw !== ')' || commentCursor.getFunctionName() !== 'comment') {
+                lastCandidateRange = cursor.rangeForCurrentForm(cursor.offsetStart);
+            }
+        }
+        return lastCandidateRange;
     }
 
     rangesForTopLevelForms(): [number, number][] {
