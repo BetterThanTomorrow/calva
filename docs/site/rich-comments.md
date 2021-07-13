@@ -17,7 +17,7 @@ The Clojure `comment` macro is defined like so:
 
 It has no forms in its body and will therefore always (as long as the Clojure Reader can read it) evaluate to `nil`. That is: _nothing in the `(comment ...)` form will get evaluated when the file is loaded_.
 
-This makes it a very good ”place” where you can develop code, experiment with code, and keep example code. Since you will be able to load/evaluate the current file without worrying that the code in the `comment` form will get evaluated. This also holds true when using tools that hot-reloads the code on save, such as [Figwheel](https://figwheel.org), [shadow-cljs](https://github.com/thheller/shadow-cljs) and [Krell](https://calva.io/krell/).
+This makes it a very good ”place” where you can develop code, experiment with code, and keep example code. Since you will be able to load/evaluate the current file without worrying that the code in the `comment` form will get evaluated. This also holds true when using tools that hot-reload the code on save, such as [Figwheel](https://figwheel.org), [shadow-cljs](https://github.com/thheller/shadow-cljs) and [Krell](https://calva.io/krell/).
 
 To develop or refine a function you might:
 
