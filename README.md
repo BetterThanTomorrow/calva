@@ -155,7 +155,6 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars2.githubusercontent.com/u/891" width="32" alt="Matthew Lyon">](https://github.com/mattly)
 [<img src="https://avatars0.githubusercontent.com/u/636651" width="32" alt="Brian Scaturro">](https://github.com/brianium)
 [<img src="https://avatars2.githubusercontent.com/u/522318" width="32" alt="Jochen Bedersdorfer">](https://github.com/beders)
-[<img src="https://avatars2.githubusercontent.com/u/522318" width="32" alt="Chris Smothers">](https://github.com/smothers)
 [<img src="https://avatars1.githubusercontent.com/u/4200280" width="32" alt="Janne Sauvala">](https://github.com/sauvala)
 [<img src="https://avatars0.githubusercontent.com/u/486355" width="32" alt="ajoberstar">](https://github.com/ajoberstar)
 [<img src="https://avatars0.githubusercontent.com/u/22004226" width="32" alt="glebovmaksim">](https://github.com/glebovmaksim)
@@ -178,6 +177,7 @@ Gold sponsors are also displayed here: https://calva.io/#sponsors.
 [<img src="https://avatars.githubusercontent.com/u/1596350" width="32" alt="Russell Matney">](https://github.com/russmatney)
 [<img src="https://avatars.githubusercontent.com/u/45542" width="32" alt="Bertrand Cachet">](https://github.com/bcachet)
 [<img src="https://avatars.githubusercontent.com/u/293162" width="32" alt="José Diaz Seng">](https://github.com/joseds)
+[<img src="https://avatars.githubusercontent.com/u/647669" width="32" alt="Nick Cernis">](https://github.com/nickcernis)
 
 ## The Calva Team
 
