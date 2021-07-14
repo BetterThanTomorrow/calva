@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Use new custom LSP method for server info command and print info in "Calva says" output channel ](https://github.com/BetterThanTomorrow/calva/issues/1211)
+- [Roll back debugger call stack improvement](https://github.com/BetterThanTomorrow/calva/pull/1236)
 
 ## [2.0.204] - 2021-07-11
 - [Put closing paren of rich comments on separate line](https://github.com/BetterThanTomorrow/calva/issues/1224)
