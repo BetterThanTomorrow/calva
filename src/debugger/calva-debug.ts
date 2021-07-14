@@ -14,6 +14,7 @@ import annotations from '../providers/annotations';
 import { NReplSession } from '../nrepl';
 import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
+import * as util from '../utilities';
 import * as replSession from '../nrepl/repl-session';
 
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
@@ -56,9 +57,9 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     /**
-     * The 'initialize' request is the first request called by the frontend
-     * to interrogate the features the debug adapter provides.
-     */
+	 * The 'initialize' request is the first request called by the frontend
+	 * to interrogate the features the debug adapter provides.
+	 */
     protected async initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): Promise<void> {
 
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
@@ -74,6 +75,8 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
+        const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+
         this.sendResponse(response);
         state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH).send();
     }
@@ -175,8 +178,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
-        const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
-        const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
         const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(uri);
         const positionLine = convertOneBasedToZeroBased(debugResponse.line);
@@ -195,39 +196,28 @@ class CalvaDebugSession extends LoggingDebugSession {
         }
 
         const [line, column] = tokenCursor.rowCol;
-        const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
-        const allStackFrames = stackTraceResponse.causes[0].stacktrace;
-        const projectStackFrames = allStackFrames.filter(frame => {
-            return ['project', 'repl', 'clj'].some(f => frame.flags.includes(f)) &&
-                !['dup', 'tooling'].some(f => frame.flags.includes(f));
-        });
-        const mostRecentProjectReplFrame = allStackFrames.filter(frame => frame.flags.includes('project') && frame.flags.includes('repl'))[0];
-        const breakpointFrameName = `${mostRecentProjectReplFrame.ns}/${mostRecentProjectReplFrame.fn.split('/')[1]}`;
+
         // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
         const source = new Source(basename(debugResponse.file), debugResponse.file);
-        const breakPointStackFrame = new StackFrame(0, breakpointFrameName, source, line + 1, column + 1);
-        const stackFrames = [breakPointStackFrame, ...projectStackFrames.map((frame, index) => {
-            const name = `${frame.ns}/${frame.fn}`;
-            const fileUrl = frame['file-url'];
-            const source = (typeof fileUrl === 'string') ? new Source(basename(fileUrl), fileUrl) : undefined;
-            return new StackFrame(index + 1, name, source, frame.line);
-        })];
+        const name = tokenCursor.getFunctionName();
+        const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
         response.body = {
             stackFrames,
             totalFrames: stackFrames.length
         };
+
         this.sendResponse(response);
+
         this._showDebugAnnotation(debugResponse['debug-value'], document, line, column);
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
-        // If not frame 0, return empty scopes array because we cannot get the variables and values for other frames, as far as I know
-        const scopes = args.frameId && args.frameId !== 0 ? [] :
-            [new Scope("Locals", this._variableHandles.create('locals'), false)];
 
         response.body = {
-            scopes
+            scopes: [
+                new Scope("Locals", this._variableHandles.create('locals'), false)
+            ]
         };
 
         this.sendResponse(response);
@@ -257,10 +247,12 @@ class CalvaDebugSession extends LoggingDebugSession {
     protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
 
         const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+
         if (cljSession) {
             const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
             cljSession.sendDebugInput(':quit', id, key);
         }
+
         this.sendResponse(response);
     }
 
@@ -290,10 +282,10 @@ CalvaDebugSession.run(CalvaDebugSession);
 
 class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
 
-    /**
-     * Massage a debug configuration just before a debug session is being launched,
-     * e.g. add all missing attributes to the debug configuration.
-     */
+	/**
+	 * Massage a debug configuration just before a debug session is being launched,
+	 * e.g. add all missing attributes to the debug configuration.
+	 */
     resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
 
         // If launch.json is missing or empty
