@@ -635,7 +635,7 @@ export class LispTokenCursor extends TokenCursor {
     }
 
     rangeForDefun2(offset: number, commentCreatesTopLevel = true): [number, number] {
-        const cursor = this.clone();
+        const cursor = this.doc.getTokenCursor(offset);
         let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
         while (cursor.forwardList() && cursor.upList()) {
             const commentCursor = cursor.clone();

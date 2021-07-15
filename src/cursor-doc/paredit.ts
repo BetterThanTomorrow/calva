@@ -90,9 +90,9 @@ export function selectOpenList(doc: EditableDocument) {
  * Gets the range for the ”current” top level form
  * @see ListTokenCursor.rangeForDefun
  */
-export function rangeForDefun(doc: EditableDocument, offset: number = doc.selectionLeft, start: number = 0): [number, number] {
-    const cursor = doc.getTokenCursor(start);
-    return cursor.rangeForDefun(offset);
+export function rangeForDefun(doc: EditableDocument, offset: number = doc.selection.active): [number, number] {
+    const cursor = doc.getTokenCursor(offset);
+    return cursor.rangeForDefun2(offset);
 }
 
 export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
