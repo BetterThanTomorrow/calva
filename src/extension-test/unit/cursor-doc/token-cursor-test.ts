@@ -438,7 +438,7 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
             expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
         });
-        it('Can find the comment range for a top level form inside a comment', () => {
+        it('Finds top level comment range if comment special treatment is disabled', () => {
             const a = docFromTextNotation('aaa (comment (ccc •#foo•(#bar •#baz•[:a :b| :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar)) (ddd eee)');
             const b = docFromTextNotation('aaa |(comment (ccc •#foo•(#bar •#baz•[:a :b :c]•x•#(a b c))•#baz•yyy•   z z z   •foo•   •   bar))| (ddd eee)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
@@ -477,6 +477,13 @@ describe('Token Cursor', () => {
         it('Finds the succeeding range when cursor is at the start of the line', () => {
             const a = docFromTextNotation('aaa (comment [bbb ccc]• | ddd)');
             const b = docFromTextNotation('aaa (comment [bbb ccc]•  |ddd|)');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
+            expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
+        });
+        it('Finds the preceding comment symbol range when cursor is between that and something else on the same line', () => {
+            // This is a bit funny, but is not an important use case
+            const a = docFromTextNotation('aaa (comment  | [bbb ccc]  ddd)');
+            const b = docFromTextNotation('aaa (|comment|   [bbb ccc]  ddd)');
             const cursor: LispTokenCursor = a.getTokenCursor(a.selection.active);
             expect(cursor.rangeForDefun2(a.selection.active)).toEqual(textAndSelection(b)[1]);
         });

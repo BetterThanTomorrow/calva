@@ -154,8 +154,8 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const selectionCursor = mirrorDoc.getTokenCursor(idx);
                 selectionCursor.forwardWhitespace();
                 if (selectionCursor.atEnd()) {
-                    const tlCursor = mirrorDoc.getTokenCursor(0);
-                    const topLevelFormRange = tlCursor.rangeForDefun(idx);
+                    const tlCursor = mirrorDoc.getTokenCursor(idx);
+                    const topLevelFormRange = tlCursor.rangeForDefun2(idx);
                     submitOnEnter = topLevelFormRange &&
                         topLevelFormRange[0] !== topLevelFormRange[1] &&
                         idx >= topLevelFormRange[1];
