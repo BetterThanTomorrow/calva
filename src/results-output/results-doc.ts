@@ -154,11 +154,13 @@ export async function initResultsDoc(): Promise<vscode.TextDocument> {
                 const selectionCursor = mirrorDoc.getTokenCursor(idx);
                 selectionCursor.forwardWhitespace();
                 if (selectionCursor.atEnd()) {
-                    const tlCursor = mirrorDoc.getTokenCursor(idx);
-                    const topLevelFormRange = tlCursor.rangeForDefun2(idx);
-                    submitOnEnter = topLevelFormRange &&
-                        topLevelFormRange[0] !== topLevelFormRange[1] &&
-                        idx >= topLevelFormRange[1];
+                    const promptCursor = mirrorDoc.getTokenCursor(idx);
+                    do {
+                        promptCursor.previous();
+                    } while (promptCursor.getPrevToken().type !== 'prompt' && !promptCursor.atStart());
+                    const submitRange = selectionCursor.rangeForCurrentForm(idx);
+                    submitOnEnter = submitRange &&
+                        submitRange[1] > promptCursor.offsetStart;
                 }
             }
         }
