@@ -256,7 +256,24 @@ describe('Token Cursor', () => {
             cursor.backwardSexp();
             expect(cursor.offsetStart).toEqual(b.selectionLeft);
         });
-    })
+    });
+
+    describe('The REPL prompt', () => {
+        it('Backward sexp bypasses prompt', () => {
+            const a = docFromTextNotation('foo•clj꞉foo꞉> |');
+            const b = docFromTextNotation('|foo•clj꞉foo꞉> ');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp();
+            expect(cursor.offsetStart).toEqual(b.selection.active);
+        });
+        it('Backward sexp not skipping comments bypasses prompt finding its start', () => {
+            const a = docFromTextNotation('foo•clj꞉foo꞉> |');
+            const b = docFromTextNotation('foo•|clj꞉foo꞉> ');
+            const cursor: LispTokenCursor = a.getTokenCursor(a.selectionLeft);
+            cursor.backwardSexp(false);
+            expect(cursor.offsetStart).toEqual(b.selection.active);
+        });
+    });
 
     describe('Current Form', () => {
         it('0: selects from within non-list form', () => {
