@@ -602,39 +602,9 @@ export class LispTokenCursor extends TokenCursor {
             }
         }
         return undefined; // 8.
-    }
+    }  
 
-    /**
-     * Gets the range for the ”current” top level form, visiting forms from the cursor towards `offset`
-     * With `commentCreatesTopLevel` as true (default): If the current top level form is a `(comment ...)`, consider it creating a new top level and continue the search.
-     * @param offset The ”current” position
-     * @param depth Controls if the cursor should consider `comment` top level (if > 0, it will not)
-     * @param commentIsTopLevel? Controls
-     */
-    rangeForDefun(offset: number, depth = 0, commentCreatesTopLevel = true): [number, number] {
-        const cursor = this.clone();
-
-        while (cursor.forwardSexp()) {
-            if (cursor.offsetEnd >= offset) {
-                if (depth < 1 && cursor.getPrevToken().raw === ')') {
-                    const commentCursor = cursor.clone();
-                    commentCursor.previous();
-                    if (commentCursor.getFunctionName() === 'comment' && commentCreatesTopLevel) {
-                        commentCursor.backwardList();
-                        commentCursor.forwardWhitespace();
-                        commentCursor.forwardSexp();
-                        return commentCursor.rangeForDefun(offset, depth + 1);
-                    }
-                }
-                const end = cursor.offsetStart;
-                cursor.backwardSexp();
-                return [cursor.offsetStart, end];
-            }
-        }
-        return [offset, offset]
-    }
-
-    rangeForDefun2(offset: number, commentCreatesTopLevel = true): [number, number] {
+    rangeForDefun(offset: number, commentCreatesTopLevel = true): [number, number] {
         const cursor = this.doc.getTokenCursor(offset);
         let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
         while (cursor.forwardList() && cursor.upList()) {

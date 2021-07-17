@@ -216,9 +216,9 @@ function updateRainbowBrackets() {
     const startOffset = doc.offsetAt(range.start),
       endOffset = doc.offsetAt(range.end),
       startCursor: LispTokenCursor = mirrorDoc.getTokenCursor(0),
-      startRange = startCursor.rangeForDefun2(startOffset, false),
+      startRange = startCursor.rangeForDefun(startOffset, false),
       endCursor: LispTokenCursor = mirrorDoc.getTokenCursor(endOffset),
-      endRange = endCursor.rangeForDefun2(endOffset, false),
+      endRange = endCursor.rangeForDefun(endOffset, false),
       rangeStart = startRange[0],
       rangeEnd = endRange[1];
     // Look for top level ignores, and adjust starting point if found

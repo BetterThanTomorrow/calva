@@ -21,7 +21,7 @@ function moveCursorPastStringInList(tokenCursor: LispTokenCursor, s: string): vo
 function moveTokenCursorToBreakpoint(tokenCursor: LispTokenCursor, debugResponse: any): LispTokenCursor {
 
     const errorMessage = "Error finding position of breakpoint";
-    const [_, defunEnd] = tokenCursor.rangeForDefun2(tokenCursor.offsetStart);
+    const [_, defunEnd] = tokenCursor.rangeForDefun(tokenCursor.offsetStart);
     let inSyntaxQuote = false;
 
     const coor = [...debugResponse.coor]; // Copy the array so we do not modify the one stored in state

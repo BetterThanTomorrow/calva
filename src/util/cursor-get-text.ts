@@ -8,7 +8,7 @@ export type RangeAndText = [[number, number], string];
 
 export function currentTopLevelFunction(doc: EditableDocument): RangeAndText {
     const defunCursor = doc.getTokenCursor(doc.selection.active);
-    const defunStart = defunCursor.rangeForDefun2(doc.selection.active)[0];
+    const defunStart = defunCursor.rangeForDefun(doc.selection.active)[0];
     const cursor = doc.getTokenCursor(defunStart);
     while (cursor.downList()) {
         cursor.forwardWhitespace();
@@ -27,7 +27,7 @@ export function currentTopLevelFunction(doc: EditableDocument): RangeAndText {
 
 export function currentTopLevelForm(doc: EditableDocument): RangeAndText {
     const defunCursor = doc.getTokenCursor(doc.selection.active);
-    const defunRange = defunCursor.rangeForDefun2(doc.selection.active);
+    const defunRange = defunCursor.rangeForDefun(doc.selection.active);
     return defunRange ? [defunRange, doc.model.getText(...defunRange)] : [undefined, ''];
 }
 
@@ -54,12 +54,12 @@ export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndTex
 
 export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
     const cursor = doc.getTokenCursor(doc.selection.active);
-    const defunRange = cursor.rangeForDefun2(doc.selection.active);
+    const defunRange = cursor.rangeForDefun(doc.selection.active);
     return rangeOrStartOfFileToCursor(doc, defunRange, defunRange[0]);
 }
 
 export function startOfFileToCursor(doc: EditableDocument): RangeAndText {
     const cursor = doc.getTokenCursor(doc.selection.active);
-    const defunRange = cursor.rangeForDefun2(doc.selection.active, false);
+    const defunRange = cursor.rangeForDefun(doc.selection.active, false);
     return rangeOrStartOfFileToCursor(doc, defunRange, 0);
 }

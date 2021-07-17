@@ -92,7 +92,7 @@ export function selectOpenList(doc: EditableDocument) {
  */
 export function rangeForDefun(doc: EditableDocument, offset: number = doc.selection.active): [number, number] {
     const cursor = doc.getTokenCursor(offset);
-    return cursor.rangeForDefun2(offset);
+    return cursor.rangeForDefun(offset);
 }
 
 export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
