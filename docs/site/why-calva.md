@@ -65,7 +65,7 @@ The [reviews](https://marketplace.visualstudio.com/items?itemName=betterthantomo
 
 ---
 
-> ★️️️️️★️️️️️★️️️️️★️️️️️ **I switched from IntelliJ / Cursive to VS Code and Calva and it's been amazing.**
+> ★️️️️️★️️️️️★️️️️️★️️️️️★️️️️️ **I switched from IntelliJ / Cursive to VS Code and Calva and it's been amazing.**
 > 
 > ...
 >
