@@ -130,7 +130,7 @@ You might like to explore Clojure support in your favourite editor or IDE first.
 - **Try Clojure in your editor for a while.**
 - **Try VS Code + Calva** later to see how it compares, or if you find the initial setup process with your editor frustrating and just want to focus on Clojure instead of tools. Some developers switch to Calva because they'd rather have strong Clojure support with the essentials configured out of the box over a familiar editor. VS Code is also familiar enough to pick up quickly and extensible enough to change if you don't like its defaults.
 
-### If you're an experience Clojurist
+### If you're an experienced Clojurist
 
 Thank you for exploring Calva! We think it's worth your time even as a Clojure professional.
 
