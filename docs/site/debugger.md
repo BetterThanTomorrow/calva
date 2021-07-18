@@ -91,6 +91,9 @@ While debugging, you can view the values of variables in VS Code's debugger side
 
 While debugging, you can view the call stack in VS Code's call stack side pane. Clicking the stack frames will show the related line of code in an editor.
 
+!!! Note
+    You may only see one stack frame in the call stack side pane, as the change for adding additional frames was rolled back due to an issue. You can follow the change for this at [#1150](https://github.com/BetterThanTomorrow/calva/issues/1150).
+
 ![Debugger call stack](images/debugger/debugger-call-stack.gif "Viewing the call stack")
 
 ### Stepping Commands
