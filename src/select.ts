@@ -8,7 +8,7 @@ function selectionFromOffsetRange(doc: vscode.TextDocument, range: [number, numb
 
 function getFormSelection(doc: vscode.TextDocument, pos: vscode.Position, topLevel): vscode.Selection {
     const idx = doc.offsetAt(pos);
-    const cursor = docMirror.getDocument(doc).getTokenCursor(topLevel ? 0 : idx);
+    const cursor = docMirror.getDocument(doc).getTokenCursor(idx);
     const range = topLevel ? cursor.rangeForDefun(idx) : cursor.rangeForCurrentForm(idx);
     if (range) {
         return selectionFromOffsetRange(doc, range);
