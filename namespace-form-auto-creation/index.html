@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://calva.io/connect-sequences/">
+        <link rel="canonical" href="https://calva.io/namespace-form-auto-creation/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.7">
     
     
       
-        <title>REPL Jack-in and Connection Sequences - Calva User Guide</title>
+        <title>Namespace Form Auto-creation - Calva User Guide</title>
       
     
     
@@ -65,7 +65,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#repl-jack-in-and-connection-sequences" class="md-skip">
+        <a href="#namespace-form-auto-creation" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              REPL Jack-in and Connection Sequences
+              Namespace Form Auto-creation
             
           </span>
         </div>
@@ -445,58 +445,11 @@
             
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          REPL Jack-in and Connection Sequences
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../connect-sequences/" class="md-nav__link">
         REPL Jack-in and Connection Sequences
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#settings-for-adding-custom-sequences" class="md-nav__link">
-    Settings for adding Custom Sequences
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-sequences" class="md-nav__link">
-    Example Sequences
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -528,11 +481,21 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../namespace-form-auto-creation/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Namespace Form Auto-creation
       </a>
+      
     </li>
   
 
@@ -892,28 +855,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#settings-for-adding-custom-sequences" class="md-nav__link">
-    Settings for adding Custom Sequences
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-sequences" class="md-nav__link">
-    Example Sequences
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -924,115 +865,14 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/connect-sequences.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/namespace-form-auto-creation.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="repl-jack-in-and-connection-sequences">REPL Jack-in and Connection Sequences</h1>
-<p>Many projects grow out of the template phase and call for custom developer workflows involving application start commands, customized REPLs, and what have you. Even some templates add this kind of complexity. To make Jack-in usable for a broader set of projects, Calva has a setting keyed <code>calva.replConnectSequences</code> which lets you configure one ore more connect sequences.</p>
-<p>NB: <em>Connect sequence configuration affects Calva's Jack-in menu in the following ways:</em></p>
-<ol>
-<li>With <em>no sequence</em> configured, Calva will prompt for the built-in sequences it has that seems to match your project.</li>
-<li>When any number of connection sequences are configured, Calva will prompt for your custom sequences, as well as the built-in sequences. Whether built-in or custom, only sequences relevant to your project will be included in the prompt.</li>
-</ol>
-<h2 id="settings-for-adding-custom-sequences">Settings for adding Custom Sequences</h2>
-<p>A connect sequence configures the following:</p>
-<ul>
-<li><code>name</code>: (required) This will show up in the Jack-in quick-pick menu when you start Jack-in (see above).</li>
-<li><code>projectType</code>: (required) This is either "Leiningen”, ”deps.edn”, ”shadow-cljs”, ”lein-shadow”, or ”generic".</li>
-<li><code>nReplPortFile</code>: An array of path segments with the project root-relative path to the nREPL port file for this connect sequence. E.g. For shadow-cljs this would be <code>[".shadow-cljs", "nrepl.port"]</code>.</li>
-<li><code>afterCLJReplJackInCode</code>: Here you can give Calva some Clojure code to evaluate in the CLJ REPL, once it has been created.</li>
-<li><code>cljsType</code>: This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", "none", or a dictionary configuring a custom type. If set to "none", Calva will skip connecting a ClojureScript repl. A custom type has the following fields:<ul>
-<li><code>dependsOn</code>: (required) Calva will use this to determine which dependencies it will add when starting the project (Jacking in). This can be either "Figwheel Main", "shadow-cljs", "ClojureScript built-in for browser", "ClojureScript built-in for node", "lein-figwheel", or ”User provided”. If it is "User provided", then you need to provide the dependencies in the project or launch with an alias (deps.edn), profile (Leiningen), or build (shadow-cljs) that provides the dependencies needed.</li>
-<li><code>isStarted</code>: Boolean. For CLJS REPLs that Calva does not need to start, set this to true. (If you base your custom cljs repl on a shadow-cljs workflow, for instance.)</li>
-<li><code>startCode</code>: Clojure code to be evaluated to create and/or start your custom CLJS REPL.</li>
-<li><code>isStartedRegExp</code>: A regular expression which, when matched in the stdout from the startCode evaluation, will make Calva continue with connecting the REPL, and to prompt the user to start the application. If omitted and there is startCode Calva will continue when that code is evaluated.</li>
-<li><code>openUrlRegExp</code>: A regular expression, matched against the stdout of cljsType evaluations, for extracting the URL with which the app can be started. The expression should have a capturing group named <code>url</code>. E.g. "Open URL: (?\&lt;url>S+)"</li>
-<li><code>shouldOpenUrl</code>: Choose if Calva should automatically open the URL for you or not.</li>
-<li><code>connectCode</code>: (required) Clojure code to be evaluated to convert the REPL to a CLJS REPL that Calva can use to connect to the application. (For some setups this could also conditionally start the CLJS REPL. If so: <code>startCode</code> should be omitted.)</li>
-<li><code>isConnectedRegExp</code>: (required) A regular expression which, when matched in the <code>stdout</code> from the <code>connectCode</code> evaluation, will tell Calva that the application is connected. The default is <code>To quit, type: :cljs/quit</code> and you should leave it at that unless you know it won't work.</li>
-<li><code>printThisLineRegExp</code>: regular expression which, when matched in the <code>stdout</code> from any code evaluations in the <code>cljsType</code>, will make the matched text be printed to the <a href="../output/">Output window</a>.</li>
-<li><code>buildsRequired</code>: Boolean. If the repl type requires that builds are started in order to connect to them, set this to true.</li>
-</ul>
-</li>
-<li><code>menuSelections</code>: a dictionary with pre-filled-in selections for the Jack-in and Connect prompts, making Calva not prompt for that particular selection:<ul>
-<li><code>leinProfiles</code>: At Jack-in to a Leiningen project, use these profiles to launch the repl.</li>
-<li><code>leinAlias</code>: At Jack-in to a Leiningen project, launch with this alias. Set to <code>null</code> to launch with Calva's default task (a headless repl), w/o prompting.</li>
-<li><code>cljAliases</code>: At Jack-in to a deps.edn project, use these aliases to launch the repl.</li>
-<li><code>cljsLaunchBuilds</code>: The cljs builds to start/watch at Jack-in/connect.</li>
-<li><code>cljsDefaultBuild</code>: Which cljs build to attach to at the initial connect.</li>
-</ul>
-</li>
-<li><code>jackInEnv</code>: An object with environment variables that will be merged with the global <code>calva.jackInEnv</code> and then applied to the Jack-in process. The merge is very similar to how Clojure's <code>merge</code> works. So for any common keys between the global setting and this one, the ones from this setting will win.</li>
-</ul>
-<p>The <a href="https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts">Calva built-in sequences</a> also use this format, check them out to get a clearer picture of how these settings work.</p>
-<h2 id="example-sequences">Example Sequences</h2>
-<p>Setting for a full-stack application. It starts the backend server when the CLJ REPL has started. Then proceeds to create a custom CLJS REPL (calling in to the application code for this). And then connects to it.</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Example Sequence&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;Clojure-CLI&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;afterCLJReplJackInCode&quot;</span><span class="p">:</span> <span class="s2">&quot;(go)&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cljsType&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;startCode&quot;</span><span class="p">:</span> <span class="s2">&quot;(do (require &#39;[cljs-test.main :refer :all])(start-nrepl+fig))&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;isStartedRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;Prompt will show&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;connectCode&quot;</span><span class="p">:</span> <span class="s2">&quot;(do (use &#39;cljs-test.main) (cljs-repl))&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;To quit, type: :cljs/quit&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;printThisLineRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;\\[Figwheel\\] Starting Server at.*&quot;</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>Here is an example from the <a href="https://juxt.pro/blog/posts/edge.html">JUXT Edge</a> project template. It adds two sequences, one for when only the Clojure REPL should be launched and one for when the customized Edge cljs repl should also be connected. The <strong>Edge backend + frontend</strong> sequence specifies that the web app should be opened by Calva, making cljs repl connection more stable, and also adds <code>menuSelections</code> to skip the <strong>launch aliases</strong> prompt.</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Edge backend only&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Edge backend + frontend&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cljsType&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;dependsOn&quot;</span><span class="p">:</span> <span class="s2">&quot;Figwheel Main&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;startCode&quot;</span><span class="p">:</span> <span class="s2">&quot;(do (require &#39;dev-extras) (dev-extras/go) (println \&quot;Edge Figwheel Main started\&quot;) ((resolve &#39;dev-extras/cljs-repl)))&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;isReadyToStartRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;Edge Figwheel Main started&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;openUrlRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;Website listening on: (?&lt;url&gt;\\S+)&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;printThisLineRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;\\[Edge\\]&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;shouldOpenUrl&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
-                <span class="nt">&quot;connectCode&quot;</span><span class="p">:</span> <span class="s2">&quot;(do (require &#39;dev-extras) ((resolve &#39;dev-extras/cljs-repl)))&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;To quit, type: :cljs/quit&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;buildsRequired&quot;</span><span class="p">:</span> <span class="kc">false</span>
-            <span class="p">},</span>
-            <span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;cljAliases&quot;</span><span class="p">:</span> <span class="p">[</span>
-                    <span class="s2">&quot;dev&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;build&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;dev/build&quot;</span>
-                <span class="p">],</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>A deps.edn sequence that does not promote the ClojureScript repl at all (leaving it a Clojure REPL), and leaves that up to you to do interactively. (Could be useful while you are developing a custom cljs repl.) The example is for when adapting a Figwheel Main repl.</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Do not promote to cljs&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;deps.edn&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cljsType&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;dependsOn&quot;</span><span class="p">:</span> <span class="s2">&quot;Figwheel Main&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;connectCode&quot;</span><span class="p">:</span> <span class="s2">&quot;\&quot;Don&#39;t promote me bro!\&quot;&quot;</span><span class="p">,</span>
-                <span class="nt">&quot;isConnectedRegExp&quot;</span><span class="p">:</span> <span class="s2">&quot;Don&#39;t promote me bro!&quot;</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
-</code></pre></div>
+                <h1 id="namespace-form-auto-creation">Namespace Form Auto-creation</h1>
+<p>When you create a new clojure file, a file with <code>.clj</code>, <code>.cljc</code> or <code>.cljs</code> extension, an appropriate namespace form will be added to the file. This feature is provided by <a href="https://clojure-lsp.github.io/clojure-lsp/">clojure-lsp</a>.</p>
+<p><img alt="Example of ns form autocreation." src="../images/ns-form/ns-form-autocreation.gif" /></p>
                 
               
               
@@ -1052,7 +892,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../test-runner/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Test Runner" rel="prev">
+        <a href="../linting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Linting" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1061,20 +901,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Test Runner
+              Linting
             </div>
           </div>
         </a>
       
       
         
-        <a href="../custom-commands/" class="md-footer__link md-footer__link--next" aria-label="Next: Custom REPL Commands" rel="next">
+        <a href="../clojure-lsp/" class="md-footer__link md-footer__link--next" aria-label="Next: Clojure-lsp" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Custom REPL Commands
+              Clojure-lsp
             </div>
           </div>
           <div class="md-footer__button md-icon">
