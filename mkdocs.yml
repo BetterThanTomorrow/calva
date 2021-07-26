@@ -43,7 +43,7 @@ nav:
     - connect-sequences.md
     - custom-commands.md
     - linting.md
-    - ns-form-deriving.md
+    - namespace-form-auto-creation.md
   - clojure-lsp.md
   - customizing.md
   - Using Calva with X:
