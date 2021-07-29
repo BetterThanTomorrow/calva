@@ -2406,7 +2406,7 @@
         "parinfer": "^3.12.0",
         "tree-kill": "^1.2.2",
         "universal-analytics": "^0.4.20",
-        "vscode-debugadapter": "1.38.0",
+        "vscode-debugadapter": "1.48.0",
         "vscode-extension-telemetry": "0.0.15",
         "vscode-languageclient": "^6.1.3",
         "vsls": "^1.0.2594"

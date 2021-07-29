@@ -74,8 +74,6 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
-        const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
-
         this.sendResponse(response);
         state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH).send();
     }
@@ -199,6 +197,12 @@ class CalvaDebugSession extends LoggingDebugSession {
         // Pass scheme in path argument to Source contructor so that if it's a jar file it's handled correctly
         const source = new Source(basename(debugResponse.file), debugResponse.file);
         const name = tokenCursor.getFunctionName();
+
+        // Get full stack trace
+        // const cljSession = replSession.getSession(CLOJURE_SESSION_NAME);
+        // const { id, key } = getStateValue(DEBUG_RESPONSE_KEY);
+        //const stackTraceResponse = await cljSession.sendDebugInput(':stacktrace', id, key);
+
         const stackFrames = [new StackFrame(0, name, source, line + 1, column + 1)];
 
         response.body = {
