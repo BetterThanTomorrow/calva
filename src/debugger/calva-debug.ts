@@ -44,6 +44,10 @@ const DEBUG_ANALYTICS = {
     }
 };
 
+function debugLog(msg: string): void {
+    console.log(`DEBUG:${msg}`);
+}
+
 class CalvaDebugSession extends LoggingDebugSession {
 
     // We don't support multiple threads, so we can use a hardcoded ID for the default thread
@@ -53,6 +57,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     public constructor() {
         super('calva-debug-logs.txt');
+        console.log('CalvaDebugSession constructor running');
     }
 
     /**
@@ -60,7 +65,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 	 * to interrogate the features the debug adapter provides.
 	 */
     protected async initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): Promise<void> {
-
+        debugLog('initializeRequest called');
         this.setDebuggerLinesStartAt1(args.linesStartAt1);
         this.setDebuggerColumnsStartAt1(args.columnsStartAt1);
 
@@ -74,6 +79,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async attachRequest(response: DebugProtocol.AttachResponse, args: DebugProtocol.AttachRequestArguments): Promise<void> {
+        debugLog('attachRequest called');
         this.sendResponse(response);
         state.analytics().logEvent(DEBUG_ANALYTICS.CATEGORY, DEBUG_ANALYTICS.EVENT_ACTIONS.ATTACH).send();
     }
@@ -152,6 +158,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected threadsRequest(response: DebugProtocol.ThreadsResponse, request?: DebugProtocol.Request): void {
+        debugLog('threadsRequest called');
         // We do not support multiple threads. Return a dummy thread.
         response.body = {
             threads: [
@@ -173,7 +180,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments, request?: DebugProtocol.Request): Promise<void> {
-
+        debugLog('stackTraceRequest called');
         const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
         const uri = debugResponse.file.startsWith('jar:') ? vscode.Uri.parse(debugResponse.file) : vscode.Uri.file(debugResponse.file);
         const document = await vscode.workspace.openTextDocument(uri);
@@ -216,7 +223,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments, request?: DebugProtocol.Request): void {
-
+        debugLog('scopesRequest called');
         response.body = {
             scopes: [
                 new Scope("Locals", this._variableHandles.create('locals'), false)
@@ -237,6 +244,7 @@ class CalvaDebugSession extends LoggingDebugSession {
     }
 
     protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request): Promise<void> {
+        debugLog('variablesRequest called');
 
         const debugResponse = getStateValue(DEBUG_RESPONSE_KEY);
 
@@ -272,6 +280,7 @@ class CalvaDebugSession extends LoggingDebugSession {
                 break;
             }
             case REQUESTS.SEND_STOPPED_EVENT: {
+                debugLog('Custom request called: sending StoppedEvent');
                 this.sendEvent(new StoppedEvent(args.reason, CalvaDebugSession.THREAD_ID, args.exceptionText));
                 break;
             }
@@ -290,6 +299,7 @@ class CalvaDebugConfigurationProvider implements DebugConfigurationProvider {
 	 * e.g. add all missing attributes to the debug configuration.
 	 */
     resolveDebugConfiguration(folder: WorkspaceFolder | undefined, config: DebugConfiguration, token?: CancellationToken): ProviderResult<DebugConfiguration> {
+        debugLog('resolveDebugConfiguration called');
 
         // If launch.json is missing or empty
         if (!config.type && !config.request && !config.name) {
@@ -318,6 +328,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
             }).listen(0);
         }
 
+        debugLog('Creating a new DebugAdapterServer');
         // Make VS Code connect to debug server
         return new DebugAdapterServer(this.server.address().port);
     }
@@ -340,6 +351,8 @@ function onNreplMessage(data: any): void {
 
 function handleNeedDebugInput(response: any): void {
 
+    debugLog('handleNeedDebugInput called');
+
     // Make sure the form exists in the editor and was not instrumented in the repl window
     if (typeof response.file === 'string'
         && typeof response.column === 'number'
@@ -348,6 +361,7 @@ function handleNeedDebugInput(response: any): void {
         setStateValue(DEBUG_RESPONSE_KEY, response);
 
         if (!debug.activeDebugSession) {
+            debugLog(`Calling startDebugging`);
             debug.startDebugging(undefined, CALVA_DEBUG_CONFIGURATION);
         }
     } else {
@@ -358,6 +372,7 @@ function handleNeedDebugInput(response: any): void {
 }
 
 debug.onDidStartDebugSession(session => {
+    debugLog('running onDidStartDebugSession');
     // We only start debugger sessions when a breakpoint is hit
     session.customRequest(REQUESTS.SEND_STOPPED_EVENT, { reason: 'breakpoint' });
 });
