@@ -16,6 +16,10 @@ import debugDecorations from './decorations';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as replSession from '../nrepl/repl-session';
 
+// Documentation:
+// https://code.visualstudio.com/api/extension-guides/debugger-extension
+// https://microsoft.github.io/debug-adapter-protocol/
+
 const CALVA_DEBUG_CONFIGURATION: DebugConfiguration = {
     type: 'clojure',
     name: 'Calva Debug',
@@ -45,7 +49,7 @@ const DEBUG_ANALYTICS = {
 };
 
 function debugLog(msg: string): void {
-    console.log(`DEBUG:${msg}`);
+    console.debug(`DEBUG: ${msg}`);
 }
 
 class CalvaDebugSession extends LoggingDebugSession {
@@ -57,7 +61,7 @@ class CalvaDebugSession extends LoggingDebugSession {
 
     public constructor() {
         super('calva-debug-logs.txt');
-        console.log('CalvaDebugSession constructor running');
+        debugLog('CalvaDebugSession constructor called');
     }
 
     /**
@@ -322,6 +326,7 @@ class CalvaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFactor
         if (!this.server) {
             // Start listening on a random port (0 means an arbitrary unused port will be used)
             this.server = Net.createServer(socket => {
+                debugLog('Creating a new CalvaDebugSession');
                 const debugSession = new CalvaDebugSession();
                 debugSession.setRunAsServer(true);
                 debugSession.start(<NodeJS.ReadableStream>socket, socket);
