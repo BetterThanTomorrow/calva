@@ -388,8 +388,11 @@ export class LispTokenCursor extends TokenCursor {
         let cursor = this.clone();
         while (cursor.forwardSexp()) { }
         if (cursor.getToken().type === "close") {
-            this.set(cursor);
-            return true;
+            const backCursor = cursor.clone();
+            if (backCursor.backwardList()) {
+                this.set(cursor);
+                return true;
+            }
         }
         return false;
     }
