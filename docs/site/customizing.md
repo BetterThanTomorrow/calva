@@ -30,6 +30,10 @@ Calva sets some VS Code settings for all Clojure files. Some of these are needed
         "editor.parameterHints.enabled": false
     }
 ```
+
+!!! Note
+    The above `editor.wordSeparators` setting establish Clojure word boundaries. E.g `-` is considered to be part of words. This affects what happens when double-clicking symbols and other things. If you want to include `-` or something else as a word boundary, just add it to the setting.
+
 ## Pretty Printing
 
 Calva's pretty printing mode can be configured a bit. See [Pretty Printing](pprint.md).
