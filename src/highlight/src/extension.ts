@@ -219,8 +219,8 @@ function updateRainbowBrackets() {
       startRange = startCursor.rangeForDefun(startOffset, false),
       endCursor: LispTokenCursor = mirrorDoc.getTokenCursor(endOffset),
       endRange = endCursor.rangeForDefun(endOffset, false),
-      rangeStart = startRange[0],
-      rangeEnd = endRange[1];
+      rangeStart = startRange ? startRange[0] : startOffset,
+      rangeEnd = endRange ? endRange[1] : endOffset;
     // Look for top level ignores, and adjust starting point if found
     const topLevelSentinelCursor = mirrorDoc.getTokenCursor(rangeStart);
     let startPaintingFrom = rangeStart;
