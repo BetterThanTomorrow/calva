@@ -79,9 +79,21 @@ function initializeState() {
     setStateValue('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
 }
 
+function startNReplServer(context: vscode.ExtensionContext) {
+    const nrepl = require('nrepl-cljs-sci');
+    return nrepl.start_server(
+        {
+            // Pass reference to application with the 'app' key
+            app: {
+                app: context,
+                vscode: vscode
+            }
+        });
+}
+
 async function activate(context: vscode.ExtensionContext) {
     initializeState();
-
+    startNReplServer(context);
     status.updateNeedReplUi(false, context);
     lsp.activate(context);
     setStateValue('analytics', new Analytics(context));

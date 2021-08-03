@@ -2402,6 +2402,7 @@
         "lodash.isequal": "4.5.0",
         "net": "1.0.2",
         "npm": "^7.0.7",
+        "nrepl-cljs-sci": "^0.0.11",
         "open": "^6.3.0",
         "parinfer": "^3.12.0",
         "tree-kill": "^1.2.2",
