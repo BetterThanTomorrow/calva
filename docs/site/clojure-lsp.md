@@ -29,13 +29,15 @@ For information about how to configure clojure-lsp, see the [settings](https://c
 
 ### Changing the Version of Clojure-lsp Used by Calva
 
-You can change the version of clojure-lsp used by Calva by setting the `calva.clojureLspVersion` property to a version of clojure-lsp found in its GitHub [releases](https://github.com/clojure-lsp/clojure-lsp/releases). This can be helpful if you're debugging an issue with clojure-lsp or you want to try out a feature of a new release that Calva does not yet use. However, you must remember to reset this setting in order for Calva to automatically use newer versions of clojure-lsp that are released with new versions of Calva.
+By default, Calva will use the latest released **clojure-lsp**. You can change the version of clojure-lsp used by Calva by setting the `calva.clojureLspVersion` property to a version of clojure-lsp found in its GitHub [releases](https://github.com/clojure-lsp/clojure-lsp/releases). This can be helpful if you're debugging an issue with clojure-lsp or you want to try out a feature of a new release that Calva does not yet use. However, you must remember to reset this setting in order for Calva to automatically use newer versions of clojure-lsp that are released with new versions of Calva.
 
 Example:
 
 ```json
 "calva.clojureLspVersion": "2021.04.07-16.34.10"
 ```
+
+If you have specified a version and want to use the latest release, either remove the setting, or set it to `latest`.
 
 ### Using a Custom Clojure-lsp Native Binary
 

@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Default to using the latest release of clojure](https://github.com/BetterThanTomorrow/calva/issues/1248)
 
 ## [2.0.205] - 2021-07-14
 - [Use new custom LSP method for server info command and print info in "Calva says" output channel ](https://github.com/BetterThanTomorrow/calva/issues/1211)

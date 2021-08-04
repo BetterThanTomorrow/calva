@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as JSZip from 'jszip';
 import * as outputWindow from './results-output/results-doc';
 import * as cljsLib from '../out/cljs-lib/cljs-lib';
+import * as url from 'url';
 
 const specialWords = ['-', '+', '/', '*']; //TODO: Add more here
 const syntaxQuoteSymbol = "`";
@@ -372,9 +373,15 @@ async function downloadFromUrl(url: string, savePath: string) {
     });
 }
 
-async function fetchFromUrl(url: string): Promise<string> {
+async function fetchFromUrl(fullUrl: string): Promise<string> {
+    const q = url.parse(fullUrl);
     return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
+        https.get({
+            host: q.hostname,
+            path: q.pathname,
+            port: q.port,
+            headers: {'user-agent': 'node.js'}
+        }, (res) => {
             let data = '';
             res.on('data', (chunk: any) => {
                 data += chunk;
