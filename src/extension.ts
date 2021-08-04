@@ -79,21 +79,8 @@ function initializeState() {
     setStateValue('diagnosticCollection', vscode.languages.createDiagnosticCollection('calva: Evaluation errors'));
 }
 
-function startNReplServer(context: vscode.ExtensionContext) {
-    const nrepl = require('nrepl-cljs-sci');
-    return nrepl.start_server(
-        {
-            // Pass reference to application with the 'app' key
-            app: {
-                app: context,
-                vscode: vscode
-            }
-        });
-}
-
 async function activate(context: vscode.ExtensionContext) {
     initializeState();
-    startNReplServer(context);
     status.updateNeedReplUi(false, context);
     lsp.activate(context);
     setStateValue('analytics', new Analytics(context));
@@ -328,6 +315,18 @@ async function activate(context: vscode.ExtensionContext) {
     } else {
         vscode.window.showErrorMessage("Clojure Warrior extension detected. This will not work well together with Calva's highlighting (which is an improvement on Clojure Warrior). Please uninstall/disable it.", ...["Got it.", "Will do!"]);
     }
+
+    const nrepl = require('nrepl-cljs-sci');
+    nrepl.start_server(
+        {
+            // Pass reference to application with the 'app' key
+            app: {
+                paredit: paredit,
+                context: context
+            }
+        });
+    
+    console.log
 
     return {
         hasParedit: true,
