@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.205",
+    "version": "2.0.206",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -278,8 +278,8 @@
                     },
                     "calva.clojureLspVersion": {
                         "type": "string",
-                        "default": "2021.07.12-12.30.59",
-                        "markdownDescription": "The version of `clojure-lsp` to download and use. (Will take effect after a reload of the project window.) Remove this setting to switch back to using the current Calva default."
+                        "default": "latest",
+                        "markdownDescription": "The version of `clojure-lsp` to download and use. A release tag-name or `latest`. (Will take effect after a reload of the project window.) Remove this setting to switch back to using the current Calva default (`latest`)."
                     },
                     "calva.clojureLspPath": {
                         "type": "string",
