@@ -281,6 +281,17 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     setStateValue(LSP_CLIENT_KEY, client);
     registerCommands(context, client);
     registerEventHandlers(context, client);
+    sayClientVersionInfo(client);
+}
+
+async function sayClientVersionInfo(client: LanguageClient) {
+    const serverInfo = await getServerInfo(client);
+    const clojureLspVersion = serverInfo['server-version'];
+    const cljKondoVersion = serverInfo['clj-kondo-version'];
+    const calvaSaysChannel = state.outputChannel();
+    calvaSaysChannel.appendLine('');
+    calvaSaysChannel.appendLine(`clojure-lsp version used: ${clojureLspVersion}`);
+    calvaSaysChannel.appendLine(`clj-kondo version used: ${cljKondoVersion}`);
 }
 
 async function serverInfoCommandHandler(): Promise<void> {
