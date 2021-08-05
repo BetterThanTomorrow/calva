@@ -51,6 +51,8 @@ Example:
 
 ## Troubleshooting
 
+### Viewing the Logs Between the Client and Server
+
 If something doesn't seem to be working correctly, and you suspect the issue is related to clojure-lsp, a good place to start investigating is the request and response logs between the LSP client and server. In your settings, set `clojure.trace.server` to `verbose`, then in the VS Code output tab, select the `Clojure Language Client` output channel.
 
 !["Clojure trace server setting"](images/clojure-lsp/trace-server-setting.png "Clojure trace server setting")
