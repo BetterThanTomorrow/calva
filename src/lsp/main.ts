@@ -4,7 +4,7 @@ import * as util from '../utilities'
 import * as config from '../config';
 import { provideClojureDefinition } from '../providers/definition';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
-import { downloadClojureLsp } from './download';
+import { downloadClojureLsp, getLatestVersion } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
 import * as os from 'os';
 import * as path from 'path';
@@ -310,8 +310,9 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
             vscode.window.showWarningMessage('The calva.clojureLspVersion setting is blank and calva.clojureLspPath is also blank, so clojure-lsp will not be started. Please reset the calva.clojureLspVersion setting to use the default version of clojure-lsp, or set it to a clojure-lsp version you want to use. Alternatively, you can set the calva.clojureLspPath to use a downloaded binary of clojure-lsp.');
             return;
         }
-        if (currentVersion !== configuredVersion) {
-            const downloadPromise = downloadClojureLsp(context.extensionPath, configuredVersion);
+        const downloadVersion = configuredVersion === 'latest' ? await getLatestVersion() : configuredVersion;
+        if (currentVersion !== downloadVersion) {
+            const downloadPromise = downloadClojureLsp(context.extensionPath, downloadVersion);
             lspStatus.text = '$(sync~spin) Downloading clojure-lsp';
             lspStatus.show();
             clojureLspPath = await downloadPromise;

@@ -3,7 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Performance improvement [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942) 
+- [Default to using the latest release of clojure](https://github.com/BetterThanTomorrow/calva/issues/1248)
+- Performance improvement [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942) >>>>>>> dev
 
 ## [2.0.205] - 2021-07-14
 - [Use new custom LSP method for server info command and print info in "Calva says" output channel ](https://github.com/BetterThanTomorrow/calva/issues/1211)

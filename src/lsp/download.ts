@@ -6,6 +6,12 @@ import * as fs from 'fs';
 import { https } from 'follow-redirects';
 import * as extractZip from 'extract-zip';
 
+async function getLatestVersion(): Promise<string> {
+    const releasesJSON = await util.fetchFromUrl('https://api.github.com/repos/clojure-lsp/clojure-lsp/releases');
+    const releases = JSON.parse(releasesJSON);
+    return releases[0].tag_name;
+}
+
 function getZipFileName(platform: string): string {
     return {
         'darwin': 'clojure-lsp-native-macos-amd64.zip',
@@ -87,5 +93,6 @@ async function downloadClojureLsp(extensionPath: string, version: string): Promi
 }
 
 export {
-    downloadClojureLsp
+    downloadClojureLsp,
+    getLatestVersion
 }
