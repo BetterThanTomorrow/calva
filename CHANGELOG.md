@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Support a blank `clojureLspVersion` setting](https://github.com/BetterThanTomorrow/calva/issues/1251)
 
 ## [2.0.206] - 2021-08-05
 - [Default to using the latest release of clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1248)
