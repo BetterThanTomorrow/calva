@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.207] - 2021-08-07
+- [Support a blank `clojureLspVersion` setting](https://github.com/BetterThanTomorrow/calva/issues/1251)
+
 ## [2.0.206] - 2021-08-05
 - [Default to using the latest release of clojure-lsp](https://github.com/BetterThanTomorrow/calva/issues/1248)
 - Performance improvement [REPL is Slow and Performance Degrades as the Output Grows](https://github.com/BetterThanTomorrow/calva/issues/942)
