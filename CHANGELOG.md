@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.207] - 2021-08-07
 - [Support a blank `clojureLspVersion` setting](https://github.com/BetterThanTomorrow/calva/issues/1251)
 
 ## [2.0.206] - 2021-08-05
