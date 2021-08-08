@@ -15,18 +15,40 @@ To keep the admin of this shop to a minimum the merch is sold at production priz
 
 ## The designs
 
-These are the three designs you will find, in some different colors:
+There are four design, all featuring the Calva symbol (the Calva glass), which are all available for a **Standard T-shirt, in men's, women's and kid's cut, and in some different colors. In the `.com` store there are also **Premium T-shirts**.
 
 ### Symbol + Logo
 
 ![Calva T-shirt Symbol + Logo](/images/merch/t-shirt-calva-symbol-and-logo.png)
 
-This t-shirt is currently available at:
+Available at:
 
-* [https://www.amazon.com/dp/B097JJ4W63](https://www.amazon.com/dp/B097JJ4W63)
+* [https://www.amazon.com/dp/B09BCVH9SC](https://www.amazon.com/dp/B09BCVH9SC) (Premium T-shirt)
+* [https://www.amazon.com/dp/B097TB5QFW](https://www.amazon.com/dp/B097TB5QFW)
 * [https://www.amazon.de/dp/B098GWQC6M](https://www.amazon.de/dp/B098GWQC6M)
-* [https://www.amazon.co.uk/dp/B098KM9XMF9](https://www.amazon.co.uk/dp/B098KM9XMF)
+* [https://www.amazon.co.uk/dp/B098KM9XMF](https://www.amazon.co.uk/dp/B098KM9XMF)
+* [https://www.amazon.fr/dp/B0994TYXTN](https://www.amazon.fr/dp/B0994TYXTN)
+* [https://www.amazon.it/dp/B099KLJJV1](https://www.amazon.it/dp/B099KLJJV1)
+* [https://www.amazon.es/dp/B099NXR71Y](https://www.amazon.es/dp/B099NXR71Y)
 * [https://www.amazon.co.jp/dp/B097YZVMC4](https://www.amazon.co.jp/dp/B097YZVMC4)
+
+
+### Symbol + Logo + We do it with Rich Comments
+
+The Calva symbol and Logo front, Rich Comments back.
+
+![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-symbol+logo+rich-comments.png)
+
+Available at:
+
+* [https://www.amazon.com/dp/B09C4PBH5N](https://www.amazon.com/dp/B09C4PBH5N) (Premium T-shirt)
+* [https://www.amazon.com/dp/B09BFMRCHL](https://www.amazon.com/dp/B09BFMRCHL)
+* [https://www.amazon.de/dp/B09C3VYZH8](https://www.amazon.de/dp/B09C3VYZH8)
+* [https://www.amazon.co.uk/dp/B09BLD2BVJ](https://www.amazon.co.uk/dp/B09BLD2BVJ)
+* [https://www.amazon.fr/dp/B09C3X1H7K](https://www.amazon.fr/dp/B09C3X1H7K)
+* [https://www.amazon.it/dp/B09C3WV2JQ](https://www.amazon.it/dp/B09C3WV2JQ)
+* [https://www.amazon.es/dp/B09C4P1GD1](https://www.amazon.es/dp/B09C4P1GD1)
+
 
 ### Symbol Only
 
@@ -34,36 +56,32 @@ This t-shirt is currently available at:
 
 Available at:
 
+* [https://www.amazon.com/dp/B09B83481D](https://www.amazon.com/dp/B09B83481D) (Premium T-shirt)
 * [https://www.amazon.com/dp/B097TB5QFW](https://www.amazon.com/dp/B097TB5QFW)
-* [https://www.amazon.co.uk/dp/B098KNGPBB](https://www.amazon.co.uk/dp/B098KNGPBB)
 * [https://www.amazon.de/dp/B098434W9M](https://www.amazon.de/dp/B098434W9M)
+* [https://www.amazon.co.uk/dp/B098KNGPBB](https://www.amazon.co.uk/dp/B098KNGPBB)
+* [https://www.amazon.fr/dp/B099RZGNN7](https://www.amazon.fr/dp/B099RZGNN7)
+* [https://www.amazon.it/dp/B099WYH94Z](https://www.amazon.it/dp/B099WYH94Z)
+* [https://www.amazon.es/dp/B09B2TFCSR](https://www.amazon.es/dp/B09B2TFCSR)
+* [https://www.amazon.co.jp/dp/B09B4XN3HY](https://www.amazon.co.jp/dp/B09B4XN3HY)
 
-### We do it with Rich Comments
-
-![Calva T-shirt We do it with Rich Comments](/images/merch/t-shirt-rich-comments.png)
-
-Available at:
-
-* [https://www.amazon.com/dp/B098D8LF4D](https://www.amazon.com/dp/B098D8LF4D)
-* [https://www.amazon.de/dp/B098F7ZXDB](https://www.amazon.de/dp/B098F7ZXDB)
 
 ### Symbol + We do it with Rich Comments
 
 The Calva symbol front, Rich Comments Back.
 
-![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-rich-comments-2.png)
+![Calva T-shirt We do it with Rich Comments Back](/images/merch/calva-t-shirt-symbol+rich-comments.png)
 
 Available at:
 
-* [https://www.amazon.com/dp/B098M34FKJ](https://www.amazon.com/dp/B098M34FKJ)
+* [https://www.amazon.com/dp/B098M34FKJ](https://www.amazon.com/dp/B098M34FKJ) (Premium T-shirt)
+* [https://www.amazon.com/dp/B0993VCG7P](https://www.amazon.com/dp/B0993VCG7P)
 * [https://www.amazon.de/dp/B098MF14PV](https://www.amazon.de/dp/B098MF14PV)
-* [https://www.amazon.com/dp/B0993VCG7P](https://www.amazon.com/dp/B0993VCG7P) (Premium T-shirt)
 * [https://www.amazon.co.uk/dp/B098P1MV44](https://www.amazon.co.uk/dp/B098P1MV44)
-* [https://www.amazon.es/dp/B098RDPK55](https://www.amazon.es/dp/B098RDPK55)
 * [https://www.amazon.fr/dp/B098TPQFCJ](https://www.amazon.fr/dp/B098TPQFCJ)
 * [https://www.amazon.it/dp/B098YP33ZL](https://www.amazon.it/dp/B098YP33ZL)
+* [https://www.amazon.es/dp/B098RDPK55](https://www.amazon.es/dp/B098RDPK55)
 * [https://www.amazon.co.jp/dp/B0992MQYG6](https://www.amazon.co.jp/dp/B0992MQYG6)
-
 
 !!! Note
     What's available on this or that Amazon site will vary a bit and it is a bit slow to add a particular design to a particular market. Eventually I hope to have both designs up on these markets: `.com`, `.co.uk`, `.de`, `.fr`, `.it`, `.es`, and `.co.jp`
