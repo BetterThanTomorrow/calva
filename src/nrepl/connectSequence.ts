@@ -65,12 +65,6 @@ const leiningenDefaults: ReplConnectSequence[] =
         cljsType: CljsTypes["Figwheel Main"]
     },
     {
-        name: "Leiningen + shadow-cljs",
-        projectType: ProjectTypes.Leiningen,
-        cljsType: CljsTypes["shadow-cljs"],
-        nReplPortFile: [".shadow-cljs", "nrepl.port"]
-    },
-    {
         name: "Leiningen + ClojureScript built-in for browser",
         projectType: ProjectTypes.Leiningen,
         cljsType: CljsTypes["ClojureScript built-in for browser"]
@@ -96,12 +90,6 @@ const cljDefaults: ReplConnectSequence[] =
         name: "deps.edn + Figwheel Main",
         projectType: ProjectTypes["deps.edn"],
         cljsType: CljsTypes["Figwheel Main"]
-    },
-    {
-        name: "deps.edn + shadow-cljs",
-        projectType: ProjectTypes["deps.edn"],
-        cljsType: CljsTypes["shadow-cljs"],
-        nReplPortFile: [".shadow-cljs", "nrepl.port"]
     },
     {
         name: "deps.edn + ClojureScript built-in for browser",
