@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Project configuration shadow-cljs + deps.edn doesn't work](https://github.com/BetterThanTomorrow/calva/issues/1253)
 
 ## [2.0.207] - 2021-08-07
 - [Support a blank `clojureLspVersion` setting](https://github.com/BetterThanTomorrow/calva/issues/1251)
