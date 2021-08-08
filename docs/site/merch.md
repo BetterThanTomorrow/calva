@@ -48,6 +48,7 @@ Available at:
 * [https://www.amazon.fr/dp/B09C3X1H7K](https://www.amazon.fr/dp/B09C3X1H7K)
 * [https://www.amazon.it/dp/B09C3WV2JQ](https://www.amazon.it/dp/B09C3WV2JQ)
 * [https://www.amazon.es/dp/B09C4P1GD1](https://www.amazon.es/dp/B09C4P1GD1)
+* [https://www.amazon.co.jp/dp/B09C4P45MR](https://www.amazon.co.jp/dp/B09C4P45MR)
 
 
 ### Symbol Only
