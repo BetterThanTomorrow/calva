@@ -39,15 +39,13 @@ A selection of other [reviews from the marketplace](https://marketplace.visualst
 
 ---
 
-> ★️️️️️★️️️️️★️️️️️★️️️️️★️️️️️ **I switched from Emacs to VS Code on the strength of Calva and have no regrets.**
+> ★️️️️️★️️️️️★️️️️️★️️️️️★️️️️️ **Calva hits the sweet spot of being both approachable for new users and powerful for seasoned ones.**
 > 
-> Calva offers great defaults with an experience that's easy to get started with for beginners but powerful enough for pros writing Clojure for a living.
+> The creators/maintainers are fantastic individuals that care deeply about streamlining the user experience, and it shows.
 >
-> Calva bundles open source tools (linters, formatters, language servers) and configures them so they just work.
+> Good stuff, check it out.
 >
-> Calva is also configurable itself, but most users will find they can just install it, jack-in and start hacking on Clojure without another thought.
->
-> _Nick Cernis_
+> _Clay Hopperdietzel_
 
 ---
 
