@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.208] - 2021-08-09
 - Fix [Project configuration shadow-cljs + deps.edn doesn't work](https://github.com/BetterThanTomorrow/calva/issues/1253)
 
 ## [2.0.207] - 2021-08-07
