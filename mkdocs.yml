@@ -29,6 +29,7 @@ nav:
     - try-first.md
     - finding-commands.md
     - eval-tips.md
+  - why-calva.md
   - Features:
     - commands-top10.md
     - evaluation.md
