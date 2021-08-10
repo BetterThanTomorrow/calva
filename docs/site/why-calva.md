@@ -1,6 +1,18 @@
 # Why Calva?
 
-**Over 48,000 VS Code users trust Calva to make Clojure development fast and fun.** Here's what some of them say:
+The main reason you would choose Calva for your [Clojure](https://clojure.org) and/or [ClojureScript](https://clojurescript.org) coding is that you want to use [Visual Studio Code](https://code.visualstudio.com/). Calva provides VS Code users with a comprehensive set of features to keep you productive and make it easy to follow Clojure coding best practices. This also means that if your choice of editor is not made yet, we think you should give VS Code and Calva a try.
+
+While Calva is a good choice for professional and experienced Clojure developers, great care has been taken in making Calva a really good choice for beginners of Clojure as well.
+
+We who make Calva are actively [stewarding, maintaining, documenting and supporting it](https://github.com/BetterThanTomorrow/calva/wiki#the-tao-of-calva). We are also very active Clojure (and Calva) users, participating in the community. Clojure is dear to us, a lot because it keeps programming fun and rewarding.
+
+Calva has very happy users! Check out the Programming Languages section on the Visual Studio Code Marketplace, [sorted by rating](https://marketplace.visualstudio.com/search?target=VSCode&category=Programming%20Languages&sortBy=Rating):
+
+![VS Code Extensions by Rating](/images/vscode-extension-by-rating.png)
+
+Recently there was a [thread over at ClojureVerse](https://clojureverse.org/t/gnu-emacs-cider-vs-vs-code-calva/7829/26), asking about how Calva Compares to Emacs with [CIDER](https://cider.mx). It is well worth reading. We would like to highlight [the answer by Nick Cernis](https://clojureverse.org/t/gnu-emacs-cider-vs-vs-code-calva/7829/26), which focuses on Calva. We'll even quote parts of it. 😍
+
+## Nick Cernis on ClojureVerse
 
 > My advice to anyone starting their Clojure journey who is unsure about what editor to use:
 >
@@ -25,11 +37,9 @@
 > - **The default key bindings are good and the commands are easily discoverable.**
 > - **For its age it’s surprisingly feature rich.**
 
-See [Nick's full review on ClojureVerse](https://clojureverse.org/t/gnu-emacs-cider-vs-vs-code-calva/7829/26).
+## 100% Five-star Marketplace Reviews
 
-## Visual Studio Code Marketplace reviews
-
-A selection of other [reviews from the marketplace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva&ssr=false#review-details).
+We are super proud of the [Calva reviews on the Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva&ssr=false#review-details). Please read them all. 😄 Here's a selection that we think captures what we focus on in when developing Calva:
 
 > ★️️️️️★️️️️️★️️️️️★️️️️️★️️️️️ **Calva has become an essential part of my Clojure workflow.**
 >
