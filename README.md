@@ -43,7 +43,7 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 
 ## Features
 
-Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp). Below is a list of some of the features provided by both types of analysis.
+Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp), and you can read more about [Calva's integration of clojure-lsp](https://calva.io/clojure-lsp/) in the documentation. Below is a list of some of the features provided by both types of analysis.
 
 * Syntax highlighting, plus:
   * Rainbow parens
