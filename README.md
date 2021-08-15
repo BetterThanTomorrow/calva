@@ -69,6 +69,8 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 * When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 * And more
 
+### Powered in Part by Clojure-lsp
+
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp), and you can read more about [Calva's integration of clojure-lsp](https://calva.io/clojure-lsp/) in the documentation.
 
 ### Demo: Evaluate top level forms inside `(comment...)`
