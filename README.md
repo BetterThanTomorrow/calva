@@ -43,8 +43,6 @@ Go to the [documentation](https://calva.io/) to find info on how to connect Calv
 
 ## Features
 
-Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp), and you can read more about [Calva's integration of clojure-lsp](https://calva.io/clojure-lsp/) in the documentation. Below is a list of some of the features provided by both types of analysis.
-
 * Syntax highlighting, plus:
   * Rainbow parens
   * Rainbow indent guides
@@ -70,6 +68,8 @@ Calva uses a mix of static and dynamic analysis to power the experience. A lot o
 * Switch the ClojureScript REPL connection between your different builds at will.
 * When editing `cljc` files, easily choose if REPL commands should go to the `clj` or `cljs` REPL by clicking the `cljc/clj[s]` indicator in the status bar.
 * And more
+
+Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp), and you can read more about [Calva's integration of clojure-lsp](https://calva.io/clojure-lsp/) in the documentation.
 
 ### Demo: Evaluate top level forms inside `(comment...)`
 
