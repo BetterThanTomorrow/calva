@@ -146,21 +146,21 @@ export async function startStandaloneRepl(context: vscode.ExtensionContext, dram
 }
 
 export async function startOrConnectRepl() {
-    const JACK_IN_OPTION = "Start your project with a REPL server and connect (a.k.a. Jack-in)";
+    const JACK_IN_OPTION = "Start your project with a REPL and connect (a.k.a. Jack-in)";
     const JACK_IN_COMMAND = "calva.jackIn";
-    const START_REPL_OPTION = "Start a standalone REPL server";
+    const START_REPL_OPTION = "Start a standalone REPL";
     const START_REPL_COMMAND = "calva.startStandaloneRepl";
-    const START_HELLO_REPL_OPTION = "Fire up the ”Getting Started” REPL server";
+    const START_HELLO_REPL_OPTION = "Fire up the ”Getting Started” REPL";
     const START_HELLO_REPL_COMMAND = "calva.startStandaloneHelloRepl";
     const START_HELLO_CLJS_BROWSER_OPTION = "Fire up the ”ClojureScript Quick Start” Browser REPL";
     const START_HELLO_CLJS_BROWSER_COMMAND = "calva.startStandaloneCljsBrowserRepl";
     const START_HELLO_CLJS_NODE_OPTION = "Fire up the ”ClojureScript Quick Start” Node REPL";
     const START_HELLO_CLJS_NODE_COMMAND = "calva.startStandaloneCljsNodeRepl";
-    const CONNECT_PROJECT_OPTION = "Connect to a running REPL server in your project";
+    const CONNECT_PROJECT_OPTION = "Connect to a running REPL in your project";
     const CONNECT_PROJECT_COMMAND = "calva.connect";
-    const CONNECT_STANDALONE_OPTION = "Connect to a running REPL server, not in your project";
+    const CONNECT_STANDALONE_OPTION = "Connect to a running REPL, not in your project";
     const CONNECT_STANDALONE_COMMAND = "calva.connectNonProjectREPL";
-    const DISCONNECT_OPTION = "Disconnect from the REPL server";
+    const DISCONNECT_OPTION = "Disconnect from the REPL";
     const DISCONNECT_COMMAND = "calva.disconnect";
     const OPEN_WINDOW_OPTION = "Open the Output Window";
     const OPEN_WINDOW_COMMAND = "calva.showOutputWindow";
