@@ -19,6 +19,7 @@ edit_uri: edit/published/docs/site
 strict: true
 markdown_extensions:
   - admonition
+  - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.superfences
 nav:
@@ -65,5 +66,6 @@ nav:
     - quirks.md
   - In Depth:
     - jack-in-guide.md
+  - get-started-with-clojure.md
   - sponsors.md
   - merch.md
