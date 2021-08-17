@@ -12,6 +12,15 @@
 
 I'm glad you asked! Please see the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki). (There, in a section labeled **The Tao of Calva**, we also try to make clear *why* you would want to contribute.)
 
+### Calva Patrons
+
+<div>
+<div><a href="https://agical.se" title="The right kind of different">
+<img src="/images/agical-logo-1200x400.png" width="300px" height="100px" alt="Agical"/></a></div>
+<div>The right kind of different</div>
+</div>
+
+
 ### Calva Gold Sponsors ♥️
 
 <div style="display:flex; flex: 1; flex-direction: row; justify-content: flex-start; margin-bottom: 16px;">
