@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [Statusbar buttons hard to see with light themes](https://github.com/BetterThanTomorrow/calva/issues/1264)
 
 ## [2.0.208] - 2021-08-09
 - Fix [Project configuration shadow-cljs + deps.edn doesn't work](https://github.com/BetterThanTomorrow/calva/issues/1253)
