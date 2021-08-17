@@ -213,36 +213,72 @@
                         "type": "object",
                         "description": "Configuration for custom coloring of the statusbar.",
                         "properties": {
-                            "disconnectedColor": {
-                                "type": "string",
-                                "default": "#c0c0c0",
-                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
-                                "description": "Foreground color for the disconnected status"
+                            "light": {
+                                "type": "object",
+                                "description": "Light theme colors",
+                                "properties": {
+                                    "disconnectedColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the disconnected status"
+                                    },
+                                    "launchingColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the launching status"
+                                    },
+                                    "connectedStatusColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the connected status"
+                                    },
+                                    "typeStatusColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the type status"
+                                    }
+                                }
                             },
-                            "launchingColor": {
-                                "type": "string",
-                                "default": "#fdd023",
-                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
-                                "description": "Foreground color for the launching status"
-                            },
-                            "connectedStatusColor": {
-                                "type": "string",
-                                "default": "#fdd023",
-                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
-                                "description": "Foreground color for the connected status"
-                            },
-                            "typeStatusColor": {
-                                "type": "string",
-                                "default": "#91dc47",
-                                "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
-                                "description": "Foreground color for the type status"
+                            "dark": {
+                                "type": "object",
+                                "description": "Dark theme colors",
+                                "properties": {
+                                    "disconnectedColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the disconnected status"
+                                    },
+                                    "launchingColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the launching status"
+                                    },
+                                    "connectedStatusColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the connected status"
+                                    },
+                                    "typeStatusColor": {
+                                        "type": "string",
+                                        "pattern": "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})",
+                                        "description": "Foreground color for the type status"
+                                    }
+                                }
                             }
                         },
                         "default": {
-                            "disconnectedColor": "#c0c0c0",
-                            "launchingColor": "#fdd023",
-                            "connectedStatusColor": "#fdd023",
-                            "typeStatusColor": "#91dc47"
+                            "light": {
+                                "disconnectedColor": "#777777",
+                                "launchingColor": "#000000",
+                                "connectedStatusColor": "#DB9550",
+                                "typeStatusColor": "#91dc47"
+                            },
+                            "dark": {
+                                "disconnectedColor": "#aaaaaa",
+                                "launchingColor": "#ffffff",
+                                "connectedStatusColor": "#DB9550",
+                                "typeStatusColor": "#91dc47"
+                            }
                         }
                     },
                     "calva.customCljsRepl": {
