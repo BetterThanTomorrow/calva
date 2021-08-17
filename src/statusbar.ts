@@ -15,6 +15,12 @@ const color = {
     inactive: "#b3b3b3"
 };
 
+// get theme kind once
+//console.log(vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark/hc');
+// event
+//vscode.window.onDidChangeActiveColorTheme(e => {
+//	console.log(e.kind === ColorThemeKind.Light ? 'light' : 'dark/hc');
+//});
 function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration): string {
     let { defaultValue, globalValue, workspaceFolderValue, workspaceValue } = currentConf.inspect(section);
     return (workspaceFolderValue || workspaceValue || globalValue || defaultValue) as string;
@@ -22,7 +28,9 @@ function colorValue(section: string, currentConf: vscode.WorkspaceConfiguration)
 
 function update(context = state.extensionContext) {
 
-    let currentConf = vscode.workspace.getConfiguration('calva.statusColor');
+    let currentConf = vscode.workspace.getConfiguration(`calva.statusColor.${
+        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Light ? 'light' : 'dark'
+    }`);
 
     let doc = util.getDocument({}),
         fileType = util.getFileType(doc),
@@ -54,7 +62,7 @@ function update(context = state.extensionContext) {
     cljsBuildStatus.tooltip = null;
 
     if (getStateValue('connected')) {
-        connectionStatus.text = "nREPL $(zap)";
+        connectionStatus.text = "REPL $(zap)";
         connectionStatus.color = colorValue("connectedStatusColor", currentConf);
         connectionStatus.tooltip = `nrepl://${getStateValue('hostname')}:${getStateValue('port')} (Click to reset connection)`;
         connectionStatus.command = "calva.startOrConnectRepl";
@@ -84,11 +92,11 @@ function update(context = state.extensionContext) {
         connectionStatus.tooltip = "Click to interrupt jack-in or Connect to REPL Server";
         connectionStatus.command = "calva.disconnect";
     } else if (util.getConnectingState()) {
-        connectionStatus.text = "nREPL - trying to connect";
+        connectionStatus.text = "REPL - trying to connect";
         connectionStatus.tooltip = "Click to interrupt jack-in or Connect to REPL Server";
         connectionStatus.command = "calva.disconnect";
     } else {
-        connectionStatus.text = "nREPL $(zap)";
+        connectionStatus.text = "REPL $(zap)";
         connectionStatus.tooltip = "Click to jack-in or Connect to REPL Server";
         connectionStatus.color = colorValue("disconnectedColor", currentConf);
         connectionStatus.command = "calva.startOrConnectRepl";

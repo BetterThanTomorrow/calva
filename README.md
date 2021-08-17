@@ -133,16 +133,20 @@ A considerable amount of time, creativity, energy, worries, sweat, and tears (we
 * [Peter Strömberg's GitHub Sponsors Profile](https://github.com/sponsors/PEZ)
 * [Brandon Ringe's Github Sponsors Profile](https://github.com/sponsors/bpringe)
 
+Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
+
 The following people are helping to keep Calva maintained and improved by sponsoring with their hard earned money. It is fantastic. Thank you!
+
+Patrons, Gold, and Silver sponsors are also displayed here: https://calva.io/#sponsors.
+
+### Calva Patrons
+
+[<img src="docs/site/images/agical-logo-1200x400.png" height="40px" alt="Agical"/>](https://agical.se)
 
 ### Calva Gold Sponsors
 
 [<img src="https://liftoff.io/wp-content/themes/liftoff/images/logo-blue.png" height="40px" alt="Liftoff"/>](https://liftoff.io)
     [<img src="assets/images/cognitect-logo.jpg" height="40px" alt="Cognitect"/>](https://cognitect.com)
-
-Please see [this statement from Cognitect](https://cognitect.com/blog/2020/12/15/sponsoring-open-source-developers) about the importance of supporting open source developers.
-
-Gold sponsors are also displayed here: https://calva.io/#sponsors.
 
 ### Calva Silver Sponsors
 
