@@ -66,6 +66,9 @@ nav:
     - quirks.md
   - In Depth:
     - jack-in-guide.md
-  - get-started-with-clojure.md
+  - Guides:
+    - get-started-with-clojure.md
+  - tao.md
+  - contribute.md
   - sponsors.md
   - merch.md
