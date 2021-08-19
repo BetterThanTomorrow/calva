@@ -2,16 +2,20 @@
 
 Welcome to a zero-install, interactive, guide to get you started with [Clojure](https://clojure.org/) using:
 
-??? Note "I have VS Code and Java"
-    Awesome. Install Calva and fire up the [Getting Started REPL](getting-started.md). By all means read this page and anyway, you can just skip the Gitpod parts.
-
-    Also: _If you are using Windows_ your Java might have [a bug](https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8266473) that [prevents things from working](https://github.com/BetterThanTomorrow/calva/issues/1162). Then you might want to defer fixing that and use the zero-install option first.
-
 * [Clojure](https://clojure.org/)
 * [Gitpod](https://www.gitpod.io/) (A development environment delivered via the web browser)
 * [VS Code](https://code.visualstudio.com) (Part of Gitpod. In your web browser. Zero-install, remember?)
 * Calva (surprise!)
   * Calva's [Getting Started REPL](getting-started.md)
+
+??? Note "I have VS Code and Java"
+    Awesome. Install Calva and fire up the [Getting Started REPL](getting-started.md). By all means read this page and anyway, you can just skip the Gitpod parts.
+
+    Also: _If you are using Windows_ your Java might have [a bug](https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8266473) that [prevents things from working](https://github.com/BetterThanTomorrow/calva/issues/1162). Then you might want to defer fixing that and use the zero-install option first.
+
+??? Note "Is it exactly as VS Code?"
+    Almost! But, yeah, there are _some_ difference between regular VS Code and Gitpod's ditto. Most of it doesn't matter, but finding the main menu can be a bit tricky:
+    ![Here is the menu in Gitpod VS Code](images/getting-started-with-clojure/gitpod-vscode-menu.png)
 
 ## What you'll learn
 
@@ -28,8 +32,9 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 * How to create projects and do real stuff
 
 ??? Note "Why won't I learn about this?"
-    It's a matter of scope. But there is also a point with this: It can be a bit confusing with all the things you find out about installing Clojure and creating projects when searching for information about it. We want you to relax about all that and just enjoy learning a bit about this fantastic programming language and the wonderful mode of development it offers.
-    There is a lot of info about this out there already. And since you will learn where to find Clojurians, you will find complete guidance. But we suggest do these things later. First, let's focus on having fun with Interactive Programming!
+    All in due time. 😄 It can be a bit confusing with all the things you find out about installing Clojure and creating projects when searching for information about it. We want you to relax about all that and just enjoy learning a bit about this fantastic programming language and the wonderful mode of development it offers.
+
+    There is a lot of info about this out there already. And since you will learn where to find Clojurians, you will also find guidance. But we suggest do these things later. First, let's focus on having fun with Interactive Programming!
 
 ## What you need
 
@@ -37,9 +42,8 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 * A web browser
 
 ??? Note "I am new to VS Code"
-    If you have never used VS Code before you might want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). (You can of course ignore the parts about installing for now.) Or at least have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
-    There are some difference between regular VS Code and Gitpod's ditto. We'll just help you find the main menu here:
-    ![Here is the menu in Gitpod VS Code](images/getting-started-with-clojure/gitpod-vscode-menu.png)
+    You might want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). (You can of course ignore the parts about installing for now.) Also, have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
+    
 
 ## How it works
 
@@ -47,12 +51,11 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
     * ???+ Note "Gitpod Sign-in"
            You will be asked to sign in to Gitpod, if you aren't already. You can do so with your GitHub, GitLab, or Bitbucket accounts, so no hassles at all.
 2. Instructions will be automatically displayed (very brief such, because it is mainly about firing up the [Getting Started REPL](getting-started.md))
-3. The guide is a mix of prose (in Clojure line comments), clojure code, and exercises and you use Calva and Clojure to learn:
-   * Calva and Clojure (in that order)
+3. The guides are a mix of prose (in Clojure line comments), Clojure code, and exercises. What's extra poetic is that you will use Calva and Clojure to learn Calva and Clojure.
 
 Use a desktop/laptop computer. Even if it actually works on the phone, it is far from convenient.
 
-It sometimes takes a while (several minutes) for the environment to initialize, might be a good time grabbing coffee or tea of whatever.
+It sometimes takes a while (several minutes) for the environment to initialize. Take some deep breaths and be patient. 😎
 
 ### Let's go!
 
@@ -99,5 +102,7 @@ Give us feedback. Spread the word. Please consider:
     * [Rich 4Clojure](https://github.com/PEZ/rich4clojure)
     * [Calva](https://github.com/BetterThanTomorrow/calva)
     * [Dram](https://github.com/BetterThanTomorrow/dram) - Where this guide (the Getting Started REPL) is authored
+
+Please also consider other ways to [contribute](contribute.md)
 
 Thanks! 🙏

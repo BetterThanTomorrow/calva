@@ -10,7 +10,7 @@
 
 ## How to Contribute to Calva?
 
-I'm glad you asked! Please see the [Calva Development Wiki](https://github.com/BetterThanTomorrow/calva/wiki). (There, in a section labeled **The Tao of Calva**, we also try to make clear *why* you would want to contribute.)
+I'm glad you asked! Please see [How to Contribute](contribute.md) and [The Tao of Calva](tao.md)
 
 ### Calva Patrons
 
