@@ -49,7 +49,7 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 
 1. You will open an instance of VS Code in a development environment running in the browser. The envirnoment will have Java, Clojure tools, and Calva installed.
     * ???+ Note "Gitpod Sign-in"
-           You will be asked to sign in to Gitpod, if you aren't already. You can do so with your GitHub, GitLab, or Bitbucket accounts, so no hassles at all.
+           You will be asked to sign in to Gitpod, if you aren't already. You need to use the ”Sign in with GitHub” option.
 2. Instructions will be automatically displayed (very brief such, because it is mainly about firing up the [Getting Started REPL](getting-started.md))
 3. The guides are a mix of prose (in Clojure line comments), Clojure code, and exercises. What's extra poetic is that you will use Calva and Clojure to learn Calva and Clojure.
 
