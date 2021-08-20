@@ -1,19 +1,21 @@
 # Get Started with Clojure
 
+![Get Started with Clojure](images/getting-started-with-clojure/get-started-with-clojure-header-wo-header.png)
+
 Welcome to a zero-install, interactive, guide to get you started with [Clojure](https://clojure.org/) using:
 
 * [Clojure](https://clojure.org/)
 * [Gitpod](https://www.gitpod.io/) (A development environment delivered via the web browser)
-* [VS Code](https://code.visualstudio.com) (Part of Gitpod. In your web browser. Zero-install, remember?)
-* Calva (surprise!)
+* [VS Code](https://code.visualstudio.com) (Or Gitpod Code, actually. In your web browser.)
+* [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) (A Clojure extension to VS Code. The thing this site is about.)
   * Calva's [Getting Started REPL](getting-started.md)
 
 ??? Note "I have VS Code and Java"
-    Awesome. Install Calva and fire up the [Getting Started REPL](getting-started.md). By all means read this page and anyway, you can just skip the Gitpod parts.
+    Clojure runs on the JVM. How to install it is a big topic. Since you have already done that, you can, if you want, choose to install Calva in your local VS Code and fire up the [Getting Started REPL](getting-started.md). By all means read this page anyway, you can just skip the Gitpod parts.
 
     Also: _If you are using Windows_ your Java might have [a bug](https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8266473) that [prevents things from working](https://github.com/BetterThanTomorrow/calva/issues/1162). Then you might want to defer fixing that and use the zero-install option first.
 
-??? Note "Is it exactly as VS Code?"
+??? Note "Is Gitpod Code exactly as VS Code?"
     Almost! But, yeah, there are _some_ difference between regular VS Code and Gitpod's ditto. Most of it doesn't matter, but finding the main menu can be a bit tricky:
     ![Here is the menu in Gitpod VS Code](images/getting-started-with-clojure/gitpod-vscode-menu.png)
 
@@ -23,7 +25,16 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 * The basics of the [ClojureScipt](https://clojurescript.org) language (we won't be using ClojureScript, but it is same language 😀)
 * The basics of Calva (It's a bit as a side effect. You need it to learn Clojure this way, and by learning Clojure this way, Calva knowledge trickles in.)
 * What is meant by, and some ways to perform, *Interactive Programming* (aka REPL Driven Development)
-* Where to find Clojurians (and thus help, the friendliest help you have ever seen a community provide)
+* Where to find Clojurians, i.e. folks who use Clojure and care about it (you will thus find help, the friendliest help you have ever seen a community provide)
+
+??? Note "I am not convinced I should spend time on learning Clojure"
+    Fair enough. We can recommend watching any or all of these videos to get excited about Clojure and the rather unique mood of development it offers:
+
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/C-kF25fWTO8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    
+    * [Solving Problems the Clojure Way](https://www.youtube.com/watch?v=vK1DazRK_a0) - with Rafal Dittwald (using JavaScript, so no new syntax to grasp to get the message)
+    * [Developer Ergonomics with VS Code, Clojure, and ClojureScript](https://www.youtube.com/watch?v=LR7Wv6bSZqE) - with Peter Strömberg
+    * [Clojure in VS Code Workflow using FizzBuzz](https://www.youtube.com/watch?v=d0K1oaFGvuQ) - with Peter Strömberg
 
 ## What you won't learn
 
@@ -40,6 +51,18 @@ Welcome to a zero-install, interactive, guide to get you started with [Clojure](
 
 * Curiosity about Clojure
 * A web browser
+
+??? Note "The browser ate my keyboard shortcuts!"
+    There is always a competition for which system gets to catch keyboard shortcuts first. This worsens a bit when an application like VS Code runs in the web browser. Remember this if some shortcut/command doesn't work.
+
+    On some machines, with some web browsers, some shortcuts are caught by the web browser and instead re-opening a closed tab or whatever. These have been observed:
+
+    * Undo (undoing something web browser related)
+    * Select the line (focusing the browser URL input)
+    * Open the command palette (opening a private browsing window. Looking at you Firefox.)
+    * Escape key shortcuts (are you using VIM bindings in your browser?)
+    
+    Sometimes the workaround is to redefine the shortcuts in VS Code, sometimes making your web browser stop catching the shortcut.
 
 ??? Note "I am new to VS Code"
     You might want to have a look at [this Getting Started with VS Code video](https://code.visualstudio.com/docs/introvideos/basics). (You can of course ignore the parts about installing for now.) Also, have [this overview of the VS Code interface](https://code.visualstudio.com/docs/getstarted/userinterface) handy.
@@ -72,7 +95,7 @@ Happy Interactive Programming! ❤️
 
 We Clojurians inhabit a lot of community platforms. I'll list some of the more popular ones here in some order of popularity.
 
-* [The Clojurians Slack](http://clojurians.net) - by far the largest and mst active Clojure community, the `#beginners` channel is spectacularly fantastic
+* [The Clojurians Slack](http://clojurians.net) - by far the largest and most active Clojure community, the `#beginners` channel is spectacularly fantastic
 * [ClojureVerse](https://clojureverse.org) - a web forum. Lots of Clojurians, lots of Clojure knowledge collected, easy to search, easy to join
 * [/r/Clojure](https://www.reddit.com/r/Clojure/) - Reddit when Reddit is at its best, lots of Clojurians here
 * On Discord there are two active servers: [Clojurians](https://discordapp.com/invite/v9QMy9D) and [Discord](https://discord.gg/)
@@ -84,7 +107,7 @@ You can also ask questions, and find answers, about Clojure at [ask.clojure.org]
 
 If you like the zero-install and the style of interactive learning that this guide provides, you should definitely check [Rich 4Clojure](https://github.com/PEZ/rich4clojure) out.
 
-You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff. Some beginners will probably learn easier by using the 4Clojure problems, than by reading about details about Clojure.
+You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff. Some beginners will probably learn easier by using the 4Clojure problems, than by details about Clojure.
 
 ## Other learning resources
 
