@@ -79,9 +79,15 @@ We Clojurians inhabit a lot of community platforms. I'll list some of the more p
 
 You can also ask questions, and find answers, about Clojure at [ask.clojure.org](https://ask.clojure.org)
 
+
+## Learn and Practice Clojure using Rich 4Clojure
+
+If you like the zero-install and the style of interactive learning that this guide provides, you should definitely check [Rich 4Clojure](https://github.com/PEZ/rich4clojure) out.
+
+You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff. Some beginners will probably learn easier by using the 4Clojure problems, than by reading about details about Clojure.
+
 ## Other learning resources
 
-* [Rich 4Clojure](https://github.com/PEZ/rich4clojure) - the zero-install companion to this guide for practicing Clojure, starting at the elementary levels, bringing you to advanced stuff
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
 * [clojure.org Gettting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians

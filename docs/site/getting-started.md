@@ -2,6 +2,16 @@
 
 Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Regardless, you need to install Calva in VS Code.
 
+??? Note "I am completely new to Clojure"
+    The ”Getting Started” REPL below introduces you to Clojure as well as to Calva. You might however, not want to start with installing the right version of Java and such to run the guide. If so you should definitely check the [Get Started with Clojure](get-started-with-clojure.md) guide on this site.
+    
+    Three clicks will have you running Calva in your browser with the REPL ready to serve.
+
+??? Note "I don't have Java installed"
+    If you like, you can defer installing anything at all and still get started with Calva (not kidding).
+    
+    See [Get Started with Clojure](get-started-with-clojure.md).
+
 If you have a Clojure or ClojureScript project, you will be interested in how to get [Calva connected to the REPL of your project](connect.md). But before you run over there, you might want to familiarize yourself with Calva a bit, which you can do without a project.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/O6GrXXhCzCc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
