@@ -6,7 +6,7 @@
 
 ## Getting Started
 
-[Let's start a REPL!](getting-started.md). 🚀
+[Let's start a REPL!](getting-started.md). 🚀 Also see [Get Started with Clojure](get-started-with-clojure.md)
 
 ## How to Contribute to Calva?
 
