@@ -74,20 +74,20 @@ We Clojurians inhabit a lot of community platforms. I'll list some of the more p
 
 * [The Clojurians Slack](http://clojurians.net) - by far the largest and mst active Clojure community, the `#beginners` channel is spectacularly fantastic
 * [ClojureVerse](https://clojureverse.org) - a web forum. Lots of Clojurians, lots of Clojure knowledge collected, easy to search, easy to join
-* [/r/Clojure](https://www.reddit.com/r/Clojure/) - Reddit when Reddit is at its best, lots of Clojurans here
-* On Discord there are two active servers: [Clojurians](https://discordapp.com/invite/v9QMy9D) and [Discljord](https://discord.gg/)
+* [/r/Clojure](https://www.reddit.com/r/Clojure/) - Reddit when Reddit is at its best, lots of Clojurians here
+* On Discord there are two active servers: [Clojurians](https://discordapp.com/invite/v9QMy9D) and [Discord](https://discord.gg/)
 
 You can also ask questions, and find answers, about Clojure at [ask.clojure.org](https://ask.clojure.org)
 
 ## Other learning resources
 
-* [Rich 4Clojure](https://github.com/PEZ/rich4clojure) - the zero-install companion to this guide for practing Clojure, starting at the elementary levels, bringing you to advanced stuff
+* [Rich 4Clojure](https://github.com/PEZ/rich4clojure) - the zero-install companion to this guide for practicing Clojure, starting at the elementary levels, bringing you to advanced stuff
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
 * [clojure.org Gettting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians
 * [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure (It's what spawned this repository.)
 * [on the code again](https://www.youtube.com/user/VideosDanA) - often features Clojure concepts, with snappy, well communicated, and entertaining videos
-* [CalvatTV](https://www.youtube.com/c/CalvaTV) - Calva's Youtube channel often focuses on beginning with Clojure and ClojureScript, subscribe, please!
+* [CalvaTV](https://www.youtube.com/c/CalvaTV) - Calva's YouTube channel often focuses on beginning with Clojure and ClojureScript. Subscribe, please!
 
 ## Help us help beginners
 
@@ -98,11 +98,11 @@ Give us feedback. Spread the word. Please consider:
 * [Contributing to the Calva project](contribute.md)
 * Wearing [Calva and RFC T-shirts](merch.md)
 * Starring these repositories:
-    * [Get Started with Clojure](https://github.com/PEZ/get-started-with-clojure) - the repository powering this guide)
+    * [Get Started with Clojure](https://github.com/PEZ/get-started-with-clojure) - (the repository powering this guide)
     * [Rich 4Clojure](https://github.com/PEZ/rich4clojure)
     * [Calva](https://github.com/BetterThanTomorrow/calva)
     * [Dram](https://github.com/BetterThanTomorrow/dram) - Where this guide (the Getting Started REPL) is authored
 
-Please also consider other ways to [contribute](contribute.md)
+Please also consider other ways to [contribute](contribute.md).
 
 Thanks! 🙏
