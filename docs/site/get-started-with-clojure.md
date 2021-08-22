@@ -105,12 +105,12 @@ You can also ask questions, and find answers, about Clojure at [ask.clojure.org]
 
 ## Learn and Practice Clojure using Rich 4Clojure
 
-If you like the zero-install and the style of interactive learning that this guide provides, you should definitely check [Rich 4Clojure](https://github.com/PEZ/rich4clojure) out.
+If you like the style of interactive learning that this guide provides, you should definitely check [Rich 4Clojure](https://github.com/PEZ/rich4clojure) out. It also can be used in the zero-installed way.
 
 You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff.
 
 ??? Note "Can I use Rich 4Clojure instead of this guide?"
-    In fact, some beginners will probably learn easier by using the 4Clojure problems, than with this guide. If you think you learn better that way, I still suggest you start by opening up this guide and do the Calva part of the excerises. Then use the `welcome_to_clojure.clj` guide in combination with **Rich 4Clojure**.
+    We suggest you start by opening up this guide and do the Calva part of the excerises. Then use the `welcome_to_clojure.clj` guide in combination with **Rich 4Clojure**..
 
 ## ClojureDocs
 
