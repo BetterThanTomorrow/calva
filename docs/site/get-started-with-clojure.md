@@ -107,16 +107,24 @@ You can also ask questions, and find answers, about Clojure at [ask.clojure.org]
 
 If you like the zero-install and the style of interactive learning that this guide provides, you should definitely check [Rich 4Clojure](https://github.com/PEZ/rich4clojure) out.
 
-You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff. Some beginners will probably learn easier by using the 4Clojure problems, than by details about Clojure.
+You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff.
+
+??? Note "Can I use Rich 4Clojure instead of this guide?"
+    In fact, some beginners will probably learn easier by using the 4Clojure problems, than with this guide. If you think you learn better that way, I still suggest you start by opening up this guide and do the Calva part of the excerises. Then use the `welcome_to_clojure.clj` guide in combination with **Rich 4Clojure**.
+
+## ClojureDocs
+
+Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). It can be a bit hard to understand the implications of the terse and very precise documentation of the core Clojure libraries. At ClojureDocs the documentation for functions, etcetera, are amended with examples and advice from Clojurians. Crowdsourcing at its very best! It is a big part of the reason why you won't find an abundance of Clojure information at StackOverflow.
 
 ## Other learning resources
 
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
 * [clojure.org Gettting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians
-* [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure (It's what spawned this repository.)
+* [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure. It's what spawned the creation of this guide.
 * [on the code again](https://www.youtube.com/user/VideosDanA) - often features Clojure concepts, with snappy, well communicated, and entertaining videos
 * [CalvaTV](https://www.youtube.com/c/CalvaTV) - Calva's YouTube channel often focuses on beginning with Clojure and ClojureScript. Subscribe, please!
+
 
 ## Help us help beginners
 
