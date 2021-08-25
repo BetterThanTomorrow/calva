@@ -82,9 +82,16 @@ It sometimes takes a while (several minutes) for the environment to initialize. 
 
 ### Let's go!
 
-Ready? Awesome. Click this button.
+Ready? Awesome. Click this button to start the guide in a new browser tab.
 
-<a title="Open Getting Started with Clojure in Gitpod" alt="Open in Gitpod button" href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure" target="_blank"><img src="https://gitpod.io/button/open-in-gitpod.svg"/></a>
+<div style="display: flex; flex-direction: column; align-items: center;">
+
+<a title="Open Getting Started with Clojure in Gitpod" alt="Open in Gitpod button" href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure" target="_blank"><img src="https://img.shields.io/badge/Gitpod-Start the Clojure Guide-908a85?logo=gitpod" width="550"/></a>
+
+<a href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure">https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure</a>
+
+</div>
+
 
 ???+ Note "Stuck? Something not working? Or just unclear?"
      Please don't hesitate to reach out for help, should you get stuck. See below for where to find Clojurians. As for the Calva team, we are almost always (true story) to be found at the Clojurians Slack, especially in the `#calva` Channel. We are `@pez` and `@bringe` there.
@@ -114,12 +121,13 @@ You can regard it as a companion to this guide. It is aimed at practicing Clojur
 
 ## ClojureDocs
 
-Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). It can be a bit hard to understand the implications of the terse and very precise documentation of the core Clojure libraries. At ClojureDocs the documentation for functions, etcetera, are amended with examples and advice from Clojurians. Crowdsourcing at its very best! It is a big part of the reason why you won't find an abundance of Clojure information at StackOverflow.
+Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). At ClojureDocs the concise documentation for Clojure core functions, etcetera, are amended with examples and advice from fellow Clojurians. Crowdsourcing at its very best! It is a big part of the reason why you won't find an abundance of Clojure information at StackOverflow.
 
 ## Other learning resources
 
 * [Clojure Beginner Resources](https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f) - a much more comprehensive list than this one
 * [clojure.org Gettting Started](https://clojure.org/guides/getting_started) - the source of truth, includes installing and stuff
+* [The Exercism Clojure track](https://exercism.io/my/tracks/clojure) - Learn solving carefully crafted Clojure exercises, get mentor feedback if you like.
 * [Clojure for the Brave and True](https://www.braveclojure.com) - helping you from beginner to pretty advanced stuff, very popular among Clojurians
 * [What do beginners struggle with?](https://clojureverse.org/t/what-do-beginners-struggle-with/5383) - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure. It's what spawned the creation of this guide.
 * [on the code again](https://www.youtube.com/user/VideosDanA) - often features Clojure concepts, with snappy, well communicated, and entertaining videos
@@ -130,6 +138,7 @@ Clojurians draw tremendous value from [ClojureDocs](https://clojuredocs.org). It
 
 Give us feedback. Spread the word. Please consider:
 
+* Join the `#improve-getting-started` channel at the Clojurian Slack
 * Linking to this page from your blog
 * Tweeting about this guide
 * [Contributing to the Calva project](contribute.md)
