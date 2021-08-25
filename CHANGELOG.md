@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.210] - 2021-08-25
+- [Add back jack-in/connect config `deps.edn + shadow-cljs`](https://github.com/BetterThanTomorrow/calva/issues/1270)
+
 ## [2.0.209] - 2021-08-17
 - Fix [Statusbar buttons hard to see with light themes](https://github.com/BetterThanTomorrow/calva/issues/1264)
 
