@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [paredit.killSexpForward should copy deleted code to clipboard](https://github.com/BetterThanTomorrow/calva/issues/1283)
 
 ## [2.0.210] - 2021-08-25
 - [Add back jack-in/connect config `deps.edn + shadow-cljs`](https://github.com/BetterThanTomorrow/calva/issues/1270)

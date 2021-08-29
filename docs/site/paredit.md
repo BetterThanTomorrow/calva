@@ -31,7 +31,7 @@ Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
 ### Prevent Unbalanced Closing Brackets
 
-There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code. 
+There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
 
 ## Commands
 
@@ -127,6 +127,8 @@ Care has been put in to making the default keybindings somewhat logical, easy to
 You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
 
 You can relax how Paredit's shortcuts replace VS Code built in shortcuts a bit by setting `calva.paredit.hijackVSCodeDefaults` to `false`.
+
+You can have the kill commands copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToKeyboard` to `true`.
 
 There are some context keys you can utilize to configure keyboard shortcuts with precision. See [Customizing Keyboard Shortcuts](customizing.md#when-clause-contexts).
 

@@ -12,11 +12,30 @@ let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 const languages = new Set(["clojure", "lisp", "scheme"]);
 let enabled = true;
 
+
+/**
+ * Copies the text represented by the range from doc to the clipboard.
+ * @param doc
+ * @param range
+ */
+function copyToClipboard(doc: EditableDocument, [start, end]){
+    const text = doc.model.getText(start, end);
+    vscode.env.clipboard.writeText(text);
+}
+
+/**
+ * Answers true when `calva.paredit.killAlsoCutsToKeyboard` is enabled.
+ * @returns boolean
+ */
+function shouldKillAlsoCutToKeyboard() {
+  return workspace.getConfiguration().get('calva.paredit.killAlsoCutsToKeyboard');
+}
+
+
 type PareditCommand = {
     command: string,
     handler: (doc: EditableDocument) => void
 }
-
 const pareditCommands: PareditCommand[] = [
     // NAVIGATING
     {
@@ -167,11 +186,23 @@ const pareditCommands: PareditCommand[] = [
     },
     {
         command: 'paredit.killSexpForward',
-        handler: (doc: EditableDocument) => { paredit.killRange(doc, paredit.forwardSexpRange(doc)) }
+        handler:  (doc: EditableDocument) => {
+            const range =  paredit.forwardSexpRange(doc);
+            if (shouldKillAlsoCutToKeyboard()) {
+                copyToClipboard(doc, range);
+            }
+            paredit.killRange(doc, range);
+        }
     },
     {
         command: 'paredit.killSexpBackward',
-        handler: (doc: EditableDocument) => { paredit.killRange(doc, paredit.backwardSexpRange(doc)) }
+        handler:  (doc: EditableDocument) => {
+            const range =  paredit.backwardSexpRange(doc);
+            if (shouldKillAlsoCutToKeyboard()) {
+                copyToClipboard(doc, range);
+            }
+            paredit.killRange(doc, range);
+        }
     },
     {
         command: 'paredit.killListForward',

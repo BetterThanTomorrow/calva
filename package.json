@@ -606,6 +606,12 @@
                         "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
                         "default": false,
                         "scope": "window"
+                    },
+                    "calva.paredit.killAlsoCutsToKeyboard": {
+                        "type": "boolean",
+                        "markdownDescription": "When enabled, copies the deleted code to the clipboard simulating the Emacs implementation.",
+                        "default": false,
+                        "scope": "window"
                     }
                 }
             },
@@ -2406,7 +2412,7 @@
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run update-grammar && npm run compile-cljs",
-        "watch": "tsc -watch -p ./tsconfig.json",
+        "watch": "npx tsc -watch -p ./tsconfig.json",
         "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",
