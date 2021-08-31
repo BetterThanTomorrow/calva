@@ -607,9 +607,9 @@
                         "default": false,
                         "scope": "window"
                     },
-                    "calva.paredit.killAlsoCutsToKeyboard": {
+                    "calva.paredit.killAlsoCutsToClipboard": {
                         "type": "boolean",
-                        "markdownDescription": "When enabled, copies the deleted code to the clipboard simulating the Emacs implementation.",
+                        "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
                         "default": false,
                         "scope": "window"
                     }

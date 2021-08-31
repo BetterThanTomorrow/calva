@@ -78,9 +78,6 @@ Default keybinding    | Action | Description
  `ctrl+shift+end`        | **Select Forward to List End/Close** | ![](images/paredit/select-close-list.gif)
  `ctrl+shift+home`       | **Select Backward to List Start/Open** | ![](images/paredit/select-open-list.gif)
 
-!!! Note
-    Many implementations of Paredit have commands for copying/cutting while deleting. In Calva there are instead the above selection commands, and you can choose to copy/cut once you have the selection.
-
 ### Editing
 
 Default keybinding                | Action | Description
@@ -110,6 +107,11 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](images/paredit/rewrap.gif)
 
+!!! Note
+    Many implementations of Paredit have commands for copying/cutting while deleting. In Calva, you can have the *kill* commands copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToKeyboard` to `true`.  Alternatively, you may use the [selection commands](#selecting) and copy/cut once you have the selection.
+
+
+
 ### Drag bindings forward/backward
 
 When dragging forms inside maps and binding boxes, such as with `let`, `for`, `binding`, etcetera, it often makes most sense to drag each binding as a pair. And this is what Calva will do. Like so:
@@ -127,8 +129,6 @@ Care has been put in to making the default keybindings somewhat logical, easy to
 You can choose to disable all default key bindings by configuring `calva.paredit.defaultKeyMap` to `none`. (Then you probably also want to register your own shortcuts for the commands you often use.)
 
 You can relax how Paredit's shortcuts replace VS Code built in shortcuts a bit by setting `calva.paredit.hijackVSCodeDefaults` to `false`.
-
-You can have the kill commands copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToKeyboard` to `true`.
 
 There are some context keys you can utilize to configure keyboard shortcuts with precision. See [Customizing Keyboard Shortcuts](customizing.md#when-clause-contexts).
 
