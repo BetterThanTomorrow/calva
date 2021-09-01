@@ -2478,7 +2478,7 @@
         "shadow-cljs": "^2.11.18",
         "source-map-support": "^0.5.16",
         "style-loader": "^0.23.1",
-        "tar": "^4.4.15",
+        "tar": "^4.4.18",
         "ts-loader": "^8.0.18",
         "ts-node-register": "^1.0.0",
         "tslint": "^5.20.1",
