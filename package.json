@@ -885,6 +885,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.loadFilesFromDirectory",
+                "title": "Load all files from a directory",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.requireREPLUtilities",
                 "title": "Require REPL utilities, like (doc) etcetera, into Current Namespace",
                 "enablement": "calva:connected",
@@ -1574,6 +1580,11 @@
             {
                 "command": "calva.loadFile",
                 "key": "ctrl+alt+c enter",
+                "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
+            },
+            {
+                "command": "calva.loadFilesFromDirectory",
+                "key": "",
                 "when": "editorLangId == clojure && calva:connected && calva:keybindingsEnabled"
             },
             {
@@ -2303,6 +2314,11 @@
                     "group": "calva/b-eval"
                 },
                 {
+                    "enablement": "editorLangId == clojure  && calva:connected",
+                    "command": "calva.loadFilesFromDirectory",
+                    "group": "calva/b-eval"
+                },
+                {
                     "enablement": "editorLangId == clojure && calva:connected",
                     "command": "calva.setOutputWindowNamespace",
                     "group": "calva/b-eval"
@@ -2330,6 +2346,12 @@
                     "when": "editorLangId == clojure && calva:showReplUi",
                     "enablement": "calva:connected",
                     "command": "calva.loadFile",
+                    "group": "calva/b-eval"
+                },
+                {
+                    "when": "editorLangId == clojure && calva:showReplUi",
+                    "enablement": "calva:connected",
+                    "command": "calva.loadFilesFromDirectory",
                     "group": "calva/b-eval"
                 },
                 {

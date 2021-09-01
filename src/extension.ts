@@ -171,6 +171,10 @@ async function activate(context: vscode.ExtensionContext) {
         await eval.loadFile({}, config.getConfig().prettyPrintingOptions);
         outputWindow.appendPrompt();
     }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.loadFilesFromDirectory', async () => {
+        await eval.loadFilesFromDirectory({}, config.getConfig().prettyPrintingOptions);
+        outputWindow.appendPrompt();
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.interruptAllEvaluations', eval.interruptAllEvaluations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelection', eval.evaluateCurrentForm));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateEnclosingForm', eval.evaluateEnclosingForm));
