@@ -108,7 +108,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](images/paredit/rewrap.gif)
 
 !!! Note "Copy to Clipboard when killing text"
-    Many implementations of Paredit have commands for copying/cutting while deleting. In Calva, you can have the *kill* commands copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToKeyboard` to `true`.  Alternatively, you may use the [selection commands](#selecting) and copy/cut once you have the selection.
+    You can have the *kill* commands always copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToClipboard` to `true`.  If you want to do this more on-demand, you can kill text by using the [selection commands](#selecting) and then *Cut* once you have the selection.
 
 
 
