@@ -107,7 +107,7 @@ Default keybinding                | Action | Description
  `ctrl+alt+shift+q`                        | **Wrap Around ""** | Wraps the current form, or selection, with double quotes. Inside strings it will quote the quotes. <br> ![](images/paredit/wrap-around-quotes.gif)
  `ctrl+alt+r`<br>`ctrl+alt+p`/`s`/`c`/`q`                        | **Rewrap** | Changes enclosing brackets of the current form to parens/square brackets/curlies/double quotes.. <br> ![](images/paredit/rewrap.gif)
 
-!!! Note
+!!! Note "Copy to Clipboard when killing text"
     Many implementations of Paredit have commands for copying/cutting while deleting. In Calva, you can have the *kill* commands copy the deleted code to the clipboard by setting `calva.paredit.killAlsoCutsToKeyboard` to `true`.  Alternatively, you may use the [selection commands](#selecting) and copy/cut once you have the selection.
 
 
