@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.210",
+    "version": "2.0.211",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -604,6 +604,12 @@
                     "calva.paredit.strictPreventUnmatchedClosingBracket": {
                         "type": "boolean",
                         "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "default": false,
+                        "scope": "window"
+                    },
+                    "calva.paredit.killAlsoCutsToClipboard": {
+                        "type": "boolean",
+                        "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
                         "default": false,
                         "scope": "window"
                     }
@@ -2406,7 +2412,7 @@
         "clean": "rimraf ./out && rimraf ./tsconfig.tsbuildinfo && rimraf ./cljs-out",
         "compile-cljs": "npx shadow-cljs compile :calva-lib :test",
         "prewatch": "npm i && npm run clean && npm run update-grammar && npm run compile-cljs",
-        "watch": "tsc -watch -p ./tsconfig.json",
+        "watch": "npx tsc -watch -p ./tsconfig.json",
         "release-cljs": "npx shadow-cljs release :calva-lib :test",
         "update-grammar": "node ./src/calva-fmt/update-grammar.js ./src/calva-fmt/atom-language-clojure/grammars/clojure.cson clojure.tmLanguage.json",
         "release": "npm i && npm run clean && npm run update-grammar && npm run release-cljs && webpack --mode production",

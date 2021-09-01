@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.211] - 2021-09-01
+- [Add setting for letting Paredit Kill commands copy the deleted code to the clipboard](https://github.com/BetterThanTomorrow/calva/issues/1283)
+
 ## [2.0.210] - 2021-08-25
 - [Add back jack-in/connect config `deps.edn + shadow-cljs`](https://github.com/BetterThanTomorrow/calva/issues/1270)
 

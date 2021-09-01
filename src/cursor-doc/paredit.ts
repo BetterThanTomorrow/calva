@@ -126,6 +126,18 @@ export function backwardSexpRange(doc: EditableDocument, offset: number = Math.m
     }
 }
 
+export function forwardListRange(doc: EditableDocument, start: number = doc.selectionRight): [number, number] {
+    const cursor = doc.getTokenCursor(start);
+    cursor.forwardList();
+    return [start, cursor.offsetStart];
+}
+
+export function backwardListRange(doc: EditableDocument, start: number = doc.selectionRight): [number, number] {
+    const cursor = doc.getTokenCursor(start);
+    cursor.backwardList();
+    return [cursor.offsetStart, start];
+}
+
 export function rangeToForwardUpList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardList();
@@ -311,20 +323,17 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionR
     }
 }
 
-export function killBackwardList(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
-    let cursor = doc.getTokenCursor(start);
-    cursor.backwardList();
+export function killBackwardList(doc: EditableDocument, [start,end]: [number, number]): Thenable<boolean> {
     return doc.model.edit([
-        new ModelEdit('changeRange', [cursor.offsetStart, start, "", [start, start], [cursor.offsetStart, cursor.offsetStart]])
-    ], { selection: new ModelEditSelection(cursor.offsetStart) });
+        new ModelEdit('changeRange', [start, end, "", [end, end], [start, start]])
+    ], { selection: new ModelEditSelection(start) });
 }
 
-export function killForwardList(doc: EditableDocument, start: number = doc.selectionRight): Thenable<boolean> {
+export function killForwardList(doc: EditableDocument, [start,end]: [number, number]): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
-    cursor.forwardList();
     return doc.model.edit([
-        new ModelEdit('changeRange', [start, cursor.offsetStart, inComment ? "\n" : "", [start, start], [start, start]])
+        new ModelEdit('changeRange', [start, end, inComment ? "\n" : "", [start, start], [start, start]])
     ], { selection: new ModelEditSelection(start) });
 }
 
