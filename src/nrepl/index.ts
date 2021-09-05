@@ -13,6 +13,12 @@ import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import * as nodeUtil from 'util';
 
+const nreplMessagesChannel = vscode.window.createOutputChannel('nREPL Messages');
+
+function formatNREPLMessage(message: any): string {
+    return nodeUtil.inspect(message, false, 2, false);
+}
+
 /** An nREPL client */
 export class NReplClient {
     private _nextId = 0;
@@ -78,7 +84,7 @@ export class NReplClient {
      * @param data
      */
     write(data: any) {
-        console.log('TO SERVER:', nodeUtil.inspect(data, false, 2, true));
+        nreplMessagesChannel.appendLine(`TO SERVER: ${formatNREPLMessage(data)}`);
         this.encoder.write(data);
     }
 
@@ -107,7 +113,7 @@ export class NReplClient {
 
                 client.decoder.on("data", (data) => {
 
-                    console.log('TO CLIENT:', nodeUtil.inspect(data, false, 2, true));
+                    nreplMessagesChannel.appendLine(`TO CLIENT: ${formatNREPLMessage(data)}`);
 
                     debug.onNreplMessage(data);
 
