@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix [The schema for the setting `calva.highlight.bracketColors` is broken](https://github.com/BetterThanTomorrow/calva/issues/1290)
 
 ## [2.0.211] - 2021-09-01
 - [Add setting for letting Paredit Kill commands copy the deleted code to the clipboard](https://github.com/BetterThanTomorrow/calva/issues/1283)
