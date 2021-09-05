@@ -56,8 +56,18 @@ You are in charge of how brackets and comments are highlighted via the `calva.hi
 | `ignoredFormStyle` | Style of `#_...` form | `{"textDecoration": "none; opacity: 0.5"}` |
 | `commentFormStyle` | Style of `(comment ...)` form | `{"fontStyle": "italic"}` |
 
-!!! Note
+!!! Note "Calva disables the VS Code built-in indent guides"
     The VS Code built-in settings `editor.renderIndentGuides` and `editor.highlightActiveIndent` do not have any effect, since the former is switched off by the **Clojure Defaults**, mentioned above. Use Calva Highlight's `rainbowIndentGuides` and `highlightActiveIndent` instead. They are different from the built in ones in that they are independent, meaning you can choose to have active indent highlighted while the guides generally are not rendered (this is the default, even).
+
+!!! Note "VS Code bracket coloring vs Calva's"
+    Calva's bracket coloring is more Clojure aware than VS Code's built-in coloring. And also will chime better with Calva's indent guides. If you like to have bracket coloring outside Clojure code, by all means enable it. Calva's bracket coloring will ”over paint” in Clojure files, when enabled. These settings work nicely:
+
+    ```clojure
+    "calva.highlight.highlightActiveIndent": true,
+    "editor.bracketPairColorization.enabled": true,
+    ```
+
+    The `calva.highlight.bracketColors` setting can be used to harmonize the coloring between VS Code and Calva.
 
 ## Automatic Parameter Hints Poppup
 
