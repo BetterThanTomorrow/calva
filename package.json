@@ -184,6 +184,11 @@
                         ],
                         "description": "Trace communication between Calva and the Clojure language server, clojure-lsp. Trace messages are displayed in the Clojure Language Client output channel."
                     },
+                    "calva.logNreplMessages": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Log nREPL messages sent between the client and server to an output channel called nREPL Messages."
+                    },
                     "calva.referencesCodeLens.enabled": {
                         "type": "boolean",
                         "default": false,

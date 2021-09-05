@@ -11,13 +11,6 @@ import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
-import * as nodeUtil from 'util';
-
-const nreplMessagesChannel = vscode.window.createOutputChannel('nREPL Messages');
-
-function formatNREPLMessage(message: any): string {
-    return nodeUtil.inspect(message, false, 2, false);
-}
 
 /** An nREPL client */
 export class NReplClient {
