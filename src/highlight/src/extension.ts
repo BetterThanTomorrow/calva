@@ -130,7 +130,7 @@ function reloadConfig() {
   const configuration = vscode.workspace.getConfiguration("calva.highlight", (!!activeEditor) ? activeEditor.document.uri : null);
 
   if (!isEqual(rainbowColors, configuration.get<string[]>("bracketColors"))) {
-    rainbowColors = configuration.get<string[]>("bracketColors") || [["#000", "#ccc"], "#0098e6", "#e16d6d", "#3fa455", "#c968e6", "#999", "#ce7e00"];
+    rainbowColors = configuration.get<string[]>("bracketColors");
     dirty = true;
   }
 

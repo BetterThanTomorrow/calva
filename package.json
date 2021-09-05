@@ -665,10 +665,37 @@
                     "calva.highlight.bracketColors": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "markdownDescription": "CSS color, e.g. `\"#ccc\"`, or `\"#91dc47\"`"
+                                },
+                                {
+                                    "items": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "string"
+                                        }
+                                    ],
+                                    "markdownDescription": "Tuple of CSS colors, `[light, dark]`, e.g. `[\"#ccc\", \"#000\"]`"
+                                }
+                            ]
                         },
-                        "default": null,
-                        "description": "Bracket colors",
+                        "default": [
+                            [
+                                "#000",
+                                "#ccc"
+                            ],
+                            "#0098e6",
+                            "#e16d6d",
+                            "#3fa455",
+                            "#c968e6",
+                            "#999",
+                            "#ce7e00"
+                        ],
+                        "markdownDescription": "An array where each element can be either a CSS color string, or a tuple of two CSS color strings. Use tuples when you want a different color for light and dark themes, `[light, dark]`, e.g. `[\"#ccc\", \"#000\"]`",
                         "scope": "resource"
                     },
                     "calva.highlight.cycleBracketColors": {
