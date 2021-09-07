@@ -1892,6 +1892,11 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
+                "command": "paredit.killHybridSexpForward",
+                "key": "ctrl+k",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
                 "command": "paredit.killSexpForward",
                 "key": "ctrl+shift+delete",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"

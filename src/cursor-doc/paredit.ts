@@ -139,6 +139,49 @@ export function backwardListRange(doc: EditableDocument, start: number = doc.sel
     return [cursor.offsetStart, start];
 }
 
+
+/**
+ * Aims to find the end of the current form (list|vector|map|set|string etc) or
+ * the first newline and delete up to the newline or the form's closing delimiter.
+ * When the first newline is in the middle of another form then the end
+ * of the range is the end of the form that includes the first newline.
+ *
+ * This function's output range is needed to implement features similar to paredit's
+ * killRight or smartparens' sp-kill-hybrid-sexp.
+ *
+ * @param doc
+ * @param offset
+ * @param goPastWhitespace
+ * @returns [number, number]
+ */
+export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
+    const cursor = doc.getTokenCursor(offset);
+    if (cursor.getToken().type === 'open') {
+        return forwardSexpRange(doc);
+    }
+    cursor.forwardList(); // move to the end of the current form
+    const text = doc.model.getText(offset, cursor.offsetStart);
+    const newlineIndex = text.indexOf("\n");
+    let end = cursor.offsetStart;
+    if (newlineIndex > 0) {
+        // need to maintain valid forms ie when deleting
+        // so may need to go to the end of the form that the first newline is in
+        const newlineOffset = offset + newlineIndex;
+        const cursor2 = doc.getTokenCursor(newlineOffset);
+        cursor2.forwardList();
+        // no change in offsets, set end to be location of the newline
+        if (cursor.offsetStart === cursor2.offsetStart) {
+            end = newlineOffset;
+        } else {
+            // offsets are different, include up to the closing delimiter for cursor2's form
+            end = cursor2.offsetEnd;
+        }
+    }
+    return [offset, end];
+}
+
+
+
 export function rangeToForwardUpList(doc: EditableDocument, offset: number = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
     const cursor = doc.getTokenCursor(offset);
     cursor.forwardList();

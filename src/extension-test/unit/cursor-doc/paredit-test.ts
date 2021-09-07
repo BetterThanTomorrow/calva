@@ -87,6 +87,88 @@ describe('paredit', () => {
             });
         })
 
+        describe('forwardHybridSexpRange', () => {
+            it('Finds end of string', () => {
+                const a = docFromTextNotation('"This |needs to find the end of the string."');
+                const b = docFromTextNotation('"This |needs to find the end of the string.|"');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds newline in multi line string', () => {
+                const a = docFromTextNotation('"This |needs to find the end\n of the string."');
+                const b = docFromTextNotation('"This |needs to find the end|\n of the string."');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of comment', () => {
+                const a = docFromTextNotation('(a |;; foo\n e)');
+                const b = docFromTextNotation('(a |;; foo|\n e)');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Maintains balanced delimiters', () => {
+                const a = docFromTextNotation('(a| b (c\n d) e)');
+                const b = docFromTextNotation('(a| b (c\n d)| e)');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of vectors', () => {
+                const a = docFromTextNotation('[a [b |c d e f] g h]');
+                const b = docFromTextNotation('[a [b |c d e f|] g h]');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of maps', () => {
+                const a = docFromTextNotation('{:a 1 |:b 2 :c 3}');
+                const b = docFromTextNotation('{:a 1 |:b 2 :c 3|}');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of line in multiline maps', () => {
+                const a = docFromTextNotation('{:a 1 |:b 2\n:c 3}');
+                const b = docFromTextNotation('{:a 1 |:b 2|:c 3}');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of expr in multiline maps', () => {
+                const a = docFromTextNotation('{:a 1 |:b (+\n 0\n 2\n) :c 3}');
+                const b = docFromTextNotation('{:a 1 |:b (+\n 0\n 2\n)| :c 3}');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of line in bindings', () => {
+                const a = docFromTextNotation('(let [|a (+ 1 2)\n b (+ 2 3)] (+ a b))');
+                const b = docFromTextNotation('(let [|a (+ 1 2)|\n b (+ 2 3)] (+ a b))');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of expr in multiline bindings', () => {
+                const a = docFromTextNotation('(let [|a (+\n 1 \n 2)\n b (+ 2 3)] (+ a b))');
+                const b = docFromTextNotation('(let [|a (+\n 1 \n 2)|\n b (+ 2 3)] (+ a b))');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+        })
+
         describe('moveToRangeRight', () => {
             it('Places cursor at the right end of the selection', () => {
                 const a = docFromTextNotation('(def |>|foo|>| [vec])');
