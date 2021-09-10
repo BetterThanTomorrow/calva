@@ -1217,6 +1217,12 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.killHybridSexpForward",
+                "title": "Kill/Delete Right",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
                 "title": "Kill/Delete Sexp Forward",
                 "enablement": "editorLangId == clojure"
