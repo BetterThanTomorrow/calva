@@ -164,8 +164,9 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
     const newlineIndex = text.indexOf("\n");
     let end = cursor.offsetStart;
 
+    // Have a newline? Try to find the open token just to the right
+    // of the document's cursor location if any
     if (newlineIndex > 0) {
-        // find the open token just to the right of the document's cursor location if any
         const newlineOffset = offset + newlineIndex;
         let nearestOpenTokenOffset = -1;
 
@@ -183,7 +184,7 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         }
 
         if (nearestOpenTokenOffset > 0) {
-            // go to the end of the list for the closest open token
+            // get the end of the list for the nearest open token
             cursor = doc.getTokenCursor(nearestOpenTokenOffset);
             cursor.forwardList();
             end = cursor.offsetEnd; // include the closing token
