@@ -1217,7 +1217,7 @@
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.killHybridSexpForward",
+                "command": "paredit.killRight",
                 "title": "Kill/Delete Right",
                 "enablement": "editorLangId == clojure"
             },
@@ -1898,7 +1898,7 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {
-                "command": "paredit.killHybridSexpForward",
+                "command": "paredit.killRight",
                 "key": "ctrl+k",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },

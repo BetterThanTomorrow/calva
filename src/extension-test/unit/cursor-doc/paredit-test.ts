@@ -112,9 +112,25 @@ describe('paredit', () => {
                 expect(actual).toEqual(expected);
             });
 
-            it('Maintains balanced delimiters', () => {
+            it('Maintains balanced delimiters 1', () => {
                 const a = docFromTextNotation('(a| b (c\n d) e)');
                 const b = docFromTextNotation('(a| b (c\n d)| e)');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Maintains balanced delimiters 2', () => {
+                const a = docFromTextNotation('(aa| (c (e\nf)) g)');
+                const b = docFromTextNotation('(aa| (c (e\nf))|g)');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Maintains balanced delimiters 3', () => {
+                const a = docFromTextNotation('(aa| (  c (e\nf)) g)');
+                const b = docFromTextNotation('(aa| (  c (e\nf))|g)');
                 const expected  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);

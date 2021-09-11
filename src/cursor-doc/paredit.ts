@@ -139,12 +139,11 @@ export function backwardListRange(doc: EditableDocument, start: number = doc.sel
     return [cursor.offsetStart, start];
 }
 
-
 /**
- * Aims to find the end of the current form (list|vector|map|set|string etc) or
- * the first newline and delete up to the newline or the form's closing delimiter.
- * When the first newline is in the middle of another form then the end
- * of the range is the end of the form that includes the first newline.
+ * Aims to find the end of the current form (list|vector|map|set|string etc)
+ * When there is a newline before the end of the current form either:
+ *  - Return the end of the nearest form to the right of the cursor location if one exists
+ *  - Returns the newline's offset if no form exists
  *
  * This function's output range is needed to implement features similar to paredit's
  * killRight or smartparens' sp-kill-hybrid-sexp.
@@ -155,26 +154,42 @@ export function backwardListRange(doc: EditableDocument, start: number = doc.sel
  * @returns [number, number]
  */
 export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
-    const cursor = doc.getTokenCursor(offset);
+    let cursor = doc.getTokenCursor(offset);
     if (cursor.getToken().type === 'open') {
         return forwardSexpRange(doc);
     }
+
     cursor.forwardList(); // move to the end of the current form
     const text = doc.model.getText(offset, cursor.offsetStart);
     const newlineIndex = text.indexOf("\n");
     let end = cursor.offsetStart;
+
     if (newlineIndex > 0) {
-        // need to maintain valid forms ie when deleting
-        // so may need to go to the end of the form that the first newline is in
+        // find the open token just to the right of the document's cursor location if any
         const newlineOffset = offset + newlineIndex;
-        const cursor2 = doc.getTokenCursor(newlineOffset);
-        cursor2.forwardList();
-        // no change in offsets, set end to be location of the newline
-        if (cursor.offsetStart === cursor2.offsetStart) {
-            end = newlineOffset;
+        let nearestOpenTokenOffset = -1;
+
+        // Start at the newline.
+        // Work backwards to find the smallest open token offset
+        // greater than the document's cursor location if any
+        cursor = doc.getTokenCursor(newlineOffset);
+        while(cursor.offsetStart > offset) {
+            // backwardSexp() returns false when it gets to an token type of open
+            while(cursor.backwardSexp()) {}
+            if (cursor.offsetStart > offset) {
+                nearestOpenTokenOffset = cursor.offsetStart;
+                cursor = doc.getTokenCursor(cursor.offsetStart - 1);
+            }
+        }
+
+        if (nearestOpenTokenOffset > 0) {
+            // go to the end of the list for the closest open token
+            cursor = doc.getTokenCursor(nearestOpenTokenOffset);
+            cursor.forwardList();
+            end = cursor.offsetEnd; // include the closing token
         } else {
-            // offsets are different, include up to the closing delimiter for cursor2's form
-            end = cursor2.offsetEnd;
+            // no open tokens found so the end is the newline
+            end = newlineOffset;
         }
     }
     return [offset, end];

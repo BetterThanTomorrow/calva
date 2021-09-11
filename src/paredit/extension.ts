@@ -185,7 +185,7 @@ const pareditCommands: PareditCommand[] = [
         handler: paredit.convolute
     },
     {
-        command: 'paredit.killHybridSexpForward',
+        command: 'paredit.killRight',
         handler:  (doc: EditableDocument) => {
             const range =  paredit.forwardHybridSexpRange(doc);
             if (shouldKillAlsoCutToClipboard()) {
