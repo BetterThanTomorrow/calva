@@ -105,6 +105,7 @@ We Clojurians inhabit a lot of community platforms. I'll list some of the more p
 * [The Clojurians Slack](http://clojurians.net) - by far the largest and most active Clojure community, the `#beginners` channel is spectacularly fantastic
 * [ClojureVerse](https://clojureverse.org) - a web forum. Lots of Clojurians, lots of Clojure knowledge collected, easy to search, easy to join
 * [/r/Clojure](https://www.reddit.com/r/Clojure/) - Reddit when Reddit is at its best, lots of Clojurians here
+* [Clojurians on Zulip](https://clojurians.zulipchat.com/) - An other web forum using the Zulip platform
 * On Discord there are two active servers: [Clojurians](https://discordapp.com/invite/v9QMy9D) and [Discord](https://discord.gg/)
 
 You can also ask questions, and find answers, about Clojure at [ask.clojure.org](https://ask.clojure.org)
