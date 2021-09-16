@@ -11,93 +11,129 @@ import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-function reportTests(results, errorStr, log = true) {
-    let diagnostics = {};
-    let total_summary: { test, error, ns, var, fail } = { test: 0, error: 0, ns: 0, var: 0, fail: 0 };
+// https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45
+interface CiderTestSummary {
+    ns: number;
+    var: number;
+    test: number;
+    pass: number;
+    fail: number;
+    error: number;
+};
+
+// https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L97-L112
+interface CiderTestResult {
+    context: string;
+    index: number;
+    message: string;
+    ns: string;
+    type: string;
+    var: string;
+    expected?: string;
+    'gen-input'?: string;
+    actual?: string;
+    diffs?: any;
+    error?: any;
+    line?: number
+    file?: string;
+}
+
+// https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45-L46
+interface CiderTestResults {
+    summary: CiderTestSummary;
+    results: {
+        [key: string]: {
+            [key: string]: CiderTestResult[]
+        }
+    }
+    'testing-ns'?: string
+    'gen-input': any
+}
+
+interface CiderTestError {
+    ex: any;
+    err: any;
+}
+
+function reportTests(results: CiderTestResults[], errorStr: string, log = true) {
+    let diagnostics: {[key: string]: vscode.Diagnostic[]} = {};
+    let total_summary: CiderTestSummary = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
     diagnosticCollection.clear();
-    if (results.err || results.ex) {
-        util.logError({
-            type: util.ERROR_TYPE.ERROR,
-            reason: "Error " + errorStr + ":" + results.err
-        });
-    } else {
-        for (let result of results) {
-            for (const ns in result.results) {
-                let resultSet = result.results[ns];
-                for (const test in resultSet) {
-                    for (const a of resultSet[test]) {
-                        for (const prop in a) {
-                            if (typeof (a[prop]) === 'string') {
-                                a[prop] = a[prop].replace(/\r?\n$/, "");
-                            }
+
+    for (let result of results) {
+        for (const ns in result.results) {
+            let resultSet = result.results[ns];
+            for (const test in resultSet) {
+                for (const a of resultSet[test]) {
+                    for (const prop in a) {
+                        if (typeof (a[prop]) === 'string') {
+                            a[prop] = a[prop].replace(/\r?\n$/, "");
                         }
-                        const resultMessage = (resultItem) => {
-                            let msg = [];
-                            if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
-                                msg.push(resultItem.context);
-                            if (resultItem.message)
-                                msg.push(resultItem.message);
-                            return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
+                    }
+                    const resultMessage = (resultItem: CiderTestResult) => {
+                        let msg = [];
+                        if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+                            msg.push(resultItem.context);
+                        if (resultItem.message)
+                            msg.push(resultItem.message);
+                        return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
+                    }
+                    if (a.type === "error" && log) {
+                        const rMsg = resultMessage(a);
+                        outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
+                        if (rMsg !== '') {
+                            outputWindow.append(`; ${resultMessage(a)}`);
                         }
-                        if (a.type === "error" && log) {
-                            const rMsg = resultMessage(a);
-                            outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
+                        outputWindow.append(`; error: ${a.error} (${a.file})\n; expected:\n${a.expected}`);
+                    }
+                    if (a.type === "fail") {
+                        const rMsg = resultMessage(a);
+                        let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
+                            err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
+                        if (!diagnostics[a.file])
+                            diagnostics[a.file] = [];
+                        diagnostics[a.file].push(err);
+                        if (log) {
+                            outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
                             if (rMsg !== '') {
                                 outputWindow.append(`; ${resultMessage(a)}`);
                             }
-                            outputWindow.append(`; error: ${a.error} (${a.file})\n; expected:\n${a.expected}`);
-                        }
-                        if (a.type === "fail") {
-                            const rMsg = resultMessage(a);
-                            let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
-                                err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
-                            if (!diagnostics[a.file])
-                                diagnostics[a.file] = [];
-                            diagnostics[a.file].push(err);
-                            if (log) {
-                                outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
-                                if (rMsg !== '') {
-                                    outputWindow.append(`; ${resultMessage(a)}`);
-                                }
-                                outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
-                            }
+                            outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
                         }
                     }
                 }
             }
-            if (result.summary !== null) {
-                _.each(result.summary, (v, k) => {
-                    total_summary[k] = result.summary[k] + (total_summary[k] !== undefined ? total_summary[k] : 0);
-                });
-            }
         }
+        if (result.summary !== null) {
+            _.each(result.summary, (v, k) => {
+                total_summary[k] = result.summary[k] + (total_summary[k] !== undefined ? total_summary[k] : 0);
+            });
+        }
+    }
 
-        if (total_summary !== null) {
-            let hasProblems = total_summary.error + total_summary.fail > 0;
-            if (log) {
-                outputWindow.append("; " + (total_summary.test > 0 ?
-                    total_summary.test + " tests finished, " +
-                    (!hasProblems ? "all passing 👍" :
-                        "problems found. 😭" +
-                        " errors: " + total_summary.error + ", failures: " + total_summary.fail) : "No tests found. 😱") +
-                    ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
-            }
+    let hasProblems = total_summary.error + total_summary.fail > 0;
+    if (log) {
+        outputWindow.append("; " + (total_summary.test > 0 ?
+            total_summary.test + " tests finished, " +
+            (!hasProblems ? "all passing 👍" :
+                "problems found. 😭" +
+                " errors: " + total_summary.error + ", failures: " + total_summary.fail) : "No tests found. 😱") +
+            ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
+    }
 
-            if (total_summary.test > 0) {
-                if (hasProblems) {
-                    _.each(diagnostics, (errors, fileName) => {
-                        if (fileName.startsWith('/'))
-                            diagnosticCollection.set(vscode.Uri.file(fileName), errors);
-                        else {
-                            // Sometimes we don't get the full path for some reason. (This is a very inexact
-                            // way of dealing with that. Maybe check for the right `ns`in the file?)
-                            vscode.workspace.findFiles('**/' + fileName, undefined).then((uri) => {
-                                diagnosticCollection.set(uri[0], errors);
-                            });
-                        }
+    if (total_summary.test > 0) {
+        if (hasProblems) {
+            _.each(diagnostics, (errors, fileName) => {
+                if (fileName.startsWith('/'))
+                    diagnosticCollection.set(vscode.Uri.file(fileName), errors);
+                else {
+                    // Sometimes we don't get the full path for some reason. (This is a very inexact
+                    // way of dealing with that. Maybe check for the right `ns`in the file?)
+                    vscode.workspace.findFiles('**/' + fileName, undefined).then((uri) => {
+                        diagnosticCollection.set(uri[0], errors);
                     });
                 }
-            }
+            });
         }
     }
 }
