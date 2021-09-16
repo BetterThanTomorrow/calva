@@ -104,9 +104,25 @@ describe('paredit', () => {
                 expect(actual).toEqual(expected);
             });
 
+            it('Finds newline in multi line string (Windows)', () => {
+                const a = docFromTextNotation('"This |needs to find the end\r\n of the string."');
+                const b = docFromTextNotation('"This |needs to find the end|\r\n of the string."');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
             it('Finds end of comment', () => {
                 const a = docFromTextNotation('(a |;; foo\n e)');
                 const b = docFromTextNotation('(a |;; foo|\n e)');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
+            it('Finds end of comment (Windows)', () => {
+                const a = docFromTextNotation('(a |;; foo\r\n e)');
+                const b = docFromTextNotation('(a |;; foo|\r\n e)');
                 const expected  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
@@ -120,12 +136,30 @@ describe('paredit', () => {
                 expect(actual).toEqual(expected);
             });
 
+            it('Maintains balanced delimiters 1 (Windows)', () => {
+                const a = docFromTextNotation('(a| b (c\r\n d) e)');
+                const b = docFromTextNotation('(a| b (c\r\n d)| e)');
+                const [start,end] = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                // off by 1 because \r\n is treated as 1 char?
+                expect(actual).toEqual([start, end - 1]);
+            });
+
             it('Maintains balanced delimiters 2', () => {
                 const a = docFromTextNotation('(aa| (c (e\nf)) g)');
                 const b = docFromTextNotation('(aa| (c (e\nf))|g)');
                 const expected  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
+            });
+
+            it('Maintains balanced delimiters 2 (Windows)', () => {
+                const a = docFromTextNotation('(aa| (c (e\r\nf)) g)');
+                const b = docFromTextNotation('(aa| (c (e\r\nf))|g)');
+                const [start,end]  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                // off by 1 because \r\n is treated as 1 char?
+                expect(actual).toEqual([start, end - 1]);
             });
 
             it('Maintains balanced delimiters 3', () => {
@@ -143,6 +177,15 @@ describe('paredit', () => {
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
             });
+
+            it('Finds end of lists', () => {
+                const a = docFromTextNotation('(foo |bar)\n');
+                const b = docFromTextNotation('(foo |bar|)\n');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
+
 
             it('Finds end of maps', () => {
                 const a = docFromTextNotation('{:a 1 |:b 2 :c 3}');
@@ -183,6 +226,54 @@ describe('paredit', () => {
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
             });
+
+            it('Finds range in line of tokens', () => {
+                const a = docFromTextNotation(' | 2 "hello" :hello/world\nbye');
+                const b = docFromTextNotation(' | 2 "hello" :hello/world|\nbye');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
+
+            it('Finds range in token with form over multiple lines', () => {
+                const a = docFromTextNotation(' | 2 [\n 1 \n]');
+                const b = docFromTextNotation(' | 2 [\n 1 \n]|');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
+
+            it('Deals with comments ', () => {
+                const a = docFromTextNotation(';; |hi\n');
+                const b = docFromTextNotation(';; |hi|\n');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
+
+            it('Deals with comments with empty line', () => {
+                const a = docFromTextNotation(';; |\n');
+                const b = docFromTextNotation(';; ||\n');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
+
+            it('Deals with empty lines', () => {
+                const a = docFromTextNotation('|\n');
+                const b = docFromTextNotation('|\n|');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
+
+            it('Does not advance past newline for line with leading whitespace', () => {
+                const a = docFromTextNotation(' |\n');
+                const b = docFromTextNotation(' ||\n');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            })
         })
 
         describe('moveToRangeRight', () => {

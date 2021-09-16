@@ -1,6 +1,6 @@
 import { includes } from "lodash";
 import { validPair } from "./clojure-lexer";
-import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
+import { ModelEdit, EditableDocument, ModelEditSelection } from "./model";
 import { LispTokenCursor } from "./token-cursor";
 
 // NB: doc.model.edit returns a Thenable, so that the vscode Editor can compose commands.
@@ -139,6 +139,7 @@ export function backwardListRange(doc: EditableDocument, start: number = doc.sel
     return [cursor.offsetStart, start];
 }
 
+
 /**
  * Aims to find the end of the current form (list|vector|map|set|string etc)
  * When there is a newline before the end of the current form either:
@@ -159,23 +160,40 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         return forwardSexpRange(doc);
     }
 
-    cursor.forwardList(); // move to the end of the current form
-    const text = doc.model.getText(offset, cursor.offsetStart);
-    const newlineIndex = text.indexOf("\n");
-    let end = cursor.offsetStart;
+    const currentLineText = doc.model.getLineText(cursor.line);
+    const lineStart = doc.model.getOffsetForLine(cursor.line);
+    const currentLineNewlineOffset = lineStart + currentLineText.length;
 
-    // Have a newline? Try to find the open token just to the right
-    // of the document's cursor location if any
-    if (newlineIndex > 0) {
-        const newlineOffset = offset + newlineIndex;
+    cursor.forwardList(); // move to the end of the current form
+    const currentFormEndToken = cursor.getToken();
+    // when we've advanced the cursor but start is behind us then go to the end
+    // happens when in a clojure comment i.e:  ;; ----
+    let cursorOffsetEnd = cursor.offsetStart < offset ? cursor.offsetEnd : cursor.offsetStart;
+    const text = doc.model.getText(offset, cursorOffsetEnd);
+    let hasNewline = text.indexOf("\n") > -1;
+    let end = cursorOffsetEnd;
+
+    // Want the min of closing token or newline
+    // After moving forward, the cursor is not yet at the end of the current line,
+    // and it is not a close token. So we include the newline
+    // because what forms are here extend beyond the end of the current line
+    if (currentLineNewlineOffset > cursor.offsetEnd && currentFormEndToken.type != 'close') {
+        hasNewline = true;
+        end = currentLineNewlineOffset;
+    }
+
+    if (currentLineText === '') { // emtpy line
+        end = end + 1;
+    } else if (hasNewline) {
+        // Try to find the first open token to the right of the document's cursor location if any
         let nearestOpenTokenOffset = -1;
 
         // Start at the newline.
         // Work backwards to find the smallest open token offset
         // greater than the document's cursor location if any
-        cursor = doc.getTokenCursor(newlineOffset);
+        cursor = doc.getTokenCursor(currentLineNewlineOffset);
         while(cursor.offsetStart > offset) {
-            // backwardSexp() returns false when it gets to an token type of open
+            // backwardSexp() returns false when it gets to an open token type
             while(cursor.backwardSexp()) {}
             if (cursor.offsetStart > offset) {
                 nearestOpenTokenOffset = cursor.offsetStart;
@@ -190,7 +208,7 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
             end = cursor.offsetEnd; // include the closing token
         } else {
             // no open tokens found so the end is the newline
-            end = newlineOffset;
+            end = currentLineNewlineOffset;
         }
     }
     return [offset, end];
