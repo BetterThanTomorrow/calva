@@ -170,6 +170,14 @@ describe('paredit', () => {
                 expect(actual).toEqual(expected);
             });
 
+            it('Advances past newline when invoked on newline', () => {
+                const a = docFromTextNotation('(a|\n e) g)');
+                const b = docFromTextNotation('(a|\n| e)');
+                const expected  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                expect(actual).toEqual(expected);
+            });
+
             it('Finds end of vectors', () => {
                 const a = docFromTextNotation('[a [b |c d e f] g h]');
                 const b = docFromTextNotation('[a [b |c d e f|] g h]');
@@ -243,17 +251,17 @@ describe('paredit', () => {
                 expect(actual).toEqual(expected);
             })
 
-            it('Deals with comments ', () => {
-                const a = docFromTextNotation(';; |hi\n');
-                const b = docFromTextNotation(';; |hi|\n');
+            it('Deals with comments start of line', () => {
+                const a = docFromTextNotation('|;;  hi\n');
+                const b = docFromTextNotation('|;;  hi|\n');
                 const expected  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
             })
 
-            it('Deals with comments with empty line', () => {
-                const a = docFromTextNotation(';; |\n');
-                const b = docFromTextNotation(';; ||\n');
+            it('Deals with comments middle of line', () => {
+                const a = docFromTextNotation(';; |hi\n');
+                const b = docFromTextNotation(';; |hi|\n');
                 const expected  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
@@ -262,14 +270,24 @@ describe('paredit', () => {
             it('Deals with empty lines', () => {
                 const a = docFromTextNotation('|\n');
                 const b = docFromTextNotation('|\n|');
-                const expected  = textAndSelection(b)[1];
+                const [start, end]  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
-                expect(actual).toEqual(expected);
+                // to deal with CRLF
+                expect([[start, end], [start, end + 1]]).toContainEqual(actual);
             })
 
-            it('Does not advance past newline for line with leading whitespace', () => {
-                const a = docFromTextNotation(' |\n');
-                const b = docFromTextNotation(' ||\n');
+            it('Deals with comments with empty line', () => {
+                const a = docFromTextNotation(';; |\n');
+                const b = docFromTextNotation(';; |\n|');
+                const [start, end]  = textAndSelection(b)[1];
+                const actual =  paredit.forwardHybridSexpRange(a);
+                // to deal with CRLF
+                expect([[start, end], [start, end + 1]]).toContainEqual(actual);
+            })
+
+            it('Does not advance when on closing token type ', () => {
+                const a = docFromTextNotation('(a e|)\n');
+                const b = docFromTextNotation('(a e||)\n');
                 const expected  = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);

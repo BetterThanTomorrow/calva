@@ -158,17 +158,20 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
     let cursor = doc.getTokenCursor(offset);
     if (cursor.getToken().type === 'open') {
         return forwardSexpRange(doc);
+    } else if (cursor.getToken().type === 'close') {
+        return [offset, offset];
     }
 
     const currentLineText = doc.model.getLineText(cursor.line);
     const lineStart = doc.model.getOffsetForLine(cursor.line);
     const currentLineNewlineOffset = lineStart + currentLineText.length;
+    const remainderLineText = doc.model.getText(offset, currentLineNewlineOffset + 1);
 
     cursor.forwardList(); // move to the end of the current form
     const currentFormEndToken = cursor.getToken();
     // when we've advanced the cursor but start is behind us then go to the end
     // happens when in a clojure comment i.e:  ;; ----
-    let cursorOffsetEnd = cursor.offsetStart < offset ? cursor.offsetEnd : cursor.offsetStart;
+    let cursorOffsetEnd = cursor.offsetStart <= offset ? cursor.offsetEnd : cursor.offsetStart;
     const text = doc.model.getText(offset, cursorOffsetEnd);
     let hasNewline = text.indexOf("\n") > -1;
     let end = cursorOffsetEnd;
@@ -182,8 +185,12 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         end = currentLineNewlineOffset;
     }
 
-    if (currentLineText === '') { // emtpy line
-        end = end + 1;
+
+    // handle weird CRLF case first otherwise we'll not advance far enough
+    if (remainderLineText === '\n' && '\n' === doc.model.getText(currentLineNewlineOffset, currentLineNewlineOffset + 2)) {
+        end = currentLineNewlineOffset + 2;
+    } else if (remainderLineText === '' || remainderLineText === '\n') {
+        end = currentLineNewlineOffset + 1;
     } else if (hasNewline) {
         // Try to find the first open token to the right of the document's cursor location if any
         let nearestOpenTokenOffset = -1;
