@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.213] - 2021-10-02
 - Workaround [nbb nrepl-server: can only eval from file with extension .clj](https://github.com/BetterThanTomorrow/calva/issues/1308)
 
 ## [2.0.212] - 2021-09-26
