@@ -8,7 +8,8 @@ enum ProjectTypes {
     "deps.edn" = "deps.edn",
     "shadow-cljs" = "shadow-cljs",
     "lein-shadow" = "lein-shadow",
-    'generic' = 'generic'
+    'generic' = 'generic',
+    'cljs-only' = 'cljs-only'
 }
 
 enum CljsTypes {
@@ -17,6 +18,7 @@ enum CljsTypes {
     "shadow-cljs" = "shadow-cljs",
     "ClojureScript built-in for browser" = "ClojureScript built-in for browser",
     "ClojureScript built-in for node" = "ClojureScript built-in for node",
+    "ClojureScript nREPL" = "ClojureScript nREPL",
     "User provided" = "User provided",
     "none" = "none"
 }
@@ -139,12 +141,21 @@ const genericDefaults: ReplConnectSequence[] = [{
     nReplPortFile: ["nrepl.port"]
 }];
 
+const cljsOnlyDefaults: ReplConnectSequence[] = [{
+    name: "ClojureScript nREPL Server",
+    projectType: ProjectTypes['cljs-only'],
+    cljsType: CljsTypes["ClojureScript nREPL"],
+    nReplPortFile: ["nrepl.port"]
+}];
+
+
 const defaultSequences = {
     "lein": leiningenDefaults,
     "clj": cljDefaults,
     "shadow-cljs": shadowCljsDefaults,
     "lein-shadow": leinShadowDefaults,
-    'generic': genericDefaults
+    'generic': genericDefaults,
+    'cljs-only': cljsOnlyDefaults
 };
 
 const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
@@ -195,6 +206,13 @@ const defaultCljsTypes: { [id: string]: CljsTypeConfig } = {
         isStarted: true,
         connectCode: "(do (require 'cljs.repl.node) (cider.piggieback/cljs-repl (cljs.repl.node/repl-env)))",
         isConnectedRegExp: "To quit, type: :cljs/quit"
+    },
+    "ClojureScript nREPL": {
+        name: "ClojureScript nREPL",
+        buildsRequired: false,
+        isStarted: true,
+        connectCode: ":fake-it",
+        isConnectedRegExp: ":fake-it"
     }
 };
 
@@ -268,5 +286,6 @@ export {
     ReplConnectSequence,
     CljsTypeConfig,
     genericDefaults,
+    cljsOnlyDefaults,
     cljDefaults
 }

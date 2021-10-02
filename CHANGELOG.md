@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Workaround [nbb nrepl-server: can only eval from file with extension .clj](https://github.com/BetterThanTomorrow/calva/issues/1308)
 
 ## [2.0.212] - 2021-09-26
 - Fix [The schema for the setting `calva.highlight.bracketColors` is broken](https://github.com/BetterThanTomorrow/calva/issues/1290)
