@@ -1170,6 +1170,10 @@
 <li><code>jackInEnv</code>: An object with environment variables that will be merged with the global <code>calva.jackInEnv</code> and then applied to the Jack-in process. The merge is very similar to how Clojure's <code>merge</code> works. So for any common keys between the global setting and this one, the ones from this setting will win.</li>
 </ul>
 <p>The <a href="https://github.com/BetterThanTomorrow/calva/blob/published/src/nrepl/connectSequence.ts">Calva built-in sequences</a> also use this format, check them out to get a clearer picture of how these settings work.</p>
+<div class="admonition note">
+<p class="admonition-title">Apropos the <strong>ClojureScript nREPL Server</strong> built-in sequence</p>
+<p>Because of ancient decisions in the design of Calva session managament, the current implementation of the ClojureScript nREPL Server connect sequence is a workaround. Calva will still indicate that it has a Clojure session available, which is nonsense in a pure ClojureScript nREPL environment. This session is also a ClojureScript session.</p>
+</div>
 <h2 id="example-sequences">Example Sequences</h2>
 <p>Setting for a full-stack application. It starts the backend server when the CLJ REPL has started. Then proceeds to create a custom CLJS REPL (calling in to the application code for this). And then connects to it.</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
