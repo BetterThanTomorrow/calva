@@ -3,7 +3,14 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Not currently possible to Jack-in to a ClojureScript nREPL Server](https://github.com/BetterThanTomorrow/calva/issues/1310)
+
+## [2.0.213] - 2021-10-02
+- Workaround [nbb nrepl-server: can only eval from file with extension .clj](https://github.com/BetterThanTomorrow/calva/issues/1308)
+
+## [2.0.212] - 2021-09-26
 - Fix [The schema for the setting `calva.highlight.bracketColors` is broken](https://github.com/BetterThanTomorrow/calva/issues/1290)
+- Fix [Can't use $current-form more than once in a custom repl command snippet](https://github.com/BetterThanTomorrow/calva/issues/1301)
 
 ## [2.0.211] - 2021-09-01
 - [Add setting for letting Paredit Kill commands copy the deleted code to the clipboard](https://github.com/BetterThanTomorrow/calva/issues/1283)

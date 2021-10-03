@@ -1,0 +1,8 @@
+{
+  "calva.customREPLCommandSnippets": [
+    {
+      "name": "Double current",
+      "snippet": "(tap> [$current-form $current-form])"
+    }
+  ]
+}

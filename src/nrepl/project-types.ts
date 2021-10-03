@@ -506,7 +506,7 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
     const rootUri = state.getProjectRootUri();
-    const cljProjTypes = ['generic'];
+    const cljProjTypes = ['generic', 'cljs-only'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
@@ -521,7 +521,7 @@ export async function detectProjectTypes(): Promise<string[]> {
 }
 
 export function getAllProjectTypes(): string[] {
-    return ['generic', ...Object.keys(projectTypes).filter(pt => pt !== 'generic')];
+    return ['generic', 'cljs-only', ...Object.keys(projectTypes).filter(pt => !['generic', 'cljs-only'].includes(pt))];
 }
 
 export function getCljsTypeName(connectSequence: ReplConnectSequence) {

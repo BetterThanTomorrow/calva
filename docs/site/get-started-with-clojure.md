@@ -105,6 +105,7 @@ We Clojurians inhabit a lot of community platforms. I'll list some of the more p
 * [The Clojurians Slack](http://clojurians.net) - by far the largest and most active Clojure community, the `#beginners` channel is spectacularly fantastic
 * [ClojureVerse](https://clojureverse.org) - a web forum. Lots of Clojurians, lots of Clojure knowledge collected, easy to search, easy to join
 * [/r/Clojure](https://www.reddit.com/r/Clojure/) - Reddit when Reddit is at its best, lots of Clojurians here
+* [Clojurians on Zulip](https://clojurians.zulipchat.com/) - An other web forum using the Zulip platform
 * On Discord there are two active servers: [Clojurians](https://discordapp.com/invite/v9QMy9D) and [Discord](https://discord.gg/)
 
 You can also ask questions, and find answers, about Clojure at [ask.clojure.org](https://ask.clojure.org)
@@ -118,6 +119,10 @@ You can regard it as a companion to this guide. It is aimed at practicing Clojur
 
 ??? Note "Can I use Rich 4Clojure instead of this guide?"
     We suggest you start by opening up this guide and do the Calva part of the excerises. Then use the `welcome_to_clojure.clj` guide in combination with **Rich 4Clojure**..
+
+## Run the Clojure Exercism Track in your browser
+
+In a similar manner to the Get Started with Clojure project, you can run the Clojure Exercism Track in your browser without installing anything and with full Interactive Programming enabled using this [Template project](https://github.com/PEZ/clojure-exercism-template).
 
 ## ClojureDocs
 
@@ -146,6 +151,7 @@ Give us feedback. Spread the word. Please consider:
 * Starring these repositories:
     * [Get Started with Clojure](https://github.com/PEZ/get-started-with-clojure) - (the repository powering this guide)
     * [Rich 4Clojure](https://github.com/PEZ/rich4clojure)
+    * [Clojure Exercism Track Template](https://github.com/PEZ/clojure-exercism-template)
     * [Calva](https://github.com/BetterThanTomorrow/calva)
     * [Dram](https://github.com/BetterThanTomorrow/dram) - Where this guide (the Getting Started REPL) is authored
 
