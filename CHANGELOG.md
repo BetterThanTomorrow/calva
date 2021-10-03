@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - Fix: [Not currently possible to Jack-in to a ClojureScript nREPL Server](https://github.com/BetterThanTomorrow/calva/issues/1310)
+- [Add nrepl message logging](https://github.com/BetterThanTomorrow/calva/issues/1198)
 
 ## [2.0.213] - 2021-10-02
 - Workaround [nbb nrepl-server: can only eval from file with extension .clj](https://github.com/BetterThanTomorrow/calva/issues/1308)
