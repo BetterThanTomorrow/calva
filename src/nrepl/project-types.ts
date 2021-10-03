@@ -387,6 +387,19 @@ const projectTypes: { [id: string]: ProjectType } = {
         commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
             return ['--nrepl-server', await getPort()];
         }
+    },
+    'nbb': {
+        name: 'nbb',
+        cljsTypes: [],
+        cmd: ["npx"],
+        winCmd: ["npx.cmd"],
+        processShellUnix: true,
+        processShellWin: true,
+        useWhenExists: undefined,
+        nReplPortFile: [".nbb-nrepl-port"],
+        commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+            return ['nbb', 'nrepl-server', ':port', await getPort()];
+        }
     }
 }
 
@@ -519,7 +532,7 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
     const rootUri = state.getProjectRootUri();
-    const cljProjTypes = ['generic', 'cljs-only', 'babashka'];
+    const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {
