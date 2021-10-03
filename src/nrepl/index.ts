@@ -11,6 +11,7 @@ import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
+import { log, Direction } from './logging';
 
 /** An nREPL client */
 export class NReplClient {
@@ -77,7 +78,7 @@ export class NReplClient {
      * @param data
      */
     write(data: any) {
-        nreplMessagesChannel.appendLine(`TO SERVER: ${formatNREPLMessage(data)}`);
+        log(data, Direction.ClientToServer);
         this.encoder.write(data);
     }
 
@@ -106,7 +107,7 @@ export class NReplClient {
 
                 client.decoder.on("data", (data) => {
 
-                    nreplMessagesChannel.appendLine(`TO CLIENT: ${formatNREPLMessage(data)}`);
+                    log(data, Direction.ServerToClient);
 
                     debug.onNreplMessage(data);
 
