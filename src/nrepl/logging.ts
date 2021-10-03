@@ -1,15 +1,33 @@
 import * as vscode from 'vscode';
-import { getConfig } from '../config';
-import { getStateValue, setStateValue } from '../../out/cljs-lib/cljs-lib';
+import { getStateValue, setStateValue, removeStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as nodeUtil from 'util';
+import _ = require('lodash');
 
 const NREPL_MESSAGES_CHANNEL_KEY = 'nReplMessagesChannel';
 const NREPL_MESSAGES_CHANNEL_NAME = 'nREPL Messages';
 
-function init(): void {
-    if (getConfig().logNreplMessages === true) {
-        const channel = vscode.window.createOutputChannel(NREPL_MESSAGES_CHANNEL_NAME);
-        setStateValue(NREPL_MESSAGES_CHANNEL_KEY, channel);
+function getMessageChannel(): vscode.OutputChannel {
+    return getStateValue(NREPL_MESSAGES_CHANNEL_KEY);
+}
+
+function createMessageChannel(): void {
+    const channel = vscode.window.createOutputChannel(NREPL_MESSAGES_CHANNEL_NAME);
+    setStateValue(NREPL_MESSAGES_CHANNEL_KEY, channel);
+    channel.show();
+}
+
+function deleteMessageChannel(channel: vscode.OutputChannel): void {
+    channel.hide();
+    channel.dispose();
+    removeStateValue(NREPL_MESSAGES_CHANNEL_KEY);
+}
+
+function toggleEnabled(): void {
+    const channel = getMessageChannel();
+    if (channel) {
+        deleteMessageChannel(channel);
+    } else {
+        createMessageChannel();
     }
 }
 
@@ -17,9 +35,21 @@ function formatNreplMessage(message: any): string {
     return nodeUtil.inspect(message, false, 2, false);
 }
 
-function log(message: string): void {
-    const nreplMessagesChannel: vscode.OutputChannel = getStateValue(NREPL_MESSAGES_CHANNEL_KEY);
-    if (nreplMessagesChannel) {
-        nreplMessagesChannel.appendLine(formatNreplMessage(message));
+function log(message: any, direction: Direction): void {
+    const channel = getMessageChannel();
+    if (channel) {
+        const formattedMessage = `${direction}\n${formatNreplMessage(message)}\n`;
+        channel.appendLine(formattedMessage);
     }
+}
+
+const enum Direction {
+    ClientToServer = 'Client -> Server',
+    ServerToClient = 'Server -> Client'
+}
+
+export {
+    toggleEnabled,
+    log,
+    Direction
 }
