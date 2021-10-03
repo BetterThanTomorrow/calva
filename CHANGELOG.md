@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add Babashka Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1001)
 - Fix: [Not currently possible to Jack-in to a ClojureScript nREPL Server](https://github.com/BetterThanTomorrow/calva/issues/1310)
 
 ## [2.0.213] - 2021-10-02

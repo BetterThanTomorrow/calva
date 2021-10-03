@@ -8,6 +8,7 @@ enum ProjectTypes {
     "deps.edn" = "deps.edn",
     "shadow-cljs" = "shadow-cljs",
     "lein-shadow" = "lein-shadow",
+    "babashka" = "babashka",
     'generic' = 'generic',
     'cljs-only' = 'cljs-only'
 }
@@ -148,6 +149,12 @@ const cljsOnlyDefaults: ReplConnectSequence[] = [{
     nReplPortFile: ["nrepl.port"]
 }];
 
+const babashkaDefaults: ReplConnectSequence[] = [{
+    name: "Babashka",
+    projectType: ProjectTypes['babashka'],
+    cljsType: CljsTypes.none,
+    nReplPortFile: ["bb-nrepl.port"]
+}];
 
 const defaultSequences = {
     "lein": leiningenDefaults,
@@ -155,6 +162,7 @@ const defaultSequences = {
     "shadow-cljs": shadowCljsDefaults,
     "lein-shadow": leinShadowDefaults,
     'generic': genericDefaults,
+    'babashka': babashkaDefaults,
     'cljs-only': cljsOnlyDefaults
 };
 
