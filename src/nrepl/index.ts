@@ -78,8 +78,8 @@ export class NReplClient {
      * @param data
      */
     write(data: any) {
-        log(data, Direction.ClientToServer);
         this.encoder.write(data);
+        log(data, Direction.ClientToServer);
     }
 
     close() {
