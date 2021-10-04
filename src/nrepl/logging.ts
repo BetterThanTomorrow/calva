@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { getStateValue, setStateValue, removeStateValue } from '../../out/cljs-lib/cljs-lib';
 import * as nodeUtil from 'util';
-import _ = require('lodash');
 
 const NREPL_MESSAGES_CHANNEL_KEY = 'nReplMessagesChannel';
 const NREPL_MESSAGES_CHANNEL_NAME = 'nREPL Messages';
