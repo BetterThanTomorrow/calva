@@ -13,6 +13,60 @@ From a Clojure perspective it allows you to have VS Code installed on your Java-
 - You want to edit files in an editor running on your physical computer
 - Most Clojure tooling is made with *nix first in mind and there are incompatibilities with Windows
 
+## How to
+
+Run *Remote-Containers: Add Development Container Configuration Files...* and pick a suitable Java base image. Then:
+
+### Modify Dockerfile to install Clojure CLI (and optionally lein)
+
+Add:
+
+```Dockerfile
+# ...
+
+# Install Clojure - see https://github.com/Quantisan/docker-clojure/blob/master/target/openjdk-14-slim-buster/tools-deps/Dockerfile
+ENV CLOJURE_VERSION=1.10.1.619
+WORKDIR /tmp
+RUN \
+apt-get update && \
+apt-get install -y curl make rlwrap wget && \
+rm -rf /var/lib/apt/lists/* && \
+wget https://download.clojure.org/install/linux-install-$CLOJURE_VERSION.sh && \
+sha256sum linux-install-$CLOJURE_VERSION.sh && \
+echo "28b1652686426cdf856f83551b8ca01ff949b03bc9a533d270204d6511a8ca9d *linux-install-$CLOJURE_VERSION.sh" | sha256sum -c - && \
+chmod +x linux-install-$CLOJURE_VERSION.sh && \
+./linux-install-$CLOJURE_VERSION.sh && \
+clojure -e "(clojure-version)" && \
+apt-get purge -y --auto-remove curl wget && \
+rm ./linux-install-$CLOJURE_VERSION.sh
+
+# OPTIONAL: Add leiningen
+# Install Lein
+RUN \
+wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /bin/lein && \
+chmod u+x /bin/lein && \
+/bin/lein
+
+# Cleanup
+RUN apt-get purge -y --auto-remove curl wget
+
+# ...
+```
+
+
+### Modify devcontainer.json
+
+Add Calva and, optionally, forward some ports to the host::
+
+```json
+"extensions": ["betterthantomorrow.calva"],
+"forwardPorts": [8088, 52162], // example: your webapp, your nREPL
+```
+
+### Build and start
+
+Run *Remote-Containers: Rebuild and Reopen in container*
+
 ## WSL
 
 See [Using Calva with WSL](wsl.md)
