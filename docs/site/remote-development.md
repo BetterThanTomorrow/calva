@@ -35,17 +35,16 @@ wget https://download.clojure.org/install/linux-install-$CLOJURE_VERSION.sh && \
 sha256sum linux-install-$CLOJURE_VERSION.sh && \
 echo "28b1652686426cdf856f83551b8ca01ff949b03bc9a533d270204d6511a8ca9d *linux-install-$CLOJURE_VERSION.sh" | sha256sum -c - && \
 chmod +x linux-install-$CLOJURE_VERSION.sh && \
-./linux-install-$CLOJURE_VERSION.sh && \
-clojure -e "(clojure-version)" && \
-apt-get purge -y --auto-remove curl wget && \
+./linux-install-$CLOJURE_VERSION.sh
+RUN \
+su vscode -c "clojure -e '(clojure-version)'" && \
 rm ./linux-install-$CLOJURE_VERSION.sh
 
-# OPTIONAL: Add leiningen
 # Install Lein
 RUN \
 wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /bin/lein && \
-chmod u+x /bin/lein && \
-/bin/lein
+chmod uog+x /bin/lein
+RUN su vscode -c "/bin/lein"
 
 # Cleanup
 RUN apt-get purge -y --auto-remove curl wget
