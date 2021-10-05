@@ -2,7 +2,7 @@
 
 Since [nbb](https://github.com/borkdude/nbb) can be started such that it is an nREPL server, Calva can connect to it and a lot of the features will work.
 
-Calva can also start nbb and connect its REPL for your, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it.
+Calva can also start nbb and connect its REPL for you, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it.
 
 !!! Note "Don't expect complete support"
     nbb's nREPL server is completely new and and WIP. It will be a bit limited compared to a full cider-nrepl enhanced "regular" Clojure nREPL server. Things like function signatures, and more do not work.
