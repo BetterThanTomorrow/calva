@@ -1,6 +1,6 @@
 #!/usr/bin/env bb
 
-;; Note: The shell commands may need to be modifying if you're using Windows.
+;; Note: The shell commands may need to be modified if you're using Windows.
 ;;       At the time of this writing, both people who push use Unix-based machines.
 
 (require '[clojure.string :as str]
