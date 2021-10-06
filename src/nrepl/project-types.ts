@@ -1,12 +1,12 @@
 import * as state from '../state';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as getPort from 'get-port';
 import * as utilities from '../utilities';
 import * as pprint from '../printer';
 import { getConfig } from '../config';
 import { keywordize, unKeywordize } from '../util/string';
 import { CljsTypes, ReplConnectSequence } from './connectSequence';
-import { config } from '../calva-fmt/src/state';
 const { parseForms, parseEdn } = require('../../out/cljs-lib/cljs-lib');
 
 export const isWin = /^win/.test(process.platform);
@@ -375,6 +375,32 @@ const projectTypes: { [id: string]: ProjectType } = {
             return cljCommandLine(connectSequence, CljsTypes.none);
         }
     },
+    'babashka': {
+        name: 'babashka',
+        cljsTypes: [],
+        cmd: ["bb"],
+        winCmd: ["bb"],
+        processShellUnix: true,
+        processShellWin: true,
+        useWhenExists: undefined,
+        nReplPortFile: [".bb-nrepl-port"],
+        commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+            return ['--nrepl-server', await getPort()];
+        }
+    },
+    'nbb': {
+        name: 'nbb',
+        cljsTypes: [],
+        cmd: ["npx"],
+        winCmd: ["npx.cmd"],
+        processShellUnix: true,
+        processShellWin: true,
+        useWhenExists: undefined,
+        nReplPortFile: [".nbb-nrepl-port"],
+        commandLine: async (_connectSequence: ReplConnectSequence, _cljsType: CljsTypes) => {
+            return ['nbb', 'nrepl-server', ':port', await getPort()];
+        }
+    }
 }
 
 
@@ -506,7 +532,7 @@ export function getProjectTypeForName(name: string) {
 
 export async function detectProjectTypes(): Promise<string[]> {
     const rootUri = state.getProjectRootUri();
-    const cljProjTypes = ['generic', 'cljs-only'];
+    const cljProjTypes = ['generic', 'cljs-only', 'babashka', 'nbb'];
     for (let clj in projectTypes) {
         if (projectTypes[clj].useWhenExists) {
             try {

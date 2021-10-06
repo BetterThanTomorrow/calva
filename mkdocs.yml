@@ -49,16 +49,17 @@ nav:
   - clojure-lsp.md
   - customizing.md
   - Using Calva with X:
-    - rebl.md
-    - reveal.md
-    - vim.md
     - wsl.md
     - remote-development.md
     - live-share.md
+    - vim.md
+    - reveal.md
+    - babashka.md
     - luminus.md
     - re-frame-template.md
     - polylith.md
     - krell.md
+    - rebl.md
     - static-only.md
     - parinfer.md
   - Etcetera:

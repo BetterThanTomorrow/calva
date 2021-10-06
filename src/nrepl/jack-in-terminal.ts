@@ -79,10 +79,12 @@ export class JackInTerminal implements vscode.Pseudoterminal {
                 // Started nREPL server at 127.0.0.1:1337
                 // nREPL server started on port 61419 on host localhost - nrepl://localhost:61419
                 // shadow-cljs - nREPL server started on port 3333
-                if (msg.match(/Started nREPL server|nREPL server started/)) {
-                    const [_, port1, host1, host2, port2] =
-                        msg.match(/(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))/);
-                    this.whenREPLStarted(this.process, host1 ? host1 : host2 ? host2 : 'localhost', port1 ? port1 : port2);
+                // nbb - nRepl server started on port %d . nrepl-cljs-sci version %s 1337 TODO
+                // TODO: Remove nbb WIP match
+                if (msg.match(/Started nREPL server|nREPL server started/i)) {
+                    const [_, port1, host1, host2, port2, port3] =
+                        msg.match(/(?:Started nREPL server|nREPL server started)[^\r\n]+?(?:(?:on port (\d+)(?: on host (\S+))?)|([^\s/]+):(\d+))|.*?(\d+) TODO/);
+                    this.whenREPLStarted(this.process, host1 ? host1 : host2 ? host2 : 'localhost', port1 ? port1 : port2 ? port2 : port3);
                 }
             });
             this.process.stderr.on('data', (data) => {
