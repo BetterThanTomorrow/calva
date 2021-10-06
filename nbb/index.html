@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://calva.io/refactoring/">
+        <link rel="canonical" href="https://calva.io/nbb/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.1">
     
     
       
-        <title>Refactoring - Calva User Guide</title>
+        <title>Using Calva with nbb - Calva User Guide</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#refactoring" class="md-skip">
+        <a href="#using-calva-with-nbb" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Refactoring
+              Using Calva with nbb
             
           </span>
         </div>
@@ -353,14 +353,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
       
       
       
@@ -493,58 +491,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Refactoring
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../refactoring/" class="md-nav__link">
         Refactoring
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
-    Commands
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#thanks-to-clojure-lsp" class="md-nav__link">
-    Thanks to clojure-lsp
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1109,28 +1060,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#commands" class="md-nav__link">
-    Commands
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#thanks-to-clojure-lsp" class="md-nav__link">
-    Thanks to clojure-lsp
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1141,104 +1070,27 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/refactoring.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/nbb.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="refactoring">Refactoring</h1>
-<p>There are two ”flavours” to refactoring support. Some (just a few) refactorings are made available as <em>Quick Fix</em> suggestions (the light bulb), the rest are regular commands in the <em>Calva Refactoring</em> category.</p>
-<p><img alt="" src="../images/refactoring/quick-fix.png" /></p>
-<p>You can enable or disable the <em>Quick Fix</em> suggestion lightbulb using the VS Code setting <code>editor.lightbulb.enabled</code>.</p>
-<p>The refactoring commands do not have default keyboard shortcuts. You find them all by typing ”Calva Refactor” in the Command Palette.</p>
-<h2 id="commands">Commands</h2>
-<table>
-<thead>
-<tr>
-<th>Command Title</th>
-<th>Command Key</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Clean NS Form</td>
-<td><code>calva.refactor.cleanNs</code></td>
-<td><img alt="" src="../images/refactoring/cleanNs.gif" /></td>
-</tr>
-<tr>
-<td>Add Missing Require</td>
-<td><code>calva.refactor.addMissingLibspec</code></td>
-<td><img alt="" src="../images/refactoring/addMissingLibspec.gif" /></td>
-</tr>
-<tr>
-<td>Extract to New Function</td>
-<td><code>calva.refactor.extractFunction</code></td>
-<td><img alt="" src="../images/refactoring/extractFunction.gif" /></td>
-</tr>
-<tr>
-<td>Cycle/Toggle Privacy</td>
-<td><code>calva.refactor.cyclePrivacy</code></td>
-<td><img alt="" src="../images/refactoring/cyclePrivacy.gif" /></td>
-</tr>
-<tr>
-<td>Inline Symbol</td>
-<td><code>calva.refactor.inlineSymbol</code></td>
-<td><img alt="" src="../images/refactoring/inlineSymbol.gif" /></td>
-</tr>
-<tr>
-<td>Introduce let</td>
-<td><code>calva.refactor.introduceLet</code></td>
-<td>Creates a new let box with the binding. Follow up with ”Expand let” to move it upwards.<br><img alt="" src="../images/refactoring/introduceLet.gif" /></td>
-</tr>
-<tr>
-<td>Expand Let</td>
-<td><code>calva.refactor.expandLet</code></td>
-<td><img alt="" src="../images/refactoring/expandLet.gif" /></td>
-</tr>
-<tr>
-<td>Move to Previous let Box</td>
-<td><code>calva.refactor.moveToLet</code></td>
-<td><img alt="" src="../images/refactoring/moveToLet.gif" /></td>
-</tr>
-<tr>
-<td>Thread First</td>
-<td><code>calva.refactor.threadFirst</code></td>
-<td><img alt="" src="../images/refactoring/threadFirst.gif" /></td>
-</tr>
-<tr>
-<td>Thread First All</td>
-<td><code>calva.refactor.threadFirstAll</code></td>
-<td><img alt="" src="../images/refactoring/threadFirstAll.gif" /></td>
-</tr>
-<tr>
-<td>Thread Last</td>
-<td><code>calva.refactor.threadLast</code></td>
-<td><img alt="" src="../images/refactoring/threadLast.gif" /></td>
-</tr>
-<tr>
-<td>Thread Last All</td>
-<td><code>calva.refactor.threadLastAll</code></td>
-<td><img alt="" src="../images/refactoring/threadLastAll.gif" /></td>
-</tr>
-<tr>
-<td>Unwind All</td>
-<td><code>calva.refactor.unwindAll</code></td>
-<td><img alt="" src="../images/refactoring/unwindAll.gif" /></td>
-</tr>
-<tr>
-<td>Unwind Thread</td>
-<td><code>calva.refactor.unwindThread</code></td>
-<td><img alt="" src="../images/refactoring/unwindThread.gif" /></td>
-</tr>
-</tbody>
-</table>
+                <h1 id="using-calva-with-nbb">Using Calva with nbb</h1>
+<p>Since <a href="https://github.com/borkdude/nbb">nbb</a> can be started such that it is an nREPL server, Calva can connect to it and a lot of the features will work.</p>
+<p>Calva can also start nbb and connect its REPL for you, using the Jack-in command. This will start an nbb nREPL server on a random port and connect Calva to it.</p>
 <div class="admonition note">
-<p class="admonition-title">Formatting</p>
-<p>The way that some of the refactorings are applied to the document, makes it difficult for Calva to format the results. So, sometimes you'll need to navigate the cursor to the enclosing form and hit <code>tab</code> to tidy up the formatting after a refactoring. See also <a href="../formatting/">Formatting</a>.</p>
+<p class="admonition-title">Errors jacking in to nbb on Windows?</p>
+<p>On some machines it seems necessary to first run <code>npx nbb</code> from the <code>CMD</code> prompt to make jack-in work. Or try first install it <code>npm i -g nbb</code>. (You probabl want nbb installed globally anyway.)</p>
 </div>
-<h2 id="thanks-to-clojure-lsp">Thanks to clojure-lsp</h2>
-<p>Most of Calva's refactoring support is sourced directly from <a href="../clojure-lsp/">clojure-lsp</a>. This also means that most often, if you find issues with refactoring, or have suggestions about it, the clojure-lsp repo is where to direct your reporting.</p>
+<div class="admonition note">
+<p class="admonition-title">Don't expect complete support</p>
+<p>nbb's nREPL server is completely new and and WIP. It will be a bit limited compared to a full cider-nrepl enhanced "regular" Clojure nREPL server. Things like function signatures, and more do not work.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">It's a bit hacky</p>
+<p>The nbb nREPL server is the first ClojureScript nREPL server around and throws Calva's assumption that an nREPL server is always started in a Clojure process out the window. The nbb Jack-in/connect option ”pretends” it is connecting to a Clojure nREPL and then the code fro promoting the nREPL session to a ClojureScript one is just dummy code.</p>
+<p>This means that if you open a Clojure (<code>.clj</code>) file while connected to an nbb nREPL server, it will still be a ClojureScript session serving even though Calva will indicate that it is a Clojure one. Bare with us until we can fix this properly in Calva.</p>
+</div>
                 
               
               
@@ -1254,41 +1106,6 @@
       
         
 <footer class="md-footer">
-  
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
-      
-        
-        <a href="../pprint/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Pretty Printing" rel="prev">
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-          </div>
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Previous
-              </span>
-              Pretty Printing
-            </div>
-          </div>
-        </a>
-      
-      
-        
-        <a href="../test-runner/" class="md-footer__link md-footer__link--next" aria-label="Next: Test Runner" rel="next">
-          <div class="md-footer__title">
-            <div class="md-ellipsis">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              Test Runner
-            </div>
-          </div>
-          <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
-          </div>
-        </a>
-      
-    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
