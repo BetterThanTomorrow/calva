@@ -4,6 +4,12 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.214] - 2021-10-06
+- [Add Babashka Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1001)
+- [Add nbb Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1311)
+- Fix: [Not currently possible to Jack-in to a ClojureScript nREPL Server](https://github.com/BetterThanTomorrow/calva/issues/1310)
+- [Update deps.clj version to 0.0.19](https://github.com/BetterThanTomorrow/calva/issues/1319)
+
 ## [2.0.213] - 2021-10-02
 - Workaround [nbb nrepl-server: can only eval from file with extension .clj](https://github.com/BetterThanTomorrow/calva/issues/1308)
 
