@@ -52,7 +52,7 @@ Halloway also gives me some peace of mind with his reasoning of [keeping a _spar
 
 Clojure is data centric. Calva should make it easy to examine data and how our code affects it. Today, this is not good enough when it comes to data structures larger than a few elements.
 
-Clojure is a LISP. Thus Structural Editing is possible, and TBH, desirable. Calva should support this and encourage it. There is little we can do about Parinfer not playing well with VS Code, but there is Paredit, and Paredit rocks! [Calva's Paredit](paredit,md) plays in the top league of Paredits, for this reason.
+Clojure is a LISP. Thus Structural Editing is possible, and TBH, desirable. Calva should support this and encourage it. There is little we can do about Parinfer not playing well with VS Code, but there is Paredit, and Paredit rocks! [Calva's Paredit](paredit.md) plays in the top league of Paredits, for this reason.
 
 ## Made from the Produce of the Orchard
 
