@@ -270,19 +270,17 @@ describe('paredit', () => {
             it('Deals with empty lines', () => {
                 const a = docFromTextNotation('|\n');
                 const b = docFromTextNotation('|\n|');
-                const [start, end]  = textAndSelection(b)[1];
+                const expected = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
-                // to deal with CRLF
-                expect([[start, end], [start, end + 1]]).toContainEqual(actual);
+                expect(actual).toEqual(expected);
             })
 
             it('Deals with comments with empty line', () => {
                 const a = docFromTextNotation(';; |\n');
                 const b = docFromTextNotation(';; |\n|');
-                const [start, end]  = textAndSelection(b)[1];
+                const expected = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
-                // to deal with CRLF
-                expect([[start, end], [start, end + 1]]).toContainEqual(actual);
+                expect(actual).toEqual(expected);
             })
 
             it('Does not advance when on closing token type ', () => {
