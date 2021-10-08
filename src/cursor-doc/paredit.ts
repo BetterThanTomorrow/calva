@@ -200,7 +200,6 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         // greater than the document's cursor location if any
         cursor = doc.getTokenCursor(currentLineNewlineOffset);
         while(cursor.offsetStart > offset) {
-            // backwardSexp() returns false when it gets to an open token type
             while(cursor.backwardSexp()) {}
             if (cursor.offsetStart > offset) {
                 nearestOpenTokenOffset = cursor.offsetStart;
@@ -209,7 +208,6 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         }
 
         if (nearestOpenTokenOffset > 0) {
-            // get the end of the list for the nearest open token
             cursor = doc.getTokenCursor(nearestOpenTokenOffset);
             cursor.forwardList();
             end = cursor.offsetEnd; // include the closing token
