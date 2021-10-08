@@ -185,12 +185,8 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         end = currentLineNewlineOffset;
     }
 
-
-    // handle weird CRLF case first otherwise we'll not advance far enough
-    if (remainderLineText === '\n' && '\n' === doc.model.getText(currentLineNewlineOffset, currentLineNewlineOffset + 2)) {
-        end = currentLineNewlineOffset + 2;
-    } else if (remainderLineText === '' || remainderLineText === '\n') {
-        end = currentLineNewlineOffset + 1;
+    if (remainderLineText === '' || remainderLineText === '\n') {
+        end = currentLineNewlineOffset + doc.model.lineEndingLength;
     } else if (hasNewline) {
         // Try to find the first open token to the right of the document's cursor location if any
         let nearestOpenTokenOffset = -1;
