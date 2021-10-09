@@ -1,5 +1,4 @@
-<!-- ❤️ Thanks for filing a Pull Request on Calva! You are contributing to a better Clojure coding experience. ❤️ -->
-
+<!-- ❤️ Thanks for filing a Pull Request on Calva! You are contributing to a better Clojure coding experience. ❤️
 ## What you can expect:
 
 Here are some things we consider before we merge:
@@ -17,7 +16,9 @@ Here are some things we consider before we merge:
 
 We try to be speedy and attentive. Please don't hesitate to bump a PR, or contact us, if we seem to have dropped the ball (that has happened).
 
-<!-- We use checklists in order to not forget about important lessons we and others have learnt along the way. -->
+We use checklists in order to not forget about important lessons we and others have learnt along the way.
+
+-->
 
 ## What has Changed?
 <!-- Introduce the change(s) briefly here. Consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
