@@ -1,13 +1,33 @@
 <!-- ❤️ Thanks for filing a Pull Request on Calva! You are contributing to a better Clojure coding experience. ❤️ -->
+
+## What you can expect:
+
+Here are some things we consider before we merge:
+
+- We make sure the PR is directed at the `dev` branch (unless reasons).
+- We figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and will help you test there if it is hard for you to do so. (We appreciate a lot if you take on the work do this of course.)
+- We read the source changes. (Surprise! 😄)
+- We given feedback and guidance on source changes, if needed. Far from everything is captured in our [code guidelines](https://github.com/BetterThanTomorrow/calva/wiki/Coding-Style).
+- We use our domain knowledge to try catch if you have missed some facility already provided in the code base.
+- We read the updates to the documentation and help with feedback, trying to keep the documentation site serving well.
+- We often check out your code changes and test them.
+- We sometimes send the VSIX built from the PR out in the `#calva` channel on slack for others to test. (Actually, we will probably encourage you to do this.)
+- We sometimes have a chat within the team about particular changes.
+- NB: We also consider if your changes belong in the Calva product we want to maintain. Before you spend a lot of work on a PR, please consider chatting us up first, and filing issues.
+
+We try to be speedy and attentive. Please don't hesitate to bump a PR, or contact us, if we seem to have dropped the ball (that has happened).
+
 <!-- We use checklists in order to not forget about important lessons we and others have learnt along the way. -->
 
 ## What has Changed?
 <!-- Introduce the change(s) briefly here. Consider explaining why a particular change was implemented the way it was. If you have considered alternative ways to introduce the change, please elaborate a bit on that as well. -->
+
 -
 -
 -
 
-<!-- Tell us what Github issue(s) your PR is fixing. Consider creating the issue if need be. -->
+<!-- Tell us what Github issue(s) your PR is fixing. Consider creating the issue if there isn't one already. -->
+
 Fixes #
 
 ## My Calva PR Checklist
@@ -30,21 +50,6 @@ I have:
      - [ ] If I am fixing just part of the issue, I have just referenced it w/o any of the "fixes” keywords.
 - [ ] Created the issue I am fixing/addressing, if it was not present.
 
-## The Calva Team PR Checklist:
-<!-- Please read the list, since you'll get a better idea about what to expect by doing so. 😄 -->
-
-Before merging we (at least one of us) have:
-
-- [ ] Made sure the PR is directed at the `dev` branch (unless reasons).
-- [ ] Figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and tested it there if so.
-- [ ] Read the source changes.
-- [ ] Given feedback and guidance on source changes, if needed. (Please consider noting extra nice stuff as well.)
-- [ ] Tested the VSIX built from the PR (well, if this is a PR that changes the source code.)
-     - [ ] Tested the particular change
-     - [ ] Figured if the change might have some side effects and tested those as well.
-     - [ ] Smoke tested the extension as such.
-- [ ] If need be, had a chat within the team about particular changes.
+<!-- This is a nice book to read about the power of checklists: https://www.samuelthomasdavies.com/book-summaries/health-fitness/the-checklist-manifesto/ -->
 
 Ping @pez, @bpringe
-
-<!-- This is a nice book to read about the power of checklists: https://www.samuelthomasdavies.com/book-summaries/health-fitness/the-checklist-manifesto/ -->
