@@ -90,9 +90,9 @@ export function selectOpenList(doc: EditableDocument) {
  * Gets the range for the ”current” top level form
  * @see ListTokenCursor.rangeForDefun
  */
-export function rangeForDefun(doc: EditableDocument, offset: number = doc.selection.active): [number, number] {
+export function rangeForDefun(doc: EditableDocument, offset: number = doc.selection.active, commentCreatesTopLevel = true): [number, number] {
     const cursor = doc.getTokenCursor(offset);
-    return cursor.rangeForDefun(offset);
+    return cursor.rangeForDefun(offset, commentCreatesTopLevel);
 }
 
 export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
@@ -974,4 +974,24 @@ export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRi
             break;
         }
     }
+}
+
+export function addRichComment(doc: EditableDocument, p = doc.selection.active) {
+    const richComment = '(comment\n  \n  )';
+    const cursor = doc.getTokenCursor(p);
+    cursor.forwardWhitespace(true);
+    const p2 = cursor.offsetStart;
+    const topLevelRange = rangeForDefun(doc, p2, false);
+    const addBefore = (p2 <= topLevelRange[0]);
+    const addAfter = !addBefore && (p2 <= topLevelRange[1]);
+    const insertStart = addBefore ? p2 : addAfter ? topLevelRange[1] : p2;
+    const insertText = `${addBefore ? '' : addAfter ? '\n\n' : '\n'}${richComment}${addBefore ? '\n\n' : addAfter ? '' : '\n'}`;
+    const newCursorPos = insertStart + 11 + (addBefore ? 0 : 2);
+    doc.model.edit([
+        new ModelEdit('insertString', [insertStart, insertText, [insertStart, insertStart], [newCursorPos, newCursorPos]])
+    ], {
+        selection: new ModelEditSelection(newCursorPos),
+        skipFormat: false,
+        undoStopBefore: true
+    });
 }

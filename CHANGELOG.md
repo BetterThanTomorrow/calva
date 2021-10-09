@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Add command for inserting a Rich Comment](https://github.com/BetterThanTomorrow/calva/issues/1324)
 
 ## [2.0.214] - 2021-10-06
 - [Add Babashka Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1001)

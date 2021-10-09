@@ -295,6 +295,10 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.forceDeleteBackward',
         handler: () => { vscode.commands.executeCommand('deleteLeft') }
+    },
+    {
+        command: 'paredit.addRichComment',
+        handler: paredit.addRichComment
     }
 ];
 
