@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.215] - 2021-10-10
 - [Add command for inserting a Rich Comment](https://github.com/BetterThanTomorrow/calva/issues/1324)
 
 ## [2.0.214] - 2021-10-06
