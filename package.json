@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.214",
+    "version": "2.0.215",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -1471,6 +1471,12 @@
                 "category": "Calva",
                 "command": "calva.toggleBetweenImplAndTest",
                 "title": "Toggle between implementation and test"
+            },
+            {
+                "category": "Calva",
+                "command": "paredit.addRichComment",
+                "title": "Add Rich Comment",
+                "enablement": "editorLangId == clojure"
             }
         ],
         "keybindings": [
@@ -2297,6 +2303,11 @@
             {
                 "command": "calva.toggleBetweenImplAndTest",
                 "when": "calva:keybindingsEnabled"
+            },
+            {
+                "command": "paredit.addRichComment",
+                "key": "ctrl+alt+r c",
+                "when": "editorLangId == clojure && calva:keybindingsEnabled"
             }
         ],
         "menus": {

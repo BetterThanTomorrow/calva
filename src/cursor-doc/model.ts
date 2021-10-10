@@ -88,6 +88,8 @@ export type ModelEditOptions = {
 };
 
 export interface EditableModel {
+    readonly lineEndingLength: number,
+
     /**
      * Performs a model edit batch.
      * For some EditableModel's these are performed as one atomic set of edits.
@@ -117,7 +119,7 @@ export interface EditableDocument {
 /** The underlying model for the REPL readline. */
 export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
-    constructor(private lineEndingLength: number = 1, private document?: EditableDocument) { }
+    constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) { }
 
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
