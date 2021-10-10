@@ -1,3 +1,4 @@
+import { includes } from "lodash";
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
 import { LispTokenCursor } from "./token-cursor";
@@ -978,15 +979,28 @@ export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRi
 
 export function addRichComment(doc: EditableDocument, p = doc.selection.active) {
     const richComment = '(comment\n  \n  )';
-    const cursor = doc.getTokenCursor(p);
-    cursor.forwardWhitespace(true);
-    const p2 = cursor.offsetStart;
-    const topLevelRange = rangeForDefun(doc, p2, false);
-    const addBefore = (p2 <= topLevelRange[0]);
-    const addAfter = !addBefore && (p2 <= topLevelRange[1]);
-    const insertStart = addBefore ? p2 : addAfter ? topLevelRange[1] : p2;
-    const insertText = `${addBefore ? '' : addAfter ? '\n\n' : '\n'}${richComment}${addBefore ? '\n\n' : addAfter ? '' : '\n'}`;
-    const newCursorPos = insertStart + 11 + (addBefore ? 0 : 2);
+    let cursor = doc.getTokenCursor(p);
+    const topLevelRange = rangeForDefun(doc, p, false);
+    const isTopLevel = (p <= topLevelRange[0] || p >= topLevelRange[1]);
+    if (!isTopLevel) {
+        cursor = doc.getTokenCursor(topLevelRange[1]);
+    }
+    const inComment = cursor.getPrevToken().type === 'comment' || cursor.getToken().type === 'comment';
+    if (inComment) {
+        cursor.forwardWhitespace(true);
+        cursor.backwardWhitespace(false);
+    }
+    const insertStart = cursor.offsetStart;
+    cursor.backwardWhitespace(false);
+    const leftWs = doc.model.getText(cursor.offsetStart, insertStart);
+    cursor.forwardWhitespace(false);
+    const rightWs = doc.model.getText(insertStart, cursor.offsetStart);
+    const numPrependNls = leftWs.match('\n\n') ? 0 : leftWs.match('\n') ? 1 : 2;
+    const numAppendNls = rightWs.match('\n\n') ? 0 : rightWs.match('^\n') ? 1 : 2;
+    const prepend = '\n'.repeat(numPrependNls);
+    const append = '\n'.repeat(numAppendNls);
+    const insertText = `${prepend}${richComment}${append}`;
+    const newCursorPos = insertStart + 11 + numPrependNls * doc.model.lineEndingLength;
     doc.model.edit([
         new ModelEdit('insertString', [insertStart, insertText, [insertStart, insertStart], [newCursorPos, newCursorPos]])
     ], {

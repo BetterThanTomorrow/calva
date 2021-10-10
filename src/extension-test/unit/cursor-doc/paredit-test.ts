@@ -828,7 +828,7 @@ describe('paredit', () => {
             });
             it('Inserts Rich Comment between Top Levels, in comment', () => {
                 const a = docFromTextNotation('(foo)•;foo| bar•(bar)');
-                const b = docFromTextNotation('(foo)•;foo bar•(comment•  |•  )••(bar)');
+                const b = docFromTextNotation('(foo)•;foo bar••(comment•  |•  )••(bar)');
                 paredit.addRichComment(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
