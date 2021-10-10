@@ -36,7 +36,7 @@ To develop or refine a function you might:
 
 Calva has several features to facilitate the Rich comments workflow, e.g.
 
-1. A command that helps you crate a new Rich comment form quickly: **Calva: Add Rich Comment**, <kbd>ctrl+alt+r c</kbd>
+1. A command that helps you create a new Rich comment form quickly: **Calva: Add Rich Comment**, <kbd>ctrl+alt+r c</kbd>
 1. Special [Syntax highlight](customizing.md#calva-highlight). By default `comment` forms are rendered in _italics_
 1. Special [top-level form](evaluation.md#current-top-level-form) context
 1. Special formatting
