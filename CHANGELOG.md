@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.216] - 2021-10-10
 - Fix: [Inline results display pushes the cursor away when evaluation at the end of the line](https://github.com/BetterThanTomorrow/calva/issues/1329)
 - Fix: [Inline evaluation display renders differently than the REPL display for empty spaces](https://github.com/BetterThanTomorrow/calva/issues/872)
 
