@@ -8,9 +8,15 @@ import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInput
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
 export class DocumentModel implements EditableModel {
-    constructor(private document: MirroredDocument) { }
+    readonly lineEndingLength: number;
+    lineInputModel: LineInputModel;
 
-    lineInputModel = new LineInputModel(this.document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1);
+    constructor(private document: MirroredDocument) {
+        this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
+        this.lineInputModel = new LineInputModel(this.lineEndingLength);
+     }
+
+
 
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor,

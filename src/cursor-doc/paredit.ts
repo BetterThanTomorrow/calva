@@ -1,3 +1,4 @@
+import { includes } from "lodash";
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, ModelEditOptions, ModelEditSelection } from "./model";
 import { LispTokenCursor } from "./token-cursor";
@@ -90,9 +91,9 @@ export function selectOpenList(doc: EditableDocument) {
  * Gets the range for the ”current” top level form
  * @see ListTokenCursor.rangeForDefun
  */
-export function rangeForDefun(doc: EditableDocument, offset: number = doc.selection.active): [number, number] {
+export function rangeForDefun(doc: EditableDocument, offset: number = doc.selection.active, commentCreatesTopLevel = true): [number, number] {
     const cursor = doc.getTokenCursor(offset);
-    return cursor.rangeForDefun(offset);
+    return cursor.rangeForDefun(offset, commentCreatesTopLevel);
 }
 
 export function forwardSexpRange(doc: EditableDocument, offset = Math.max(doc.selection.anchor, doc.selection.active), goPastWhitespace = false): [number, number] {
@@ -974,4 +975,37 @@ export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRi
             break;
         }
     }
+}
+
+export function addRichComment(doc: EditableDocument, p = doc.selection.active) {
+    const richComment = '(comment\n  \n  )';
+    let cursor = doc.getTokenCursor(p);
+    const topLevelRange = rangeForDefun(doc, p, false);
+    const isTopLevel = (p <= topLevelRange[0] || p >= topLevelRange[1]);
+    if (!isTopLevel) {
+        cursor = doc.getTokenCursor(topLevelRange[1]);
+    }
+    const inComment = cursor.getPrevToken().type === 'comment' || cursor.getToken().type === 'comment';
+    if (inComment) {
+        cursor.forwardWhitespace(true);
+        cursor.backwardWhitespace(false);
+    }
+    const insertStart = cursor.offsetStart;
+    cursor.backwardWhitespace(false);
+    const leftWs = doc.model.getText(cursor.offsetStart, insertStart);
+    cursor.forwardWhitespace(false);
+    const rightWs = doc.model.getText(insertStart, cursor.offsetStart);
+    const numPrependNls = leftWs.match('\n\n') ? 0 : leftWs.match('\n') ? 1 : 2;
+    const numAppendNls = rightWs.match('\n\n') ? 0 : rightWs.match('^\n') ? 1 : 2;
+    const prepend = '\n'.repeat(numPrependNls);
+    const append = '\n'.repeat(numAppendNls);
+    const insertText = `${prepend}${richComment}${append}`;
+    const newCursorPos = insertStart + 11 + numPrependNls * doc.model.lineEndingLength;
+    doc.model.edit([
+        new ModelEdit('insertString', [insertStart, insertText, [insertStart, insertStart], [newCursorPos, newCursorPos]])
+    ], {
+        selection: new ModelEditSelection(newCursorPos),
+        skipFormat: false,
+        undoStopBefore: true
+    });
 }
