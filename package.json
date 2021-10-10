@@ -304,12 +304,17 @@
                             "cider/piggieback": {
                                 "type": "string",
                                 "description": "Piggieback is used to create nREPL sessions in ClojureScript projects (not with shadow-cljs though, which provides its own middleware for this."
+                            },
+                            "djblue/portal": {
+                                "type": "string",
+                                "markDownDescription": "A clojure tool to navigate through your data. You need the [Portal Extension](https://marketplace.visualstudio.com/items?itemName=djblue.portal) to use it."
                             }
                         },
                         "default": {
                             "nrepl": "0.8.3",
                             "cider-nrepl": "0.26.0",
-                            "cider/piggieback": "0.5.2"
+                            "cider/piggieback": "0.5.2",
+                            "djblue/portal": "0.16.0"
                         }
                     },
                     "calva.clojureLspVersion": {
@@ -576,6 +581,11 @@
                     "calva.showCalvaSaysOnStart": {
                         "type": "boolean",
                         "markdownDescription": "Show the Calva Says output panel on start?",
+                        "default": true
+                    },
+                    "calva.activatePortalSupport": {
+                        "type": "boolean",
+                        "markdownDescription": "Will make Calva inject portal dependencies at Jack-in and will also activate some Portal related commands. **Note**: You will also need to have the [Portal Extension](https://marketplace.visualstudio.com/items?itemName=djblue.portal) installed and activated.",
                         "default": true
                     }
                 }

@@ -180,15 +180,22 @@ async function leinProfilesAndAlias(defproject: any, connectSequence: ReplConnec
     return { profiles, alias };
 }
 
-export enum JackInDependency {
-    "nrepl" = "nrepl",
-    "cider-nrepl" = "cider-nrepl",
-    "cider/piggieback" = "cider/piggieback"
+const NREPL_VERSION = () => getConfig().jackInDependencyVersions["nrepl"];
+const CIDER_NREPL_VERSION = () => getConfig().jackInDependencyVersions["cider-nrepl"];
+const PIGGIEBACK_VERSION = () => getConfig().jackInDependencyVersions["cider/piggieback"];
+const PORTAL_VERSION = () => getConfig().jackInDependencyVersions["djblue/portal"];
+
+function activatePortalSupport(): boolean {
+    const activatePortalSupport = getConfig().activatePortalSupport && vscode.extensions.getExtension('djblue.portal').isActive;
+    vscode.commands.executeCommand("setContext", "calva:activatePortalSupport", activatePortalSupport);
+    return activatePortalSupport;
 }
 
-const NREPL_VERSION = () => getConfig().jackInDependencyVersions["nrepl"],
-    CIDER_NREPL_VERSION = () => getConfig().jackInDependencyVersions["cider-nrepl"],
-    PIGGIEBACK_VERSION = () => getConfig().jackInDependencyVersions["cider/piggieback"];
+const portalDependencies = () => {
+    return {
+        "djblue/portal": PORTAL_VERSION()
+    }
+}
 
 const cliDependencies = () => {
     return {
@@ -314,7 +321,10 @@ const projectTypes: { [id: string]: ProjectType } = {
             const chan = state.outputChannel(),
                 dependencies = {
                     ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
-                    ...serverPrinterDependencies
+                    ...serverPrinterDependencies,
+                    // TODO: Figure this out later,
+                    // I can't find a way tap to Portal from the CLJS session
+                    //...(activatePortalSupport() ? portalDependencies() : {})
                 };
             let defaultArgs: string[] = [];
             for (let dep in dependencies)
@@ -470,7 +480,8 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
     const dependencies = {
         ...cliDependencies(),
         ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
-        ...serverPrinterDependencies
+        ...serverPrinterDependencies,
+        ...(activatePortalSupport() ? portalDependencies() : {})
     };
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
     const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
@@ -495,7 +506,8 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
     const dependencies = {
         ...leinDependencies(),
         ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
-        ...serverPrinterDependencies
+        ...serverPrinterDependencies,
+        ...(activatePortalSupport() ? portalDependencies() : {})
     };
     let keys = Object.keys(dependencies);
     const defproject = await leinDefProject();
