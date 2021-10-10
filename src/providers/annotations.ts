@@ -24,7 +24,7 @@ const selectionRulerColors = [
 ]
 
 const evalResultsDecorationType = vscode.window.createTextEditorDecorationType({
-    before: {
+    after: {
         textDecoration: 'none',
         fontWeight: 'normal',
         fontStyle: 'normal',
@@ -53,17 +53,17 @@ function getEvaluationPosition(pos: vscode.Position): vscode.Position {
 function evaluated(contentText, hoverText, hasError) {
     return {
         renderOptions: {
-            before: {
-                contentText: contentText,
+            after: {
+                contentText: contentText.replaceAll(/ /g, "\u00a0"),
                 overflow: "hidden"
             },
             light: {
-                before: {
+                after: {
                     color: hasError ? 'rgb(255, 127, 127)' : 'black',
                 },
             },
             dark: {
-                before: {
+                after: {
                     color: hasError ? 'rgb(255, 175, 175)' : 'white',
                 }
             },
