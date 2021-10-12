@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Make Add Rich Comment command go to any existing Rich comment right below](https://github.com/BetterThanTomorrow/calva/issues/1333)
 
 ## [2.0.216] - 2021-10-10
 - Fix: [Inline results display pushes the cursor away when evaluation at the end of the line](https://github.com/BetterThanTomorrow/calva/issues/1329)
