@@ -993,8 +993,26 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active) 
         cursor.forwardWhitespace(true);
         cursor.backwardWhitespace(false);
     }
-    
     const insertStart = cursor.offsetStart;
+    const insideNextTopLevelFormPos = rangeToForwardDownList(doc, insertStart)[1];
+    if (insideNextTopLevelFormPos !== insertStart) {
+        const checkIfRichCommentExistsCursor = doc.getTokenCursor(insideNextTopLevelFormPos);
+        checkIfRichCommentExistsCursor.forwardWhitespace(true);
+        if (checkIfRichCommentExistsCursor.getToken().raw == 'comment') {
+            checkIfRichCommentExistsCursor.forwardSexp();
+            checkIfRichCommentExistsCursor.forwardWhitespace(false);
+            // insert nothing, just place cursor
+            const newCursorPos = checkIfRichCommentExistsCursor.offsetStart;
+            doc.model.edit([
+                new ModelEdit('insertString', [newCursorPos, '', [newCursorPos, newCursorPos], [newCursorPos, newCursorPos]])
+            ], {
+                selection: new ModelEditSelection(newCursorPos),
+                skipFormat: true,
+                undoStopBefore: false
+            });
+            return;
+        }
+    }
     cursor.backwardWhitespace(false);
     const leftWs = doc.model.getText(cursor.offsetStart, insertStart);
     cursor.forwardWhitespace(false);
