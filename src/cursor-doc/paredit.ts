@@ -981,15 +981,19 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active) 
     const richComment = '(comment\n  \n  )';
     let cursor = doc.getTokenCursor(p);
     const topLevelRange = rangeForDefun(doc, p, false);
-    const isTopLevel = (p <= topLevelRange[0] || p >= topLevelRange[1]);
-    if (!isTopLevel) {
+    const isInsideForm = !(p <= topLevelRange[0] || p >= topLevelRange[1]);
+    const checkIfAtStartCursor = doc.getTokenCursor(p);
+    checkIfAtStartCursor.backwardWhitespace(true);
+    const isAtStart = checkIfAtStartCursor.atStart();
+    if (isInsideForm || isAtStart) {
         cursor = doc.getTokenCursor(topLevelRange[1]);
     }
-    const inComment = cursor.getPrevToken().type === 'comment' || cursor.getToken().type === 'comment';
-    if (inComment) {
+    const inLineComment = cursor.getPrevToken().type === 'comment' || cursor.getToken().type === 'comment';
+    if (inLineComment) {
         cursor.forwardWhitespace(true);
         cursor.backwardWhitespace(false);
     }
+    
     const insertStart = cursor.offsetStart;
     cursor.backwardWhitespace(false);
     const leftWs = doc.model.getText(cursor.offsetStart, insertStart);
