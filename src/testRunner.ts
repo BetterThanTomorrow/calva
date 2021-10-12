@@ -32,8 +32,8 @@ interface CiderTestResult {
     expected?: string;
     'gen-input'?: string;
     actual?: string;
-    diffs?: any;
-    error?: any;
+    diffs?: unknown;
+    error?: unknown;
     line?: number
     file?: string;
 }
@@ -47,16 +47,20 @@ interface CiderTestResults {
         }
     }
     'testing-ns'?: string
-    'gen-input': any
+    'gen-input': unknown
 }
 
-interface CiderTestError {
-    ex: any;
-    err: any;
+function resultMessage(resultItem: Readonly<CiderTestResult>): string {
+    let msg = [];
+    if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
+        msg.push(resultItem.context);
+    if (resultItem.message)
+        msg.push(resultItem.message);
+    return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
 }
 
-function reportTests(results: CiderTestResults[], errorStr: string, log = true) {
-    let diagnostics: {[key: string]: vscode.Diagnostic[]} = {};
+function reportTests(results: CiderTestResults[], errorStr: string) {
+    let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     let total_summary: CiderTestSummary = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
     diagnosticCollection.clear();
 
@@ -70,36 +74,27 @@ function reportTests(results: CiderTestResults[], errorStr: string, log = true) 
                             a[prop] = a[prop].replace(/\r?\n$/, "");
                         }
                     }
-                    const resultMessage = (resultItem: CiderTestResult) => {
-                        let msg = [];
-                        if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
-                            msg.push(resultItem.context);
-                        if (resultItem.message)
-                            msg.push(resultItem.message);
-                        return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
-                    }
-                    if (a.type === "error" && log) {
-                        const rMsg = resultMessage(a);
+
+                    const message = resultMessage(a);
+
+                    if (a.type === "error") {
                         outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
-                        if (rMsg !== '') {
-                            outputWindow.append(`; ${resultMessage(a)}`);
+                        if (message !== '') {
+                            outputWindow.append(`; ${message}`);
                         }
                         outputWindow.append(`; error: ${a.error} (${a.file})\n; expected:\n${a.expected}`);
                     }
                     if (a.type === "fail") {
-                        const rMsg = resultMessage(a);
                         let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
                             err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
                         if (!diagnostics[a.file])
                             diagnostics[a.file] = [];
                         diagnostics[a.file].push(err);
-                        if (log) {
-                            outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
-                            if (rMsg !== '') {
-                                outputWindow.append(`; ${resultMessage(a)}`);
-                            }
-                            outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
+                        outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
+                        if (message !== '') {
+                            outputWindow.append(`; ${message}`);
                         }
+                        outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
                     }
                 }
             }
@@ -112,14 +107,12 @@ function reportTests(results: CiderTestResults[], errorStr: string, log = true) 
     }
 
     let hasProblems = total_summary.error + total_summary.fail > 0;
-    if (log) {
-        outputWindow.append("; " + (total_summary.test > 0 ?
-            total_summary.test + " tests finished, " +
-            (!hasProblems ? "all passing 👍" :
-                "problems found. 😭" +
-                " errors: " + total_summary.error + ", failures: " + total_summary.fail) : "No tests found. 😱") +
-            ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
-    }
+    outputWindow.append("; " + (total_summary.test > 0 ?
+        total_summary.test + " tests finished, " +
+        (!hasProblems ? "all passing 👍" :
+            "problems found. 😭" +
+            " errors: " + total_summary.error + ", failures: " + total_summary.fail) : "No tests found. 😱") +
+        ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
 
     if (total_summary.test > 0) {
         if (hasProblems) {
