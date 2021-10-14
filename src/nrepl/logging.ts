@@ -34,6 +34,10 @@ function formatNreplMessage(message: any): string {
     return nodeUtil.inspect(message, false, 2, false);
 }
 
+function loggingEnabled(): boolean {
+    return getMessageChannel() ? true : false;
+}
+
 function log(message: any, direction: Direction): void {
     const channel = getMessageChannel();
     if (channel) {
@@ -43,12 +47,13 @@ function log(message: any, direction: Direction): void {
 }
 
 const enum Direction {
-    ClientToServer = 'Client -> Server',
-    ServerToClient = 'Server -> Client'
+    ClientToServer = '-> sent',
+    ServerToClient = '<- received'
 }
 
 export {
     toggleEnabled,
     log,
-    Direction
+    Direction,
+    loggingEnabled
 }
