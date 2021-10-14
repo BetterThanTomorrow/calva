@@ -361,21 +361,12 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v\d+\.\d+\.\d+-?.*/
-      - approve:
-          type: approval
+      - github-release:
           requires:
             - test-grammar
             - test-cljslib
             - test-integration
             - test-ts-unit
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+-?.*/
-      - github-release:
-          requires:
-            - approve
           filters:
             branches:
               ignore: /.*/

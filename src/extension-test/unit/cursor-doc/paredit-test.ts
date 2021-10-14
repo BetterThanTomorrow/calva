@@ -801,5 +801,37 @@ describe('paredit', () => {
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
         });
+        describe('addRichComment', () => {
+            it('Adds Rich Comment after Top Level form', () => {
+                const a = docFromTextNotation('(fo|o)••(bar)');
+                const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Inserts Rich Comment between Top Levels', () => {
+                const a = docFromTextNotation('(foo)•|•(bar)');
+                const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Inserts Rich Comment between Top Levels, before Top Level form', () => {
+                const a = docFromTextNotation('(foo)••|(bar)');
+                const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Inserts Rich Comment between Top Levels, after Top Level form', () => {
+                const a = docFromTextNotation('(foo)|••(bar)');
+                const b = docFromTextNotation('(foo)••(comment•  |•  )••(bar)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Inserts Rich Comment between Top Levels, in comment', () => {
+                const a = docFromTextNotation('(foo)•;foo| bar•(bar)');
+                const b = docFromTextNotation('(foo)•;foo bar••(comment•  |•  )••(bar)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+        }) 
     });
 });

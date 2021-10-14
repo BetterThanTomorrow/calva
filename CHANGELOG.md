@@ -3,8 +3,20 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [Not currently possible to Jack-in to a ClojureScript nREPL Server](https://github.com/BetterThanTomorrow/calva/issues/1310)
 - [Add nrepl message logging](https://github.com/BetterThanTomorrow/calva/issues/1198)
+
+## [2.0.216] - 2021-10-10
+- Fix: [Inline results display pushes the cursor away when evaluation at the end of the line](https://github.com/BetterThanTomorrow/calva/issues/1329)
+- Fix: [Inline evaluation display renders differently than the REPL display for empty spaces](https://github.com/BetterThanTomorrow/calva/issues/872)
+
+## [2.0.215] - 2021-10-10
+- [Add command for inserting a Rich Comment](https://github.com/BetterThanTomorrow/calva/issues/1324)
+
+## [2.0.214] - 2021-10-06
+- [Add Babashka Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1001)
+- [Add nbb Jack-in option](https://github.com/BetterThanTomorrow/calva/issues/1311)
+- Fix: [Not currently possible to Jack-in to a ClojureScript nREPL Server](https://github.com/BetterThanTomorrow/calva/issues/1310)
+- [Update deps.clj version to 0.0.19](https://github.com/BetterThanTomorrow/calva/issues/1319)
 
 ## [2.0.213] - 2021-10-02
 - Workaround [nbb nrepl-server: can only eval from file with extension .clj](https://github.com/BetterThanTomorrow/calva/issues/1308)
