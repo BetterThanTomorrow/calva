@@ -54,7 +54,7 @@ function evaluated(contentText, hoverText, hasError) {
     return {
         renderOptions: {
             after: {
-                contentText: contentText.replaceAll(/ /g, "\u00a0"),
+                contentText: contentText.replace(/ /g, "\u00a0"),
                 overflow: "hidden"
             },
             light: {
