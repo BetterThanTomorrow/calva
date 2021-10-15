@@ -86,18 +86,18 @@ async function evaluateCustomCodeSnippet(codeOrKey?: string): Promise<void> {
     const ns = pick !== undefined ? snippetsDict[pick].ns : editorNS;
     const repl = pick !== undefined ? snippetsDict[pick].repl : editorRepl;
     const interpolatedCode = code.
-        replace("$line", currentLine).
-        replace("$column", currentColumn).
-        replace("$file", currentFilename).
-        replace("$ns", ns).
-        replace("$selection", editor.document.getText(editor.selection)).
-        replace("$current-form", getText.currentFormText(editor)[1]).
-        replace("$enclosing-form", getText.currentEnclosingFormText(editor)[1]).
-        replace("$top-level-form", getText.currentTopLevelFormText(editor)[1]).
-        replace("$current-fn", getText.currentFunction(editor)[1]).
-        replace("$top-level-defined-symbol", getText.currentTopLevelFunction(editor)[1]).
-        replace("$head", getText.toStartOfList(editor)[1]).
-        replace("$tail", getText.toEndOfList(editor)[1]);
+        replace(/\$line/g, currentLine).
+        replace(/\$column/g, currentColumn).
+        replace(/\$file/g, currentFilename).
+        replace(/\$ns/g, ns).
+        replace(/\$selection/g, editor.document.getText(editor.selection)).
+        replace(/\$current-form/g, getText.currentFormText(editor)[1]).
+        replace(/\$enclosing-form/g, getText.currentEnclosingFormText(editor)[1]).
+        replace(/\$top-level-form/g, getText.currentTopLevelFormText(editor)[1]).
+        replace(/\$current-fn/g, getText.currentFunction(editor)[1]).
+        replace(/\$top-level-defined-symbol/g, getText.currentTopLevelFunction(editor)[1]).
+        replace(/\$head/g, getText.toStartOfList(editor)[1]).
+        replace(/\$tail/g, getText.toEndOfList(editor)[1]);
     await evaluate.evaluateInOutputWindow(interpolatedCode, repl, ns);
     outputWindow.appendPrompt();
 }
