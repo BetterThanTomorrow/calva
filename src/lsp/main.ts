@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient';
+import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient/node';
 import * as util from '../utilities'
 import * as config from '../config';
 import { provideClojureDefinition } from '../providers/definition';
