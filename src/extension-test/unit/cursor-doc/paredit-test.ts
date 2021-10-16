@@ -832,6 +832,18 @@ describe('paredit', () => {
                 paredit.addRichComment(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
+            it('Moves to Rich Comment below, if any', () => {
+                const a = docFromTextNotation('(foo|)••(comment••bar••baz)');
+                const b = docFromTextNotation('(foo)••(comment••|bar••baz)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
+            it('Moves to Rich Comment below, if any, looking behind line comments', () => {
+                const a = docFromTextNotation('(foo|)••;;line comment••(comment••bar••baz)');
+                const b = docFromTextNotation('(foo)••;;line comment••(comment••|bar••baz)');
+                paredit.addRichComment(a);
+                expect(textAndSelection(a)).toEqual(textAndSelection(b));
+            });
         }) 
     });
 });
