@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Support setting the cider-nrepl print-fn to whatever](https://github.com/BetterThanTomorrow/calva/issues/1340)
 
 ## [2.0.216] - 2021-10-10
 - Fix: [Inline results display pushes the cursor away when evaluation at the end of the line](https://github.com/BetterThanTomorrow/calva/issues/1329)

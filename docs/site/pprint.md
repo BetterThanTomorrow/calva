@@ -16,6 +16,7 @@ Setting          | Type    | Effect
 -------          | ----    | ------
 `enabled`        | boolean | So this is a third way you can change this mode 😄
 `printEngine`    | enum    | Which printer function that will be used. Default is `pprint`, more about this setting below
+`printFn`        | object  | You can configure Calva to use a custom `nREPL` compatible `print` function, more below.
 `width`          | number  | The maximum line length of printed output (or at least the printers will try)
 `maxLength`      | number  | The maximum number of elements printed in nested nodes, [good for evaluating something like `(iterate inc 0)`](https://clojuredocs.org/clojure.core/*print-length*#example-542692cac026201cdc326b12), which you shouldn't do without setting `maxLength`. Most printers will indicate truncated lists with `...` at the end.
 `maxDepth`       | number  | The maximum number of levels deep that will get printed. Different printers mark a stop different ways. `puget` doesn't support it at all.
@@ -42,6 +43,10 @@ Print Engine | Client or Server Side | Comments
 [`zprint`](https://github.com/kkinnear/zprint) | server | Recommended. Will need to be configured before [Jack-in](connect.md) if you want Calva's help to inject its dependencies
 
 These particular server side functions were chosen because they have pre-configured print-functions in [`cider-nrepl`](https://docs.cider.mx/cider-nrepl/).
+
+#### Or configure `printFn`
+
+If the selection of built-in `printEngine` support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one.
 
 ### Why does Server or Client Side Matter?
 

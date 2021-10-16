@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.217",
+    "version": "2.0.217-fooo",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -116,7 +116,7 @@
                 "editor.formatOnPaste": true,
                 "files.trimTrailingWhitespace": false,
                 "editor.matchBrackets": "never",
-                "editor.renderIndentGuides": false,
+                "editor.guides.indentation": false,
                 "editor.parameterHints.enabled": false
             }
         },
@@ -135,13 +135,38 @@
                             },
                             "printEngine": {
                                 "type": "string",
-                                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it.",
+                                "description": "The print engine to use. 'calva' means that the nREPL server will first plain print it and then Calva will prettify. The other options will make the server use the chosen printer-function to print the result, and Calva will not reformat it. To use some other function (on the server), configure `printFn` instead. To use the `nREPL` default (the equivalent of `clojure.core/pr`), set neither this nore `printFn`.",
                                 "enum": [
                                     "calva",
                                     "pprint",
                                     "fipp",
                                     "puget",
                                     "zprint"
+                                ]
+                            },
+                            "printFn": {
+                                "type": "object",
+                                "markdownDescription": "A custom `nREPL` compatible `print-fn`. See https://nrepl.org/nrepl/usage/misc.html#pretty-printing",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "markdownDescription": "A symbol referencing a Clojure function to use for printing result values. E.g. `pr`. Or `foo.bar/baz`."
+                                    },
+                                    "maxWidthArgument": {
+                                        "type": "string",
+                                        "markdownDescription": "Argument that the function uses for setting the max-width of the lines printed. E.g. `width`."
+                                    },
+                                    "seqLimitArgument": {
+                                        "type": "string",
+                                        "markdownDescription": "Argument that the function uses for truncating the number of elements to print  for sequences. E.g. `length`."
+                                    },
+                                    "maxDepthArgument": {
+                                        "type": "string",
+                                        "markdownDescription": "Argument that the function uses for limiting the depth that collections are traversed. E.g. `levels`."
+                                    }
+                                },
+                                "required": [
+                                    "name"
                                 ]
                             },
                             "width": {
@@ -164,12 +189,10 @@
                             }
                         },
                         "required": [
-                            "enabled",
-                            "printEngine"
+                            "enabled"
                         ],
                         "default": {
                             "enabled": true,
-                            "printEngine": "pprint",
                             "width": 120,
                             "maxLength": 50
                         }
