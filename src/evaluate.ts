@@ -366,7 +366,7 @@ async function togglePrettyPrint() {
         pprintConfigKey = 'prettyPrintingOptions',
         pprintOptions = config.get(pprintConfigKey) as PrettyPrintingOptions;
     pprintOptions.enabled = !pprintOptions.enabled;
-    if (pprintOptions.enabled && !(pprintOptions.printEngine || pprintOptions.printFn) {
+    if (pprintOptions.enabled && !(pprintOptions.printEngine || pprintOptions.printFn)) {
         pprintOptions.printEngine = 'pprint';
     }
     await config.update(pprintConfigKey, pprintOptions, vscode.ConfigurationTarget.Global);
