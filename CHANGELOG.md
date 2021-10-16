@@ -6,6 +6,9 @@ Changes to Calva.
 
 - [Add semantic tokens support from LSP](https://github.com/BetterThanTomorrow/calva/issues/1231)
 
+## [2.0.217] - 2021-10-14
+- Fix: [Inline evaluation results no longer display in 2.0.216](https://github.com/BetterThanTomorrow/calva/issues/1332)
+
 ## [2.0.216] - 2021-10-10
 - Fix: [Inline results display pushes the cursor away when evaluation at the end of the line](https://github.com/BetterThanTomorrow/calva/issues/1329)
 - Fix: [Inline evaluation display renders differently than the REPL display for empty spaces](https://github.com/BetterThanTomorrow/calva/issues/872)
