@@ -15,7 +15,6 @@ export function run(): Promise<void> {
       }
     }
   });
-  mocha.useColors(true);
 
   const testsRoot = path.resolve(__dirname, '..');
 
