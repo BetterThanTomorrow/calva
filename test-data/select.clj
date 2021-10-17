@@ -1,0 +1,3 @@
+(comment
+  @(rf/subscribe [:foo])
+  )

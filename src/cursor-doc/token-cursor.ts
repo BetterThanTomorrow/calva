@@ -432,7 +432,7 @@ export class LispTokenCursor extends TokenCursor {
     backwardListOfType(openingBracket: string): boolean {
         let cursor = this.clone();
         while (cursor.backwardList()) {
-            if (cursor.getPrevToken().raw === openingBracket) {
+            if (cursor.getPrevToken().raw.endsWith(openingBracket)) {
                 this.set(cursor);
                 return true;
             }
@@ -610,6 +610,7 @@ export class LispTokenCursor extends TokenCursor {
     rangeForDefun(offset: number, commentCreatesTopLevel = true): [number, number] {
         const cursor = this.doc.getTokenCursor(offset);
         let lastCandidateRange: [number, number] = cursor.rangeForCurrentForm(offset);
+        console.log(lastCandidateRange);
         while (cursor.forwardList() && cursor.upList()) {
             const commentCursor = cursor.clone();
             commentCursor.backwardDownList();
