@@ -3,8 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
-
-## [2.0.217] - 2021-10-17
+- [npm audit fixes](https://github.com/BetterThanTomorrow/calva/issues/1346)
+- ## [2.0.217] - 2021-10-17
 - [Support setting the cider-nrepl print-fn to whatever](https://github.com/BetterThanTomorrow/calva/issues/1340)
 - [Make Add Rich Comment command go to any existing Rich comment right below](https://github.com/BetterThanTomorrow/calva/issues/1333)
 - [Add semantic tokens support from LSP](https://github.com/BetterThanTomorrow/calva/issues/1231)
