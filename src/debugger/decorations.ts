@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient';
+import { LanguageClient } from 'vscode-languageclient/node';
 import { Location } from 'vscode-languageserver-protocol';
 import * as _ from 'lodash';
 import { NReplSession } from '../nrepl';

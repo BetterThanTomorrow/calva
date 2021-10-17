@@ -1,8 +1,17 @@
 import { getConfig } from './config';
 
+export type PrintFnOptions = {
+    name: string,
+    maxWidthArgument?: string,
+    seqLimitArgument?: string,
+    maxDepthArgument: string
+};
+
+
 export type PrettyPrintingOptions = {
     enabled: boolean,
-    printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint',
+    printFn?: PrintFnOptions,
+    printEngine?: 'calva' | 'pprint' | 'fipp' | 'puget' | 'zprint' | 'custom',
     width: number,
     maxLength?: number,
     maxDepth?: number
@@ -22,7 +31,9 @@ function getPrinter(pprintOptions: PrettyPrintingOptions, printerFn: string, wid
     let printer = {};
     printer[OPTIONS] = moreOptions;
     printer[PRINTER_FN] = printerFn;
-    printer[OPTIONS][widthSlug] = pprintOptions.width;
+    if (widthSlug !== undefined) {
+        printer[OPTIONS][widthSlug] = pprintOptions.width;
+    }
     if (pprintOptions.maxLength && lengthSlug !== undefined) {
         printer[OPTIONS][lengthSlug] = pprintOptions.maxLength;
     }
@@ -53,8 +64,10 @@ export function getServerSidePrinter(pprintOptions: PrettyPrintingOptions) {
             default:
                 return undefined;
         }
+    } else if (pprintOptions.printFn) {
+        const printerFn = pprintOptions.printFn;
+        return getPrinter(pprintOptions, printerFn.name, printerFn?.maxWidthArgument, printerFn?.seqLimitArgument, printerFn?.maxDepthArgument);
     }
-    return undefined;
 }
 
 export function prettyPrintingOptions(): PrettyPrintingOptions {
