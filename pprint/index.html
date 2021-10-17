@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/pprint/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.3">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.24c991ad.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.5143246d.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -532,6 +532,19 @@
   <a href="#your-selection-of-prettifiers" class="md-nav__link">
     Your Selection of Prettifiers
   </a>
+  
+    <nav class="md-nav" aria-label="Your Selection of Prettifiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#or-configure-printfn" class="md-nav__link">
+    Or configure printFn
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1182,6 +1195,19 @@
     Your Selection of Prettifiers
   </a>
   
+    <nav class="md-nav" aria-label="Your Selection of Prettifiers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#or-configure-printfn" class="md-nav__link">
+    Or configure printFn
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1267,6 +1293,11 @@
 <td>Which printer function that will be used. Default is <code>pprint</code>, more about this setting below</td>
 </tr>
 <tr>
+<td><code>printFn</code></td>
+<td>object</td>
+<td>You can configure Calva to use a custom <code>nREPL</code> compatible <code>print</code> function, more below.</td>
+</tr>
+<tr>
 <td><code>width</code></td>
 <td>number</td>
 <td>The maximum line length of printed output (or at least the printers will try)</td>
@@ -1327,6 +1358,8 @@
 </tbody>
 </table>
 <p>These particular server side functions were chosen because they have pre-configured print-functions in <a href="https://docs.cider.mx/cider-nrepl/"><code>cider-nrepl</code></a>.</p>
+<h4 id="or-configure-printfn">Or configure <code>printFn</code></h4>
+<p>If the selection of built-in <code>printEngine</code> support doesn't cut it, you can configure a custom function. This function will need to conform to the requirements of nREPL print functions. The VS Code settings editor will help you configure this one.</p>
 <h3 id="why-does-server-or-client-side-matter">Why does Server or Client Side Matter?</h3>
 <p>This matters because on the server all pretty printers, except <code>pprint</code> does more than just pretty print the result that would be printed with plain printing. Pretty printing results on the server causes some results to get expanded. This can have huge implications depending on the results and which printer is used. E.g. for <a href="https://www.datomic.com">Datomic</a> transaction results, you will get the whole database printed. Twice. Depending on the database, you could be so unlucky that nothing gets printed, and instead you will soon have a very hot computer.</p>
 <blockquote>
@@ -1411,10 +1444,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.e99e714c.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.bc35569b.min.js"></script>
+      <script src="../assets/javascripts/bundle.f89c2efe.min.js"></script>
       
     
   </body>
