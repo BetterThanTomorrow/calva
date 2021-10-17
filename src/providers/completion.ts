@@ -1,4 +1,4 @@
-import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem } from 'vscode';
+import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem, CompletionItemLabel } from 'vscode';
 import * as state from '../state';
 import * as util from '../utilities';
 import select from '../select';
@@ -69,7 +69,7 @@ export default class CalvaCompletionItemProvider implements CompletionItemProvid
             if (client) {
                 await namespace.createNamespaceFromDocumentIfNotExists(window.activeTextEditor.document);
                 const ns = namespace.getDocumentNamespace();
-                const result = await client.info(ns, item.label)
+                const result = await client.info(ns, typeof item.label === 'string' ? item.label : item.label.label)
                 const [doc, details] = infoparser.getCompletion(result);
                 item.documentation = doc;
                 item.detail = details;
