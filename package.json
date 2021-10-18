@@ -1438,6 +1438,12 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.clojureDocsLookup",
+                "title": "Lookup ClojureDocs examples",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.refactor.cleanNs",
                 "title": "Clean NS Form",
                 "category": "Calva Refactor",
