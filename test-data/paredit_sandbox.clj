@@ -83,3 +83,10 @@ string. "
 
 ;; Example 14 -- newline in string, deletes to end of string
 ["abc| def\n ghi" "this stays"]
+
+
+;; Example 15 -- Heisenbug should delete up to and including g]
+#_|[a b (c d
+           e
+           f) g]
+:a
