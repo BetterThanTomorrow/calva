@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as UA from 'universal-analytics';
-import * as uuid from "uuid/v4";
+import * as uuid from "uuidv4";
 import * as os from 'os';
 
 // var debug = require('debug');
@@ -36,7 +36,7 @@ export default class Analytics {
     private userID(): string {
         const KEY = 'userLogID';
         if (this.store.get(KEY) == undefined) {
-            const newID = uuid();
+            const newID = uuid.uuid();
             this.store.update(KEY, newID)
             return newID;
         } else {
