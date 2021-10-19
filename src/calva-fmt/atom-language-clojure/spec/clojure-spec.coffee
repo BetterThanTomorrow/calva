@@ -20,7 +20,7 @@ describe "Clojure grammar", ->
   it "does not tokenize escaped semicolons as comments", ->
     {tokens} = grammar.tokenizeLine "\\; clojure"
     expect(tokens[0]).toEqual value: "\\; ", scopes: ["source.clojure"]
-    expect(tokens[1]).toEqual value: "clojure", scopes: ["source.clojure", "meta.symbol.clojure"]
+    expect(tokens[1]).toEqual value: "clojure", scopes: ["source.clojure", "entity.name.variable.clojure"]
 
   it "tokenizes shebang comments", ->
     {tokens} = grammar.tokenizeLine "#!/usr/bin/env clojure"
@@ -148,17 +148,23 @@ describe "Clojure grammar", ->
 
     for keyfn in keyfns
       {tokens} = grammar.tokenizeLine "(#{keyfn})"
-      expect(tokens[1]).toEqual value: keyfn, scopes: ["source.clojure", "meta.expression.clojure", "keyword.control.clojure"]
+      expect(tokens[1]).toEqual value: keyfn, scopes: ["source.clojure", "meta.expression.clojure", "storage.control.clojure"]
 
   it "does not tokenize `default...`s as keyfn (keyword control)", ->
     {tokens} = grammar.tokenizeLine "(defnormal foo)"
-    expect(tokens[1].scopes).toContain "keyword.control.clojure"
+    expect(tokens[1].scopes).toContain "storage.control.clojure"
+    {tokens} = grammar.tokenizeLine "(foo/defnormal foo)"
+    expect(tokens[1].scopes).toContain "storage.control.clojure"
     {tokens} = grammar.tokenizeLine "(normaldef foo)"
-    expect(tokens[1].scopes).not.toContain "keyword.control.clojure"
+    expect(tokens[1].scopes).not.toContain "storage.control.clojure"
     {tokens} = grammar.tokenizeLine "(default foo)"
-    expect(tokens[1].scopes).not.toContain "keyword.control.clojure"
+    expect(tokens[1].scopes).not.toContain "storage.control.clojure"
     {tokens} = grammar.tokenizeLine "(defaultfoo ba)"
-    expect(tokens[1].scopes).not.toContain "keyword.control.clojure"
+    expect(tokens[1].scopes).not.toContain "storage.control.clojure"
+    {tokens} = grammar.tokenizeLine "(foo/default foo)"
+    expect(tokens[1].scopes).not.toContain "storage.control.clojure"
+    {tokens} = grammar.tokenizeLine "(foo/defaultfoo ba)"
+    expect(tokens[1].scopes).not.toContain "storage.control.clojure"
 
   it "tokenizes keyfns (storage control)", ->
     keyfns = ["if", "when", "for", "cond", "do", "let", "binding", "loop", "recur", "fn", "throw", "try", "catch", "finally", "case"]
@@ -172,7 +178,7 @@ describe "Clojure grammar", ->
 
     for macro in macros
       {tokens} = grammar.tokenizeLine "(#{macro} foo 'bar)"
-      expect(tokens[1]).toEqual value: macro, scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "keyword.control.clojure"]
+      expect(tokens[1]).toEqual value: macro, scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "storage.control.clojure"]
       expect(tokens[3]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "meta.definition.global.clojure", "entity.global.clojure"]
 
   it "tokenizes dynamic variables", ->
@@ -180,17 +186,17 @@ describe "Clojure grammar", ->
 
     for mutable in mutables
       {tokens} = grammar.tokenizeLine mutable
-      expect(tokens[0]).toEqual value: mutable, scopes: ["source.clojure", "meta.symbol.dynamic.clojure"]
+      expect(tokens[0]).toEqual value: mutable, scopes: ["source.clojure", "entity.name.variable.dynamic.clojure"]
 
   it "tokenizes metadata", ->
     {tokens} = grammar.tokenizeLine "^Foo"
     expect(tokens[0]).toEqual value: "^", scopes: ["source.clojure", "meta.metadata.simple.clojure"]
-    expect(tokens[1]).toEqual value: "Foo", scopes: ["source.clojure", "meta.metadata.simple.clojure", "meta.symbol.clojure"]
+    expect(tokens[1]).toEqual value: "Foo", scopes: ["source.clojure", "meta.metadata.simple.clojure", "entity.name.variable.clojure"]
 
     # non-ASCII letters
     {tokens} = grammar.tokenizeLine "^Öπ"
     expect(tokens[0]).toEqual value: "^", scopes: ["source.clojure", "meta.metadata.simple.clojure"]
-    expect(tokens[1]).toEqual value: "Öπ", scopes: ["source.clojure", "meta.metadata.simple.clojure", "meta.symbol.clojure"]
+    expect(tokens[1]).toEqual value: "Öπ", scopes: ["source.clojure", "meta.metadata.simple.clojure", "entity.name.variable.clojure"]
 
     {tokens} = grammar.tokenizeLine "^{:foo true}"
     expect(tokens[0]).toEqual value: "^{", scopes: ["source.clojure", "meta.metadata.map.clojure", "punctuation.section.metadata.map.begin.clojure"]
@@ -205,6 +211,14 @@ describe "Clojure grammar", ->
     for expr in expressions
       {tokens} = grammar.tokenizeLine expr
       expect(tokens[1]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
+
+    namespaced_expressions = ["(bar/foo)", "(bar/foo 1 10)"]
+
+    for expr in namespaced_expressions
+      {tokens} = grammar.tokenizeLine expr
+      expect(tokens[1]).toEqual value: "bar", scopes: ["source.clojure", "meta.expression.clojure", "entity.name.namespace.clojure"]
+      expect(tokens[2]).toEqual value: "/", scopes: ["source.clojure", "meta.expression.clojure"]
+      expect(tokens[3]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
 
     #non-ASCII letters
     {tokens} = grammar.tokenizeLine "(Öπ 2 20)"
@@ -222,11 +236,11 @@ describe "Clojure grammar", ->
 
   it "tokenizes symbols", ->
     {tokens} = grammar.tokenizeLine "x"
-    expect(tokens[0]).toEqual value: "x", scopes: ["source.clojure", "meta.symbol.clojure"]
+    expect(tokens[0]).toEqual value: "x", scopes: ["source.clojure", "entity.name.variable.clojure"]
 
     # non-ASCII letters
     {tokens} = grammar.tokenizeLine "Öπ"
-    expect(tokens[0]).toEqual value: "Öπ", scopes: ["source.clojure", "meta.symbol.clojure"]
+    expect(tokens[0]).toEqual value: "Öπ", scopes: ["source.clojure", "entity.name.variable.clojure"]
 
     # Should not be tokenized as a symbol
     {tokens} = grammar.tokenizeLine "1foobar"
@@ -234,15 +248,15 @@ describe "Clojure grammar", ->
 
   it "tokenizes namespaces", ->
     {tokens} = grammar.tokenizeLine "foo/bar"
-    expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "meta.symbol.namespace.clojure"]
+    expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "entity.name.namespace.clojure"]
     expect(tokens[1]).toEqual value: "/", scopes: ["source.clojure"]
-    expect(tokens[2]).toEqual value: "bar", scopes: ["source.clojure", "meta.symbol.clojure"]
+    expect(tokens[2]).toEqual value: "bar", scopes: ["source.clojure", "entity.name.variable.clojure"]
 
     # non-ASCII letters
     {tokens} = grammar.tokenizeLine "Öπ/Åä"
-    expect(tokens[0]).toEqual value: "Öπ", scopes: ["source.clojure", "meta.symbol.namespace.clojure"]
+    expect(tokens[0]).toEqual value: "Öπ", scopes: ["source.clojure", "entity.name.namespace.clojure"]
     expect(tokens[1]).toEqual value: "/", scopes: ["source.clojure"]
-    expect(tokens[2]).toEqual value: "Åä", scopes: ["source.clojure", "meta.symbol.clojure"]
+    expect(tokens[2]).toEqual value: "Åä", scopes: ["source.clojure", "entity.name.variable.clojure"]
 
   testMetaSection = (metaScope, puncScope, startsWith, endsWith) ->
     # Entire expression on one line.
@@ -295,10 +309,10 @@ describe "Clojure grammar", ->
     expect(tokens[1]).toEqual value: "(", scopes: ["source.clojure", "meta.expression.clojure", "meta.expression.clojure", "punctuation.section.expression.begin.clojure"]
     expect(tokens[2]).toEqual value: "foo", scopes: ["source.clojure", "meta.expression.clojure", "meta.expression.clojure", "entity.name.function.clojure"]
     expect(tokens[3]).toEqual value: " ", scopes: ["source.clojure", "meta.expression.clojure", "meta.expression.clojure"]
-    expect(tokens[4]).toEqual value: "bar", scopes: ["source.clojure", "meta.expression.clojure", "meta.expression.clojure", "meta.symbol.clojure"]
+    expect(tokens[4]).toEqual value: "bar", scopes: ["source.clojure", "meta.expression.clojure", "meta.expression.clojure", "entity.name.variable.clojure"]
     expect(tokens[5]).toEqual value: ")", scopes: ["source.clojure", "meta.expression.clojure", "meta.expression.clojure", "punctuation.section.expression.end.clojure"]
     expect(tokens[6]).toEqual value: " ", scopes: ["source.clojure", "meta.expression.clojure"]
-    expect(tokens[7]).toEqual value: "baz", scopes: ["source.clojure", "meta.expression.clojure", "meta.symbol.clojure"]
+    expect(tokens[7]).toEqual value: "baz", scopes: ["source.clojure", "meta.expression.clojure", "entity.name.variable.clojure"]
     expect(tokens[8]).toEqual value: ")", scopes: ["source.clojure", "meta.expression.clojure", "punctuation.section.expression.end.trailing.clojure"]
 
   it "tokenizes maps used as functions", ->
@@ -307,7 +321,7 @@ describe "Clojure grammar", ->
     expect(tokens[1]).toEqual value: "{", scopes: ["source.clojure", "meta.expression.clojure", "meta.map.clojure", "punctuation.section.map.begin.clojure"]
     expect(tokens[2]).toEqual value: ":foo", scopes: ["source.clojure", "meta.expression.clojure", "meta.map.clojure", "variable.other.constant.clojure"]
     expect(tokens[3]).toEqual value: " ", scopes: ["source.clojure", "meta.expression.clojure", "meta.map.clojure"]
-    expect(tokens[4]).toEqual value: "bar", scopes: ["source.clojure", "meta.expression.clojure", "meta.map.clojure", "meta.symbol.clojure"]
+    expect(tokens[4]).toEqual value: "bar", scopes: ["source.clojure", "meta.expression.clojure", "meta.map.clojure", "entity.name.variable.clojure"]
     expect(tokens[5]).toEqual value: "}", scopes: ["source.clojure", "meta.expression.clojure", "meta.map.clojure", "punctuation.section.map.end.clojure"]
     expect(tokens[6]).toEqual value: " ", scopes: ["source.clojure", "meta.expression.clojure"]
     expect(tokens[7]).toEqual value: ":foo", scopes: ["source.clojure", "meta.expression.clojure", "variable.other.constant.clojure"]
@@ -336,15 +350,15 @@ describe "Clojure grammar", ->
       {tokens} = grammar.tokenizeLine "foo꞉bar.baz-2꞉> "
       expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
       expect(tokens[1]).toEqual value: "꞉", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
-      expect(tokens[2]).toEqual value: "bar.baz-2", scopes: ["source.clojure", "meta.symbol.namespace.prompt.clojure"]
+      expect(tokens[2]).toEqual value: "bar.baz-2", scopes: ["source.clojure", "entity.name.namespace.prompt.clojure"]
       expect(tokens[3]).toEqual value: "꞉>", scopes: ["source.clojure", "keyword.control.prompt.clojure"]
     it "does not tokenize repl prompt when prepended with anything", ->
       {tokens} = grammar.tokenizeLine " foo꞉bar.baz-2꞉> "
       expect(tokens[0]).toEqual value: " ", scopes: ["source.clojure"]
-      expect(tokens[1]).toEqual value: "foo", scopes: ["source.clojure", "meta.symbol.clojure"]
+      expect(tokens[1]).toEqual value: "foo", scopes: ["source.clojure", "entity.name.variable.clojure"]
     it "does not tokenize repl prompt when not followed by hard space", ->
       {tokens} = grammar.tokenizeLine "foo꞉bar.baz-2꞉>"
-      expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "meta.symbol.clojure"]
+      expect(tokens[0]).toEqual value: "foo", scopes: ["source.clojure", "entity.name.variable.clojure"]
 
   describe "firstLineMatch", ->
     it "recognises interpreter directives", ->

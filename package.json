@@ -120,6 +120,20 @@
                 "editor.parameterHints.enabled": false
             }
         },
+        "semanticTokenScopes": [
+            {
+                "language": "clojure",
+                "scopes": {
+                    "macro": [
+                        "storage.control.clojure",
+                        "keyword.control.clojure"
+                    ],
+                    "keyword": [
+                        "variable.other.constant.clojure"
+                    ]
+                }
+            }
+        ],
         "configuration": [
             {
                 "type": "object",
