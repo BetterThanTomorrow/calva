@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.219] - 2021-10-19
+- [Provide semantic token fallback map for Calva's TM grammar](https://github.com/BetterThanTomorrow/calva/issues/1348)
+
 ## [2.0.218] - 2021-10-18
 - [npm audit fixes](https://github.com/BetterThanTomorrow/calva/issues/1346)
 - [Select top level form fails for top level derefs in comment forms](https://github.com/BetterThanTomorrow/calva/issues/1345)
