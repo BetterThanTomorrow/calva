@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Clean away legacy evaluation keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/1353)
 
 ## [2.0.220] - 2021-10-20
 - [Add Paredit select/kill right functionality](https://github.com/BetterThanTomorrow/calva/issues/1024)

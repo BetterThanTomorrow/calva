@@ -1575,12 +1575,6 @@
             },
             {
                 "command": "calva.evaluateSelection",
-                "key": "ctrl+alt+c e",
-                "win": "ctrl+alt+c v",
-                "when": "calva:keybindingsEnabled"
-            },
-            {
-                "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
                 "when": "calva:keybindingsEnabled && editorTextFocus"
             },
@@ -1621,18 +1615,13 @@
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "ctrl+alt+c space",
-                "when": "calva:keybindingsEnabled"
+                "key": "alt+enter",
+                "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "enter",
                 "when": "calva:keybindingsEnabled && calva:outputWindowActive && calva:outputWindowSubmitOnEnter && editorTextFocus"
-            },
-            {
-                "command": "calva.evaluateCurrentTopLevelForm",
-                "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionReplace",
