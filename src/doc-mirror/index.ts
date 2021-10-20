@@ -16,8 +16,6 @@ export class DocumentModel implements EditableModel {
         this.lineInputModel = new LineInputModel(this.lineEndingLength);
      }
 
-
-
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor,
             undoStopBefore = !!options.undoStopBefore;

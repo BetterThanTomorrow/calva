@@ -1231,6 +1231,12 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.killRight",
+                "title": "Kill/Delete Right",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.killSexpForward",
                 "title": "Kill/Delete Sexp Forward",
                 "enablement": "editorLangId == clojure"
@@ -1903,6 +1909,11 @@
             {
                 "command": "paredit.convolute",
                 "key": "ctrl+shift+c",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.killRight",
+                "key": "ctrl+k",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {

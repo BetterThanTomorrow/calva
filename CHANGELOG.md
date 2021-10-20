@@ -10,6 +10,7 @@ Changes to Calva.
 ## [2.0.218] - 2021-10-18
 - [npm audit fixes](https://github.com/BetterThanTomorrow/calva/issues/1346)
 - [Select top level form fails for top level derefs in comment forms](https://github.com/BetterThanTomorrow/calva/issues/1345)
+- [Add Paredit kill right functionality](https://github.com/BetterThanTomorrow/calva/issues/1024)
 
 ## [2.0.217] - 2021-10-17
 - [Support setting the cider-nrepl print-fn to whatever](https://github.com/BetterThanTomorrow/calva/issues/1340)
