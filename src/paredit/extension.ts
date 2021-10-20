@@ -90,6 +90,10 @@ const pareditCommands: PareditCommand[] = [
         handler: paredit.selectForwardSexp
     },
     {
+        command: 'paredit.selectRight',
+        handler: paredit.selectRight
+    },
+    {
         command: 'paredit.selectBackwardSexp',
         handler: paredit.selectBackwardSexp
     },
@@ -183,6 +187,16 @@ const pareditCommands: PareditCommand[] = [
     {
         command: 'paredit.convolute',
         handler: paredit.convolute
+    },
+    {
+        command: 'paredit.killRight',
+        handler:  (doc: EditableDocument) => {
+            const range =  paredit.forwardHybridSexpRange(doc);
+            if (shouldKillAlsoCutToClipboard()) {
+                copyRangeToClipboard(doc, range);
+            }
+            paredit.killRange(doc, range);
+        }
     },
     {
         command: 'paredit.killSexpForward',
