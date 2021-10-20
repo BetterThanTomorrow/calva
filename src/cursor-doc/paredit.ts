@@ -50,6 +50,12 @@ export function selectForwardSexp(doc: EditableDocument) {
     selectRangeForward(doc, rangeFn(doc));
 }
 
+export function selectRight(doc: EditableDocument) {
+    const rangeFn = doc.selection.active >= doc.selection.anchor ?
+        forwardHybridSexpRange : (doc: EditableDocument) => forwardHybridSexpRange(doc, doc.selection.active, true);
+    selectRangeForward(doc, rangeFn(doc));
+}
+
 export function selectBackwardSexp(doc: EditableDocument) {
     const rangeFn = doc.selection.active <= doc.selection.anchor ?
         backwardSexpRange : (doc: EditableDocument) => backwardSexpRange(doc, doc.selection.active, false);

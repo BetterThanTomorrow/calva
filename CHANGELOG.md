@@ -3,7 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
-- [Add Paredit kill right functionality](https://github.com/BetterThanTomorrow/calva/issues/1024)
+- [Add Paredit select/kill right functionality](https://github.com/BetterThanTomorrow/calva/issues/1024)
 
 ## [2.0.219] - 2021-10-19
 - [Provide semantic token fallback map for Calva's TM grammar](https://github.com/BetterThanTomorrow/calva/issues/1348)
