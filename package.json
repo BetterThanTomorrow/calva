@@ -1075,6 +1075,12 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.selectRight",
+                "title": "Select Right",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.selectBackwardSexp",
                 "title": "Select Backward Sexp",
                 "enablement": "editorLangId == clojure"
@@ -1761,6 +1767,11 @@
                 "mac": "shift+alt+right",
                 "win": "shift+ctrl+right",
                 "linux": "shift+ctrl+right",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+            },
+            {
+                "command": "paredit.selectRight",
+                "key": "ctrl+shift+k",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
             },
             {

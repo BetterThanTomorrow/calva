@@ -90,6 +90,10 @@ const pareditCommands: PareditCommand[] = [
         handler: paredit.selectForwardSexp
     },
     {
+        command: 'paredit.selectRight',
+        handler: paredit.selectRight
+    },
+    {
         command: 'paredit.selectBackwardSexp',
         handler: paredit.selectBackwardSexp
     },
