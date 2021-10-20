@@ -88,7 +88,7 @@ export type ModelEditOptions = {
 };
 
 export interface EditableModel {
-    readonly lineEndingLength: number,
+    readonly lineEndingLength: number;
 
     /**
      * Performs a model edit batch.

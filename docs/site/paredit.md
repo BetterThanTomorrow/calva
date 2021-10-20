@@ -101,6 +101,7 @@ Default keybinding                | Action | Description
  `ctrl+backspace`                    | **Kill List Backward** | Deletes everything from the cursor to the opening of the current enclosing form.<br> ![](images/paredit/kill-open-list.gif)
  `ctrl+alt+shift+delete`                 | **Splice Killing Forward** | Delete forward to end of the list, then Splice. <br> ![](images/paredit/splice-killing-forward.gif)
  `ctrl+alt+shift+backspace`              | **Splice Killing Backwards** | Delete backward to the start of the list, then Splice. <br> ![](images/paredit/splice-killing-backward.gif)
+ `ctrl+k` | **Kill Right** | Delete forward to the end of the current form or the first newline.<br> ![](images/paredit/kill-right.gif)
  `ctrl+alt+shift+p`                        | **Wrap Around ()** | Wraps the current form, or selection, with parens. <br> ![](images/paredit/wrap-around-parens.gif)
  `ctrl+alt+shift+s`                        | **Wrap Around []** | Wraps the current form, or selection, with square brackets. <br> ![](images/paredit/wrap-around-brackets.gif)
  `ctrl+alt+shift+c`                        | **Wrap Around {}** | Wraps the current form, or selection, with curlies. <br> ![](images/paredit/wrap-around-curlies.gif)
