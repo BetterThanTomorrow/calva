@@ -291,10 +291,10 @@ describe('paredit', () => {
                 expect(actual).toEqual(expected);
             })
 
-            it('Handles Heisenbug', () => {
-                // a bug that showed up in @PEZ's testing occassionaly
-                const a = docFromTextNotation('#_|[a b (c d\n            e\n            f) g]\n:a');
-                const b = docFromTextNotation('#_|[a b (c d\n            e\n            f) g]|\n:a');
+            it('Finds the full form after an ignore marker', () => {
+                // https://github.com/BetterThanTomorrow/calva/pull/1293#issuecomment-927123696
+                const a = docFromTextNotation('(comment•  #_|[a b (c d•              e•              f) g]•  :a•)');
+                const b = docFromTextNotation('(comment•  #_|[a b (c d•              e•              f) g]|• :a•)');
                 const expected = textAndSelection(b)[1];
                 const actual =  paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
