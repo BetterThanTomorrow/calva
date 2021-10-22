@@ -82,7 +82,7 @@ function createClient(clojureLspPath: string): LanguageClient {
                 }
             },
             async provideSignatureHelp(document, position, context, token, next) {
-                const help = await provideSignatureHelp(document, position, context, token);
+                const help = await provideSignatureHelp(document, position, token);
                 if (help) {
                     return null;
                 } else {

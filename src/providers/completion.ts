@@ -60,7 +60,7 @@ export async function provideCompletionItems(document: TextDocument, position: P
 
 
 export default class CalvaCompletionItemProvider implements CompletionItemProvider {
-    async provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext): ProviderResult<CompletionItem[] | CompletionList<CompletionItem>> {
+    async provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext) {
         return provideCompletionItems(document, position, token, context);
     }
 
