@@ -35,14 +35,12 @@ export class REPLInfoParser {
             if (msg.macro) {
                 this._isMacro = true;
             }
-            if (msg["special-form"]) {
-                this._specialForm = true;
-                this._arglist = undefined;
-                this._formsString = msg["forms-str"];
-            } else {
-                this._specialForm = false;
+            if (msg["arglists-str"]) {
                 this._arglist = msg["arglists-str"];
-                this._formsString = undefined;
+            }
+            if (msg["forms-str"]) {
+                this._specialForm = true;
+                this._formsString = msg["forms-str"];
             }
             if (msg.doc) {
                 this._docString = msg.doc;
@@ -139,15 +137,15 @@ export class REPLInfoParser {
 
     getSignatures(symbol: string): SignatureInformation[] {
         if (this._name !== '') {
-            const argLists = this._specialForm ? this._formsString : this._arglist;
+            const argLists = this._arglist ? this._arglist : this._formsString;
             if (argLists) {
                 return argLists.split('\n')
                     .map(argList => argList.trim())
                     .map(argList => {
                         if (argList !== '') {
-                            const signature = new SignatureInformation(this._specialForm ? argList : `(${symbol} ${argList})`);
+                            const signature = new SignatureInformation(`(${symbol} ${argList})`);
                             // Skip parameter help on special forms and forms with optional arguments, for now
-                            if (!this._specialForm && !argList.match(/\?/)) {
+                            if (this._arglist && !argList.match(/\?/)) {
                                 signature.parameters = this.getParameters(symbol, argList);
                             }
                             if (this._docString && getConfig().showDocstringInParameterHelp) {
