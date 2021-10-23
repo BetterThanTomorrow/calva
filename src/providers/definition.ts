@@ -7,7 +7,7 @@ import * as outputWindow from '../results-output/results-doc';
 import * as replSession from '../nrepl/repl-session';
 
 // Used by out LSP middleware
-export async function provideClojureDefinition(document, position: vscode.Position, token) {
+export async function provideClojureDefinition(document, position: vscode.Position, _token) {
   const evalPos = annotations.getEvaluationPosition(position);
   const posIsEvalPos = evalPos && position.isEqual(evalPos);
   if (util.getConnectedState() && !posIsEvalPos) {

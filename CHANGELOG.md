@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Clean away legacy evaluation keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/1353)
+- [Don't wait for clojure-lsp to initialize before activating nREPL lookup and navigation](https://github.com/BetterThanTomorrow/calva/issues/1341)
 
 ## [2.0.220] - 2021-10-20
 - [Add Paredit select/kill right functionality](https://github.com/BetterThanTomorrow/calva/issues/1024)

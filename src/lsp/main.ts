@@ -3,12 +3,15 @@ import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, P
 import * as util from '../utilities'
 import * as config from '../config';
 import { provideClojureDefinition } from '../providers/definition';
+import { provideCompletionItems } from '../providers/completion';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { downloadClojureLsp, getLatestVersion } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
 import * as os from 'os';
 import * as path from 'path';
 import * as state from '../state';
+import { provideHover } from '../providers/hover';
+import { provideSignatureHelp } from '../providers/signature';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -54,30 +57,33 @@ function createClient(clojureLspPath: string): LanguageClient {
                 }
                 return null;
             },
-            provideHover(document, position, token, next) {
-                if (util.getConnectedState()) {
+            async provideHover(document, position, token, next) {
+                const hover: vscode.Hover = await provideHover(document, position);
+                if (hover) {
                     return null;
                 } else {
                     return next(document, position, token);
                 }
             },
             async provideDefinition(document, position, token, next) {
-                const nReplDefinition = await provideClojureDefinition(document, position, token);
-                if (nReplDefinition) {
+                const definition = await provideClojureDefinition(document, position, token);
+                if (definition) {
                     return null;
                 } else {
                     return next(document, position, token);
                 }
             },
-            provideCompletionItem(document, position, context, token, next) {
-                if (util.getConnectedState()) {
+            async provideCompletionItem(document, position, context, token, next) {
+                const items = await provideCompletionItems(document, position, token, context);
+                if (items) {
                     return null;
                 } else {
                     return next(document, position, context, token);
                 }
             },
-            provideSignatureHelp(document, position, context, token, next) {
-                if (util.getConnectedState()) {
+            async provideSignatureHelp(document, position, context, token, next) {
+                const help = await provideSignatureHelp(document, position, token);
+                if (help) {
                     return null;
                 } else {
                     return next(document, position, context, token);
