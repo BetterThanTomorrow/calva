@@ -395,7 +395,7 @@ export class NReplSession {
             this.client.write({ op: "info", ns, symbol, id, session: this.sessionId })
         })
     }
-    
+
     classpath() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
@@ -821,8 +821,8 @@ export class NReplEvaluation {
                             if (input !== undefined) {
                                 this.session.stdin(`${input}\n`);
                             } else {
-                                this.out("No input provided.");
-                                this.session.stdin('\n');
+                                this.out("Sending interrupt.");
+                                this.interrupt();
                             }
                         }).catch((e) => {
                             this.session.stdin('\n');
