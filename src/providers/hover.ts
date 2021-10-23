@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as state from '../state';
 import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
