@@ -3,6 +3,7 @@ import * as util from '../utilities';
 import * as infoparser from './infoparser';
 import * as namespace from '../namespace';
 import * as replSession from '../nrepl/repl-session';
+import * as clojureDocs from '../clojuredocs';
 
 export async function provideHover(document, position) {
     if (util.getConnectedState()) {
@@ -13,7 +14,9 @@ export async function provideHover(document, position) {
             await namespace.createNamespaceFromDocumentIfNotExists(document);
             let res = await client.info(ns, text);
             if (!res.status.includes('error')) {
-                return new vscode.Hover(infoparser.getHover(res));
+                const docsMd = infoparser.getHover(res);
+                const clojureDocsMd = await clojureDocs.getExamplesHover(document, position);
+                return new vscode.Hover([docsMd, clojureDocsMd]);
             }
         }
         return null; //new vscode.Hover(infoparser.getHoverNotAvailable(text));
