@@ -1438,8 +1438,8 @@
                 "category": "Calva"
             },
             {
-                "command": "calva.clojureDocsLookup",
-                "title": "Lookup ClojureDocs examples",
+                "command": "calva.printClojureDocsToOutputWindow",
+                "title": "Print clojuredocs.org examples to OutputWindow",
                 "enablement": "calva:connected",
                 "category": "Calva"
             },
