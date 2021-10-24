@@ -1061,8 +1061,12 @@ export function dragSexprBackwardDown(doc: EditableDocument, p = doc.selectionRi
     }
 }
 
-export function addRichComment(doc: EditableDocument, p = doc.selection.active) {
-    const richComment = '(comment\n  \n  )';
+function adaptContentsToRichComment(contents: string): string {
+    return contents.split(/\n/).map(line => `  ${line}`).join('\n').trim();
+}
+
+export function addRichComment(doc: EditableDocument, p = doc.selection.active, contents?: string) {
+    const richComment = `(comment\n${contents ? adaptContentsToRichComment(contents) : '  '}\n  )`;
     let cursor = doc.getTokenCursor(p);
     const topLevelRange = rangeForDefun(doc, p, false);
     const isInsideForm = !(p <= topLevelRange[0] || p >= topLevelRange[1]);
@@ -1079,7 +1083,7 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active) 
     }
     const insertStart = cursor.offsetStart;
     const insideNextTopLevelFormPos = rangeToForwardDownList(doc, insertStart)[1];
-    if (insideNextTopLevelFormPos !== insertStart) {
+    if (!contents && insideNextTopLevelFormPos !== insertStart) {
         const checkIfRichCommentExistsCursor = doc.getTokenCursor(insideNextTopLevelFormPos);
         checkIfRichCommentExistsCursor.forwardWhitespace(true);
         if (checkIfRichCommentExistsCursor.getToken().raw == 'comment') {
