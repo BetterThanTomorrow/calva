@@ -41,7 +41,7 @@ export async function printClojureDocsToOutputWindow(printDocString = false) {
         const webUrl = `;; ${docs.baseUrl}/${docs.urlPath}`
         const doc = docs.doc.split(/\n/).map(line => `;; ${line.replace(/^ {0,3}/, '')}`).join('\n').trim();
         const examples = docs.examples.map((example, i) => `${exampleSeparatorB} ${i+1}\n${example.trim()}\n${exampleSeparatorE} ${i+1}`).join('\n\n');
-        const seeAlsos = docs.seeAlsos.map(also => `${also} - ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}?`).join(`\n`);
+        const seeAlsos = docs.seeAlsos.map(also => `${also} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
         outputWindow.append(name);
         outputWindow.append(webUrl);
         if (printDocString) {
