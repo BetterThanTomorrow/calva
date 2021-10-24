@@ -1540,6 +1540,11 @@
             },
             {
                 "category": "Calva",
+                "command": "calva.clojuredocs",
+                "title": "Clojuredocs"
+            },
+            {
+                "category": "Calva",
                 "command": "calva.toggleBetweenImplAndTest",
                 "title": "Toggle between implementation and test"
             },
