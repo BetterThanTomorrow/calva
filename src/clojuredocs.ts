@@ -7,6 +7,8 @@ import * as namespace from './namespace';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
+import * as docMirror from './doc-mirror/index';
+import * as paredit from './cursor-doc/paredit';
 
 export type DocsEntry = {
     name: string;
@@ -29,29 +31,44 @@ export function init(cljSession: NReplSession) {
     });
 }
 
-export async function printClojureDocsToOutputWindow(printDocString = false) {
+export async function printClojureDocsToOutputWindow() {
     const docs = await clojureDocsLookup();
     if (typeof docs === 'string') {
         outputWindow.append(`;; ${docs}`)
     }
     else {
+        outputWindow.append(docsEntry2ClojureCode(docs));
+    }
+    outputWindow.appendPrompt();
+}
+
+export async function printClojureDocsToRichComment() {
+    const doc = util.getDocument({});
+    const mirrorDoc = docMirror.getDocument(doc);
+    const docs = await clojureDocsLookup();
+    if (typeof docs === 'string') {
+        paredit.addRichComment(mirrorDoc, mirrorDoc.selection.active, `;; ${docs}`);
+    }
+    else {
+        paredit.addRichComment(mirrorDoc, mirrorDoc.selection.active, docsEntry2ClojureCode(docs));
+    }    
+}
+
+function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string {
+    if (typeof docs === 'string') {
+        return `;; ${docs}`;
+    }
+    else {
         const exampleSeparatorB = `;; ------- BEGIN EXAMPLE`
         const exampleSeparatorE = `;; ------- END EXAMPLE`
         const name = `;; ${docs.ns}/${docs.name}`;
-        const webUrl = `;; ${docs.baseUrl}/${docs.urlPath}`
+        const webUrl = `;; ${docs.baseUrl}/${docs.urlPath}`;
+        // Not planning to print docs string, but keeping this code anyway =)
         const doc = docs.doc.split(/\n/).map(line => `;; ${line.replace(/^ {0,3}/, '')}`).join('\n').trim();
         const examples = docs.examples.map((example, i) => `${exampleSeparatorB} ${i+1}\n${example.trim()}\n${exampleSeparatorE} ${i+1}`).join('\n\n');
         const seeAlsos = docs.seeAlsos.map(also => `${also} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
-        outputWindow.append(name);
-        outputWindow.append(webUrl);
-        if (printDocString) {
-            outputWindow.append(doc);
-        }
-        outputWindow.append('\n;; Examples:\n');
-        outputWindow.append(examples);
-        outputWindow.append('\n;; See also:');
-        outputWindow.append(seeAlsos);
-        outputWindow.appendPrompt();
+        const code = `${name}\n${webUrl}\n${printDocString ? doc + '\n' : ''}\n;; Examples:\n${examples}\n\n;; See also:\n${seeAlsos}\n`;
+        return code;
     }
 }
 
@@ -60,7 +77,7 @@ async function clojureDocsCiderNReplLookup(session: NReplSession, symbol: string
     if (ciderNReplDocs.clojuredocs) {
         return ciderNRepl2DocsEntry(ciderNReplDocs.clojuredocs);
     }
-    return `No docs found for: ${symbol}`;
+    return `Docs lookup failed: ${symbol ? 'Only Clojure core (ish) symbols supported' : 'Cursor not at a Clojure core (ish) symbol'}`;
 }
 
 async function clojureDocsLookup(): Promise<DocsEntry | string> {
@@ -69,6 +86,10 @@ async function clojureDocsLookup(): Promise<DocsEntry | string> {
     const symbol = util.getWordAtPosition(doc, position);
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));
+
+    if (session.replType !== 'clj') {
+        vscode.window.showErrorMessage('Clojuredocs Lookup is currently only supported with Clojure REPLs.');
+    }
 
     return clojureDocsCiderNReplLookup(session, symbol, ns);
 }

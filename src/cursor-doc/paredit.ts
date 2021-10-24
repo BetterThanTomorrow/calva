@@ -1066,7 +1066,7 @@ function adaptContentsToRichComment(contents: string): string {
 }
 
 export function addRichComment(doc: EditableDocument, p = doc.selection.active, contents?: string) {
-    const richComment = `(comment\n${contents ? adaptContentsToRichComment(contents) : '  '}\n  )`;
+    const richComment = `(comment\n  ${contents ? adaptContentsToRichComment(contents) : ''}\n  )`;
     let cursor = doc.getTokenCursor(p);
     const topLevelRange = rangeForDefun(doc, p, false);
     const isInsideForm = !(p <= topLevelRange[0] || p >= topLevelRange[1]);

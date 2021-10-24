@@ -227,6 +227,7 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.continueComment', edit.continueCommentCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.toggleNreplLoggingEnabled', nreplLogging.toggleEnabled));
     context.subscriptions.push(vscode.commands.registerCommand('calva.printClojureDocsToOutputWindow', clojureDocs.printClojureDocsToOutputWindow));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.printClojureDocsToRichComment', clojureDocs.printClojureDocsToRichComment));
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);
