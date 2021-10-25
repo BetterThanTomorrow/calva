@@ -13,6 +13,8 @@ export class REPLInfoParser {
 
     private _specialForm: boolean = false;
 
+    private _isMacro: boolean = false;
+
     constructor(msg: any) {
         if (msg) {
             this._name = '';
@@ -30,99 +32,20 @@ export class REPLInfoParser {
                     this._name += '/' + msg.member;
                 }
             }
-            if (msg["special-form"]) {
-                this._specialForm = true;
-                this._arglist = undefined;
-                this._formsString = msg["forms-str"];
-            } else {
-                this._specialForm = false;
+            if (msg.macro) {
+                this._isMacro = true;
+            }
+            if (msg["arglists-str"]) {
                 this._arglist = msg["arglists-str"];
-                this._formsString = undefined;
+            }
+            if (msg["forms-str"]) {
+                this._specialForm = true;
+                this._formsString = msg["forms-str"];
             }
             if (msg.doc) {
                 this._docString = msg.doc;
             }
         }
-    }
-
-    private formatName(value: string) {
-        if (value && value != "") {
-            let result = '';
-            // Format the name.
-            result += '**' + value + '**  ';
-            if (this._specialForm) {
-                result += '(special form)';
-            }
-            return result;
-        }
-        return '';
-    }
-
-    private formatFormsString(value: string) {
-        if (value && value != "") {
-            let result = '';
-            // Format the different signatures for the fn
-            result += value.substring(0, value.length)
-                .replace(/\)/g, ')')
-                .replace(/\(/g, '* (');
-            return result;
-        }
-        return '';
-    }
-
-    private formatArgList(value: string) {
-        if (value && value != "") {
-            let result = '';
-            // Format the different signatures for the fn
-            result += value.substring(0, value.length)
-                .replace(/\]/g, ']')
-                .replace(/\[/g, '* [');
-            return result;
-        }
-        return '';
-    }
-
-    private formatDocString(value: string, defaultValue?: string): MarkdownString {
-        const codeBlockRegex = /(```[a-z]*\n[\s\S]*?\n([\s]+)?```)/g;
-        const splitDocstring = (ds: string) => ds.split(codeBlockRegex).filter(s => s && s.trim());
-        const isCodeblock = (s: string) => s.match(codeBlockRegex);
-        const trimDocstringPadding = (s: string) => {
-            let min = undefined;
-            let lines = s.split(/\n/);
-            lines.forEach(l => {
-                const sp = l.match(/^\s+/);
-                if (sp) {
-                    const len = sp[0].length
-                    min = len < min || !min ? len : min;
-                }
-            });
-            if (!min) {
-                return s;
-            }
-            const trimmed = lines.map((l, i) => {
-                if (i === 0) {
-                    return l;
-                }
-                const re = RegExp(`^\\s{${min}}`);
-                return l.replace(re, "");
-            });
-            return trimmed.join("\n");
-        }
-
-        const docString = new MarkdownString("");
-        if (value) {
-            value = trimDocstringPadding(value);
-            splitDocstring(value).forEach(s => {
-                if (isCodeblock(s)) {
-                    docString.appendMarkdown(s);
-                } else {
-                    docString.appendCodeblock(s, "text");
-                }
-            });
-        } else if (defaultValue) {
-            docString.appendText(defaultValue);
-        }
-        return docString;
     }
 
     private getParameters(symbol: string, argList: string): ParameterInformation[] {
@@ -168,22 +91,24 @@ export class REPLInfoParser {
     getHover(): MarkdownString {
         const hover = new MarkdownString();
         if (this._name !== '') {
-            const name = this.formatName(this._name);
-            hover.appendMarkdown(`${name}\n`);
-            if (this._specialForm) {
-                if (this._formsString) {
-                    hover.appendText(this.formatFormsString(this._formsString));
-                    hover.appendText("\n");
-                }
-            } else {
+            if (!this._specialForm || this._isMacro) {
+                hover.appendCodeblock(this._name, 'clojure');
                 if (this._arglist) {
-                    const args = this.formatArgList(this._arglist);
-                    hover.appendMarkdown(args);
-                    hover.appendText("\n");
+                    hover.appendCodeblock(this._arglist, 'clojure');
                 }
             }
-            let docString = this.formatDocString(this._docString, "No documentation available");
-            hover.appendMarkdown(docString.value);
+            else {
+                if (this._formsString) {
+                    hover.appendCodeblock(this._formsString, 'clojure');
+                }
+            }
+            if (this._specialForm || this._isMacro) {
+                hover.appendText(`${this._specialForm ? "(special form) " : ""}${this._isMacro ? "(macro)" : ""}\n`);
+            }
+            else {
+                hover.appendText('\n');
+            }
+            hover.appendMarkdown(this._docString);
         }
         return hover;
     }
@@ -191,7 +116,7 @@ export class REPLInfoParser {
     getHoverNotAvailable() {
         let result = '';
         if (this._name !== '') {
-            result += this.formatName(this._name);
+            result += this._name;
             result += '\n';
             result += 'No information available';
         }
@@ -199,12 +124,12 @@ export class REPLInfoParser {
     }
 
     getCompletion(): [string | MarkdownString, string] {
+        const name = new MarkdownString(this._docString);
         if (this._name !== '') {
-            let docString = this.formatDocString(this._docString);
             if (this._specialForm) {
-                return [docString, this._formsString];
+                return [name, this._formsString];
             } else {
-                return [docString, this._arglist];
+                return [name, this._arglist];
             }
         }
         return [undefined, undefined];
@@ -212,19 +137,19 @@ export class REPLInfoParser {
 
     getSignatures(symbol: string): SignatureInformation[] {
         if (this._name !== '') {
-            const argLists = this._specialForm ? this._formsString : this._arglist;
+            const argLists = this._arglist ? this._arglist : this._formsString;
             if (argLists) {
                 return argLists.split('\n')
                     .map(argList => argList.trim())
                     .map(argList => {
                         if (argList !== '') {
-                            const signature = new SignatureInformation(this._specialForm ? argList : `(${symbol} ${argList})`);
+                            const signature = new SignatureInformation(`(${symbol} ${argList})`);
                             // Skip parameter help on special forms and forms with optional arguments, for now
-                            if (!this._specialForm && !argList.match(/\?/)) {
+                            if (this._arglist && !argList.match(/\?/)) {
                                 signature.parameters = this.getParameters(symbol, argList);
                             }
                             if (this._docString && getConfig().showDocstringInParameterHelp) {
-                                signature.documentation = this.formatDocString(this._docString);
+                                signature.documentation = new MarkdownString(this._docString);
                             }
                             return signature;
                         }

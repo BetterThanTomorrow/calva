@@ -432,7 +432,7 @@ export class LispTokenCursor extends TokenCursor {
     backwardListOfType(openingBracket: string): boolean {
         let cursor = this.clone();
         while (cursor.backwardList()) {
-            if (cursor.getPrevToken().raw === openingBracket) {
+            if (cursor.getPrevToken().raw.endsWith(openingBracket)) {
                 this.set(cursor);
                 return true;
             }

@@ -500,6 +500,12 @@ describe('Token Cursor', () => {
             const cursor: LispTokenCursor = a.getTokenCursor(0);
             expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
         });
+        it('Finds top level form when deref in comment', () => {
+            const a = docFromTextNotation('(comment @(foo [bar|]))');
+            const b = docFromTextNotation('(comment |@(foo [bar])|)');
+            const cursor: LispTokenCursor = a.getTokenCursor(0);
+            expect(cursor.rangeForDefun(a.selectionLeft)).toEqual(textAndSelection(b)[1]);
+        })
     });
 
     describe('Location State', () => {

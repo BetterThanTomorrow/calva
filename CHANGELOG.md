@@ -5,6 +5,27 @@ Changes to Calva.
 ## [Unreleased]
 - [Add nrepl message logging](https://github.com/BetterThanTomorrow/calva/issues/1198)
 
+## [2.0.221] - 2021-10-23
+- [Clean away legacy evaluation keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/1353)
+- [Don't wait for clojure-lsp to initialize before activating nREPL lookup and navigation](https://github.com/BetterThanTomorrow/calva/issues/1341)
+- [Tidy up doc and signature hovers](https://github.com/BetterThanTomorrow/calva/issues/1360)
+
+## [2.0.220] - 2021-10-20
+- [Add Paredit select/kill right functionality](https://github.com/BetterThanTomorrow/calva/issues/1024)
+
+## [2.0.219] - 2021-10-19
+- [Provide semantic token fallback map for Calva's TM grammar](https://github.com/BetterThanTomorrow/calva/issues/1348)
+
+## [2.0.218] - 2021-10-18
+- [npm audit fixes](https://github.com/BetterThanTomorrow/calva/issues/1346)
+- [Select top level form fails for top level derefs in comment forms](https://github.com/BetterThanTomorrow/calva/issues/1345)
+
+## [2.0.217] - 2021-10-17
+- [Support setting the cider-nrepl print-fn to whatever](https://github.com/BetterThanTomorrow/calva/issues/1340)
+- [Make Add Rich Comment command go to any existing Rich comment right below](https://github.com/BetterThanTomorrow/calva/issues/1333)
+- [Add semantic tokens support from LSP](https://github.com/BetterThanTomorrow/calva/issues/1231)
+- Fix: [Inline evaluation results no longer display in 2.0.216](https://github.com/BetterThanTomorrow/calva/issues/1332)
+
 ## [2.0.216] - 2021-10-10
 - Fix: [Inline results display pushes the cursor away when evaluation at the end of the line](https://github.com/BetterThanTomorrow/calva/issues/1329)
 - Fix: [Inline evaluation display renders differently than the REPL display for empty spaces](https://github.com/BetterThanTomorrow/calva/issues/872)

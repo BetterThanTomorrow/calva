@@ -166,12 +166,12 @@
       }
       {
         'match': '(?<=^|\\s|\\(|\\[|\\{)(declare-?|(in-)?ns|import|use|require|load|compile|(def(?!ault)[\\p{Ll}\\-]*))(?=(\\s|\\)|\\]|\\}))'
-        'name': 'keyword.control.clojure'
+        'name': 'storage.control.clojure'
       }
     ]
   'dynamic-variables':
     'match': '\\*[\\w\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\d]+\\*'
-    'name': 'meta.symbol.dynamic.clojure'
+    'name': 'entity.name.variable.dynamic.clojure'
   'map':
     'begin': '(\\{)'
     'beginCaptures':
@@ -297,7 +297,7 @@
         'begin': '(?<=\\()(ns|declare|def(?!ault)[\\w\\d._:+=><!?*-]*|[\\w._:+=><!?*-][\\w\\d._:+=><!?*-]*/def(?!ault)[\\w\\d._:+=><!?*-]*)\\s+'
         'beginCaptures':
           '1':
-            'name': 'keyword.control.clojure'
+            'name': 'storage.control.clojure'
         'end': '(?=\\))'
         'name': 'meta.definition.global.clojure'
         'patterns': [
@@ -336,6 +336,14 @@
       }
       {
         'include': '#sexp'
+      }
+      {
+        'match': '(?<=\\()([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*][\\w\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\*\\d]*)/([^"]+?)(?=\\s|\\))'
+        'captures':
+          '1':
+            'name': 'entity.name.namespace.clojure'
+          '2':
+            'name': 'entity.name.function.clojure'
       }
       {
         'match': '(?<=\\()([^"]+?)(?=\\s|\\))'
@@ -383,14 +391,14 @@
         'match': '([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*][\\w\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\*\\d]*)/'
         'captures':
           '1':
-            'name': 'meta.symbol.namespace.clojure'
+            'name': 'entity.name.namespace.clojure'
       }
     ]
   'symbol':
     'patterns': [
       {
         'match': '([\\p{L}\\.\\-\\_\\+\\=\\>\\<\\!\\?\\*][\\w\\.\\-\\_\\:\\+\\=\\>\\<\\!\\?\\*\\d]*)'
-        'name': 'meta.symbol.clojure'
+        'name': 'entity.name.variable.clojure'
       }
     ]
   'var':
@@ -423,7 +431,7 @@
           '2':
             'name': 'keyword.control.prompt.clojure'
           '3':
-            'name': 'meta.symbol.namespace.prompt.clojure'
+            'name': 'entity.name.namespace.prompt.clojure'
           '4':
             'name': 'keyword.control.prompt.clojure'
       }
