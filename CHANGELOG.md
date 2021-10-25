@@ -4,6 +4,7 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Add command to open the clojure-lsp log file](https://github.com/BetterThanTomorrow/calva/issues/1362)
+- [Add nrepl message logging](https://github.com/BetterThanTomorrow/calva/issues/1198)
 
 ## [2.0.221] - 2021-10-23
 - [Clean away legacy evaluation keyboard shortcuts](https://github.com/BetterThanTomorrow/calva/issues/1353)

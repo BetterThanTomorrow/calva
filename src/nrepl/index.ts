@@ -11,6 +11,7 @@ import { formatAsLineComments } from '../results-output/util';
 import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
+import { log, Direction, loggingEnabled } from './logging';
 
 /** An nREPL client */
 export class NReplClient {
@@ -77,7 +78,10 @@ export class NReplClient {
      * @param data
      */
     write(data: any) {
-        this.encoder.write(data)
+        this.encoder.write(data);
+        if (loggingEnabled()) {
+            log(data, Direction.ClientToServer);
+        }
     }
 
     close() {
@@ -104,6 +108,10 @@ export class NReplClient {
                 let describeId = client.nextId;
 
                 client.decoder.on("data", (data) => {
+
+                    if (loggingEnabled()) {
+                        log(data, Direction.ServerToClient);
+                    }
 
                     debug.onNreplMessage(data);
 

@@ -47,6 +47,7 @@ nav:
     - linting.md
     - namespace-form-auto-creation.md
   - clojure-lsp.md
+  - nrepl_and_cider-nrepl.md
   - customizing.md
   - Using Calva with X:
     - wsl.md
