@@ -4,9 +4,9 @@
 
 ## Viewing the Communication Between Calva and nREPL
 
-You can view the messages sent between Calva and nREPL by running the command `Toggle nREPL Logging Enabled`. This creates a VS Code output channel called `nREPL Messages` where the messages will be logged. Messages sent to nREPL from Calva will have `-> sent` above them, and messages sent from nREPL to Calva will have `<- received` above them.
+You can view the messages sent between Calva and nREPL by running the command `Toggle nREPL Logging Enabled`. Enabling nREPL message logging triggers the creation of a VS Code output channel called `nREPL Messages` where the messages will be logged. Messages sent to nREPL from Calva will have `-> sent` above them, and messages sent from nREPL to Calva will have `<- received` above them. Disabling nREPL message logging causes the `nREPL Messages` channel to be removed and messages will no longer be logged.
 
-Each message is logged as JSON. If you find a need for the messages to be logged as EDN (for example, to transform and analyze them with Clojure) please open a GitHub issue for this change. A PR would be welcome too.
+Each message is logged as JSON. If you find a need for the messages to be logged as EDN (for example, to transform and analyze them with Clojure) please open a GitHub issue for this change. A PR would be welcome too!
 
 The example below shows two messages logged when the cursor hovers over `println` in a Clojure file while a REPL is connected.
 
