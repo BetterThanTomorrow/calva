@@ -770,7 +770,7 @@
         ],
         "commands": [
             {
-                "command": "calva.toggleNreplLoggingEnabled",
+                "command": "calva.diagnostics.toggleNreplLoggingEnabled",
                 "title": "Toggle nREPL Logging Enabled",
                 "category": "Calva Diagnostics"
             },
