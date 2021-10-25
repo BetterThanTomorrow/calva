@@ -2,7 +2,7 @@
 
 The recommended way is to:
 
-## Jack-in: Let Calva start the REPL for you
+## Jack-in: Let Calva Start the REPL For You
 
 This way Calva can make sure it is started with the dependencies needed for a working Clojure and/or ClojureScript session. This is often referred to as **Jack in** (because that is what it is called in CIDER).
 
@@ -19,7 +19,7 @@ See also: [Workspace Layouts](workspace-layouts.md)
 !!! Note
     You must have a project file, such as `project.clj` for Leiningen or `deps.edn` for deps.edn, in the directory opened in VS Code in order for jack-in to work. If, after adding the project file, you experience an error during jack-in that says something could not be located, make sure you have the correct dependencies in your project file. For example, when using the **Figwheel Main** project type, you should have `com.bhauman/figwheel-main` in your project dependencies.
 
-### Aliases, profiles, builds
+### Aliases, Profiles, Builds
 
 When Jack-in starts it will depend on the project type, and whether ClojureScript is involved or not, and if it is, what kind of ClojureScript project, what will happen next. Calva will analyze the project files and will then give you prompts with selections based on what is found there.
 
@@ -41,9 +41,22 @@ There are also these settings:
 !!! Note
     When processing the `calva.jackInEnv` setting you can refer to existing ENV variables with `${env:VARIABLE}`.
 
-### Troubleshooting
+## Connecting Without Jack-in
 
-#### Command not found errors
+If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned **Connect to a running REPL** is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.
+
+However, just as before it can be tricky to get the dependencies right. Consider using **Jack in** to inform yourself on how to start your REPL to Calva's satisfaction. When you use Jack in, Calva starts a VS Code task for it and the command line used is displayed in the terminal pane used to handle the task. Reading that command line tells you what dependencies are needed for your project.
+
+Even better: Copying that command line gives you the command to start the REPL with the correct dependencies.
+
+All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
+
+!!! Note
+    There is a Calva command for copying the Jack-in command line to the clipboard.
+
+## Troubleshooting
+
+### Command Not Found Errors When Jacking In
 
 If you get `command not found` error when Calva tries to start your project, and you know you have the command installed, it's probably because VS Code starts from an environment where the command is not on the `$PATH`. It can look like so:
 
@@ -63,19 +76,10 @@ You might need to first run the **Shell Command: Install `code` command in PATH*
 
 This will also make sure your REPL has access to the environment you probably expect it to have access to. See below.
 
-##### Environment variables are not readable From REPL
+### Environment Variables Are Not Readable From REPL
 
 If you've added environment variables in your OS, such as in your `~/.bashrc` file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run `echo $SOME_VAR` and see the value there, then open VS Code from that terminal with `code <project path>`.
 
-## Connecting w/o Jack-in
+### Viewing the Communication Between nREPL and Calva
 
-If, for whatever reasons, you can't use Jack-in with your project (possibly because the REPL is started as part of some other job) all is not lost. Old fashioned **Connect to a running REPL** is still there for you. For all features to work in Calva while connecting to a running REPL, your environment needs to have REPL related dependencies set up.
-
-However, just as before it can be tricky to get the dependencies right. Consider using **Jack in** to inform yourself on how to start your REPL to Calva's satisfaction. When you use Jack in, Calva starts a VS Code task for it and the command line used is displayed in the terminal pane used to handle the task. Reading that command line tells you what dependencies are needed for your project.
-
-Even better: Copying that command line gives you the command to start the REPL with the correct dependencies.
-
-All this said, I still recommend you challenge the conclusion that you can't use Jack-in.
-
-!!! Note
-    There is a Calva command for copying the Jack-in command line to the clipboard.
+It may be helpful to view the messages sent between nREPL and Calva when troubleshooting an issue related to the REPL. See how to do that [here](../nrepl_and_cider-nrepl/#viewing-the-communication-between-calva-and-nrepl).
