@@ -368,6 +368,11 @@ async function getServerInfo(lspClient: LanguageClient): Promise<any> {
     return lspClient.sendRequest('clojure/serverInfo/raw');
 }
 
+async function openLogFile(lspClient: LanguageClient): Promise<void> {
+    const serverInfo = await getServerInfo(lspClient);
+    console.log(serverInfo);
+}
+
 export default {
     activate,
     deactivate,
