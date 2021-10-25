@@ -33,6 +33,8 @@ import setCursorContextIfChanged from './when-contexts'
 import lsp from './lsp/main';
 import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
+import * as nreplLogging from './nrepl/logging';
+
 async function onDidSave(document) {
     let {
         evaluate,
@@ -222,6 +224,7 @@ async function activate(context: vscode.ExtensionContext) {
             });
     }))
     context.subscriptions.push(vscode.commands.registerCommand('calva.continueComment', edit.continueCommentCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.toggleNreplLoggingEnabled', nreplLogging.toggleEnabled));
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);

@@ -770,6 +770,11 @@
         ],
         "commands": [
             {
+                "command": "calva.toggleNreplLoggingEnabled",
+                "title": "Toggle nREPL Logging Enabled",
+                "category": "Calva Diagnostics"
+            },
+            {
                 "command": "calva.linting.resolveMacroAs",
                 "title": "Resolve Macro As",
                 "category": "Calva Linting",
