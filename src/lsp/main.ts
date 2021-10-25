@@ -239,21 +239,31 @@ function resolveMacroAsCommandHandler(): void {
     }
 }
 
-const generalCommands = {
-    
-}
+const generalCommands = [
+    {
+        // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
+        name: 'code-lens-references',
+        handler: codeLensReferencesHandler
+    },
+    {
+        // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
+        name: RESOLVE_MACRO_AS_COMMAND,
+        handler: resolveMacroAsCodeActionCommandHandler
+    },
+    {
+        name: 'calva.linting.resolveMacro',
+        handler: resolveMacroAsCommandHandler
+    },
+    {
+        name: 'calva.diagnostics.openClojureLspLogFile',
+        handler: openLogFile
+    }
+];
 
 function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
-    // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
-    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', codeLensReferencesHandler));
-
-    // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
-    context.subscriptions.push(vscode.commands.registerCommand(RESOLVE_MACRO_AS_COMMAND, resolveMacroAsCodeActionCommandHandler));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', resolveMacroAsCommandHandler));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile));
-
+    context.subscriptions.push(
+        ...generalCommands.map(command => vscode.commands.registerCommand(command.name, command.handler))
+    );
     context.subscriptions.push(
         ...clojureLspCommands.map(command => registerLspCommand(client, command))
     );
@@ -374,9 +384,11 @@ async function getServerInfo(lspClient: LanguageClient): Promise<any> {
     return lspClient.sendRequest('clojure/serverInfo/raw');
 }
 
-async function openLogFile(lspClient: LanguageClient): Promise<void> {
-    const serverInfo = await getServerInfo(lspClient);
-    console.log(serverInfo);
+async function openLogFile(): Promise<void> {
+    const client = getStateValue(LSP_CLIENT_KEY);
+    const serverInfo = await getServerInfo(client);
+    const logPath = serverInfo['log-path'];
+    vscode.window.showTextDocument(vscode.Uri.file(logPath));
 }
 
 export default {
