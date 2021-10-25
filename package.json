@@ -1923,7 +1923,7 @@
                 "mac": "ctrl+k",
                 "win": "ctrl+k ctrl+k",
                 "linux": "ctrl+k",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpForward",
