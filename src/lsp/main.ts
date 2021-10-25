@@ -239,6 +239,10 @@ function resolveMacroAsCommandHandler(): void {
     }
 }
 
+const generalCommands = {
+    
+}
+
 function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
     // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
     context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', codeLensReferencesHandler));
@@ -247,6 +251,8 @@ function registerCommands(context: vscode.ExtensionContext, client: LanguageClie
     context.subscriptions.push(vscode.commands.registerCommand(RESOLVE_MACRO_AS_COMMAND, resolveMacroAsCodeActionCommandHandler));
 
     context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', resolveMacroAsCommandHandler));
+
+    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile));
 
     context.subscriptions.push(
         ...clojureLspCommands.map(command => registerLspCommand(client, command))
@@ -315,7 +321,7 @@ async function serverInfoCommandHandler(): Promise<void> {
 }
 
 async function activate(context: vscode.ExtensionContext): Promise<void> {
-    vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler);
+    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler));
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;

@@ -770,7 +770,7 @@
         ],
         "commands": [
             {
-                "command": "calva.openClojureLspLogFile",
+                "command": "calva.diagnostics.openClojureLspLogFile",
                 "title": "Open Clojure-lsp Log File",
                 "category": "Calva Diagnostics"
             },
