@@ -9,6 +9,7 @@ import * as replSession from './nrepl/repl-session';
 import * as getText from './util/get-text';
 import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';
+import { string } from 'fast-check/*';
 
 export type DocsEntry = {
     name: string;
@@ -25,6 +26,13 @@ export type DocsEntry = {
     tag: string;
 };
 
+export type NoDocsEntry = {
+    noDocs: boolean;
+    symbol: string;
+    ns: string;
+    message: string;
+};
+
 export function init(cljSession: NReplSession) {
     cljSession.clojureDocsRefreshCache().catch(reason => {
         console.error("Error refreshing ClojureDocs cache: ", reason);
@@ -33,22 +41,22 @@ export function init(cljSession: NReplSession) {
 
 export async function printClojureDocsToOutputWindow() {
     const docs = await clojureDocsLookup();
-    if (typeof docs === 'string') {
-        outputWindow.append(`;; ${docs}`)
+    if ((<NoDocsEntry>docs).noDocs) {
+        return;
     }
     else {
-        outputWindow.append(docsEntry2ClojureCode(docs));
+        outputWindow.append(docsEntry2ClojureCode(<DocsEntry>docs));
     }
     outputWindow.appendPrompt();
 }
 
 export async function printClojureDocsToRichComment() {
     const docs = await clojureDocsLookup();
-    if (typeof docs === 'string') {
-        printTextToRichComment(`;; ${docs}`);
+    if ((<NoDocsEntry>docs).noDocs) {
+        return;
     }
     else {
-        printTextToRichComment(docsEntry2ClojureCode(docs));
+        printTextToRichComment(docsEntry2ClojureCode(<DocsEntry>docs));
     }
 }
 
@@ -64,7 +72,10 @@ function printTextToRichComment(text: string) {
 
 export async function getExamplesHover(document, position): Promise<vscode.MarkdownString> {
     const docs = await clojureDocsLookup(document, position);
-    return getHoverForDocs(docs);
+    if ((<NoDocsEntry>docs).noDocs) {
+        return null;
+    }
+    return getHoverForDocs(<DocsEntry>docs);
 }
 
 function getHoverForDocs(docs: DocsEntry | string): vscode.MarkdownString {
@@ -112,42 +123,44 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
         return code;
     }
 }
-
-async function clojureDocsCiderNReplLookup(session: NReplSession, symbol: string, ns: string): Promise<DocsEntry | string> {
-    const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
-    if (ciderNReplDocs.clojuredocs) {
-        return ciderNRepl2DocsEntry(ciderNReplDocs.clojuredocs);
-    }
-    return `Docs lookup failed: ${symbol ? 'Only Clojure core (ish) symbols supported' : 'Cursor not at a Clojure core (ish) symbol'}`;
-}
-
-async function clojureDocsLookup(d?, p?): Promise<DocsEntry | string> {
+async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): Promise<DocsEntry | NoDocsEntry> {
     const doc = d ? d : util.getDocument({});
     const position = p ? p : vscode.window.activeTextEditor.selection.active;
     const symbol = util.getWordAtPosition(doc, position);
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));
 
-    if (session.replType !== 'clj') {
-        vscode.window.showErrorMessage('Clojuredocs Lookup is currently only supported with Clojure REPLs.');
-    }
-
     return clojureDocsCiderNReplLookup(session, symbol, ns);
 }
 
-function ciderNRepl2DocsEntry(docs: any): DocsEntry {
-    return {
-        name: docs.name,
-        added: docs.added,
-        baseUrl: 'https://clojuredocs.org',
-        doc: docs.doc,
-        argsLists: docs.argsLists,
-        examples: docs.examples,
-        notes: docs.notes,
-        ns: docs.ns,
-        urlPath: docs.href.replace(/^\/?/, ''),
-        seeAlsos: docs['see-alsos'],
-        tag: docs.tag,
-        type: docs.type
+async function clojureDocsCiderNReplLookup(session: NReplSession, symbol: string, ns: string): Promise<DocsEntry | NoDocsEntry> {
+    const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
+    return ciderNRepl2DocsEntry(ciderNReplDocs, symbol, ns);
+}
+
+function ciderNRepl2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEntry | NoDocsEntry {
+    const docs = docsResult.clojuredocs;
+    if (docs) {
+        return {
+            name: docs.name,
+            added: docs.added,
+            baseUrl: 'https://clojuredocs.org',
+            doc: docs.doc,
+            argsLists: docs.argsLists,
+            examples: docs.examples,
+            notes: docs.notes,
+            ns: docs.ns,
+            urlPath: docs.href.replace(/^\/?/, ''),
+            seeAlsos: docs['see-alsos'],
+            tag: docs.tag,
+            type: docs.type
+        }
+    } else {
+        return {
+            noDocs: true,
+            symbol: symbol,
+            ns: ns,
+            message: `Docs lookup failed: ${symbol ? 'Only Clojure core (ish) symbols supported' : 'Cursor not at a Clojure core (ish) symbol'}`
+        }
     }
 }
