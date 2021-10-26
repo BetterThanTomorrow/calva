@@ -1767,7 +1767,7 @@
                 "command": "paredit.selectRight",
                 "mac": "ctrl+shift+k",
                 "win": "ctrl+k ctrl+shift+k",
-                "linux": "ctrl+shift+k",
+                "linux": "ctrl+k ctrl+shift+k",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
@@ -1922,7 +1922,7 @@
                 "command": "paredit.killRight",
                 "mac": "ctrl+k",
                 "win": "ctrl+k ctrl+k",
-                "linux": "ctrl+k",
+                "linux": "ctrl+k ctrl+k",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
