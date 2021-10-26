@@ -1765,8 +1765,10 @@
             },
             {
                 "command": "paredit.selectRight",
-                "key": "ctrl+shift+k",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "mac": "ctrl+shift+k",
+                "win": "ctrl+k ctrl+shift+k",
+                "linux": "ctrl+k ctrl+shift+k",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardSexp",
@@ -1918,8 +1920,10 @@
             },
             {
                 "command": "paredit.killRight",
-                "key": "ctrl+k",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "mac": "ctrl+k",
+                "win": "ctrl+k ctrl+k",
+                "linux": "ctrl+k ctrl+k",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpForward",
