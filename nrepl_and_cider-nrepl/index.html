@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://calva.io/get-started-with-clojure/">
+        <link rel="canonical" href="https://calva.io/nrepl_and_cider-nrepl/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.4">
     
     
       
-        <title>Get Started with Clojure - Calva User Guide</title>
+        <title>nREPL and cider-nrepl - Calva User Guide</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#get-started-with-clojure" class="md-skip">
+        <a href="#nrepl-and-cider-nrepl" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Get Started with Clojure
+              nREPL and cider-nrepl
             
           </span>
         </div>
@@ -598,11 +598,51 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../nrepl_and_cider-nrepl/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          nREPL and cider-nrepl
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         nREPL and cider-nrepl
       </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-the-communication-between-calva-and-nrepl" class="md-nav__link">
+    Viewing the Communication Between Calva and nREPL
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -954,14 +994,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
       
       
       
@@ -982,127 +1020,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Get Started with Clojure
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../get-started-with-clojure/" class="md-nav__link">
         Get Started with Clojure
       </a>
-      
-        
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#what-youll-learn" class="md-nav__link">
-    What you'll learn
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-you-wont-learn" class="md-nav__link">
-    What you won't learn
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-you-need" class="md-nav__link">
-    What you need
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    How it works
-  </a>
-  
-    <nav class="md-nav" aria-label="How it works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#lets-go" class="md-nav__link">
-    Let's go!
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#and-where-do-i-find-those-clojurians" class="md-nav__link">
-    And where do I find those Clojurians?
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#learn-and-practice-clojure-using-rich-4clojure" class="md-nav__link">
-    Learn and Practice Clojure using Rich 4Clojure
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-clojure-exercism-track-in-your-browser" class="md-nav__link">
-    Run the Clojure Exercism Track in your browser
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#clojuredocs" class="md-nav__link">
-    ClojureDocs
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-learning-resources" class="md-nav__link">
-    Other learning resources
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#help-us-help-beginners" class="md-nav__link">
-    Help us help beginners
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1200,84 +1122,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-youll-learn" class="md-nav__link">
-    What you'll learn
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-you-wont-learn" class="md-nav__link">
-    What you won't learn
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-you-need" class="md-nav__link">
-    What you need
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    How it works
-  </a>
-  
-    <nav class="md-nav" aria-label="How it works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#lets-go" class="md-nav__link">
-    Let's go!
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#and-where-do-i-find-those-clojurians" class="md-nav__link">
-    And where do I find those Clojurians?
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#learn-and-practice-clojure-using-rich-4clojure" class="md-nav__link">
-    Learn and Practice Clojure using Rich 4Clojure
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-the-clojure-exercism-track-in-your-browser" class="md-nav__link">
-    Run the Clojure Exercism Track in your browser
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#clojuredocs" class="md-nav__link">
-    ClojureDocs
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-learning-resources" class="md-nav__link">
-    Other learning resources
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#help-us-help-beginners" class="md-nav__link">
-    Help us help beginners
+  <a href="#viewing-the-communication-between-calva-and-nrepl" class="md-nav__link">
+    Viewing the Communication Between Calva and nREPL
   </a>
   
 </li>
@@ -1294,144 +1140,49 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/get-started-with-clojure.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/nrepl_and_cider-nrepl.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="get-started-with-clojure">Get Started with Clojure</h1>
-<p><img alt="Get Started with Clojure" src="../images/getting-started-with-clojure/get-started-with-clojure-header-wo-header.png" /></p>
-<p>Welcome to a zero-install, interactive, guide to get you started with <a href="https://clojure.org/">Clojure</a> using:</p>
-<ul>
-<li><a href="https://clojure.org/">Clojure</a></li>
-<li><a href="https://www.gitpod.io/">Gitpod</a> (A development environment delivered via the web browser)</li>
-<li><a href="https://code.visualstudio.com">VS Code</a> (Or Gitpod Code, actually. In your web browser.)</li>
-<li><a href="https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva">Calva</a> (A Clojure extension to VS Code. The thing this site is about.)</li>
-<li>Calva's <a href="../getting-started/">Getting Started REPL</a></li>
-</ul>
-<details class="note"><summary>I have VS Code and Java</summary><p>Clojure runs on the JVM. How to install it is a big topic. Since you have already done that, you can, if you want, choose to install Calva in your local VS Code and fire up the <a href="../getting-started/">Getting Started REPL</a>. By all means read this page anyway, you can just skip the Gitpod parts.</p>
-<p>Also: <em>If you are using Windows</em> your Java might have <a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8266473">a bug</a> that <a href="https://github.com/BetterThanTomorrow/calva/issues/1162">prevents things from working</a>. Then you might want to defer fixing that and use the zero-install option first.</p>
-</details>
-<details class="note"><summary>Is Gitpod Code exactly as VS Code?</summary><p>Almost! But, yeah, there are <em>some</em> difference between regular VS Code and Gitpod's ditto. Most of it doesn't matter, but finding the main menu can be a bit tricky:
-<img alt="Here is the menu in Gitpod VS Code" src="../images/getting-started-with-clojure/gitpod-vscode-menu.png" /></p>
-</details>
-<h2 id="what-youll-learn">What you'll learn</h2>
-<ul>
-<li>The basics of the Clojure language (at least the start of the basics)</li>
-<li>The basics of the <a href="https://clojurescript.org">ClojureScipt</a> language (we won't be using ClojureScript, but it is same language 😀)</li>
-<li>The basics of Calva (It's a bit as a side effect. You need it to learn Clojure this way, and by learning Clojure this way, Calva knowledge trickles in.)</li>
-<li>What is meant by, and some ways to perform, <em>Interactive Programming</em> (aka REPL Driven Development)</li>
-<li>Where to find Clojurians, i.e. folks who use Clojure and care about it (you will thus find help, the friendliest help you have ever seen a community provide)</li>
-</ul>
-<details class="note"><summary>I am not convinced I should spend time on learning Clojure</summary><p>Fair enough. We can recommend watching any or all of these videos to get excited about Clojure and the rather unique mood of development it offers:</p>
-<p><iframe width="560" height="315" src="https://www.youtube.com/embed/C-kF25fWTO8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=vK1DazRK_a0">Solving Problems the Clojure Way</a> - with Rafal Dittwald (using JavaScript, so no new syntax to grasp to get the message)</li>
-<li><a href="https://www.youtube.com/watch?v=LR7Wv6bSZqE">Developer Ergonomics with VS Code, Clojure, and ClojureScript</a> - with Peter Strömberg</li>
-<li><a href="https://www.youtube.com/watch?v=d0K1oaFGvuQ">Clojure in VS Code Workflow using FizzBuzz</a> - with Peter Strömberg</li>
-</ul>
-</details>
-<h2 id="what-you-wont-learn">What you won't learn</h2>
-<ul>
-<li>How to install Clojure for your operating system of choice</li>
-<li>About various old and new build and dependency tools</li>
-<li>How to create projects and do real stuff</li>
-</ul>
-<details class="note"><summary>Why won't I learn about this?</summary><p>All in due time. 😄 It can be a bit confusing with all the things you find out about installing Clojure and creating projects when searching for information about it. We want you to relax about all that and just enjoy learning a bit about this fantastic programming language and the wonderful mode of development it offers.</p>
-<p>There is a lot of info about this out there already. And since you will learn where to find Clojurians, you will also find guidance. But we suggest do these things later. First, let's focus on having fun with Interactive Programming!</p>
-</details>
-<h2 id="what-you-need">What you need</h2>
-<ul>
-<li>Curiosity about Clojure</li>
-<li>A web browser</li>
-</ul>
-<details class="note"><summary>The browser ate my keyboard shortcuts!</summary><p>There is always a competition for which system gets to catch keyboard shortcuts first. This worsens a bit when an application like VS Code runs in the web browser. Remember this if some shortcut/command doesn't work.</p>
-<p>On some machines, with some web browsers, some shortcuts are caught by the web browser and instead re-opening a closed tab or whatever. These have been observed:</p>
-<ul>
-<li>Undo (undoing something web browser related)</li>
-<li>Select the line (focusing the browser URL input)</li>
-<li>Open the command palette (opening a private browsing window. Looking at you Firefox.)</li>
-<li>Escape key shortcuts (are you using VIM bindings in your browser?)</li>
-</ul>
-<p>Sometimes the workaround is to redefine the shortcuts in VS Code, sometimes making your web browser stop catching the shortcut.</p>
-</details>
-<details class="note"><summary>I am new to VS Code</summary><p>You might want to have a look at <a href="https://code.visualstudio.com/docs/introvideos/basics">this Getting Started with VS Code video</a>. (You can of course ignore the parts about installing for now.) Also, have <a href="https://code.visualstudio.com/docs/getstarted/userinterface">this overview of the VS Code interface</a> handy.</p>
-</details>
-<h2 id="how-it-works">How it works</h2>
-<ol>
-<li>You will open an instance of VS Code in a development environment running in the browser. The envirnoment will have Java, Clojure tools, and Calva installed.<ul>
-<li>
-<details class="note" open="open"><summary>Gitpod Sign-in</summary>
-   You will be asked to sign in to Gitpod, if you aren't already. You need to use the ”Sign in with GitHub” option.</details>
-</li>
-</ul>
-</li>
-<li>Instructions will be automatically displayed (very brief such, because it is mainly about firing up the <a href="../getting-started/">Getting Started REPL</a>)</li>
-<li>The guides are a mix of prose (in Clojure line comments), Clojure code, and exercises. What's extra poetic is that you will use Calva and Clojure to learn Calva and Clojure.</li>
-</ol>
-<p>Use a desktop/laptop computer. Even if it actually works on the phone, it is far from convenient.</p>
-<p>It sometimes takes a while (several minutes) for the environment to initialize. Take some deep breaths and be patient. 😎</p>
-<h3 id="lets-go">Let's go!</h3>
-<p>Ready? Awesome. Click this button to start the guide in a new browser tab.</p>
-<div style="display: flex; flex-direction: column; align-items: center;">
+                <h1 id="nrepl-and-cider-nrepl">nREPL and cider-nrepl</h1>
+<p><a href="https://github.com/nrepl/nREPL">nREPL</a> and <a href="https://github.com/clojure-emacs/cider-nrepl">cider-nrepl</a> provide Calva with some of its REPL-based functionality.</p>
+<h2 id="viewing-the-communication-between-calva-and-nrepl">Viewing the Communication Between Calva and nREPL</h2>
+<p>You can view the messages sent between Calva and nREPL by running the command <code>Toggle nREPL Logging Enabled</code>. Enabling nREPL message logging triggers the creation of a VS Code output channel called <code>nREPL Messages</code> where the messages will be logged. Messages sent to nREPL from Calva will have <code>-&gt; sent</code> above them, and messages sent from nREPL to Calva will have <code>&lt;- received</code> above them. Disabling nREPL message logging causes the <code>nREPL Messages</code> channel to be removed and messages will no longer be logged.</p>
+<p>Each message is logged as JSON. If you find a need for the messages to be logged as EDN (for example, to transform and analyze them with Clojure) please open a GitHub issue for this change. A PR would be welcome too!</p>
+<p>The example below shows two messages logged when the cursor hovers over <code>println</code> in a Clojure file while a REPL is connected.</p>
+<div class="highlight"><pre><span></span><code>-&gt; sent
+{
+  op: &#39;info&#39;,
+  ns: &#39;test-lein.core&#39;,
+  symbol: &#39;println&#39;,
+  id: &#39;7&#39;,
+  session: &#39;1a080b66-b1b6-4b8c-8206-c4af2cc02747&#39;
+}
 
-<a title="Open Getting Started with Clojure in Gitpod" alt="Open in Gitpod button" href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure" target="_blank"><img src="https://img.shields.io/badge/Gitpod-Start the Clojure Guide-908a85?logo=gitpod" width="550"/></a>
-
-<a href="https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure">https://gitpod.io/#https://github.com/PEZ/get-started-with-clojure</a>
-
-</div>
-
-<details class="note" open="open"><summary>Stuck? Something not working? Or just unclear?</summary><p>Please don't hesitate to reach out for help, should you get stuck. See below for where to find Clojurians. As for the Calva team, we are almost always (true story) to be found at the Clojurians Slack, especially in the <code>#calva</code> Channel. We are <code>@pez</code> and <code>@bringe</code> there.</p>
-</details>
-<p>Happy Interactive Programming! ❤️</p>
-<h2 id="and-where-do-i-find-those-clojurians">And where do I find those Clojurians?</h2>
-<p>We Clojurians inhabit a lot of community platforms. I'll list some of the more popular ones here in some order of popularity.</p>
-<ul>
-<li><a href="http://clojurians.net">The Clojurians Slack</a> - by far the largest and most active Clojure community, the <code>#beginners</code> channel is spectacularly fantastic</li>
-<li><a href="https://clojureverse.org">ClojureVerse</a> - a web forum. Lots of Clojurians, lots of Clojure knowledge collected, easy to search, easy to join</li>
-<li><a href="https://www.reddit.com/r/Clojure/">/r/Clojure</a> - Reddit when Reddit is at its best, lots of Clojurians here</li>
-<li><a href="https://clojurians.zulipchat.com/">Clojurians on Zulip</a> - An other web forum using the Zulip platform</li>
-<li>On Discord there are two active servers: <a href="https://discordapp.com/invite/v9QMy9D">Clojurians</a> and <a href="https://discord.gg/">Discord</a></li>
-</ul>
-<p>You can also ask questions, and find answers, about Clojure at <a href="https://ask.clojure.org">ask.clojure.org</a></p>
-<h2 id="learn-and-practice-clojure-using-rich-4clojure">Learn and Practice Clojure using Rich 4Clojure</h2>
-<p>If you like the style of interactive learning that this guide provides, you should definitely check <a href="https://github.com/PEZ/rich4clojure">Rich 4Clojure</a> out. It also can be used in the zero-installed way.</p>
-<p>You can regard it as a companion to this guide. It is aimed at practicing Clojure, starting at the elementary levels, bringing you to advanced stuff.</p>
-<details class="note"><summary>Can I use Rich 4Clojure instead of this guide?</summary><p>We suggest you start by opening up this guide and do the Calva part of the excerises. Then use the <code>welcome_to_clojure.clj</code> guide in combination with <strong>Rich 4Clojure</strong>..</p>
-</details>
-<h2 id="run-the-clojure-exercism-track-in-your-browser">Run the Clojure Exercism Track in your browser</h2>
-<p>In a similar manner to the Get Started with Clojure project, you can run the Clojure Exercism Track in your browser without installing anything and with full Interactive Programming enabled using this <a href="https://github.com/PEZ/clojure-exercism-template">Template project</a>.</p>
-<h2 id="clojuredocs">ClojureDocs</h2>
-<p>Clojurians draw tremendous value from <a href="https://clojuredocs.org">ClojureDocs</a>. At ClojureDocs the concise documentation for Clojure core functions, etcetera, are amended with examples and advice from fellow Clojurians. Crowdsourcing at its very best! It is a big part of the reason why you won't find an abundance of Clojure information at StackOverflow.</p>
-<h2 id="other-learning-resources">Other learning resources</h2>
-<ul>
-<li><a href="https://gist.github.com/yogthos/be323be0361c589570a6da4ccc85f58f">Clojure Beginner Resources</a> - a much more comprehensive list than this one</li>
-<li><a href="https://clojure.org/guides/getting_started">clojure.org Gettting Started</a> - the source of truth, includes installing and stuff</li>
-<li><a href="https://exercism.io/my/tracks/clojure">The Exercism Clojure track</a> - Learn solving carefully crafted Clojure exercises, get mentor feedback if you like.</li>
-<li><a href="https://www.braveclojure.com">Clojure for the Brave and True</a> - helping you from beginner to pretty advanced stuff, very popular among Clojurians</li>
-<li><a href="https://clojureverse.org/t/what-do-beginners-struggle-with/5383">What do beginners struggle with?</a> - a ClojureVerse thread, where you can tell us about what you have found hard in picking up Clojure. It's what spawned the creation of this guide.</li>
-<li><a href="https://www.youtube.com/user/VideosDanA">on the code again</a> - often features Clojure concepts, with snappy, well communicated, and entertaining videos</li>
-<li><a href="https://www.youtube.com/c/CalvaTV">CalvaTV</a> - Calva's YouTube channel often focuses on beginning with Clojure and ClojureScript. Subscribe, please!</li>
-</ul>
-<h2 id="help-us-help-beginners">Help us help beginners</h2>
-<p>Give us feedback. Spread the word. Please consider:</p>
-<ul>
-<li>Join the <code>#improve-getting-started</code> channel at the Clojurian Slack</li>
-<li>Linking to this page from your blog</li>
-<li>Tweeting about this guide</li>
-<li><a href="../contribute/">Contributing to the Calva project</a></li>
-<li>Wearing <a href="../merch/">Calva and RFC T-shirts</a></li>
-<li>Starring these repositories:<ul>
-<li><a href="https://github.com/PEZ/get-started-with-clojure">Get Started with Clojure</a> - (the repository powering this guide)</li>
-<li><a href="https://github.com/PEZ/rich4clojure">Rich 4Clojure</a></li>
-<li><a href="https://github.com/PEZ/clojure-exercism-template">Clojure Exercism Track Template</a></li>
-<li><a href="https://github.com/BetterThanTomorrow/calva">Calva</a></li>
-<li><a href="https://github.com/BetterThanTomorrow/dram">Dram</a> - Where this guide (the Getting Started REPL) is authored</li>
-</ul>
-</li>
-</ul>
-<p>Please also consider other ways to <a href="../contribute/">contribute</a>.</p>
-<p>Thanks! 🙏</p>
+&lt;- received
+{
+  added: &#39;1.0&#39;,
+  &#39;arglists-str&#39;: &#39;[&amp; more]&#39;,
+  column: 1,
+  doc: &#39;Same as print followed by (newline)&#39;,
+  file: &#39;jar:file:/Users/brandon/.m2/repository/org/clojure/clojure/1.10.1/clojure-1.10.1.jar!/clojure/core.clj&#39;,
+  id: &#39;7&#39;,
+  line: 3733,
+  name: &#39;println&#39;,
+  ns: &#39;clojure.core&#39;,
+  resource: &#39;clojure/core.clj&#39;,
+  &#39;see-also&#39;: [
+    &#39;clojure.core/prn&#39;,
+    &#39;clojure.core/print&#39;,
+    &#39;clojure.core/println-str&#39;,
+    &#39;clojure.pprint/pprint&#39;
+  ],
+  session: &#39;1a080b66-b1b6-4b8c-8206-c4af2cc02747&#39;,
+  static: &#39;true&#39;,
+  status: [ &#39;done&#39; ]
+}
+</code></pre></div>
                 
               
               
@@ -1451,7 +1202,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../jack-in-guide/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Learn about Calva Jack-in" rel="prev">
+        <a href="../clojure-lsp/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Clojure-lsp" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1460,20 +1211,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Learn about Calva Jack-in
+              Clojure-lsp
             </div>
           </div>
         </a>
       
       
         
-        <a href="../tao/" class="md-footer__link md-footer__link--next" aria-label="Next: The Tao of Calva" rel="next">
+        <a href="../customizing/" class="md-footer__link md-footer__link--next" aria-label="Next: Customizing Calva" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              The Tao of Calva
+              Customizing Calva
             </div>
           </div>
           <div class="md-footer__button md-icon">
