@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.222] - 2021-10-27
 - [Add command to open the clojure-lsp log file](https://github.com/BetterThanTomorrow/calva/issues/1362)
 - [Add nrepl message logging](https://github.com/BetterThanTomorrow/calva/issues/1198)
 - Fix: [ctrl+k for Kill Right conflicts with several bindings on Windows](https://github.com/BetterThanTomorrow/calva/issues/1356)
