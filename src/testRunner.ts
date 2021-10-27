@@ -5,52 +5,14 @@ import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
+import * as cider from './nrepl/cider'
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-// https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45
-interface CiderTestSummary {
-    ns: number;
-    var: number;
-    test: number;
-    pass: number;
-    fail: number;
-    error: number;
-};
-
-// https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L97-L112
-interface CiderTestResult {
-    context: string;
-    index: number;
-    message: string;
-    ns: string;
-    type: string;
-    var: string;
-    expected?: string;
-    'gen-input'?: string;
-    actual?: string;
-    diffs?: unknown;
-    error?: unknown;
-    line?: number
-    file?: string;
-}
-
-// https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45-L46
-interface CiderTestResults {
-    summary: CiderTestSummary;
-    results: {
-        [key: string]: {
-            [key: string]: CiderTestResult[]
-        }
-    }
-    'testing-ns'?: string
-    'gen-input': unknown
-}
-
-function resultMessage(resultItem: Readonly<CiderTestResult>): string {
+function resultMessage(resultItem: Readonly<cider.TestResult>): string {
     let msg = [];
     if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
         msg.push(resultItem.context);
@@ -59,9 +21,9 @@ function resultMessage(resultItem: Readonly<CiderTestResult>): string {
     return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
 }
 
-function reportTests(results: CiderTestResults[], errorStr: string) {
+function reportTests(results: cider.TestResults[]) {
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
-    let total_summary: CiderTestSummary = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
+    let total_summary: cider.TestSummary = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
     diagnosticCollection.clear();
 
     for (let result of results) {
@@ -135,7 +97,11 @@ function reportTests(results: CiderTestResults[], errorStr: string) {
 async function runAllTests(document = {}) {
     const session = getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
-    reportTests([await session.testAll()], "Running all tests");
+    try {
+        reportTests([await session.testAll()]);
+    } catch (e) {
+        outputWindow.append('; ' + e)
+    }
     updateReplSessionType();
     outputWindow.appendPrompt();
 }
@@ -145,7 +111,9 @@ function runAllTestsCommand() {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runAllTests().catch(() => { });
+    runAllTests().catch((msg) => {
+        vscode.window.showWarningMessage(msg)
+    });
 }
 
 async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
@@ -183,8 +151,12 @@ async function runNamespaceTests(document = {}) {
     if (nss.length > 1) {
         resultPromises.push(session.testNs(nss[1]));
     }
-    const results = await Promise.all(resultPromises);
-    reportTests(results, "Running tests");
+    try {
+        reportTests(await Promise.all(resultPromises));
+    } catch (e) {
+        outputWindow.append('; ' + e)
+    }
+
     outputWindow.setSession(session, ns);
     updateReplSessionType();
     outputWindow.appendPrompt();
@@ -206,8 +178,11 @@ async function runTestUnderCursor() {
     if (test) {
         await evaluate.loadFile(doc, disabledPrettyPrinter);
         outputWindow.append(`; Running test: ${test}…`);
-        const results = [await session.test(ns, test)];
-        reportTests(results, `Running test: ${test}`);
+        try {
+            reportTests([await session.test(ns, test)]);
+        } catch (e) {
+            outputWindow.append('; ' + e)
+        }
     } else {
         outputWindow.append('; No test found at cursor');
     }
@@ -219,7 +194,9 @@ function runTestUnderCursorCommand() {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runTestUnderCursor().catch(() => { });
+    runTestUnderCursor().catch((msg) => {
+        vscode.window.showWarningMessage(msg)
+    });
 }
 
 function runNamespaceTestsCommand() {
@@ -227,14 +204,22 @@ function runNamespaceTestsCommand() {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runNamespaceTests();
+    runNamespaceTests().catch((msg) => {
+        vscode.window.showWarningMessage(msg)
+    });
 }
 
 async function rerunTests(document = {}) {
     let session = getSession(util.getFileType(document))
     await evaluate.loadFile({}, disabledPrettyPrinter);
     outputWindow.append("; Running previously failed tests…");
-    reportTests([await session.retest()], "Retesting");
+
+    try {
+        reportTests([await session.retest()]);
+    } catch (e) {
+        outputWindow.append('; ' + e)
+    }
+
     outputWindow.appendPrompt();
 }
 
@@ -243,7 +228,9 @@ function rerunTestsCommand() {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    rerunTests();
+    rerunTests().catch((msg) => {
+        vscode.window.showWarningMessage(msg)
+    });
 }
 
 export default {
