@@ -15,6 +15,7 @@ import { provideSignatureHelp } from '../providers/signature';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
+const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not running or has not finished intializing.'
 const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
 
 function createClient(clojureLspPath: string): LanguageClient {
@@ -253,10 +254,6 @@ const generalCommands = [
     {
         name: 'calva.linting.resolveMacro',
         handler: resolveMacroAsCommandHandler
-    },
-    {
-        name: 'calva.diagnostics.openClojureLspLogFile',
-        handler: openLogFile
     }
 ];
 
@@ -326,12 +323,17 @@ async function serverInfoCommandHandler(): Promise<void> {
         calvaSaysChannel.appendLine(serverInfoPretty);
         calvaSaysChannel.show(true);
     } else {
-        vscode.window.showInformationMessage('There is no clojure-lsp server running.');
+        vscode.window.showInformationMessage(SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE);
     }
 }
 
-async function activate(context: vscode.ExtensionContext): Promise<void> {
+function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile));
+}
+
+async function activate(context: vscode.ExtensionContext): Promise<void> {
+    registerDiagnosticsCommands(context);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
@@ -386,9 +388,13 @@ async function getServerInfo(lspClient: LanguageClient): Promise<any> {
 
 async function openLogFile(): Promise<void> {
     const client = getStateValue(LSP_CLIENT_KEY);
-    const serverInfo = await getServerInfo(client);
-    const logPath = serverInfo['log-path'];
-    vscode.window.showTextDocument(vscode.Uri.file(logPath));
+    if (client) {
+        const serverInfo = await getServerInfo(client);
+        const logPath = serverInfo['log-path'];
+        vscode.window.showTextDocument(vscode.Uri.file(logPath));
+    } else {
+        vscode.window.showInformationMessage(SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE);
+    }
 }
 
 export default {
