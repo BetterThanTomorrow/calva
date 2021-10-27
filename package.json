@@ -3,7 +3,7 @@
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
     "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
-    "version": "2.0.221",
+    "version": "2.0.222",
     "publisher": "betterthantomorrow",
     "author": {
         "name": "Better Than Tomorrow",
@@ -769,6 +769,16 @@
             }
         ],
         "commands": [
+            {
+                "command": "calva.diagnostics.openClojureLspLogFile",
+                "title": "Open Clojure-lsp Log File",
+                "category": "Calva Diagnostics"
+            },
+            {
+                "command": "calva.diagnostics.toggleNreplLoggingEnabled",
+                "title": "Toggle nREPL Logging Enabled",
+                "category": "Calva Diagnostics"
+            },
             {
                 "command": "calva.linting.resolveMacroAs",
                 "title": "Resolve Macro As",
@@ -1760,8 +1770,10 @@
             },
             {
                 "command": "paredit.selectRight",
-                "key": "ctrl+shift+k",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "mac": "ctrl+shift+k",
+                "win": "ctrl+k ctrl+shift+k",
+                "linux": "ctrl+k ctrl+shift+k",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.selectBackwardSexp",
@@ -1913,8 +1925,10 @@
             },
             {
                 "command": "paredit.killRight",
-                "key": "ctrl+k",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap =~ /original|strict/"
+                "mac": "ctrl+k",
+                "win": "ctrl+k ctrl+k",
+                "linux": "ctrl+k ctrl+k",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !selectionAnchorSet && paredit:keyMap =~ /original|strict/"
             },
             {
                 "command": "paredit.killSexpForward",
