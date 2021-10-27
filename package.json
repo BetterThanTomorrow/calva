@@ -770,6 +770,11 @@
         ],
         "commands": [
             {
+                "command": "calva.diagnostics.openClojureLspLogFile",
+                "title": "Open Clojure-lsp Log File",
+                "category": "Calva Diagnostics"
+            },
+            {
                 "command": "calva.diagnostics.toggleNreplLoggingEnabled",
                 "title": "Toggle nREPL Logging Enabled",
                 "category": "Calva Diagnostics"

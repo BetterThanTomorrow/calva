@@ -15,6 +15,7 @@ import { provideSignatureHelp } from '../providers/signature';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
+const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not running or has not finished intializing.'
 const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
 
 function createClient(clojureLspPath: string): LanguageClient {
@@ -239,15 +240,27 @@ function resolveMacroAsCommandHandler(): void {
     }
 }
 
+const generalCommands = [
+    {
+        // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
+        name: 'code-lens-references',
+        handler: codeLensReferencesHandler
+    },
+    {
+        // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
+        name: RESOLVE_MACRO_AS_COMMAND,
+        handler: resolveMacroAsCodeActionCommandHandler
+    },
+    {
+        name: 'calva.linting.resolveMacro',
+        handler: resolveMacroAsCommandHandler
+    }
+];
+
 function registerCommands(context: vscode.ExtensionContext, client: LanguageClient) {
-    // The title of this command is dictated by clojure-lsp and is executed when the user clicks the references code lens for a symbol
-    context.subscriptions.push(vscode.commands.registerCommand('code-lens-references', codeLensReferencesHandler));
-
-    // The title of this command is dictated by clojure-lsp and is executed when the user executes the Resolve Macro As code action
-    context.subscriptions.push(vscode.commands.registerCommand(RESOLVE_MACRO_AS_COMMAND, resolveMacroAsCodeActionCommandHandler));
-
-    context.subscriptions.push(vscode.commands.registerCommand('calva.linting.resolveMacroAs', resolveMacroAsCommandHandler));
-
+    context.subscriptions.push(
+        ...generalCommands.map(command => vscode.commands.registerCommand(command.name, command.handler))
+    );
     context.subscriptions.push(
         ...clojureLspCommands.map(command => registerLspCommand(client, command))
     );
@@ -310,12 +323,17 @@ async function serverInfoCommandHandler(): Promise<void> {
         calvaSaysChannel.appendLine(serverInfoPretty);
         calvaSaysChannel.show(true);
     } else {
-        vscode.window.showInformationMessage('There is no clojure-lsp server running.');
+        vscode.window.showInformationMessage(SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE);
     }
 }
 
+function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile));
+}
+
 async function activate(context: vscode.ExtensionContext): Promise<void> {
-    vscode.commands.registerCommand('calva.diagnostics.clojureLspServerInfo', serverInfoCommandHandler);
+    registerDiagnosticsCommands(context);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
     const userConfiguredClojureLspPath = config.getConfig().clojureLspPath;
@@ -366,6 +384,17 @@ async function getDocumentSymbols(lspClient: LanguageClient, uri: string): Promi
 
 async function getServerInfo(lspClient: LanguageClient): Promise<any> {
     return lspClient.sendRequest('clojure/serverInfo/raw');
+}
+
+async function openLogFile(): Promise<void> {
+    const client = getStateValue(LSP_CLIENT_KEY);
+    if (client) {
+        const serverInfo = await getServerInfo(client);
+        const logPath = serverInfo['log-path'];
+        vscode.window.showTextDocument(vscode.Uri.file(logPath));
+    } else {
+        vscode.window.showInformationMessage(SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE);
+    }
 }
 
 export default {
