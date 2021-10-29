@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Not able to escape read-line in the output window](https://github.com/BetterThanTomorrow/calva/issues/783)
 
 ## [2.0.222] - 2021-10-27
 - [Add command to open the clojure-lsp log file](https://github.com/BetterThanTomorrow/calva/issues/1362)
