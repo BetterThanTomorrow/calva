@@ -1576,7 +1576,7 @@
             {
                 "command": "calva.selectCurrentForm",
                 "key": "ctrl+alt+c ctrl+s",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.clearInlineResults",
@@ -1586,47 +1586,47 @@
             {
                 "command": "calva.evaluateSelection",
                 "key": "ctrl+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateEnclosingForm",
                 "key": "ctrl+shift+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateToCursor",
                 "key": "ctrl+alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateTopLevelFormToCursor",
                 "key": "shift+alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateStartOfFileToCursor",
                 "key": "ctrl+shift+alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.tapSelection",
                 "key": "ctrl+shift+t t",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.tapCurrentTopLevelForm",
                 "key": "ctrl+shift+t space",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.interruptAllEvaluations",
                 "key": "ctrl+alt+c ctrl+alt+d",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
                 "key": "alt+enter",
-                "when": "calva:keybindingsEnabled && editorTextFocus"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateCurrentTopLevelForm",
@@ -1636,27 +1636,27 @@
             {
                 "command": "calva.evaluateSelectionReplace",
                 "key": "ctrl+alt+c r",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateSelectionAsComment",
                 "key": "ctrl+alt+c c",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.evaluateTopLevelFormAsComment",
                 "key": "ctrl+alt+c ctrl+space",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.printLastStacktrace",
                 "key": "ctrl+alt+c ctrl+alt+p",
-                "when": "calva:keybindingsEnabled"
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus"
             },
             {
                 "command": "calva.copyLastResults",
                 "key": "ctrl+alt+c ctrl+c",
-                "when": "calva:connected && calva:keybindingsEnabled"
+                "when": "calva:connected && calva:keybindingsEnabled && editorLangId == clojure"
             },
             {
                 "command": "calva.loadFile",
