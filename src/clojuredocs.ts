@@ -42,9 +42,15 @@ export async function printClojureDocsToOutputWindow() {
     if ((<NoDocsEntry>docs).noDocs) {
         return;
     }
-    else {
-        outputWindow.append(docsEntry2ClojureCode(<DocsEntry>docs));
-    }
+    printTextToOutputWindow(docsEntry2ClojureCode(<DocsEntry>docs));
+}
+
+export function printTextToOutputWindowCommand(args: { [x: string]: string; }) {
+    printTextToOutputWindow(args['text']);
+}
+
+function printTextToOutputWindow(text: string) {
+    outputWindow.append(text);
     outputWindow.appendPrompt();
 }
 
@@ -86,21 +92,27 @@ function getHoverForDocs(docs: DocsEntry | string, position: number, isWritableD
     hover.isTrusted = true;
     hover.appendMarkdown('## ClojureDocs Examples\n\n');
     hover.appendMarkdown(`${linkMd}\n\n`);
+    const seeAlsos = docs.seeAlsos.map(also => `${also.replace(/^clojure.core\//, '')}`);
     docs.examples.forEach((example, i) => {
-        hover.appendMarkdown(getHoverForExample(`Example ${i + 1}`, example, position, isWritableDocument).value);
+        const symbol = `${docs.ns}/${docs.name}`.replace(/^clojure.core\//, '');
+        hover.appendMarkdown(getHoverForExample(symbol, `Example ${i + 1}`, example, seeAlsos, position, isWritableDocument).value);
     });
+    hover.appendMarkdown('### See also\n\n');
+    hover.appendCodeblock(seeAlsos.join('\n'), 'clojure');
     return hover;
-    //const seeAlsos = docs.seeAlsos.map(also => `${also} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
 }
 
-function getHoverForExample(header: string, example: string, position: number, isWritableDocument: boolean): vscode.MarkdownString {
-    const printToRCFCommandUri = `command:calva.printTextToRichCommentCommand?${encodeURIComponent(JSON.stringify([{ text: example, position: position }]))}`;
-    const rcfCommandMd = `[As Rich Comment](${printToRCFCommandUri} "Print to Rich Comment")`;
+function getHoverForExample(symbol: string, header: string, example: string, seeAlsos: string[], position: number, isWritableDocument: boolean): vscode.MarkdownString {
+    const exampleAndSeeAlsos = `;; = ${symbol} - ${header} = \n\n${example}\n;; See also:\n${seeAlsos.join('\n')}`;
+    const printToRCFCommandUri = `command:calva.printTextToRichCommentCommand?${encodeURIComponent(JSON.stringify([{ text: exampleAndSeeAlsos, position: position }]))}`;
+    const printToOutputWindowCommandUri = `command:calva.printTextToOutputWindowCommand?${encodeURIComponent(JSON.stringify([{ text: exampleAndSeeAlsos, position: position }]))}`;
+    const rcfCommandMd = `[To Rich Comment](${printToRCFCommandUri} "Print the example to a \`(comment ...)\` block")`;
+    const outputWindowCommandMd = `[To Output Window](${printToOutputWindowCommandUri} "Print the example to the Output/REPL Window")`;
     const hover = new vscode.MarkdownString();
     hover.isTrusted = true;
     hover.appendMarkdown(`### ${header}\n\n`);
     if (isWritableDocument) {
-        hover.appendMarkdown(`${rcfCommandMd}\n`);
+        hover.appendMarkdown(`${rcfCommandMd} | ${outputWindowCommandMd}\n`);
     }
     hover.appendCodeblock(example, 'clojure');
     return hover;
@@ -118,7 +130,7 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
         // Not planning to print docs string, but keeping this code anyway =)
         const doc = docs.doc.split(/\n/).map(line => `;; ${line.replace(/^ {0,3}/, '')}`).join('\n').trim();
         const examples = docs.examples.map((example, i) => `${exampleSeparatorB} ${i + 1}\n${example.trim()}\n${exampleSeparatorE} ${i + 1}`).join('\n\n');
-        const seeAlsos = docs.seeAlsos.map(also => `${also} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
+        const seeAlsos = docs.seeAlsos.map(also => `${also.replace(/^clojure.core\//, '')} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
         const code = `${name}\n${webUrl}\n${printDocString ? doc + '\n' : ''}\n;; Examples:\n${examples}\n\n;; See also:\n${seeAlsos}\n`;
         return code;
     }
