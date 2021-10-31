@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
-import annotations from './providers/annotations';
 import * as util from './utilities';
-import { NReplSession, NReplEvaluation } from './nrepl';
+import * as nrepl from './nrepl';
+import * as lsp from './lsp/main';
 import * as outputWindow from './results-output/results-doc';
 import * as namespace from './namespace';
 import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
-import * as getText from './util/get-text';
 import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';
-import { string } from 'fast-check/*';
 
 export type DocsEntry = {
     name: string;
@@ -33,7 +31,7 @@ export type NoDocsEntry = {
     message: string;
 };
 
-export function init(cljSession: NReplSession) {
+export function init(cljSession: nrepl.NReplSession) {
     cljSession.clojureDocsRefreshCache().catch(reason => {
         console.error("Error refreshing ClojureDocs cache: ", reason);
     });
@@ -132,15 +130,30 @@ async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): 
     const ns = namespace.getNamespace(doc);
     const session = replSession.getSession(util.getFileType(doc));
 
-    return clojureDocsCiderNReplLookup(session, symbol, ns);
+    const docsFromCider = await clojureDocsCiderNReplLookup(session, symbol, ns);
+    if (!(<NoDocsEntry>docsFromCider).noDocs) {
+        return docsFromCider;
+    } else {
+        return clojureDocsLspLookup(session, symbol, ns);
+    }
 }
 
-async function clojureDocsCiderNReplLookup(session: NReplSession, symbol: string, ns: string): Promise<DocsEntry | NoDocsEntry> {
+async function clojureDocsCiderNReplLookup(session: nrepl.NReplSession, symbol: string, ns: string): Promise<DocsEntry | NoDocsEntry> {
     const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
-    return ciderNRepl2DocsEntry(ciderNReplDocs, symbol, ns);
+    return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
 }
 
-function ciderNRepl2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEntry | NoDocsEntry {
+async function clojureDocsLspLookup(session: nrepl.NReplSession, symbol: string, ns: string): Promise<DocsEntry | NoDocsEntry> {
+    const resolved = await session.info(ns, symbol);
+    try {
+        const docs = await lsp.getClojuredocs(resolved.name, resolved.ns);
+        return rawDocs2DocsEntry({ clojuredocs: docs }, resolved.name, resolved.ns);
+    } catch {
+        return rawDocs2DocsEntry({ clojuredocs: null }, resolved.name, resolved.ns);
+    }
+}
+
+function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEntry | NoDocsEntry {
     const docs = docsResult.clojuredocs;
     if (docs) {
         return {
