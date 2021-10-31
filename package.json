@@ -2059,12 +2059,12 @@
             },
             {
                 "command": "calva.showOutputWindow",
-                "key": "ctrl+alt+c o",
+                "key": "ctrl+alt+o o",
                 "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
             },
             {
                 "command": "calva.showFileForOutputWindowNS",
-                "key": "ctrl+alt+c o",
+                "key": "ctrl+alt+o o",
                 "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
             },
             {
