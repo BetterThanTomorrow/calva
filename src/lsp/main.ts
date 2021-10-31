@@ -17,6 +17,7 @@ const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
 const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not running or has not finished intializing.'
 const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
+let serverVersion: string;
 
 function createClient(clojureLspPath: string): LanguageClient {
     const serverOptions: ServerOptions = {
@@ -300,16 +301,16 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     setStateValue(LSP_CLIENT_KEY, client);
     registerCommands(context, client);
     registerEventHandlers(context, client);
-    sayClientVersionInfo(client);
+    const serverInfo = await getServerInfo(client);
+    serverVersion = serverInfo['server-version'];
+    sayClientVersionInfo(serverVersion, serverInfo);
 }
 
-async function sayClientVersionInfo(client: LanguageClient) {
-    const serverInfo = await getServerInfo(client);
-    const clojureLspVersion = serverInfo['server-version'];
+function sayClientVersionInfo(serverVersion: string, serverInfo: any) {
     const cljKondoVersion = serverInfo['clj-kondo-version'];
     const calvaSaysChannel = state.outputChannel();
     calvaSaysChannel.appendLine('');
-    calvaSaysChannel.appendLine(`clojure-lsp version used: ${clojureLspVersion}`);
+    calvaSaysChannel.appendLine(`clojure-lsp version used: ${serverVersion}`);
     calvaSaysChannel.appendLine(`clj-kondo version used: ${cljKondoVersion}`);
 }
 
@@ -398,11 +399,15 @@ async function openLogFile(): Promise<void> {
 }
 
 export async function getClojuredocs(symName: string, symNs: string): Promise<any> {
-    const client: LanguageClient = getStateValue(LSP_CLIENT_KEY);
-    return client.sendRequest('clojure/clojuredocs/raw', {
-        symName,
-        symNs
-    });
+    if (serverVersion > '2021.10.20-16.49.47') {
+        const client: LanguageClient = getStateValue(LSP_CLIENT_KEY);
+        return client.sendRequest('clojure/clojuredocs/raw', {
+            symName,
+            symNs
+        });
+    } else {
+        return null;
+    }
 }
 
 export default {
