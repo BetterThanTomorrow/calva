@@ -61,24 +61,24 @@ export async function printClojureDocsToRichComment() {
 }
 
 export function printTextToRichCommentCommand(args: { [x: string]: string; }) {
-    printTextToRichComment(args['text']);
+    printTextToRichComment(args['text'], Number.parseInt(args['position']));
 }
 
-function printTextToRichComment(text: string) {
+function printTextToRichComment(text: string, position?: number) {
     const doc = util.getDocument({});
     const mirrorDoc = docMirror.getDocument(doc);
-    paredit.addRichComment(mirrorDoc, mirrorDoc.selection.active, text);
+    paredit.addRichComment(mirrorDoc, position ? position : mirrorDoc.selection.active, text);
 }
 
-export async function getExamplesHover(document, position): Promise<vscode.MarkdownString> {
+export async function getExamplesHover(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.MarkdownString> {
     const docs = await clojureDocsLookup(document, position);
     if ((<NoDocsEntry>docs).noDocs) {
         return null;
     }
-    return getHoverForDocs(<DocsEntry>docs);
+    return getHoverForDocs(<DocsEntry>docs, document.offsetAt(position), await util.isDocumentWritable(document));
 }
 
-function getHoverForDocs(docs: DocsEntry | string): vscode.MarkdownString {
+function getHoverForDocs(docs: DocsEntry | string, position: number, isWritableDocument: boolean): vscode.MarkdownString {
     if (typeof docs === 'string') {
         return;
     }
@@ -89,19 +89,21 @@ function getHoverForDocs(docs: DocsEntry | string): vscode.MarkdownString {
     hover.appendMarkdown('## ClojureDocs Examples\n\n');
     hover.appendMarkdown(`${linkMd}\n\n`);
     docs.examples.forEach((example, i) => {
-        hover.appendMarkdown(getHoverForExample(`Example ${i + 1}`, example).value);
+        hover.appendMarkdown(getHoverForExample(`Example ${i + 1}`, example, position, isWritableDocument).value);
     });
     return hover;
     //const seeAlsos = docs.seeAlsos.map(also => `${also} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
 }
 
-function getHoverForExample(header: string, example: string): vscode.MarkdownString {
-    const printToRCFCommandUri = `command:calva.printTextToRichCommentCommand?${encodeURIComponent(JSON.stringify([{ text: example }]))}`;
+function getHoverForExample(header: string, example: string, position: number, isWritableDocument: boolean): vscode.MarkdownString {
+    const printToRCFCommandUri = `command:calva.printTextToRichCommentCommand?${encodeURIComponent(JSON.stringify([{ text: example, position: position }]))}`;
     const rcfCommandMd = `[As Rich Comment](${printToRCFCommandUri} "Print to Rich Comment")`;
     const hover = new vscode.MarkdownString();
     hover.isTrusted = true;
     hover.appendMarkdown(`### ${header}\n\n`);
-    hover.appendMarkdown(`${rcfCommandMd}\n`);
+    if (isWritableDocument) {
+        hover.appendMarkdown(`${rcfCommandMd}\n`);
+    }
     hover.appendCodeblock(example, 'clojure');
     return hover;
 }
