@@ -74,7 +74,7 @@
 (defn current-line-empty?
   "Figure out if `:current-line` is empty"
   [{:keys [current-line]}]
-  (some? (re-find #"^\s*$" current-line)))
+  (some? (re-find #"^[\s,]*$" current-line)))
 
 
 (defn indent-before-range
@@ -118,13 +118,13 @@
 (defn index-for-tail-in-range
   "Find index for the `tail` in `text` disregarding whitespace"
   [{:keys [range-text range-tail on-type] :as m}]
-  (let [leading-space-length (count (re-find #"^[ \t]*" range-tail))
+  (let [leading-space-length (count (re-find #"^[ \t,]*" range-tail))
         space-sym (str "@" (gensym "ESPACEIALLY") "@")
         tail-pattern (-> range-tail
                          (clojure.string/replace #"[\]\)\}\"]" (str "$&" space-sym))
                          (util/escape-regexp)
-                         (clojure.string/replace #"^[ \t]+" "")
-                         (clojure.string/replace #"\s+" "\\s*")
+                         (clojure.string/replace #"^[ \t,]+" "")
+                         (clojure.string/replace #"[\s,]+" "[\\s,]*")
                          (clojure.string/replace space-sym " ?"))
         tail-pattern (if (and on-type (re-find #"^\r?\n" range-tail))
                        (str "(\\r?\\n)+" tail-pattern)
@@ -141,9 +141,11 @@
         padded-text (str padding range-text)
         range-index (- idx (first range))
         tail (subs range-text range-index)
-        formatted-m (format-text (assoc m :range-text padded-text))]
-    (-> (assoc formatted-m :range-text (subs (:range-text formatted-m) indent-before))
-        (assoc :range-tail tail))))
+        formatted-m (format-text (assoc m :range-text padded-text))
+        formatted-text (subs (:range-text formatted-m) indent-before)]
+    (-> (assoc formatted-m
+               :range-text formatted-text
+               :range-tail tail))))
 
 (defn format-text-at-range-bridge
   [m]
@@ -197,7 +199,7 @@
       (let [range-text (extract-range-text m)
             new-range-text (clojure.string/replace
                             range-text
-                            #"\n{0,1}[ \t]*\)$"
+                            #"\n{0,1}[ \t,]*\)$"
                             (str "\n" trailing-bracket_symbol ")"))
             added-text-length (- (count new-range-text)
                                  (count range-text))
@@ -215,7 +217,7 @@
             (assoc-in [:range 1] new-range-end)))
       m)))
 
-(defn remove-trail-symbol-if-commment
+(defn remove-trail-symbol-if-comment
   "If the `range-text` is a comment, remove the symbol at the end"
   [{:keys [range range-text new-index idx config] :as m} original-range]
   (let [keep-trailing-bracket-on-own-line?
@@ -246,7 +248,7 @@
       (format-text-at-range)
       (index-for-tail-in-range)
       (remove-indent-token-if-empty-current-line)
-      (remove-trail-symbol-if-commment range)))
+      (remove-trail-symbol-if-comment range)))
 
 (defn format-text-at-idx-bridge
   [m]

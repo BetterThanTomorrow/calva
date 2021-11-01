@@ -8,14 +8,12 @@
          (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}))))
   (is (not (contains? (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}) :new-index))))
 
-{:eol "\n", :all-text "  (foo)\n(defn bar\n[x]\nbaz)", :range [2 26], :range-text "(foo)\n(defn bar\n  [x]\n  baz)", :range-tail "(foo)\n(defn bar\n[x]\nbaz)"}
 (def all-text "  (foo)
   (defn bar
          [x]
 
 baz)")
 
-{:current-line "(defn ", :config {:remove-surrounding-whitespace? false, :remove-trailing-whitespace? false, :remove-consecutive-blank-lines? false}, :on-type true, :range-tail "\n)", :new-index 6, :head "(defn ", :tail "\n)", :eol "\n", :range-text "(defn \n  )", :idx 6, :all-text "(defn \n)", :range [0 8]}
 (deftest format-text-at-idx
   (is (= "(defn bar
     [x]
@@ -25,7 +23,11 @@ baz)")
   (is (= 1
          (:new-index (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
   (is (= [10 38]
-         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11})))))
+         (:range (sut/format-text-at-idx {:eol "\n" :all-text all-text :range [10 38] :idx 11}))))
+  (is (= [0 5]
+         (:range (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2}))))
+  (is (= "()"
+         (:range-text (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 5] :idx 2})))))
 
 (def a-comment
   {:eol "\n"
@@ -50,7 +52,7 @@ baz))"
          (select-keys (sut/format-text-at-idx
                        (assoc-in a-comment [:config :comment-form?] false))
                       [:range-text :new-index])))
-  
+
   (is (= {:new-index 41
           :range-text "(comment
   (defn bar
@@ -58,7 +60,7 @@ baz))"
 
     baz)
   )"}
-         (select-keys (sut/format-text-at-idx 
+         (select-keys (sut/format-text-at-idx
                        (assoc a-comment :idx 47))
                       [:range-text :new-index]))))
 
@@ -76,7 +78,9 @@ baz))"
   (is (= 5
          (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(defn \n  \nfoo)" :range [0 14] :idx 6}))))
   (is (= 11
-         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [0 14] :idx 11})))))
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(foo\n (bar)\n )" :range [0 14] :idx 11}))))
+  (is (= 1
+         (:new-index (sut/format-text-at-idx {:eol "\n" :all-text "(\n\n,)" :range [0 14] :idx 2})))))
 
 
 (def head-and-tail-text "(def a 1)
