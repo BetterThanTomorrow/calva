@@ -117,7 +117,7 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
         // Not planning to print docs string, but keeping this code anyway =)
         const doc = docs.doc.split(/\n/).map(line => `;; ${line.replace(/^ {0,3}/, '')}`).join('\n').trim();
         const examples = docs.examples.map((example, i) => `${exampleSeparatorB} ${i + 1}\n${example.trim()}\n${exampleSeparatorE} ${i + 1}`).join('\n\n');
-        const seeAlsos = docs.seeAlsos.map(also => `${also.replace(/^clojure.core\//, '')} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
+        const seeAlsos = docs.seeAlsos.map(also => `${also.replace(/^clojure.core\//, '')}`).join(`\n`);
         const code = `${name}\n${webUrl}\n${printDocString ? doc + '\n' : ''}\n;; Examples:\n${examples}\n\n;; See also:\n${seeAlsos}\n`;
         return code;
 }
