@@ -402,6 +402,14 @@ function randomSlug(length = 7) {
 
 const isWindows = process.platform === 'win32';
 
+export async function isDocumentWritable(document: vscode.TextDocument): Promise<boolean> {
+    if (!vscode.workspace.fs.isWritableFileSystem(document.uri.scheme)) {
+        return false;
+    }
+    const fileStat = await vscode.workspace.fs.stat(document.uri);
+    return (fileStat.permissions & vscode.FilePermission.Readonly) !== 1;
+}
+
 export {
     getWordAtPosition,
     getDocument,

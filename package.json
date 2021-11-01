@@ -1438,6 +1438,18 @@
                 "category": "Calva"
             },
             {
+                "command": "calva.printClojureDocsToOutputWindow",
+                "title": "Print clojuredocs.org examples to OutputWindow",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
+                "command": "calva.printClojureDocsToRichComment",
+                "title": "Print clojuredocs.org examples to Rich Comment",
+                "enablement": "calva:connected",
+                "category": "Calva"
+            },
+            {
                 "command": "calva.refactor.cleanNs",
                 "title": "Clean NS Form",
                 "category": "Calva Refactor",
@@ -2047,12 +2059,12 @@
             },
             {
                 "command": "calva.showOutputWindow",
-                "key": "ctrl+alt+c o",
+                "key": "ctrl+alt+o o",
                 "when": "calva:keybindingsEnabled && calva:connected && !calva:outputWindowActive"
             },
             {
                 "command": "calva.showFileForOutputWindowNS",
-                "key": "ctrl+alt+c o",
+                "key": "ctrl+alt+o o",
                 "when": "calva:keybindingsEnabled && calva:connected && calva:outputWindowActive"
             },
             {
@@ -2080,6 +2092,16 @@
                 "command": "calva.showNextReplHistoryEntry",
                 "key": "alt+down",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected && calva:outputWindowActive"
+            },
+            {
+                "command": "calva.printClojureDocsToOutputWindow",
+                "key": "ctrl+alt+o d",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
+            },
+            {
+                "command": "calva.printClojureDocsToRichComment",
+                "key": "ctrl+alt+r d",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && calva:connected"
             },
             {
                 "command": "calva.runCustomREPLCommand",

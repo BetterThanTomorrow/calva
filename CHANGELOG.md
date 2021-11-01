@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Include material from clojuredocs.org in function documentation](https://github.com/BetterThanTomorrow/calva/issues/689)
 - Fix: [Not able to escape read-line in the output window](https://github.com/BetterThanTomorrow/calva/issues/783)
 - Fix: [Some keyboard shortcuts missing the languageID check](https://github.com/BetterThanTomorrow/calva/issues/823)
 - Fix: [Formatting form with comma whitespace inserts 0 and places the cursor wrong](https://github.com/BetterThanTomorrow/calva/issues/1370)

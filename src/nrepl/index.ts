@@ -605,6 +605,28 @@ export class NReplSession {
             this.client.write({ op: 'debug-instrumented-defs', id, session: this.sessionId });
         });
     }
+
+    clojureDocsRefreshCache() {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "clojuredocs-refresh-cache", id, session: this.sessionId });
+        })
+    }
+
+    clojureDocsLookup(ns: string, symbol: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "clojuredocs-lookup", id, ns, session: this.sessionId, sym: symbol });
+        })
+    }
 }
 
 /**
