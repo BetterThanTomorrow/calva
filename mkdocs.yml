@@ -35,6 +35,7 @@ nav:
     - commands-top10.md
     - evaluation.md
     - rich-comments.md
+    - clojuredocs.md
     - output.md
     - formatting.md
     - paredit.md

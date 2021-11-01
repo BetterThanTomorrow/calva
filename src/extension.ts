@@ -35,6 +35,7 @@ import { setStateValue } from '../out/cljs-lib/cljs-lib';
 import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 
+import * as clojureDocs from './clojuredocs';
 async function onDidSave(document) {
     let {
         evaluate,
@@ -225,6 +226,10 @@ async function activate(context: vscode.ExtensionContext) {
     }))
     context.subscriptions.push(vscode.commands.registerCommand('calva.continueComment', edit.continueCommentCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.toggleNreplLoggingEnabled', nreplLogging.toggleEnabled));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.printClojureDocsToOutputWindow', clojureDocs.printClojureDocsToOutputWindow));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.printClojureDocsToRichComment', clojureDocs.printClojureDocsToRichComment));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.printTextToRichCommentCommand', clojureDocs.printTextToRichCommentCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.printTextToOutputWindowCommand', clojureDocs.printTextToOutputWindowCommand));
 
     // Initial set of the provided contexts
     outputWindow.setContextForOutputWindowActive(false);

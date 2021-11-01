@@ -16,6 +16,7 @@ import * as liveShareSupport from './liveShareSupport';
 import * as calvaDebug from './debugger/calva-debug';
 import { setStateValue, getStateValue } from '../out/cljs-lib/cljs-lib';
 import * as replSession from './nrepl/repl-session';
+import * as clojureDocs from './clojuredocs';
 
 async function connectToHost(hostname: string, port: number, connectSequence: ReplConnectSequence) {
     state.analytics().logEvent("REPL", "Connecting").send();
@@ -68,6 +69,8 @@ async function connectToHost(hostname: string, port: number, connectSequence: Re
         }
 
         outputWindow.appendPrompt();
+
+        clojureDocs.init(cljSession);
 
         let cljsSession = null,
             cljsBuild = null;

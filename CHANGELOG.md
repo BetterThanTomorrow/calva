@@ -4,6 +4,13 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.223] - 2021-11-01
+- [Include material from clojuredocs.org in function documentation](https://github.com/BetterThanTomorrow/calva/issues/689)
+- Fix: [Not able to escape read-line in the output window](https://github.com/BetterThanTomorrow/calva/issues/783)
+- Fix: [Some keyboard shortcuts missing the languageID check](https://github.com/BetterThanTomorrow/calva/issues/823)
+- Fix: [Formatting form with comma whitespace inserts 0 and places the cursor wrong](https://github.com/BetterThanTomorrow/calva/issues/1370)
+- Fix: [Calva's re-frame docs are outdated](https://github.com/BetterThanTomorrow/calva/issues/1372)
+
 ## [2.0.222] - 2021-10-27
 - [Add command to open the clojure-lsp log file](https://github.com/BetterThanTomorrow/calva/issues/1362)
 - [Add nrepl message logging](https://github.com/BetterThanTomorrow/calva/issues/1198)

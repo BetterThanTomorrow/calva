@@ -10,13 +10,13 @@ The first prompt is from when the `clj` REPL is connected, the second when Calva
 
 ## Find the Output/REPL Window
 
-If you quickly want to open and switch to the output window there is the command **Calva: Show Output Window**, `ctrl+alt+c o`.
+If you quickly want to open and switch to the output window there is the command **Calva: Show Output Window**, `ctrl+alt+o o`.
 
 To sync the Output/REPL window namespace with the current file before switching, use the **Switch Namespace of the Output/REPL Window to Current Namespace** command, `ctrl+alt+c alt+n`.
 
 ## Find the File for the Current REPL Window Namespace
 
-When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the **Show File for the Current Output/REPL Window Namespace** command, `ctrl+alt+c o`.
+When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the **Show File for the Current Output/REPL Window Namespace** command, `ctrl+alt+o o`.
 
 !!! Note
     This also works for Clojure core and library namespaces.
@@ -37,7 +37,7 @@ The output window will print the defined var and then a new prompt reflecting th
 
 ![eval-results-1](images/howto/output/eval-results-1.png)
 
-If you then switch to the output window (`ctrl+alt+c o`), and enter this at the prompt:
+If you then switch to the output window (`ctrl+alt+o o`), and enter this at the prompt:
 
 ```clojure
 mount-target

@@ -395,7 +395,7 @@ export class NReplSession {
             this.client.write({ op: "info", ns, symbol, id, session: this.sessionId })
         })
     }
-    
+
     classpath() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
@@ -604,6 +604,28 @@ export class NReplSession {
             }
             this.client.write({ op: 'debug-instrumented-defs', id, session: this.sessionId });
         });
+    }
+
+    clojureDocsRefreshCache() {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "clojuredocs-refresh-cache", id, session: this.sessionId });
+        })
+    }
+
+    clojureDocsLookup(ns: string, symbol: string) {
+        return new Promise<any>((resolve, reject) => {
+            let id = this.client.nextId;
+            this.messageHandlers[id] = (msg) => {
+                resolve(msg);
+                return true;
+            }
+            this.client.write({ op: "clojuredocs-lookup", id, ns, session: this.sessionId, sym: symbol });
+        })
     }
 }
 
@@ -821,8 +843,8 @@ export class NReplEvaluation {
                             if (input !== undefined) {
                                 this.session.stdin(`${input}\n`);
                             } else {
-                                this.out("No input provided.");
-                                this.session.stdin('\n');
+                                this.out("Sending interrupt.");
+                                this.interrupt();
                             }
                         }).catch((e) => {
                             this.session.stdin('\n');
