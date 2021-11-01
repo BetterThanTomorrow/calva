@@ -22,13 +22,7 @@ export type DocsEntry = {
     seeAlsos: string[];
     added: string;
     tag: string;
-};
-
-export type NoDocsEntry = {
-    noDocs: boolean;
-    symbol: string;
-    ns: string;
-    message: string;
+    fromServer: "cider-nrepl" | "clojure-lsp";
 };
 
 export function init(cljSession: nrepl.NReplSession) {
@@ -39,10 +33,10 @@ export function init(cljSession: nrepl.NReplSession) {
 
 export async function printClojureDocsToOutputWindow() {
     const docs = await clojureDocsLookup();
-    if ((<NoDocsEntry>docs).noDocs) {
+    if (!docs) {
         return;
     }
-    printTextToOutputWindow(docsEntry2ClojureCode(<DocsEntry>docs));
+    printTextToOutputWindow(docsEntry2ClojureCode(docs));
 }
 
 export function printTextToOutputWindowCommand(args: { [x: string]: string; }) {
@@ -56,11 +50,11 @@ function printTextToOutputWindow(text: string) {
 
 export async function printClojureDocsToRichComment() {
     const docs = await clojureDocsLookup();
-    if ((<NoDocsEntry>docs).noDocs) {
+    if (!docs) {
         return;
     }
     else {
-        printTextToRichComment(docsEntry2ClojureCode(<DocsEntry>docs));
+        printTextToRichComment(docsEntry2ClojureCode(docs));
     }
 }
 
@@ -76,22 +70,19 @@ function printTextToRichComment(text: string, position?: number) {
 
 export async function getExamplesHover(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.MarkdownString> {
     const docs = await clojureDocsLookup(document, position);
-    if ((<NoDocsEntry>docs).noDocs) {
+    if (!docs) {
         return null;
     }
-    return getHoverForDocs(<DocsEntry>docs, document.offsetAt(position), await util.isDocumentWritable(document));
+    return getHoverForDocs(docs, document.offsetAt(position), await util.isDocumentWritable(document));
 }
 
-function getHoverForDocs(docs: DocsEntry | string, position: number, isWritableDocument: boolean): vscode.MarkdownString {
-    if (typeof docs === 'string') {
-        return;
-    }
+function getHoverForDocs(docs: DocsEntry, position: number, isWritableDocument: boolean): vscode.MarkdownString {
     const webUrl = `${docs.baseUrl}/${docs.urlPath}`;
     const linkMd = `[${webUrl}](${webUrl})`;
     const hover = new vscode.MarkdownString();
     hover.isTrusted = true;
     hover.appendMarkdown('## ClojureDocs Examples\n\n');
-    hover.appendMarkdown(`${linkMd}\n\n`);
+    hover.appendMarkdown(`${linkMd} via ${docs.fromServer}\n\n`);
     const seeAlsos = docs.seeAlsos.map(also => `${also.replace(/^clojure.core\//, '')}`);
     docs.examples.forEach((example, i) => {
         const symbol = `${docs.ns}/${docs.name}`.replace(/^clojure.core\//, '');
@@ -119,10 +110,6 @@ function getHoverForExample(symbol: string, header: string, example: string, see
 }
 
 function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string {
-    if (typeof docs === 'string') {
-        return `;; ${docs}`;
-    }
-    else {
         const exampleSeparatorB = `;; ------- BEGIN EXAMPLE`
         const exampleSeparatorE = `;; ------- END EXAMPLE`
         const name = `;; ${docs.ns}/${docs.name}`;
@@ -133,9 +120,9 @@ function docsEntry2ClojureCode(docs: DocsEntry, printDocString = false): string 
         const seeAlsos = docs.seeAlsos.map(also => `${also.replace(/^clojure.core\//, '')} ; ${docs.baseUrl}/${also.replace(/\?/g, '%3F')}`).join(`\n`);
         const code = `${name}\n${webUrl}\n${printDocString ? doc + '\n' : ''}\n;; Examples:\n${examples}\n\n;; See also:\n${seeAlsos}\n`;
         return code;
-    }
 }
-async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): Promise<DocsEntry | NoDocsEntry> {
+
+async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): Promise<DocsEntry> {
     const doc = d ? d : util.getDocument({});
     const position = p ? p : vscode.window.activeTextEditor.selection.active;
     const symbol = util.getWordAtPosition(doc, position);
@@ -143,29 +130,31 @@ async function clojureDocsLookup(d?: vscode.TextDocument, p?: vscode.Position): 
     const session = replSession.getSession(util.getFileType(doc));
 
     const docsFromCider = await clojureDocsCiderNReplLookup(session, symbol, ns);
-    if (!(<NoDocsEntry>docsFromCider).noDocs) {
+    if (docsFromCider) {
         return docsFromCider;
     } else {
         return clojureDocsLspLookup(session, symbol, ns);
     }
 }
 
-async function clojureDocsCiderNReplLookup(session: nrepl.NReplSession, symbol: string, ns: string): Promise<DocsEntry | NoDocsEntry> {
+async function clojureDocsCiderNReplLookup(session: nrepl.NReplSession, symbol: string, ns: string): Promise<DocsEntry> {
     const ciderNReplDocs = await session.clojureDocsLookup(ns, symbol);
+    ciderNReplDocs.fromServer = "cider-nrepl";
     return rawDocs2DocsEntry(ciderNReplDocs, symbol, ns);
 }
 
-async function clojureDocsLspLookup(session: nrepl.NReplSession, symbol: string, ns: string): Promise<DocsEntry | NoDocsEntry> {
+async function clojureDocsLspLookup(session: nrepl.NReplSession, symbol: string, ns: string): Promise<DocsEntry> {
     const resolved = await session.info(ns, symbol);
+    const symNs = resolved.ns.replace(/^cljs\./, 'clojure.');
     try {
         const docs = await lsp.getClojuredocs(resolved.name, resolved.ns);
-        return rawDocs2DocsEntry({ clojuredocs: docs }, resolved.name, resolved.ns);
+        return rawDocs2DocsEntry({ clojuredocs: docs, fromServer: "clojure-lsp" }, resolved.name, symNs);
     } catch {
-        return rawDocs2DocsEntry({ clojuredocs: null }, resolved.name, resolved.ns);
+        return rawDocs2DocsEntry({ clojuredocs: null, fromServer: "clojure-lsp" }, resolved.name, resolved.ns);
     }
 }
 
-function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEntry | NoDocsEntry {
+function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEntry {
     const docs = docsResult.clojuredocs;
     if (docs) {
         return {
@@ -180,14 +169,12 @@ function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEnt
             urlPath: docs.href.replace(/^\/?/, ''),
             seeAlsos: docs['see-alsos'],
             tag: docs.tag,
-            type: docs.type
+            type: docs.type,
+            fromServer: docsResult.fromServer
         }
     } else {
-        return {
-            noDocs: true,
-            symbol: symbol,
-            ns: ns,
-            message: `Docs lookup failed: ${symbol ? 'Only Clojure core (ish) symbols supported' : 'Cursor not at a Clojure core (ish) symbol'}`
-        }
+        // TODO: Remove this debug logging
+        console.log(`No results for ${ns}/${symbol} from ${docsResult.fromServer}`);
+        return null;
     }
 }
