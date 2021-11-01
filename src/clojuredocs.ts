@@ -173,8 +173,7 @@ function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEnt
             fromServer: docsResult.fromServer
         }
     } else {
-        // TODO: Remove this debug logging
-        console.log(`No results for ${ns}/${symbol} from ${docsResult.fromServer}`);
+        // console.log(`No results for ${ns}/${symbol} from ${docsResult.fromServer}`);
         return null;
     }
 }
