@@ -14,15 +14,15 @@
         <link rel="canonical" href="https://calva.io/re-frame-template/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.4">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
     
     
       
-        <title>How to Use Calva With the re-frame Template - Calva User Guide</title>
+        <title>How to wse Calva with the re-frame template - Calva User Guide</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.db9e7362.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to-use-calva-with-the-re-frame-template" class="md-skip">
+        <a href="#how-to-wse-calva-with-the-re-frame-template" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              How to Use Calva With the re-frame Template
+              How to wse Calva with the re-frame template
             
           </span>
         </div>
@@ -411,6 +411,20 @@
     <li class="md-nav__item">
       <a href="../rich-comments/" class="md-nav__link">
         Rich Comments Support
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clojuredocs/" class="md-nav__link">
+        ClojureDocs integration
       </a>
     </li>
   
@@ -766,7 +780,7 @@
       
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        How to Use Calva With the re-frame Template
+        How to wse Calva with the re-frame template
       </a>
       
     </li>
@@ -1080,6 +1094,8 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -1102,30 +1118,31 @@
                   </a>
                 
                 
-                <h1 id="how-to-use-calva-with-the-re-frame-template">How to Use Calva With the re-frame Template</h1>
-<p>To make it easy to start the app created by the <a href="https://github.com/day8/re-frame-template">re-frame template</a> use the <code>+calva</code> option when creating your project. In its plainest form that becomes:</p>
-<div class="highlight"><pre><span></span><code>$ lein new re-frame &lt;app-name&gt; +calva
-</code></pre></div>
-<p>If you have a re-frame project created from the template w/o the <code>+calva</code> option and want to get the ease, add this Connect Sequence in the <code>.vscode/settings.json</code> of the project:</p>
-<div class="highlight"><pre><span></span><code>    <span class="nt">&quot;calva.replConnectSequences&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Leiningen -&gt; shadow-cljs&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;projectType&quot;</span><span class="p">:</span> <span class="s2">&quot;lein-shadow&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;cljsType&quot;</span><span class="p">:</span> <span class="s2">&quot;shadow-cljs&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;menuSelections&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="nt">&quot;leinAlias&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
-                <span class="nt">&quot;leinProfiles&quot;</span><span class="p">:</span> <span class="p">[</span>
-                    <span class="s2">&quot;dev&quot;</span>
-                <span class="p">],</span>
-                <span class="nt">&quot;cljsLaunchBuilds&quot;</span><span class="p">:</span> <span class="p">[</span>
-                    <span class="s2">&quot;app&quot;</span>
-                <span class="p">],</span>
-                <span class="nt">&quot;cljsDefaultBuild&quot;</span><span class="p">:</span> <span class="s2">&quot;app&quot;</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-</code></pre></div>
-<p>Then <strong>Jack-In</strong>.</p>
+                <h1 id="how-to-wse-calva-with-the-re-frame-template">How to wse Calva with the re-frame template</h1>
+<p>The <a href="https://github.com/day8/re-frame-template">re-frame template</a>(https://github.com/BetterThanTomorrow/calva) creates a <code>shadow-cljs</code> projects, making it easy to use with Calva. </p>
+<ol>
+<li><code>npm install</code></li>
+<li>From VS Code, issue the command <strong>Calva: Start a Project REPL and Connect (a.k.a Jack-in)</strong>, <code>ctrl+alt+c ctrl+alt+j</code>.</li>
+<li>Calva will auto-detect that this is a <code>shadow-cljs</code> project and ask for which build to compile.</li>
+<li>Calva's output window will open and log some progress information.</li>
+<li>When prompted for which build to start, select <code>:app</code>.</li>
+<li><code>:app</code> is the only configured build, but the VS Code menu for this is a bit strange so <em>make sure the <code>:app</code> checkbox is really ticked before proceeding</em>.</li>
+<li>This will start the app, so in this workflow you don't do the <strong>Run application</strong> steps outlined below.</li>
+<li>When prompted for which build to connect to, select <code>:app</code>.<ul>
+<li>In the <strong>View</strong> menu of VS Code, you can tell it to show the <strong>Terminal</strong> view, where you see which command the jack-in process is started with, and it's output. <code>Ctrl+C</code> in this pane will kill your app and free up all resources it has allocated.</li>
+</ul>
+</li>
+<li>When the app is compiled<ol>
+<li>Open http://localhost:8280 in your browser.</li>
+<li>Confirm that it says <em>Hello from re-frame</em>. (Depending on how long the app takes to compile, you might need to reload the page a few times.)</li>
+</ol>
+</li>
+<li>Open the <code>views.cljs</code> file from <code>src/&lt;your-project-name&gt;</code> and issue <strong>Calva: Load Current File and Dependencies</strong>. <code>ctrl+alt+c enter</code>.<ol>
+<li>Confirm that you are connected by adding evaluating <code>(js/alert "Hello from Calva")</code> (<code>alt+enter</code> and <code>ctrl+enter</code> are your friends).</li>
+<li>Confirm that Shadow is hot reloading by changing the greeting message.</li>
+</ol>
+</li>
+</ol>
                 
               
               
@@ -1198,10 +1215,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.1e84347e.min.js"></script>
+      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
       
     
   </body>

@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/output/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.4">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.db9e7362.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -423,6 +423,20 @@
               
   
   
+  
+    <li class="md-nav__item">
+      <a href="../clojuredocs/" class="md-nav__link">
+        ClojureDocs integration
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
     
   
   
@@ -444,6 +458,8 @@
       </a>
       
         
+
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -900,7 +916,7 @@
   
     <li class="md-nav__item">
       <a href="../re-frame-template/" class="md-nav__link">
-        How to Use Calva With the re-frame Template
+        How to wse Calva with the re-frame template
       </a>
     </li>
   
@@ -1213,6 +1229,8 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -1359,10 +1377,10 @@
 <p><img alt="Output Window Connected" src="../images/howto/output/output-window-connected.png" /></p>
 <p>The first prompt is from when the <code>clj</code> REPL is connected, the second when Calva has a <code>cljs</code> REPL connection. The first part of the prompt tells you which REPL type the window is currently connected to. This gets important when the file/window is used as an interactive REPL.</p>
 <h2 id="find-the-outputrepl-window">Find the Output/REPL Window</h2>
-<p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+c o</code>.</p>
+<p>If you quickly want to open and switch to the output window there is the command <strong>Calva: Show Output Window</strong>, <code>ctrl+alt+o o</code>.</p>
 <p>To sync the Output/REPL window namespace with the current file before switching, use the <strong>Switch Namespace of the Output/REPL Window to Current Namespace</strong> command, <code>ctrl+alt+c alt+n</code>.</p>
 <h2 id="find-the-file-for-the-current-repl-window-namespace">Find the File for the Current REPL Window Namespace</h2>
-<p>When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the <strong>Show File for the Current Output/REPL Window Namespace</strong> command, <code>ctrl+alt+c o</code>.</p>
+<p>When you are working from the Output/REPL window, and want to open the file that defines its current namespace, use the <strong>Show File for the Current Output/REPL Window Namespace</strong> command, <code>ctrl+alt+o o</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This also works for Clojure core and library namespaces.</p>
@@ -1377,7 +1395,7 @@
 </code></pre></div>
 <p>The output window will print the defined var and then a new prompt reflecting the current REPL connection and namespace:</p>
 <p><img alt="eval-results-1" src="../images/howto/output/eval-results-1.png" /></p>
-<p>If you then switch to the output window (<code>ctrl+alt+c o</code>), and enter this at the prompt:</p>
+<p>If you then switch to the output window (<code>ctrl+alt+o o</code>), and enter this at the prompt:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">mount-target</span>
 </code></pre></div>
 <p>then evaluate it using <code>alt+enter</code>, you'll get:</p>
@@ -1453,7 +1471,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../rich-comments/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Rich Comments Support" rel="prev">
+        <a href="../clojuredocs/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ClojureDocs integration" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1462,7 +1480,7 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Rich Comments Support
+              ClojureDocs integration
             </div>
           </div>
         </a>
@@ -1506,10 +1524,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.1e84347e.min.js"></script>
+      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
       
     
   </body>

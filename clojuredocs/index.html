@@ -11,14 +11,14 @@
       
       
       
-        <link rel="canonical" href="https://calva.io/parinfer/">
+        <link rel="canonical" href="https://calva.io/clojuredocs/">
       
       <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
     
     
       
-        <title>Using Calva with Parinfer - Calva User Guide</title>
+        <title>ClojureDocs integration - Calva User Guide</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#using-calva-with-parinfer" class="md-skip">
+        <a href="#clojuredocs-integration" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Using Calva with Parinfer
+              ClojureDocs integration
             
           </span>
         </div>
@@ -353,12 +353,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
       
       
       
@@ -421,11 +423,60 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../clojuredocs/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          ClojureDocs integration
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         ClojureDocs integration
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#clojuredocs-repl-surfing" class="md-nav__link">
+    ClojureDocs REPL Surfing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quirks" class="md-nav__link">
+    Quirks
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -642,14 +693,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
       
       
       
@@ -838,21 +887,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../parinfer/" class="md-nav__link">
         Using Calva with Parinfer
       </a>
-      
     </li>
   
 
@@ -1103,6 +1142,28 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#clojuredocs-repl-surfing" class="md-nav__link">
+    ClojureDocs REPL Surfing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quirks" class="md-nav__link">
+    Quirks
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1113,22 +1174,76 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/parinfer.md" title="Edit this page" class="md-content__button md-icon">
+                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/clojuredocs.md" title="Edit this page" class="md-content__button md-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
                   </a>
                 
                 
-                <h1 id="using-calva-with-parinfer">Using Calva with Parinfer</h1>
-<p>Yes, you can use Calva with with the Parinfer extension. The only conflict here is that Calva's auto-formatting (that which happens as you type) is going to risk clash with Parinfer's.</p>
-<p>However, Calva's <a href="../paredit/">Paredit</a> is carefully crafted. We suggest you consider that Clojure is a LISP, and therefore structural. There is power in this structure that other languages can not let you wield. Take advantage of this and make Paredit your friend. It takes only some few minutes to learn two or three basic Paredit commands:</p>
-<ul>
-<li><strong>Select form</strong></li>
-<li><strong>Slurp</strong></li>
-<li><strong>Barf</strong></li>
+                <h1 id="clojuredocs-integration">ClojureDocs integration</h1>
+<p><a href="https://clojuredocs.org">clojuredocs.org</a> is the goto place #1 for finding out more about Clojure core(-ish) functions, macros, etcetera. It contains the doc strings from the functions and adds crowd sourced examples of usage and see alsos. You can surf for quite long on that site without getting bored. 😄</p>
+<p>Calva integrates this information in two ways:</p>
+<ol>
+<li>Commands for requesting the ClojureDocs information for a symbol under the cursor:<ul>
+<li><strong>Print clojuredocs.org examples to Rich Comment</strong>, default keybinding: <code>ctrl+alt+r d</code></li>
+<li><strong>Print clojuredocs.org examples to OutputWindow</strong>, <code>ctrl+alt+o d</code></li>
 </ul>
-<p>Besides letting you benefit from auto-formatting, working this way will quickly bring you in better contact with the structural nature of the Clojure code. You'll thank yourself later.</p>
-<p>Also, if you find yourself having deleted or added a bracket out of structure, despite Calva Paredit's <strong>Strict mode</strong> (which you are using, right?) there is a command that might help you heal the structure: <strong>Infer Parens from Indentation</strong>. That command is actually implemented using the Parinfer library, so it will let you recover from quite many situations. This command is bound to <code>shift+tab</code> by default, making it a good companion to <code>tab</code> which indents based on bracket structure. </p>
-<p>All that said, what was said first is true: if you want to use the Parinfer extension, you can. You'll probably want to disable Calva's auto-formatting. The setting for controlling this is named <code>calva.fmt.formatAsYouType</code>.</p>
+</li>
+<li>ClojureDocs information is included in the symbol lookup hovers, where each example has two buttons:<ul>
+<li><strong>To Rich Comment</strong></li>
+<li><strong>To Output Window</strong> </li>
+</ul>
+</li>
+</ol>
+<p>That means that if you just want to glance at the examples, you look in the hover. And when you want to bring the examples to the REPL to play with them, you can do so very easily.</p>
+<div class="admonition note">
+<p class="admonition-title">ClojureScript support</p>
+<p>ClojureDocs information is available both for Clojure and ClojureScript files. However, clojuredocs.org only keeps info for Clojure. Thus: <em>All information Calva shows about a symbol will be about the Clojure respresentation of that symbol.</em> (The symbol might not even exist in ClojureScript.)</p>
+</div>
+<h2 id="clojuredocs-repl-surfing">ClojureDocs REPL Surfing</h2>
+<p>Since the ClojureDocs information includes see-alsos, you can go for super interactive ClojureDocs surfing right in the file you are editing. Say you have this function:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span>
+  <span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span>
+  <span class="p">[</span><span class="nv">text</span><span class="p">]</span>
+  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span> <span class="p">(</span><span class="nf">clojure.string/trim</span> <span class="nv">text</span><span class="p">)]</span>
+    <span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span> <span class="nv">trimmed-text</span><span class="p">)</span>
+      <span class="nv">trimmed-text</span><span class="p">)))</span>
+</code></pre></div>
+<p>Then you hover on <code>when-not</code> and scroll down a bit in the hover:</p>
+<p><img alt="when-not ClojureDocs Hover Example 1" src="../images/clojuredocs-hover-when-not-example-1.png" /></p>
+<p>That first example would be interesting to play with, right? Click <strong>To Rich Comment</strong> and you will get:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="kd">defn </span><span class="nv">trim-text</span>
+  <span class="s">&quot;Returns text without surrounding whitespace if not empty, otherwise nil&quot;</span>
+  <span class="p">[</span><span class="nv">text</span><span class="p">]</span>
+  <span class="p">(</span><span class="k">let </span><span class="p">[</span><span class="nv">trimmed-text</span> <span class="p">(</span><span class="nf">clojure.string/trim</span> <span class="nv">text</span><span class="p">)]</span>
+    <span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nf">empty?</span> <span class="nv">trimmed-text</span><span class="p">)</span>
+      <span class="nv">trimmed-text</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">comment</span>
+  <span class="c1">;; = when-not - Example 1 = </span>
+
+  <span class="c1">;; build tuples over sets with the same cardinality </span>
+  <span class="p">(</span><span class="nf">map</span>
+   <span class="o">#</span><span class="p">(</span><span class="nb">when-not </span><span class="p">(</span><span class="nb">= </span><span class="nv">%2</span> <span class="nv">%3</span><span class="p">)</span> <span class="p">[</span><span class="nv">%1</span> <span class="nv">%2</span> <span class="nv">%3</span><span class="p">])</span>
+   <span class="p">(</span><span class="nb">iterate inc </span><span class="mi">0</span><span class="p">)</span>   <span class="c1">; a lazy list of indecies</span>
+   <span class="p">[</span><span class="ss">:a</span> <span class="ss">:b</span> <span class="ss">:c</span><span class="p">]</span>
+   <span class="p">[</span><span class="ss">:a</span> <span class="ss">:a</span> <span class="ss">:a</span><span class="p">])</span>
+  <span class="c1">;;=&gt; (nil [1 :b :a] [2 :c :a])</span>
+
+  <span class="c1">;; See also:</span>
+  <span class="nv">when</span>
+  <span class="nv">when-let</span>
+  <span class="nv">if</span>
+  <span class="p">)</span>
+</code></pre></div>
+<p>There you can evaluate the <code>(map ...)</code> form using <code>alt+enter</code>, modify it and evaluate again. You can also hover over <code>map</code>, <code>iterate</code>, or any of the ”See also:” symbols to find more fun examples to play with. And so on and so forth.</p>
+<p>See these two tweets for some videos of early versions of this functionality:</p>
+<ul>
+<li><a href="https://twitter.com/pappapez/status/1452325865933746185">Rich Comments surfing ClojureDocs Examples</a></li>
+<li><a href="https://twitter.com/pappapez/status/1452409528511762444">Clojuredocs in #Calva WIP 2: Hover examples -&gt; RFC</a></li>
+</ul>
+<p>Please retweet!</p>
+<h2 id="quirks">Quirks</h2>
+<p>Some of the ClojureDocs entries have text that is not really Clojure code, and sometimes even structural errors. This can break the structural integrity of your Clojure file. If you run into trouble trying to heal things, you can always use <strong>Undo</strong> until the Rich Comment is gone.</p>
                 
               
               
@@ -1148,7 +1263,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../static-only/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Use Calva w/o the REPL" rel="prev">
+        <a href="../rich-comments/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Rich Comments Support" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1157,20 +1272,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Use Calva w/o the REPL
+              Rich Comments Support
             </div>
           </div>
         </a>
       
       
         
-        <a href="../workspace-layouts/" class="md-footer__link md-footer__link--next" aria-label="Next: Workspace Layouts" rel="next">
+        <a href="../output/" class="md-footer__link md-footer__link--next" aria-label="Next: The Output/REPL Window/File" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Workspace Layouts
+              The Output/REPL Window/File
             </div>
           </div>
           <div class="md-footer__button md-icon">
