@@ -147,8 +147,8 @@ async function clojureDocsLspLookup(session: nrepl.NReplSession, symbol: string,
     const resolved = await session.info(ns, symbol);
     const symNs = resolved.ns.replace(/^cljs\./, 'clojure.');
     try {
-        const docs = await lsp.getClojuredocs(resolved.name, resolved.ns);
-        return rawDocs2DocsEntry({ clojuredocs: docs, fromServer: "clojure-lsp" }, resolved.name, symNs);
+        const docs = await lsp.getClojuredocs(resolved.name, symNs);
+        return rawDocs2DocsEntry({ clojuredocs: docs, fromServer: "clojure-lsp" }, resolved.name, resolved.ns);
     } catch {
         return rawDocs2DocsEntry({ clojuredocs: null, fromServer: "clojure-lsp" }, resolved.name, resolved.ns);
     }
@@ -167,7 +167,7 @@ function rawDocs2DocsEntry(docsResult: any, symbol: string, ns: string): DocsEnt
             notes: docs.notes,
             ns: docs.ns,
             urlPath: docs.href.replace(/^\/?/, ''),
-            seeAlsos: docs['see-alsos'],
+            seeAlsos: docsResult.fromServer === 'clojure-lsp' ? docs['see-alsos'].map(also => `${also.ns}/${also.name}`) : docs['see-alsos'],
             tag: docs.tag,
             type: docs.type,
             fromServer: docsResult.fromServer
