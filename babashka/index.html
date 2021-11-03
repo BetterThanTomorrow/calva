@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://calva.io/babashka/">
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.0.6">
     
     
       
@@ -22,10 +22,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.a57b2b03.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.2c0c5eaf.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.7fa14f5b.min.css">
         
       
     
@@ -44,19 +44,6 @@
     
     
       
-
-  
-
-
-  
-
-  
-
-
-  <script>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})})</script>
-  <script async src="https://www.google-analytics.com/analytics.js"></script>
-
-
     
     
   </head>
@@ -68,9 +55,8 @@
     
     
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+      
   
-    
-    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -87,9 +73,7 @@
       
     </div>
     
-      
-
-<header class="md-header" data-md-component="header">
+      <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="Calva User Guide" class="md-header__button md-logo" aria-label="Calva User Guide" data-md-component="logo">
       
@@ -115,8 +99,9 @@
         </div>
       </div>
     </div>
-    
-    
+    <div class="md-header__options">
+      
+    </div>
     
       <label class="md-header__button md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
@@ -126,18 +111,14 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
       <label class="md-search__icon md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
-        </button>
-      </nav>
-      
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
     </form>
     <div class="md-search__output">
       <div class="md-search__scrollwrap" data-md-scrollfix>
@@ -158,7 +139,7 @@
 <a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     Calva
@@ -167,14 +148,11 @@
       </div>
     
   </nav>
-  
 </header>
     
     <div class="md-container" data-md-component="container">
       
       
-        
-          
         
       
       <main class="md-main" data-md-component="main">
@@ -203,7 +181,7 @@
 <a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05L244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     Calva
@@ -241,14 +219,10 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
       
-      
-      
-      
-        <label class="md-nav__link" for="__nav_2">
-          Start Here
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
+      <label class="md-nav__link" for="__nav_2">
+        Start Here
+        <span class="md-nav__icon md-icon"></span>
+      </label>
       <nav class="md-nav" aria-label="Start Here" data-md-level="1">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
@@ -257,7 +231,6 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
-              
   
   
   
@@ -268,10 +241,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -282,10 +253,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -296,10 +265,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -310,10 +277,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -324,7 +289,6 @@
     </li>
   
 
-            
           
         </ul>
       </nav>
@@ -360,14 +324,10 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
       
-      
-      
-      
-        <label class="md-nav__link" for="__nav_4">
-          Features
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
+      <label class="md-nav__link" for="__nav_4">
+        Features
+        <span class="md-nav__icon md-icon"></span>
+      </label>
       <nav class="md-nav" aria-label="Features" data-md-level="1">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
@@ -376,7 +336,6 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
-              
   
   
   
@@ -387,10 +346,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -401,10 +358,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -415,10 +370,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -429,10 +382,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -443,10 +394,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -457,10 +406,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -471,10 +418,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -485,10 +430,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -499,10 +442,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -513,10 +454,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -527,10 +466,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -541,10 +478,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -555,10 +490,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -569,10 +502,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -583,7 +514,6 @@
     </li>
   
 
-            
           
         </ul>
       </nav>
@@ -651,14 +581,10 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
       
-      
-      
-      
-        <label class="md-nav__link" for="__nav_8">
-          Using Calva with X
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
+      <label class="md-nav__link" for="__nav_8">
+        Using Calva with X
+        <span class="md-nav__icon md-icon"></span>
+      </label>
       <nav class="md-nav" aria-label="Using Calva with X" data-md-level="1">
         <label class="md-nav__title" for="__nav_8">
           <span class="md-nav__icon md-icon"></span>
@@ -667,7 +593,6 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
-              
   
   
   
@@ -678,10 +603,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -692,10 +615,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -706,10 +627,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -720,10 +639,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -734,10 +651,8 @@
     </li>
   
 
-            
           
             
-              
   
   
     
@@ -746,7 +661,6 @@
     <li class="md-nav__item md-nav__item--active">
       
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
       
         
       
@@ -758,10 +672,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -772,10 +684,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -786,10 +696,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -800,10 +708,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -814,10 +720,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -828,10 +732,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -842,10 +744,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -856,7 +756,6 @@
     </li>
   
 
-            
           
         </ul>
       </nav>
@@ -877,14 +776,10 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" >
       
-      
-      
-      
-        <label class="md-nav__link" for="__nav_9">
-          Etcetera
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
+      <label class="md-nav__link" for="__nav_9">
+        Etcetera
+        <span class="md-nav__icon md-icon"></span>
+      </label>
       <nav class="md-nav" aria-label="Etcetera" data-md-level="1">
         <label class="md-nav__title" for="__nav_9">
           <span class="md-nav__icon md-icon"></span>
@@ -893,7 +788,6 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
-              
   
   
   
@@ -904,10 +798,8 @@
     </li>
   
 
-            
           
             
-              
   
   
   
@@ -918,7 +810,6 @@
     </li>
   
 
-            
           
         </ul>
       </nav>
@@ -939,14 +830,10 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10" type="checkbox" id="__nav_10" >
       
-      
-      
-      
-        <label class="md-nav__link" for="__nav_10">
-          In Depth
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
+      <label class="md-nav__link" for="__nav_10">
+        In Depth
+        <span class="md-nav__icon md-icon"></span>
+      </label>
       <nav class="md-nav" aria-label="In Depth" data-md-level="1">
         <label class="md-nav__title" for="__nav_10">
           <span class="md-nav__icon md-icon"></span>
@@ -955,7 +842,6 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
-              
   
   
   
@@ -966,7 +852,6 @@
     </li>
   
 
-            
           
         </ul>
       </nav>
@@ -987,14 +872,10 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_11" type="checkbox" id="__nav_11" >
       
-      
-      
-      
-        <label class="md-nav__link" for="__nav_11">
-          Guides
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
+      <label class="md-nav__link" for="__nav_11">
+        Guides
+        <span class="md-nav__icon md-icon"></span>
+      </label>
       <nav class="md-nav" aria-label="Guides" data-md-level="1">
         <label class="md-nav__title" for="__nav_11">
           <span class="md-nav__icon md-icon"></span>
@@ -1003,7 +884,6 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
-              
   
   
   
@@ -1014,7 +894,6 @@
     </li>
   
 
-            
           
         </ul>
       </nav>
@@ -1094,10 +973,7 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
-
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
   
   
     
@@ -1136,7 +1012,6 @@
             </article>
           </div>
         </div>
-        
       </main>
       
         
@@ -1144,8 +1019,7 @@
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
-        
-        <a href="../reveal/" class="md-footer__link md-footer__link--prev" aria-label="Previous: How to use Calva and Reveal together" rel="prev">
+        <a href="../reveal/" class="md-footer__link md-footer__link--prev" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1160,8 +1034,7 @@
         </a>
       
       
-        
-        <a href="../luminus/" class="md-footer__link md-footer__link--next" aria-label="Next: How to Use Calva with Luminus" rel="next">
+        <a href="../luminus/" class="md-footer__link md-footer__link--next" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
@@ -1181,12 +1054,10 @@
     <div class="md-footer-meta__inner md-grid">
       <div class="md-footer-copyright">
         
-        
-          Made with
-          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-            Material for MkDocs
-          </a>
-        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
         
       </div>
       
@@ -1198,10 +1069,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.fcfe8b6d.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../assets/javascripts/workers/search.fb4a9340.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.b1047164.min.js"></script>
+      <script src="../assets/javascripts/bundle.a1c7c35e.min.js"></script>
       
     
   </body>
