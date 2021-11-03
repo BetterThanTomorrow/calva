@@ -276,12 +276,12 @@ jobs:
           name: Install mkdocs and mkdocs-material
           command: |
             pip install mkdocs
-            pip install mkdocs-material
+            pip install git+https://${GITHUB_MKDOCS_MATERIAL_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
       - run:
           name: Deploy docs
           command: |
             git checkout published
-            npm run deploy-docs
+            mkdocs gh-deploy --message "[skip ci]" --strict --clean
   bump-dev-version:
     docker:
       - image: cimg/node:15.8
@@ -302,7 +302,14 @@ jobs:
             git push origin HEAD
 workflows:
   version: 2
-  # We have two workflows, because for some reason the tag filter need to be on all jobs...
+  calva-io-build:
+    jobs:
+      - deploy-docs:
+          filters:
+            branches:
+              only: published
+          context: Calva
+  # We have two Calva build workflows, because for some reason the tag filter need to be on all jobs...
   build-test:
     jobs:
       - build:
@@ -400,14 +407,6 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+$/
           context: Calva
-      - deploy-docs:
-          requires:
-            - merge-dev-to-published
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
       - bump-dev-version:
           requires:
             - merge-dev-to-published
