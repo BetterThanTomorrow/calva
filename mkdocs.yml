@@ -17,6 +17,9 @@ repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
 strict: true
+plugins:
+  - social:
+      cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
 markdown_extensions:
   - attr_list
   - md_in_html
