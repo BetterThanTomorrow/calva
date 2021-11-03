@@ -1,3 +1,8 @@
+---
+title: Powered by clojure-lsp
+description: A lot of Calva's static analysis
+---
+
 # Clojure-lsp
 
 Calva uses a mix of static and dynamic analysis to power the experience. A lot of the static abilities come from [clojure-lsp](https://github.com/snoe/clojure-lsp). This enables you to check something up in a project, with a lot of navigational and contextual support, without starting a REPL for it. (And once you do start a REPL you'll get even more capabilities, enabled by the dynamic analysis.)

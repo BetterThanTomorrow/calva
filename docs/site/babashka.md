@@ -1,3 +1,8 @@
+---
+title: ♥️ Babashka ♥️
+description: Learn how to use Calva to get REPL powered Interactive Programming with Babashka, a civilized scripting language and task manager.
+---
+
 # Using Calva with Babashka
 
 Since [Babashka](https://babashka.org) can be started such that it is an nREPL server, Calva can connect to it and a lot of the features will work.
