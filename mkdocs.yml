@@ -18,6 +18,8 @@ repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
 strict: true
 markdown_extensions:
+  - attr_list
+  - md_in_html
   - admonition
   - pymdownx.details
   - pymdownx.inlinehilite
