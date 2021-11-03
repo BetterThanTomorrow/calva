@@ -1,6 +1,6 @@
 ---
-title: Clojure Interactive Programming for VS Code
-description: Learn how to use Calva, an IDE bringing full Clojure and ClojureScript Interactive Programming to Visual Studio Code.
+title: Clojure Interactive Programming for Visual Studio Code
+description: Learn how to use Calva, an IDE bringing full Clojure and ClojureScript Interactive Programming to VS Code.
 ---
 
 # Welcome!

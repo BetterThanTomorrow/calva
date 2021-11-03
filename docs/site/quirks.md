@@ -1,3 +1,8 @@
+---
+title: Quirks
+description: "Here's a shocker for ya': Calva isn't perfect"
+---
+
 # Quirks
 
 Here's a shocker for ya': Calva isn't perfect. 😄

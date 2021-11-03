@@ -1,3 +1,8 @@
+---
+title: The Output/REPL Window
+description: When Calva evaluates Clojure/ClojureScript code, the results are displayed inline as well as printed to the results output window.
+---
+
 # The Output/REPL Window/File
 
 When Calva evaluates Clojure/ClojureScript code, the results are displayed inline as well as printed to the results output window/file. This file is created and opened when Calva is connected to a REPL.

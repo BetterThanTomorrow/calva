@@ -1,3 +1,8 @@
+---
+title: Get Started with Clojure
+description: Welcome to a zero-install, interactive, guide to get you started with Clojure and Interactive Programming
+---
+
 # Get Started with Clojure
 
 ![Get Started with Clojure](images/getting-started-with-clojure/get-started-with-clojure-header-wo-header.png)

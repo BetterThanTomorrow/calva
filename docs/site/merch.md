@@ -1,3 +1,8 @@
+---
+title: Calva T-shirts!
+description: Head over to the our shop and buy yourself and your friends some t-shirts withe the beautiful Calva logo
+---
+
 # Calva Merch
 
 In this video, there is a question about where you can buy the Calva T-shirt:

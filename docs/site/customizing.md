@@ -1,3 +1,8 @@
+---
+title: Customizing Calva
+description: Calva comes with batteries included and preconfigured, and if you don't like the defaults, you can customize
+---
+
 # Customizing Calva
 
 Don't like the defaults? On this page we can collect some of the customizations that people have done, and maybe write a thing or two about it some day.

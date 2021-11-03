@@ -1,5 +1,5 @@
 ---
-title: ♥️ Babashka ♥️
+title: Babashka
 description: Learn how to use Calva to get REPL powered Interactive Programming with Babashka, a civilized scripting language and task manager.
 ---
 

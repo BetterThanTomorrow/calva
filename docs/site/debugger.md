@@ -1,3 +1,8 @@
+---
+title: Debugger
+description: Calva comes with a powerful expression-based debugger, inspired by, and using the same underlying libraries as, CIDER's debugger
+---
+
 # Debugger
 
 Calva comes with a powerful expression-based debugger, inspired by [Cider](https://cider.mx/)'s debugger, and using the same underlying library, [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl). We hope you love it!

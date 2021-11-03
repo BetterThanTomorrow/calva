@@ -1,3 +1,8 @@
+---
+title: nREPL and cider-nrepl
+description: Calva's Interactive Programming, and more, is powered by nREPL and cider-nrepl
+---
+
 # nREPL and cider-nrepl
 
 [nREPL](https://github.com/nrepl/nREPL) and [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl) provide Calva with some of its REPL-based functionality.

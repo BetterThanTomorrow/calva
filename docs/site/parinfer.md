@@ -1,3 +1,8 @@
+---
+title: Parinfer
+description: Yes, you can use Calva with with the Parinfer extension
+---
+
 # Using Calva with Parinfer
 
 Yes, you can use Calva with with the Parinfer extension. The only conflict here is that Calva's auto-formatting (that which happens as you type) is going to risk clash with Parinfer's.

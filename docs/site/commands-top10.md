@@ -41,5 +41,5 @@ You can also switch the name space of the output/repl window to that of the curr
 
 See also:
 
-* [Code Evaluation Tips](eval-tips.md)
+* [Code Evaluation Tips](evaluation.md)
 * [Finding Calva Commands and Shortcuts](finding-commands.md)

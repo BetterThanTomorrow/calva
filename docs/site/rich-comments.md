@@ -1,3 +1,8 @@
+---
+title: Rich Comments Support
+description: How Calva supports and promotes a Rich Comments powered workflow. The REPL is not a prompt!
+---
+
 # Rich Comments Support
 
 Why bother with **Rich comments**? Read on. Consider watching [this Youtube video](https://www.youtube.com/watch?v=d0K1oaFGvuQ) for a demo of the workflow using the (in?)famous FizzBuzz problem as an example.

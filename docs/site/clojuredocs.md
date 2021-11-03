@@ -1,5 +1,5 @@
 ---
-title: ClojureDocs integration
+title: ClojureDocs Integration
 description: Learn about how to get ClojureDocs example directly in Calva, straight into the REPL powered editor
 ---
 

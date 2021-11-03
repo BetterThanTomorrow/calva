@@ -1,3 +1,8 @@
+---
+title: Superb Clojure Linting
+description: Powered by clj-kondo, Calva comes with state-of-the-art Clojure and ClojureScript linting
+---
+
 # Linting
 
 Calva does no linting, yet with Calva you get excellent linting. That is because Calva uses [clojure-lsp](https://github.com/clojure-lsp/clojure-lsp), which provides linting powered by clj-kondo.

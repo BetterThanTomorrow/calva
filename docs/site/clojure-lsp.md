@@ -1,5 +1,5 @@
 ---
-title: Powered by clojure-lsp
+title: clojure-lsp
 description: Learn about how Calva leverages clojure-lsp for a lot of the features you love
 ---
 

@@ -1,3 +1,8 @@
+---
+title: Why you should consider Calva
+description: Calva provides VS Code users with a comprehensive set of features to keep you productive and make it easy to follow Clojure coding best practices
+---
+
 # Why Calva?
 
 The main reason you would choose Calva for your [Clojure](https://clojure.org) and/or [ClojureScript](https://clojurescript.org) coding is that you want to use [Visual Studio Code](https://code.visualstudio.com/). Calva provides VS Code users with a comprehensive set of features to keep you productive and make it easy to follow Clojure coding best practices. This also means that if your choice of editor is not made yet, we think you should give VS Code and Calva a try.

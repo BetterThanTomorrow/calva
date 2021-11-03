@@ -1,3 +1,8 @@
+---
+title: Pretty Printing
+description: Prettiness is on by default and all your evaluation results will get the treatment
+---
+
 # Pretty Printing
 
 In Calva, pretty printing is a mode. Prettiness is on by default and all your evaluation results will get that treatment.

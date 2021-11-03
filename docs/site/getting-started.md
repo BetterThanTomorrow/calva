@@ -1,3 +1,8 @@
+---
+title: Get Started with Calva
+description: How to get started with Calva for Clojure and ClojureScript coding, the Getting Started REPL and more
+---
+
 # Getting Started
 
 Depending on wether you want to just start a Clojure REPL or you have a project you want to work with, getting started looks similar but a bit different. Regardless, you need to install Calva in VS Code.

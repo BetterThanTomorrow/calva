@@ -1,3 +1,8 @@
+---
+title: The re-frame template
+description: How to wse Calva with the re-frame template
+---
+
 # How to wse Calva with the re-frame template
 
 The [re-frame template](https://github.com/day8/re-frame-template)(https://github.com/BetterThanTomorrow/calva) creates a `shadow-cljs` projects, making it easy to use with Calva. 

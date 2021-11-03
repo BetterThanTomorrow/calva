@@ -1,3 +1,8 @@
+---
+title: Contribute to Calva
+description: If Calva is important to you, or you think it is serving the Clojure community well, please consider contributing
+---
+
 # Contribute to Calva
 
 There are many ways to contribute:

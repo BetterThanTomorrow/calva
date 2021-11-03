@@ -1,3 +1,8 @@
+---
+title: The Tao of Calva
+description: Learn about the product and development philosophy that makes and shapes Calva 
+---
+
 # The Tao of Calva
 
 [Calva](https://en.wikipedia.org/wiki/Calvados), the spirit, gains much of its taste and color from the Cider it is distilled from, and the oak it is matured in. I started to wonder what it is that shapes Calva, the [VS Code](https://code.visualstudio.com) Clojure Extension. I should know, being the master distiller, right?. Indeed. Poking some at the question, I do find that I have some answers.

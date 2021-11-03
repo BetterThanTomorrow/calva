@@ -1,3 +1,8 @@
+---
+title: Static Calva
+description: How to use Calva with other REPL clients
+---
+
 # Use Calva w/o the REPL
 
 Why would anyone want to use a Clojure editor without a REPL? It could be because you prefer some other REPL client over [Calva's ditto](https://calva.io/try-first/), like [Clover](https://github.com/mauricioszabo/clover/), but would be lacking Calva's [clojure-lsp](https://clojure-lsp.github.io/clojure-lsp/) support, [formatter](formatting.md), [Paredit](paredit.md), [highlighter](highlight), etcetera.

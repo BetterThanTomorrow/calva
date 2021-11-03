@@ -1,3 +1,8 @@
+---
+title: Test Runner
+description: Calva provides commands and facilities that make running your Clojure tests easier 
+---
+
 # Test Runner
 
 Calva provides commands that make running your Clojure tests easier.

@@ -1,3 +1,8 @@
+---
+title: Custom REPL Commands
+description: Automate your workflow with Calva's rich custom REPL commands facilities
+---
+
 # Custom REPL Commands
 
 Calva supports configuration of custom command snippets that you can evaluate in the REPL at will. If your workflow has you repeatedly evaluate a particular piece of code, you can use the setting `calva.customREPLCommandSnippets` to configure it. Then either bind keyboard shortcuts to them or use the command **Run Custom REPL Command** to access it. The command will give you a menu with the snippets you have configured.
@@ -17,9 +22,9 @@ There are also substitutions available, which will take elements from the curren
 * `$file`: Full name of current file edited
 * `$ns`: The namespace used for evaluating the command
 * `$selection`: The currently selected text
-* `$current-form`: The text of the [current form](eval-tips.md#current-form)
-* `$enclosing-form`: The text of the [current enclosing form](eval-tips.md#evaluate-enclosing-form)
-* `$top-level-form` The text of the [current top level form](eval-tips.md#current-top-level-form)
+* `$current-form`: The text of the [current form](evaluation.md#current-form)
+* `$enclosing-form`: The text of the [current enclosing form](evaluation.md#evaluate-enclosing-form)
+* `$top-level-form` The text of the [current top level form](evaluation.md#current-top-level-form)
 * `$current-fn`: The sexpr/form at call position in the current list, e.g. `str` with `(defn foo [] (str "foo" "bar|"))`
 * `$top-level-defined-symbol`: The second symbol of the top level form, e.g. `foo` with `(defn foo [] (str "foo" "bar|"))`
 * `$head`: The text between the start of the current list to the cursor

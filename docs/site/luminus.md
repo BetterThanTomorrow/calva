@@ -1,3 +1,8 @@
+---
+title: Luminus
+description: Luminus is a powerful and versatile Leiningen template for creating web development projects, Calva configuration included
+---
+
 # How to Use Calva with Luminus
 
 [Luminus](https://luminusweb.com) is a powerful and versatile Leiningen template for creating web development projects. It comes with built in configuration which makes it easy to use Calva as your Clojure(Script) editor.

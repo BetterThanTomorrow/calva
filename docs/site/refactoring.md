@@ -1,3 +1,8 @@
+---
+title: Refactoring
+description: Powered by clojure-lsp, Calva comes with some quite nifty refactoring support
+---
+
 # Refactoring
 
 There are two ”flavours” to refactoring support. Some (just a few) refactorings are made available as _Quick Fix_ suggestions (the light bulb), the rest are regular commands in the *Calva Refactoring* category.

@@ -1,3 +1,8 @@
+---
+title: Live Share
+description: Remote pair and mob programming - Share the happiness (the REPL) and enjoy Interactive Programming together
+---
+
 # Using Calva with Live Share
 
 [Live Share][liveshare] is a Microsoft provided VS Code extension. 

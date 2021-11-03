@@ -1,3 +1,8 @@
+---
+title: Krell
+description: Learn how to configure a Calva REPL COnnect sequence for your Krell project, à la carte ClojureScript tooling for React Native
+---
+
 # Using Calva With Krell
 
 [Krell](https://github.com/vouch-opensource/krell) is à la carte ClojureScript tooling for React Native.

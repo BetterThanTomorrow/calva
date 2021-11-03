@@ -1,3 +1,8 @@
+---
+title: VIM
+description: Calva and the VIM Extension
+---
+
 # Calva and the VIM Extension
 
 First thing first. The [VIM Extension](https://github.com/VSCodeVim/Vim) and Calva has some friction between them. The alternative [VSCode Neovim](https://github.com/asvetliakov/vscode-neovim) extension may fare a bit better as it unbinds keystrokes from VS Code while not in insert mode and uses Neovim as a backend.

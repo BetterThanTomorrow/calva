@@ -1,3 +1,8 @@
+---
+title: The Jack-in Academy
+description: Learn about what Calva Jack-in is, how it works, and why it probably works for your project
+---
+
 # Learn about Calva Jack-in
 
 *The Calva Jack-In Academy, by [@pez](https://github.com/PEZ)*

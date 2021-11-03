@@ -1,3 +1,8 @@
+---
+title: Emacs Keybindings
+description: Some keybindings to make it easier for Emacs users
+---
+
 # Emacs Keybindings
 Some keybindings to make it easier for Emacs users
 ```json

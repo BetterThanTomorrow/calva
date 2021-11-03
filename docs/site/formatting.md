@@ -1,3 +1,8 @@
+---
+title: Clojure Formatting
+description: Conforming to the Community Styleguide by default, and it just works
+---
+
 # Formatting
 
 We have tried to make Calva's formatter so that it _just works_. It is enabled by default for Clojure files, and unconfigured it mostly follows Bozhidar Batsov's [Clojure Style Guide](https://github.com/bbatsov/clojure-style-guide). Calva uses [cljfmt](https://github.com/weavejester/cljfmt) for the formatting.

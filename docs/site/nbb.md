@@ -1,3 +1,8 @@
+---
+title: nbb
+description: Calva has great support for Interactive Programming with nbb. Start a session from Calva, or connect to a running nbb nREPL server
+---
+
 # Using Calva with nbb
 
 Since [nbb](https://github.com/borkdude/nbb) can be started such that it is an nREPL server, Calva can connect to it and a lot of the features will work.

@@ -1,8 +1,11 @@
+---
+title: Reveal
+description: Read Eval Visualize Loop for Clojure. How to use Calva and Reveal together
+---
+
 # How to use Calva and Reveal together
 
-[Reveal](https://vlaaad.github.io/reveal) is a "Read Eval Visualize Loop for
-Clojure". This page describes how to use Reveal in your development setup based
-on Calva.
+[Reveal](https://vlaaad.github.io/reveal) is a "Read Eval Visualize Loop for Clojure". This page describes how to use Reveal in your development setup based on Calva.
 
 
 ## When using tools.deps

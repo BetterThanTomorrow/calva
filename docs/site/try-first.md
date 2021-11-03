@@ -1,3 +1,8 @@
+---
+title: Try this First
+description: Something to Try First (After Connecting) - Get a feeling for evaluating code in the editor and get immediate response from the REPL
+---
+
 # Something to Try First (After Connecting)
 
 You should start with loading the file you are working with. Do this with **Load Current File and Dependencies**, `ctrl+alt+c enter`.
@@ -44,4 +49,4 @@ The Top Level command also works inside `(comment ...)` forms, treating the `com
 ## See also
 
 * [Calva Top 10 Commands](commands-top10.md).
-* [Code Evaluation Tips](eval-tips.md)
+* [Code Evaluation Tips](evaluation.md)
