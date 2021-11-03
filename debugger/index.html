@@ -127,40 +127,6 @@
     
     
     
-      <label class="md-header__button md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-      </label>
-      
-<div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-    
     
       <div class="md-header__source">
         
@@ -197,7 +163,9 @@
                     
 
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="Calva User Guide" class="md-nav__button md-logo" aria-label="Calva User Guide" data-md-component="logo">
       
@@ -1294,204 +1262,6 @@
               </div>
             
             
-              
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    Features
-  </a>
-  
-    <nav class="md-nav" aria-label="Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#current" class="md-nav__link">
-    Current
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#future-goals" class="md-nav__link">
-    Future goals
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dependencies" class="md-nav__link">
-    Dependencies
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#using-the-debugger" class="md-nav__link">
-    Using the Debugger
-  </a>
-  
-    <nav class="md-nav" aria-label="Using the Debugger">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#instrumenting-a-function" class="md-nav__link">
-    Instrumenting a Function
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#setting-breakpoints-with-break" class="md-nav__link">
-    Setting Breakpoints with #break
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#conditional-breakpoints" class="md-nav__link">
-    Conditional Breakpoints
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#instrumenting-a-form-with-dbg" class="md-nav__link">
-    Instrumenting a Form with #dbg
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#evaluating-code-in-the-paused-context" class="md-nav__link">
-    Evaluating Code in the Paused Context
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#viewing-variable-values" class="md-nav__link">
-    Viewing Variable Values
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#viewing-the-call-stack" class="md-nav__link">
-    Viewing the Call Stack
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stepping-commands" class="md-nav__link">
-    Stepping Commands
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caveats" class="md-nav__link">
-    Caveats
-  </a>
-  
-    <nav class="md-nav" aria-label="Caveats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#breakpoints-in-looprecur" class="md-nav__link">
-    Breakpoints in loop/recur
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#loading-the-file-and-eval-on-save" class="md-nav__link">
-    Loading the File and "Eval On Save"
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    Troubleshooting
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#debugger-hangs-when-stepping-over-infinite-seqs" class="md-nav__link">
-    Debugger hangs when stepping over infinite seqs
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#my-breakpoint-isnt-being-hit" class="md-nav__link">
-    My breakpoint isn't being hit
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#my-breakpoint-in-a-test-isnt-being-hit" class="md-nav__link">
-    My breakpoint in a test isn't being hit
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#no-reader-function-for-tag-error" class="md-nav__link">
-    "No reader function for tag" error
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
@@ -1703,7 +1473,7 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.d5944110.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.d5944110.min.js", "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.4b1ed6f7.min.js"></script>
