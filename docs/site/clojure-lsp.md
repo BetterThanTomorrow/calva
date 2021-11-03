@@ -1,6 +1,6 @@
 ---
 title: Powered by clojure-lsp
-description: A lot of Calva's static analysis
+description: Learn about how Calva leverages clojure-lsp for a lot of the features you love
 ---
 
 # Clojure-lsp

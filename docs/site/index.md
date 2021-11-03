@@ -1,5 +1,5 @@
 ---
-title: User Guide for Calva, the VS Code Clojure Extension
+title: Clojure Interactive Programming for VS Code
 description: Learn how to use Calva, an IDE bringing full Clojure and ClojureScript Interactive Programming to Visual Studio Code.
 ---
 
