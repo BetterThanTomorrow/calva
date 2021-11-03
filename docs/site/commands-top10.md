@@ -1,3 +1,8 @@
+---
+title: The Top 10 Commands
+description: Ten (or so) Calva commands you should master. They will take you far.
+---
+
 # The Top 10 Calva Commands
 
 There are not all that many Calva commands. You can learn them all if you like, but here are the most important ones to know about for effective Clojure/ClojureScript coding:

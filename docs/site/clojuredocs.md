@@ -1,3 +1,8 @@
+---
+title: ClojureDocs integration
+description: Learn about how to get ClojureDocs example directly in Calva, straight into the REPL powered editor
+---
+
 # ClojureDocs integration
 
 [clojuredocs.org](https://clojuredocs.org) is the goto place #1 for finding out more about Clojure core(-ish) functions, macros, etcetera. It contains the doc strings from the functions and adds crowd sourced examples of usage and see alsos. You can surf for quite long on that site without getting bored. 😄

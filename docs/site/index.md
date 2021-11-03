@@ -1,3 +1,8 @@
+---
+title: Clojure Interactive Programming for VS Code
+description: Learn how to use Calva, an IDE bringing full Clojure and ClojureScript Interactive Programming to Visual Studio Code.
+---
+
 # Welcome!
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)

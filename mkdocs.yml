@@ -5,6 +5,8 @@ theme:
   custom_dir: docs/site/theming
   favicon: img/favicon.ico
   logo: img/calva-symbol-white.svg
+  features:
+    - toc.integrate
 extra_css:
   - stylesheets/extra.css
 site_url: https://calva.io
@@ -17,7 +19,14 @@ repo_name: Calva
 repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
 strict: true
+plugins:
+  - social:
+      cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
+      cards_color:
+        fill: "#db9550"
+        text: "#fafafa"
 markdown_extensions:
+  - meta
   - attr_list
   - md_in_html
   - admonition
