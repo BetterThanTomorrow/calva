@@ -5,7 +5,8 @@ theme:
   custom_dir: docs/site/theming
   favicon: img/favicon.ico
   logo: img/calva-symbol-white.svg
-  #features:
+  features:
+    - search.share
   #  - toc.integrate
 extra_css:
   - stylesheets/extra.css
@@ -20,6 +21,8 @@ repo_url: https://github.com/BetterThanTomorrow/calva
 edit_uri: edit/published/docs/site
 strict: true
 plugins:
+  - search:
+      separator: '[\s\-\._]'
   - social:
       cards: !ENV [MKDOCS_SOCIAL_CARDS, false]
       cards_color:
