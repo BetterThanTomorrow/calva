@@ -1,6 +1,8 @@
 ---
 title: Get Started with Clojure
 description: Welcome to a zero-install, interactive, guide to get you started with Clojure and Interactive Programming
+search:
+  boost: 10
 ---
 
 # Get Started with Clojure

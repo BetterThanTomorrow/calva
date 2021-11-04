@@ -1,6 +1,8 @@
 ---
 title: Custom REPL Connect Sequences
 description: When Calva's built-in REPL project types do not suffice, you can reach for custom Jack-in and Connect sequences.
+search:
+  boost: 6
 ---
 
 # REPL Jack-in and Connect Sequences

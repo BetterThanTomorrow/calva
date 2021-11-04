@@ -1,6 +1,8 @@
 ---
 title: Evaluate Clojure Code
 description: Calva goes to great lengths to make it easy to evaluate code, supporting interactive development
+search:
+  boost: 7
 ---
 
 # Code Evaluation

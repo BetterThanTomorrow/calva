@@ -1,6 +1,8 @@
 ---
 title: nREPL and cider-nrepl
 description: Calva's Interactive Programming, and more, is powered by nREPL and cider-nrepl
+search:
+  boost: 2
 ---
 
 # nREPL and cider-nrepl

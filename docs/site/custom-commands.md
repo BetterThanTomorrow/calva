@@ -1,6 +1,8 @@
 ---
 title: Custom REPL Commands
 description: Automate your workflow with Calva's rich custom REPL commands facilities
+search:
+  boost: 4
 ---
 
 # Custom REPL Commands

@@ -1,6 +1,8 @@
 ---
 title: Calva T-shirts!
 description: Head over to the our shop and buy yourself and your friends some t-shirts withe the beautiful Calva logo
+search:
+  boost: 10
 ---
 
 # Calva Merch

@@ -1,6 +1,8 @@
 ---
 title: Paredit, a Visual Guide
 description: Learn how to leverage Clojure and ClojureScript structural editing, navigation, and selection
+search:
+  boost: 7
 ---
 
 # Paredit – a Visual Guide

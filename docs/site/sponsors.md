@@ -1,6 +1,8 @@
 ---
 title: Calva Sponsors
 description: Meet the sponsors. Calva is open source and free to use. It is actively maintained during our free time, and it keeps improving.
+search:
+  boost: 7
 ---
 
 # Calva Sponsors

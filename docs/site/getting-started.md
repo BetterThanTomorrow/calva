@@ -1,6 +1,8 @@
 ---
 title: Get Started with Calva
 description: How to get started with Calva for Clojure and ClojureScript coding, the Getting Started REPL and more
+search:
+  boost: 10
 ---
 
 # Getting Started

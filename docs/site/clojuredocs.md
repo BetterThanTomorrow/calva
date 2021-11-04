@@ -1,6 +1,8 @@
 ---
 title: ClojureDocs Integration
 description: Learn about how to get ClojureDocs example directly in Calva, straight into the REPL powered editor
+search:
+  boost: 4
 ---
 
 # ClojureDocs integration

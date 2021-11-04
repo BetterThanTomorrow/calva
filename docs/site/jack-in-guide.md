@@ -1,6 +1,8 @@
 ---
 title: The Jack-in Academy
 description: Learn about what Calva Jack-in is, how it works, and why it probably works for your project
+search:
+  boost: 6
 ---
 
 # Learn about Calva Jack-in

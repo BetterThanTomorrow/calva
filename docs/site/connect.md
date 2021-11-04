@@ -1,6 +1,8 @@
 ---
 title: Connect the REPL
 description: How to connect Calva to your project. You can either connect to a running application/REPL or start one (aka Jack-in)
+search:
+  boost: 7
 ---
 
 # Connect Calva to Your Project

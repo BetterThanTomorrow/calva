@@ -1,6 +1,8 @@
 ---
 title: Rich Comments Support
 description: How Calva supports and promotes a Rich Comments powered workflow. The REPL is not a prompt!
+search:
+  boost: 5
 ---
 
 # Rich Comments Support

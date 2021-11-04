@@ -1,6 +1,8 @@
 ---
 title: nbb
 description: Calva has great support for Interactive Programming with nbb. Start a session from Calva, or connect to a running nbb nREPL server
+search:
+  boost: 4
 ---
 
 # Using Calva with nbb

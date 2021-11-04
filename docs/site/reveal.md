@@ -13,7 +13,7 @@ description: Read Eval Visualize Loop for Clojure. How to use Calva and Reveal t
 You can go for the nrepl middleware or just add the dependency. 
 
 
-### Use Reveal nrepl middleware
+### Middleware
 
 This will make Reveal to start together with your project.
 
