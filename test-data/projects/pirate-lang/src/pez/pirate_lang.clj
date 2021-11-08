@@ -20,7 +20,7 @@
   (html)
   [:div {:style ^:foo {:foo :bar} {:background "#FFF"
                                    :color "#000"}}]
-  [:h1 "title"])  
+  [:h1 "title"])
 
 (defn foo [a b]
   (let [x (+ a b)]
@@ -45,5 +45,6 @@
   (to-pirate-talk "Have you heard about Pirate talk?" english-o)
   ;; => "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?"
 
-  (from-pirate-talk "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?" english-o))
+  (from-pirate-talk "HoHavove yoyou hohearordod aboboutot PoPiroratote totalolkok?" english-o)
   ;; => "Have you heard about Pirate talk?"
+  ,)

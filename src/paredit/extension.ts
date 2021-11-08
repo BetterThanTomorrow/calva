@@ -299,16 +299,24 @@ const pareditCommands: PareditCommand[] = [
         handler: paredit.deleteForward
     },
     {
+        command: 'paredit.forceDeleteForward',
+        handler: paredit.deleteForwardForce
+    },
+    {
+        command: 'paredit.nonStrictDeleteForward',
+        handler: paredit.deleteForwardNonStrict
+    },
+    {
         command: 'paredit.deleteBackward',
         handler: paredit.backspace
     },
     {
-        command: 'paredit.forceDeleteForward',
-        handler: () => { vscode.commands.executeCommand('deleteRight') }
+        command: 'paredit.forceDeleteBackward',
+        handler: paredit.backspaceForce
     },
     {
-        command: 'paredit.forceDeleteBackward',
-        handler: () => { vscode.commands.executeCommand('deleteLeft') }
+        command: 'paredit.nonStrictDeleteBackward',
+        handler: paredit.backspaceNonStrict
     },
     {
         command: 'paredit.addRichComment',

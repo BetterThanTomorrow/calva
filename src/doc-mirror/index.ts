@@ -23,11 +23,11 @@ export class DocumentModel implements EditableModel {
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor;
         const undoStopBefore = !!options.undoStopBefore;
-        if (!options.performInferParens) {
-            this.document.model.performInferParens = false;
-        }
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
+                if (!options.performInferParens) {
+                    this.document.model.performInferParens = false;
+                }
                 switch (modelEdit.editFn) {
                     case 'insertString':
                         this.insertEdit.apply(this, [builder, ...modelEdit.args]);
@@ -161,37 +161,18 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
         const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
         const changedText = model.getText(myStartOffset, myEndOffset);
-        model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
+        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+        const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+        const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
+    model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
         ], {}).then(async _v => {
-            const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-            const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
-            const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
-            const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
             const mirroredDoc = documents.get(event.document);
             if (performFormatForward) {
-                const cursor = mirroredDoc.getTokenCursor(mirroredDoc.selection.active);
-                const currentLine = cursor.rowCol[0];
-                do {
-                    const token = cursor.getToken();
-                    if (token.type === 'open') {
-                        cursor.downList();
-                        cursor.forwardList();
-                        if (cursor.rowCol[0] === currentLine) {
-                            cursor.upList();
-                        } else {
-                            await formatter.formatPositionEditableDoc(mirroredDoc, true, {
-                                index: cursor.offsetStart,
-                                adjustSelection: false
-                            });
-                        }
-                    }
-                    if (token.type === 'eol') {
-                        break;
-                    }
-                } while (cursor.next());
+                await formatter.formatForwardListOnSameLine(mirroredDoc);
             }
             if (performInferParens) {
-                if (change.text.match(/^[ \t\(\[\{\)\]\}]+$/) || changedText.match(/^[ \t\(\[\{\)\]\}]+$/)) {
+                if (change.text.match(/^[ ;\t\(\[\{\)\]\}]+$/) || changedText.match(/^[ ;\t\(\[\{\)\]\}]+$/)) {
                     inferParensOnDocMirror(mirroredDoc);
                 }
             }

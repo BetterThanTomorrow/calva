@@ -22,6 +22,29 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
     }
 }
 
+export async function formatForwardListOnSameLine(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
+    const cursor = document.getTokenCursor(p);
+    const currentLine = cursor.rowCol[0];
+    do {
+        const token = cursor.getToken();
+        if (token.type === 'open') {
+            cursor.downList();
+            cursor.forwardList();
+            if (cursor.rowCol[0] === currentLine) {
+                cursor.upList();
+            } else {
+                await formatPositionEditableDoc(document, onType, {
+                    index: cursor.offsetStart,
+                    adjustSelection: false
+                });
+            }
+        }
+        if (token.type === 'eol') {
+            break;
+        }
+    } while (cursor.next());
+}
+
 export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Range): vscode.TextEdit[] {
     const text: string = document.getText(range);
     const mirroredDoc: MirroredDocument = getDocument(document);
@@ -41,39 +64,6 @@ export function formatRange(document: vscode.TextDocument, range: vscode.Range) 
     let wsEdit: vscode.WorkspaceEdit = new vscode.WorkspaceEdit();
     wsEdit.set(document.uri, formatRangeEdits(document, range));
     return vscode.workspace.applyEdit(wsEdit);
-}
-
-export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}) {
-    const doc: vscode.TextDocument = editor.document;
-    const pos: vscode.Position = editor.selection.active;
-    const index = doc.offsetAt(pos);
-    const mirroredDoc: MirroredDocument = getDocument(doc);
-    const cursor = mirroredDoc.getTokenCursor(index);
-    const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
-    const isComment = cursor.getFunctionName() === 'comment';
-    const config = {...extraConfig, "comment-form?": isComment};
-    let formatRange = cursor.rangeForList(formatDepth);
-    if (!formatRange) {
-        formatRange = cursor.rangeForCurrentForm(index);
-        if (!formatRange || !formatRange.includes(index)) {
-            return;
-        }
-    }
-    const formatted: {
-        "range-text": string,
-        "range": number[],
-        "new-index": number
-    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, config);
-    const range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1]));
-    const newIndex: number = doc.offsetAt(range.start) + formatted["new-index"];
-    const previousText: string = doc.getText(range);
-    return {
-        formattedText: formatted["range-text"],
-        range: range,
-        previousText: previousText,
-        previousIndex: index,
-        newIndex: newIndex
-    }
 }
 
 export function formatPositionInfoEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}) {
