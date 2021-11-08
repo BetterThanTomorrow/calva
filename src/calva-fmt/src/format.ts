@@ -23,26 +23,29 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
 }
 
 export async function formatForwardListOnSameLine(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
-    const cursor = document.getTokenCursor(p);
-    const currentLine = cursor.rowCol[0];
-    do {
-        const token = cursor.getToken();
-        if (token.type === 'open') {
-            cursor.downList();
-            cursor.forwardList();
-            if (cursor.rowCol[0] === currentLine) {
-                cursor.upList();
-            } else {
-                await formatPositionEditableDoc(document, onType, {
-                    index: cursor.offsetStart,
-                    adjustSelection: false
-                });
+    const formatForwardOn = config.getConfig()['format-forward-list-on-same-line'];
+    if (formatForwardOn) {
+        const cursor = document.getTokenCursor(p);
+        const currentLine = cursor.rowCol[0];
+        do {
+            const token = cursor.getToken();
+            if (token.type === 'open') {
+                cursor.downList();
+                cursor.forwardList();
+                if (cursor.rowCol[0] === currentLine) {
+                    cursor.upList();
+                } else {
+                    await formatPositionEditableDoc(document, onType, {
+                        index: cursor.offsetStart,
+                        adjustSelection: false
+                    });
+                }
             }
-        }
-        if (token.type === 'eol') {
-            break;
-        }
-    } while (cursor.next());
+            if (token.type === 'eol') {
+                break;
+            }
+        } while (cursor.next());
+    }
 }
 
 export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Range): vscode.TextEdit[] {
@@ -99,14 +102,15 @@ export function formatPositionEditableDoc(document: docModel.EditableDocument, o
     const formattedInfo = formatPositionInfoEditableDoc(document, onType, extraConfig);
     const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
     if (formattedInfo) {
+        const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
         if (formattedInfo.previousText != formattedInfo.formattedText) {
             return document.model.edit([
                 new docModel.ModelEdit('changeRange', [formattedInfo.range[0], formattedInfo.range[1], formattedInfo.formattedText])
             ], {
                 undoStopBefore: !onType,
-                selection: adjustSelection ? new docModel.ModelEditSelection(formattedInfo.newIndex) : formattedInfo.previousIndex,
                 skipFormat: true,
-                performInferParens: false
+                performInferParens: false,
+                ...newSelectionConfig
             });
         } else if (adjustSelection && formattedInfo.newIndex != formattedInfo.previousIndex) {
             document.selection = new docModel.ModelEditSelection(formattedInfo.newIndex);
