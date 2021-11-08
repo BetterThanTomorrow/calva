@@ -22,7 +22,7 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
     }
 }
 
-export async function formatForwardListOnSameLine(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
+export async function formatForward(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
     const formatForwardOn = config.getConfig()['format-forward-list-on-same-line'];
     if (formatForwardOn) {
         const cursor = document.getTokenCursor(p);
