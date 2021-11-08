@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Experimental: [Add Parinfer Options](https://github.com/BetterThanTomorrow/calva/issues/253)
+
 
 ## [2.0.223] - 2021-11-01
 - [Include material from clojuredocs.org in function documentation](https://github.com/BetterThanTomorrow/calva/issues/689)
