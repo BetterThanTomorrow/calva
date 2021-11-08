@@ -109,7 +109,6 @@
         "configurationDefaults": {
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-                "editor.autoClosingBrackets": "always",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
                 "editor.autoIndent": "full",
@@ -674,6 +673,16 @@
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "Treat `(comment...)` forms special and keep its closing paren on a line of its own."
+                    },
+                    "calva.fmt.inferParensAsYouType": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets."
+                    },
+                    "calva.fmt.formatForwardListOnSameLine": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "_Experimental_. Formats lists on the same line in front of typed text (essentially pushing them forward) when you type non-spaces or non-brackets."
                     }
                 }
             },

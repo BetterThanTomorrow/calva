@@ -10,7 +10,8 @@
   (let [options {:cursorLine line
                  :cursorX character
                  :prevCursorLine previous-line
-                 :prevCursorX previous-character}
+                 :prevCursorX previous-character
+                 :partialResult true}
         result (cljify (parinfer/indentMode text (jsify options)))]
     (jsify
      (if (:success result)

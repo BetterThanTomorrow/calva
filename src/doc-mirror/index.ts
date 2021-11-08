@@ -4,21 +4,28 @@ import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
 import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
+import { inferParensOnDocMirror } from "../calva-fmt/src/infer";
+import * as formatConfig from '../calva-fmt/src/config';
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
 export class DocumentModel implements EditableModel {
     readonly lineEndingLength: number;
+    performInferParens = true;
+    performFormatForward = true;
     lineInputModel: LineInputModel;
 
     constructor(private document: MirroredDocument) {
         this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
         this.lineInputModel = new LineInputModel(this.lineEndingLength);
-     }
+    }
 
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
-        const editor = vscode.window.activeTextEditor,
-            undoStopBefore = !!options.undoStopBefore;
+        const editor = vscode.window.activeTextEditor;
+        const undoStopBefore = !!options.undoStopBefore;
+        if (!options.performInferParens) {
+            this.document.model.performInferParens = false;
+        }
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
                 switch (modelEdit.editFn) {
@@ -43,7 +50,7 @@ export class DocumentModel implements EditableModel {
                 if (!options.skipFormat) {
                     return formatter.formatPosition(editor, false, {
                         "format-depth": options.formatDepth ? options.formatDepth : 1
-                     });
+                    });
                 }
             }
             return isFulfilled;
@@ -149,12 +156,50 @@ let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const model = documents.get(event.document).model;
-    for (let change of event.contentChanges) {
+    for (const change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
-        const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character,
-            myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
+        const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
+        const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
+        const changedText = model.getText(myStartOffset, myEndOffset);
         model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
-        ], {});
+        ], {}).then(async _v => {
+            const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+            const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
+            const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+            const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
+            const mirroredDoc = documents.get(event.document);
+            if (performFormatForward) {
+                const cursor = mirroredDoc.getTokenCursor(mirroredDoc.selection.active);
+                const currentLine = cursor.rowCol[0];
+                do {
+                    const token = cursor.getToken();
+                    if (token.type === 'open') {
+                        cursor.downList();
+                        cursor.forwardList();
+                        if (cursor.rowCol[0] === currentLine) {
+                            cursor.upList();
+                        } else {
+                            await formatter.formatPositionEditableDoc(mirroredDoc, true, {
+                                index: cursor.offsetStart,
+                                adjustSelection: false
+                            });
+                        }
+                    }
+                    if (token.type === 'eol') {
+                        break;
+                    }
+                } while (cursor.next());
+            }
+            if (performInferParens) {
+                if (change.text.match(/^[ \t\(\[\{\)\]\}]+$/) || changedText.match(/^[ \t\(\[\{\)\]\}]+$/)) {
+                    inferParensOnDocMirror(mirroredDoc);
+                }
+            }
+        });
+    }
+    if (event.contentChanges.length > 0) {
+        model.performInferParens = true;
+        model.performFormatForward = true;
     }
     model.lineInputModel.flushChanges()
 
