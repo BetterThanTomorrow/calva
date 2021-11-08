@@ -663,7 +663,7 @@ export function _deleteForward(doc: EditableDocument, start: number, end: number
                 new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
             ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
-            if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
+            if (isStrict && ['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p + 1);
                 return new Promise<boolean>(resolve => resolve(true));
             } else {
