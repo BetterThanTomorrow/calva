@@ -7,12 +7,12 @@ import { getConfig } from '../../../config';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
     async provideOnTypeFormattingEdits(document: vscode.TextDocument, _position: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
+        const mDoc: EditableDocument = docMirror.getDocument(document);
         const editor = vscode.window.activeTextEditor;
         let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
         keyMap = String(keyMap).trim().toLowerCase();
         if ([')', ']', '}'].includes(ch)) {
             if (keyMap === 'strict' && getConfig().strictPreventUnmatchedClosingBracket) {
-                const mDoc: EditableDocument = docMirror.getDocument(document);
                 const tokenCursor = mDoc.getTokenCursor();
                 if (tokenCursor.withinComment()) {
                     return null;
@@ -29,12 +29,18 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         const pos = editor.selection.active;
         if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
             if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
-                formatter.indentPosition(pos, document);
+                formatter.indentPosition(pos, document).then(_v => {
+                    return formatter.formatForwardListOnSameLine(mDoc, mDoc.selection.active, true);
+                });
             } else {
                 try {
-                    formatter.formatPosition(editor, true);
+                    formatter.formatPositionEditableDoc(mDoc, true).then(_v => {
+                        return formatter.formatForwardListOnSameLine(mDoc, mDoc.selection.active, true);
+                    });
                 } catch (e) {
-                    formatter.indentPosition(pos, document);
+                    formatter.indentPosition(pos, document).then(_v => {
+                        return formatter.formatForwardListOnSameLine(mDoc, mDoc.selection.active, true);
+                    });
                 }
             }
         }

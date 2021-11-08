@@ -6,7 +6,7 @@ const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, formatText, c
 import * as docModel from '../../cursor-doc/model';
 
 
-export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
+export function indentPosition(position: vscode.Position, document: vscode.TextDocument): Thenable<boolean> {
     let editor = vscode.window.activeTextEditor;
     let pos = new vscode.Position(position.line, 0);
     let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position), config.getConfig());
