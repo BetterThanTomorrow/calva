@@ -53,6 +53,7 @@ nav:
     - output.md
     - formatting.md
     - paredit.md
+    - parinfer.md
     - debugger.md
     - pprint.md
     - refactoring.md
@@ -78,7 +79,6 @@ nav:
     - krell.md
     - rebl.md
     - static-only.md
-    - parinfer.md
   - Etcetera:
     - emacs-keybindings.md
     - workspace-layouts.md

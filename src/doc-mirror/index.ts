@@ -169,7 +169,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         ], {}).then(async _v => {
             const mirroredDoc = documents.get(event.document);
             if (performFormatForward) {
-                await formatter.formatForwardListOnSameLine(mirroredDoc);
+                await formatter.formatForward(mirroredDoc);
             }
             if (performInferParens) {
                 if (change.text.match(/^[ ;\t\(\[\{\)\]\}]+$/) || changedText.match(/^[ ;\t\(\[\{\)\]\}]+$/)) {
@@ -179,8 +179,8 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         });
     }
     if (event.contentChanges.length > 0) {
-        model.performInferParens = true;
-        model.performFormatForward = true;
+        model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];;
+        model.performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];;
     }
     model.lineInputModel.flushChanges()
 

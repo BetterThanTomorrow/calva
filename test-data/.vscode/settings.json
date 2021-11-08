@@ -5,6 +5,5 @@
       "snippet": "(tap> [$current-form $current-form])"
     }
   ],
-  "calva.fmt.formatForwardListOnSameLine": true,
-  "calva.fmt.inferParensAsYouType": true
+  "calva.fmt.formatForward": true
 }

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as formatter from '../format';
+import * as formatterConfig from '../config';
 import * as docMirror from '../../../doc-mirror/index';
 import { EditableDocument } from '../../../cursor-doc/model';
 import * as paredit from '../../../cursor-doc/paredit';
@@ -9,10 +10,11 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
     async provideOnTypeFormattingEdits(document: vscode.TextDocument, _position: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
         const mDoc: EditableDocument = docMirror.getDocument(document);
         const editor = vscode.window.activeTextEditor;
+        const parinferOn = formatterConfig.getConfig()['infer-parens-as-you-type'] as boolean;
         let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
         keyMap = String(keyMap).trim().toLowerCase();
         if ([')', ']', '}'].includes(ch)) {
-            if (keyMap === 'strict' && getConfig().strictPreventUnmatchedClosingBracket) {
+            if (!parinferOn && keyMap === 'strict' && getConfig().strictPreventUnmatchedClosingBracket) {
                 const tokenCursor = mDoc.getTokenCursor();
                 if (tokenCursor.withinComment()) {
                     return null;
@@ -25,26 +27,35 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
                 return null;
             }
         }
-
-        const pos = editor.selection.active;
-        if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
-            if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
-                formatter.indentPosition(pos, document).then(_v => {
-                    return formatter.formatForwardListOnSameLine(mDoc, mDoc.selection.active, true);
-                });
-            } else {
-                try {
-                    formatter.formatPositionEditableDoc(mDoc, true).then(_v => {
-                        return formatter.formatForwardListOnSameLine(mDoc, mDoc.selection.active, true);
-                    });
-                } catch (e) {
+        if (['(', '[', '{'].includes(ch)) {
+            if (!parinferOn) {
+                mDoc.insertString({
+                    '(': ')',
+                    '[': ']',
+                    '{': '}'
+                }[ch]);
+            }
+        }
+        else {
+            const pos = editor.selection.active;
+            if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
+                if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
                     formatter.indentPosition(pos, document).then(_v => {
-                        return formatter.formatForwardListOnSameLine(mDoc, mDoc.selection.active, true);
+                        return formatter.formatForward(mDoc, mDoc.selection.active, true);
                     });
+                } else {
+                    try {
+                        formatter.formatPositionEditableDoc(mDoc, true).then(_v => {
+                            return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                        });
+                    } catch (e) {
+                        formatter.indentPosition(pos, document).then(_v => {
+                            return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                        });
+                    }
                 }
             }
         }
-
         return null;
     }
 }

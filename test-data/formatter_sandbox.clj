@@ -22,14 +22,15 @@
      :pirates pirates}))
 
 (defn component []
-  (html)
-  [:div {:style ^:foo {:foo :bar} {:background "#FFF"
-                                   :color "#000"}}]
-  [:h1 "title"])
+  (html
+   [:div {:style ^:foo {:foo :bar} {:background "#FFF"
+                                    :color "#000"}}]
+   [:h1 "title"]))
 
 (defn foo [a b]
-  (let [x (+ a b)]
+  (let [x + a b]
     (println "sum is" x)))
+
 
 (defn to-pirate-talk
   [text language]
