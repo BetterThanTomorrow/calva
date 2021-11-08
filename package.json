@@ -1304,14 +1304,26 @@
             },
             {
                 "category": "Calva Paredit",
+                "command": "paredit.forceDeleteForward",
+                "title": "Force Delete Forward",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
+                "command": "paredit.nonStrictDeleteForward",
+                "title": "Delete Forward Non Strict",
+                "enablement": "editorLangId == clojure"
+            },
+            {
+                "category": "Calva Paredit",
                 "command": "paredit.deleteBackward",
                 "title": "Delete Backward",
                 "enablement": "editorLangId == clojure"
             },
             {
                 "category": "Calva Paredit",
-                "command": "paredit.forceDeleteForward",
-                "title": "Force Delete Forward",
+                "command": "paredit.nonStrictDeleteBackward",
+                "title": "Delete Backward Non Strict",
                 "enablement": "editorLangId == clojure"
             },
             {
@@ -2027,14 +2039,19 @@
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
+                "command": "paredit.forceDeleteForward",
+                "key": "alt+delete",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+            },
+            {
                 "command": "paredit.deleteBackward",
                 "key": "backspace",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
-                "command": "paredit.forceDeleteForward",
-                "key": "alt+delete",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap == strict && !editorReadOnly && !editorHasMultipleSelections"
+                "command": "paredit.nonStrictDeleteBackward",
+                "key": "backspace",
+                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && paredit:keyMap != strict && !editorReadOnly && !editorHasMultipleSelections && !calva:cursorInComment"
             },
             {
                 "command": "paredit.forceDeleteBackward",
