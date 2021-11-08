@@ -1115,7 +1115,7 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active, 
         new ModelEdit('insertString', [insertStart, insertText, [insertStart, insertStart], [newCursorPos, newCursorPos]])
     ], {
         selection: new ModelEditSelection(newCursorPos),
-        skipFormat: false,
+        skipFormat: true,
         undoStopBefore: true
     });
 }
