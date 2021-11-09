@@ -540,7 +540,13 @@ function docIsBalanced(doc: EditableDocument, start: number = doc.selection.acti
     return cursor.atEnd();
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
+export function insert(doc: EditableDocument, text: string, start: number = doc.selection.active): Thenable<boolean> {
+    return doc.model.edit([
+        new ModelEdit('insertString', [start, text])
+    ], { selection: new ModelEditSelection(start) });
+}
+
+export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     const inString = cursor.withinString();
     cursor.forwardWhitespace(false);
@@ -549,8 +555,9 @@ export function close(doc: EditableDocument, close: string, start: number = doc.
     } else {
         if (!inString && docIsBalanced(doc)) {
             // Do nothing when there is balance
+            return null;
         } else {
-            doc.model.edit([
+            return doc.model.edit([
                 new ModelEdit('insertString', [start, close])
             ], { selection: new ModelEditSelection(start + close.length) });
         }

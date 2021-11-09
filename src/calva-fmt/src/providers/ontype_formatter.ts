@@ -4,36 +4,33 @@ import * as formatterConfig from '../config';
 import * as docMirror from '../../../doc-mirror/index';
 import { EditableDocument } from '../../../cursor-doc/model';
 import * as paredit from '../../../cursor-doc/paredit';
-import { getConfig } from '../../../config';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
-    async provideOnTypeFormattingEdits(document: vscode.TextDocument, _position: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
+    async provideOnTypeFormattingEdits(document: vscode.TextDocument, p: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
         const mDoc: EditableDocument = docMirror.getDocument(document);
+        const tokenCursor = mDoc.getTokenCursor();
         const editor = vscode.window.activeTextEditor;
         const parinferOn = formatterConfig.getConfig()['infer-parens-as-you-type'] as boolean;
+        const formatForwardOn = formatterConfig.getConfig()['format-forward-list-on-same-line'] as boolean;
         let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
         keyMap = String(keyMap).trim().toLowerCase();
         if ([')', ']', '}'].includes(ch)) {
-            if (!parinferOn && keyMap === 'strict' && getConfig().strictPreventUnmatchedClosingBracket) {
-                const tokenCursor = mDoc.getTokenCursor();
-                if (tokenCursor.withinComment()) {
-                    return null;
-                }
+            if (!parinferOn && keyMap === 'strict' && !tokenCursor.withinComment()) {
                 return paredit.backspace(mDoc).then(fulfilled => {
-                    paredit.close(mDoc, ch);
                     return null;
                 });
-            } else {
-                return null;
             }
         }
         if (['(', '[', '{'].includes(ch)) {
-            if (!parinferOn) {
-                mDoc.insertString({
+            if (!parinferOn && keyMap === 'strict' && !tokenCursor.withinComment()) {
+                const close = {
                     '(': ')',
                     '[': ']',
                     '{': '}'
-                }[ch]);
+                }[ch];
+                return paredit.insert(mDoc, close).then(fulfilled => {
+                    return null;
+                });
             }
         }
         else {
@@ -41,16 +38,22 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
             if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
                 if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
                     formatter.indentPosition(pos, document).then(_v => {
-                        return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                        if (formatForwardOn) {
+                            //return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                        }
                     });
                 } else {
                     try {
                         formatter.formatPositionEditableDoc(mDoc, true).then(_v => {
-                            return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                            if (formatForwardOn) {
+                                //return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                            }    
                         });
                     } catch (e) {
                         formatter.indentPosition(pos, document).then(_v => {
-                            return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                            if (formatForwardOn) {
+                                //return formatter.formatForward(mDoc, mDoc.selection.active, true);
+                            }    
                         });
                     }
                 }

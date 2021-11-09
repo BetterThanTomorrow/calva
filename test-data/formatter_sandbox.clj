@@ -9,7 +9,7 @@
              :vig 3.0
              :rex 5.0
              :lun 4.0}})
-             
+
 (defn- configure
   [{:keys [alphabet vowels pirate-char]}]
   (let [alphabet   (set (seq (string/upper-case alphabet)))
