@@ -172,9 +172,9 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                 await formatter.formatForward(mirroredDoc);
             }
             if (performInferParens) {
-                if (change.text.match(/^[ ;\t\(\[\{\)\]\}]+$/) || changedText.match(/^[ ;\t\(\[\{\)\]\}]+$/)) {
+                //if (change.text.match(/^[ ;\t\(\[\{\)\]\}]+$/) || changedText.match(/^[ ;\t\(\[\{\)\]\}]+$/)) {
                     inferParensOnDocMirror(mirroredDoc);
-                }
+                //}
             }
         });
     }
