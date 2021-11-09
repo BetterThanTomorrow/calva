@@ -1394,18 +1394,6 @@
                 "enablement": "editorLangId == clojure"
             },
             {
-                "command": "calva-fmt.tabIndent",
-                "title": "Indent Line",
-                "category": "Calva Format",
-                "enablement": "editorLangId == clojure"
-            },
-            {
-                "command": "calva-fmt.tabDedent",
-                "title": "Dedent Line",
-                "category": "Calva Format",
-                "enablement": "editorLangId == clojure"
-            },
-            {
                 "category": "Calva",
                 "command": "calva.showOutputWindow",
                 "title": "Show Output/REPL Window",
@@ -2061,21 +2049,6 @@
             {
                 "command": "calva-fmt.alignCurrentForm",
                 "key": "ctrl+alt+l",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
-            },
-            {
-                "command": "calva-fmt.inferParens",
-                "key": "shift+tab",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
-            },
-            {
-                "command": "calva-fmt.tabIndent",
-                "key": "ctrl+i",
-                "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
-            },
-            {
-                "command": "calva-fmt.tabDedent",
-                "key": "shift+ctrl+i",
                 "when": "calva:keybindingsEnabled && editorLangId == clojure && editorTextFocus && !editorReadOnly && !suggestWidgetVisible && !hasOtherSuggestions"
             },
             {
