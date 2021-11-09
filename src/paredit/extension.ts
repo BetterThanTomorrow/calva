@@ -6,6 +6,7 @@ import { Event, EventEmitter } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
+import * as formatConfig from '../calva-fmt/src/config';
 
 let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
@@ -296,7 +297,11 @@ const pareditCommands: PareditCommand[] = [
     },
     {
         command: 'paredit.deleteForward',
-        handler: paredit.deleteForward
+        handler: (doc: EditableDocument) => {
+            formatConfig.getConfig()['infer-parens-as-you-type'] ?
+                paredit.deleteForwardNonStrict(doc) :
+                paredit.deleteForward(doc)
+        }
     },
     {
         command: 'paredit.forceDeleteForward',
@@ -308,7 +313,11 @@ const pareditCommands: PareditCommand[] = [
     },
     {
         command: 'paredit.deleteBackward',
-        handler: paredit.backspace
+        handler: (doc: EditableDocument) => {
+            formatConfig.getConfig()['infer-parens-as-you-type'] ?
+                paredit.backspaceNonStrict(doc) :
+                paredit.backspace(doc)
+        }
     },
     {
         command: 'paredit.forceDeleteBackward',
