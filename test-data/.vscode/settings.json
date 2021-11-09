@@ -6,5 +6,5 @@
     }
   ],
   "calva.paredit.strictPreventUnmatchedClosingBracket": true,
-  "calva.fmt.formatForward": true
+  "calva.fmt.inferParensAsYouType": true
 }
