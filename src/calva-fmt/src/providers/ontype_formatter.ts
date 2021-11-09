@@ -21,7 +21,7 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
                 });
             }
         }
-        if (['(', '[', '{'].includes(ch)) {
+        else if (['(', '[', '{'].includes(ch)) {
             if (!parinferOn && keyMap === 'strict' && !tokenCursor.withinComment()) {
                 const close = {
                     '(': ')',
