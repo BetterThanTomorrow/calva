@@ -24,9 +24,11 @@ They go best together. The first letting you use indentation to decide structure
 
 In Calva, Parinfer and [Paredit](paredit.md) are designed to coexist and both be there to let you edit the structure easily and efficiently. Since Pardit commands are always formatted, they leave the code in a state where Parinfer has what it needs to infer bracket placement as you either edit the indentation, or remove/add brackets.
 
-!!! Note "Paredit Strict Mode"
-    If you enable `calva.fmt.inferParensAsYouType`, there is much less need for Paredit's *strict* mode, and cin the current implementation strict mode interferes a bit with Parinfer editing, so you can try disable it. We will iterate on this and probably get it to where this also cooexists nicely.
-
 ## Disable the Parinfer Extension
 
 If you want to have Parinfer you are probably best served by Calva's built-in version. It is designed, and will continue to be improved to function well together with Calva's other structural editing and formatting features. _It will also probably conflict with the Parinfer Extension._
+
+## See also
+
+* [Paredit](paredit.md)
+* [Formatting](formatting.md)
