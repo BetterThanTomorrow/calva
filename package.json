@@ -638,12 +638,6 @@
                         "default": true,
                         "scope": "window"
                     },
-                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
-                        "type": "boolean",
-                        "markdownDescription": "Experimental: Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-                        "default": false,
-                        "scope": "window"
-                    },
                     "calva.paredit.killAlsoCutsToClipboard": {
                         "type": "boolean",
                         "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
@@ -2594,7 +2588,7 @@
         "net": "1.0.2",
         "npm": "^7.0.7",
         "open": "^6.3.0",
-        "parinfer": "^3.12.0",
+        "@chrisoakman/parinfer": "^3.13.1",
         "tree-kill": "^1.2.2",
         "universal-analytics": "^0.4.20",
         "uuidv4": "6.2.12",

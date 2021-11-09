@@ -1,5 +1,5 @@
 (ns calva.fmt.inferer
-  (:require ["parinfer" :as parinfer]
+  (:require ["@chrisoakman/parinfer" :as parinfer]
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.editor :as editor]))
 
