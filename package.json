@@ -1,7 +1,7 @@
 {
     "name": "calva",
     "displayName": "Calva: Clojure & ClojureScript Interactive Programming",
-    "description": "Integrated REPL, formatter, Paredit, and more. Powered by cider-nrepl and clojure-lsp.",
+    "description": "A complete Clojure IDE. Integrated REPL, formatter, Paredit, Parinfer, and more. Powered by cider-nrepl and clojure-lsp.",
     "icon": "assets/calva.png",
     "version": "2.0.229",
     "publisher": "betterthantomorrow",
