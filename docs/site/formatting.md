@@ -19,9 +19,6 @@ With the default settings, Calva's formatting behaves like so:
 * formats the current form, _aligning map keys and values_, when you press `ctrl+alt+l`
 * formats `(comment ..)` forms special, see [rich comments](#rich-comments)
 
-!!! Tips
-    Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to `shift+tab` to form a nicely balanced pair with the `tab` formatting.
-
 Also: If you have **Format on Save** enabled in VS Code, it will be Calva doing the formatting for Clojure files.
 
 Calva's formatting is mostly about indenting, but it also (again, defaults):
@@ -34,6 +31,19 @@ Calva's formatting is mostly about indenting, but it also (again, defaults):
 Not a fan of some default setting? The formatter is quite configurable.
 
 ## Configuration
+
+There are settings for the general behaviour of Calva formatting as well as for configuring `cljfmt`, which is the formatting engine used.
+
+| Setting | Description | Default
+| ------- | ----------- | -------
+| `calva.fmt.formatAsYouType` | Formats the code while you are typing. Mostly when adding new lines. | **true**
+| `calva.fmt.newIndentEngine` | Fast indentation. When disabled, a full formatting will be done on the current enclosing form. | **true**
+| `calva.fmt.inferParensAsYouType` | Experimental: [Parinfer](parinfer.md) mode | **false**
+| `calva.fmt.formatForward` | Experimental: Formats forms ahead of the cursor on the same line. See [Parinfer](parinfer.md) for a demo | **false**
+| `calva.fmt.keepCommentTrailParenOnOwnLine` | See [Rich Comments](rich-comments.md) | **true**
+
+
+### cljfmt
 
 You configure Calva's formatting using [cljfmt's configuration EDN](https://github.com/weavejester/cljfmt#configuration). This means that you can adjust the above mentioned defaults, including the indenting.
 

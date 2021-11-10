@@ -84,6 +84,8 @@ export type ModelEditOptions = {
     undoStopBefore?: boolean,
     formatDepth?: number,
     skipFormat?: boolean,
+    performInferParens?: boolean,
+    performFormatForward?: boolean,
     selection?: ModelEditSelection
 };
 
@@ -96,7 +98,8 @@ export interface EditableModel {
      * @param edits
      */
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
-
+    performInferParens: boolean;
+    performFormatForward: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getLineText: (line: number) => string;
     getOffsetForLine: (line: number) => number;
@@ -120,6 +123,9 @@ export interface EditableDocument {
 export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
     constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) { }
+
+    performInferParens = true;
+    performFormatForward = true;
 
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];

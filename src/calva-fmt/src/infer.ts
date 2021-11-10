@@ -1,5 +1,8 @@
+import { start } from 'repl';
 import * as vscode from 'vscode';
+import * as docModel from '../../cursor-doc/model';
 const { inferParens, inferIndents } = require('../../../out/cljs-lib/cljs-lib');
+import * as docMirror from '../../doc-mirror';
 
 
 interface CFEdit {
@@ -15,12 +18,51 @@ interface CFError {
 
 interface ResultOptions {
     success: boolean,
+    //"new-text": string,
     edits?: [CFEdit],
     line?: number,
     character?: number,
     error?: CFError,
     "error-msg"?: string
 }
+
+function rowColToOffset(document: docModel.EditableDocument, row: number, col: number) {
+    const lineOffset = document.model.getOffsetForLine(row);
+    return lineOffset + col;
+}
+
+export function inferParensOnDocMirror(document: docModel.EditableDocument) {
+    const p = document.selection.active;
+    const [row, col] = document.getTokenCursor().rowCol;
+    const currentText = document.model.getText(0, Infinity);
+    const r: ResultOptions = inferParens({
+            "text": currentText,
+            "line": row,
+            "character": col,
+            "previous-line": row,
+            "previous-character": col
+    });
+    if (r.edits && r.edits?.length > 0) {
+        let diffLengthBeforeCursor = 0;
+        const modelEdits = r.edits?.map(edit => {
+            const start = rowColToOffset(document, edit.start.line, edit.start.character);
+            const end = rowColToOffset(document, edit.end.line, edit.end.character);
+            if (edit.end.line < row) {
+                diffLengthBeforeCursor += edit.text.length - (end - start);
+            }
+            return new docModel.ModelEdit('changeRange', [start, end, edit.text]);
+        });
+        const rP = rowColToOffset(document, r.line, r.character);
+        const newP = rP + diffLengthBeforeCursor;
+        document.model.edit(modelEdits, {
+            selection: new docModel.ModelEditSelection(newP),
+            skipFormat: true,
+            undoStopBefore: false,
+            performInferParens: false
+        });
+    }
+}
+
 
 export function inferParensCommand(editor: vscode.TextEditor) {
     const position: vscode.Position = editor.selection.active,

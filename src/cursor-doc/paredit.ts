@@ -540,7 +540,13 @@ function docIsBalanced(doc: EditableDocument, start: number = doc.selection.acti
     return cursor.atEnd();
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight) {
+export function insert(doc: EditableDocument, text: string, start: number = doc.selection.active): Thenable<boolean> {
+    return doc.model.edit([
+        new ModelEdit('insertString', [start, text])
+    ], { selection: new ModelEditSelection(start) });
+}
+
+export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     const inString = cursor.withinString();
     cursor.forwardWhitespace(false);
@@ -549,8 +555,9 @@ export function close(doc: EditableDocument, close: string, start: number = doc.
     } else {
         if (!inString && docIsBalanced(doc)) {
             // Do nothing when there is balance
+            return null;
         } else {
-            doc.model.edit([
+            return doc.model.edit([
                 new ModelEdit('insertString', [start, close])
             ], { selection: new ModelEditSelection(start + close.length) });
         }
@@ -558,9 +565,17 @@ export function close(doc: EditableDocument, close: string, start: number = doc.
 }
 
 export function backspace(doc: EditableDocument, start: number = doc.selection.anchor, end: number = doc.selection.active): Thenable<boolean> {
+    return _backspace(doc, start, end, true);
+}
+
+export function backspaceNonStrict(doc: EditableDocument, start: number = doc.selection.anchor, end: number = doc.selection.active): Thenable<boolean> {
+    return _backspace(doc, start, end, false);
+}
+
+function _backspace(doc: EditableDocument, start: number, end: number, isStrict: boolean): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     if (start != end) {
-        return doc.backspace();
+        return _killSelection(doc, start, end, KillDirection.BACKWARD, { performInferParens: true });
     } else {
         const nextToken = cursor.getToken();
         const p = start;
@@ -578,17 +593,67 @@ export function backspace(doc: EditableDocument, start: number = doc.selection.a
                 new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
             ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
-            if (['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
+            if (isStrict && ['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p - prevToken.raw.length);
                 return new Promise<boolean>(resolve => resolve(true));
             } else {
-                return doc.backspace();
+                return _killSelection(doc, start, end, KillDirection.BACKWARD, { performInferParens: true });
             }
         }
     }
 }
 
-export function deleteForward(doc: EditableDocument, start: number = doc.selectionLeft, end: number = doc.selectionRight) {
+enum KillDirection {
+    FORWARD = 1,
+    BACKWARD = 2
+}
+
+function _killSelection(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active, direction: KillDirection, extraOpts = {}): Thenable<boolean> {
+    let start = anchor;
+    let end = active;
+    if (anchor > active) {
+        start = active;
+        end = anchor;
+    } else if (anchor === active) {
+        if (direction === KillDirection.BACKWARD && start > 0) {
+            // TODO: consider `eol`
+            start -= 1;
+        } else if (direction === KillDirection.FORWARD) {
+            // TODO: consider `eol`
+            end += 1;
+        }
+    }
+    if (start != end) {
+        return doc.model.edit([
+            new ModelEdit('deleteRange', [start, end - start])
+        ], {
+            selection: new ModelEditSelection(start),
+            performFormatForward: true,
+            performInferParens: true,
+            skipFormat: true,
+            ...extraOpts
+        });
+    }
+}
+
+export function backspaceForce(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active): Thenable<boolean> {
+    return _killSelection(doc, anchor, active, KillDirection.BACKWARD, { performInferParens: false });
+}
+
+export function deleteForwardForce(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active): Thenable<boolean> {
+    return _killSelection(doc, anchor, active, KillDirection.FORWARD, { performInferParens: false });
+}
+
+
+export function deleteForward(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active) {
+    _deleteForward(doc, anchor, active, true);
+}
+
+export function deleteForwardNonStrict(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active) {
+    _deleteForward(doc, anchor, active, false);
+}
+
+export function _deleteForward(doc: EditableDocument, start: number, end: number, isStrict: boolean) {
     const cursor = doc.getTokenCursor(start);
     if (start != end) {
         doc.delete();
@@ -605,7 +670,7 @@ export function deleteForward(doc: EditableDocument, start: number = doc.selecti
                 new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
             ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
         } else {
-            if (['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
+            if (isStrict && ['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p + 1);
                 return new Promise<boolean>(resolve => resolve(true));
             } else {
@@ -1115,7 +1180,7 @@ export function addRichComment(doc: EditableDocument, p = doc.selection.active, 
         new ModelEdit('insertString', [insertStart, insertText, [insertStart, insertStart], [newCursorPos, newCursorPos]])
     ], {
         selection: new ModelEditSelection(newCursorPos),
-        skipFormat: false,
+        skipFormat: true,
         undoStopBefore: true
     });
 }

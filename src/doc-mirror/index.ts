@@ -4,23 +4,30 @@ import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
 import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
+import { inferParensOnDocMirror } from "../calva-fmt/src/infer";
+import * as formatConfig from '../calva-fmt/src/config';
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
 export class DocumentModel implements EditableModel {
     readonly lineEndingLength: number;
+    performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
+    performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];
     lineInputModel: LineInputModel;
 
     constructor(private document: MirroredDocument) {
         this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
         this.lineInputModel = new LineInputModel(this.lineEndingLength);
-     }
+    }
 
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
-        const editor = vscode.window.activeTextEditor,
-            undoStopBefore = !!options.undoStopBefore;
+        const editor = vscode.window.activeTextEditor;
+        const undoStopBefore = !!options.undoStopBefore;
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
+                if (!options.performInferParens) {
+                    this.document.model.performInferParens = false;
+                }
                 switch (modelEdit.editFn) {
                     case 'insertString':
                         this.insertEdit.apply(this, [builder, ...modelEdit.args]);
@@ -43,7 +50,7 @@ export class DocumentModel implements EditableModel {
                 if (!options.skipFormat) {
                     return formatter.formatPosition(editor, false, {
                         "format-depth": options.formatDepth ? options.formatDepth : 1
-                     });
+                    });
                 }
             }
             return isFulfilled;
@@ -149,12 +156,31 @@ let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const model = documents.get(event.document).model;
-    for (let change of event.contentChanges) {
+    for (const change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
-        const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character,
-            myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
-        ], {});
+        const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
+        const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
+        const changedText = model.getText(myStartOffset, myEndOffset);
+        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+        const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+        const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
+    model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
+        ], {}).then(async _v => {
+            const mirroredDoc = documents.get(event.document);
+            if (performFormatForward) {
+                await formatter.formatForward(mirroredDoc);
+            }
+            if (performInferParens) {
+                //if (change.text.match(/^[ ;\t\(\[\{\)\]\}]+$/) || changedText.match(/^[ ;\t\(\[\{\)\]\}]+$/)) {
+                    inferParensOnDocMirror(mirroredDoc);
+                //}
+            }
+        });
+    }
+    if (event.contentChanges.length > 0) {
+        model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];;
+        model.performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];;
     }
     model.lineInputModel.flushChanges()
 
@@ -166,6 +192,10 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
 
 export function getDocument(doc: vscode.TextDocument) {
     return documents.get(doc)
+}
+
+export function getDocuments() {
+    return documents;
 }
 
 export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Position) {

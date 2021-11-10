@@ -1,5 +1,5 @@
 (ns calva.fmt.inferer
-  (:require ["parinfer" :as parinfer]
+  (:require ["@chrisoakman/parinfer" :as parinfer]
             [calva.js-utils :refer [cljify jsify]]
             [calva.fmt.editor :as editor]))
 
@@ -10,13 +10,15 @@
   (let [options {:cursorLine line
                  :cursorX character
                  :prevCursorLine previous-line
-                 :prevCursorX previous-character}
+                 :prevCursorX previous-character
+                 :partialResult true}
         result (cljify (parinfer/indentMode text (jsify options)))]
     (jsify
      (if (:success result)
        {:success true
         :line (:cursorLine result)
         :character (:cursorX result)
+        :new-text (:text result)
         :edits (editor/raplacement-edits-for-diffing-lines text (:text result))}
        {:success false
         :error-msg (get-in result [:error :message])}))))

@@ -3,9 +3,10 @@ import * as config from './config';
 import * as outputWindow from '../../results-output/results-doc'
 import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../../doc-mirror/index";
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, formatText, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
+import * as docModel from '../../cursor-doc/model';
 
 
-export function indentPosition(position: vscode.Position, document: vscode.TextDocument) {
+export function indentPosition(position: vscode.Position, document: vscode.TextDocument): Thenable<boolean> {
     let editor = vscode.window.activeTextEditor;
     let pos = new vscode.Position(position.line, 0);
     let indent = getIndent(getDocument(document).model.lineInputModel, getDocumentOffset(document, position), config.getConfig());
@@ -18,6 +19,32 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
         while (delta++ < 0)
             str += " ";
         return editor.edit(edits => edits.insert(pos, str), { undoStopAfter: false, undoStopBefore: false });
+    }
+}
+
+export async function formatForward(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
+    const formatForwardOn = config.getConfig()['format-forward-list-on-same-line'];
+    if (formatForwardOn) {
+        const cursor = document.getTokenCursor(p);
+        const currentLine = cursor.rowCol[0];
+        do {
+            const token = cursor.getToken();
+            if (token.type === 'open') {
+                cursor.downList();
+                cursor.forwardList();
+                if (cursor.rowCol[0] === currentLine) {
+                    cursor.upList();
+                } else {
+                    await formatPositionEditableDoc(document, onType, {
+                        index: cursor.offsetStart,
+                        adjustSelection: false
+                    });
+                }
+            }
+            if (token.type === 'eol') {
+                break;
+            }
+        } while (cursor.next());
     }
 }
 
@@ -42,12 +69,9 @@ export function formatRange(document: vscode.TextDocument, range: vscode.Range) 
     return vscode.workspace.applyEdit(wsEdit);
 }
 
-export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}) {
-    const doc: vscode.TextDocument = editor.document;
-    const pos: vscode.Position = editor.selection.active;
-    const index = doc.offsetAt(pos);
-    const mirroredDoc: MirroredDocument = getDocument(doc);
-    const cursor = mirroredDoc.getTokenCursor(index);
+export function formatPositionInfoEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}) {
+    const index = extraConfig['index'] || document.selection.active;
+    const cursor = document.getTokenCursor(index);
     const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
     const isComment = cursor.getFunctionName() === 'comment';
     const config = {...extraConfig, "comment-form?": isComment};
@@ -60,45 +84,53 @@ export function formatPositionInfo(editor: vscode.TextEditor, onType: boolean = 
     }
     const formatted: {
         "range-text": string,
-        "range": number[],
+        "range": [number, number],
         "new-index": number
-    } = _formatIndex(doc.getText(), formatRange, index, doc.eol == 2 ? "\r\n" : "\n", onType, config);
-    const range: vscode.Range = new vscode.Range(doc.positionAt(formatted.range[0]), doc.positionAt(formatted.range[1]));
-    const newIndex: number = doc.offsetAt(range.start) + formatted["new-index"];
-    const previousText: string = doc.getText(range);
+    } = _formatIndex(document.model.getText(0, Infinity), formatRange, index, document.model.lineEndingLength == 2 ? "\r\n" : "\n", onType, config);
+    const newIndex: number = formatted.range[0] + formatted["new-index"];
+    const previousText: string = document.model.getText(...formatted.range);
     return {
         formattedText: formatted["range-text"],
-        range: range,
+        range: formatted.range,
         previousText: previousText,
         previousIndex: index,
         newIndex: newIndex
     }
 }
 
-export function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    const doc: vscode.TextDocument = editor.document,
-        formattedInfo = formatPositionInfo(editor, onType, extraConfig);
-    if (formattedInfo && formattedInfo.previousText != formattedInfo.formattedText) {
-        return editor.edit(textEditorEdit => {
-            textEditorEdit.replace(formattedInfo.range, formattedInfo.formattedText);
-        }, { undoStopAfter: false, undoStopBefore: false }).then((onFulfilled: boolean) => {
-            editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex))
-            return onFulfilled;
-        });
-    }
+export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
+    const formattedInfo = formatPositionInfoEditableDoc(document, onType, extraConfig);
+    const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
     if (formattedInfo) {
-        return new Promise((resolve, _reject) => {
-            if (formattedInfo.newIndex != formattedInfo.previousIndex) {
-                editor.selection = new vscode.Selection(doc.positionAt(formattedInfo.newIndex), doc.positionAt(formattedInfo.newIndex));
-            }
-            resolve(true);
-        });
-    }
-    if (!onType && !outputWindow.isResultsDoc(doc)) {
-        return formatRange(doc, new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)))
+        const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
+        if (formattedInfo.previousText != formattedInfo.formattedText) {
+            return document.model.edit([
+                new docModel.ModelEdit('changeRange', [formattedInfo.range[0], formattedInfo.range[1], formattedInfo.formattedText])
+            ], {
+                undoStopBefore: !onType,
+                skipFormat: true,
+                performInferParens: false,
+                ...newSelectionConfig
+            });
+        } else if (adjustSelection && formattedInfo.newIndex != formattedInfo.previousIndex) {
+            document.selection = new docModel.ModelEditSelection(formattedInfo.newIndex);
+        }
     }
     return new Promise((resolve, _reject) => {
-        resolve(true);
+        resolve(formattedInfo !== undefined);
+    });
+}
+
+export async function formatPosition(editor: vscode.TextEditor, onType: boolean = false, extraConfig = {}): Promise<boolean> {
+    const doc: vscode.TextDocument = editor.document;
+    return formatPositionEditableDoc(getDocument(doc), onType, extraConfig).then(isFullfilled => {
+        if (!isFullfilled && !onType && !outputWindow.isResultsDoc(doc)) {
+            // TODO: Make cursor-doc version of formatRange
+            return formatRange(doc, new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)));
+        }
+        return new Promise((resolve, _reject) => {
+            resolve(true);
+        });
     });
 }
 
@@ -126,7 +158,7 @@ export function formatCode(code: string, eol: number) {
     }
 }
 
-function _formatIndex(allText: string, range: [number, number], index: number, eol: string, onType: boolean = false, extraConfig = {}): { "range-text": string, "range": number[], "new-index": number } {
+function _formatIndex(allText: string, range: [number, number], index: number, eol: string, onType: boolean = false, extraConfig = {}): { "range-text": string, "range": [number, number], "new-index": number } {
     const d = cljify({
         "all-text": allText,
         "idx": index,
