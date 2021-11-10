@@ -546,7 +546,7 @@ export function insert(doc: EditableDocument, text: string, start: number = doc.
     ], { selection: new ModelEditSelection(start) });
 }
 
-export function close(doc: EditableDocument, close: string, start: number = doc.selectionRight): Thenable<boolean> {
+export function close(doc: EditableDocument, close: string, start: number = doc.selection.active): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     const inString = cursor.withinString();
     cursor.forwardWhitespace(false);

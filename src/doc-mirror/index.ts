@@ -6,6 +6,7 @@ import { LispTokenCursor } from "../cursor-doc/token-cursor";
 import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
 import { inferParensOnDocMirror } from "../calva-fmt/src/infer";
 import * as formatConfig from '../calva-fmt/src/config';
+import * as config from '../config';
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
@@ -155,26 +156,32 @@ export class MirroredDocument implements EditableDocument {
 let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
-    const model = documents.get(event.document).model;
+    const mirroredDoc = documents.get(event.document);
+    const model = mirroredDoc.model;
+    const tokenCursor = mirroredDoc.getTokenCursor();
     for (const change of event.contentChanges) {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
         const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        const changedText = model.getText(myStartOffset, myEndOffset);
+        //const changedText = model.getText(myStartOffset, myEndOffset);
+        let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+        keyMap = String(keyMap).trim().toLowerCase();
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+        const strict = keyMap === 'strict';
+        const autoClose = !parinferOn && strict && config.getConfig().strictAutoClosingBrackets && !tokenCursor.withinComment();
+        const preventUnmatchedClosings = !parinferOn && strict && config.getConfig().strictPreventUnmatchedClosingBracket && !tokenCursor.withinComment();
         const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
         const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
         const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
-    model.lineInputModel.edit([new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
+        model.lineInputModel.edit([
+            new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
         ], {}).then(async _v => {
             const mirroredDoc = documents.get(event.document);
             if (performFormatForward) {
                 await formatter.formatForward(mirroredDoc);
             }
-            if (performInferParens) {
-                //if (change.text.match(/^[ ;\t\(\[\{\)\]\}]+$/) || changedText.match(/^[ ;\t\(\[\{\)\]\}]+$/)) {
-                    inferParensOnDocMirror(mirroredDoc);
-                //}
+            if (performInferParens || (autoClose && change.text.match(/^[\(\[\{]$/)) || (preventUnmatchedClosings && change.text.match(/^[)\]\}]$/))) {
+                await inferParensOnDocMirror(mirroredDoc);
             }
         });
     }
@@ -184,7 +191,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     }
     model.lineInputModel.flushChanges()
 
-    // we must clear out the repaint cache data, since we don't use it.
+    // we must clear out the repaint cache data, since we don't use it. 
     model.lineInputModel.dirtyLines = []
     model.lineInputModel.insertedLines.clear()
     model.lineInputModel.deletedLines.clear();
