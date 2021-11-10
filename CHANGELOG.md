@@ -4,6 +4,9 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.224] - 2021-11-10
+- Experimental: [Add Parinfer Options](https://github.com/BetterThanTomorrow/calva/issues/253)
+
 ## [2.0.223] - 2021-11-01
 - [Include material from clojuredocs.org in function documentation](https://github.com/BetterThanTomorrow/calva/issues/689)
 - Fix: [Not able to escape read-line in the output window](https://github.com/BetterThanTomorrow/calva/issues/783)
