@@ -17,7 +17,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6+insiders-3.2.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6+insiders-3.2.2">
     
     
       
@@ -25,7 +25,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f60820f2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.b941530a.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.1d832a92.min.css">
@@ -59,7 +59,7 @@
   
 
 
-  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var a,n=document.forms.feedback;for(a of n.querySelectorAll("[type=submit]"))a.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=a.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),n.firstElementChild.disabled=!0;e=n.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),n.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var e,a=document.forms.feedback;for(e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
 
   
     <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
@@ -1188,21 +1188,19 @@
                 
                 <h1 id="using-calva-with-parinfer">Using Calva with Parinfer</h1>
 <p>Yes, you can use Calva with with the Parinfer extension. The only conflict here is that Calva's auto-formatting (that which happens as you type) is going to risk clash with Parinfer's.</p>
-<p>However, Calva's <a href="../paredit/">Paredit</a> is carefully crafted. We suggest you consider that Clojure is a LISP, and therefore structural. There is power in this structure that other languages can not let you wield. Take advantage of this and make Paredit your friend. It takes only some few minutes to learn two or three basic Paredit commands:</p>
+<p>However, Calva's <a href="../paredit/">Paredit</a> is carefully crafted. If you don't already have an established preference for parinfer, we suggest you give it a try. Even parinfer veterans may find they prefer the explicit nature of paredit. It takes only some few minutes to learn two or three basic Paredit commands:</p>
 <ul>
 <li><strong>Select form</strong></li>
 <li><strong>Slurp</strong></li>
 <li><strong>Barf</strong></li>
 </ul>
-<p>Besides letting you benefit from auto-formatting, working this way will quickly bring you in better contact with the structural nature of the Clojure code. You'll thank yourself later.</p>
 <p>Also, if you find yourself having deleted or added a bracket out of structure, despite Calva Paredit's <strong>Strict mode</strong> (which you are using, right?) there is a command that might help you heal the structure: <strong>Infer Parens from Indentation</strong>. That command is actually implemented using the Parinfer library, so it will let you recover from quite many situations. This command is bound to <code>shift+tab</code> by default, making it a good companion to <code>tab</code> which indents based on bracket structure. </p>
 <p>All that said, what was said first is true: if you want to use the Parinfer extension, you can. You'll probably want to disable Calva's auto-formatting. The setting for controlling this is named <code>calva.fmt.formatAsYouType</code>.</p>
                 
-                  
   
 
 
-                
+
                 
               
               
@@ -1280,7 +1278,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.d5944110.min.js", "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.130feebf.min.js"></script>
+      <script src="../assets/javascripts/bundle.e1f47d4a.min.js"></script>
       
     
   </body>
