@@ -45,9 +45,11 @@ let hasNaggedAboutParinferConflict = false;
 export function maybeNagAboutParinferExtension(config: FormatConfig) {
     const parinferExtension = vscode.extensions.getExtension('shaunlebron.vscode-parinfer') || vscode.extensions.getExtension('eduarddyckman.vscode-parinfer');
     const parinferExtensionIsActive = parinferExtension && parinferExtension.isActive;
-    if (!hasNaggedAboutParinferConflict && parinferExtensionIsActive && config['infer-parens-as-you-type']) {
-        vscode.window.showWarningMessage(`Extension ${parinferExtension.id} is enabled, this will conflict with Calva's Parinfer implementation.`, "OK, I'll disable that other extension");
-        hasNaggedAboutParinferConflict = true;
+    if (config['infer-parens-as-you-type']) {
+        if (!hasNaggedAboutParinferConflict && parinferExtensionIsActive) {
+            vscode.window.showWarningMessage(`Extension ${parinferExtension.id} is enabled, this will conflict with Calva's Parinfer implementation.`, "OK, I'll disable that other extension");
+            hasNaggedAboutParinferConflict = true;
+        }
     }
 }
 

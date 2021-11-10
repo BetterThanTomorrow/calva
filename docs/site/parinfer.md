@@ -17,6 +17,11 @@ Calva has two experimental features: **Infer Parens** (as you type), and the cor
 
 They go best together. The first letting you use indentation to decide structure, the latter using the structure to let you keep the code indented properly as you type.
 
+!!! Note "About `editor.autoClosingBrackets` and infering the closing bracket"
+    TL;DR: When enabling `calva.fmt.inferParensAsYouType`, _you need to also disable `editor.autoClosingBrackets`_.
+
+    For Parinfer's inference of the closing bracket when you type an opening one to work, VS Code's built-in `editor.autoClosingBrackets` setting needs to be **disabled**, and Calva currently **enables** this by default. This is because there are currently some troubles with Calva's backup auto-closing features (`calva.paredit.strictAutoClosingBrackets`).
+
 !!! Note "Multi-cursors not fully supported"
     Calva only really considers the first cursor in a multi-cursor senario. Sometimes that's enough, often it is not.
 
