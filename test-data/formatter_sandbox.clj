@@ -20,7 +20,7 @@
                      consonants)]
     {:pirate-char pirate-char
      :pirates pirates}))
-
+()
 (defn component []
   (html
    [:div {:style ^:foo {:foo :bar} {:background "#FFF"
