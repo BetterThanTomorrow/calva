@@ -24,7 +24,7 @@ Calva sets some VS Code settings for all Clojure files. Some of these are needed
 ```json
     "[clojure]": {
         "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-        "editor.autoClosingBrackets": "always",
+        "editor.autoClosingBrackets": "never",
         "editor.autoClosingQuotes": "always",
         "editor.formatOnType": true,
         "editor.autoIndent": "full",
@@ -36,7 +36,7 @@ Calva sets some VS Code settings for all Clojure files. Some of these are needed
     }
 ```
 
-!!! Note
+!!! Note "`editor.wordSeparators`"
     The above `editor.wordSeparators` setting establish Clojure word boundaries. E.g `-` is considered to be part of words. This affects what happens when double-clicking symbols and other things. If you want to include `-` or something else as a word boundary, just add it to the setting.
 
 ## Pretty Printing
