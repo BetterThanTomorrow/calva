@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as formatter from '../format';
+import * as config from '../../../config';
 import * as formatterConfig from '../config';
 import * as docMirror from '../../../doc-mirror/index';
 import { EditableDocument } from '../../../cursor-doc/model';
@@ -11,18 +12,19 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         const tokenCursor = mDoc.getTokenCursor();
         const editor = vscode.window.activeTextEditor;
         const parinferOn = formatterConfig.getConfig()['infer-parens-as-you-type'] as boolean;
-        const formatForwardOn = formatterConfig.getConfig()['format-forward-list-on-same-line'] as boolean;
+        const autoClosingBracketsOn = config.getConfig().strictAutoClosingBrackets;
+        const preventUnmatchedClosingBracktsOn = config.getConfig().strictPreventUnmatchedClosingBracket;
         let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
         keyMap = String(keyMap).trim().toLowerCase();
         if ([')', ']', '}'].includes(ch)) {
-            if (!parinferOn && keyMap === 'strict' && !tokenCursor.withinComment()) {
+            if (!parinferOn && keyMap === 'strict' && preventUnmatchedClosingBracktsOn && !tokenCursor.withinComment()) {
                 return paredit.backspace(mDoc).then(fulfilled => {
                     return null;
                 });
             }
         }
         else if (['(', '[', '{'].includes(ch)) {
-            if (!parinferOn && keyMap === 'strict' && !tokenCursor.withinComment()) {
+            if (!parinferOn && keyMap === 'strict' && autoClosingBracketsOn && !tokenCursor.withinComment()) {
                 const close = {
                     '(': ')',
                     '[': ']',
@@ -37,24 +39,14 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
             const pos = editor.selection.active;
             if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
                 if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
-                    formatter.indentPosition(pos, document).then(_v => {
-                        if (formatForwardOn) {
-                            //return formatter.formatForward(mDoc, mDoc.selection.active, true);
-                        }
-                    });
+                    formatter.indentPosition(pos, document);
                 } else {
                     try {
-                        formatter.formatPositionEditableDoc(mDoc, true).then(_v => {
-                            if (formatForwardOn) {
-                                //return formatter.formatForward(mDoc, mDoc.selection.active, true);
-                            }    
+                        formatter.formatPosition(vscode.window.activeTextEditor, true).catch(e => {
+                            console.error("Calva: Format position failed.", e);
                         });
                     } catch (e) {
-                        formatter.indentPosition(pos, document).then(_v => {
-                            if (formatForwardOn) {
-                                //return formatter.formatForward(mDoc, mDoc.selection.active, true);
-                            }    
-                        });
+                        formatter.indentPosition(pos, document);
                     }
                 }
             }

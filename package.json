@@ -109,7 +109,7 @@
         "configurationDefaults": {
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-                "editor.autoClosingBrackets": "never",
+                "editor.autoClosingBrackets": "always",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
                 "editor.autoIndent": "full",
@@ -643,6 +643,18 @@
                         "markdownDescription": "When enabled, replaces the clipboard content with the deleted code.",
                         "default": false,
                         "scope": "window"
+                    },
+                    "calva.paredit.strictPreventUnmatchedClosingBracket": {
+                        "type": "boolean",
+                        "markdownDescription": "_Experimental_. Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "default": false,
+                        "scope": "window"
+                    },
+                    "calva.paredit.strictAutoClosingBrackets": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "_Experimental_. **NB: Currently misbehaves on some Windows machines!** Will add a closing bracket, immediately after an opening bracket. NB: _You will need to switch VS Code's built in one off as well._",
+                        "scope": "window"
                     }
                 }
             },
@@ -672,7 +684,7 @@
                     "calva.fmt.inferParensAsYouType": {
                         "type": "boolean",
                         "default": false,
-                        "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets."
+                        "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets. NB: _In order for opening brackets to correctly infer the closing bracket, you will need to switch VS Code's built in `editor.autoClosingBrackets` off._"
                     },
                     "calva.fmt.formatForward": {
                         "type": "boolean",
