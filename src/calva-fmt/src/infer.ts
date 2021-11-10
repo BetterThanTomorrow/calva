@@ -31,7 +31,7 @@ function rowColToOffset(document: docModel.EditableDocument, row: number, col: n
     return lineOffset + col;
 }
 
-export function inferParensOnDocMirror(document: docModel.EditableDocument) {
+export async function inferParensOnDocMirror(document: docModel.EditableDocument) {
     const p = document.selection.active;
     const [row, col] = document.getTokenCursor().rowCol;
     const currentText = document.model.getText(0, Infinity);

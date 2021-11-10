@@ -109,7 +109,7 @@
         "configurationDefaults": {
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-                "editor.autoClosingBrackets": "always",
+                "editor.autoClosingBrackets": "never",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
                 "editor.autoIndent": "full",
@@ -225,11 +225,6 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Enable/disable references CodeLens in Clojure(Script) files. "
-                    },
-                    "clojure.format.enable": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Enable/disable calva-fmt as Clojure formatter"
                     },
                     "calva.evalOnSave": {
                         "type": "boolean",
@@ -646,14 +641,14 @@
                     },
                     "calva.paredit.strictPreventUnmatchedClosingBracket": {
                         "type": "boolean",
-                        "markdownDescription": "_Experimental_. Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
-                        "default": false,
+                        "markdownDescription": "Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "default": true,
                         "scope": "window"
                     },
                     "calva.paredit.strictAutoClosingBrackets": {
                         "type": "boolean",
-                        "default": false,
-                        "markdownDescription": "_Experimental_. **NB: Currently misbehaves on some Windows machines!** Will add a closing bracket, immediately after an opening bracket. NB: _You will need to switch VS Code's built in one off as well._",
+                        "default": true,
+                        "markdownDescription": "**NB: Currently misbehaves on some Windows machines!** Will add a closing bracket, immediately after an opening bracket. NB: _You will need to have VS Code's built in auto-closing disabled as well._",
                         "scope": "window"
                     }
                 }
