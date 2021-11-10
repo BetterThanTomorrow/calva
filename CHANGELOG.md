@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.223] - 2021-11-10
 - Experimental: [Add Parinfer Options](https://github.com/BetterThanTomorrow/calva/issues/253)
 
 
