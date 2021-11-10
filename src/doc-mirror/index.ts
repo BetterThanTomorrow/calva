@@ -11,8 +11,8 @@ let documents = new Map<vscode.TextDocument, MirroredDocument>();
 
 export class DocumentModel implements EditableModel {
     readonly lineEndingLength: number;
-    performInferParens = true;
-    performFormatForward = true;
+    performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
+    performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];
     lineInputModel: LineInputModel;
 
     constructor(private document: MirroredDocument) {
@@ -192,6 +192,10 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
 
 export function getDocument(doc: vscode.TextDocument) {
     return documents.get(doc)
+}
+
+export function getDocuments() {
+    return documents;
 }
 
 export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Position) {

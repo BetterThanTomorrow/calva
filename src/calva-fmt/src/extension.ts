@@ -25,6 +25,7 @@ function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfigu
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    config.updateConfig();
     docmirror.activate();
     vscode.languages.setLanguageConfiguration("clojure", getLanguageConfiguration(config.getConfig()["format-as-you-type"]));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.formatCurrentForm', formatter.formatPositionCommand));
@@ -36,8 +37,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(calvaConfig.documentSelector, new RangeEditProvider));
     vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
     vscode.workspace.onDidChangeConfiguration(e => {
+        config.onConfigurationChanged(e);
         if (e.affectsConfiguration("calva.fmt.formatAsYouType")) {
             vscode.languages.setLanguageConfiguration("clojure", getLanguageConfiguration(config.getConfig()["format-as-you-type"]));
         }
-    })
+    });
+    setTimeout(() => config.maybeNagAboutParinferExtension(config.getConfig()), 5000);
 }
