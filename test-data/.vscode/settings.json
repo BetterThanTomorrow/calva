@@ -5,6 +5,5 @@
       "snippet": "(tap> [$current-form $current-form])"
     }
   ],
-  "calva.paredit.strictPreventUnmatchedClosingBracket": true,
-  "calva.fmt.inferParensAsYouType": true
+  "calva.paredit.strictPreventUnmatchedClosingBracket": true
 }
