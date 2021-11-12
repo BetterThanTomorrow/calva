@@ -168,10 +168,10 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         keyMap = String(keyMap).trim().toLowerCase();
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const strict = keyMap === 'strict';
-        const autoClose = !parinferOn && strict && config.getConfig().strictAutoClosingBrackets && !tokenCursor.withinComment();
-        const preventUnmatchedClosings = !parinferOn && strict && config.getConfig().strictPreventUnmatchedClosingBracket && !tokenCursor.withinComment();
+        const autoClose = !parinferOn && strict && config.getConfig().strictAutoClosingBrackets && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[\(\[\{]$/);
+        const preventUnmatchedClosings = !parinferOn && strict && config.getConfig().strictPreventUnmatchedClosingBracket && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[)\]\}]$/);
         const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens || autoClose || preventUnmatchedClosings);
         const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
         model.lineInputModel.edit([
             new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
@@ -180,7 +180,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             if (performFormatForward) {
                 await formatter.formatForward(mirroredDoc);
             }
-            if (performInferParens || (autoClose && change.text.match(/^[\(\[\{]$/)) || (preventUnmatchedClosings && change.text.match(/^[)\]\}]$/))) {
+            if (performInferParens) {
                 await inferParensOnDocMirror(mirroredDoc);
             }
         });
