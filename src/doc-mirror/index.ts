@@ -171,7 +171,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const autoClose = !parinferOn && strict && config.getConfig().strictAutoClosingBrackets && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[\(\[\{]$/);
         const preventUnmatchedClosings = !parinferOn && strict && config.getConfig().strictPreventUnmatchedClosingBracket && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[)\]\}]$/);
         const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens || autoClose || preventUnmatchedClosings);
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens || autoClose || preventUnmatchedClosings;
         const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
         model.lineInputModel.edit([
             new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
