@@ -25,7 +25,7 @@
  ::foo
  (fn []
    (let [foo (-> bar baz)])
-     (prn foo bar)
+   (prn foo bar)
    {:fx [[:dispatch [:nav :bar]]]}))
 
 (defn component []
