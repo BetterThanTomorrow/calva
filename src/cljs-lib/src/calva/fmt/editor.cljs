@@ -2,7 +2,7 @@
   (:require [calva.fmt.util :as util]))
 
 
-(defn raplacement-edits-for-diffing-lines
+(defn replacement-edits-for-diffing-lines
   "Returns a list of replacement edits to apply to `old-text` to get `new-text`.
    Edits will be in the form `[:replace [range] text]`,
    where `range` is in the form `[[start-line start-char] [end-line end-char]]`.
@@ -22,7 +22,7 @@
 
 
 (comment
-  (raplacement-edits-for-diffing-lines "foo\nfooo\nbar\nbar"
+  (replacement-edits-for-diffing-lines "foo\nfooo\nbar\nbar"
                                        "foo\nbar\nbaz\nbar")
   (->> (map vector
             [:foo :foo :foo]

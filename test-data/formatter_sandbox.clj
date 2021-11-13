@@ -17,14 +17,14 @@
         consonants (set (remove vowels alphabet))
         pirates    (if (vowels pirate-char)
                      vowels
-                     consonants)
-        {:pirate-char pirate-char
-         :pirates pirates}]))
+                     consonants)]
+    {:pirate-char pirate-char
+     :pirates pirates}))
 
 (reg-event-fx
  ::foo
  (fn []
-   (let [foo (-> bar baz)])
+   (let [foo (-> bar baz)]) ; slurp was broken here
    (prn foo bar)
    {:fx [[:dispatch [:nav :bar]]]}))
 
