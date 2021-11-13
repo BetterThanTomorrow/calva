@@ -641,14 +641,14 @@
                     },
                     "calva.paredit.strictPreventUnmatchedClosingBracket": {
                         "type": "boolean",
-                        "markdownDescription": "Prevents you from entering unmatched closing brackets when in `strict` mode. (Does not work when there is an active selection.)",
+                        "markdownDescription": "Prevents you from entering unmatched closing brackets when in `strict` mode.",
                         "default": true,
                         "scope": "window"
                     },
                     "calva.paredit.strictAutoClosingBrackets": {
                         "type": "boolean",
                         "default": true,
-                        "markdownDescription": "**NB: Currently misbehaves on some Windows machines!** Will add a closing bracket, immediately after an opening bracket. NB: _You will need to have VS Code's built in auto-closing disabled as well._",
+                        "markdownDescription": "In `strict` mode, will add a closing bracket when an open bracket is typed.",
                         "scope": "window"
                     }
                 }
@@ -676,12 +676,12 @@
                         "default": true,
                         "markdownDescription": "Treat `(comment...)` forms special and keep its closing paren on a line of its own."
                     },
-                    "calva.fmt.inferParensAsYouType": {
+                    "calva.fmt.experimental.inferParensAsYouType": {
                         "type": "boolean",
                         "default": false,
                         "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets. NB: _In order for opening brackets to correctly infer the closing bracket, you will need to switch VS Code's built in `editor.autoClosingBrackets` off._"
                     },
-                    "calva.fmt.formatForward": {
+                    "calva.fmt.experimental.formatForward": {
                         "type": "boolean",
                         "default": false,
                         "markdownDescription": "_Experimental_. Formats lists on the same line in front of typed text (essentially pushing them forward) when you type non-spaces or non-brackets."
