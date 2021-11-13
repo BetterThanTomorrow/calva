@@ -19,7 +19,7 @@
         :line (:cursorLine result)
         :character (:cursorX result)
         :new-text (:text result)
-        :edits (editor/raplacement-edits-for-diffing-lines text (:text result))}
+        :edits (editor/replacement-edits-for-diffing-lines text (:text result))}
        {:success false
         :error-msg (get-in result [:error :message])}))))
 
@@ -59,7 +59,7 @@
        {:success true
         :line (:cursorLine result)
         :character (:cursorX result)
-        :edits (editor/raplacement-edits-for-diffing-lines text (:text result))}
+        :edits (editor/replacement-edits-for-diffing-lines text (:text result))}
        {:success false
         :error-msg (get-in result [:error :message])}))))
 
