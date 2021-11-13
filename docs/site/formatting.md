@@ -38,8 +38,8 @@ There are settings for the general behaviour of Calva formatting as well as for 
 | ------- | ----------- | -------
 | `calva.fmt.formatAsYouType` | Formats the code while you are typing. Mostly when adding new lines. | **true**
 | `calva.fmt.newIndentEngine` | Fast indentation. When disabled, a full formatting will be done on the current enclosing form. | **true**
-| `calva.fmt.inferParensAsYouType` | Experimental: [Parinfer](parinfer.md) mode | **false**
-| `calva.fmt.formatForward` | Experimental: Formats forms ahead of the cursor on the same line. See [Parinfer](parinfer.md) for a demo | **false**
+| `calva.fmt.experimental.inferParensAsYouType` | Experimental: [Parinfer](parinfer.md) mode | **false**
+| `calva.fmt.experimental.formatForward` | Experimental: Formats forms ahead of the cursor on the same line. See [Parinfer](parinfer.md) for a demo | **false**
 | `calva.fmt.keepCommentTrailParenOnOwnLine` | See [Rich Comments](rich-comments.md) | **true**
 
 

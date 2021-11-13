@@ -12,13 +12,13 @@ description: Learn how to leverage Calva Parinfer Mode for structural editing
 ## Infer Parens and Format Forward
 Calva has two experimental features: **Infer Parens** (as you type), and the corresponding **Format Forward** (as you type). For now, they are both disabled by default. Enable them via these settings:
 
-* `calva.fmt.inferParensAsYouType`
-* `calva.fmt.formatForward`
+* `calva.fmt.experimental.inferParensAsYouType`
+* `calva.fmt.experimental.formatForward`
 
 They go best together. The first letting you use indentation to decide structure, the latter using the structure to let you keep the code indented properly as you type.
 
 !!! Note "About `editor.autoClosingBrackets` and infering the closing bracket"
-    TL;DR: When enabling `calva.fmt.inferParensAsYouType`, _you need to also disable `editor.autoClosingBrackets`_.
+    TL;DR: When enabling `calva.fmt.experimental.inferParensAsYouType`, _you need to also disable `editor.autoClosingBrackets`_.
 
     For Parinfer's inference of the closing bracket when you type an opening one to work, VS Code's built-in `editor.autoClosingBrackets` setting needs to be **disabled**, and Calva currently **enables** this by default. This is because there are currently some troubles with Calva's backup auto-closing features (`calva.paredit.strictAutoClosingBrackets`).
 

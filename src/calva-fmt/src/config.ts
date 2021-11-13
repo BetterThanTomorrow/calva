@@ -70,13 +70,13 @@ function _getConfig(): FormatConfig {
 export function onConfigurationChanged(e: vscode.ConfigurationChangeEvent) {
     if (e.affectsConfiguration("calva.fmt")) {
         updateConfig();
-        if (e.affectsConfiguration("calva.fmt.inferParensAsYouType")) {
+        if (e.affectsConfiguration("calva.fmt.experimental.inferParensAsYouType")) {
             const performInferParens = getConfig()['infer-parens-as-you-type'];
             docMirror.getDocuments().forEach((doc: docMirror.MirroredDocument, _key: any) => {
                 doc.model.performInferParens = performInferParens;
             });
         }
-        if (e.affectsConfiguration("calva.fmt.formatForward")) {
+        if (e.affectsConfiguration("calva.fmt.experimental.formatForward")) {
             const performFormatForward = getConfig()['format-forward-list-on-same-line'];
             docMirror.getDocuments().forEach((doc: docMirror.MirroredDocument, _key: any) => {
                 doc.model.performFormatForward = performFormatForward;
