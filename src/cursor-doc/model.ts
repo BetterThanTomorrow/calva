@@ -1,6 +1,7 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { LispTokenCursor } from "./token-cursor";
-import { deepEqual as equal} from "../util/object"
+import { deepEqual as equal } from "../util/object";
+import * as parinfer from '../calva-fmt/src/infer';
 
 let scanner: Scanner;
 
@@ -98,6 +99,7 @@ export interface EditableModel {
      * @param edits
      */
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
+    parinferReadiness: parinfer.ParinferReadiness,
     performInferParens: boolean;
     performFormatForward: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
@@ -124,6 +126,10 @@ export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
     constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) { }
 
+    parinferReadiness: parinfer.ParinferReadiness = {
+        isIndentationHealthy: false,
+        isStructureHealthy: false
+    }
     performInferParens = true;
     performFormatForward = true;
 
