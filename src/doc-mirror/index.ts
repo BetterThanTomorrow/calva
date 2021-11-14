@@ -4,17 +4,34 @@ import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
 import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
-import { inferParensOnDocMirror } from "../calva-fmt/src/infer";
+import * as parinfer from "../calva-fmt/src/infer";
 import * as formatConfig from '../calva-fmt/src/config';
 import * as config from '../config';
+import statusbar from '../statusbar';
+import { string } from "fast-check/*";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
+let statusBar: StatusBar;
 
 export class DocumentModel implements EditableModel {
     readonly lineEndingLength: number;
+    lineInputModel: LineInputModel;
+
+    private _parinferReadiness: parinfer.ParinferReadiness = {
+        isStructureHealthy: false,
+        isIndentationHealthy: false
+    }
+
+    get parinferReadiness(): parinfer.ParinferReadiness {
+        return this._parinferReadiness;
+    }
+
+    set parinferReadiness(readiness: parinfer.ParinferReadiness) {
+        this._parinferReadiness = readiness;
+    }
+
     performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
     performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];
-    lineInputModel: LineInputModel;
 
     constructor(private document: MirroredDocument) {
         this.lineEndingLength = document.document.eol == vscode.EndOfLine.CRLF ? 2 : 1;
@@ -95,6 +112,7 @@ export class DocumentModel implements EditableModel {
         return this.lineInputModel.getTokenCursor(offset, previous);
     }
 }
+
 export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
@@ -176,12 +194,15 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         model.lineInputModel.edit([
             new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
         ], {}).then(async _v => {
-            const mirroredDoc = documents.get(event.document);
             if (performFormatForward) {
                 await formatter.formatForward(mirroredDoc);
             }
+            if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
+                await parinfer.inferParens(mirroredDoc);
+            }
             if (performInferParens) {
-                await inferParensOnDocMirror(mirroredDoc);
+                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+                statusBar.update(mirroredDoc);
             }
         });
     }
@@ -214,23 +235,30 @@ function addDocument(doc: vscode.TextDocument): boolean {
     if (doc && doc.languageId == "clojure") {
         if (!documents.has(doc)) {
             const document = new MirroredDocument(doc);
-            document.model.lineInputModel.insertString(0, doc.getText())
+            document.model.lineInputModel.insertString(0, doc.getText());
             documents.set(doc, document);
+            document.model.parinferReadiness = parinfer.getParinferReadiness(document);
+            statusBar.update(document);
             return false;
         } else {
+            const document = getDocument(doc);
             return true;
         }
     }
     return false;
 }
 
-export function activate() {
+export function activate(context: vscode.ExtensionContext) {
     // the last thing we want is to register twice and receive double events...
     if (registered)
         return;
     registered = true;
 
-    addDocument(utilities.getDocument({}));
+    const currentDoc = utilities.getDocument({});
+    statusBar = new StatusBar();
+    addDocument(currentDoc);
+
+    context.subscriptions.push(statusBar);
 
     vscode.workspace.onDidCloseTextDocument(e => {
         if (e.languageId == "clojure") {
@@ -241,11 +269,19 @@ export function activate() {
     vscode.window.onDidChangeActiveTextEditor(e => {
         if (e && e.document && e.document.languageId == "clojure") {
             addDocument(e.document);
+            const mirroredDoc = getDocument(e.document);
+            mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            statusBar.update(mirroredDoc);
+        } else {
+            statusBar.update();
         }
     });
 
     vscode.workspace.onDidOpenTextDocument(doc => {
         addDocument(doc);
+        const mirroredDoc = getDocument(doc);
+        mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+        statusBar.update(mirroredDoc);
     });
 
     vscode.workspace.onDidChangeTextDocument(e => {
@@ -253,4 +289,79 @@ export function activate() {
             processChanges(e);
         }
     });
+}
+
+
+function alertPareditProblem(doc: MirroredDocument) {
+    const DONT_ALERT_BUTTON = "Roger. Don't show again";
+    const r = parinfer.inferIndentsResults(doc);
+    let message: string = "";
+    if (!r.success) {
+        message = `The code structure is broken. Can't infer parens on this document: ${r["error-msg"]}, line: ${r.line + 1}, col: ${r.character + 1}`;
+    } else {
+        message = `Paren inference is disabled because the document indentation needs to be fixed first. _Issue the command **Parinfer: Fix indentation**, from the command palette or click the Parinfer status bar button.`
+    }
+    vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK");
+}
+
+export class StatusBar {
+    private _visible: Boolean;
+    private _toggleBarItem: vscode.StatusBarItem;
+
+    constructor() {
+        this._toggleBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        this._toggleBarItem.text = "() $(check)";
+        this._toggleBarItem.tooltip = "";
+        this._visible = false;
+        this._toggleBarItem.command = 'calva-fmt.chooseParinferEnable';
+        this._toggleBarItem.color = statusbar.color.inactive;
+    }
+
+    update(doc?: MirroredDocument) {
+        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+        const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-paredit-problems"];
+
+        const model = doc?.model;
+        if (model) {
+            if (!model.parinferReadiness.isStructureHealthy) {
+                this.visible = true;
+                this._toggleBarItem.text = ")( $(error)";
+                this._toggleBarItem.tooltip = "Parinfer disabled, structure broken, you need to fix it.";
+                this._toggleBarItem.color = undefined;
+                if (alertOnProblems) {
+                    alertPareditProblem(doc);
+                }
+            } else if (!model.parinferReadiness.isIndentationHealthy) {
+                this.visible = true;
+                this._toggleBarItem.text = "() $(warning)";
+                this._toggleBarItem.tooltip = "Parinfer disabled, click to fix indentation.";
+                this._toggleBarItem.command = 'calva-fmt.chooseParinferEnable';
+                this._toggleBarItem.color = undefined;
+                if (alertOnProblems) {
+                    alertPareditProblem(doc);
+                }
+            } else {
+                this.visible = true;
+                this._toggleBarItem.text = "() $(check)";
+                this._toggleBarItem.tooltip = "Parinfer enabled";
+                this._toggleBarItem.color = undefined;
+            }
+        }
+    }
+
+    get visible(): Boolean {
+        return this._visible;
+    }
+
+    set visible(value: Boolean) {
+        if (value) {
+            this._toggleBarItem.show();
+        } else {
+            this._toggleBarItem.hide();
+        }
+    }
+
+    dispose() {
+        this._toggleBarItem.dispose();
+    }
 }

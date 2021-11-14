@@ -21,7 +21,9 @@
         :new-text (:text result)
         :edits (editor/replacement-edits-for-diffing-lines text (:text result))}
        {:success false
-        :error-msg (get-in result [:error :message])}))))
+        :error-msg (-> result :error :message)
+        :line (-> result :error :lineNo)
+        :character (-> result :error :x)}))))
 
 (defn infer-parens-bridge
   [^js m]
@@ -44,7 +46,8 @@
   "Calculate the edits needed for infering indents in `text`,
    and where the cursor should be placed to 'stay' in the right place."
   [{:keys [text line character previous-line previous-character changes]}]
-  (let [options {:cursorLine line :cursorX character
+  (let [options {:cursorLine line
+                 :cursorX character
                  :prevCursorLine previous-line
                  :prevCursorX previous-character
                  :changes (mapv (fn [change]
@@ -53,7 +56,7 @@
                                    :oldText (:old-text change)
                                    :newText (:new-text change)})
                                 changes)}
-        result (cljify (parinfer/smartMode text (jsify options)))]
+        result (cljify (parinfer/parenMode text (jsify options)))]
     (jsify
      (if (:success result)
        {:success true
@@ -61,7 +64,52 @@
         :character (:cursorX result)
         :edits (editor/replacement-edits-for-diffing-lines text (:text result))}
        {:success false
-        :error-msg (get-in result [:error :message])}))))
+        :error-msg (-> result :error :message)
+        :line (-> result :error :lineNo)
+        :character (-> result :error :x)}))))
+
+(comment
+  (def broken-indentation "
+(ns foo
+  (:require [clojure.string :refer [blank?
+                                    lower-case
+                                    split
+                                  trim]])) ;; note: incorrect indentation
+
+(def foo)
+")
+
+  (infer-indents {:text broken-indentation
+                  :line 7
+                  :character 8})
+
+  (def good-indentation "
+(ns foo
+  (:require [clojure.string :refer [blank?
+                                    lower-case
+                                    split
+                                    trim]])) ;; note: correct indentation
+
+(def foo)
+")
+
+  (infer-indents {:text good-indentation
+                  :line 7
+                  :character 8})
+
+  (def broken-structure "
+(ns foo
+  (:require [clojure.string :refer [blank?
+                                    lower-case
+                                    split
+                                    trim])) ;; note: broken structure
+
+(def foo)
+")
+  (infer-indents {:text broken-structure
+                  :line 7
+                  :character 8}))
+
 
 (defn infer-indents-bridge
   [^js m]
