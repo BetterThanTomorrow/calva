@@ -102,6 +102,7 @@ export interface EditableModel {
     parinferReadiness: parinfer.ParinferReadiness,
     performInferParens: boolean;
     performFormatForward: boolean;
+    isWritable: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getLineText: (line: number) => string;
     getOffsetForLine: (line: number) => number;
@@ -126,6 +127,8 @@ export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
     constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) { }
 
+    isWritable = true;
+    
     parinferReadiness: parinfer.ParinferReadiness = {
         isIndentationHealthy: false,
         isStructureHealthy: false
