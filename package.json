@@ -654,7 +654,7 @@
                 }
             },
             {
-                "title": "Calva-fmt",
+                "title": "Calva Formatter",
                 "type": "object",
                 "properties": {
                     "calva.fmt.configPath": {
@@ -688,7 +688,7 @@
                     },
                     "calva.fmt.experimental.formatForward": {
                         "type": "boolean",
-                        "default": false,
+                        "default": true,
                         "markdownDescription": "_Experimental_. Formats lists on the same line in front of typed text (essentially pushing them forward) when you type non-spaces or non-brackets."
                     }
                 }
@@ -1398,6 +1398,12 @@
                 "title": "Format and Align Current Form (recursively, experimental)",
                 "category": "Calva Format",
                 "enablement": "editorLangId == clojure"
+            },
+            {
+                "command": "calva-fmt.fixDocumentIndentation",
+                "title": "Fix Document Indentation",
+                "category": "Calva Parinfer",
+                "enablement": "editorLangId == clojure && !parinfer:isIndentationHealthy"
             },
             {
                 "category": "Calva",

@@ -2,6 +2,6 @@
   (:require [clojure.string :refer [blank?
                                     lower-case
                                     split
-                                  trim]])) ;; note: incorrect indentation
+                                    trim]])) ;; note: incorrect indentation
 
 (def foo)

@@ -69,6 +69,33 @@ export async function inferParens(document: docModel.EditableDocument): Promise<
     };
 }
 
+export async function inferIndents(document: docModel.EditableDocument): Promise<Results> {
+    const r: _Results = inferIndentsResults(document);
+    if (r.edits && r.edits?.length > 0) {
+        const modelEdits = r.edits?.map(edit => {
+            const start = rowColToOffset(document, edit.start.line, edit.start.character);
+            const end = rowColToOffset(document, edit.end.line, edit.end.character);
+            return new docModel.ModelEdit('changeRange', [start, end, edit.text]);
+        });
+        const rP = rowColToOffset(document, r.line, r.character);
+        await document.model.edit(modelEdits, {
+            selection: new docModel.ModelEditSelection(rP),
+            skipFormat: true,
+            undoStopBefore: true,
+            performInferParens: false
+        });
+        return {
+            success: true
+        }
+    }
+    return {
+        success: r.success,
+        "error-msg": r['error-msg'],
+        line: r.line,
+        character: r.character
+    };
+}
+
 export function inferIndentsResults(document: docModel.EditableDocument): Results {
     const [row, col] = document.getTokenCursor().rowCol;
     const currentText = document.model.getText(0, Infinity);

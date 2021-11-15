@@ -17,6 +17,9 @@ let CONFIG: FormatConfig;
 
 export function updateConfig() {
     CONFIG = _getConfig();
+    if (docMirror.statusBar) {
+        docMirror.statusBar.update();
+    }
 }
 
 export function getConfig(): FormatConfig {
