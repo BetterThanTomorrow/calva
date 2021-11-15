@@ -313,7 +313,7 @@ function alertParinferProblem(doc: MirroredDocument) {
     }
     vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK").then(button => {
         if (button === DONT_ALERT_BUTTON) {
-            vscode.workspace.getConfiguration("calva.fmt").update("experimental.alertOnPareditProblems", false, true);
+            vscode.workspace.getConfiguration("calva.fmt").update("experimental.alertOnParinferProblems", false, true);
         }
     });
 }

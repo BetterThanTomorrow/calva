@@ -681,7 +681,7 @@
                         "default": false,
                         "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets. NB: _In order for opening brackets to correctly infer the closing bracket, you will need to switch VS Code's built in `editor.autoClosingBrackets` off._"
                     },
-                    "calva.fmt.experimental.alertOnPareditProblems": {
+                    "calva.fmt.experimental.alertOnParinferProblems": {
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "_Experimental_. When Parinfer **indent mode** is on, show alert when structure or indents do not allow inference. (This is always indicated in the statusbar.)"
