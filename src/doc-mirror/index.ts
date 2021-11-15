@@ -11,7 +11,7 @@ import statusbar from '../statusbar';
 import { string } from "fast-check/*";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
-let statusBar: StatusBar;
+export let statusBar: StatusBar;
 
 export class DocumentModel implements EditableModel {
     readonly lineEndingLength: number;
@@ -200,10 +200,8 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
                 await parinfer.inferParens(mirroredDoc);
             }
-            if (performInferParens) {
-                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                statusBar.update(mirroredDoc);
-            }
+            model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            statusBar.update(mirroredDoc);
         });
     }
     if (event.contentChanges.length > 0) {
@@ -256,9 +254,21 @@ export function activate(context: vscode.ExtensionContext) {
 
     const currentDoc = utilities.getDocument({});
     statusBar = new StatusBar();
-    addDocument(currentDoc);
 
     context.subscriptions.push(statusBar);
+    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.enableParedit', () => {
+        vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", true, true);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.disableParedit', () => {
+        vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", false, true);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.fixDocumentIndentation', () => {
+        const currentDoc = vscode.window.activeTextEditor.document;
+        const mirroredDoc = getDocument(currentDoc);
+        parinfer.inferIndents(mirroredDoc);
+    }));
+
+    addDocument(currentDoc);
 
     vscode.workspace.onDidCloseTextDocument(e => {
         if (e.languageId == "clojure") {
@@ -292,59 +302,70 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 
-function alertPareditProblem(doc: MirroredDocument) {
+function alertParinferProblem(doc: MirroredDocument) {
     const DONT_ALERT_BUTTON = "Roger. Don't show again";
     const r = parinfer.inferIndentsResults(doc);
     let message: string = "";
     if (!r.success) {
-        message = `The code structure is broken. Can't infer parens on this document: ${r["error-msg"]}, line: ${r.line + 1}, col: ${r.character + 1}`;
+        message = `The code structure is broken. Can't infer parens on this document: ${r["error-msg"]}, line: ${r.line + 1}, col: ${r.character + 1}. (Note: The structure status is indicated in the status bar as '() <status>'.)`;
     } else {
-        message = `Paren inference is disabled because the document indentation needs to be fixed first. _Issue the command **Parinfer: Fix indentation**, from the command palette or click the Parinfer status bar button.`
+        message = `Paren inference is disabled because the document indentation needs to be fixed first. Issue the command ”Parinfer: Fix indentation”, from the command palette or click the Parinfer status bar button.`
     }
-    vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK");
+    vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK").then(button => {
+        if (button === DONT_ALERT_BUTTON) {
+            vscode.workspace.getConfiguration("calva.fmt").update("experimental.alertOnPareditProblems", false, true);
+        }
+    });
 }
 
 export class StatusBar {
     private _visible: Boolean;
     private _toggleBarItem: vscode.StatusBarItem;
+    private _document: MirroredDocument;
 
     constructor() {
         this._toggleBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         this._toggleBarItem.text = "() $(check)";
         this._toggleBarItem.tooltip = "";
         this._visible = false;
-        this._toggleBarItem.command = 'calva-fmt.chooseParinferEnable';
+        this._toggleBarItem.command = undefined;
         this._toggleBarItem.color = statusbar.color.inactive;
     }
 
     update(doc?: MirroredDocument) {
+        if (doc) {
+            this._document = doc;
+        }
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-paredit-problems"];
 
-        const model = doc?.model;
+        const model = this._document?.model;
         if (model) {
             if (!model.parinferReadiness.isStructureHealthy) {
                 this.visible = true;
-                this._toggleBarItem.text = ")( $(error)";
-                this._toggleBarItem.tooltip = "Parinfer disabled, structure broken, you need to fix it.";
-                this._toggleBarItem.color = undefined;
+                this._toggleBarItem.text = "() $(error)";
+                this._toggleBarItem.tooltip = `Parinfer disabled, structure broken. Please fix!${parinferOn ? ' (Parinfer disabled while structure is broken)' : ''}`;
+                this._toggleBarItem.color = parinferOn ? statusbar.color.active : undefined;
                 if (alertOnProblems) {
-                    alertPareditProblem(doc);
+                    alertParinferProblem(this._document);
                 }
             } else if (!model.parinferReadiness.isIndentationHealthy) {
+                vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', false);
                 this.visible = true;
                 this._toggleBarItem.text = "() $(warning)";
-                this._toggleBarItem.tooltip = "Parinfer disabled, click to fix indentation.";
-                this._toggleBarItem.command = 'calva-fmt.chooseParinferEnable';
-                this._toggleBarItem.color = undefined;
+                this._toggleBarItem.tooltip = `Indentation broken, click to fix it.${parinferOn ? ' (Parinfer disabled while indentation is broken)' : ''}`;
+                this._toggleBarItem.command = 'calva-fmt.fixDocumentIndentation';
+                this._toggleBarItem.color = parinferOn ? statusbar.color.active : undefined;
                 if (alertOnProblems) {
-                    alertPareditProblem(doc);
+                    alertParinferProblem(this._document);
                 }
             } else {
+                vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', true);
                 this.visible = true;
                 this._toggleBarItem.text = "() $(check)";
-                this._toggleBarItem.tooltip = "Parinfer enabled";
-                this._toggleBarItem.color = undefined;
+                this._toggleBarItem.tooltip = `Parinfer ${parinferOn ? 'enabled' : 'disabled'}`;
+                this._toggleBarItem.command = parinferOn ? 'calva-fmt.disableParedit' : 'calva-fmt.enableParedit';
+                this._toggleBarItem.color = parinferOn ? statusbar.color.active : undefined;
             }
         }
     }
