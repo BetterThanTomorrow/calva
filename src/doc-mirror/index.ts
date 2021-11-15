@@ -280,6 +280,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (e.languageId == "clojure") {
             documents.delete(e);
         }
+        statusBar.update();
     })
 
     vscode.window.onDidChangeActiveTextEditor(e => {
@@ -287,8 +288,8 @@ export function activate(context: vscode.ExtensionContext) {
             addDocument(e.document);
             const mirroredDoc = getDocument(e.document);
             mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-            statusBar.update();
         }
+        statusBar.update();
     });
 
     vscode.workspace.onDidOpenTextDocument(doc => {
@@ -369,6 +370,11 @@ export class StatusBar {
                 this._toggleBarItem.command = parinferOn ? 'calva-fmt.disableParedit' : 'calva-fmt.enableParedit';
                 this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : undefined;
             }
+        } else {
+            this._toggleBarItem.text = "()";
+            this._toggleBarItem.tooltip = "No structure check performed when in non-Clojure documents";
+            this._toggleBarItem.command = undefined;
+            this._toggleBarItem.color = undefined;
         }
     }
 
