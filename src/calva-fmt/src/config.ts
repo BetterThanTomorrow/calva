@@ -39,7 +39,7 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtStr
         "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine") as boolean,
         "infer-parens-as-you-type": workspaceConfig.get("experimental.inferParensAsYouType") as boolean,
         "alert-on-paredit-problems": workspaceConfig.get("experimental.alertOnParinferProblems") as boolean,
-        "format-forward-list-on-same-line": workspaceConfig.get("experimental.ßformatForward") as boolean,
+        "format-forward-list-on-same-line": workspaceConfig.get("experimental.formatForward") as boolean,
         "cljfmt-string": cljfmtString,
         "cljfmt-options": cljfmtOptions(cljfmtString)
     };
