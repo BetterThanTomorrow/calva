@@ -265,7 +265,11 @@ export function activate(context: vscode.ExtensionContext) {
     statusBar = new StatusBar();
 
     context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.enableParedit', () => {
-        vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", true, true);
+        vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", true, true).then(() => {
+            const mirroredDoc = getDocument(currentDoc);
+            mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            statusBar.update();
+        })
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.disableParedit', () => {
         vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", false, true);
@@ -273,7 +277,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.fixDocumentIndentation', () => {
         const currentDoc = vscode.window.activeTextEditor.document;
         const mirroredDoc = getDocument(currentDoc);
-        parinfer.inferIndents(mirroredDoc);
+        parinfer.inferIndents(mirroredDoc).then(() => {
+            mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            statusBar.update();
+        }).catch();
     }));
 
     addDocument(currentDoc);
