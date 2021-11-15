@@ -203,7 +203,9 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
                 await parinfer.inferParens(mirroredDoc);
             }
-            model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            if (performInferParens) {
+                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            }
             statusBar.update();
         });
     }
