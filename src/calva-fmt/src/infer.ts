@@ -8,17 +8,10 @@ export interface Edit {
     text?: string
 }
 
-interface _Results {
+interface Results {
     success: boolean,
     //"new-text": string,
     edits?: Edit[],
-    line?: number,
-    character?: number,
-    "error-msg"?: string
-}
-
-export interface Results {
-    success: boolean,
     line?: number,
     character?: number,
     "error-msg"?: string
@@ -32,7 +25,7 @@ function rowColToOffset(document: docModel.EditableDocument, row: number, col: n
 export async function inferParens(document: docModel.EditableDocument): Promise<Results> {
     const [row, col] = document.getTokenCursor().rowCol;
     const currentText = document.model.getText(0, Infinity);
-    const r: _Results = calvaLib.inferParens({
+    const r: Results = calvaLib.inferParens({
         "text": currentText,
         "line": row,
         "character": col,
@@ -70,7 +63,7 @@ export async function inferParens(document: docModel.EditableDocument): Promise<
 }
 
 export async function inferIndents(document: docModel.EditableDocument): Promise<Results> {
-    const r: _Results = inferIndentsResults(document);
+    const r: Results = inferIndentsResults(document);
     if (r.edits && r.edits?.length > 0) {
         const modelEdits = r.edits?.map(edit => {
             const start = rowColToOffset(document, edit.start.line, edit.start.character);
@@ -115,7 +108,7 @@ export interface ParinferReadiness {
 }
 
 export function getParinferReadiness(document: docModel.EditableDocument): ParinferReadiness {
-    const r: _Results = inferIndentsResults(document);
+    const r: Results = inferIndentsResults(document);
     return {
         isStructureHealthy: r.success,
         isIndentationHealthy: r.success ? r.edits.length === 0 : false

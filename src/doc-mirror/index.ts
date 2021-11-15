@@ -197,16 +197,18 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         model.lineInputModel.edit([
             new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
         ], {}).then(async _v => {
-            if (performFormatForward) {
-                await formatter.formatForward(mirroredDoc);
+            if (event.document === vscode.window.activeTextEditor.document) {
+                if (performFormatForward) {
+                    await formatter.formatForward(mirroredDoc);
+                }
+                if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
+                    await parinfer.inferParens(mirroredDoc);
+                }
+                if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
+                    model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+                }
+                statusBar.update();
             }
-            if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
-                await parinfer.inferParens(mirroredDoc);
-            }
-            if (performInferParens) {
-                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-            }
-            statusBar.update();
         });
     }
     if (event.contentChanges.length > 0) {
@@ -314,7 +316,7 @@ function alertParinferProblem(doc: MirroredDocument) {
         let message: string = "";
         if (!r.success) {
             message = `The code structure is broken. Can't infer parens on this document: ${r["error-msg"]}, line: ${r.line + 1}, col: ${r.character + 1}. (Note: The structure status is indicated in the status bar as '() <status>'.)`;
-        } else {
+        } else if (r.edits && r.edits.length > 0) {
             message = `Paren inference is disabled because the document indentation needs to be fixed first. Issue the command ”Parinfer: Fix Document Indentation”, from the command palette or click the Parinfer status bar button.`
         }
         vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK").then(button => {
@@ -350,7 +352,7 @@ export class StatusBar {
             if (!model.parinferReadiness.isStructureHealthy) {
                 this._toggleBarItem.text = "() $(error)";
                 this._toggleBarItem.tooltip = `Parinfer disabled, structure broken. Please fix!${parinferOn ? ' (Parinfer disabled while structure is broken)' : ''}`;
-                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : undefined;
+                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
                 if (alertOnProblems) {
                     alertParinferProblem(doc);
                 }
@@ -359,7 +361,7 @@ export class StatusBar {
                 this._toggleBarItem.text = "() $(warning)";
                 this._toggleBarItem.tooltip = `Indentation broken${model.isWritable ? ', click to fix it.' : ''}${parinferOn && model.isWritable ? ' (Parinfer disabled while indentation is broken)' : ''}`;
                 this._toggleBarItem.command =  model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
-                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : undefined;
+                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
                 if (alertOnProblems) {
                     alertParinferProblem(doc);
                 }
@@ -368,13 +370,13 @@ export class StatusBar {
                 this._toggleBarItem.text = "() $(check)";
                 this._toggleBarItem.tooltip = `Parinfer ${parinferOn && model.isWritable ? 'enabled' : 'disabled'}. ${model.isWritable ? 'Click to toggle.' : 'Document is read-only'}`;
                 this._toggleBarItem.command = parinferOn ? 'calva-fmt.disableParedit' : 'calva-fmt.enableParedit';
-                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : undefined;
+                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
             }
         } else {
             this._toggleBarItem.text = "()";
             this._toggleBarItem.tooltip = "No structure check performed when in non-Clojure documents";
             this._toggleBarItem.command = undefined;
-            this._toggleBarItem.color = undefined;
+            this._toggleBarItem.color = statusbar.color.inactive;
         }
     }
 
