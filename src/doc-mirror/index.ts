@@ -8,8 +8,6 @@ import * as parinfer from "../calva-fmt/src/infer";
 import * as formatConfig from '../calva-fmt/src/config';
 import * as config from '../config';
 import statusbar from '../statusbar';
-import { modelRun, string } from "fast-check/*";
-import { mode } from "../calva-fmt/src/state";
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 export let statusBar: StatusBar;
@@ -32,7 +30,7 @@ export class DocumentModel implements EditableModel {
     }
 
     performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
-    performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];
+    performFormatForward = formatConfig.getConfig()["format-as-you-type"];
 
     isWritable = false;
 
@@ -191,7 +189,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const strict = keyMap === 'strict';
         const autoClose = !parinferOn && strict && config.getConfig().strictAutoClosingBrackets && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[\(\[\{]$/);
         const preventUnmatchedClosings = !parinferOn && strict && config.getConfig().strictPreventUnmatchedClosingBracket && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[)\]\}]$/);
-        const formatForwardOn = formatConfig.getConfig()["format-forward-list-on-same-line"];
+        const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
         const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens || autoClose || preventUnmatchedClosings;
         const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
         model.lineInputModel.edit([
@@ -213,7 +211,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     }
     if (event.contentChanges.length > 0) {
         model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];;
-        model.performFormatForward = formatConfig.getConfig()["format-forward-list-on-same-line"];;
+        model.performFormatForward = formatConfig.getConfig()["format-as-you-type"];;
     }
     model.lineInputModel.flushChanges()
 
@@ -350,7 +348,7 @@ export class StatusBar {
 
     update() {
         this.visible = true;
-        const doc: MirroredDocument = getDocument(vscode.window.activeTextEditor.document);
+        const doc: MirroredDocument = getDocument(vscode.window.activeTextEditor?.document);
 
         const model = doc?.model;
         if (model) {
