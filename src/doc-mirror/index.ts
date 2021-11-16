@@ -179,8 +179,8 @@ let registered = false;
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const mirroredDoc = documents.get(event.document);
     const model = mirroredDoc.model;
-    const tokenCursor = mirroredDoc.getTokenCursor();
     for (const change of event.contentChanges) {
+        const tokenCursor = mirroredDoc.getTokenCursor();
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
         const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
@@ -351,7 +351,7 @@ export class StatusBar {
     update() {
         this.visible = true;
         const doc: MirroredDocument = getDocument(vscode.window.activeTextEditor.document);
-        
+
         const model = doc?.model;
         if (model) {
             const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
@@ -367,7 +367,7 @@ export class StatusBar {
                 vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', false);
                 this._toggleBarItem.text = "() $(warning)";
                 this._toggleBarItem.tooltip = `Indentation broken${model.isWritable ? ', click to fix it.' : ''}${parinferOn && model.isWritable ? ' (Parinfer disabled while indentation is broken)' : ''}`;
-                this._toggleBarItem.command =  model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
+                this._toggleBarItem.command = model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
                 this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
                 if (alertOnProblems) {
                     alertParinferProblem(doc);
