@@ -109,7 +109,8 @@
         "configurationDefaults": {
             "[clojure]": {
                 "editor.wordSeparators": "\t ()\"':,;~@#$%^&{}[]`",
-                "editor.autoClosingBrackets": "never",
+                "editor.autoClosingBrackets": "always",
+                "editor.autoClosingOvertype": "always",
                 "editor.autoClosingQuotes": "always",
                 "editor.formatOnType": true,
                 "editor.autoIndent": "full",
@@ -685,11 +686,6 @@
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "_Experimental_. When Parinfer **indent mode** is on, show alert when structure or indents do not allow inference. (This is always indicated in the statusbar.)"
-                    },
-                    "calva.fmt.experimental.formatForward": {
-                        "type": "boolean",
-                        "default": true,
-                        "markdownDescription": "_Experimental_. Formats lists on the same line in front of typed text (essentially pushing them forward) when you type non-spaces or non-brackets."
                     }
                 }
             },

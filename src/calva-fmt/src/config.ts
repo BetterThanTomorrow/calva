@@ -15,7 +15,7 @@ type FormatConfig = {
 let CONFIG: FormatConfig;
 
 export function updateConfig() {
-    CONFIG = _getConfig();
+    CONFIG = _updateConfig();
     if (docMirror.statusBar) {
         docMirror.statusBar.update();
     }
@@ -32,11 +32,16 @@ const defaultCljfmtContent = "\
  :insert-missing-whitespace? true\n\
  :align-associative? false}";
 
+function globalOrDefault(wsConfig: vscode.WorkspaceConfiguration, key: string) {
+    const config = wsConfig.inspect(key);
+    return config.globalValue === undefined ? config.defaultValue : config.globalValue;
+}
+
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtString: string): FormatConfig {
     return {
-        "format-as-you-type": workspaceConfig.inspect("formatAsYouType").globalValue as boolean,
-        "infer-parens-as-you-type": workspaceConfig.inspect("experimental.inferParensAsYouType").globalValue as boolean,
-        "alert-on-paredit-problems": workspaceConfig.inspect("experimental.alertOnParinferProblems").globalValue as boolean,
+        "format-as-you-type": globalOrDefault(workspaceConfig, "formatAsYouType") as boolean,
+        "infer-parens-as-you-type": globalOrDefault(workspaceConfig, "experimental.inferParensAsYouType") as boolean,
+        "alert-on-paredit-problems": globalOrDefault(workspaceConfig, "experimental.alertOnParinferProblems") as boolean,
         "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine"),
         "cljfmt-string": cljfmtString,
         "cljfmt-options": cljfmtOptions(cljfmtString)
@@ -56,11 +61,23 @@ export function maybeNagAboutParinferExtension(config: FormatConfig) {
     }
 }
 
-function _getConfig(): FormatConfig {
+function _updateConfig(): FormatConfig {
     const workspaceConfig = vscode.workspace.getConfiguration("calva.fmt");
     const configPath: string = workspaceConfig.get("configPath");
     const cljfmtContent: string = filesCache.content(configPath);
     const config = configuration(workspaceConfig, cljfmtContent ? cljfmtContent : defaultCljfmtContent);
+    const editorConfig = vscode.workspace.getConfiguration("editor", { languageId: 'clojure' });
+    if (config['infer-parens-as-you-type']) {
+        editorConfig.update("autoClosingBrackets", 'never', true, true);
+        editorConfig.update("autoClosingOvertype", 'never', true, true);
+    } else {
+        let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+        keyMap = String(keyMap).trim().toLowerCase();
+        const isStrict = keyMap === 'strict';
+        editorConfig.update("autoClosingBrackets", isStrict ? 'always' : 'never', true, true);                
+        editorConfig.update("autoClosingOvertype", isStrict ? 'always' : 'never', true, true);                
+    }
+
     maybeNagAboutParinferExtension(config);
     if (!config["cljfmt-options"]["error"]) {
         return config;
@@ -74,9 +91,9 @@ export function onConfigurationChanged(e: vscode.ConfigurationChangeEvent) {
     if (e.affectsConfiguration("calva.fmt")) {
         updateConfig();
         if (e.affectsConfiguration("calva.fmt.experimental.inferParensAsYouType")) {
-            const performInferParens = getConfig()['infer-parens-as-you-type'];
+            const parinferOn = getConfig()['infer-parens-as-you-type'];
             docMirror.getDocuments().forEach((doc: docMirror.MirroredDocument, _key: any) => {
-                doc.model.performInferParens = performInferParens;
+                doc.model.performInferParens = parinferOn;
             });
         }
     }

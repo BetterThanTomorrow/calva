@@ -353,6 +353,7 @@ export function getKeyMapConf(): String {
 
 function setKeyMapConf() {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+    formatConfig.updateConfig()
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
     onPareditKeyMapChangedEmitter.fire(String(keyMap));
 }
