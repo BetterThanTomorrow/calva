@@ -6,7 +6,6 @@ import { LispTokenCursor } from "../cursor-doc/token-cursor";
 import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
 import * as parinfer from "../calva-fmt/src/infer";
 import * as formatConfig from '../calva-fmt/src/config';
-import * as config from '../config';
 import statusbar from '../statusbar';
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
@@ -177,20 +176,13 @@ let registered = false;
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const mirroredDoc = documents.get(event.document);
     const model = mirroredDoc.model;
+    const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+    const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
     for (const change of event.contentChanges) {
-        const tokenCursor = mirroredDoc.getTokenCursor();
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
         const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        //const changedText = model.getText(myStartOffset, myEndOffset);
-        let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
-        keyMap = String(keyMap).trim().toLowerCase();
-        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-        const strict = keyMap === 'strict';
-        const autoClose = !parinferOn && strict && config.getConfig().strictAutoClosingBrackets && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[\(\[\{]$/);
-        const preventUnmatchedClosings = !parinferOn && strict && config.getConfig().strictPreventUnmatchedClosingBracket && !tokenCursor.withinComment() && event.contentChanges.length === 1 && change.text.match(/^[)\]\}]$/);
-        const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens || autoClose || preventUnmatchedClosings;
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
         const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
         model.lineInputModel.edit([
             new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
@@ -265,7 +257,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.enableParedit', () => {
         vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", true, true).then(() => {
             const mirroredDoc = getDocument(currentDoc);
-            mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            if (mirroredDoc) {
+                mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            }
             statusBar.update();
         })
     }));
