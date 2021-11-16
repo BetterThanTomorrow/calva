@@ -8,7 +8,6 @@ type FormatConfig = {
     "keep-comment-forms-trail-paren-on-own-line?": boolean,
     "infer-parens-as-you-type": boolean,
     "alert-on-paredit-problems": boolean,
-    "format-forward-list-on-same-line": boolean,
     "cljfmt-string": string,
     "cljfmt-options": any
 }
@@ -35,11 +34,10 @@ const defaultCljfmtContent = "\
 
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtString: string): FormatConfig {
     return {
-        "format-as-you-type": workspaceConfig.get("formatAsYouType") as boolean,
-        "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine") as boolean,
-        "infer-parens-as-you-type": workspaceConfig.get("experimental.inferParensAsYouType") as boolean,
-        "alert-on-paredit-problems": workspaceConfig.get("experimental.alertOnParinferProblems") as boolean,
-        "format-forward-list-on-same-line": workspaceConfig.get("experimental.formatForward") as boolean,
+        "format-as-you-type": workspaceConfig.inspect("formatAsYouType").globalValue as boolean,
+        "infer-parens-as-you-type": workspaceConfig.inspect("experimental.inferParensAsYouType").globalValue as boolean,
+        "alert-on-paredit-problems": workspaceConfig.inspect("experimental.alertOnParinferProblems").globalValue as boolean,
+        "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine"),
         "cljfmt-string": cljfmtString,
         "cljfmt-options": cljfmtOptions(cljfmtString)
     };
@@ -79,12 +77,6 @@ export function onConfigurationChanged(e: vscode.ConfigurationChangeEvent) {
             const performInferParens = getConfig()['infer-parens-as-you-type'];
             docMirror.getDocuments().forEach((doc: docMirror.MirroredDocument, _key: any) => {
                 doc.model.performInferParens = performInferParens;
-            });
-        }
-        if (e.affectsConfiguration("calva.fmt.experimental.formatForward")) {
-            const performFormatForward = getConfig()['format-forward-list-on-same-line'];
-            docMirror.getDocuments().forEach((doc: docMirror.MirroredDocument, _key: any) => {
-                doc.model.performFormatForward = performFormatForward;
             });
         }
     }
