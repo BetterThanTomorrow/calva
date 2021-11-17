@@ -82,11 +82,16 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
             return;
         }
     }
+    let text = document.model.getText(0, Infinity);
+    // TODO: Find a more efficient way to do this
+    if (document.model.lineEndingLength === 2) {
+        text = text.replace(/\n/g, '\r\n');
+    }
     const formatted: {
         "range-text": string,
         "range": [number, number],
         "new-index": number
-    } = _formatIndex(document.model.getText(0, Infinity), formatRange, index, document.model.lineEndingLength == 2 ? "\r\n" : "\n", onType, config);
+    } = _formatIndex(text, formatRange, index, document.model.lineEndingLength == 2 ? "\r\n" : "\n", onType, config);
     const newIndex: number = formatted.range[0] + formatted["new-index"];
     const previousText: string = document.model.getText(...formatted.range);
     return {
