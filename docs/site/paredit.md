@@ -7,7 +7,7 @@ search:
 
 # Paredit – a Visual Guide
 
-Structural editing and navigation for Clojure.
+Structural editing and navigation for Clojure. Works great together with [Parinfer](parinfer.md).
 
 ## What is Paredit?
 

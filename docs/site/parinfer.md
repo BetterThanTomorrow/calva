@@ -9,21 +9,20 @@ description: Learn how to leverage Calva Parinfer Mode for structural editing
 
 ![Calva Parinfer](images/calva-parinfer-and-format-forward.gif)
 
-## Infer Parens and Format Forward
-Calva has two experimental features: **Infer Parens** (as you type), and the corresponding **Format Forward** (as you type). For now, they are both disabled by default. Enable them via these settings:
+## Infer Parens
 
-* `calva.fmt.experimental.inferParensAsYouType`
-* `calva.fmt.experimental.formatForward`
+When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no modes further Parinfer modes. Calva's auto-formatter will take care ofb keeping the code correctly indented.
 
-They go best together. The first letting you use indentation to decide structure, the latter using the structure to let you keep the code indented properly as you type.
-
-!!! Note "About `editor.autoClosingBrackets` and infering the closing bracket"
-    TL;DR: When enabling `calva.fmt.experimental.inferParensAsYouType`, _you need to also disable `editor.autoClosingBrackets`_.
-
-    For Parinfer's inference of the closing bracket when you type an opening one to work, VS Code's built-in `editor.autoClosingBrackets` setting needs to be **disabled**, and Calva currently **enables** this by default. This is because there are currently some troubles with Calva's backup auto-closing features (`calva.paredit.strictAutoClosingBrackets`).
+Currently Paredit is added as an experimental features, enable it with from this setting: `calva.fmt.experimental.inferParensAsYouType`
 
 !!! Note "Multi-cursors not fully supported"
     Calva only really considers the first cursor in a multi-cursor senario. Sometimes that's enough, often it is not.
+
+## No Tab indenting
+
+As the `tab` key is used for formatting the current form in Calva, it is ”taken”. The closest equivalents you have are `space` and `backspace`. At least for now. We'll see if we can find out a good way for supporting `tab` and `shift+tab` for indent and dedent.
+
+`tab` for formatting is of course just a default key binding and you can assign it to something else to get it to do indenting. However, it will not be a very smart indent anyway, there is no Clojure awareness about it. You are hereby adviced to instead use some more spaces.
 
 ## Paredit is still there
 
