@@ -1,5 +1,6 @@
 import * as net from "net";
 import { BEncoderStream, BDecoderStream } from "./bencode";
+import * as cider from './cider'
 import * as state from './../state';
 import * as util from '../utilities';
 import { PrettyPrintingOptions, disabledPrettyPrinter, getServerSidePrinter } from "../printer";
@@ -12,6 +13,28 @@ import type { ReplSessionType } from '../config';
 import { getStateValue, prettyPrint } from '../../out/cljs-lib/cljs-lib';
 import { getConfig } from '../config';
 import { log, Direction, loggingEnabled } from './logging';
+
+function hasStatus(res: any, status: string): boolean {
+    return res.status && res.status.indexOf(status) > -1;
+}
+
+// When a command fails becuase of an unknown-op (usually caused by missing
+// middleware), we can mark the operation as failed, so that we can show a message
+// in the UI to the user.
+// https://nrepl.org/nrepl/design/handlers.html
+// If the handler being used by an nREPL server does not recognize or cannot
+// perform the operation indicated by a request message’s :op, then it should
+// respond with a message containing a :status of "unknown-op".
+function resultHandler(resolve: any, reject: any) {
+    return (res: any): boolean => {
+        if (hasStatus(res, "unknown-op")) {
+            reject("The server does not recognize or cannot perform the '" + res.op + "' operation");
+        } else {
+            resolve(res);
+        }
+        return true;
+    }
+}
 
 /** An nREPL client */
 export class NReplClient {
@@ -120,7 +143,7 @@ export class NReplClient {
                     } else if (data["id"] === nsId) {
                         if (data["ns"])
                             client.ns = data["ns"];
-                        if (data["status"] && data["status"].indexOf("done") !== -1)
+                        if (hasStatus(data, "done"))
                             client.encoder.write({ "op": "clone", "id": cloneId });
                     } else if (data["id"] === cloneId) {
                         client.session = new NReplSession(data["new-session"], client);
@@ -241,10 +264,7 @@ export class NReplSession {
     describe(verbose?: boolean) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "describe", id: id, session: this.sessionId, verbose });
         })
     }
@@ -252,10 +272,7 @@ export class NReplSession {
     listSessions() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "ls-sessions", id: id, session: this.sessionId });
         })
     }
@@ -263,10 +280,7 @@ export class NReplSession {
     stacktrace() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "stacktrace", id, session: this.sessionId });
         })
     }
@@ -326,10 +340,7 @@ export class NReplSession {
         }
         let id = this.client.nextId;
         return new Promise<void>((resolve, reject) => {
-            this.messageHandlers[id] = (msg) => {
-                resolve();
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "interrupt", session: this.sessionId, "interrupt-id": interruptId, id })
         });
     }
@@ -369,10 +380,7 @@ export class NReplSession {
         return new Promise<any>((resolve, reject) => {
             const id = this.client.nextId,
                 extraOpts = getConfig().enableJSCompletions ? { "enhanced-cljs-completion?": "t" } : {};
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({
                 op: "complete",
                 ns,
@@ -388,10 +396,7 @@ export class NReplSession {
     info(ns: string, symbol: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "info", ns, symbol, id, session: this.sessionId })
         })
     }
@@ -399,21 +404,15 @@ export class NReplSession {
     classpath() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "classpath", id, session: this.sessionId })
         })
     }
 
-    test(ns: string, test: string) {
+    test(ns: string, test: string): Promise<cider.TestResults> {
         return new Promise<any>((resolve, reject) => {
             const id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            };
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({
                 op: "test-var-query",
                 ns,
@@ -431,12 +430,9 @@ export class NReplSession {
     }
 
     testNs(ns: string) {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<cider.TestResults>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({
                 op: "test-var-query", ns, id, session: this.sessionId, "var-query": {
                     "ns-query": {
@@ -448,23 +444,17 @@ export class NReplSession {
     }
 
     testAll() {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<cider.TestResults>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "test-all", id, session: this.sessionId, "load?": true });
         })
     }
 
     retest() {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<cider.TestResults>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "retest", id, session: this.sessionId });
         })
     }
@@ -472,10 +462,7 @@ export class NReplSession {
     loadAll() {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "ns-load-all", id, session: this.sessionId });
         })
     }
@@ -483,10 +470,7 @@ export class NReplSession {
     listNamespaces(regexps: string[]) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "ns-list", id, session: this.sessionId, "filter-regexps": regexps });
         })
     }
@@ -494,10 +478,7 @@ export class NReplSession {
     nsPath(ns: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "ns-path", id, ns, session: this.sessionId });
         })
     }
@@ -510,16 +491,16 @@ export class NReplSession {
             this.messageHandlers[id] = (msg) => {
                 if (msg.reloading)
                     reloaded = msg.reloading;
-                if (msg.status && msg.status.indexOf("ok") != -1)
+                if (hasStatus(msg, "ok"))
                     status = "ok";
-                if (msg.status && msg.status.indexOf("error") != -1) {
+                if (hasStatus(msg, "error")) {
                     status = "error";
                     error = msg.error;
                     errorNs = msg["error-ns"];
                 }
                 if (msg.err)
                     err += msg.err
-                if (msg.status && msg.status.indexOf("done") != -1) {
+                if (hasStatus(msg, "done")) {
                     let res = { reloaded, status } as any;
                     if (error) res.error = error;
                     if (errorNs) res.errorNs = errorNs;
@@ -543,10 +524,7 @@ export class NReplSession {
     formatCode(code: string, options?: string) {
         return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: "format-code", code, options })
         });
     }
@@ -576,12 +554,9 @@ export class NReplSession {
     }
 
     sendDebugInput(input: any, debugResponseId: string, debugResponseKey: string): Promise<any> {
-        return new Promise<any>((resolve, _) => {
+        return new Promise<any>((resolve, reject) => {
 
-            this.messageHandlers[debugResponseId] = (response) => {
-                resolve(response);
-                return true;
-            };
+            this.messageHandlers[debugResponseId] = resultHandler(resolve, reject);
 
             const data: any = {
                 id: debugResponseId,
@@ -596,12 +571,9 @@ export class NReplSession {
     }
 
     listDebugInstrumentedDefs(): Promise<any> {
-        return new Promise<any>((resolve, _) => {
+        return new Promise<any>((resolve, reject) => {
             let id = this.client.nextId;
-            this.messageHandlers[id] = (msg) => {
-                resolve(msg);
-                return true;
-            }
+            this.messageHandlers[id] = resultHandler(resolve, reject);
             this.client.write({ op: 'debug-instrumented-defs', id, session: this.sessionId });
         });
     }
@@ -816,7 +788,7 @@ export class NReplEvaluation {
                 this._exception = msg.ex;
             }
             // cider-nrepl debug middleware eval error (eval error occurred during debug session)
-            if (msg.status && msg.status.indexOf('eval-error') !== -1 && msg.causes) {
+            if (hasStatus(msg, 'eval-error') && msg.causes) {
                 const cause = msg.causes[0];
                 const errorMessage = `${cause.class}: ${cause.message}`;
                 this._stacktrace = { stacktrace: cause.stacktrace };
@@ -851,7 +823,7 @@ export class NReplEvaluation {
                         });
                 }
             }
-            if (msg.status && (msg.status.indexOf('done') !== -1 || msg.status.indexOf('need-debug-input') !== -1)) {
+            if (hasStatus(msg, 'done') || hasStatus(msg, 'need-debug-input')) {
                 this.remove();
                 if (this.exception && this.msgValue !== debug.DEBUG_QUIT_VALUE) {
                     this.session.stacktrace().then((stacktrace) => {
