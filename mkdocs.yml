@@ -50,10 +50,11 @@ nav:
     - evaluation.md
     - rich-comments.md
     - clojuredocs.md
-    - paredit.md
-    - parinfer.md
-    - formatting.md
-    - highlight.md
+    - Structural Editing:
+      - paredit.md
+      - parinfer.md
+      - formatting.md
+      - highlight.md
     - debugger.md
     - output.md
     - pprint.md

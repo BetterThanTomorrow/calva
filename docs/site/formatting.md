@@ -36,11 +36,12 @@ There are settings for the general behaviour of Calva formatting as well as for 
 
 | Setting | Description | Default
 | ------- | ----------- | -------
-| `calva.fmt.formatAsYouType` | Formats the code while you are typing. Mostly when adding new lines. | **true**
+| `calva.fmt.formatAsYouType` | Formats the code while you are typing. | **true**
 | `calva.fmt.newIndentEngine` | Fast indentation. When disabled, a full formatting will be done on the current enclosing form. | **true**
 | `calva.fmt.experimental.inferParensAsYouType` | Experimental: [Parinfer](parinfer.md) mode | **false**
 | `calva.fmt.keepCommentTrailParenOnOwnLine` | See [Rich Comments](rich-comments.md) | **true**
 
+Calva's auto-formatter will reformat forms that are directly affected by your edits, and it will automatically indent new lines to match your `cljfmt` indentation settings. See below.
 
 ### cljfmt
 
