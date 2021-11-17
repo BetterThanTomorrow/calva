@@ -110,6 +110,7 @@ export function formatPositionEditableDoc(document: docModel.EditableDocument, o
                 undoStopBefore: !onType,
                 skipFormat: true,
                 performInferParens: false,
+                ...extraConfig,
                 ...newSelectionConfig
             });
         } else if (adjustSelection && formattedInfo.newIndex != formattedInfo.previousIndex) {
