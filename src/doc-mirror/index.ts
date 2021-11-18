@@ -178,29 +178,28 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     const model = mirroredDoc.model;
     const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
     const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
-    for (const change of event.contentChanges) {
+    const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+    const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
+    const edits: ModelEdit[] = event.contentChanges.map(change => {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
         const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
-        const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
-        model.lineInputModel.edit([
-            new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')])
-        ], {}).then(async _v => {
-            if (event.document === vscode.window.activeTextEditor.document) {
-                if (performFormatForward) {
-                    await formatter.formatForward(mirroredDoc);
-                }
-                if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
-                    await parinfer.inferParens(mirroredDoc);
-                }
-                if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
-                    model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                }
-                statusBar.update();
+        return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
+    });
+    model.lineInputModel.edit(edits, {}).then(async _v => {
+        if (event.document === vscode.window.activeTextEditor.document) {
+            if (performFormatForward) {
+                await formatter.formatForward(mirroredDoc);
             }
-        });
-    }
+            if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
+                await parinfer.inferParens(mirroredDoc);
+            }
+            if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
+                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            }
+            statusBar.update();
+        }
+    });
     if (event.contentChanges.length > 0) {
         model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];;
         model.performFormatForward = formatConfig.getConfig()["format-as-you-type"];;
