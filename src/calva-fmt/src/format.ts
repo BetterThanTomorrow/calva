@@ -93,7 +93,10 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
         "new-index": number
     } = _formatIndex(text, formatRange, index, document.model.lineEndingLength == 2 ? "\r\n" : "\n", onType, config);
     const newIndex: number = formatted.range[0] + formatted["new-index"];
-    const previousText: string = document.model.getText(...formatted.range);
+    let previousText: string = document.model.getText(...formatted.range);
+    if (document.model.lineEndingLength === 2) {
+        previousText = previousText.replace(/\n/g, '\r\n');
+    }
     return {
         formattedText: formatted["range-text"],
         range: formatted.range,
@@ -110,7 +113,7 @@ export function formatPositionEditableDoc(document: docModel.EditableDocument, o
         const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
         if (formattedInfo.previousText != formattedInfo.formattedText) {
             return document.model.edit([
-                new docModel.ModelEdit('changeRange', [formattedInfo.range[0], formattedInfo.range[1], formattedInfo.formattedText])
+                new docModel.ModelEdit('changeRange', [formattedInfo.range[0], formattedInfo.range[1], formattedInfo.formattedText.replace(/\r\n/g, '\n')])
             ], {
                 undoStopBefore: !onType,
                 skipFormat: true,
