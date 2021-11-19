@@ -193,13 +193,14 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             if (performFormatForward) {
                 await formatter.formatForward(mirroredDoc);
                 holdOffHealthCheck = false;
-            } else {
-                holdOffHealthCheck = false;
             }
-            if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
+            if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || !holdOffHealthCheck) && performInferParens) {
                 await parinfer.inferParens(mirroredDoc);
             }
             //if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
+            if (!performFormatForward) {
+                holdOffHealthCheck = false;
+            }
             if (!holdOffHealthCheck) {
                 model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
             }
