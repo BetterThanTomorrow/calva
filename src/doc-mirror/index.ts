@@ -7,6 +7,7 @@ import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInput
 import * as parinfer from "../calva-fmt/src/infer";
 import * as formatConfig from '../calva-fmt/src/config';
 import statusbar from '../statusbar';
+import * as outputWindow from '../results-output/results-doc';
 
 let documents = new Map<vscode.TextDocument, MirroredDocument>();
 export let statusBar: StatusBar;
@@ -187,7 +188,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
     });
     model.lineInputModel.edit(edits, {}).then(async _v => {
-        if (event.document === vscode.window.activeTextEditor.document) {
+        if (event.document === vscode.window.activeTextEditor?.document) {
             if (performFormatForward) {
                 await formatter.formatForward(mirroredDoc);
             }
@@ -197,7 +198,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
                 model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
             }
-            statusBar.update();
+            statusBar.update(vscode.window.activeTextEditor?.document);
         }
     });
     if (event.contentChanges.length > 0) {
@@ -234,8 +235,10 @@ function addDocument(doc: vscode.TextDocument): boolean {
             document.model.parinferReadiness = parinfer.getParinferReadiness(document);
             utilities.isDocumentWritable(doc).then(r => {
                 document.model.isWritable = r
-                statusBar.update();
-            }).catch();
+                statusBar.update(vscode.window.activeTextEditor?.document);
+            }).catch(e => {
+                console.error("Writable check failed:", e)
+            });
             return false;
         } else {
             return true;
@@ -253,16 +256,16 @@ export function activate(context: vscode.ExtensionContext) {
     const currentDoc = utilities.getDocument({});
     statusBar = new StatusBar();
 
-    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.enableParedit', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.enableParinfer', () => {
         vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", true, true).then(() => {
             const mirroredDoc = getDocument(currentDoc);
             if (mirroredDoc) {
                 mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
             }
-            statusBar.update();
+            statusBar.update(vscode.window.activeTextEditor?.document);
         })
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.disableParedit', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.disableParinfer', () => {
         vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", false, true);
     }));
     context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.fixDocumentIndentation', () => {
@@ -270,7 +273,7 @@ export function activate(context: vscode.ExtensionContext) {
         const mirroredDoc = getDocument(currentDoc);
         parinfer.inferIndents(mirroredDoc).then(() => {
             mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-            statusBar.update();
+            statusBar.update(vscode.window.activeTextEditor?.document);
         }).catch();
     }));
 
@@ -280,7 +283,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (e.languageId == "clojure") {
             documents.delete(e);
         }
-        statusBar.update();
+        statusBar.update(vscode.window.activeTextEditor?.document);
     })
 
     vscode.window.onDidChangeActiveTextEditor(e => {
@@ -289,14 +292,16 @@ export function activate(context: vscode.ExtensionContext) {
             const mirroredDoc = getDocument(e.document);
             mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
         }
-        statusBar.update();
+        if (e) {
+            statusBar.update(e.document);
+        }
     });
 
     vscode.workspace.onDidOpenTextDocument(doc => {
         addDocument(doc);
         const mirroredDoc = getDocument(doc);
         mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-        statusBar.update();
+        statusBar.update(doc);
     });
 
     vscode.workspace.onDidChangeTextDocument(e => {
@@ -307,8 +312,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 
-function alertParinferProblem(doc: MirroredDocument) {
-    if (doc.model.isWritable) {
+function alertParinferProblem(doc: MirroredDocument, vsCodeDoc: vscode.TextDocument) {
+    if (vsCodeDoc?.fileName && vsCodeDoc?.languageId === 'clojure' && utilities.isDocumentWritable(vsCodeDoc)) {
         const DONT_ALERT_BUTTON = "Roger. Don't show again";
         const r = parinfer.inferIndentsResults(doc);
         let message: string = "";
@@ -339,20 +344,20 @@ export class StatusBar {
         this._toggleBarItem.show()
     }
 
-    update() {
+    update(vsCodeDoc: vscode.TextDocument) {
         this.visible = true;
-        const doc: MirroredDocument = getDocument(vscode.window.activeTextEditor?.document);
+        const doc: MirroredDocument = getDocument(vsCodeDoc);
 
         const model = doc?.model;
         if (model) {
             const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-            const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-paredit-problems"];
+            const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-parinfer-problems"];
             if (!model.parinferReadiness.isStructureHealthy) {
                 this._toggleBarItem.text = "() $(error)";
                 this._toggleBarItem.tooltip = `Parinfer disabled, structure broken. Please fix!${parinferOn ? ' (Parinfer disabled while structure is broken)' : ''}`;
                 this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
                 if (alertOnProblems) {
-                    alertParinferProblem(doc);
+                    alertParinferProblem(doc, vsCodeDoc);
                 }
             } else if (!model.parinferReadiness.isIndentationHealthy) {
                 vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', false);
@@ -361,13 +366,13 @@ export class StatusBar {
                 this._toggleBarItem.command = model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
                 this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
                 if (alertOnProblems) {
-                    alertParinferProblem(doc);
+                    alertParinferProblem(doc, vsCodeDoc);
                 }
             } else {
                 vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', true);
                 this._toggleBarItem.text = "() $(check)";
                 this._toggleBarItem.tooltip = `Parinfer ${parinferOn && model.isWritable ? 'enabled' : 'disabled'}. ${model.isWritable ? 'Click to toggle.' : 'Document is read-only'}`;
-                this._toggleBarItem.command = parinferOn ? 'calva-fmt.disableParedit' : 'calva-fmt.enableParedit';
+                this._toggleBarItem.command = parinferOn ? 'calva-fmt.disableParinfer' : 'calva-fmt.enableParinfer';
                 this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
             }
         } else {
