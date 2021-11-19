@@ -181,6 +181,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
     const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
     const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
+    let holdOffHealthCheck = performFormatForward;
     const edits: ModelEdit[] = event.contentChanges.map(change => {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
@@ -191,11 +192,15 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         if (event.document === vscode.window.activeTextEditor?.document) {
             if (performFormatForward) {
                 await formatter.formatForward(mirroredDoc);
+                holdOffHealthCheck = false;
+            } else {
+                holdOffHealthCheck = false;
             }
             if (mirroredDoc.model.parinferReadiness.isIndentationHealthy && performInferParens) {
                 await parinfer.inferParens(mirroredDoc);
             }
-            if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
+            //if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
+            if (!holdOffHealthCheck) {
                 model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
             }
             statusBar.update(vscode.window.activeTextEditor?.document);
