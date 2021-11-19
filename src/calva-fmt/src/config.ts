@@ -7,7 +7,7 @@ type FormatConfig = {
     "format-as-you-type": boolean,
     "keep-comment-forms-trail-paren-on-own-line?": boolean,
     "infer-parens-as-you-type": boolean,
-    "alert-on-paredit-problems": boolean,
+    "alert-on-parinfer-problems": boolean,
     "cljfmt-string": string,
     "cljfmt-options": any
 }
@@ -17,7 +17,7 @@ let CONFIG: FormatConfig;
 export function updateConfig() {
     CONFIG = _updateConfig();
     if (docMirror.statusBar) {
-        docMirror.statusBar.update();
+        docMirror.statusBar.update(vscode.window.activeTextEditor?.document);
     }
 }
 
@@ -41,7 +41,7 @@ function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtStr
     return {
         "format-as-you-type": globalOrDefault(workspaceConfig, "formatAsYouType") as boolean,
         "infer-parens-as-you-type": globalOrDefault(workspaceConfig, "experimental.inferParensAsYouType") as boolean,
-        "alert-on-paredit-problems": globalOrDefault(workspaceConfig, "experimental.alertOnParinferProblems") as boolean,
+        "alert-on-parinfer-problems": globalOrDefault(workspaceConfig, "experimental.alertOnParinferProblems") as boolean,
         "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine"),
         "cljfmt-string": cljfmtString,
         "cljfmt-options": cljfmtOptions(cljfmtString)
