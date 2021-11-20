@@ -177,10 +177,10 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     const mirroredDoc = documents.get(event.document);
     const model = mirroredDoc.model;
     const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-    const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
+    const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
     const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
-    const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo;
-    let holdOffHealthCheck = performFormatForward;
+    const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
+    let holdOffHealthCheck = performFormatAsYouType;
     const edits: ModelEdit[] = event.contentChanges.map(change => {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
         const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
@@ -189,15 +189,14 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     });
     model.lineInputModel.edit(edits, {}).then(async _v => {
         if (event.document === vscode.window.activeTextEditor?.document) {
-            if (performFormatForward) {
+            if (performFormatAsYouType) {
                 await formatter.formatForward(mirroredDoc);
                 holdOffHealthCheck = false;
             }
             if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || !holdOffHealthCheck) && performInferParens) {
                 await parinfer.inferParens(mirroredDoc);
             }
-            //if (!performFormatForward && (event.reason === vscode.TextDocumentChangeReason.Undo || performInferParens)) {
-            if (!performFormatForward) {
+            if (!performFormatAsYouType) {
                 holdOffHealthCheck = false;
             }
             if (!holdOffHealthCheck) {

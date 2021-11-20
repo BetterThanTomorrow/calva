@@ -628,7 +628,6 @@ function _killSelection(doc: EditableDocument, anchor: number = doc.selection.an
             new ModelEdit('deleteRange', [start, end - start])
         ], {
             selection: new ModelEditSelection(start),
-            performFormatForward: true,
             performInferParens: true,
             skipFormat: true,
             ...extraOpts
