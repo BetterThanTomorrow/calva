@@ -101,7 +101,6 @@ export interface EditableModel {
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
     parinferReadiness: parinfer.ParinferReadiness,
     performInferParens: boolean;
-    performFormatForward: boolean;
     isWritable: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getLineText: (line: number) => string;
@@ -134,7 +133,6 @@ export class LineInputModel implements EditableModel {
         isStructureHealthy: false
     }
     performInferParens = true;
-    performFormatForward = true;
 
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];

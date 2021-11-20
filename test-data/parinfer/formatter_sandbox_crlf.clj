@@ -38,6 +38,9 @@
   (let [x + a b]
     (println "sum is" x)))
 
+(defn bar [a b]
+  (let [x + a b]
+    (println "sum is" x)))
 
 (defn to-pirate-talk
   [text language]
