@@ -86,7 +86,6 @@ export type ModelEditOptions = {
     formatDepth?: number,
     skipFormat?: boolean,
     performInferParens?: boolean,
-    performFormatForward?: boolean,
     selection?: ModelEditSelection
 };
 
