@@ -5,7 +5,6 @@ import { getIndent, getDocument, getDocumentOffset, MirroredDocument } from "../
 const { formatTextAtRange, formatTextAtIdx, formatTextAtIdxOnType, formatText, cljify, jsify } = require('../../../out/cljs-lib/cljs-lib');
 import * as docModel from '../../cursor-doc/model';
 
-
 export function indentPosition(position: vscode.Position, document: vscode.TextDocument): Thenable<boolean> {
     let editor = vscode.window.activeTextEditor;
     let pos = new vscode.Position(position.line, 0);
@@ -22,29 +21,39 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
     }
 }
 
+export function indexForFormatForward(document: docModel.EditableDocument, p = document.selection.active): number {
+    const cursor = document.getTokenCursor(p);
+    const currentLine = cursor.rowCol[0];
+    do {
+        const token = cursor.getToken();
+        if (token.type === 'open') {
+            cursor.downList();
+            cursor.forwardList();
+            if (cursor.rowCol[0] === currentLine) {
+                cursor.upList();
+            } else {
+                return cursor.offsetStart;
+            }
+        }
+        if (token.type === 'eol') {
+            break;
+        }
+    } while (cursor.next());
+    
+    return p;
+}
+
+
 export async function formatForward(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
     const formatForwardOn = config.getConfig()['format-as-you-type'];
     if (formatForwardOn) {
-        const cursor = document.getTokenCursor(p);
-        const currentLine = cursor.rowCol[0];
-        do {
-            const token = cursor.getToken();
-            if (token.type === 'open') {
-                cursor.downList();
-                cursor.forwardList();
-                if (cursor.rowCol[0] === currentLine) {
-                    cursor.upList();
-                } else {
-                    await formatPositionEditableDoc(document, onType, {
-                        index: cursor.offsetStart,
-                        adjustSelection: false
-                    });
-                }
-            }
-            if (token.type === 'eol') {
-                break;
-            }
-        } while (cursor.next());
+        const index = indexForFormatForward(document, p);
+        if (index !== p) {
+            await formatPositionEditableDoc(document, onType, {
+                index: index,
+                adjustSelection: false
+            });
+        }
     }
 }
 
@@ -69,7 +78,7 @@ export function formatRange(document: vscode.TextDocument, range: vscode.Range) 
     return vscode.workspace.applyEdit(wsEdit);
 }
 
-export function formatRangInfoEditableDoc(document: docModel.EditableDocument, formatRange: [number, number], onType: boolean = false, extraConfig = {}) {
+export function formatRangeInfoEditableDoc(document: docModel.EditableDocument, formatRange: [number, number], onType: boolean = false, extraConfig = {}) {
     const index = extraConfig['index'] || document.selection.active;
     const cursor = document.getTokenCursor(index);
     const isComment = cursor.getFunctionName() === 'comment';
@@ -109,11 +118,13 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
             return;
         }
     }
-    return formatRangInfoEditableDoc(document, formatRange, onType, extraConfig);
+    return formatRangeInfoEditableDoc(document, formatRange, onType, extraConfig);
 }
 
-//export function formatRangeEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-//}
+export function formatRangeEditableDoc(document: docModel.EditableDocument, range: [number, number], onType: boolean = false, extraConfig = {}): Thenable<boolean> {
+    const formattedInfo = formatRangeInfoEditableDoc(document, range, onType, extraConfig);
+    return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
+}
 
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
     const formattedInfo = formatPositionInfoEditableDoc(document, onType, extraConfig);
