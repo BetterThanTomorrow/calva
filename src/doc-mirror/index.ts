@@ -176,44 +176,51 @@ let registered = false;
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const mirroredDoc = documents.get(event.document);
     const model = mirroredDoc.model;
-    const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-    const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
-    const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
-    const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
-    let holdOffHealthCheck = performFormatAsYouType;
-    const edits: ModelEdit[] = event.contentChanges.map(change => {
-        // vscode may have a \r\n marker, so it's line offsets are all wrong.
-        const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
-        const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
-        return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
-    });
-    model.lineInputModel.edit(edits, {}).then(async _v => {
-        if (event.document === vscode.window.activeTextEditor?.document) {
-            if (performFormatAsYouType) {
-                await formatter.formatForward(mirroredDoc);
-                holdOffHealthCheck = false;
-            }
-            if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || !holdOffHealthCheck) && performInferParens) {
-                await parinfer.inferParens(mirroredDoc);
-            }
-            if (!performFormatAsYouType) {
-                holdOffHealthCheck = false;
-            }
-            if (!holdOffHealthCheck) {
-                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-            }
-            statusBar.update(vscode.window.activeTextEditor?.document);
-        }
-    });
     if (event.contentChanges.length > 0) {
-        model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
-    }
-    model.lineInputModel.flushChanges()
+        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+        const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
+        const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+        let performHealthCheck = !performFormatAsYouType;
+        const edits: ModelEdit[] = event.contentChanges.map(change => {
+            // vscode may have a \r\n marker, so it's line offsets are all wrong.
+            const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
+            const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
+            return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
+        });
+        model.lineInputModel.edit(edits, {
+            performInferParens: !vscode.TextDocumentChangeReason.Undo
+        }).then(async _v => {
+            if (event.document === vscode.window.activeTextEditor?.document) {
+                if (performFormatAsYouType) {
+                    await formatter.formatForward(mirroredDoc);
+                    performHealthCheck = true;
+                }
+                if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
+                    await parinfer.inferParens(mirroredDoc);
+                }
+                if (!performFormatAsYouType) {
+                    performHealthCheck = true;
+                }
+                if (performHealthCheck) {
+                    model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+                }
+                statusBar.update(vscode.window.activeTextEditor?.document);
+            }
+        });
+        if (event.contentChanges.length > 0) {
+            model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
+        }
+        model.lineInputModel.flushChanges()
 
-    // we must clear out the repaint cache data, since we don't use it. 
-    model.lineInputModel.dirtyLines = []
-    model.lineInputModel.insertedLines.clear()
-    model.lineInputModel.deletedLines.clear();
+        // we must clear out the repaint cache data, since we don't use it. 
+        model.lineInputModel.dirtyLines = []
+        model.lineInputModel.insertedLines.clear()
+        model.lineInputModel.deletedLines.clear();
+    } 
+    //else {
+    //    model.performInferParens = !vscode.TextDocumentChangeReason.Undo;
+    //}
 }
 
 export function getDocument(doc: vscode.TextDocument) {
