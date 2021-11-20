@@ -1,10 +1,5 @@
 import * as vscode from 'vscode';
 import * as formatter from '../format';
-import * as config from '../../../config';
-import * as formatterConfig from '../config';
-import * as docMirror from '../../../doc-mirror/index';
-import { EditableDocument } from '../../../cursor-doc/model';
-import * as paredit from '../../../cursor-doc/paredit';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
     async provideOnTypeFormattingEdits(document: vscode.TextDocument, p: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
