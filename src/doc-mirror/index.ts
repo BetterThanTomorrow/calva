@@ -30,7 +30,6 @@ export class DocumentModel implements EditableModel {
     }
 
     performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
-    performFormatForward = formatConfig.getConfig()["format-as-you-type"];
 
     isWritable = false;
 
@@ -180,7 +179,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
     const formatForwardOn = formatConfig.getConfig()["format-as-you-type"];
     const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
-    const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performFormatForward;
+    const performFormatForward = formatForwardOn && event.reason != vscode.TextDocumentChangeReason.Undo;
     let holdOffHealthCheck = performFormatForward;
     const edits: ModelEdit[] = event.contentChanges.map(change => {
         // vscode may have a \r\n marker, so it's line offsets are all wrong.
@@ -208,8 +207,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         }
     });
     if (event.contentChanges.length > 0) {
-        model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];;
-        model.performFormatForward = formatConfig.getConfig()["format-as-you-type"];;
+        model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
     }
     model.lineInputModel.flushChanges()
 
