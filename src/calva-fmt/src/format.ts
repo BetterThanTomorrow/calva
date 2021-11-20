@@ -112,8 +112,15 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
     return formatRangInfoEditableDoc(document, formatRange, onType, extraConfig);
 }
 
+//export function formatRangeEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
+//}
+
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
     const formattedInfo = formatPositionInfoEditableDoc(document, onType, extraConfig);
+    return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
+}
+
+function performFormatEditableDoc(document: docModel.EditableDocument, formattedInfo, onType: boolean, extraConfig = {}): Thenable<boolean> {
     const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
     if (formattedInfo) {
         const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
