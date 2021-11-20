@@ -69,19 +69,11 @@ export function formatRange(document: vscode.TextDocument, range: vscode.Range) 
     return vscode.workspace.applyEdit(wsEdit);
 }
 
-export function formatPositionInfoEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}) {
+export function formatRangInfoEditableDoc(document: docModel.EditableDocument, formatRange: [number, number], onType: boolean = false, extraConfig = {}) {
     const index = extraConfig['index'] || document.selection.active;
     const cursor = document.getTokenCursor(index);
-    const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
     const isComment = cursor.getFunctionName() === 'comment';
     const config = {...extraConfig, "comment-form?": isComment};
-    let formatRange = cursor.rangeForList(formatDepth);
-    if (!formatRange) {
-        formatRange = cursor.rangeForCurrentForm(index);
-        if (!formatRange || !formatRange.includes(index)) {
-            return;
-        }
-    }
     let text = document.model.getText(0, Infinity);
     // TODO: Find a more efficient way to do this
     if (document.model.lineEndingLength === 2) {
@@ -104,6 +96,20 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
         previousIndex: index,
         newIndex: newIndex
     }
+}
+
+export function formatPositionInfoEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}) {
+    const index = extraConfig['index'] || document.selection.active;
+    const cursor = document.getTokenCursor(index);
+    const formatDepth = extraConfig["format-depth"] ? extraConfig["format-depth"] : 1;
+    let formatRange = cursor.rangeForList(formatDepth);
+    if (!formatRange) {
+        formatRange = cursor.rangeForCurrentForm(index);
+        if (!formatRange || !formatRange.includes(index)) {
+            return;
+        }
+    }
+    return formatRangInfoEditableDoc(document, formatRange, onType, extraConfig);
 }
 
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
