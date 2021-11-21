@@ -39,6 +39,9 @@ export class DocumentModel implements EditableModel {
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor;
         const undoStopBefore = !!options.undoStopBefore;
+        if (!options.performInferParens) {
+            this.document.parensInferred = true;
+        }
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
                 switch (modelEdit.editFn) {
