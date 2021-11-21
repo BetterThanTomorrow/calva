@@ -3,7 +3,7 @@ import * as vscode from "vscode"
 import * as utilities from '../utilities';
 import * as formatter from '../calva-fmt/src/format';
 import { LispTokenCursor } from "../cursor-doc/token-cursor";
-import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection } from "../cursor-doc/model";
+import { ModelEdit, EditableDocument, EditableModel, ModelEditOptions, LineInputModel, ModelEditSelection, StringDocument } from "../cursor-doc/model";
 import * as parinfer from "../calva-fmt/src/infer";
 import * as formatConfig from '../calva-fmt/src/config';
 import statusbar from '../statusbar';
@@ -29,8 +29,6 @@ export class DocumentModel implements EditableModel {
         this._parinferReadiness = readiness;
     }
 
-    performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
-
     isWritable = false;
 
     constructor(private document: MirroredDocument) {
@@ -43,9 +41,6 @@ export class DocumentModel implements EditableModel {
         const undoStopBefore = !!options.undoStopBefore;
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
-                if (!options.performInferParens) {
-                    this.document.model.performInferParens = false;
-                }
                 switch (modelEdit.editFn) {
                     case 'insertString':
                         this.insertEdit.apply(this, [builder, ...modelEdit.args]);
@@ -116,6 +111,9 @@ export class DocumentModel implements EditableModel {
 export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
+    parensInferred = false;
+    rangeFormatted = false;
+
     get selectionLeft(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.anchor);
     }
@@ -180,7 +178,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
         const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && model.performInferParens;
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
         let performHealthCheck = !performFormatAsYouType;
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
@@ -192,13 +190,19 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             performInferParens: !vscode.TextDocumentChangeReason.Undo
         }).then(async _v => {
             if (event.document === vscode.window.activeTextEditor?.document) {
-                if (performFormatAsYouType) {
+                if (performFormatAsYouType && !mirroredDoc.rangeFormatted) {
                     if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/)) {
                         const change = event.contentChanges[0];
                         const start = event.document.offsetAt(change.range.start);
                         const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
                         const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
-                        await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
+                        const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
+                        if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
+                            await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
+                        } else {
+                            await formatter.formatForward(mirroredDoc);
+                        }
+                        mirroredDoc.rangeFormatted = true;
                     } else {
                         await formatter.formatForward(mirroredDoc);
                     }
@@ -206,6 +210,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                 }
                 if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
                     await parinfer.inferParens(mirroredDoc);
+                    mirroredDoc.parensInferred = true;
                 }
                 if (!performFormatAsYouType) {
                     performHealthCheck = true;
@@ -216,9 +221,8 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                 statusBar.update(vscode.window.activeTextEditor?.document);
             }
         });
-        if (event.contentChanges.length > 0) {
-            model.performInferParens = formatConfig.getConfig()["infer-parens-as-you-type"];
-        }
+        mirroredDoc.parensInferred = false;
+        mirroredDoc.rangeFormatted = false;
         model.lineInputModel.flushChanges()
 
         // we must clear out the repaint cache data, since we don't use it. 

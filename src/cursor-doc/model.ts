@@ -99,7 +99,6 @@ export interface EditableModel {
      */
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
     parinferReadiness: parinfer.ParinferReadiness,
-    performInferParens: boolean;
     isWritable: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getLineText: (line: number) => string;
