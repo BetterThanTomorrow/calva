@@ -356,71 +356,59 @@ function alertParinferProblem(doc: MirroredDocument, vsCodeDoc: vscode.TextDocum
 }
 
 export class StatusBar {
-    private _visible: Boolean;
-    private _toggleBarItem: vscode.StatusBarItem;
+    private _parinferInfoItem: vscode.StatusBarItem;
+    private _toggleParinferItem: vscode.StatusBarItem;
 
     constructor() {
-        this._toggleBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-        this._toggleBarItem.text = "()";
-        this._toggleBarItem.tooltip = "";
-        this._toggleBarItem.command = undefined;
-        this._toggleBarItem.color = statusbar.color.inactive;
-        this._visible = true;
-        this._toggleBarItem.show()
+        this._toggleParinferItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        this._toggleParinferItem.text = "()";
+        this._toggleParinferItem.show()
+        this._parinferInfoItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        this._parinferInfoItem.text = "()";
+        this._parinferInfoItem.show()
     }
 
     update(vsCodeDoc: vscode.TextDocument) {
-        this.visible = true;
         const doc: MirroredDocument = getDocument(vsCodeDoc);
 
         const model = doc?.model;
+        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
+        this._toggleParinferItem.text = parinferOn ? '$(circle-filled) ()' : '$(circle-outline) ()';
+        this._toggleParinferItem.command = parinferOn ? 'calva-fmt.disableParinfer' : 'calva-fmt.enableParinfer';
+        this._toggleParinferItem.tooltip = parinferOn ? 'Disable Parinfer' : 'Enable Parinfer';
         if (model) {
-            const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
             const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-parinfer-problems"];
-            if (!model.parinferReadiness.isStructureHealthy) {
-                this._toggleBarItem.text = "() $(error)";
-                this._toggleBarItem.tooltip = `Parinfer disabled, structure broken. Please fix!${parinferOn ? ' (Parinfer disabled while structure is broken)' : ''}`;
-                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
-                if (alertOnProblems) {
-                    alertParinferProblem(doc, vsCodeDoc);
-                }
-            } else if (!model.parinferReadiness.isIndentationHealthy) {
-                vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', false);
-                this._toggleBarItem.text = "() $(warning)";
-                this._toggleBarItem.tooltip = `Indentation broken${model.isWritable ? ', click to fix it.' : ''}${parinferOn && model.isWritable ? ' (Parinfer disabled while indentation is broken)' : ''}`;
-                this._toggleBarItem.command = model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
-                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
-                if (alertOnProblems) {
-                    alertParinferProblem(doc, vsCodeDoc);
+            this._toggleParinferItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
+            if (model.parinferReadiness.isStructureHealthy) {
+                if (model.parinferReadiness.isIndentationHealthy || !parinferOn) {
+                    this._parinferInfoItem.text = "$(check)";
+                    this._parinferInfoItem.tooltip = `Structure OK.${parinferOn ? ' Parinfer indents OK.': ''}`;
+                    this._parinferInfoItem.command = undefined;
+                } else {
+                    this._parinferInfoItem.text = "$(warning)";
+                    this._parinferInfoItem.tooltip = `Parinfer indents not OK${model.isWritable ? ', Click to fix.' : ''}`;
+                    this._parinferInfoItem.command = model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
+                    this._toggleParinferItem.color = statusbar.color.inactive;
+                    if (alertOnProblems) {
+                        alertParinferProblem(doc, vsCodeDoc);
+                    }
                 }
             } else {
-                vscode.commands.executeCommand('setContext', 'parinfer:isIndentationHealthy', true);
-                this._toggleBarItem.text = "() $(check)";
-                this._toggleBarItem.tooltip = `Parinfer ${parinferOn && model.isWritable ? 'enabled' : 'disabled'}. ${model.isWritable ? 'Click to toggle.' : 'Document is read-only'}`;
-                this._toggleBarItem.command = parinferOn ? 'calva-fmt.disableParinfer' : 'calva-fmt.enableParinfer';
-                this._toggleBarItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
+                this._parinferInfoItem.command = undefined;
+                this._parinferInfoItem.text = "$(error)";
+                this._toggleParinferItem.color = statusbar.color.inactive;
+                if (alertOnProblems) {
+                    alertParinferProblem(doc, vsCodeDoc);
+                }
             }
         } else {
-            this._toggleBarItem.text = "()";
-            this._toggleBarItem.tooltip = "No structure check performed when in non-Clojure documents";
-            this._toggleBarItem.command = undefined;
-            this._toggleBarItem.color = statusbar.color.inactive;
-        }
-    }
-
-    get visible(): Boolean {
-        return this._visible;
-    }
-
-    set visible(value: Boolean) {
-        if (value) {
-            this._toggleBarItem.show();
-        } else {
-            this._toggleBarItem.hide();
+            this._parinferInfoItem.text = "$(check)";
+            this._parinferInfoItem.tooltip = "No structure check performed when in non-Clojure documents";
+            this._toggleParinferItem.color = statusbar.color.inactive;
         }
     }
 
     dispose() {
-        this._toggleBarItem.dispose();
+        this._parinferInfoItem.dispose();
     }
 }
