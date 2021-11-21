@@ -21,6 +21,10 @@
     {:pirate-char pirate-char
      :pirates pirates}))
 
+(map (fn [line]
+       (if (re-matches #"^ *$" line))
+       (str indent-before line)))
+
 (reg-event-fx
  ::foo
  (fn []

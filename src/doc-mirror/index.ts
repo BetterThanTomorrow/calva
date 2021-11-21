@@ -193,7 +193,15 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         }).then(async _v => {
             if (event.document === vscode.window.activeTextEditor?.document) {
                 if (performFormatAsYouType) {
-                    await formatter.formatForward(mirroredDoc);
+                    if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/)) {
+                        const change = event.contentChanges[0];
+                        const start = event.document.offsetAt(change.range.start);
+                        const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
+                        const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
+                        await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
+                    } else {
+                        await formatter.formatForward(mirroredDoc);
+                    }
                     performHealthCheck = true;
                 }
                 if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
@@ -217,7 +225,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         model.lineInputModel.dirtyLines = []
         model.lineInputModel.insertedLines.clear()
         model.lineInputModel.deletedLines.clear();
-    } 
+    }
     //else {
     //    model.performInferParens = !vscode.TextDocumentChangeReason.Undo;
     //}
