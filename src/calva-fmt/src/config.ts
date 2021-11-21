@@ -90,11 +90,5 @@ function _updateConfig(): FormatConfig {
 export function onConfigurationChanged(e: vscode.ConfigurationChangeEvent) {
     if (e.affectsConfiguration("calva.fmt")) {
         updateConfig();
-        if (e.affectsConfiguration("calva.fmt.experimental.inferParensAsYouType")) {
-            const parinferOn = getConfig()['infer-parens-as-you-type'];
-            docMirror.getDocuments().forEach((doc: docMirror.MirroredDocument, _key: any) => {
-                doc.model.performInferParens = parinferOn;
-            });
-        }
     }
 }

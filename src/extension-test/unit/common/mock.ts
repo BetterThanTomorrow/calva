@@ -4,8 +4,6 @@ import { LispTokenCursor } from '../../../cursor-doc/token-cursor'
 model.initScanner(20000);
 
 export class MockDocument implements model.EditableDocument {
-    isIndentationHealthy = true;
-    isStructureHealthy = true;
     selectionLeft: number;
     selectionRight: number;
 

@@ -99,7 +99,6 @@ export interface EditableModel {
      */
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
     parinferReadiness: parinfer.ParinferReadiness,
-    performInferParens: boolean;
     isWritable: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getLineText: (line: number) => string;
@@ -487,3 +486,48 @@ export class LineInputModel implements EditableModel {
 }
 
 
+export class StringDocument implements EditableDocument {
+    constructor(contents: string) {
+        this.insertString(contents);
+    }
+
+    selectionLeft: number;
+    selectionRight: number;
+
+    get selection() {
+        return new ModelEditSelection(this.selectionLeft, this.selectionRight);
+    }
+
+    set selection(sel: ModelEditSelection) {
+        this.selectionLeft = sel.anchor;
+        this.selectionRight = sel.active;
+    }
+
+    model: LineInputModel = new LineInputModel(1, this);
+
+    selectionStack: ModelEditSelection[] = [];
+
+    getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
+        return this.model.getTokenCursor(offset);
+    };
+
+    insertString(text: string) {
+        this.model.insertString(0, text);
+    };
+
+    getSelectionText: () => string;
+
+    delete() {
+        const p = this.selectionLeft;
+        return this.model.edit([
+            new ModelEdit('deleteRange', [p, 1])
+        ], { selection: new ModelEditSelection(p) });
+    };
+
+    backspace() {
+        const p = this.selectionLeft;
+        return this.model.edit([
+            new ModelEdit('deleteRange', [p - 1, 1])
+        ], { selection: new ModelEditSelection(p - 1) });
+    };
+}
