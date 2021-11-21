@@ -65,7 +65,7 @@ export function formatRangeEdits(document: vscode.TextDocument, range: vscode.Ra
     const cursor = mirroredDoc.getTokenCursor(startIndex);
     if (!cursor.withinString()) {
         const rangeTuple: number[] = [startIndex, endIndex];
-        const newText: string = _formatRange(text, document.getText(), rangeTuple, document.eol == 2 ? "\r\n" : "\n");
+        const newText: string = _formatRange(text, document.getText(), rangeTuple, document.eol == 2 ? "\r\n" : "\n")['range-text'];
         if (newText) {
             return [vscode.TextEdit.replace(range, newText)];
         }
@@ -122,17 +122,18 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
 }
 
 export function formatRangeEditableDoc(document: docModel.EditableDocument, range: [number, number], onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    const formattedInfo = formatRangeInfoEditableDoc(document, range, onType, extraConfig);
+    const formattedInfo = formatRangeInfoEditableDoc(document, range, onType, { performFormatAsYouType: false, ...extraConfig });
     return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
 }
 
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    const formattedInfo = formatPositionInfoEditableDoc(document, onType, extraConfig);
+    const formattedInfo = formatPositionInfoEditableDoc(document, onType, { performFormatAsYouType: true, ...extraConfig });
     return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
 }
 
 function performFormatEditableDoc(document: docModel.EditableDocument, formattedInfo, onType: boolean, extraConfig = {}): Thenable<boolean> {
     const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
+    const performFormatAsYouType = extraConfig['performFormatAsYouType'] === undefined || extraConfig['performFormatAsYouType'];
     if (formattedInfo) {
         const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
         if (formattedInfo.previousText != formattedInfo.formattedText) {
@@ -210,7 +211,7 @@ function _formatIndex(allText: string, range: [number, number], index: number, e
 }
 
 
-function _formatRange(rangeText: string, allText: string, range: number[], eol: string): string {
+function _formatRange(rangeText: string, allText: string, range: number[], eol: string): { "range-text": string, "range": [number, number], "new-index": number } {
     const d = {
         "range-text": rangeText,
         "all-text": allText,
@@ -221,6 +222,6 @@ function _formatRange(rangeText: string, allText: string, range: number[], eol: 
     const cljData = cljify(d);
     const result = jsify(formatTextAtRange(cljData));
     if (!result["error"]) {
-        return result["range-text"];
+        return result;
     }
 }
