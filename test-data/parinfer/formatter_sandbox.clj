@@ -10,6 +10,12 @@
              :rex 5.0
              :lun 4.0}})
 
+(defn hello
+  ([world]
+   world)
+  ([dog]
+   dog))
+
 (defn- configure
   [{:keys [alphabet vowels pirate-char]}]
   (let [alphabet   (set (seq (string/upper-case alphabet)))
