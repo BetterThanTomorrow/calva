@@ -4,7 +4,7 @@
             [calva.fmt.formatter :as sut]))
 
 (deftest format-text-at-range
-  (is (= "(foo)\n(defn bar\n  [x]\n  baz)"
+  (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
          (:range-text (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}))))
   (is (not (contains? (sut/format-text-at-range {:eol "\n" :all-text "  (foo)\n(defn bar\n[x]\nbaz)" :range [2 26]}) :new-index))))
 
@@ -115,6 +115,7 @@ bar))")
   (is (= "(foo)\n  (defn bar\n    [x]\n    baz)"
          (:range-text (sut/normalize-indents {:eol "\n"
                                               :all-text "  (foo)\n(defn bar\n[x]\nbaz)"
+                                              :indent "  "
                                               :range [2 26]
                                               :range-text "(foo)\n(defn bar\n  [x]\n  baz)"})))))
 
@@ -140,8 +141,10 @@ bar))")
 (deftest format-text-at-idx-on-type
   (is (= "(bar \n\n )"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idx 7}))))
-  (is (= "(bar \n \n )"
+  (is (= "(bar \n\n )"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :range [0 9] :idx 8}))))
+  (is (= "(bar \n \n )"
+         (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n \n)" :range [0 9] :idx 6}))))
   (is (= "(bar \n \n )"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "(bar \n\n)" :range [0 8] :idx 6}))))
   (is (= "\"bar \n \n \""
