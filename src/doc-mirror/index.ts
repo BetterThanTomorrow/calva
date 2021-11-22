@@ -175,6 +175,7 @@ export class MirroredDocument implements EditableDocument {
 let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
+    console.count(`processChanges: ${event.contentChanges.length}`);
     if (event.contentChanges.length > 0) {
         const mirroredDoc = documents.get(event.document);
         const model = mirroredDoc.model;
@@ -186,6 +187,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         let performHealthCheck = !performFormatAsYouType;
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
+            console.count(`processChanges building edits: ${change.range}`);
             const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
             const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
             return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
@@ -193,8 +195,10 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         model.lineInputModel.edit(edits, {
             performInferParens: !vscode.TextDocumentChangeReason.Undo
         }).then(async _v => {
+            console.count(`processChanges edits applied .then: ${_v}`);
             if (event.document === vscode.window.activeTextEditor?.document) {
                 if (performFormatAsYouType && !mirroredDoc.rangeFormatted) {
+                    console.count(`processChanges edits applied .then performFormatAsYouType: ${event.contentChanges[0].text}`)
                     if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
                         const change = event.contentChanges[0];
                         const start = event.document.offsetAt(change.range.start);
@@ -224,15 +228,16 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                 }
                 statusBar.update(vscode.window.activeTextEditor?.document);
             }
+            console.count(`processChanges edits applied last in .then`);
+            mirroredDoc.parensInferred = false;
+            mirroredDoc.rangeFormatted = false;
+            model.lineInputModel.flushChanges()
+    
+            // we must clear out the repaint cache data, since we don't use it. 
+            model.lineInputModel.dirtyLines = []
+            model.lineInputModel.insertedLines.clear()
+            model.lineInputModel.deletedLines.clear();
         });
-        mirroredDoc.parensInferred = false;
-        mirroredDoc.rangeFormatted = false;
-        model.lineInputModel.flushChanges()
-
-        // we must clear out the repaint cache data, since we don't use it. 
-        model.lineInputModel.dirtyLines = []
-        model.lineInputModel.insertedLines.clear()
-        model.lineInputModel.deletedLines.clear();
     }
 }
 
