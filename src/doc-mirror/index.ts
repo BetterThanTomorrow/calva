@@ -282,7 +282,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva-fmt.enableParinfer', () => {
         vscode.workspace.getConfiguration("calva.fmt").update("experimental.inferParensAsYouType", true, true).then(() => {
             const mirroredDoc = getDocument(currentDoc);
-            if (mirroredDoc) {
+            if (mirroredDoc?.model) {
                 mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
             }
             statusBar.update(vscode.window.activeTextEditor?.document);
@@ -313,7 +313,9 @@ export function activate(context: vscode.ExtensionContext) {
         if (e && e.document && e.document.languageId == "clojure") {
             addDocument(e.document);
             const mirroredDoc = getDocument(e.document);
-            mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            if (mirroredDoc?.model) {
+                mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            }
         }
         if (e) {
             statusBar.update(e.document);
@@ -323,7 +325,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidOpenTextDocument(doc => {
         addDocument(doc);
         const mirroredDoc = getDocument(doc);
-        mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+        if (mirroredDoc?.model) {
+            mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+        }
         statusBar.update(doc);
     });
 
