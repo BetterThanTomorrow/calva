@@ -375,10 +375,10 @@ export class StatusBar {
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         this._toggleParinferItem.text = parinferOn ? '$(circle-filled) ()' : '$(circle-outline) ()';
         this._toggleParinferItem.command = parinferOn ? 'calva-fmt.disableParinfer' : 'calva-fmt.enableParinfer';
-        this._toggleParinferItem.tooltip = parinferOn ? 'Disable Parinfer' : 'Enable Parinfer';
+        this._toggleParinferItem.tooltip = `Toggle Parinfer ${parinferOn ? 'OFF' : 'ON'}`;
         if (model) {
             const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-parinfer-problems"];
-            this._toggleParinferItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
+            this._toggleParinferItem.color = this._parinferInfoItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
             if (model.parinferReadiness.isStructureHealthy) {
                 if (model.parinferReadiness.isIndentationHealthy || !parinferOn) {
                     this._parinferInfoItem.text = "$(check)";
@@ -388,15 +388,16 @@ export class StatusBar {
                     this._parinferInfoItem.text = "$(warning)";
                     this._parinferInfoItem.tooltip = `Parinfer indents not OK${model.isWritable ? ', Click to fix.' : ''}`;
                     this._parinferInfoItem.command = model.isWritable ? 'calva-fmt.fixDocumentIndentation' : undefined;
-                    this._toggleParinferItem.color = statusbar.color.inactive;
+                    this._toggleParinferItem.color = this._parinferInfoItem.color = statusbar.color.inactive;
                     if (alertOnProblems) {
                         alertParinferProblem(doc, vsCodeDoc);
                     }
                 }
             } else {
+                this._parinferInfoItem.tooltip = 'Clojure document Structure broken.'
                 this._parinferInfoItem.command = undefined;
                 this._parinferInfoItem.text = "$(error)";
-                this._toggleParinferItem.color = statusbar.color.inactive;
+                this._toggleParinferItem.color = this._parinferInfoItem.color = statusbar.color.inactive;
                 if (alertOnProblems) {
                     alertParinferProblem(doc, vsCodeDoc);
                 }
@@ -404,7 +405,7 @@ export class StatusBar {
         } else {
             this._parinferInfoItem.text = "$(check)";
             this._parinferInfoItem.tooltip = "No structure check performed when in non-Clojure documents";
-            this._toggleParinferItem.color = statusbar.color.inactive;
+            this._toggleParinferItem.color = this._parinferInfoItem.color = statusbar.color.inactive;
         }
     }
 
