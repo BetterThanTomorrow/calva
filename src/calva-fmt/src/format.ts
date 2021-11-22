@@ -122,8 +122,12 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
 }
 
 export function formatRangeEditableDoc(document: docModel.EditableDocument, range: [number, number], onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    const formattedInfo = formatRangeInfoEditableDoc(document, range, onType, { performFormatAsYouType: false, ...extraConfig });
-    return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
+    const config = {
+        ...extraConfig,
+        performFormatAsYouType: false
+    }
+    const formattedInfo = formatRangeInfoEditableDoc(document, range, onType, config);
+    return performFormatEditableDoc(document, formattedInfo, onType, config);
 }
 
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
