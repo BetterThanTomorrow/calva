@@ -137,7 +137,6 @@ export function formatPositionEditableDoc(document: docModel.EditableDocument, o
 
 function performFormatEditableDoc(document: docModel.EditableDocument, formattedInfo, onType: boolean, extraConfig = {}): Thenable<boolean> {
     const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
-    const performFormatAsYouType = extraConfig['performFormatAsYouType'] === undefined || extraConfig['performFormatAsYouType'];
     if (formattedInfo) {
         const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
         if (formattedInfo.previousText != formattedInfo.formattedText) {
