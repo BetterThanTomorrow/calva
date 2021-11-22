@@ -9,6 +9,9 @@
              :vig 3.0
              :rex 5.0
              :lun 4.0}})
+"foo
+
+bar"
 
 (defn hello
   ([world]

@@ -178,6 +178,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
     if (event.contentChanges.length > 0) {
         const mirroredDoc = documents.get(event.document);
         const model = mirroredDoc.model;
+        const cursor = mirroredDoc.getTokenCursor();
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
         const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
@@ -194,7 +195,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         }).then(async _v => {
             if (event.document === vscode.window.activeTextEditor?.document) {
                 if (performFormatAsYouType && !mirroredDoc.rangeFormatted) {
-                    if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/)) {
+                    if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
                         const change = event.contentChanges[0];
                         const start = event.document.offsetAt(change.range.start);
                         const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
