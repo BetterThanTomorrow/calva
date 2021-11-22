@@ -175,9 +175,9 @@ export class MirroredDocument implements EditableDocument {
 let registered = false;
 
 function processChanges(event: vscode.TextDocumentChangeEvent) {
-    const mirroredDoc = documents.get(event.document);
-    const model = mirroredDoc.model;
     if (event.contentChanges.length > 0) {
+        const mirroredDoc = documents.get(event.document);
+        const model = mirroredDoc.model;
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
         const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
@@ -233,9 +233,6 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         model.lineInputModel.insertedLines.clear()
         model.lineInputModel.deletedLines.clear();
     }
-    //else {
-    //    model.performInferParens = !vscode.TextDocumentChangeReason.Undo;
-    //}
 }
 
 export function getDocument(doc: vscode.TextDocument) {
