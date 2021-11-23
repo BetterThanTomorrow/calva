@@ -39,8 +39,11 @@ export class DocumentModel implements EditableModel {
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor;
         const undoStopBefore = !!options.undoStopBefore;
-        if (!options.performInferParens) {
+        if (options.parensInferred) {
             this.document.parensInferred = true;
+        }
+        if (options.rangeFormatted) {
+            this.document.rangeFormatted = true;
         }
         return editor.edit(builder => {
             for (const modelEdit of modelEdits) {
@@ -182,11 +185,6 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const cursor = mirroredDoc.getTokenCursor();
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
-        const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.rangeFormatted;
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
-        mirroredDoc.rangeFormatted = true;
-        mirroredDoc.parensInferred = true;
-        let performHealthCheck = !performFormatAsYouType;
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
             console.count(`processChanges building edits: ${change.range}`);
@@ -195,50 +193,56 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
         });
         model.lineInputModel.edit(edits, {
-            performInferParens: !vscode.TextDocumentChangeReason.Undo
-        }).then(async _v => {
-            console.count(`processChanges edits applied .then: ${_v}`);
-            if (event.document === vscode.window.activeTextEditor?.document) {
-                if (performFormatAsYouType) {
-                    console.count(`processChanges edits applied .then performFormatAsYouType: ${event.contentChanges[0].text}`)
-                    if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
-                        const change = event.contentChanges[0];
-                        const start = event.document.offsetAt(change.range.start);
-                        const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
-                        const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
-                        const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
-                        if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
-                            await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
+            parensInferred: event.reason === vscode.TextDocumentChangeReason.Undo
+        }).then(async fulfilled => {
+            if (fulfilled) {
+                console.count(`processChanges edits applied .then: ${fulfilled}`);
+                const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.rangeFormatted;
+                const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
+                let performHealthCheck = !performFormatAsYouType;
+                        if (event.document === vscode.window.activeTextEditor?.document) {
+                    if (performFormatAsYouType) {
+                        console.count(`processChanges edits applied .then performFormatAsYouType: ${event.contentChanges[0].text}`)
+                        if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
+                            const change = event.contentChanges[0];
+                            const start = event.document.offsetAt(change.range.start);
+                            console.count(`changeRange: ${[start, event.document.offsetAt(change.range.end)]}`)
+                            const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
+                            const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
+                            const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
+                            if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
+                                await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
+                            } else {
+                                await formatter.formatForward(mirroredDoc);
+                            }
                         } else {
                             await formatter.formatForward(mirroredDoc);
                         }
-                    } else {
-                        await formatter.formatForward(mirroredDoc);
+                        performHealthCheck = true;
                     }
-                    performHealthCheck = true;
+                    if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
+                        await parinfer.inferParens(mirroredDoc);
+                    }
+                    if (!performFormatAsYouType) {
+                        performHealthCheck = true;
+                    }
+                    if (performHealthCheck) {
+                        model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+                    }
+                    statusBar.update(vscode.window.activeTextEditor?.document);
+                    console.count(`processChanges edits applied last in .then`);
                 }
-                if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
-                    await parinfer.inferParens(mirroredDoc);
-                }
-                if (!performFormatAsYouType) {
-                    performHealthCheck = true;
-                }
-                if (performHealthCheck) {
-                    model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                }
-                statusBar.update(vscode.window.activeTextEditor?.document);
-                console.count(`processChanges edits applied last in .then`);
-                if (mirroredDoc.rangeFormatted && mirroredDoc.parensInferred) {
-                    mirroredDoc.rangeFormatted = false;
-                    mirroredDoc.parensInferred = false;
-                }
-
-                model.lineInputModel.flushChanges();
-                // we must clear out the repaint cache data, since we don't use it. 
-                model.lineInputModel.dirtyLines = [];
-                model.lineInputModel.insertedLines.clear();
-                model.lineInputModel.deletedLines.clear();
             }
+            if (mirroredDoc.rangeFormatted && mirroredDoc.parensInferred) {
+                mirroredDoc.rangeFormatted = false;
+                mirroredDoc.parensInferred = false;
+            }
+
+            model.lineInputModel.flushChanges();
+            // we must clear out the repaint cache data, since we don't use it. 
+            model.lineInputModel.dirtyLines = [];
+            model.lineInputModel.insertedLines.clear();
+            model.lineInputModel.deletedLines.clear();
         });
     }
 }
@@ -348,19 +352,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 function alertParinferProblem(doc: MirroredDocument, vsCodeDoc: vscode.TextDocument) {
     if (vsCodeDoc?.fileName && vsCodeDoc?.languageId === 'clojure' && utilities.isDocumentWritable(vsCodeDoc)) {
-        const DONT_ALERT_BUTTON = "Roger. Don't show again";
-        const r = parinfer.inferIndentsResults(doc);
-        let message: string = "";
-        if (!r.success) {
-            message = `The code structure is broken. Can't infer parens on this document: ${r["error-msg"]}, line: ${r.line + 1}, col: ${r.character + 1}. (Note: The structure status is indicated in the status bar as '() <status>'.)`;
-        } else if (r.edits && r.edits.length > 0) {
-            message = `Paren inference is disabled because the document indentation needs to be fixed first. Issue the command ”Parinfer: Fix Document Indentation”, from the command palette or click the Parinfer status bar button.`
-        }
-        vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK").then(button => {
-            if (button === DONT_ALERT_BUTTON) {
-                vscode.workspace.getConfiguration("calva.fmt").update("experimental.alertOnParinferProblems", false, true);
+        if (!outputWindow.isResultsDoc(vsCodeDoc)) {
+            const DONT_ALERT_BUTTON = "Roger. Don't show again";
+            const r = parinfer.inferIndentsResults(doc);
+            let message: string = "";
+            if (!r.success) {
+                message = `The code structure is broken. Can't infer parens on this document: ${r["error-msg"]}, line: ${r.line + 1}, col: ${r.character + 1}. (Note: The structure status is indicated in the status bar as '() <status>'.)`;
+            } else if (r.edits && r.edits.length > 0) {
+                message = `Paren inference is disabled because the document indentation needs to be fixed first. Issue the command ”Parinfer: Fix Document Indentation”, from the command palette or click the Parinfer status bar button.`
             }
-        });
+            vscode.window.showErrorMessage(message, DONT_ALERT_BUTTON, "OK").then(button => {
+                if (button === DONT_ALERT_BUTTON) {
+                    vscode.workspace.getConfiguration("calva.fmt").update("experimental.alertOnParinferProblems", false, true);
+                }
+            });
+        }
     }
 }
 
@@ -391,7 +397,7 @@ export class StatusBar {
             if (model.parinferReadiness.isStructureHealthy) {
                 if (model.parinferReadiness.isIndentationHealthy || !parinferOn) {
                     this._parinferInfoItem.text = "$(check)";
-                    this._parinferInfoItem.tooltip = `Structure OK.${parinferOn ? ' Parinfer indents OK.': ''}`;
+                    this._parinferInfoItem.tooltip = `Structure OK.${parinferOn ? ' Parinfer indents OK.' : ''}`;
                     this._parinferInfoItem.command = undefined;
                 } else {
                     this._parinferInfoItem.text = "$(warning)";

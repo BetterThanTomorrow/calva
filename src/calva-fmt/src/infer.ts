@@ -1,5 +1,6 @@
 import * as docModel from '../../cursor-doc/model';
 import * as calvaLib from '../../../out/cljs-lib/cljs-lib';
+import { MirroredDocument } from '../../doc-mirror';
 
 export interface Edit {
     edit: string,
@@ -49,11 +50,13 @@ export async function inferParens(document: docModel.EditableDocument): Promise<
             selection: new docModel.ModelEditSelection(newP),
             skipFormat: true,
             undoStopBefore: false,
-            performInferParens: false
+            parensInferred: true
         });
         return {
             success: true
         }
+    } else {
+        (document as MirroredDocument).parensInferred = true;
     }
     return {
         success: r.success,
@@ -76,7 +79,7 @@ export async function inferIndents(document: docModel.EditableDocument): Promise
             selection: new docModel.ModelEditSelection(rP),
             skipFormat: true,
             undoStopBefore: true,
-            performInferParens: false
+            parensInferred: true
         });
         return {
             success: true

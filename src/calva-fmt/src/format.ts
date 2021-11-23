@@ -121,6 +121,7 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
 }
 
 export function formatRangeEditableDoc(document: docModel.EditableDocument, range: [number, number], onType: boolean = false, extraConfig = {}): Thenable<boolean> {
+    console.count(`formatRangeEditableDoc: ${range}`);
     const config = {
         ...extraConfig,
         performFormatAsYouType: false
@@ -148,7 +149,7 @@ function performFormatEditableDoc(document: docModel.EditableDocument, formatted
             ], {
                 undoStopBefore: !onType,
                 skipFormat: true,
-                performInferParens: false,
+                rangeFormatted: true,
                 ...extraConfig,
                 ...newSelectionConfig
             });
