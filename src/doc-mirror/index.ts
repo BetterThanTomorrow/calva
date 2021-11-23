@@ -185,6 +185,9 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const cursor = mirroredDoc.getTokenCursor();
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
+        const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.rangeFormatted;
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
+        let performHealthCheck = !performFormatAsYouType;
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
             console.count(`processChanges building edits: ${change.range}`);
@@ -197,10 +200,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         }).then(async fulfilled => {
             if (fulfilled) {
                 console.count(`processChanges edits applied .then: ${fulfilled}`);
-                const performFormatAsYouType = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.rangeFormatted;
-                const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
-                let performHealthCheck = !performFormatAsYouType;
-                        if (event.document === vscode.window.activeTextEditor?.document) {
+                if (event.document === vscode.window.activeTextEditor?.document) {
                     if (performFormatAsYouType) {
                         console.count(`processChanges edits applied .then performFormatAsYouType: ${event.contentChanges[0].text}`)
                         if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
@@ -220,23 +220,23 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                         }
                         performHealthCheck = true;
                     }
-                    if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
-                        await parinfer.inferParens(mirroredDoc);
-                    }
-                    if (!performFormatAsYouType) {
-                        performHealthCheck = true;
-                    }
-                    if (performHealthCheck) {
-                        model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                    }
-                    statusBar.update(vscode.window.activeTextEditor?.document);
-                    console.count(`processChanges edits applied last in .then`);
                 }
             }
-            if (mirroredDoc.rangeFormatted && mirroredDoc.parensInferred) {
-                mirroredDoc.rangeFormatted = false;
-                mirroredDoc.parensInferred = false;
+        }).then(async fulfilled => {
+            mirroredDoc.rangeFormatted = false;
+            if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
+                await parinfer.inferParens(mirroredDoc);
             }
+            if (!performFormatAsYouType) {
+                performHealthCheck = true;
+            }
+            if (performHealthCheck) {
+                model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+            }
+            statusBar.update(vscode.window.activeTextEditor?.document);
+            console.count(`processChanges edits applied last in .then`);
+        }).then(fulfilled => {
+            mirroredDoc.parensInferred = false;
 
             model.lineInputModel.flushChanges();
             // we must clear out the repaint cache data, since we don't use it. 
