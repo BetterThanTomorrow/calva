@@ -223,10 +223,12 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                 }
             }
         }).then(async fulfilled => {
-            mirroredDoc.rangeFormatted = false;
             if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
                 await parinfer.inferParens(mirroredDoc);
             }
+        }).then(fulfilled => {
+            mirroredDoc.rangeFormatted = false;
+            mirroredDoc.parensInferred = false;
             if (!performFormatAsYouType) {
                 performHealthCheck = true;
             }
@@ -235,8 +237,6 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             }
             statusBar.update(vscode.window.activeTextEditor?.document);
             console.count(`processChanges edits applied last in .then`);
-        }).then(fulfilled => {
-            mirroredDoc.parensInferred = false;
 
             model.lineInputModel.flushChanges();
             // we must clear out the repaint cache data, since we don't use it. 
