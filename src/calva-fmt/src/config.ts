@@ -92,5 +92,13 @@ function _updateConfig(): FormatConfig {
 export function onConfigurationChanged(e: vscode.ConfigurationChangeEvent) {
     if (e.affectsConfiguration("calva.fmt")) {
         updateConfig();
+        if (e.affectsConfiguration('calva.fmt.experimental.inferParensAsYouType')) {
+            const config = vscode.workspace.getConfiguration("calva.fmt");
+            if (config.get('experimental.inferParensAsYouType')) {
+                vscode.window.showInformationMessage('Parinfer toggled ON. It is an experimental feature. Please make sure to read calva.io/parinfer to learn about what you can expect.', 'OK');
+            } else {
+                vscode.window.showInformationMessage('Parinfer toggled OFF. Some settings are automatically changed for you. Please make sure to read calva.io/parinfer to learn about it.', 'OK');
+            }
+        }
     }
 }
