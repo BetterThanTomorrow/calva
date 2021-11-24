@@ -15,8 +15,32 @@ When you enable Calva's Parinfer it is all about infering brackets from indentat
 
 Currently Paredit is added as an experimental features, enable it with from this setting: `calva.fmt.experimental.inferParensAsYouType`
 
-!!! Note "Multi-cursors not fully supported"
-    Calva only really considers the first cursor in a multi-cursor senario. Sometimes that's enough, often it is not.
+!!! Note "Multi-cursors not supported"
+    Calva only really considers the first cursor in a multi-cursor senario. Sometimes that's enough, often it is not. During the experiment we will try to figure out if we should disable Parinfer during multi-cursor edits.
+
+## Some VS Code Settings automatically changed
+
+In order for some automatic VS Code behaviour not to interfere with Parinfer the following settings are automatically configured when you toggle Parinfer ON:
+
+```json
+    "[clojure]": {
+        "editor.autoClosingBrackets": "never",
+        "editor.autoClosingOvertype": "never",
+        "editor.formatOnPaste": false
+    },
+```
+
+And when you toggle Parinfer OFF:
+
+```json
+    "[clojure]": {
+        "editor.autoClosingBrackets": "always",
+        "editor.autoClosingOvertype": "always",
+        "editor.formatOnPaste": true
+    },
+```
+
+It is recommended that you let Calva handle these settings to avoid weird behaviour.
 
 ## No Tab indenting
 
