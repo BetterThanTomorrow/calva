@@ -38,6 +38,9 @@ function createClient(clojureLspPath: string): LanguageClient {
             "keep-require-at-start?": true,
         },
         middleware: {
+            provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
+                return null;
+            },
             handleDiagnostics(uri, diagnostics, next) {
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
                     return;
