@@ -205,7 +205,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             model.lineInputModel.insertedLines.clear();
             model.lineInputModel.deletedLines.clear();
 
-            if ((event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo) && fulfilled) {
+            if (parinferOn && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
                 console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
                 if (event.document === vscode.window.activeTextEditor?.document) {
                     console.count(`${changeId}: processChanges edits applied .then: ${event.contentChanges[0].text}`);
