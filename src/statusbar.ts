@@ -11,8 +11,8 @@ const typeStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.L
 const cljsBuildStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 const prettyPrintToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
 const color = {
-    active: "white",
-    inactive: "#b3b3b3"
+    active: new vscode.ThemeColor('statusBarItem.prominentForeground'),
+    inactive: new vscode.ThemeColor('statusBarItem.foreground')
 };
 
 // get theme kind once
