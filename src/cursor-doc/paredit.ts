@@ -201,8 +201,8 @@ export function forwardHybridSexpRange(doc: EditableDocument, offset = Math.max(
         // Work backwards to find the smallest open token offset
         // greater than the document's cursor location if any
         cursor = doc.getTokenCursor(currentLineNewlineOffset);
-        while(cursor.offsetStart > offset) {
-            while(cursor.backwardSexp()) {}
+        while (cursor.offsetStart > offset) {
+            while (cursor.backwardSexp()) { }
             if (cursor.offsetStart > offset) {
                 nearestOpenTokenOffset = cursor.offsetStart;
                 cursor = doc.getTokenCursor(cursor.offsetStart - 1);
@@ -401,20 +401,20 @@ export function spliceSexp(doc: EditableDocument, start: number = doc.selectionR
         let end = cursor.offsetStart;
         if (close.type == "close" && validPair(open.raw, close.raw)) {
             return doc.model.edit([
-                new ModelEdit('changeRange', [end, end + 1, ""]),
-                new ModelEdit('changeRange', [beginning - 1, beginning, ""])
+                new ModelEdit('changeRange', [end, end + close.raw.length, ""]),
+                new ModelEdit('changeRange', [beginning - open.raw.length, beginning, ""])
             ], { undoStopBefore, selection: new ModelEditSelection(start - 1) });
         }
     }
 }
 
-export function killBackwardList(doc: EditableDocument, [start,end]: [number, number]): Thenable<boolean> {
+export function killBackwardList(doc: EditableDocument, [start, end]: [number, number]): Thenable<boolean> {
     return doc.model.edit([
         new ModelEdit('changeRange', [start, end, "", [end, end], [start, start]])
     ], { selection: new ModelEditSelection(start) });
 }
 
-export function killForwardList(doc: EditableDocument, [start,end]: [number, number]): Thenable<boolean> {
+export function killForwardList(doc: EditableDocument, [start, end]: [number, number]): Thenable<boolean> {
     let cursor = doc.getTokenCursor(start);
     let inComment = (cursor.getToken().type == "comment" && start > cursor.offsetStart) || cursor.getPrevToken().type == "comment";
     return doc.model.edit([
@@ -422,7 +422,7 @@ export function killForwardList(doc: EditableDocument, [start,end]: [number, num
     ], { selection: new ModelEditSelection(start) });
 }
 
-export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight, extraOpts = {"formatDepth": 1}) {
+export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.selectionRight, extraOpts = { "formatDepth": 1 }) {
     const cursor = doc.getTokenCursor(start);
     cursor.forwardList();
     if (cursor.getToken().type == "close") {
