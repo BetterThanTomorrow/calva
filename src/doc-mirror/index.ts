@@ -117,6 +117,7 @@ export class DocumentModel implements EditableModel {
 export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
+    parinferReadinessBeforeChange: parinfer.ParinferReadiness;
     parensInferred = false;
     rangeFormatted = false;
 
@@ -183,12 +184,10 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         console.count(`${changeId}: processChanges: ${event.contentChanges.length}`);
         const mirroredDoc = documents.get(event.document);
         const model = mirroredDoc.model;
+        if (!mirroredDoc.parinferReadinessBeforeChange) {
+            mirroredDoc.parinferReadinessBeforeChange = mirroredDoc.model.parinferReadiness;
+        }
         const cursor = mirroredDoc.getTokenCursor();
-        const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-        const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
-        const performFormat = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.rangeFormatted;
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
-        let performHealthCheck = !performFormat;
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
             console.count(`${changeId}: processChanges building edits: ${change.range}`);
@@ -205,6 +204,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             model.lineInputModel.insertedLines.clear();
             model.lineInputModel.deletedLines.clear();
 
+            const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
             if (parinferOn && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
                 console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
                 if (event.document === vscode.window.activeTextEditor?.document) {
@@ -228,29 +228,30 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                             } else {
                                 await formatter.formatForward(mirroredDoc);
                             }
-                            performHealthCheck = true;
                         }
                         if (mirroredDoc.rangeFormatted == true && !mirroredDoc.parensInferred) {
                             mirroredDoc.parensInferred = true;
-                            if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
+                            if (mirroredDoc.parinferReadinessBeforeChange.isStructureHealthy && mirroredDoc.parinferReadinessBeforeChange.isIndentationHealthy) {
                                 console.count(`${changeId}: inferParens`);
                                 await parinfer.inferParens(mirroredDoc);
+                            } else {
+                                console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
                             }
                         }
                     }
                     if (mirroredDoc.rangeFormatted && mirroredDoc.parensInferred) {
                         mirroredDoc.rangeFormatted = false;
                         mirroredDoc.parensInferred = false;
-                        if (!performFormat) {
-                            performHealthCheck = true;
-                        }
-                        if (performHealthCheck) {
-                            model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                        }
+                        mirroredDoc.parinferReadinessBeforeChange = null;
+                        mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
                         statusBar.update(vscode.window.activeTextEditor?.document);
                         console.count(`${changeId}: processChanges edits applied last in .then`);            
                     }
                 }
+            } else {
+                mirroredDoc.parinferReadinessBeforeChange = null;
+                mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+                statusBar.update(vscode.window.activeTextEditor?.document);
             }
         }).then(fulfilled => {
             console.log(`${changeId}: processChanges done.`)
