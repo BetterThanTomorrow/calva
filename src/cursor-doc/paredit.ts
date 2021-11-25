@@ -575,7 +575,7 @@ export function backspaceNonStrict(doc: EditableDocument, start: number = doc.se
 function _backspace(doc: EditableDocument, start: number, end: number, isStrict: boolean): Thenable<boolean> {
     const cursor = doc.getTokenCursor(start);
     if (start != end) {
-        return _killSelection(doc, start, end, KillDirection.BACKWARD, { performInferParens: true });
+        return _killSelection(doc, start, end, KillDirection.BACKWARD, { undoStopBefore: true });
     } else {
         const nextToken = cursor.getToken();
         const p = start;
@@ -587,17 +587,25 @@ function _backspace(doc: EditableDocument, start: number, end: number, isStrict:
         } else if (doc.model.getText(p - 2, p, true) == '\\"') {
             return doc.model.edit([
                 new ModelEdit('deleteRange', [p - 2, 2])
-            ], { selection: new ModelEditSelection(p - 2) });
+            ], {
+                selection: new ModelEditSelection(p - 2),
+                undoStopBefore: true
+            });
         } else if (prevToken.type === 'open' && nextToken.type === 'close') {
             return doc.model.edit([
                 new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
-            ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
+            ], {
+                selection: new ModelEditSelection(p - prevToken.raw.length),
+                undoStopBefore: true
+            });
         } else {
             if (isStrict && ['open', 'close'].includes(prevToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p - prevToken.raw.length);
                 return new Promise<boolean>(resolve => resolve(true));
             } else {
-                return _killSelection(doc, start, end, KillDirection.BACKWARD, { performInferParens: true });
+                return _killSelection(doc, start, end, KillDirection.BACKWARD, {
+                    undoStopBefore: true
+                });
             }
         }
     }
@@ -635,11 +643,11 @@ function _killSelection(doc: EditableDocument, anchor: number = doc.selection.an
 }
 
 export function backspaceForce(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active): Thenable<boolean> {
-    return _killSelection(doc, anchor, active, KillDirection.BACKWARD, { performInferParens: false });
+    return _killSelection(doc, anchor, active, KillDirection.BACKWARD, { });
 }
 
 export function deleteForwardForce(doc: EditableDocument, anchor: number = doc.selection.anchor, active: number = doc.selection.active): Thenable<boolean> {
-    return _killSelection(doc, anchor, active, KillDirection.FORWARD, { performInferParens: false });
+    return _killSelection(doc, anchor, active, KillDirection.FORWARD, { });
 }
 
 
@@ -662,11 +670,17 @@ export function _deleteForward(doc: EditableDocument, start: number, end: number
         if (doc.model.getText(p, p + 2, true) == '\\"') {
             return doc.model.edit([
                 new ModelEdit('deleteRange', [p, 2])
-            ], { selection: new ModelEditSelection(p) });
+            ], {
+                selection: new ModelEditSelection(p),
+                undoStopBefore: true
+            });
         } else if (prevToken.type === 'open' && nextToken.type === 'close') {
             doc.model.edit([
                 new ModelEdit('deleteRange', [p - prevToken.raw.length, prevToken.raw.length + 1])
-            ], { selection: new ModelEditSelection(p - prevToken.raw.length) });
+            ], {
+                selection: new ModelEditSelection(p - prevToken.raw.length),
+                undoStopBefore: true
+            });
         } else {
             if (isStrict && ['open', 'close'].includes(nextToken.type) && docIsBalanced(doc)) {
                 doc.selection = new ModelEditSelection(p + 1);
