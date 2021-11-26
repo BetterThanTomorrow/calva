@@ -36,7 +36,7 @@ import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 
 import * as clojureDocs from './clojuredocs';
-async function onDidSave(document) {
+async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
     let {
         evaluate,
         test,
@@ -47,7 +47,7 @@ async function onDidSave(document) {
     }
 
     if (test && util.getConnectedState()) {
-        testRunner.runNamespaceTests(document);
+        testRunner.runNamespaceTests(testController, document);
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
@@ -94,6 +94,7 @@ async function activate(context: vscode.ExtensionContext) {
 
     const chan = state.outputChannel();
 
+    const testController = testRunner.initialize(context);
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode');
     const fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt');
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
@@ -187,10 +188,10 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', eval.evaluateSelectionAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', eval.evaluateTopLevelFormAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', eval.togglePrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', testRunner.runTestUnderCursorCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', testRunner.runNamespaceTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', () => { testRunner.runTestUnderCursorCommand(testController) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', () => { testRunner.runNamespaceTestsCommand(testController) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', () => { testRunner.runAllTestsCommand(testController) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', () => { testRunner.rerunTestsCommand(testController) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', eval.copyLastResultCommand));
@@ -254,7 +255,7 @@ async function activate(context: vscode.ExtensionContext) {
         onDidOpen(document);
     }));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
-        onDidSave(document);
+        onDidSave(testController, document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();

@@ -14,7 +14,7 @@ export interface TestResult {
     index: number;
     message: string;
     ns: string;
-    type: string;
+    type: 'pass' | 'fail' | 'error';
     var: string;
     expected?: string;
     'gen-input'?: string;
@@ -125,4 +125,19 @@ export function detailedMessage(result: TestResult): string {
 // Return a short message that can be shown to user as a Diagnostic.
 export function diagnosticMessage(result: TestResult): string {
     return `failure in test: ${result.var} context: ${result.context}, expected ${result.expected}, got: ${result.actual}`
+}
+
+export function shortMessage(result: TestResult): string {
+    switch (result.type) {
+        case 'pass':
+            return '';
+        case 'error':
+            return 'Error running test: ' + result.message + ' ' + result.error;
+        case 'fail':
+            if (result.message) {
+                return 'Expected ' + result.expected + ' actual' + result.actual
+            } else {
+                return result.message + ' expected ' + result.expected + ' actual' + result.actual;
+            }
+    }
 }
