@@ -1093,13 +1093,14 @@ describe('paredit', () => {
             });
 
             // TODO: enable after fixing spliceSexp
-            xit('splice set', () => {
+            it('splice set', () => {
                 const a = docFromTextNotation('#{a| b}');
                 paredit.spliceSexp(a);
                 expect(text(a)).toEqual('a b');
             });
 
-            // TODO: enabling this breaks bunch of other tests. Not sure why
+            // NB: enabling this breaks bunch of other tests.
+            //     Not sure why, but it can be run successfully by itself.
             xit('splice string', () => {
                 const a = docFromTextNotation('"h|ello"');
                 paredit.spliceSexp(a);
