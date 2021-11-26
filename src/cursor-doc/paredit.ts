@@ -445,9 +445,8 @@ export function forwardSlurpSexp(doc: EditableDocument, start: number = doc.sele
                 new ModelEdit('insertString', [newCloseOffset, close]),
                 new ModelEdit('changeRange', changeArgs)
             ], {
-                ...{
-                    undoStopBefore: true
-                },
+                undoStopBefore: true,
+                parensInferred: true,
                 ...extraOpts
             });
         } else {
