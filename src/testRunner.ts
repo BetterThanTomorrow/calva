@@ -5,13 +5,141 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider'
+import * as lsp from './lsp/types'
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-function reportTests(results: cider.TestResults[]) {
+async function uriForNamespace(namespace: string): Promise<vscode.Uri> {
+    const path = namespace.replace(/\./g, "/").replace(/-/g, "_");
+    const uris = await vscode.workspace.findFiles('**/' + path + ".{clj,cljs}", null, 1);
+    return uris[0];
+}
+
+async function uriForFile(fileName: string): Promise<vscode.Uri> {
+    if (fileName.startsWith('/')) {
+        return vscode.Uri.file(fileName);
+    }
+    // Sometimes we don't get the full path for some reason. (This is a very inexact
+    // way of dealing with that. Maybe check for the right `ns`in the file?)
+    const uris = await vscode.workspace.findFiles('**/' + fileName, null, 1);
+    return uris[0];
+}
+
+
+function upsertNamespace(controller: vscode.TestController, uri: vscode.Uri, nsName: string, range?: vscode.Range): vscode.TestItem {
+    let ns = controller.items.get(nsName);
+    if (!ns) {
+        ns = controller.createTestItem(nsName, nsName, uri);
+    }
+    if (range) {
+        ns.range = range;
+    }
+    controller.items.add(ns);
+    return ns;
+}
+
+function upsertTest(controller: vscode.TestController, uri: vscode.Uri, nsName: string, varName: string, range?: vscode.Range): vscode.TestItem {
+    const ns = upsertNamespace(controller, uri, nsName);
+    let testId = nsName + '/' + varName;
+    let test = ns.children.get(testId);
+    if (!test) {
+        test = controller.createTestItem(testId, varName, uri);
+
+    }
+    if (range) {
+        test.range = range;
+    }
+    ns.children.add(test);
+    return test;
+}
+
+// Cider 0.26 and 0.27 have an issue where context can be an empty array.
+// https://github.com/clojure-emacs/cider-nrepl/issues/728#issuecomment-996002988
+export function assertionName(result: cider.TestResult): string {
+    if (util.isNonEmptyString(result.context)) {
+        return result.context;
+    }
+    return "assertion";
+}
+
+async function onTestResult(controller: vscode.TestController, run: vscode.TestRun, nsName: string, varName: string, assertions: cider.TestResult[]) {
+
+    const uri = await uriForNamespace(nsName);
+
+    // TODO - where is the best place to log?
+    if (!uri) {
+        console.warn('Test Runner: Unable to find file corresponding to namespace: ' + nsName);
+    }
+
+    const ns = upsertNamespace(controller, uri, nsName);
+    const test = upsertTest(controller, uri, nsName, varName)
+
+    // LSP will do a better job at knowing the Range for the test.
+    // If the range is empty though (LSP might not be running), we can make a
+    // rough guess at the range.
+    if (!test.range || test.range.isEmpty) {
+        const lines = assertions.map(a => a.line).filter(x => x).sort();
+        if (lines.length > 0) {
+            test.range = new vscode.Range(lines[0] - 1, 0, lines[lines.length - 1], 1000);
+        }
+    }
+
+    // Clear all children, which are assertions left over from previous runs.
+    test.children.replace([]);
+
+    const failures = assertions.filter(result => {
+        return result.type != 'pass';
+    });
+
+    if (failures.length == 0) {
+        run.passed(test);
+        return;
+    }
+
+    failures.forEach(result => {
+        let assertionId = test.id + '/' + result.index;
+        const assertion = controller.createTestItem(assertionId, assertionName(result), uri);
+        test.children.add(assertion);
+        assertion.range = new vscode.Range(result.line - 1, 0, result.line - 1, 1000);
+
+        switch (result.type) {
+            case "error":
+                run.errored(assertion, new vscode.TestMessage(cider.shortMessage(result)));
+                run.appendOutput(cider.detailedMessage(result), null, assertion);
+                break;
+            case "fail":
+            default:
+                run.failed(assertion, new vscode.TestMessage(cider.shortMessage(result)));
+                run.appendOutput(cider.detailedMessage(result), null, assertion);
+                break;
+        }
+    });
+}
+
+
+
+async function onTestResults(controller: vscode.TestController, results: cider.TestResults[]) {
+    const run = controller.createTestRun(new vscode.TestRunRequest(), "Clojure", false);
+    for (const result of results) {
+        for (const namespace in result.results) {
+            const tests = result.results[namespace];
+            for (const test in tests) {
+                // slow?
+                await onTestResult(controller, run, namespace, test, tests[test]);
+            }
+        }
+    }
+    run.end();
+}
+
+function useTestExplorer(): boolean {
+    return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
+}
+
+function reportTests(controller: vscode.TestController, results: cider.TestResults[]) {
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     diagnosticCollection.clear();
 
@@ -23,6 +151,13 @@ function reportTests(results: cider.TestResults[]) {
         diagnostics[result.file].push(err);
     }
 
+    if (useTestExplorer()) {
+        onTestResults(controller, results).catch(e => {
+            vscode.window.showErrorMessage("Error in test explorer: " + e);
+        });
+    }
+
+
     for (let result of results) {
         for (const ns in result.results) {
             let resultSet = result.results[ns];
@@ -31,7 +166,10 @@ function reportTests(results: cider.TestResults[]) {
 
                     cider.cleanUpWhiteSpace(a);
 
-                    outputWindow.append(cider.detailedMessage(a));
+                    const detail = cider.detailedMessage(a);
+                    if (detail) {
+                        outputWindow.append(cider.detailedMessage(a));
+                    }
 
                     if (a.type === "fail") {
                         recordDiagnostic(a);
@@ -44,25 +182,21 @@ function reportTests(results: cider.TestResults[]) {
     const summary = cider.totalSummary(results.map(r => r.summary));
     outputWindow.append("; " + cider.summaryMessage(summary));
 
-    for (const fileName in diagnostics) {
-        if (fileName.startsWith('/')) {
-            diagnosticCollection.set(vscode.Uri.file(fileName), diagnostics[fileName]);
-        } else {
-            // Sometimes we don't get the full path for some reason. (This is a very inexact
-            // way of dealing with that. Maybe check for the right `ns`in the file?)
-            vscode.workspace.findFiles('**/' + fileName, undefined).then((uri) => {
-                diagnosticCollection.set(uri[0], diagnostics[fileName]);
+    if (!useTestExplorer()) {
+        for (const fileName in diagnostics) {
+            uriForFile(fileName).then(uri => {
+                diagnosticCollection.set(uri, diagnostics[fileName]);
             });
         }
     }
 }
 
 // FIXME: use cljs session where necessary
-async function runAllTests(document = {}) {
+async function runAllTests(controller: vscode.TestController, document = {}) {
     const session = getSession(util.getFileType(document));
     outputWindow.append("; Running all project tests…");
     try {
-        reportTests([await session.testAll()]);
+        reportTests(controller, [await session.testAll()]);
     } catch (e) {
         outputWindow.append('; ' + e)
     }
@@ -70,17 +204,17 @@ async function runAllTests(document = {}) {
     outputWindow.appendPrompt();
 }
 
-function runAllTestsCommand() {
+function runAllTestsCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runAllTests().catch((msg) => {
+    runAllTests(controller).catch((msg) => {
         vscode.window.showWarningMessage(msg)
     });
 }
 
-async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
+async function considerTestNS(ns: string, session: NReplSession): Promise<string[]> {
     if (!ns.endsWith('-test')) {
         const testNS = ns + '-test';
         const nsPath = await session.nsPath(testNS);
@@ -90,40 +224,52 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
             let loadForms = `(load-file "${filePath}")`;
             await session.eval(loadForms, testNS).value;
         }
-        nss.push(testNS);
-        return nss;
+
+        return [ns, testNS];
     }
-    return nss;
+    return [ns];
 }
 
-async function runNamespaceTests(document = {}) {
-    const doc = util.getDocument(document);
-    if (outputWindow.isResultsDoc(doc)) {
-        return;
-    }
+async function runNamespaceTestsImpl(controller: vscode.TestController, document: vscode.TextDocument, nss: string[]) {
     if (!util.getConnectedState()) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    const session = getSession(util.getFileType(document));
-    const ns = namespace.getNamespace(doc);
-    let nss = [ns];
-    await evaluate.loadFile({}, disabledPrettyPrinter);
-    outputWindow.append(`; Running tests for ${ns}...`);
-    nss = await considerTestNS(ns, session, nss);
-    const resultPromises = [session.testNs(nss[0])];
-    if (nss.length > 1) {
-        resultPromises.push(session.testNs(nss[1]));
+
+    if (nss.length === 0) {
+        vscode.window.showInformationMessage('No namespace selected.')
+        return;
     }
+
+    const session = getSession(util.getFileType(document));
+
+    // TODO.marc: Should we be passing the `document` argument to `loadFile`?
+    await evaluate.loadFile({}, disabledPrettyPrinter);
+    outputWindow.append(`; Running tests for ${nss[0]}...`);
+
+    const resultPromises = nss.map((ns) => {
+        return session.testNs(ns);
+    });
     try {
-        reportTests(await Promise.all(resultPromises));
+        reportTests(controller, await Promise.all(resultPromises));
     } catch (e) {
         outputWindow.append('; ' + e)
     }
 
-    outputWindow.setSession(session, ns);
+    outputWindow.setSession(session, nss[0]);
     updateReplSessionType();
     outputWindow.appendPrompt();
+}
+
+async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
+    const doc = util.getDocument(document);
+    if (outputWindow.isResultsDoc(doc)) {
+        return;
+    }
+    const session = getSession(util.getFileType(document));
+    const ns = namespace.getNamespace(doc);
+    const nss = await considerTestNS(ns, session);
+    runNamespaceTestsImpl(controller, document, nss);
 }
 
 function getTestUnderCursor() {
@@ -133,7 +279,7 @@ function getTestUnderCursor() {
     }
 }
 
-async function runTestUnderCursor() {
+async function runTestUnderCursor(controller: vscode.TestController) {
     const doc = util.getDocument({});
     const session = getSession(util.getFileType(doc));
     const ns = namespace.getNamespace(doc);
@@ -143,7 +289,7 @@ async function runTestUnderCursor() {
         await evaluate.loadFile(doc, disabledPrettyPrinter);
         outputWindow.append(`; Running test: ${test}…`);
         try {
-            reportTests([await session.test(ns, test)]);
+            reportTests(controller, [await session.test(ns, test)]);
         } catch (e) {
             outputWindow.append('; ' + e)
         }
@@ -153,33 +299,33 @@ async function runTestUnderCursor() {
     outputWindow.appendPrompt();
 }
 
-function runTestUnderCursorCommand() {
+function runTestUnderCursorCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runTestUnderCursor().catch((msg) => {
+    runTestUnderCursor(controller).catch((msg) => {
         vscode.window.showWarningMessage(msg)
     });
 }
 
-function runNamespaceTestsCommand() {
+function runNamespaceTestsCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runNamespaceTests().catch((msg) => {
+    runNamespaceTests(controller, vscode.window.activeTextEditor.document).catch((msg) => {
         vscode.window.showWarningMessage(msg)
     });
 }
 
-async function rerunTests(document = {}) {
+async function rerunTests(controller: vscode.TestController, document = {}) {
     let session = getSession(util.getFileType(document))
     await evaluate.loadFile({}, disabledPrettyPrinter);
     outputWindow.append("; Running previously failed tests…");
 
     try {
-        reportTests([await session.retest()]);
+        reportTests(controller, [await session.retest()]);
     } catch (e) {
         outputWindow.append('; ' + e)
     }
@@ -187,20 +333,92 @@ async function rerunTests(document = {}) {
     outputWindow.appendPrompt();
 }
 
-function rerunTestsCommand() {
+function rerunTestsCommand(controller: vscode.TestController) {
     if (!util.getConnectedState()) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    rerunTests().catch((msg) => {
+    rerunTests(controller).catch((msg) => {
         vscode.window.showWarningMessage(msg)
     });
 }
 
+function initialize(controller: vscode.TestController): void {
+
+    const profile = controller.createRunProfile('Clojure Run Profile',
+        vscode.TestRunProfileKind.Run,
+
+        (request: vscode.TestRunRequest, token: vscode.CancellationToken) => {
+
+            if (!util.getConnectedState()) {
+                vscode.window.showInformationMessage('You must connect to a REPL server to run tests.')
+                return;
+            }
+
+            if (request.exclude && request.exclude.length > 0) {
+                vscode.window.showWarningMessage("Excluding tests from a test run is not currently supported - running all tests.");
+            }
+
+            if (!request.include) {
+                runAllTests(controller).catch((msg) => {
+                    vscode.window.showWarningMessage(msg)
+                });
+                return;
+            }
+
+            const runItems = request.include.map(req => {
+                // Split into [namespace, var]
+                return req.id.split('/', 2);
+            });
+
+            // TODO.marc: We don't support running specific vars right now.
+            // We run the entire namespace for any tests selected.
+            const namespaces = util.distinct(runItems.map(ri => ri[0]));
+            const doc = vscode.window.activeTextEditor.document
+            runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
+                vscode.window.showWarningMessage(msg)
+            });
+
+        },
+        true);
+
+
+    controller.resolveHandler = (item: vscode.TestItem | undefined) => {
+        console.log('in test resolve handler');
+        controller.label = "foo";
+    }
+}
+
+function createRange(test: lsp.TestTreeNode): vscode.Range {
+    return new vscode.Range(
+        test.range.start.line,
+        test.range.start.character,
+        test.range.end.line,
+        test.range.end.character);
+}
+
+function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreeParams) {
+    if (!useTestExplorer()) {
+        return;
+    }
+    try {
+        const uri = vscode.Uri.parse(testTree.uri)
+        const ns = upsertNamespace(controller, uri, testTree.tree.name, createRange(testTree.tree));
+        ns.canResolveChildren = true;
+        testTree.tree.children.forEach(c => {
+            const test = upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
+        });
+    } catch (e) {
+        vscode.window.showErrorMessage('Error in test tree parsing', e);
+    }
+}
+
 export default {
+    initialize,
     runNamespaceTests,
     runNamespaceTestsCommand,
     runAllTestsCommand,
     rerunTestsCommand,
-    runTestUnderCursorCommand
+    runTestUnderCursorCommand,
+    onTestTree
 };

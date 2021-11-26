@@ -21,6 +21,10 @@ export function escapeStringRegexp(s: string): string {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export function isNonEmptyString(value: any): boolean {
+    return typeof (value) == 'string' && value.length > 0
+}
+
 async function quickPickSingle(opts: { values: string[], saveAs?: string, placeHolder: string, autoSelect?: boolean }) {
     if (opts.values.length == 0)
         return;
@@ -414,7 +418,14 @@ export async function isDocumentWritable(document: vscode.TextDocument): Promise
     return (fileStat.permissions & vscode.FilePermission.Readonly) !== 1;
 }
 
+// Returns the elements of coll with duplicates removed
+// (See clojure.core/distinct).
+function distinct<T>(coll: T[]): T[] {
+    return [... new Set(coll)];
+}
+
 export {
+    distinct,
     getWordAtPosition,
     getDocument,
     getFileType,

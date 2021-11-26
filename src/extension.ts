@@ -36,7 +36,7 @@ import * as edit from './edit';
 import * as nreplLogging from './nrepl/logging';
 
 import * as clojureDocs from './clojuredocs';
-async function onDidSave(document) {
+async function onDidSave(testController: vscode.TestController, document: vscode.TextDocument) {
     let {
         evaluate,
         test,
@@ -47,7 +47,7 @@ async function onDidSave(document) {
     }
 
     if (test && util.getConnectedState()) {
-        testRunner.runNamespaceTests(document);
+        testRunner.runNamespaceTests(testController, document);
         state.analytics().logEvent("Calva", "OnSaveTest").send();
     } else if (evaluate) {
         if (!outputWindow.isResultsDoc(document)) {
@@ -86,14 +86,19 @@ async function activate(context: vscode.ExtensionContext) {
     initializeState();
 
     status.updateNeedReplUi(false, context);
-    lsp.activate(context);
+
+
+    const controller = vscode.tests.createTestController('calvaTestController', 'Clojure Cider')
+    context.subscriptions.push(controller);
+
+    lsp.activate(context, testTree => { testRunner.onTestTree(controller, testTree) });
+
     setStateValue('analytics', new Analytics(context));
     state.analytics().logPath("/start").logEvent("LifeCycle", "Started").send();
 
     model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
 
     const chan = state.outputChannel();
-
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode');
     const fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt');
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
@@ -119,6 +124,8 @@ async function activate(context: vscode.ExtensionContext) {
                 }
             })
     }
+
+    testRunner.initialize(controller);
 
     if (legacyExtension) {
         vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.", "Roger that. Right away!")
@@ -187,10 +194,10 @@ async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateSelectionAsComment', eval.evaluateSelectionAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.evaluateTopLevelFormAsComment', eval.evaluateTopLevelFormAsComment));
     context.subscriptions.push(vscode.commands.registerCommand('calva.togglePrettyPrint', eval.togglePrettyPrint));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', testRunner.runTestUnderCursorCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', testRunner.runNamespaceTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', testRunner.runAllTestsCommand));
-    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', testRunner.rerunTestsCommand));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runTestUnderCursor', () => { testRunner.runTestUnderCursorCommand(controller) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runNamespaceTests', () => { testRunner.runNamespaceTestsCommand(controller) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.runAllTests', () => { testRunner.runAllTestsCommand(controller) }));
+    context.subscriptions.push(vscode.commands.registerCommand('calva.rerunTests', () => { testRunner.rerunTestsCommand(controller) }));
     context.subscriptions.push(vscode.commands.registerCommand('calva.clearInlineResults', annotations.clearEvaluationDecorations));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyAnnotationHoverText', annotations.copyHoverTextCommand));
     context.subscriptions.push(vscode.commands.registerCommand('calva.copyLastResults', eval.copyLastResultCommand));
@@ -254,7 +261,7 @@ async function activate(context: vscode.ExtensionContext) {
         onDidOpen(document);
     }));
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document) => {
-        onDidSave(document);
+        onDidSave(controller, document);
     }));
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor) => {
         status.update();

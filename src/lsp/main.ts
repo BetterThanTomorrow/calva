@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position } from 'vscode-languageclient/node';
+import { LanguageClient, ServerOptions, LanguageClientOptions, DocumentSymbol, Position, StaticFeature, ClientCapabilities, ServerCapabilities, DocumentSelector } from 'vscode-languageclient/node';
 import * as util from '../utilities'
 import * as config from '../config';
 import { provideClojureDefinition } from '../providers/definition';
@@ -7,12 +7,14 @@ import { provideCompletionItems } from '../providers/completion';
 import { setStateValue, getStateValue } from '../../out/cljs-lib/cljs-lib';
 import { downloadClojureLsp, getLatestVersion } from './download';
 import { readVersionFile, getClojureLspPath } from './utilities';
+import { TestTreeHandler, TestTreeParams } from './types';
 import * as os from 'os';
 import * as path from 'path';
 import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
-import { ProviderResult, CodeAction } from 'vscode';
+import { CodeAction } from 'vscode';
+import * as cider from '../nrepl/cider'
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -20,12 +22,30 @@ const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not
 const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
 let serverVersion: string;
 
+class TestTreeFeature implements StaticFeature {
+
+    initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): void {
+        capabilities.experimental = {testTree: true };
+    }
+
+    fillClientCapabilities(capabilities: ClientCapabilities): void {
+        capabilities.experimental = {testTree: true };
+    }
+
+    dispose(): void {
+    }
+}
+
 function createClient(clojureLspPath: string): LanguageClient {
+
     const serverOptions: ServerOptions = {
         run: { command: clojureLspPath },
         debug: { command: clojureLspPath },
+
+
     };
     const clientOptions: LanguageClientOptions = {
+
         documentSelector: [
             { scheme: 'file', language: 'clojure' },
             { scheme: 'jar', language: 'clojure' },
@@ -304,9 +324,13 @@ function registerEventHandlers(context: vscode.ExtensionContext, client: Languag
     }));
 }
 
-async function startClient(clojureLspPath: string, context: vscode.ExtensionContext): Promise<void> {
+async function startClient(clojureLspPath: string, context: vscode.ExtensionContext, handler: TestTreeHandler): Promise<void> {
     const client = createClient(clojureLspPath);
     console.log('Starting clojure-lsp at', clojureLspPath);
+
+    const testTree : StaticFeature =new TestTreeFeature();
+    client.registerFeature(testTree);
+
     const onReadyPromise = client.onReady();
     lspStatus.text = '$(sync~spin) Initializing Clojure language features via clojure-lsp';
     lspStatus.show();
@@ -319,6 +343,10 @@ async function startClient(clojureLspPath: string, context: vscode.ExtensionCont
     const serverInfo = await getServerInfo(client);
     serverVersion = serverInfo['server-version'];
     sayClientVersionInfo(serverVersion, serverInfo);
+
+    client.onNotification("clojure/textDocument/testTree", (tree: TestTreeParams) => {
+        handler(tree);
+    });
 }
 
 function sayClientVersionInfo(serverVersion: string, serverInfo: any) {
@@ -348,7 +376,7 @@ function registerDiagnosticsCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('calva.diagnostics.openClojureLspLogFile', openLogFile));
 }
 
-async function activate(context: vscode.ExtensionContext): Promise<void> {
+async function activate(context: vscode.ExtensionContext, handler: TestTreeHandler): Promise<void> {
     registerDiagnosticsCommands(context);
     const extensionPath = context.extensionPath;
     const currentVersion = readVersionFile(extensionPath);
@@ -365,7 +393,7 @@ async function activate(context: vscode.ExtensionContext): Promise<void> {
             lspStatus.hide();
         }
     }
-    await startClient(clojureLspPath, context);
+    await startClient(clojureLspPath, context, handler);
 }
 
 function deactivate(): Promise<void> {
