@@ -39,9 +39,9 @@ export class DocumentModel implements EditableModel {
     edit(modelEdits: ModelEdit[], options: ModelEditOptions): Thenable<boolean> {
         const editor = vscode.window.activeTextEditor;
         const undoStopBefore = !!options.undoStopBefore;
-        //if (options.parensInferred) {
-        //    this.document.parensInferred = true;
-        //}
+        if (options.parensInferred) {
+            this.document.shouldInferParens = false;
+        }
         //if (options.rangeFormatted) {
         //    this.document.rangeFormatted = true;
         //}
@@ -118,8 +118,9 @@ export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
     parinferReadinessBeforeChange: parinfer.ParinferReadiness;
-    parensInferred = false;
-    rangeFormatted = false;
+    pcFormatStarted = false;
+    pcInferStarted = false;
+    shouldInferParens = true;
 
     get selectionLeft(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.anchor);
@@ -207,11 +208,12 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
             if (parinferOn && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
                 console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
+                let batchDone = false;
                 if (event.document === vscode.window.activeTextEditor?.document) {
                     console.count(`${changeId}: processChanges edits applied .then: ${event.contentChanges[0].text}`);
-                    if (!mirroredDoc.rangeFormatted || !mirroredDoc.parensInferred) {
-                        if (!mirroredDoc.rangeFormatted) {
-                            mirroredDoc.rangeFormatted = true;
+                    if (!mirroredDoc.pcFormatStarted || !mirroredDoc.pcInferStarted) {
+                        if (!mirroredDoc.pcFormatStarted) {
+                            mirroredDoc.pcFormatStarted = true;
                             console.count(`${changeId}: processChanges edits applied .then performFormatAsYouType`)
                             if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
                                 const change = event.contentChanges[0];
@@ -229,19 +231,25 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                                 await formatter.formatForward(mirroredDoc);
                             }
                         }
-                        if (mirroredDoc.rangeFormatted == true && !mirroredDoc.parensInferred) {
-                            mirroredDoc.parensInferred = true;
-                            if (mirroredDoc.parinferReadinessBeforeChange.isStructureHealthy && mirroredDoc.parinferReadinessBeforeChange.isIndentationHealthy) {
-                                console.count(`${changeId}: inferParens`);
-                                await parinfer.inferParens(mirroredDoc);
+                        if (mirroredDoc.pcFormatStarted == true && !mirroredDoc.pcInferStarted) {
+                            mirroredDoc.pcInferStarted = true;
+                            batchDone = true;
+                            if (mirroredDoc.shouldInferParens) {
+                                if (mirroredDoc.parinferReadinessBeforeChange.isStructureHealthy && mirroredDoc.parinferReadinessBeforeChange.isIndentationHealthy) {
+                                    console.count(`${changeId}: inferParens`);
+                                    await parinfer.inferParens(mirroredDoc);
+                                } else {
+                                    console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
+                                }
                             } else {
-                                console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
+                                console.count(`${changeId}: skipped inferParens, because, mirroredDoc.shouldInferParens: ${mirroredDoc.shouldInferParens}`);
                             }
                         }
                     }
-                    if (mirroredDoc.rangeFormatted && mirroredDoc.parensInferred) {
-                        mirroredDoc.rangeFormatted = false;
-                        mirroredDoc.parensInferred = false;
+                    if (batchDone) {
+                        mirroredDoc.pcFormatStarted = false;
+                        mirroredDoc.pcInferStarted = false;
+                        mirroredDoc.shouldInferParens = true;
                         mirroredDoc.parinferReadinessBeforeChange = null;
                         mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
                         statusBar.update(vscode.window.activeTextEditor?.document);
