@@ -257,13 +257,14 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                         mirroredDoc.shouldInferParens = true;
                         mirroredDoc.parinferReadinessBeforeChange = null;
                         mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                        statusBar.update(vscode.window.activeTextEditor?.document);
                         console.count(`${changeId}: processChanges edits applied last in .then`);            
+                        statusBar.update(vscode.window.activeTextEditor?.document);
                     }
                 }
             } else {
                 mirroredDoc.parinferReadinessBeforeChange = null;
                 mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
+                console.count(`${changeId}: processChanges, parinfer and format forward off`);            
                 statusBar.update(vscode.window.activeTextEditor?.document);
             }
         }).then(fulfilled => {
@@ -286,14 +287,15 @@ export function getDocumentOffset(doc: vscode.TextDocument, position: vscode.Pos
 }
 
 function addDocument(doc: vscode.TextDocument): boolean {
-    if (doc && doc.languageId == "clojure") {
+    if (doc && doc.languageId === 'clojure') {
         if (!documents.has(doc)) {
             const document = new MirroredDocument(doc);
             document.model.lineInputModel.insertString(0, doc.getText());
             documents.set(doc, document);
             document.model.parinferReadiness = parinfer.getParinferReadiness(document);
             utilities.isDocumentWritable(doc).then(r => {
-                document.model.isWritable = r
+                document.model.isWritable = r;
+                console.count(`addDocument, isDocumentWritable, .then: ${r}`);
                 statusBar.update(vscode.window.activeTextEditor?.document);
             }).catch(e => {
                 console.error("Writable check failed:", e)
@@ -338,15 +340,14 @@ export function activate(context: vscode.ExtensionContext) {
 
     addDocument(currentDoc);
 
-    vscode.workspace.onDidCloseTextDocument(e => {
-        if (e.languageId == "clojure") {
-            documents.delete(e);
+    vscode.workspace.onDidCloseTextDocument(document => {
+        if (document.languageId === 'clojure') {
+            documents.delete(document);
         }
-        statusBar.update(vscode.window.activeTextEditor?.document);
     })
 
     vscode.window.onDidChangeActiveTextEditor(e => {
-        if (e && e.document && e.document.languageId == "clojure") {
+        if (e && e.document && e.document.languageId === 'clojure') {
             addDocument(e.document);
             const mirroredDoc = getDocument(e.document);
             if (mirroredDoc?.model) {
@@ -354,6 +355,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
         if (e) {
+            console.count(`onDidChangeActiveTextEditor: ${e.document?.fileName}`)
             statusBar.update(e.document);
         }
     });
@@ -364,7 +366,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (mirroredDoc?.model) {
             mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
         }
-        statusBar.update(doc);
     });
 
     vscode.workspace.onDidChangeTextDocument(e => {
@@ -409,13 +410,13 @@ export class StatusBar {
     }
 
     update(vsCodeDoc: vscode.TextDocument) {
-        const doc: MirroredDocument = getDocument(vsCodeDoc);
+        const doc: MirroredDocument = vsCodeDoc.languageId === 'clojure' ? getDocument(vsCodeDoc) : undefined;
 
-        const model = doc?.model;
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         this._toggleParinferItem.text = parinferOn ? '$(circle-filled) ()' : '$(circle-outline) ()';
         this._toggleParinferItem.command = parinferOn ? 'calva-fmt.disableParinfer' : 'calva-fmt.enableParinfer';
         this._toggleParinferItem.tooltip = `Toggle Parinfer ${parinferOn ? 'OFF' : 'ON'}`;
+        const model = doc?.model;
         if (model) {
             const alertOnProblems = parinferOn && formatConfig.getConfig()["alert-on-parinfer-problems"];
             this._toggleParinferItem.color = this._parinferInfoItem.color = parinferOn && model.isWritable ? statusbar.color.active : statusbar.color.inactive;
@@ -443,8 +444,9 @@ export class StatusBar {
                 }
             }
         } else {
-            this._parinferInfoItem.text = "$(check)";
+            this._parinferInfoItem.text = "$(dash)";
             this._parinferInfoItem.tooltip = "No structure check performed when in non-Clojure documents";
+            this._parinferInfoItem.command = undefined;
             this._toggleParinferItem.color = this._parinferInfoItem.color = statusbar.color.inactive;
         }
     }
