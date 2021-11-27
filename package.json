@@ -677,10 +677,15 @@
                         "default": true,
                         "markdownDescription": "Treat `(comment...)` forms special and keep its closing paren on a line of its own."
                     },
+                    "calva.fmt.experimental.formatForwardAsYouType": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "_Experimental_. Formats forms that start on the same line ”forwards” from the cursor as you enter or delete text. _NB: When `calva.fmt.experimental.inferParensAsYouType` is enabled this setting will be treated as enabled, regardless._"
+                    },
                     "calva.fmt.experimental.inferParensAsYouType": {
                         "type": "boolean",
                         "default": false,
-                        "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets. NB: _In order for opening brackets to correctly infer the closing bracket, you will need to switch VS Code's built in `editor.autoClosingBrackets` off._"
+                        "markdownDescription": "_Experimental_. Parinfer **indent mode**. Infers brackets from indentation when you type spaces or brackets."
                     },
                     "calva.fmt.experimental.alertOnParinferProblems": {
                         "type": "boolean",
