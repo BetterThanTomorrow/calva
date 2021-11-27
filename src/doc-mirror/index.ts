@@ -206,7 +206,8 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             model.lineInputModel.deletedLines.clear();
 
             const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-            if (parinferOn && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
+            const formatForwardOn = formatConfig.getConfig()["format-forward-as-you-type"];
+            if ((parinferOn || formatForwardOn) && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
                 console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
                 let batchDone = false;
                 if (event.document === vscode.window.activeTextEditor?.document) {
@@ -231,19 +232,23 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                                 await formatter.formatForward(mirroredDoc);
                             }
                         }
-                        if (mirroredDoc.pcFormatStarted == true && !mirroredDoc.pcInferStarted) {
-                            mirroredDoc.pcInferStarted = true;
-                            batchDone = true;
-                            if (mirroredDoc.shouldInferParens) {
-                                if (mirroredDoc.parinferReadinessBeforeChange.isStructureHealthy && mirroredDoc.parinferReadinessBeforeChange.isIndentationHealthy) {
-                                    console.count(`${changeId}: inferParens`);
-                                    await parinfer.inferParens(mirroredDoc);
+                        if (parinferOn) {
+                            if (mirroredDoc.pcFormatStarted == true && !mirroredDoc.pcInferStarted) {
+                                mirroredDoc.pcInferStarted = true;
+                                batchDone = true;
+                                if (mirroredDoc.shouldInferParens) {
+                                    if (mirroredDoc.parinferReadinessBeforeChange.isStructureHealthy && mirroredDoc.parinferReadinessBeforeChange.isIndentationHealthy) {
+                                        console.count(`${changeId}: inferParens`);
+                                        await parinfer.inferParens(mirroredDoc);
+                                    } else {
+                                        console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
+                                    }
                                 } else {
-                                    console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
+                                    console.count(`${changeId}: skipped inferParens, because, mirroredDoc.shouldInferParens: ${mirroredDoc.shouldInferParens}`);
                                 }
-                            } else {
-                                console.count(`${changeId}: skipped inferParens, because, mirroredDoc.shouldInferParens: ${mirroredDoc.shouldInferParens}`);
                             }
+                        } else {
+                            batchDone = true;
                         }
                     }
                     if (batchDone) {
