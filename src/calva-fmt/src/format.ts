@@ -47,7 +47,7 @@ export function indexForFormatForward(document: docModel.EditableDocument, p = d
 export async function formatForward(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
     console.count(`formatForward, p: ${p}`);
     const index = indexForFormatForward(document, p);
-    console.count(`formatForward, indexForFormatForward: ${index}`);
+    // console.count(`formatForward, indexForFormatForward: ${index}`);
     if (index !== p) {
         await formatPositionEditableDoc(document, onType, {
             index: index,
@@ -131,18 +131,18 @@ export function formatRangeEditableDoc(document: docModel.EditableDocument, rang
 }
 
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    console.count(`formatPositionEditableDoc`);
+    // console.count(`formatPositionEditableDoc`);
     const formattedInfo = formatPositionInfoEditableDoc(document, onType, { performFormatAsYouType: true, ...extraConfig });
-    console.count(`formatPositionEditableDoc, formattedInfo: ${formattedInfo}`);
+    // console.count(`formatPositionEditableDoc, formattedInfo: ${formattedInfo}`);
     return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
 }
 
 function performFormatEditableDoc(document: docModel.EditableDocument, formattedInfo, onType: boolean, extraConfig = {}): Thenable<boolean> {
     const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
-    console.log(`performFormatEditableDoc, adjustSelection: ${adjustSelection}`);
+    // console.log(`performFormatEditableDoc, adjustSelection: ${adjustSelection}`);
     if (formattedInfo) {
         const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
-        console.log(`performFormatEditableDoc, formattedInfo.previousText != formattedInfo.formattedText: ${formattedInfo.previousText != formattedInfo.formattedText}`);
+        // console.log(`performFormatEditableDoc, formattedInfo.previousText != formattedInfo.formattedText: ${formattedInfo.previousText != formattedInfo.formattedText}`);
         if (formattedInfo.previousText != formattedInfo.formattedText) {
             return document.model.edit([
                 new docModel.ModelEdit('changeRange', [formattedInfo.range[0], formattedInfo.range[1], formattedInfo.formattedText.replace(/\r\n/g, '\n')])

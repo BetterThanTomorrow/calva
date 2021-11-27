@@ -24,7 +24,7 @@ function rowColToOffset(document: docModel.EditableDocument, row: number, col: n
 }
 
 export async function inferParens(document: docModel.EditableDocument): Promise<Results> {
-    console.count(`inferParens`);
+    // console.count(`inferParens`);
     const [row, col] = document.getTokenCursor().rowCol;
     const currentText = document.model.getText(0, Infinity);
     const r: Results = calvaLib.inferParens({
@@ -46,6 +46,10 @@ export async function inferParens(document: docModel.EditableDocument): Promise<
         });
         const rP = rowColToOffset(document, r.line, r.character);
         const newP = rP + diffLengthBeforeCursor;
+        console.log("actually inferring");
+
+        console.log({ modelEdits });
+
         await document.model.edit(modelEdits, {
             selection: new docModel.ModelEditSelection(newP),
             skipFormat: true,
@@ -56,7 +60,9 @@ export async function inferParens(document: docModel.EditableDocument): Promise<
             success: true
         }
     } else {
-        (document as MirroredDocument).parensInferred = true;
+        console.log("here");
+
+        // (document as MirroredDocument).shouldInfer = true;
     }
     return {
         success: r.success,

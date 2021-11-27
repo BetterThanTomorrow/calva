@@ -117,8 +117,9 @@ export class DocumentModel implements EditableModel {
 export class MirroredDocument implements EditableDocument {
     constructor(public document: vscode.TextDocument) { }
 
-    parensInferred = false;
+    shouldInfer = false;
     rangeFormatted = false;
+    processChangeMap = new Map<number, string | NodeJS.Timer>();
 
     get selectionLeft(): number {
         return this.document.offsetAt(vscode.window.activeTextEditor.selection.anchor);
@@ -180,18 +181,29 @@ let registered = false;
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const changeId = Math.random();
     if (event.contentChanges.length > 0) {
-        console.count(`${changeId}: processChanges: ${event.contentChanges.length}`);
+        // console.count(`${changeId}: processChanges: ${event.contentChanges.length}`);
+
         const mirroredDoc = documents.get(event.document);
+        for (let entry of mirroredDoc.processChangeMap.entries()) {
+            if (entry[1] !== "format") {
+                clearTimeout(entry[1] as NodeJS.Timer);
+                mirroredDoc.shouldInfer = true;
+            }
+        }
+
         const model = mirroredDoc.model;
         const cursor = mirroredDoc.getTokenCursor();
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         const formatAsYouTypeOn = formatConfig.getConfig()["format-as-you-type"];
-        const performFormat = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.rangeFormatted;
-        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo && !mirroredDoc.parensInferred;
+        const performFormat = formatAsYouTypeOn && event.reason != vscode.TextDocumentChangeReason.Undo;
+        const performInferParens = parinferOn && event.reason != vscode.TextDocumentChangeReason.Undo;
         let performHealthCheck = !performFormat;
+        // if (mirroredDoc.processChangeMap.size >= 2) {
+        //     return;
+        // }
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
-            console.count(`${changeId}: processChanges building edits: ${change.range}`);
+            // console.count(`${changeId}: processChanges building edits: ${change.range}`);
             const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
             const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
             return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
@@ -199,48 +211,81 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         model.lineInputModel.edit(edits, {
             parensInferred: event.reason === vscode.TextDocumentChangeReason.Undo
         }).then(async fulfilled => {
+
+
             model.lineInputModel.flushChanges();
             // we must clear out the repaint cache data, since we don't use it. 
             model.lineInputModel.dirtyLines = [];
             model.lineInputModel.insertedLines.clear();
             model.lineInputModel.deletedLines.clear();
+            console.log(`fullfilled: ${fulfilled} + changeid ${changeId}`);
 
             if ((event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo) && fulfilled) {
-                console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
+                // console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
+                // console.log("number of processes " + mirroredDoc.processChangeMap.size);
                 if (event.document === vscode.window.activeTextEditor?.document) {
-                    console.count(`${changeId}: processChanges edits applied .then: ${event.contentChanges[0].text}`);
-                    if (!mirroredDoc.rangeFormatted || !mirroredDoc.parensInferred) {
-                        if (!mirroredDoc.rangeFormatted) {
-                            mirroredDoc.rangeFormatted = true;
-                            console.count(`${changeId}: processChanges edits applied .then performFormatAsYouType`)
-                            if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
-                                const change = event.contentChanges[0];
-                                const start = event.document.offsetAt(change.range.start);
-                                const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
-                                const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
-                                console.count(`${changeId}: changeRange: ${[start, end]}`)
-                                const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
-                                if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
-                                    await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
-                                } else {
-                                    await formatter.formatForward(mirroredDoc);
-                                }
+                    if (mirroredDoc.processChangeMap.size === 0) {
+                        console.log(`-------------- NEW EDIT ${changeId} ------------------------`);
+                    }
+                    else {
+                        console.log(`-------------- STARTING ${changeId} ------------------------`);
+                    }
+                    console.log(`active processes: ${mirroredDoc.processChangeMap.size}`);
+                    // console.count(`${changeId}: processChanges edits applied .then: ${event.contentChanges[0].text}`);
+                    let formattingActive = mirroredDoc.processChangeMap.size === 1 && mirroredDoc.processChangeMap.entries().next().value[1] == "format";
+                    console.log("formatting active " + changeId + " " + formattingActive);
+                    if (!formattingActive && formatAsYouTypeOn) {
+                        mirroredDoc.processChangeMap.set(changeId, "format");
+                        mirroredDoc.shouldInfer = true;
+                        console.log(changeId + " formatting");
+                        event.contentChanges.map(c => console.log(c.text));
+                        // const cChanges = event.contentChanges;
+                        // console.log({ cChanges });
+                        // console.log("here 2");
+                        // console.log("changes length" + event.contentChanges.length);
+
+                        // console.count(`${changeId}: processChanges edits applied .then performFormatAsYouType`)
+                        if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
+                            const change = event.contentChanges[0];
+                            const start = event.document.offsetAt(change.range.start);
+                            const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
+                            const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
+                            // console.count(`${changeId}: changeRange: ${[start, end]}`)
+                            const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
+                            if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
+                                await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
                             } else {
                                 await formatter.formatForward(mirroredDoc);
                             }
-                            performHealthCheck = true;
+                        } else {
+                            await formatter.formatForward(mirroredDoc);
                         }
-                        if (mirroredDoc.rangeFormatted == true && !mirroredDoc.parensInferred) {
-                            mirroredDoc.parensInferred = true;
-                            if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
-                                console.count(`${changeId}: inferParens`);
-                                await parinfer.inferParens(mirroredDoc);
-                            }
+                        console.log("after await");
+                        // inferActive = mirroredDoc.processChangeMap.size === 1 && mirroredDoc.processChangeMap.entries().next().value[1] == "infer";
+                        // if (!inferActive) {
+                        //     mirroredDoc.shouldInfer = true;
+                        // }
+                        performHealthCheck = true;
+                    }
+                    console.log("should infer " + changeId + " " + mirroredDoc.shouldInfer);
+
+                    if (mirroredDoc.shouldInfer || formattingActive) {
+                        console.log(changeId + " inferring");
+                        console.log(event.contentChanges.map(c => console.log(c.text)));
+
+                        mirroredDoc.shouldInfer = false;
+                        if ((mirroredDoc.model.parinferReadiness.isIndentationHealthy || performHealthCheck) && performInferParens) {
+                            // console.count(`${changeId}: inferParens`);
+                            const id = setTimeout(() => {
+                                parinfer.inferParens(mirroredDoc);
+                            }, 50);
+                            mirroredDoc.processChangeMap.set(changeId, id)
                         }
                     }
-                    if (mirroredDoc.rangeFormatted && mirroredDoc.parensInferred) {
-                        mirroredDoc.rangeFormatted = false;
-                        mirroredDoc.parensInferred = false;
+
+                    if (mirroredDoc.shouldInfer) {
+                        console.log(changeId + " resetting");
+                        // mirroredDoc.shouldInfer = false;
                         if (!performFormat) {
                             performHealthCheck = true;
                         }
@@ -248,12 +293,23 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                             model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
                         }
                         statusBar.update(vscode.window.activeTextEditor?.document);
-                        console.count(`${changeId}: processChanges edits applied last in .then`);            
+                        // console.count(`${changeId}: processChanges edits applied last in .then`);
                     }
                 }
             }
         }).then(fulfilled => {
-            console.log(`${changeId}: processChanges done.`)
+            mirroredDoc.processChangeMap.delete(changeId);
+            console.log(`------- FINISHING ${changeId} --------------`);
+            // if (mirroredDoc.processChangeMap.size === 1) {
+            //     mirroredDoc.rangeFormatted = true;
+            // }
+            // if (mirroredDoc.processChangeMap.get(changeId) == "infer") {
+            //     mirroredDoc.shouldInfer = false;
+            // }
+            // for (let entry of mirroredDoc.processChangeMap.entries()) {
+            //     console.log(entry[0], entry[1]);    //"Lokesh" 37 "Raj" 35 "John" 40
+            // }
+            // console.log(`${changeId}: processChanges done.`)
         });
     }
 }
