@@ -46,11 +46,18 @@ function rangeOrStartOfFileToCursor(doc: EditableDocument, foldRange: [number, n
     return [undefined, ''];
 }
 
+export function currentEnclosingForm(doc: EditableDocument): RangeAndText {
+    const cursor = doc.getTokenCursor(doc.selection.active);
+    const enclosingRange = cursor.rangeForList(1);
+    return enclosingRange ? [enclosingRange, doc.model.getText(...enclosingRange)] : [undefined, ''];
+}
+
 export function currentEnclosingFormToCursor(doc: EditableDocument): RangeAndText {
     const cursor = doc.getTokenCursor(doc.selection.active);
     const enclosingRange = cursor.rangeForList(1);
     return rangeOrStartOfFileToCursor(doc, enclosingRange, enclosingRange[0]);
 }
+
 
 export function currentTopLevelFormToCursor(doc: EditableDocument): RangeAndText {
     const cursor = doc.getTokenCursor(doc.selection.active);
