@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
+import { ProviderResult, CodeAction } from 'vscode';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -40,6 +41,11 @@ function createClient(clojureLspPath: string): LanguageClient {
         middleware: {
             provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
                 return null;
+            },
+            resolveCodeAction(item, token, next): ProviderResult<CodeAction> {
+                console.log(item);
+                // TODO: See if next returns codeAction/resolve response and then use info from that to call lsp command
+                return next(item, token);
             },
             handleDiagnostics(uri, diagnostics, next) {
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
