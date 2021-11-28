@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import { getDocument } from '../../../doc-mirror';
+import { getConfig } from '../config';
 import * as formatter from '../format';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
@@ -6,9 +8,10 @@ export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProv
         console.count(`provideOnTypeFormattingEdits, ch: ${ch}`);
         const editor = vscode.window.activeTextEditor;
         const pos = editor.selection.active;
-        if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType")) {
+        if (vscode.workspace.getConfiguration("calva.fmt").get("formatAsYouType") && !(getConfig()['infer-parens-as-you-type'] || getConfig()['format-forward-as-you-type'])) {
             if (vscode.workspace.getConfiguration("calva.fmt").get("newIndentEngine")) {
                 formatter.indentPosition(pos, document);
+                //formatter.indentPositionEditableDoc(getDocument(document));
             } else {
                 try {
                     formatter.formatPosition(vscode.window.activeTextEditor, true).catch(e => {
