@@ -107,16 +107,12 @@
                   (second (re-find #"^(.*)\n?" tail))))))
 
 
-(defn normalize-indents
+(defn- normalize-indents
   "Normalizes indents based on where the text starts on the first line"
-  [{:keys [range-text indent eol] :as m}]
-  (let [lines (clojure.string/split range-text #"\r?\n(?!\s*;)" -1)
-        padded-lines (map (fn [line]
-                            (if (re-matches #"^ *$" line)
-                              eol
-                              (str eol indent (clojure.string/replace line #" *$" ""))))
-                          (rest lines))]
-    (assoc m :range-text (clojure.string/join (conj padded-lines (first lines))))))
+  [{:keys [range-text eol] :as m}]
+  (let [indent-before (apply str (repeat (indent-before-range m) " "))
+        lines (clojure.string/split range-text #"\r?\n(?!\s*;)" -1)]
+    (assoc m :range-text (clojure.string/join (str eol indent-before) lines))))
 
 
 (defn index-for-tail-in-range
@@ -139,32 +135,23 @@
 (defn format-text-at-range
   "Formats text from all-text at the range"
   [{:keys [range idx] :as m}]
-  (let [indents (indent-before-range m)
-        padding (apply str (repeat indents " "))
+  (let [indent-before (indent-before-range m)
+        padding (apply str (repeat indent-before " "))
         range-text (extract-range-text m)
+        padded-text (str padding range-text)
         range-index (- idx (first range))
         tail (subs range-text range-index)
-        formatted-m (format-text (assoc m :range-text range-text))
-        formatted-text (:range-text formatted-m)]
+        formatted-m (format-text (assoc m :range-text padded-text))
+        formatted-text (subs (:range-text formatted-m) indent-before)]
     (-> (assoc formatted-m
                :range-text formatted-text
-               :range-tail tail
-               :indent padding)
-        (normalize-indents))))
+               :range-tail tail))))
+
+(defn format-text-at-range-bridge
+  [m]
+  (format-text-at-range m))
 
 (comment
-  (-> {:eol "\n"
-       :all-text "  (foo)\n(defn bar\n[x]\nbaz)"
-       :range [2 26]}
-      format-text-at-range)
-  (-> {:eol "\n"
-       :all-text "  (foo)
-  (defn bar
-         [x]
-
-baz)"
-       :range [10 38]}
-      format-text-at-range)
   (format-text-at-range {:all-text "  '([]\n[])"
                          :idx 7
                          :on-type true
@@ -175,24 +162,7 @@ baz)"
   (format-text-at-range {:eol "\n"
                          :all-text "[:foo\n\n(foo)(bar)]"
                          :idx 6
-                         :range [0 18]})
-  (-> {:eol "\n"
-       :all-text "      (defn foo [a b]
-  (let [x + a b]
-    (println \"sum is\" x)))
-
-(defn bar [a b]
-  (let [x + a b]
-    (println \"sum is\" x)))"
-       :idx 6
-       :range [6 129]}
-      (format-text-at-range)))
-
-
-(defn format-text-at-range-bridge
-  [m]
-  (format-text-at-range m))
-
+                         :range [0 18]}))
 
 
 (defn add-indent-token-if-empty-current-line
@@ -292,6 +262,7 @@ baz)"
       (assoc-in [:config :remove-surrounding-whitespace?] false)
       (assoc-in [:config :remove-trailing-whitespace?] false)
       (assoc-in [:config :remove-consecutive-blank-lines?] false)
+      (assoc-in [:config :insert-missing-whitespace?] false)
       (format-text-at-idx)))
 
 (defn format-text-at-idx-on-type-bridge
