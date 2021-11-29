@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
+import { ProviderResult, CodeAction } from 'vscode';
 
 const LSP_CLIENT_KEY = 'lspClient';
 const RESOLVE_MACRO_AS_COMMAND = 'resolve-macro-as';
@@ -38,6 +39,17 @@ function createClient(clojureLspPath: string): LanguageClient {
             "keep-require-at-start?": true,
         },
         middleware: {
+            provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
+                return null;
+            },
+            async resolveCodeAction(item, token, next): Promise<CodeAction> {
+                const { command } = await next(item, token);
+                if (command) {
+                    sendCommandRequest(command.command, command.arguments);
+                    return null;
+                }
+                return next(item, token);
+            },
             handleDiagnostics(uri, diagnostics, next) {
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
                     return;
