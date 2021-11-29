@@ -42,10 +42,10 @@ function createClient(clojureLspPath: string): LanguageClient {
             provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
                 return null;
             },
-            resolveCodeAction(item, token, next): ProviderResult<CodeAction> {
-                console.log(item);
-                // TODO: See if next returns codeAction/resolve response and then use info from that to call lsp command
-                return next(item, token);
+            async resolveCodeAction(item, token, next): Promise<CodeAction> {
+                const { command } = await next(item, token);
+                sendCommandRequest(command.command, command.arguments);
+                return null;
             },
             handleDiagnostics(uri, diagnostics, next) {
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {

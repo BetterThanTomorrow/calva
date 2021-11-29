@@ -7,6 +7,7 @@ Changes to Calva.
 - Internal: [Handle the unknown-op status from test commands](https://github.com/BetterThanTomorrow/calva/pull/1365)
 - Fix: [textDocument/linkedEditingRange failed when opening files or moving cursor](https://github.com/BetterThanTomorrow/calva/issues/1374)
 - Fix: [paredit.spliceSexp doesn't work with set literals](https://github.com/BetterThanTomorrow/calva/issues/1395)
+- Fix: [LSP code actions not working](https://github.com/BetterThanTomorrow/calva/issues/1373)
 
 ## [2.0.225] - 2021-11-10
 - Revert 224 changes: [Version v2.0.224 causes problems on some machines (possibly Windows related)](https://github.com/BetterThanTomorrow/calva/issues/1379)
