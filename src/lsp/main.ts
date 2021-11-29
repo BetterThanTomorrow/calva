@@ -44,8 +44,11 @@ function createClient(clojureLspPath: string): LanguageClient {
             },
             async resolveCodeAction(item, token, next): Promise<CodeAction> {
                 const { command } = await next(item, token);
-                sendCommandRequest(command.command, command.arguments);
-                return null;
+                if (command) {
+                    sendCommandRequest(command.command, command.arguments);
+                    return null;
+                }
+                return next(item, token);
             },
             handleDiagnostics(uri, diagnostics, next) {
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
