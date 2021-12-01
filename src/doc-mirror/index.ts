@@ -216,7 +216,8 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                         if (!mirroredDoc.pcFormatStarted) {
                             mirroredDoc.pcFormatStarted = true;
                             console.count(`${changeId}: processChanges edits applied .then performFormatAsYouType`)
-                            if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
+                            // if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
+                            if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/\n/) && !cursor.withinString()) {
                                 const change = event.contentChanges[0];
                                 const start = event.document.offsetAt(change.range.start);
                                 const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
@@ -224,7 +225,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                                 console.count(`${changeId}: changeRange: ${[start, end]}`)
                                 const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
                                 if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
-                                    await formatter.formatRangeEditableDoc(mirroredDoc, [start, end], true);
+                                    await formatter.formatPositionEditableDoc(mirroredDoc, true, { "format-depth": 2 });
                                 } else {
                                     await formatter.formatForward(mirroredDoc);
                                 }
