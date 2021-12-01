@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.227] - 2021-12-01
 - Re-enable, Experimental: [Add Parinfer Mode](https://github.com/BetterThanTomorrow/calva/issues/253)
 - Experimental: [Add option to keep text more fully formatted as you type](https://github.com/BetterThanTomorrow/calva/issues/1406)
 - [Remove `calva.fmt.formatAsYouType` option](https://github.com/BetterThanTomorrow/calva/issues/1407)
