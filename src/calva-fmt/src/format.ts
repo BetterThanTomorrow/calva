@@ -21,6 +21,45 @@ export function indentPosition(position: vscode.Position, document: vscode.TextD
     }
 }
 
+// TODO: Figure if we have use for this
+export async function indentPositionEditableDoc(document: docModel.EditableDocument, position = document.selection.active): Promise<boolean> {
+    let t1 = new Date().getTime();
+    const cursorP = document.getTokenCursor(position);
+    let t2 = new Date().getTime(); console.log(t2 - t1, 'getTokenCursor'); t1 = t2;
+    const [line, col] = cursorP.rowCol;
+    const posStartOfLine = position - col;
+    const model = document.model;
+    const lineText = model.getLineText(line);
+    t2 = new Date().getTime(); console.log(t2 - t1, 'getLineText'); t1 = t2;
+    const posStartOfText = lineText.search(/[^\s]/);
+    t2 = new Date().getTime(); console.log(t2 - t1, 'lineText.search'); t1 = t2;
+    let indent = getIndent(document.model, posStartOfLine, config.getConfig());
+    t2 = new Date().getTime(); console.log(t2 - t1, 'getIndent'); t1 = t2;
+    let delta = (posStartOfText === -1 ? lineText.length : posStartOfText) - indent;
+    if (delta > 0) {
+        const thenable = await document.model.edit([
+            new docModel.ModelEdit('deleteRange', [posStartOfLine, delta])
+        ], {
+            undoStopBefore: false
+        });
+        t2 = new Date().getTime(); console.log(t2 - t1, 'deleteRange'); t1 = t2;
+        return thenable;
+    }
+    else if (delta < 0) {
+        let str = "";
+        while (delta++ < 0) {
+            str += " ";
+        }
+        const thenable = await document.model.edit([
+            new docModel.ModelEdit('insertString', [posStartOfLine, str])
+        ], {
+            undoStopBefore: false
+        });
+        t2 = new Date().getTime(); console.log(t2 - t1, 'insertString'); t1 = t2;
+        return thenable;
+    }
+}
+
 export function indexForFormatForward(document: docModel.EditableDocument, p = document.selection.active): number {
     const cursor = document.getTokenCursor(p);
     const currentLine = cursor.rowCol[0];
