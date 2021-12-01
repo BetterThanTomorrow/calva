@@ -1,6 +1,7 @@
 import { Scanner, Token, ScannerState } from "./clojure-lexer";
 import { LispTokenCursor } from "./token-cursor";
-import { deepEqual as equal} from "../util/object"
+import { deepEqual as equal } from "../util/object";
+import * as parinfer from '../calva-fmt/src/infer';
 
 let scanner: Scanner;
 
@@ -84,6 +85,8 @@ export type ModelEditOptions = {
     undoStopBefore?: boolean,
     formatDepth?: number,
     skipFormat?: boolean,
+    parensInferred?: boolean,
+    rangeFormatted?: boolean,
     selection?: ModelEditSelection
 };
 
@@ -96,7 +99,8 @@ export interface EditableModel {
      * @param edits
      */
     edit: (edits: ModelEdit[], options: ModelEditOptions) => Thenable<boolean>;
-
+    parinferReadiness: parinfer.ParinferReadiness,
+    isWritable: boolean;
     getText: (start: number, end: number, mustBeWithin?: boolean) => string;
     getLineText: (line: number) => string;
     getOffsetForLine: (line: number) => number;
@@ -120,6 +124,14 @@ export interface EditableDocument {
 export class LineInputModel implements EditableModel {
     /** How many characters in the line endings of the text of this model? */
     constructor(readonly lineEndingLength: number = 1, private document?: EditableDocument) { }
+
+    isWritable = true;
+    
+    parinferReadiness: parinfer.ParinferReadiness = {
+        isIndentationHealthy: false,
+        isStructureHealthy: false
+    }
+    performInferParens = true;
 
     /** The input lines. */
     lines: TextLine[] = [new TextLine("", this.getStateForLine(0))];
@@ -475,3 +487,48 @@ export class LineInputModel implements EditableModel {
 }
 
 
+export class StringDocument implements EditableDocument {
+    constructor(contents: string) {
+        this.insertString(contents);
+    }
+
+    selectionLeft: number;
+    selectionRight: number;
+
+    get selection() {
+        return new ModelEditSelection(this.selectionLeft, this.selectionRight);
+    }
+
+    set selection(sel: ModelEditSelection) {
+        this.selectionLeft = sel.anchor;
+        this.selectionRight = sel.active;
+    }
+
+    model: LineInputModel = new LineInputModel(1, this);
+
+    selectionStack: ModelEditSelection[] = [];
+
+    getTokenCursor(offset?: number, previous?: boolean): LispTokenCursor {
+        return this.model.getTokenCursor(offset);
+    };
+
+    insertString(text: string) {
+        this.model.insertString(0, text);
+    };
+
+    getSelectionText: () => string;
+
+    delete() {
+        const p = this.selectionLeft;
+        return this.model.edit([
+            new ModelEdit('deleteRange', [p, 1])
+        ], { selection: new ModelEditSelection(p) });
+    };
+
+    backspace() {
+        const p = this.selectionLeft;
+        return this.model.edit([
+            new ModelEdit('deleteRange', [p - 1, 1])
+        ], { selection: new ModelEditSelection(p - 1) });
+    };
+}

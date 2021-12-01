@@ -25,19 +25,15 @@ function getLanguageConfiguration(autoIndentOn: boolean): vscode.LanguageConfigu
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    docmirror.activate();
+    config.updateConfig();
+    docmirror.activate(context);
     vscode.languages.setLanguageConfiguration("clojure", getLanguageConfiguration(config.getConfig()["format-as-you-type"]));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.formatCurrentForm', formatter.formatPositionCommand));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.alignCurrentForm', formatter.alignPositionCommand));
-    context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.inferParens', inferer.inferParensCommand));
-    context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabIndent', (e) => { inferer.indentCommand(e, " ", true) }));
-    context.subscriptions.push(vscode.commands.registerTextEditorCommand('calva-fmt.tabDedent', (e) => { inferer.indentCommand(e, " ", false) }));
-    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(calvaConfig.documentSelector, new FormatOnTypeEditProvider, "\r", "\n", ")", "]", "}"));
+    context.subscriptions.push(vscode.languages.registerOnTypeFormattingEditProvider(calvaConfig.documentSelector, new FormatOnTypeEditProvider, "\r", "\n"));
     context.subscriptions.push(vscode.languages.registerDocumentRangeFormattingEditProvider(calvaConfig.documentSelector, new RangeEditProvider));
-    vscode.window.onDidChangeActiveTextEditor(inferer.updateState);
     vscode.workspace.onDidChangeConfiguration(e => {
-        if (e.affectsConfiguration("calva.fmt.formatAsYouType")) {
-            vscode.languages.setLanguageConfiguration("clojure", getLanguageConfiguration(config.getConfig()["format-as-you-type"]));
-        }
-    })
+        config.onConfigurationChanged(e);
+    });
+    setTimeout(() => config.maybeNagAboutParinferExtension(config.getConfig()), 5000);
 }

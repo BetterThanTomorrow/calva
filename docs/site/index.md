@@ -7,7 +7,7 @@ description: Learn how to use Calva, an IDE bringing full Clojure and ClojureScr
 
 ![Calva Logo](https://raw.githubusercontent.com/BetterThanTomorrow/calva/dev/assets/calva-64h.png)
 
-[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) development in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, Paredit, code formatting, a test runner, syntax highlighting, [linting](linting.md), and more. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
+[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) is an integrated REPL powered environment for enjoyable and productive [Clojure](https://clojure.org) and [ClojureScript](https://clojurescript.org) development in [Visual Studio Code](https://code.visualstudio.com). It includes inline code evaluation, [Paredit](paredit.md), [Parinfer](parinfer.md), [code formatting](formatting.md), a [test runner](test-runner.md), syntax highlighting, [linting](linting.md), and more. [Calva is open source](https://github.com/BetterThanTomorrow/calva) and free to use.
 
 ## Getting Started
 

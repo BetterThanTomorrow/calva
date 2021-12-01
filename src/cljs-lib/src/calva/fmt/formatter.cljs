@@ -262,6 +262,7 @@
       (assoc-in [:config :remove-surrounding-whitespace?] false)
       (assoc-in [:config :remove-trailing-whitespace?] false)
       (assoc-in [:config :remove-consecutive-blank-lines?] false)
+      (assoc-in [:config :insert-missing-whitespace?] false)
       (format-text-at-idx)))
 
 (defn format-text-at-idx-on-type-bridge

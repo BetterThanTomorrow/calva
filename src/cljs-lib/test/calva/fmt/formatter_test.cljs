@@ -150,7 +150,7 @@ bar))")
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "\"bar \n \n \"" :range [0 10] :idx 7}))))
   (is (= "'([]\n    [])"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "  '([]\n[])" :range [2 10] :idx 7}))))
-  (is (= "[:foo\n \n (foo) (bar)]"
+  (is (= "[:foo\n \n (foo)(bar)]"
          (:range-text (sut/format-text-at-idx-on-type {:eol "\n" :all-text "[:foo\n\n(foo)(bar)]" :range [0 18] :idx 6})))))
 
 

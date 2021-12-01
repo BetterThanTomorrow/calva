@@ -57,7 +57,8 @@ function getConfig() {
         autoOpenJackInTerminal: configOptions.get("autoOpenJackInTerminal") as boolean,
         referencesCodeLensEnabled: configOptions.get('referencesCodeLens.enabled') as boolean,
         hideReplUi: configOptions.get('hideReplUi') as boolean,
-        strictPreventUnmatchedClosingBracket: pareditOptions.get('strictPreventUnmatchedClosingBracket'),
+        strictPreventUnmatchedClosingBracket: pareditOptions.get('strictPreventUnmatchedClosingBracket') as boolean,
+        strictAutoClosingBrackets: pareditOptions.get('strictAutoClosingBrackets') as boolean,
         showCalvaSaysOnStart: configOptions.get("showCalvaSaysOnStart") as boolean
     };
 }
