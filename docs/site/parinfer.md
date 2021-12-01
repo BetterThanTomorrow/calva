@@ -7,16 +7,31 @@ description: Learn how to leverage Calva Parinfer Mode for structural editing
 
 [Parinfer](https://shaunlebron.github.io/parinfer/) is a system for editing the structure of LISP text without explicit commands. The structure can be regarded as already being expressed through indentation. With Parinfer you can use your intuition about the structure _inferred_ from the indentation to perform surprisingly many structural edits.
 
-![Calva Parinfer](images/calva-parinfer-and-format-forward.gif)
+!!! Note "Experimental"
+    This feature is currently disabled by default and should be considered experimental. There are known [quirks](#quirks). Especially beginners should take note. Parinfer is not as beginner friendly as it might seem, and with the quirks it might be extra ”dangerous”.
 
 ## Infer Parens
 
-When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no modes further Parinfer modes. Calva's auto-formatter will take care ofb keeping the code correctly indented.
+When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no modes further Parinfer modes. Calva's auto-formatter will take care of keeping the code correctly indented.
 
-Currently Paredit is added as an experimental features, enable it with from this setting: `calva.fmt.experimental.inferParensAsYouType`
+Enable it with from this setting: `calva.fmt.experimental.inferParensAsYouType` or from the status bar item.
 
-!!! Note "Multi-cursors not supported"
-    Calva only really considers the first cursor in a multi-cursor senario. Sometimes that's enough, often it is not. During the experiment we will try to figure out if we should disable Parinfer during multi-cursor edits.
+### Parinfer Status bar items
+
+To the right on the status bar, right before the [Paredit](paredit.md) status bar item, you will have two items, Parinfer toggle ON/OFF and a health indicator.
+
+1. Parinfer **ON**/**OFF** indicator/button. <kbd>•()</kbd> (The dot/circle indicates **ON**/**OFF**)
+2. Structure and indentation health indicator. <kbd>✔️</kbd>/<kbd>⚠</kbd>/<kbd>⊘</kbd>
+
+When Parinfer is **ON**, the health indicator will have three states:
+
+1. <kbd>✔️</kbd> Healthy - meaning both structure and indentation is OK
+2. <kbd>⊘</kbd> Structure broken - you need to fix the the structure of the code
+3. <kbd>⚠</kbd> Bad indentation - meaning that to Parinfer the structure and indentation do not match, _the item is now also a button with which you can fix the indentation.
+
+Parinfer will be disabled in both the unhealthy states.
+
+When Parinfer is OFF, only the first two states above are used.
 
 ## Some VS Code Settings automatically changed
 
@@ -55,6 +70,43 @@ In Calva, Parinfer and [Paredit](paredit.md) are designed to coexist and both be
 ## Disable the Parinfer Extension
 
 If you want to have Parinfer you are probably best served by Calva's built-in version. It is designed, and will continue to be improved to function well together with Calva's other structural editing and formatting features. _It will also probably conflict with the Parinfer Extension._
+
+## Quirks
+
+There are some known quirks, of varying severity, with this feature. Some of them will need to be fixed before we move this feature out of **Experimental** status.
+
+For the most times you can always *Undo* to get back to where the document was fine. You just need to pay some attention and be aware when undo is needed.
+
+### No multi-cursor support
+
+The bracket inference will remove all cursors but the first one. So for instance if you edit with multiple cursors and it causes brackets to move, you'll end up with just one cursor and the subsequent edits will not be what you intended. This is particularly important to note when you have cursors that are not in the viewport. In such cases it might be better to turn Parinfer off while you do the edits, fix formatting and such manually and then switch Parinfer on again.
+
+### Wrong inferences
+
+For yet unknown reasons an edit such as the following does the wrong thing (the cursor indicated by the vertical bar):
+
+```clojure
+(foo| (bar)
+      (baz))
+```
+
+<kbd>backspace</kbd> => 
+
+```clojure
+(fo| (bar
+      (baz)))
+```
+
+That is `(baz)` is slurped. When what should happen is:
+
+```clojure
+(fo| (bar)
+     (baz))
+```
+
+### Lag causing errors when fast typing
+
+the way that Calva Parinfer works is that at eny edit of the document it first re-formats the code around the cursor, then infer brackets. Currently these two steps are not atomic to VS Code, so if you type fast bracket inference might happen on the yet unformatted code, and thus not be correct. You might also see the cursor end up at the wrong position at times.
 
 ## See also
 
