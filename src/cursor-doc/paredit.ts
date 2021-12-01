@@ -642,8 +642,7 @@ function _backspace(doc: EditableDocument, start: number, end: number, isStrict:
                 return new Promise<boolean>(resolve => resolve(true));
             } else {
                 return _killSelection(doc, start, end, KillDirection.BACKWARD, {
-                    undoStopBefore: true,
-                    parensInferred: true,
+                    undoStopBefore: true
                 });
             }
         }
