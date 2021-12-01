@@ -206,7 +206,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             model.lineInputModel.deletedLines.clear();
 
             const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
-            const formatForwardOn = formatConfig.getConfig()["format-forward-as-you-type"];
+            const formatForwardOn = formatConfig.getConfig()["full-format-on-type"];
             if ((parinferOn || formatForwardOn) && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
                 console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
                 let batchDone = false;
@@ -411,7 +411,7 @@ export class StatusBar {
     }
 
     update(vsCodeDoc: vscode.TextDocument) {
-        const doc: MirroredDocument = vsCodeDoc.languageId === 'clojure' ? getDocument(vsCodeDoc) : undefined;
+        const doc: MirroredDocument = vsCodeDoc?.languageId === 'clojure' ? getDocument(vsCodeDoc) : undefined;
 
         const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
         this._toggleParinferItem.text = parinferOn ? '$(circle-filled) ()' : '$(circle-outline) ()';

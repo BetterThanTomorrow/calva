@@ -4,10 +4,9 @@ import { cljfmtOptions } from '../../../out/cljs-lib/cljs-lib.js';
 import * as docMirror from '../../doc-mirror';
 
 type FormatConfig = {
-    "format-as-you-type": boolean,
     "keep-comment-forms-trail-paren-on-own-line?": boolean,
     "infer-parens-as-you-type": boolean,
-    "format-forward-as-you-type": boolean,
+    "full-format-on-type": boolean,
     "alert-on-parinfer-problems": boolean,
     "cljfmt-string": string,
     "cljfmt-options": any
@@ -40,8 +39,7 @@ function globalOrDefault(wsConfig: vscode.WorkspaceConfiguration, key: string) {
 
 function configuration(workspaceConfig: vscode.WorkspaceConfiguration, cljfmtString: string): FormatConfig {
     return {
-        "format-as-you-type": globalOrDefault(workspaceConfig, "formatAsYouType") as boolean,
-        "format-forward-as-you-type": globalOrDefault(workspaceConfig, "experimental.formatForwardAsYouType") as boolean,
+        "full-format-on-type": globalOrDefault(workspaceConfig, "experimental.fullFormatOnType") as boolean,
         "infer-parens-as-you-type": globalOrDefault(workspaceConfig, "experimental.inferParensAsYouType") as boolean,
         "alert-on-parinfer-problems": globalOrDefault(workspaceConfig, "experimental.alertOnParinferProblems") as boolean,
         "keep-comment-forms-trail-paren-on-own-line?": workspaceConfig.get("keepCommentTrailParenOnOwnLine"),
@@ -80,7 +78,7 @@ function _updateConfig(): FormatConfig {
         editorConfig.update("autoClosingOvertype", isStrict ? 'always' : 'never', true, true);                
     }
 
-    editorConfig.update("formatOnPaste", !(config['infer-parens-as-you-type'] || config['format-forward-as-you-type']), true, true);
+    editorConfig.update("formatOnPaste", !(config['infer-parens-as-you-type'] || config['full-format-on-type']), true, true);
         
     maybeNagAboutParinferExtension(config);
     if (!config["cljfmt-options"]["error"]) {
