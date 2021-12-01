@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1+insiders-4.0.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.2+insiders-4.1.0">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c296cc61.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.adb7b03c.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.fe799546.min.css">
@@ -48,12 +48,10 @@
     <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
-
   
 
 
   
-
   
 
 
@@ -470,9 +468,49 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_5">
+          Structural Editing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Structural Editing" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          Structural Editing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../output/" class="md-nav__link">
-        The Output/REPL Window
+      <a href="../paredit/" class="md-nav__link">
+        Paredit, a Visual Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parinfer/" class="md-nav__link">
+        Parinfer
       </a>
     </li>
   
@@ -499,9 +537,16 @@
   
   
     <li class="md-nav__item">
-      <a href="../paredit/" class="md-nav__link">
-        Paredit, a Visual Guide
+      <a href="../highlight/" class="md-nav__link">
+        Syntax Highlighting
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -515,6 +560,20 @@
     <li class="md-nav__item">
       <a href="../debugger/" class="md-nav__link">
         Debugger
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        The Output/REPL Window
       </a>
     </li>
   
@@ -1004,20 +1063,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../parinfer/" class="md-nav__link">
-        Parinfer
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -1404,93 +1449,25 @@
 <div class="highlight"><pre><span></span><code>    <span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="nt">&quot;editor.wordSeparators&quot;</span><span class="p">:</span> <span class="s2">&quot;\t ()\&quot;&#39;:,;~@#$%^&amp;{}[]`&quot;</span><span class="p">,</span>
         <span class="nt">&quot;editor.autoClosingBrackets&quot;</span><span class="p">:</span> <span class="s2">&quot;always&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;editor.autoClosingOvertype&quot;</span><span class="p">:</span> <span class="s2">&quot;always&quot;</span><span class="p">,</span>
         <span class="nt">&quot;editor.autoClosingQuotes&quot;</span><span class="p">:</span> <span class="s2">&quot;always&quot;</span><span class="p">,</span>
         <span class="nt">&quot;editor.formatOnType&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
         <span class="nt">&quot;editor.autoIndent&quot;</span><span class="p">:</span> <span class="s2">&quot;full&quot;</span><span class="p">,</span>
         <span class="nt">&quot;editor.formatOnPaste&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
         <span class="nt">&quot;files.trimTrailingWhitespace&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
         <span class="nt">&quot;editor.matchBrackets&quot;</span><span class="p">:</span> <span class="s2">&quot;never&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;editor.renderIndentGuides&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nt">&quot;editor.guides.indentation&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
         <span class="nt">&quot;editor.parameterHints.enabled&quot;</span><span class="p">:</span> <span class="kc">false</span>
     <span class="p">}</span>
 </code></pre></div>
 <div class="admonition note">
-<p class="admonition-title">Note</p>
+<p class="admonition-title"><code>editor.wordSeparators</code></p>
 <p>The above <code>editor.wordSeparators</code> setting establish Clojure word boundaries. E.g <code>-</code> is considered to be part of words. This affects what happens when double-clicking symbols and other things. If you want to include <code>-</code> or something else as a word boundary, just add it to the setting.</p>
 </div>
 <h2 id="pretty-printing">Pretty Printing</h2>
 <p>Calva's pretty printing mode can be configured a bit. See <a href="../pprint/">Pretty Printing</a>.</p>
 <h2 id="calva-highlight">Calva Highlight</h2>
-<p>Calva takes care of syntax highlighting, and also provides some features not available through VS Code's highlighting mechanism. These extras include rainbow parens, sane bracket matching, and comment form dimming/highlighting.</p>
-<p>You are in charge of how brackets and comments are highlighted via the <code>calva.highlight.&lt;setting&gt;</code> settings:</p>
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Meaning</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>enableBracketColors</code></td>
-<td>Enable rainbow colors</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>rainbowIndentGuides</code></td>
-<td>Enable rainbow indent guides</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>highlightActiveIndent</code></td>
-<td>Highlight the active indent guide</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>bracketColors</code></td>
-<td>Which colors to use</td>
-<td><code>["#000", "#999"]</code></td>
-</tr>
-<tr>
-<td><code>cycleBracketColors</code></td>
-<td>Whether same colors should be <br> reused for deeply nested brackets</td>
-<td><code>true</code></td>
-</tr>
-<tr>
-<td><code>misplacedBracketStyle</code></td>
-<td>Style of misplaced bracket</td>
-<td><code>{ "border": "2px solid #c33" }</code></td>
-</tr>
-<tr>
-<td><code>matchedBracketStyle</code></td>
-<td>Style of bracket pair highlight</td>
-<td><code>{"backgroundColor": "#E0E0E0"}</code></td>
-</tr>
-<tr>
-<td><code>ignoredFormStyle</code></td>
-<td>Style of <code>#_...</code> form</td>
-<td><code>{"textDecoration": "none; opacity: 0.5"}</code></td>
-</tr>
-<tr>
-<td><code>commentFormStyle</code></td>
-<td>Style of <code>(comment ...)</code> form</td>
-<td><code>{"fontStyle": "italic"}</code></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Calva disables the VS Code built-in indent guides</p>
-<p>The VS Code built-in settings <code>editor.renderIndentGuides</code> and <code>editor.highlightActiveIndent</code> do not have any effect, since the former is switched off by the <strong>Clojure Defaults</strong>, mentioned above. Use Calva Highlight's <code>rainbowIndentGuides</code> and <code>highlightActiveIndent</code> instead. They are different from the built in ones in that they are independent, meaning you can choose to have active indent highlighted while the guides generally are not rendered (this is the default, even).</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">VS Code bracket coloring vs Calva's</p>
-<p>Calva's bracket coloring is more Clojure aware than VS Code's built-in coloring. And also will chime better with Calva's indent guides. If you like to have bracket coloring outside Clojure code, by all means enable it. Calva's bracket coloring will ”over paint” in Clojure files, when enabled. These settings work nicely:</p>
-<div class="highlight"><pre><span></span><code><span class="s">&quot;calva.highlight.highlightActiveIndent&quot;</span><span class="err">:</span> <span class="nv">true</span>,
-<span class="s">&quot;editor.bracketPairColorization.enabled&quot;</span><span class="err">:</span> <span class="nv">true</span>,
-</code></pre></div>
-<p>The <code>calva.highlight.bracketColors</code> setting can be used to harmonize the coloring between VS Code and Calva.</p>
-</div>
+<p>See <a href="../highlight/">Clojure Syntax Highlighting</a> for customization options.</p>
 <h2 id="automatic-parameter-hints-poppup">Automatic Parameter Hints Poppup</h2>
 <p>Calva has helpful parameter hints to aid when typing function calls. They look like so:</p>
 <p><img width="353" alt="image" src="https://user-images.githubusercontent.com/30010/75957543-8cf4c180-5eba-11ea-8d77-1e543a73ef28.png"></p>
@@ -1681,7 +1658,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.81d897cb.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.93302429.min.js"></script>
+      <script src="../assets/javascripts/bundle.adafc647.min.js"></script>
       
     
   </body>

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Yes, you can use Calva with with the Parinfer extension">
+        <meta name="description" content="Learn how to leverage Calva Parinfer Mode for structural editing">
       
       
       
@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1+insiders-4.0.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.2+insiders-4.1.0">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c296cc61.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.adb7b03c.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.fe799546.min.css">
@@ -48,12 +48,10 @@
     <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
-
   
 
 
   
-
   
 
 
@@ -70,7 +68,7 @@
       
         <meta  property="og:title"  content="Parinfer - Calva User Guide" >
       
-        <meta  property="og:description"  content="Yes, you can use Calva with with the Parinfer extension" >
+        <meta  property="og:description"  content="Learn how to leverage Calva Parinfer Mode for structural editing" >
       
         <meta  property="og:image"  content="https://calva.io/assets/images/social/parinfer.png" >
       
@@ -86,7 +84,7 @@
       
         <meta  name="twitter:title"  content="Parinfer - Calva User Guide" >
       
-        <meta  name="twitter:description"  content="Yes, you can use Calva with with the Parinfer extension" >
+        <meta  name="twitter:description"  content="Learn how to leverage Calva Parinfer Mode for structural editing" >
       
         <meta  name="twitter:image"  content="https://calva.io/assets/images/social/parinfer.png" >
       
@@ -110,7 +108,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#using-calva-with-parinfer" class="md-skip">
+        <a href="#calva-parinfer-mode" class="md-skip">
           Skip to content
         </a>
       
@@ -387,12 +385,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
       
       
       
@@ -469,11 +469,176 @@
               
   
   
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_5">
+          Structural Editing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Structural Editing" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          Structural Editing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
   
     <li class="md-nav__item">
-      <a href="../output/" class="md-nav__link">
-        The Output/REPL Window
+      <a href="../paredit/" class="md-nav__link">
+        Paredit, a Visual Guide
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Parinfer
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Parinfer
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#infer-parens" class="md-nav__link">
+    Infer Parens
+  </a>
+  
+    <nav class="md-nav" aria-label="Infer Parens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parinfer-status-bar-items" class="md-nav__link">
+    Parinfer Status bar items
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#some-vs-code-settings-automatically-changed" class="md-nav__link">
+    Some VS Code Settings automatically changed
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-tab-indenting" class="md-nav__link">
+    No Tab indenting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paredit-is-still-there" class="md-nav__link">
+    Paredit is still there
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disable-the-parinfer-extension" class="md-nav__link">
+    Disable the Parinfer Extension
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quirks" class="md-nav__link">
+    Quirks
+  </a>
+  
+    <nav class="md-nav" aria-label="Quirks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-multi-cursor-support" class="md-nav__link">
+    No multi-cursor support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wrong-inferences" class="md-nav__link">
+    Wrong inferences
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lag-causing-errors-when-fast-typing" class="md-nav__link">
+    Lag causing errors when fast typing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    See also
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -499,9 +664,16 @@
   
   
     <li class="md-nav__item">
-      <a href="../paredit/" class="md-nav__link">
-        Paredit, a Visual Guide
+      <a href="../highlight/" class="md-nav__link">
+        Syntax Highlighting
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -515,6 +687,20 @@
     <li class="md-nav__item">
       <a href="../debugger/" class="md-nav__link">
         Debugger
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        The Output/REPL Window
       </a>
     </li>
   
@@ -676,14 +862,12 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
       
       
       
@@ -877,30 +1061,6 @@
       <a href="../static-only/" class="md-nav__link">
         Static Calva
       </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-    
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        Parinfer
-      </a>
-      
     </li>
   
 
@@ -1164,6 +1324,103 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#infer-parens" class="md-nav__link">
+    Infer Parens
+  </a>
+  
+    <nav class="md-nav" aria-label="Infer Parens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#parinfer-status-bar-items" class="md-nav__link">
+    Parinfer Status bar items
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#some-vs-code-settings-automatically-changed" class="md-nav__link">
+    Some VS Code Settings automatically changed
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-tab-indenting" class="md-nav__link">
+    No Tab indenting
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#paredit-is-still-there" class="md-nav__link">
+    Paredit is still there
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#disable-the-parinfer-extension" class="md-nav__link">
+    Disable the Parinfer Extension
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quirks" class="md-nav__link">
+    Quirks
+  </a>
+  
+    <nav class="md-nav" aria-label="Quirks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-multi-cursor-support" class="md-nav__link">
+    No multi-cursor support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wrong-inferences" class="md-nav__link">
+    Wrong inferences
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lag-causing-errors-when-fast-typing" class="md-nav__link">
+    Lag causing errors when fast typing
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    See also
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1180,16 +1437,77 @@
 
 
 
-<h1 id="using-calva-with-parinfer">Using Calva with Parinfer</h1>
-<p>Yes, you can use Calva with with the Parinfer extension. The only conflict here is that Calva's auto-formatting (that which happens as you type) is going to risk clash with Parinfer's.</p>
-<p>However, Calva's <a href="../paredit/">Paredit</a> is carefully crafted. If you don't already have an established preference for parinfer, we suggest you give it a try. Even parinfer veterans may find they prefer the explicit nature of paredit. It takes only some few minutes to learn two or three basic Paredit commands:</p>
+<h1 id="calva-parinfer-mode">Calva Parinfer Mode</h1>
+<p><a href="https://shaunlebron.github.io/parinfer/">Parinfer</a> is a system for editing the structure of LISP text without explicit commands. The structure can be regarded as already being expressed through indentation. With Parinfer you can use your intuition about the structure <em>inferred</em> from the indentation to perform surprisingly many structural edits.</p>
+<div class="admonition note">
+<p class="admonition-title">Experimental</p>
+<p>This feature is currently disabled by default and should be considered experimental. There are known <a href="#quirks">quirks</a>. Especially beginners should take note. Parinfer is not as beginner friendly as it might seem, and with the quirks it might be extra ”dangerous”.</p>
+</div>
+<h2 id="infer-parens">Infer Parens</h2>
+<p>When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no modes further Parinfer modes. Calva's auto-formatter will take care of keeping the code correctly indented.</p>
+<p>Enable it with from this setting: <code>calva.fmt.experimental.inferParensAsYouType</code> or from the status bar item.</p>
+<h3 id="parinfer-status-bar-items">Parinfer Status bar items</h3>
+<p>To the right on the status bar, right before the <a href="../paredit/">Paredit</a> status bar item, you will have two items, Parinfer toggle ON/OFF and a health indicator.</p>
+<ol>
+<li>Parinfer <strong>ON</strong>/<strong>OFF</strong> indicator/button. <kbd>•()</kbd> (The dot/circle indicates <strong>ON</strong>/<strong>OFF</strong>)</li>
+<li>Structure and indentation health indicator. <kbd>✔️</kbd>/<kbd>⚠</kbd>/<kbd>⊘</kbd></li>
+</ol>
+<p>When Parinfer is <strong>ON</strong>, the health indicator will have three states:</p>
+<ol>
+<li><kbd>✔️</kbd> Healthy - meaning both structure and indentation is OK</li>
+<li><kbd>⊘</kbd> Structure broken - you need to fix the the structure of the code</li>
+<li><kbd>⚠</kbd> Bad indentation - meaning that to Parinfer the structure and indentation do not match, _the item is now also a button with which you can fix the indentation.</li>
+</ol>
+<p>Parinfer will be disabled in both the unhealthy states.</p>
+<p>When Parinfer is OFF, only the first two states above are used.</p>
+<h2 id="some-vs-code-settings-automatically-changed">Some VS Code Settings automatically changed</h2>
+<p>In order for some automatic VS Code behaviour not to interfere with Parinfer the following settings are automatically configured when you toggle Parinfer ON:</p>
+<div class="highlight"><pre><span></span><code>    <span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;editor.autoClosingBrackets&quot;</span><span class="p">:</span> <span class="s2">&quot;never&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;editor.autoClosingOvertype&quot;</span><span class="p">:</span> <span class="s2">&quot;never&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;editor.formatOnPaste&quot;</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">},</span>
+</code></pre></div>
+<p>And when you toggle Parinfer OFF:</p>
+<div class="highlight"><pre><span></span><code>    <span class="nt">&quot;[clojure]&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;editor.autoClosingBrackets&quot;</span><span class="p">:</span> <span class="s2">&quot;always&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;editor.autoClosingOvertype&quot;</span><span class="p">:</span> <span class="s2">&quot;always&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;editor.formatOnPaste&quot;</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">},</span>
+</code></pre></div>
+<p>It is recommended that you let Calva handle these settings to avoid weird behaviour.</p>
+<h2 id="no-tab-indenting">No Tab indenting</h2>
+<p>As the <code>tab</code> key is used for formatting the current form in Calva, it is ”taken”. The closest equivalents you have are <code>space</code> and <code>backspace</code>. At least for now. We'll see if we can find out a good way for supporting <code>tab</code> and <code>shift+tab</code> for indent and dedent.</p>
+<p><code>tab</code> for formatting is of course just a default key binding and you can assign it to something else to get it to do indenting. However, it will not be a very smart indent anyway, there is no Clojure awareness about it. You are hereby adviced to instead use some more spaces.</p>
+<h2 id="paredit-is-still-there">Paredit is still there</h2>
+<p>In Calva, Parinfer and <a href="../paredit/">Paredit</a> are designed to coexist and both be there to let you edit the structure easily and efficiently. Since Paredit commands are always formatted, they leave the code in a state where Parinfer has what it needs to infer bracket placement as you either edit the indentation, or remove/add brackets.</p>
+<h2 id="disable-the-parinfer-extension">Disable the Parinfer Extension</h2>
+<p>If you want to have Parinfer you are probably best served by Calva's built-in version. It is designed, and will continue to be improved to function well together with Calva's other structural editing and formatting features. <em>It will also probably conflict with the Parinfer Extension.</em></p>
+<h2 id="quirks">Quirks</h2>
+<p>There are some known quirks, of varying severity, with this feature. Some of them will need to be fixed before we move this feature out of <strong>Experimental</strong> status.</p>
+<p>For the most times you can always <em>Undo</em> to get back to where the document was fine. You just need to pay some attention and be aware when undo is needed.</p>
+<h3 id="no-multi-cursor-support">No multi-cursor support</h3>
+<p>The bracket inference will remove all cursors but the first one. So for instance if you edit with multiple cursors and it causes brackets to move, you'll end up with just one cursor and the subsequent edits will not be what you intended. This is particularly important to note when you have cursors that are not in the viewport. In such cases it might be better to turn Parinfer off while you do the edits, fix formatting and such manually and then switch Parinfer on again.</p>
+<h3 id="wrong-inferences">Wrong inferences</h3>
+<p>For yet unknown reasons an edit such as the following does the wrong thing (the cursor indicated by the vertical bar):</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">foo|</span> <span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
+      <span class="p">(</span><span class="nf">baz</span><span class="p">))</span>
+</code></pre></div>
+<p><kbd>backspace</kbd> =&gt; </p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span> <span class="p">(</span><span class="nf">bar</span>
+      <span class="p">(</span><span class="nf">baz</span><span class="p">)))</span>
+</code></pre></div>
+<p>That is <code>(baz)</code> is slurped. When what should happen is:</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="nf">fo|</span> <span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
+     <span class="p">(</span><span class="nf">baz</span><span class="p">))</span>
+</code></pre></div>
+<h3 id="lag-causing-errors-when-fast-typing">Lag causing errors when fast typing</h3>
+<p>the way that Calva Parinfer works is that at eny edit of the document it first re-formats the code around the cursor, then infer brackets. Currently these two steps are not atomic to VS Code, so if you type fast bracket inference might happen on the yet unformatted code, and thus not be correct. You might also see the cursor end up at the wrong position at times.</p>
+<h2 id="see-also">See also</h2>
 <ul>
-<li><strong>Select form</strong></li>
-<li><strong>Slurp</strong></li>
-<li><strong>Barf</strong></li>
+<li><a href="../paredit/">Paredit</a></li>
+<li><a href="../formatting/">Formatting</a></li>
 </ul>
-<p>Also, if you find yourself having deleted or added a bracket out of structure, despite Calva Paredit's <strong>Strict mode</strong> (which you are using, right?) there is a command that might help you heal the structure: <strong>Infer Parens from Indentation</strong>. That command is actually implemented using the Parinfer library, so it will let you recover from quite many situations. This command is bound to <code>shift+tab</code> by default, making it a good companion to <code>tab</code> which indents based on bracket structure. </p>
-<p>All that said, what was said first is true: if you want to use the Parinfer extension, you can. You'll probably want to disable Calva's auto-formatting. The setting for controlling this is named <code>calva.fmt.formatAsYouType</code>.</p>
 
   
 
@@ -1209,7 +1527,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../static-only/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Static Calva" rel="prev">
+        <a href="../paredit/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Paredit, a Visual Guide" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1218,20 +1536,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Static Calva
+              Paredit, a Visual Guide
             </div>
           </div>
         </a>
       
       
         
-        <a href="../emacs-keybindings/" class="md-footer__link md-footer__link--next" aria-label="Next: Emacs Keybindings" rel="next">
+        <a href="../formatting/" class="md-footer__link md-footer__link--next" aria-label="Next: Clojure Formatting" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Emacs Keybindings
+              Clojure Formatting
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -1265,7 +1583,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.81d897cb.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.93302429.min.js"></script>
+      <script src="../assets/javascripts/bundle.adafc647.min.js"></script>
       
     
   </body>

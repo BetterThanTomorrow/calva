@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1+insiders-4.0.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.2+insiders-4.1.0">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c296cc61.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.adb7b03c.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.fe799546.min.css">
@@ -48,12 +48,10 @@
     <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
-
   
 
 
   
-
   
 
 
@@ -471,10 +469,52 @@
               
   
   
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_5">
+          Structural Editing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Structural Editing" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          Structural Editing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
   
     <li class="md-nav__item">
-      <a href="../output/" class="md-nav__link">
-        The Output/REPL Window
+      <a href="../paredit/" class="md-nav__link">
+        Paredit, a Visual Guide
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parinfer/" class="md-nav__link">
+        Parinfer
       </a>
     </li>
   
@@ -529,6 +569,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#cljfmt" class="md-nav__link">
+    cljfmt
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#indentation-rules" class="md-nav__link">
     Indentation rules
   </a>
@@ -562,9 +609,16 @@
   
   
     <li class="md-nav__item">
-      <a href="../paredit/" class="md-nav__link">
-        Paredit, a Visual Guide
+      <a href="../highlight/" class="md-nav__link">
+        Syntax Highlighting
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -578,6 +632,20 @@
     <li class="md-nav__item">
       <a href="../debugger/" class="md-nav__link">
         Debugger
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        The Output/REPL Window
       </a>
     </li>
   
@@ -943,20 +1011,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../parinfer/" class="md-nav__link">
-        Parinfer
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -1230,6 +1284,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#cljfmt" class="md-nav__link">
+    cljfmt
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#indentation-rules" class="md-nav__link">
     Indentation rules
   </a>
@@ -1281,10 +1342,6 @@
 <li>formats the current form, <em>aligning map keys and values</em>, when you press <code>ctrl+alt+l</code></li>
 <li>formats <code>(comment ..)</code> forms special, see <a href="#rich-comments">rich comments</a></li>
 </ul>
-<div class="admonition tips">
-<p class="admonition-title">Tips</p>
-<p>Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to <code>shift+tab</code> to form a nicely balanced pair with the <code>tab</code> formatting.</p>
-</div>
 <p>Also: If you have <strong>Format on Save</strong> enabled in VS Code, it will be Calva doing the formatting for Clojure files.</p>
 <p>Calva's formatting is mostly about indenting, but it also (again, defaults):</p>
 <ul>
@@ -1297,6 +1354,40 @@
 </ul>
 <p>Not a fan of some default setting? The formatter is quite configurable.</p>
 <h2 id="configuration">Configuration</h2>
+<p>There are settings for the general behaviour of Calva formatting as well as for configuring <code>cljfmt</code>, which is the formatting engine used.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>calva.fmt.newIndentEngine</code></td>
+<td>Fast indentation. When disabled, a full formatting will be done on the current enclosing form.</td>
+<td><strong>true</strong></td>
+</tr>
+<tr>
+<td><code>calva.fmt.experimental.fullFormatOnType</code></td>
+<td>Experimental: Formats forms starting on the same line, forwards from the cursor as you enter or delete text. Also enabled as part of <a href="../parinfer/">Parinfer</a> mode (<code>inferParensAsYouType</code>)</td>
+<td><strong>false</strong></td>
+</tr>
+<tr>
+<td><code>calva.fmt.experimental.inferParensAsYouType</code></td>
+<td>Experimental: <a href="../parinfer/">Parinfer</a> mode</td>
+<td><strong>false</strong></td>
+</tr>
+<tr>
+<td><code>calva.fmt.keepCommentTrailParenOnOwnLine</code></td>
+<td>See <a href="../rich-comments/">Rich Comments</a></td>
+<td><strong>true</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Calva's auto-formatter will reformat forms that are directly affected by your edits, and it will automatically indent new lines to match your <code>cljfmt</code> indentation settings. See below.</p>
+<h3 id="cljfmt">cljfmt</h3>
 <p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1365,7 +1456,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../output/" class="md-footer__link md-footer__link--prev" aria-label="Previous: The Output/REPL Window" rel="prev">
+        <a href="../parinfer/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Parinfer" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1374,20 +1465,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              The Output/REPL Window
+              Parinfer
             </div>
           </div>
         </a>
       
       
         
-        <a href="../paredit/" class="md-footer__link md-footer__link--next" aria-label="Next: Paredit, a Visual Guide" rel="next">
+        <a href="../highlight/" class="md-footer__link md-footer__link--next" aria-label="Next: Syntax Highlighting" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Paredit, a Visual Guide
+              Syntax Highlighting
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -1421,7 +1512,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.81d897cb.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.93302429.min.js"></script>
+      <script src="../assets/javascripts/bundle.adafc647.min.js"></script>
       
     
   </body>

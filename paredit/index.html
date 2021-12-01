@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.1+insiders-4.0.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.2+insiders-4.1.0">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c296cc61.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.adb7b03c.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.fe799546.min.css">
@@ -48,12 +48,10 @@
     <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
     
       
-
   
 
 
   
-
   
 
 
@@ -471,29 +469,29 @@
               
   
   
-  
-    <li class="md-nav__item">
-      <a href="../output/" class="md-nav__link">
-        The Output/REPL Window
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
+    
   
   
-  
-    <li class="md-nav__item">
-      <a href="../formatting/" class="md-nav__link">
-        Clojure Formatting
-      </a>
-    </li>
-  
-
-            
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_5">
+          Structural Editing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Structural Editing" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          Structural Editing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
           
             
               
@@ -545,19 +543,6 @@
   <a href="#strict-mode" class="md-nav__link">
     Strict Mode
   </a>
-  
-    <nav class="md-nav" aria-label="Strict Mode">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prevent-unbalanced-closing-brackets" class="md-nav__link">
-    Prevent Unbalanced Closing Brackets
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -616,6 +601,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    See also
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheering-ons" class="md-nav__link">
+    Cheering-ons
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -631,8 +630,71 @@
   
   
     <li class="md-nav__item">
+      <a href="../parinfer/" class="md-nav__link">
+        Parinfer
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../formatting/" class="md-nav__link">
+        Clojure Formatting
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../highlight/" class="md-nav__link">
+        Syntax Highlighting
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../debugger/" class="md-nav__link">
         Debugger
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output/" class="md-nav__link">
+        The Output/REPL Window
       </a>
     </li>
   
@@ -998,20 +1060,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../parinfer/" class="md-nav__link">
-        Parinfer
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -1288,19 +1336,6 @@
     Strict Mode
   </a>
   
-    <nav class="md-nav" aria-label="Strict Mode">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prevent-unbalanced-closing-brackets" class="md-nav__link">
-    Prevent Unbalanced Closing Brackets
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1358,6 +1393,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    See also
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheering-ons" class="md-nav__link">
+    Cheering-ons
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1377,7 +1426,7 @@
 
 
 <h1 id="paredit-a-visual-guide">Paredit – a Visual Guide</h1>
-<p>Structural editing and navigation for Clojure.</p>
+<p>Structural editing and navigation for Clojure. Works great together with <a href="../parinfer/">Parinfer</a>.</p>
 <h2 id="what-is-paredit">What is Paredit?</h2>
 <p>Calva Paredit helps you navigate, select and edit Clojure code in a structural way. LISP isn't line or character oriented, it is based around <a href="https://en.wikipedia.org/wiki/S-expression">S-expressions</a>, a.k.a forms. We strongly recommend that you take advantage of the structural nature of Clojure, and have therefore put a lot of work into making Calva Paredit extra awesome.</p>
 <p>If you are new to Paredit, consider starting with learning the <strong>Slurp Forward</strong> (pull in the next form into this form) and <strong>Barf Forward</strong> (push the last form out of this form). It will take you quite far.</p>
@@ -1437,9 +1486,12 @@
 </tr>
 </tbody>
 </table>
+<p>Strict mode also inserts matching brackets when you type an open bracket.</p>
 <p>Toggle between Strict and Cave Man using: <code>ctrl+alt+p ctrl+alt+m</code></p>
-<h3 id="prevent-unbalanced-closing-brackets">Prevent Unbalanced Closing Brackets</h3>
-<p>There is also a setting, <code>calva.paredit.strictPreventUnmatchedClosingBracket</code>, that will help you to not enter unbalanced closing brackets into the code.</p>
+<div class="admonition note">
+<p class="admonition-title">Parinfer is strict mode</p>
+<p>When you are using Calva's <a href="../parinfer/">Parinfer</a> mode, then this strictness is handled by Parinfer. It is recommended that you leave this setting on regardless.</p>
+</div>
 <h2 id="commands">Commands</h2>
 <p>The Paredit commands are sorted into <strong>Navigation</strong>, <strong>Selection</strong>, and <strong>Edit</strong>. As mentioned, <strong>Slurp</strong> and <strong>Barf</strong> are power commands, which go into the editing category. Learning to navigate structurally, using shortcuts, also saves time and adds precision to your editing. It has the double effect that you at the same time learn how to select structurally, because that is the same, just adding the shift key.</p>
 <p>To make the command descriptions a bit clearer, each entry is animated. When you try to figure out what is going on in the GIFs, focus on where the cursor is at the start of the animation loop.</p>
@@ -1725,6 +1777,12 @@
 <p>There are some context keys you can utilize to configure keyboard shortcuts with precision. See <a href="../customizing/#when-clause-contexts">Customizing Keyboard Shortcuts</a>.</p>
 <p><em>The Nuclear Option</em>: You can choose to disable all default key bindings by configuring <code>calva.paredit.defaultKeyMap</code> to <code>none</code>. (Then you probably also want to register your own shortcuts for the commands you often use.)</p>
 <p>In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of <em>Expand Selection</em> and <em>Shrink Selection</em> for Windows/Linux when multiple lines are selected. In this particular case adding <code>!editorHasMultipleSelections</code> to the <code>when</code> clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right <code>when</code> clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.</p>
+<h2 id="see-also">See also</h2>
+<ul>
+<li><a href="../parinfer/">Parinfer</a></li>
+<li><a href="../formatting/">Formatting</a></li>
+</ul>
+<h2 id="cheering-ons">Cheering-ons</h2>
 <p>Happy Editing! ❤️</p>
 
   
@@ -1745,7 +1803,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../formatting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Clojure Formatting" rel="prev">
+        <a href="../clojuredocs/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ClojureDocs Integration" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1754,20 +1812,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Clojure Formatting
+              ClojureDocs Integration
             </div>
           </div>
         </a>
       
       
         
-        <a href="../debugger/" class="md-footer__link md-footer__link--next" aria-label="Next: Debugger" rel="next">
+        <a href="../parinfer/" class="md-footer__link md-footer__link--next" aria-label="Next: Parinfer" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Debugger
+              Parinfer
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -1801,7 +1859,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.81d897cb.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.93302429.min.js"></script>
+      <script src="../assets/javascripts/bundle.adafc647.min.js"></script>
       
     
   </body>
