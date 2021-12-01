@@ -5,7 +5,7 @@ import * as formatter from '../format';
 
 export class FormatOnTypeEditProvider implements vscode.OnTypeFormattingEditProvider {
     async provideOnTypeFormattingEdits(document: vscode.TextDocument, p: vscode.Position, ch: string, _options): Promise<vscode.TextEdit[]> {
-        console.count(`provideOnTypeFormattingEdits, ch: ${ch}`);
+        //console.count(`provideOnTypeFormattingEdits, ch: ${ch}`);
         const editor = vscode.window.activeTextEditor;
         const pos = editor.selection.active;
         if (vscode.workspace.getConfiguration("editor").get("formatOnType") && !(getConfig()['infer-parens-as-you-type'] || getConfig()['full-format-on-type'])) {

@@ -84,9 +84,9 @@ export function indexForFormatForward(document: docModel.EditableDocument, p = d
 
 
 export async function formatForward(document: docModel.EditableDocument, p = document.selection.active, onType = true) {
-    console.count(`formatForward, p: ${p}`);
+    //console.count(`formatForward, p: ${p}`);
     const index = indexForFormatForward(document, p);
-    console.count(`formatForward, indexForFormatForward: ${index}`);
+    //console.count(`formatForward, indexForFormatForward: ${index}`);
     if (index !== p) {
         await formatPositionEditableDoc(document, onType, {
             index: index,
@@ -160,7 +160,7 @@ export function formatPositionInfoEditableDoc(document: docModel.EditableDocumen
 }
 
 export function formatRangeEditableDoc(document: docModel.EditableDocument, range: [number, number], onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    console.count(`formatRangeEditableDoc: ${range}`);
+    //console.count(`formatRangeEditableDoc: ${range}`);
     const config = {
         ...extraConfig,
         performFormatAsYouType: false
@@ -170,9 +170,9 @@ export function formatRangeEditableDoc(document: docModel.EditableDocument, rang
 }
 
 export function formatPositionEditableDoc(document: docModel.EditableDocument, onType: boolean = false, extraConfig = {}): Thenable<boolean> {
-    console.count(`formatPositionEditableDoc`);
+    //console.count(`formatPositionEditableDoc`);
     const formattedInfo = formatPositionInfoEditableDoc(document, onType, { performFormatAsYouType: true, ...extraConfig });
-    console.count(`formatPositionEditableDoc, formattedInfo: ${formattedInfo}`);
+    //console.count(`formatPositionEditableDoc, formattedInfo: ${formattedInfo}`);
     return performFormatEditableDoc(document, formattedInfo, onType, extraConfig);
 }
 

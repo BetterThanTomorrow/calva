@@ -23,7 +23,7 @@ function rowColToOffset(document: docModel.EditableDocument, row: number, col: n
 }
 
 export async function inferParens(document: docModel.EditableDocument): Promise<Results> {
-    console.count(`inferParens`);
+    //console.count(`inferParens`);
     const [row, col] = document.getTokenCursor().rowCol;
     const currentText = document.model.getText(0, Infinity);
     const r: Results = calvaLib.inferParens({

@@ -182,7 +182,7 @@ let registered = false;
 function processChanges(event: vscode.TextDocumentChangeEvent) {
     const changeId = Math.random();
     if (event.contentChanges.length > 0) {
-        console.count(`${changeId}: processChanges: ${event.contentChanges.length}`);
+        //console.count(`${changeId}: processChanges: ${event.contentChanges.length}`);
         const mirroredDoc = documents.get(event.document);
         const model = mirroredDoc.model;
         if (!mirroredDoc.parinferReadinessBeforeChange) {
@@ -191,7 +191,7 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
         const cursor = mirroredDoc.getTokenCursor();
         const edits: ModelEdit[] = event.contentChanges.map(change => {
             // vscode may have a \r\n marker, so it's line offsets are all wrong.
-            console.count(`${changeId}: processChanges building edits: ${change.range}`);
+            //console.count(`${changeId}: processChanges building edits: ${change.range}`);
             const myStartOffset = model.getOffsetForLine(change.range.start.line) + change.range.start.character;
             const myEndOffset = model.getOffsetForLine(change.range.end.line) + change.range.end.character;
             return new ModelEdit('changeRange', [myStartOffset, myEndOffset, change.text.replace(/\r\n/g, '\n')]);
@@ -208,21 +208,21 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
             const parinferOn = formatConfig.getConfig()["infer-parens-as-you-type"];
             const formatForwardOn = formatConfig.getConfig()["full-format-on-type"];
             if ((parinferOn || formatForwardOn) && fulfilled && (event.reason != vscode.TextDocumentChangeReason.Undo && event.reason != vscode.TextDocumentChangeReason.Redo)) {
-                console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
+                //console.count(`${changeId}: processChanges edits applied .then: ${fulfilled}`);
                 let batchDone = false;
                 if (event.document === vscode.window.activeTextEditor?.document) {
-                    console.count(`${changeId}: processChanges edits applied .then: ${event.contentChanges[0].text}`);
+                    //console.count(`${changeId}: processChanges edits applied .then: ${event.contentChanges[0].text}`);
                     if (!mirroredDoc.pcFormatStarted || !mirroredDoc.pcInferStarted) {
                         if (!mirroredDoc.pcFormatStarted) {
                             mirroredDoc.pcFormatStarted = true;
-                            console.count(`${changeId}: processChanges edits applied .then performFormatAsYouType`)
+                            //console.count(`${changeId}: processChanges edits applied .then performFormatAsYouType`)
                             // if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/[\[\](){}]/) && !cursor.withinString()) {
                             if (event.contentChanges.length === 1 && event.contentChanges[0].text.match(/\n/) && !cursor.withinString()) {
                                 const change = event.contentChanges[0];
                                 const start = event.document.offsetAt(change.range.start);
                                 const formatForwardIndex = formatter.indexForFormatForward(mirroredDoc);
                                 const end = formatForwardIndex !== mirroredDoc.selection.active ? formatForwardIndex + 1 : mirroredDoc.selection.active;
-                                console.count(`${changeId}: changeRange: ${[start, end]}`)
+                                //console.count(`${changeId}: changeRange: ${[start, end]}`)
                                 const checkDoc = new StringDocument(mirroredDoc.model.getText(start, end));
                                 if (parinfer.getParinferReadiness(checkDoc).isStructureHealthy) {
                                     await formatter.formatPositionEditableDoc(mirroredDoc, true, { "format-depth": 2 });
@@ -239,13 +239,13 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                                 batchDone = true;
                                 if (mirroredDoc.shouldInferParens) {
                                     if (mirroredDoc.parinferReadinessBeforeChange.isStructureHealthy && mirroredDoc.parinferReadinessBeforeChange.isIndentationHealthy) {
-                                        console.count(`${changeId}: inferParens`);
+                                        //console.count(`${changeId}: inferParens`);
                                         await parinfer.inferParens(mirroredDoc);
                                     } else {
-                                        console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
+                                        //console.count(`${changeId}: skipped inferParens, because: ${mirroredDoc.parinferReadinessBeforeChange}`);
                                     }
                                 } else {
-                                    console.count(`${changeId}: skipped inferParens, because, mirroredDoc.shouldInferParens: ${mirroredDoc.shouldInferParens}`);
+                                    //console.count(`${changeId}: skipped inferParens, because, mirroredDoc.shouldInferParens: ${mirroredDoc.shouldInferParens}`);
                                 }
                             }
                         } else {
@@ -258,18 +258,18 @@ function processChanges(event: vscode.TextDocumentChangeEvent) {
                         mirroredDoc.shouldInferParens = true;
                         mirroredDoc.parinferReadinessBeforeChange = null;
                         mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                        console.count(`${changeId}: processChanges edits applied last in .then`);            
+                        //console.count(`${changeId}: processChanges edits applied last in .then`);            
                         statusBar.update(vscode.window.activeTextEditor?.document);
                     }
                 }
             } else {
                 mirroredDoc.parinferReadinessBeforeChange = null;
                 mirroredDoc.model.parinferReadiness = parinfer.getParinferReadiness(mirroredDoc);
-                console.count(`${changeId}: processChanges, parinfer and format forward off`);            
+                //console.count(`${changeId}: processChanges, parinfer and format forward off`);            
                 statusBar.update(vscode.window.activeTextEditor?.document);
             }
         }).then(fulfilled => {
-            console.log(`${changeId}: processChanges done.`)
+            //console.log(`${changeId}: processChanges done.`)
         });
     }
 }
@@ -296,7 +296,7 @@ function addDocument(doc: vscode.TextDocument): boolean {
             document.model.parinferReadiness = parinfer.getParinferReadiness(document);
             utilities.isDocumentWritable(doc).then(r => {
                 document.model.isWritable = r;
-                console.count(`addDocument, isDocumentWritable, .then: ${r}`);
+                //console.count(`addDocument, isDocumentWritable, .then: ${r}`);
                 statusBar.update(vscode.window.activeTextEditor?.document);
             }).catch(e => {
                 console.error("Writable check failed:", e)
@@ -356,7 +356,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
         if (e) {
-            console.count(`onDidChangeActiveTextEditor: ${e.document?.fileName}`)
+            //console.count(`onDidChangeActiveTextEditor: ${e.document?.fileName}`)
             statusBar.update(e.document);
         }
     });
