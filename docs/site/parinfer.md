@@ -12,7 +12,7 @@ description: Learn how to leverage Calva Parinfer Mode for structural editing
 
 ## Infer Parens
 
-When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no modes further Parinfer modes. Calva's auto-formatter will take care of keeping the code correctly indented.
+When you enable Calva's Parinfer it is all about infering brackets from indentation. There are no further Parinfer modes. Calva's auto-formatter will take care of keeping the code correctly indented.
 
 Enable it with from this setting: `calva.fmt.experimental.inferParensAsYouType` or from the status bar item.
 
@@ -106,7 +106,7 @@ That is `(baz)` is slurped. When what should happen is:
 
 ### Lag causing errors when fast typing
 
-the way that Calva Parinfer works is that at eny edit of the document it first re-formats the code around the cursor, then infer brackets. Currently these two steps are not atomic to VS Code, so if you type fast bracket inference might happen on the yet unformatted code, and thus not be correct. You might also see the cursor end up at the wrong position at times.
+The way that Calva Parinfer works is that for any edit of the document it first reformats the code around the cursor, then infer brackets. Currently these two steps are not atomic to VS Code, so if you type fast bracket inference might happen on the yet unformatted code, and thus not be correct. You might also see the cursor end up at the wrong position at times.
 
 ## See also
 
