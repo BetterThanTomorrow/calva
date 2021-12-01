@@ -178,10 +178,10 @@ export function formatPositionEditableDoc(document: docModel.EditableDocument, o
 
 function performFormatEditableDoc(document: docModel.EditableDocument, formattedInfo, onType: boolean, extraConfig = {}): Thenable<boolean> {
     const adjustSelection = extraConfig['adjustSelection'] === undefined || extraConfig['adjustSelection'];
-    console.log(`performFormatEditableDoc, adjustSelection: ${adjustSelection}`);
+    //console.count(`performFormatEditableDoc, adjustSelection: ${adjustSelection}`);
     if (formattedInfo) {
         const newSelectionConfig = adjustSelection ? { selection: new docModel.ModelEditSelection(formattedInfo.newIndex) } : {};
-        console.log(`performFormatEditableDoc, formattedInfo.previousText != formattedInfo.formattedText: ${formattedInfo.previousText != formattedInfo.formattedText}`);
+        //console.count(`performFormatEditableDoc, formattedInfo.previousText != formattedInfo.formattedText: ${formattedInfo.previousText != formattedInfo.formattedText}`);
         if (formattedInfo.previousText != formattedInfo.formattedText) {
             return document.model.edit([
                 new docModel.ModelEdit('changeRange', [formattedInfo.range[0], formattedInfo.range[1], formattedInfo.formattedText.replace(/\r\n/g, '\n')])
