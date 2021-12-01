@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Test runner not finding tests with + in middle of the name](https://github.com/BetterThanTomorrow/calva/issues/1383)
 
 ## [2.0.226] - 2021-11-29
 - Internal: [Handle the unknown-op status from test commands](https://github.com/BetterThanTomorrow/calva/pull/1365)
