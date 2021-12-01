@@ -422,8 +422,8 @@ export class NReplSession {
                     "ns-query": {
                         exactly: [ns]
                     },
-                    search: test,
-                    "search-property": "name"
+                    search: util.escapeStringRegexp(test),
+                    'test?': true
                 }
             });
         });
