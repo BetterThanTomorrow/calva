@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as _ from 'lodash';
 import evaluate from './evaluate';
 import * as util from './utilities';
 import { disabledPrettyPrinter } from './printer';
@@ -12,18 +11,9 @@ import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-function resultMessage(resultItem: Readonly<cider.TestResult>): string {
-    let msg = [];
-    if (!_.isEmpty(resultItem.context) && resultItem.context !== "false")
-        msg.push(resultItem.context);
-    if (resultItem.message)
-        msg.push(resultItem.message);
-    return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
-}
 
 function reportTests(results: cider.TestResults[]) {
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
-    let total_summary: cider.TestSummary = { test: 0, error: 0, ns: 0, var: 0, fail: 0, pass: 0 };
     diagnosticCollection.clear();
 
     for (let result of results) {
@@ -37,7 +27,7 @@ function reportTests(results: cider.TestResults[]) {
                         }
                     }
 
-                    const message = resultMessage(a);
+                    const message = cider.resultMessage(a);
 
                     if (a.type === "error") {
                         outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
@@ -61,33 +51,19 @@ function reportTests(results: cider.TestResults[]) {
                 }
             }
         }
-        if (result.summary !== null) {
-            _.each(result.summary, (v, k) => {
-                total_summary[k] = result.summary[k] + (total_summary[k] !== undefined ? total_summary[k] : 0);
-            });
-        }
     }
 
-    let hasProblems = total_summary.error + total_summary.fail > 0;
-    outputWindow.append("; " + (total_summary.test > 0 ?
-        total_summary.test + " tests finished, " +
-        (!hasProblems ? "all passing 👍" :
-            "problems found. 😭" +
-            " errors: " + total_summary.error + ", failures: " + total_summary.fail) : "No tests found. 😱") +
-        ", ns: " + total_summary.ns + ", vars: " + total_summary.var);
+    const summary = cider.totalSummary(results.map(r => r.summary));
+    outputWindow.append("; " + cider.summaryMessage(summary));
 
-    if (total_summary.test > 0) {
-        if (hasProblems) {
-            _.each(diagnostics, (errors, fileName) => {
-                if (fileName.startsWith('/'))
-                    diagnosticCollection.set(vscode.Uri.file(fileName), errors);
-                else {
-                    // Sometimes we don't get the full path for some reason. (This is a very inexact
-                    // way of dealing with that. Maybe check for the right `ns`in the file?)
-                    vscode.workspace.findFiles('**/' + fileName, undefined).then((uri) => {
-                        diagnosticCollection.set(uri[0], errors);
-                    });
-                }
+    for (const fileName in diagnostics) {
+        if (fileName.startsWith('/')) {
+            diagnosticCollection.set(vscode.Uri.file(fileName), diagnostics[fileName]);
+        } else {
+            // Sometimes we don't get the full path for some reason. (This is a very inexact
+            // way of dealing with that. Maybe check for the right `ns`in the file?)
+            vscode.workspace.findFiles('**/' + fileName, undefined).then((uri) => {
+                diagnosticCollection.set(uri[0], diagnostics[fileName]);
             });
         }
     }
