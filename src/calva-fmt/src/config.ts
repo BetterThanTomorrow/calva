@@ -72,16 +72,16 @@ function _updateConfig(): FormatConfig {
     if (config['infer-parens-as-you-type']) {
         editorConfig.update("autoClosingBrackets", 'never', true, true);
         editorConfig.update("autoClosingOvertype", 'never', true, true);
-        editorConfig.update("formatOnPaste", false, true, true);
     } else {
         let keyMap = vscode.workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
         keyMap = String(keyMap).trim().toLowerCase();
         const isStrict = keyMap === 'strict';
         editorConfig.update("autoClosingBrackets", isStrict ? 'always' : 'never', true, true);                
         editorConfig.update("autoClosingOvertype", isStrict ? 'always' : 'never', true, true);                
-        editorConfig.update("formatOnPaste", true, true, true);
     }
 
+    editorConfig.update("formatOnPaste", !(config['infer-parens-as-you-type'] || config['format-forward-as-you-type']), true, true);
+        
     maybeNagAboutParinferExtension(config);
     if (!config["cljfmt-options"]["error"]) {
         return config;
