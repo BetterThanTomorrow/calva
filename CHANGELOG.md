@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.228] - 2021-12-02
 - Revert: Parinfer Experimental
 - Revert: Full Format Experimental
 - Revert: Remove `calva.fmt.formatAsYouType` option
