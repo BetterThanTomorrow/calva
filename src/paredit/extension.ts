@@ -6,6 +6,7 @@ import { Event, EventEmitter } from 'vscode';
 import * as paredit from '../cursor-doc/paredit';
 import * as docMirror from '../doc-mirror/index';
 import { EditableDocument } from '../cursor-doc/model';
+import * as formatConfig from '../calva-fmt/src/config';
 
 let onPareditKeyMapChangedEmitter = new EventEmitter<String>();
 
@@ -296,19 +297,35 @@ const pareditCommands: PareditCommand[] = [
     },
     {
         command: 'paredit.deleteForward',
-        handler: paredit.deleteForward
-    },
-    {
-        command: 'paredit.deleteBackward',
-        handler: paredit.backspace
+        handler: (doc: EditableDocument) => {
+            formatConfig.getConfig()['infer-parens-as-you-type'] ?
+                paredit.deleteForwardNonStrict(doc) :
+                paredit.deleteForward(doc)
+        }
     },
     {
         command: 'paredit.forceDeleteForward',
-        handler: () => { vscode.commands.executeCommand('deleteRight') }
+        handler: paredit.deleteForwardForce
+    },
+    {
+        command: 'paredit.nonStrictDeleteForward',
+        handler: paredit.deleteForwardNonStrict
+    },
+    {
+        command: 'paredit.deleteBackward',
+        handler: (doc: EditableDocument) => {
+            formatConfig.getConfig()['infer-parens-as-you-type'] ?
+                paredit.backspaceNonStrict(doc) :
+                paredit.backspace(doc)
+        }
     },
     {
         command: 'paredit.forceDeleteBackward',
-        handler: () => { vscode.commands.executeCommand('deleteLeft') }
+        handler: paredit.backspaceForce
+    },
+    {
+        command: 'paredit.nonStrictDeleteBackward',
+        handler: paredit.backspaceNonStrict
     },
     {
         command: 'paredit.addRichComment',
@@ -336,6 +353,7 @@ export function getKeyMapConf(): String {
 
 function setKeyMapConf() {
     let keyMap = workspace.getConfiguration().get('calva.paredit.defaultKeyMap');
+    formatConfig.updateConfig()
     commands.executeCommand('setContext', 'paredit:keyMap', keyMap);
     onPareditKeyMapChangedEmitter.fire(String(keyMap));
 }

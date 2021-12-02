@@ -7,7 +7,7 @@ search:
 
 # Paredit – a Visual Guide
 
-Structural editing and navigation for Clojure.
+Structural editing and navigation for Clojure. Works great together with [Parinfer](parinfer.md).
 
 ## What is Paredit?
 
@@ -34,11 +34,12 @@ Indicator | Paredit Mode
 `(λ)`     | Cave Man (strict mode off)
  `λ`      | No default key bindings
 
+Strict mode also inserts matching brackets when you type an open bracket.
+
 Toggle between Strict and Cave Man using: `ctrl+alt+p ctrl+alt+m`
 
-### Prevent Unbalanced Closing Brackets
-
-There is also a setting, `calva.paredit.strictPreventUnmatchedClosingBracket`, that will help you to not enter unbalanced closing brackets into the code.
+!!! Note "Parinfer is strict mode"
+    When you are using Calva's [Parinfer](parinfer.md) mode, then this strictness is handled by Parinfer. It is recommended that you leave this setting on regardless.
 
 ## Commands
 
@@ -145,5 +146,11 @@ There are some context keys you can utilize to configure keyboard shortcuts with
 
 In some instances built-in command defaults are the same as Paredit's defaults, and Paredit's functionality in a particular case is less than what the default is. This is true of *Expand Selection* and *Shrink Selection* for Windows/Linux when multiple lines are selected. In this particular case adding `!editorHasMultipleSelections` to the `when` clause of the binding makes for a better workflow. The point is that when the bindings overlap and default functionality is desired peaceful integration can be achieved with the right `when` clause. This is left out of Paredit's defaults to respect user preference, and ease of maintenance.
 
+## See also
+
+* [Parinfer](parinfer.md)
+* [Formatting](formatting.md)
+
+## Cheering-ons
 
 Happy Editing! ❤️
