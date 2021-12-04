@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Prevent warning during deps.edn jack-in](https://github.com/BetterThanTomorrow/calva/issues/1355)
 
 ## [2.0.228] - 2021-12-02
 - Revert: Parinfer Experimental

@@ -100,7 +100,7 @@ async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBui
         placeHolder: "Select builds to start",
         saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`
     }), aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
-    const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+    const aliasesOption = aliases.length > 0 ? `-M${aliases.join("")}` : '';
     let args: string[] = [];
     if (aliasesOption && aliasesOption.length) {
         args.push(aliasesOption);
@@ -473,7 +473,7 @@ async function cljCommandLine(connectSequence: ReplConnectSequence, cljsType: Cl
         ...serverPrinterDependencies
     };
     const useMiddleware = [...middleware, ...(cljsType ? cljsMiddleware[cljsType] : [])];
-    const aliasesOption = aliases.length > 0 ? `-A${aliases.join("")}` : '';
+    const aliasesOption = aliases.length > 0 ? `-M${aliases.join("")}` : '-M';
     const q = isWin ? '"' : "'";
     const dQ = isWin ? '""' : '"';
     for (let dep in dependencies)
