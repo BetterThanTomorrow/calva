@@ -94,20 +94,14 @@ export function leinShadowBuilds(defproject: any): string[] {
     }
 }
 
-async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBuilds: string[]): Promise<{ selectedBuilds: string[], args: string[] }> {
+async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBuilds: string[]): Promise<string[]> {
     const menuSelections = connectSequence.menuSelections
     const selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
         values: foundBuilds.filter(x => x[0] == ":"),
         placeHolder: "Select builds to start",
         saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`
     })
-    const aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
-    const aliasesOption = aliases.length > 0 ? `-M${aliases.join("")}` : '';
-    const args: string[] = [];
-    if (aliasesOption && aliasesOption.length) {
-        args.push(aliasesOption);
-    }
-    return { selectedBuilds, args };
+    return selectedBuilds;
 }
 
 async function leinDefProject(): Promise<any> {
@@ -313,20 +307,21 @@ const projectTypes: { [id: string]: ProjectType } = {
          *  Build the command line args for a shadow-project.
          */
         commandLine: async (connectSequence, cljsType) => {
-            const chan = state.outputChannel(),
-                dependencies = {
-                    ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
-                    ...serverPrinterDependencies
-                };
-            let defaultArgs: string[] = [];
-            for (let dep in dependencies)
+            const chan = state.outputChannel();
+            const dependencies = {
+                ...(cljsType ? { ...cljsDependencies()[cljsType] } : {}),
+                ...serverPrinterDependencies
+            };
+            const defaultArgs: string[] = [];
+            for (let dep in dependencies) {
                 defaultArgs.push("-d", dep + ":" + dependencies[dep]);
+            }
 
-            const foundBuilds = await shadowBuilds(),
-                { selectedBuilds, args } = await selectShadowBuilds(connectSequence, foundBuilds);
+            const foundBuilds = await shadowBuilds();
+            const selectedBuilds = await selectShadowBuilds(connectSequence, foundBuilds);
 
             if (selectedBuilds && selectedBuilds.length) {
-                return ["shadow-cljs", ...defaultArgs, ...args, "watch", ...selectedBuilds];
+                return ["shadow-cljs", ...defaultArgs, "watch", ...selectedBuilds];
             } else {
                 chan.show();
                 chan.appendLine("Aborting. No valid shadow-cljs build selected.");
@@ -350,8 +345,8 @@ const projectTypes: { [id: string]: ProjectType } = {
             const chan = state.outputChannel();
 
             const defproject = await leinDefProject();
-            const foundBuilds = leinShadowBuilds(defproject),
-                { selectedBuilds, args: extraArgs } = await selectShadowBuilds(connectSequence, foundBuilds);
+            const foundBuilds = leinShadowBuilds(defproject);
+            const selectedBuilds = await selectShadowBuilds(connectSequence, foundBuilds);
 
             if (selectedBuilds && selectedBuilds.length) {
                 return leinCommandLine(["shadow", "watch", ...selectedBuilds], cljsType, connectSequence);
