@@ -95,13 +95,15 @@ export function leinShadowBuilds(defproject: any): string[] {
 }
 
 async function selectShadowBuilds(connectSequence: ReplConnectSequence, foundBuilds: string[]): Promise<{ selectedBuilds: string[], args: string[] }> {
-    const menuSelections = connectSequence.menuSelections, selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
+    const menuSelections = connectSequence.menuSelections
+    const selectedBuilds = menuSelections ? menuSelections.cljsLaunchBuilds : await utilities.quickPickMulti({
         values: foundBuilds.filter(x => x[0] == ":"),
         placeHolder: "Select builds to start",
         saveAs: `${state.getProjectRootUri().toString()}/shadow-cljs-jack-in`
-    }), aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
+    })
+    const aliases: string[] = menuSelections && menuSelections.cljAliases ? menuSelections.cljAliases.map(keywordize) : []; // TODO do the same as clj to prompt the user with a list of aliases
     const aliasesOption = aliases.length > 0 ? `-M${aliases.join("")}` : '';
-    let args: string[] = [];
+    const args: string[] = [];
     if (aliasesOption && aliasesOption.length) {
         args.push(aliasesOption);
     }
