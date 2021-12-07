@@ -447,7 +447,13 @@ export class NReplSession {
         return new Promise<cider.TestResults>((resolve, reject) => {
             let id = this.client.nextId;
             this.messageHandlers[id] = resultHandler(resolve, reject);
-            this.client.write({ op: "test-all", id, session: this.sessionId, "load?": true });
+            this.client.write({
+                op: "test-var-query", id, session: this.sessionId, "var-query": {
+                    "ns-query": {
+                        'test?': true
+                    }
+                }
+            });
         })
     }
 
