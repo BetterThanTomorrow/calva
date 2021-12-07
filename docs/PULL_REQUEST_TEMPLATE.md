@@ -42,7 +42,7 @@ I have:
 - [ ] Updated the `[Unreleased]` entry in `CHANGELOG.md`, linking the issue(s) that the PR is addressing.
 - [ ] Figured if **anything** about the fix warrants tests on Mac/Linux/Windows/Remote/Whatever, and either tested it there if so, or mentioned it in the PR.
 - [ ] Added to or updated docs in this branch, if appropriate
-- [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test. NB: *You need to sign in/up at Circle CI to find the _Artifacts_ tab.*
+- [ ] Tested the VSIX built from the PR (so, after you've submitted the PR). You'll find the artifacts by clicking _Show all checks_ in the CI section of the PR page, and then _Details_ on the `ci/circleci: build` test.
      - [ ] Tested the particular change
      - [ ] Figured if the change might have some side effects and tested those as well.
      - [ ] Smoke tested the extension as such.
