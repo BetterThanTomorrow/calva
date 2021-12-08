@@ -5,6 +5,9 @@ Changes to Calva.
 ## [Unreleased]
 - Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
 - [Inform about conflict with the Clojure extension](https://github.com/BetterThanTomorrow/calva/issues/1427)
+- Re-enable, Experimental: [Add Parinfer Mode](https://github.com/BetterThanTomorrow/calva/issues/253)
+- Re-enable, Experimental: [Add option to keep text more fully formatted as you type](https://github.com/BetterThanTomorrow/calva/issues/1406)
+- Re-enable, [Remove `calva.fmt.formatAsYouType` option](https://github.com/BetterThanTomorrow/calva/issues/1407)
 
 
 ## [2.0.228] - 2021-12-02
