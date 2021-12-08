@@ -10,14 +10,13 @@
       
       
       
-      
         <link rel="canonical" href="https://calva.io/formatting/">
       
       
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.6+insiders-3.2.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.5+insiders-4.3.0">
     
     
       
@@ -25,13 +24,13 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f60820f2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.64294754.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.1d832a92.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fe799546.min.css">
         
       
-      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.733f213f.min.css">
+      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.9c0dc1da.min.css">
       
     
     
@@ -40,32 +39,55 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
-    
     
     
       <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>function __md_scope(e,t,_){return new URL(_||(t===localStorage?"..":".."),location).pathname+"."+e}function __md_get(e,t=localStorage,_){return JSON.parse(t.getItem(__md_scope(e,t,_)))}function __md_set(e,t,_=localStorage,o){try{_.setItem(__md_scope(e,_,o),JSON.stringify(t))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
-
   
 
 
   
-
   
 
 
-  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var a,n=document.forms.feedback;for(a of n.querySelectorAll("[type=submit]"))a.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=a.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),n.firstElementChild.disabled=!0;e=n.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),n.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  <script id="__analytics">function __md_analytics(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-69796730-5","auto"),ga("set","anonymizeIp",!0),ga("send","pageview"),document.addEventListener("DOMContentLoaded",function(){if(document.forms.search&&document.forms.search.query.addEventListener("blur",function(){var e;this.value&&(e=document.location.pathname,ga("send","pageview",e+"?q="+this.value))}),document.forms.feedback){var e,a=document.forms.feedback;for(e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");ga("send","event","feedback","click",t,e),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}"undefined"!=typeof location$&&location$.subscribe(function(e){ga("send","pageview",e.pathname)})});var e=document.createElement("script");e.async=!0,e.src="https://www.google-analytics.com/analytics.js",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
 
   
     <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
   
 
     
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="Clojure Formatting - Calva User Guide" >
+      
+        <meta  property="og:description"  content="Conforming to the Community Styleguide by default, and it just works" >
+      
+        <meta  property="og:image"  content="https://calva.io/assets/images/social/formatting.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://calva.io/formatting/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="Clojure Formatting - Calva User Guide" >
+      
+        <meta  name="twitter:description"  content="Conforming to the Community Styleguide by default, and it just works" >
+      
+        <meta  name="twitter:image"  content="https://calva.io/assets/images/social/formatting.png" >
+      
     
     
   </head>
@@ -130,8 +152,7 @@
       <label class="md-header__button md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
       </label>
-      
-<div class="md-search" data-md-component="search" role="dialog">
+      <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
@@ -167,8 +188,7 @@
     
     
       <div class="md-header__source">
-        
-<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -212,8 +232,7 @@
   </label>
   
     <div class="md-nav__source">
-      
-<a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/BetterThanTomorrow/calva/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -450,52 +469,10 @@
               
   
   
-    
-  
-  
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-      
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" checked>
-      
-      
-      
-      
-        <label class="md-nav__link" for="__nav_4_5">
-          Structural Editing
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" aria-label="Structural Editing" data-md-level="2">
-        <label class="md-nav__title" for="__nav_4_5">
-          <span class="md-nav__icon md-icon"></span>
-          Structural Editing
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
   
     <li class="md-nav__item">
-      <a href="../paredit/" class="md-nav__link">
-        Paredit, a Visual Guide
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../parinfer/" class="md-nav__link">
-        Parinfer
+      <a href="../output/" class="md-nav__link">
+        The Output/REPL Window
       </a>
     </li>
   
@@ -528,7 +505,6 @@
       
         
 
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -549,13 +525,6 @@
   
     <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#cljfmt" class="md-nav__link">
-    cljfmt
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#indentation-rules" class="md-nav__link">
@@ -591,16 +560,9 @@
   
   
     <li class="md-nav__item">
-      <a href="../highlight/" class="md-nav__link">
-        Syntax Highlighting
+      <a href="../paredit/" class="md-nav__link">
+        Paredit, a Visual Guide
       </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
     </li>
   
 
@@ -614,20 +576,6 @@
     <li class="md-nav__item">
       <a href="../debugger/" class="md-nav__link">
         Debugger
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../output/" class="md-nav__link">
-        The Output/REPL Window
       </a>
     </li>
   
@@ -993,6 +941,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parinfer/" class="md-nav__link">
+        Parinfer
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -1244,7 +1206,6 @@
                   <div class="md-sidebar__inner">
                     
 
-
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -1265,13 +1226,6 @@
   
     <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#cljfmt" class="md-nav__link">
-    cljfmt
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#indentation-rules" class="md-nav__link">
@@ -1304,13 +1258,13 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/formatting.md" title="Edit this page" class="md-content__button md-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-                  </a>
-                
-                
-                
-                <h1 id="formatting">Formatting</h1>
+<a href="https://github.com/BetterThanTomorrow/calva/edit/published/docs/site/formatting.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+
+<h1 id="formatting">Formatting</h1>
 <p>We have tried to make Calva's formatter so that it <em>just works</em>. It is enabled by default for Clojure files, and unconfigured it mostly follows Bozhidar Batsov's <a href="https://github.com/bbatsov/clojure-style-guide">Clojure Style Guide</a>. Calva uses <a href="https://github.com/weavejester/cljfmt">cljfmt</a> for the formatting.</p>
 <div class="admonition tips">
 <p class="admonition-title">Tips</p>
@@ -1325,6 +1279,10 @@
 <li>formats the current form, <em>aligning map keys and values</em>, when you press <code>ctrl+alt+l</code></li>
 <li>formats <code>(comment ..)</code> forms special, see <a href="#rich-comments">rich comments</a></li>
 </ul>
+<div class="admonition tips">
+<p class="admonition-title">Tips</p>
+<p>Calva has a command that will ”heal” the bracket structure if it is correctly indented. Yes, it is Parinfer behind the scenes. This command is default bound to <code>shift+tab</code> to form a nicely balanced pair with the <code>tab</code> formatting.</p>
+</div>
 <p>Also: If you have <strong>Format on Save</strong> enabled in VS Code, it will be Calva doing the formatting for Clojure files.</p>
 <p>Calva's formatting is mostly about indenting, but it also (again, defaults):</p>
 <ul>
@@ -1337,40 +1295,6 @@
 </ul>
 <p>Not a fan of some default setting? The formatter is quite configurable.</p>
 <h2 id="configuration">Configuration</h2>
-<p>There are settings for the general behaviour of Calva formatting as well as for configuring <code>cljfmt</code>, which is the formatting engine used.</p>
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Description</th>
-<th>Default</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>calva.fmt.newIndentEngine</code></td>
-<td>Fast indentation. When disabled, a full formatting will be done on the current enclosing form.</td>
-<td><strong>true</strong></td>
-</tr>
-<tr>
-<td><code>calva.fmt.experimental.fullFormatOnType</code></td>
-<td>Experimental: Formats forms starting on the same line, forwards from the cursor as you enter or delete text. Also enabled as part of <a href="../parinfer/">Parinfer</a> mode (<code>inferParensAsYouType</code>)</td>
-<td><strong>false</strong></td>
-</tr>
-<tr>
-<td><code>calva.fmt.experimental.inferParensAsYouType</code></td>
-<td>Experimental: <a href="../parinfer/">Parinfer</a> mode</td>
-<td><strong>false</strong></td>
-</tr>
-<tr>
-<td><code>calva.fmt.keepCommentTrailParenOnOwnLine</code></td>
-<td>See <a href="../rich-comments/">Rich Comments</a></td>
-<td><strong>true</strong></td>
-</tr>
-</tbody>
-</table>
-<p>Calva's auto-formatter will reformat forms that are directly affected by your edits, and it will automatically indent new lines to match your <code>cljfmt</code> indentation settings. See below.</p>
-<h3 id="cljfmt">cljfmt</h3>
 <p>You configure Calva's formatting using <a href="https://github.com/weavejester/cljfmt#configuration">cljfmt's configuration EDN</a>. This means that you can adjust the above mentioned defaults, including the indenting.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1420,16 +1344,10 @@
 <p>That's somewhat similar to Nikita Prokopov's <a href="https://tonsky.me/blog/clojurefmt/">Better Clojure Formatting</a> suggestion. (Please be aware that this setting might not be sufficient to get complete <strong>Tonsky Formatting</strong>, please share any settings you use to get full compliance.)</p>
 <h2 id="rich-comments">Rich Comments</h2>
 <p>To encourage use of <code>(comment ...)</code> forms for development, these forms get a special treatment when formatting. See <a href="../rich-comments/">Rich Comments</a>.</p>
-                
-                  
+
   
 
 
-                
-                
-              
-              
-                
 
 
               
@@ -1440,13 +1358,12 @@
         
       </main>
       
-        
-<footer class="md-footer">
+        <footer class="md-footer">
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../parinfer/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Parinfer" rel="prev">
+        <a href="../output/" class="md-footer__link md-footer__link--prev" aria-label="Previous: The Output/REPL Window" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -1455,20 +1372,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Parinfer
+              The Output/REPL Window
             </div>
           </div>
         </a>
       
       
         
-        <a href="../highlight/" class="md-footer__link md-footer__link--next" aria-label="Next: Syntax Highlighting" rel="next">
+        <a href="../paredit/" class="md-footer__link md-footer__link--next" aria-label="Next: Paredit, a Visual Guide" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Syntax Highlighting
+              Paredit, a Visual Guide
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -1480,16 +1397,15 @@
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
-      <div class="md-footer-copyright">
-        
-        
-          Made with
-          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-            Material for MkDocs Insiders
-          </a>
-        
-        
-      </div>
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs Insiders
+    </a>
+  
+</div>
       
     </div>
   </div>
@@ -1500,10 +1416,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.d5944110.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.51301f06.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.4b1ed6f7.min.js"></script>
+      <script src="../assets/javascripts/bundle.bb54cbc5.min.js"></script>
       
     
   </body>
