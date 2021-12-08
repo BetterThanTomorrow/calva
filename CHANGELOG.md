@@ -3,7 +3,9 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Fix: [ Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
+- Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
+- [Inform about conflict with the Clojure extension](https://github.com/BetterThanTomorrow/calva/issues/1427)
+
 
 ## [2.0.228] - 2021-12-02
 - Revert: Parinfer Experimental
