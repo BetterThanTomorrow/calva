@@ -475,8 +475,10 @@ export class LineInputModel implements EditableModel {
 }
 
 export class StringDocument implements EditableDocument {
-    constructor(contents: string) {
-        this.insertString(contents);
+    constructor(contents?: string) {
+        if (contents) {
+            this.insertString(contents);
+        }
     }
 
     selectionLeft: number;

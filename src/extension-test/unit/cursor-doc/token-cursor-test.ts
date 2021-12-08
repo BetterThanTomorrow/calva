@@ -1,6 +1,5 @@
 import * as expect from 'expect';
 import { LispTokenCursor } from '../../../cursor-doc/token-cursor';
-import * as mock from '../common/mock';
 import { docFromTextNotation, textAndSelection } from '../common/text-notation';
 
 describe('Token Cursor', () => {
