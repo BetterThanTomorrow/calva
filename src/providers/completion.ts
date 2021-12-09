@@ -1,5 +1,4 @@
 import { TextDocument, Position, CancellationToken, CompletionContext, Hover, CompletionItemKind, window, CompletionList, CompletionItemProvider, CompletionItem, CompletionItemLabel, ProviderResult } from 'vscode';
-import * as state from '../state';
 import * as util from '../utilities';
 import select from '../select';
 import * as docMirror from '../doc-mirror/index';

@@ -1,4 +1,3 @@
-import { includes } from "lodash";
 import { validPair } from "./clojure-lexer";
 import { ModelEdit, EditableDocument, ModelEditSelection } from "./model";
 import { LispTokenCursor } from "./token-cursor";

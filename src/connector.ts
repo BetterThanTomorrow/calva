@@ -126,13 +126,6 @@ async function getFigwheelMainBuilds() {
     return builds;
 }
 
-/**
- * ! DO it later
- */
-function getFigwheelBuilds() {
-
-}
-
 type checkConnectedFn = (value: string, out: any[], err: any[]) => boolean;
 type processOutputFn = (output: string) => void;
 type connectFn = (session: NReplSession, name: string, checkSuccess: checkConnectedFn) => Promise<boolean>;

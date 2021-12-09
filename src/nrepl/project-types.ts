@@ -499,7 +499,7 @@ async function leinCommandLine(command: string[], cljsType: CljsTypes, connectSe
     };
     let keys = Object.keys(dependencies);
     const defproject = await leinDefProject();
-    const { profiles, alias } = await leinProfilesAndAlias(defproject, connectSequence);
+    const { profiles } = await leinProfilesAndAlias(defproject, connectSequence);
     const q = isWin ? '' : "'", dQ = '"';
     for (let i = 0; i < keys.length; i++) {
         let dep = keys[i];

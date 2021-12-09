@@ -4,7 +4,6 @@ import * as nrepl from './nrepl';
 import * as lsp from './lsp/main';
 import * as outputWindow from './results-output/results-doc';
 import * as namespace from './namespace';
-import { getConfig } from './config';
 import * as replSession from './nrepl/repl-session';
 import * as docMirror from './doc-mirror/index';
 import * as paredit from './cursor-doc/paredit';

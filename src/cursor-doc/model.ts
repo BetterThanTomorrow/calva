@@ -368,7 +368,6 @@ export class LineInputModel implements EditableModel {
      * @param newSelection the new selection
      */
     private changeRange(start: number, end: number, text: string, oldSelection?: [number, number], newSelection?: [number, number]) {
-        const t1 = new Date();
 
         let startPos = Math.min(start, end);
         let endPos = Math.max(start, end);

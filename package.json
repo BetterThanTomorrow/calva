@@ -2611,7 +2611,7 @@
         "ts-loader": "^8.0.18",
         "ts-node": "^10.3.0",
         "tslint": "^5.20.1",
-        "typescript": "^3.7.2",
+        "typescript": "^4.5.2",
         "url-loader": "^4.1.1",
         "vsce": "1.97.0",
         "vscode-test": "^1.3.0",

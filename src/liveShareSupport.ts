@@ -8,7 +8,6 @@ let liveShare: vsls.LiveShare = null;
 let liveShareListener: Disposable = null;
 
 let connectedPort: number = null;
-let jackedIn = false;
 let sharedPorts: Map<number, Disposable> = new Map();
 
 export async function setupLiveShareListener() {
@@ -26,13 +25,11 @@ export async function setupLiveShareListener() {
 }
 
 export async function didJackIn() {
-  jackedIn = true;
   await shareReplServerIfPossible();
 }
 
 export async function didJackOut() {
   await unshareReplServer();
-  jackedIn = false;
 }
 
 export async function didConnectRepl(port: number): Promise<void> {
