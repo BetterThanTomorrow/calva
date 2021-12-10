@@ -1,10 +1,9 @@
-import * as mock from './mock';
 import * as model from '../../../cursor-doc/model';
 
 
 /**
  * Text Notation for expressing states of a document, including
- * current text and selection. 
+ * current text and selection.
  * * Since JavasScript makes it clumsy with multiline strings,
  *   newlines are denoted with a middle dot character: `•`
  * * Selections are denoted like so
@@ -47,18 +46,26 @@ function textNotationToTextAndSelection(s: string): [string, { anchor: number, a
 /**
  * Utility function to create a doc from text-notated strings
  */
-export function docFromTextNotation(s: string): mock.MockDocument {
+export function docFromTextNotation(s: string): model.StringDocument {
     const [text, selection] = textNotationToTextAndSelection(s);
-    const doc = new mock.MockDocument();
-    doc.insertString(text);
+    const doc = new model.StringDocument(text);
     doc.selection = new model.ModelEditSelection(selection.anchor, selection.active);
     return doc;
 }
 
 /**
- * Utility function to create a comparable structure with the text and 
+ * Utility function to get the text from a document.
+ * @param doc
+ * @returns string
+ */
+export function text(doc: model.StringDocument): string {
+    return doc.model.getText(0, Infinity);
+}
+
+/**
+ * Utility function to create a comparable structure with the text and
  * selection from a document
  */
-export function textAndSelection(doc: mock.MockDocument): [string, [number, number]] {
-    return [doc.model.getText(0, Infinity), [doc.selection.anchor, doc.selection.active]]
+export function textAndSelection(doc: model.StringDocument): [string, [number, number]] {
+    return [text(doc), [doc.selection.anchor, doc.selection.active]]
 }

@@ -1,8 +1,10 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
-import * as mock from '../common/mock';
-import { docFromTextNotation, textAndSelection } from '../common/text-notation';
+import * as model from '../../../cursor-doc/model';
+import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
+
+model.initScanner(20000);
 
 /**
  * TODO: Use text-notation for these tests
@@ -10,12 +12,11 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
 
 describe('paredit', () => {
     const docText = '(def foo [:foo :bar :baz])';
-    let doc: mock.MockDocument,
+    let doc: model.StringDocument,
         startSelection = new ModelEditSelection(0, 0);
 
     beforeEach(() => {
-        doc = new mock.MockDocument();
-        doc.insertString(docText);
+        doc = new model.StringDocument(docText);
         doc.selection = startSelection.clone();
     });
 
@@ -139,7 +140,7 @@ describe('paredit', () => {
             it('Maintains balanced delimiters 1 (Windows)', () => {
                 const a = docFromTextNotation('(a| b (c\r\n d) e)');
                 const b = docFromTextNotation('(a| b (c\r\n d)| e)');
-                const [start,end] = textAndSelection(b)[1];
+                const [start, end] = textAndSelection(b)[1];
                 const actual = paredit.forwardHybridSexpRange(a);
                 // off by 1 because \r\n is treated as 1 char?
                 expect(actual).toEqual([start, end - 1]);
@@ -148,15 +149,15 @@ describe('paredit', () => {
             it('Maintains balanced delimiters 2', () => {
                 const a = docFromTextNotation('(aa| (c (e\nf)) g)');
                 const b = docFromTextNotation('(aa| (c (e\nf))|g)');
-                const expected  = textAndSelection(b)[1];
-                const actual =  paredit.forwardHybridSexpRange(a);
+                const expected = textAndSelection(b)[1];
+                const actual = paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
             });
 
             it('Maintains balanced delimiters 2 (Windows)', () => {
                 const a = docFromTextNotation('(aa| (c (e\r\nf)) g)');
                 const b = docFromTextNotation('(aa| (c (e\r\nf))|g)');
-                const [start,end] = textAndSelection(b)[1];
+                const [start, end] = textAndSelection(b)[1];
                 const actual = paredit.forwardHybridSexpRange(a);
                 // off by 1 because \r\n is treated as 1 char?
                 expect(actual).toEqual([start, end - 1]);
@@ -287,7 +288,7 @@ describe('paredit', () => {
                 const a = docFromTextNotation('(a e|)\n');
                 const b = docFromTextNotation('(a e||)\n');
                 const expected = textAndSelection(b)[1];
-                const actual =  paredit.forwardHybridSexpRange(a);
+                const actual = paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
             })
 
@@ -296,7 +297,7 @@ describe('paredit', () => {
                 const a = docFromTextNotation('(comment•  #_|[a b (c d•              e•              f) g]•  :a•)');
                 const b = docFromTextNotation('(comment•  #_|[a b (c d•              e•              f) g]|• :a•)');
                 const expected = textAndSelection(b)[1];
-                const actual =  paredit.forwardHybridSexpRange(a);
+                const actual = paredit.forwardHybridSexpRange(a);
                 expect(actual).toEqual(expected);
             })
         })
@@ -377,11 +378,10 @@ describe('paredit', () => {
         });
         describe('Stacked readers', () => {
             const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
-            let doc: mock.MockDocument;
+            let doc: model.StringDocument;
 
             beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
+                doc = new model.StringDocument(docText);
             });
             it('dragSexprBackward', () => {
                 const a = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#x•#y•|1)');
@@ -398,11 +398,10 @@ describe('paredit', () => {
         })
         describe('Top Level Readers', () => {
             const docText = '#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö';
-            let doc: mock.MockDocument;
+            let doc: model.StringDocument;
 
             beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
+                doc = new model.StringDocument(docText);
             });
             it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(26, 26);
@@ -506,11 +505,10 @@ describe('paredit', () => {
     describe('dragSexpr', () => {
         describe('forwardAndBackwardSexpr', () => {
             // (comment\n  ['(0 1 2 "t" "f")•   "b"•             {:s "h"}•             :f]•  [:f '(0 "t") "b" :s]•  [:f 0•   "b" :s•   4 :b]•  {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b})
-            let doc: mock.MockDocument;
+            let doc: model.StringDocument;
 
             beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
+                doc = new model.StringDocument(docText);
             });
 
             it('drags forward in regular lists', () => {
@@ -1058,6 +1056,54 @@ describe('paredit', () => {
                 paredit.addRichComment(a);
                 expect(textAndSelection(a)).toEqual(textAndSelection(b));
             });
-        })
+        });
+
+        describe('splice sexp', () => {
+            it('splice empty', () => {
+                const a = docFromTextNotation('|');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('');
+            });
+
+            it('splice list', () => {
+                const a = docFromTextNotation('(a| b c)');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('a b c');
+            });
+
+            it('splice vector', () => {
+                const a = docFromTextNotation('[a| b c]');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('a b c');
+            });
+
+            it('splice map', () => {
+                const a = docFromTextNotation('{a| b}');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('a b');
+            });
+
+
+            it('splice nested', () => {
+                const a = docFromTextNotation('[1 {ab| cd} 2]');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('[1 ab cd 2]');
+            });
+
+            // TODO: enable after fixing spliceSexp
+            it('splice set', () => {
+                const a = docFromTextNotation('#{a| b}');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('a b');
+            });
+
+            // NB: enabling this breaks bunch of other tests.
+            //     Not sure why, but it can be run successfully by itself.
+            xit('splice string', () => {
+                const a = docFromTextNotation('"h|ello"');
+                paredit.spliceSexp(a);
+                expect(text(a)).toEqual('hello');
+            });
+        });
     });
 });

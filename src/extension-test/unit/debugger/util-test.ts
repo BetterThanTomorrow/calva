@@ -1,6 +1,6 @@
 import * as expect from 'expect';
 import { moveTokenCursorToBreakpoint } from '../../../debugger/util';
-import * as mock from '../common/mock';
+import * as model from '../../../cursor-doc/model';
 import * as fs from "fs";
 
 function getCoordinates(text: string): (string | number)[] {
@@ -22,11 +22,11 @@ describe('Debugger Util', async () => {
 
     describe('moveTokenCursorToBreakpoint', () => {
 
-        let doc: mock.MockDocument;
+        let doc: model.StringDocument;
         let debugResponse: any;
 
         beforeEach(() => {
-            doc = new mock.MockDocument();
+            doc = new model.StringDocument();
 
             debugResponse = {
                 line: 0,

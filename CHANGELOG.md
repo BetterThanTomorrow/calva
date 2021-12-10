@@ -3,9 +3,27 @@
 Changes to Calva.
 
 ## [Unreleased]
-- Re-enable, Experimental: [Add Parinfer Options](https://github.com/BetterThanTomorrow/calva/issues/253)
-- Internal: [Handle the unknown-op status from test commands](https://github.com/BetterThanTomorrow/calva/pull/1365)
+- Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
+- [Inform about conflict with the Clojure extension](https://github.com/BetterThanTomorrow/calva/issues/1427)
 - Fix: [Allow LSP features on jar files](https://github.com/BetterThanTomorrow/calva/issues/1421)
+
+
+## [2.0.228] - 2021-12-02
+- Revert: Parinfer Experimental
+- Revert: Full Format Experimental
+- Revert: Remove `calva.fmt.formatAsYouType` option
+
+## [2.0.227] - 2021-12-01
+- Re-enable, Experimental: [Add Parinfer Mode](https://github.com/BetterThanTomorrow/calva/issues/253)
+- Experimental: [Add option to keep text more fully formatted as you type](https://github.com/BetterThanTomorrow/calva/issues/1406)
+- [Remove `calva.fmt.formatAsYouType` option](https://github.com/BetterThanTomorrow/calva/issues/1407)
+- Fix: [Test runner not finding tests with + in middle of the name](https://github.com/BetterThanTomorrow/calva/issues/1383)
+
+## [2.0.226] - 2021-11-29
+- Internal: [Handle the unknown-op status from test commands](https://github.com/BetterThanTomorrow/calva/pull/1365)
+- Fix: [textDocument/linkedEditingRange failed when opening files or moving cursor](https://github.com/BetterThanTomorrow/calva/issues/1374)
+- Fix: [paredit.spliceSexp doesn't work with set literals](https://github.com/BetterThanTomorrow/calva/issues/1395)
+- Fix: [LSP code actions not working](https://github.com/BetterThanTomorrow/calva/issues/1373)
 
 ## [2.0.225] - 2021-11-10
 - Revert 224 changes: [Version v2.0.224 causes problems on some machines (possibly Windows related)](https://github.com/BetterThanTomorrow/calva/issues/1379)

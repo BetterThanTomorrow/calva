@@ -99,13 +99,14 @@ async function activate(context: vscode.ExtensionContext) {
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');
     const cwExtension = vscode.extensions.getExtension('tonsky.clojure-warrior');
     const vimExtension = vscode.extensions.getExtension('vscodevim.vim');
-    const cwConfig = vscode.workspace.getConfiguration('clojureWarrior');
+    const clojureExtension = vscode.extensions.getExtension('avli.clojure');
     const customCljsRepl = config.getConfig().customCljsRepl;
     const replConnectSequences = config.getConfig().replConnectSequences;
     const BUTTON_GOTO_DOC = "Open the docs";
     const BUTTON_OK = "Got it";
     const VIM_DOC_URL = "https://calva.io/vim/";
     const VIEWED_VIM_DOCS = "viewedVimDocs";
+    const DONT_SHOW_CLOJURE_EXT_NAG = "dontShowClojureExtNag";
     const CONNECT_SEQUENCES_DOC_URL = "https://calva.io/connect-sequences/";
     const CALVA_DOCS_URL = "https://calva.io/";
     const VIEWED_CALVA_DOCS = "viewedCalvaDocs";
@@ -308,6 +309,18 @@ async function activate(context: vscode.ExtensionContext) {
                     if (v == BUTTON_GOTO_DOC) {
                         context.globalState.update(VIEWED_VIM_DOCS, true);
                         open(VIM_DOC_URL).catch(() => { });
+                    }
+                })
+        }
+    }
+
+    if (clojureExtension) {
+        chan.appendLine(`The Clojure Extension is installed.\n`);
+        if (!context.globalState.get(DONT_SHOW_CLOJURE_EXT_NAG)) {
+            vscode.window.showWarningMessage("You have the Clojure extension installed. Please note that it will conflict with Calva.", "Don't show again", 'OK')
+                .then(v => {
+                    if (v == "Don't show again") {
+                        context.globalState.update(DONT_SHOW_CLOJURE_EXT_NAG, true);
                     }
                 })
         }
