@@ -26,7 +26,10 @@ function createClient(clojureLspPath: string): LanguageClient {
         debug: { command: clojureLspPath },
     };
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'clojure' }],
+        documentSelector: [
+            { scheme: 'file', language: 'clojure' },
+            { scheme: 'jar', language: 'clojure' },
+        ],
         synchronize: {
             configurationSection: 'clojure-lsp',
             fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
