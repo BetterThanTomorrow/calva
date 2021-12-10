@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - Re-enable, Experimental: [Add Parinfer Options](https://github.com/BetterThanTomorrow/calva/issues/253)
 - Internal: [Handle the unknown-op status from test commands](https://github.com/BetterThanTomorrow/calva/pull/1365)
+- Fix: [Allow LSP features on jar files](https://github.com/BetterThanTomorrow/calva/issues/1421)
 
 ## [2.0.225] - 2021-11-10
 - Revert 224 changes: [Version v2.0.224 causes problems on some machines (possibly Windows related)](https://github.com/BetterThanTomorrow/calva/issues/1379)
