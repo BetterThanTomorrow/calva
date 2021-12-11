@@ -1,4 +1,3 @@
-
 // https://github.com/clojure-emacs/cider-nrepl/blob/a740583c3aa8b582f3097611787a276775131d32/src/cider/nrepl/middleware/test.clj#L45
 export interface TestSummary {
     ns: number;
@@ -38,16 +37,28 @@ export interface TestResults {
     'gen-input': unknown
 }
 
+function stripTrailingNewlines(s: string): string {
+    return s.replace(/\r?\n$/, "");
+}
 
-export function resultMessage(resultItem: Readonly<TestResult>): string {
+function resultMessage(resultItem: Readonly<TestResult>): string {
     let msg = [];
     if (resultItem.context && resultItem.context !== "false")
         msg.push(resultItem.context);
     if (resultItem.message)
         msg.push(resultItem.message);
-    return `${msg.length > 0 ? msg.join(": ").replace(/\r?\n$/, "") : ''}`;
+    return `${msg.length > 0 ? stripTrailingNewlines(msg.join(": ")) : ''}`;
 }
 
+
+// Remove any trailing blank lines from any of the string in result.
+export function cleanUpWhiteSpace(result: TestResult) {
+    for (const prop in result) {
+        if (typeof (result[prop]) === 'string') {
+            result[prop] = stripTrailingNewlines(result[prop]);
+        }
+    }
+}
 // Given a summary, return a message suitable for printing in the REPL to show
 // the user a quick summary of the test run.
 // Examples:
@@ -84,4 +95,34 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
         }
     }
     return result;
+}
+
+// Return a detailed message about why a test failed.
+// If the test passed, return the empty string.
+// The message contains "comment" lines that are prepended with ;
+// and "data" lines that should be printed verbatim into the REPL.
+export function detailedMessage(result: TestResult): string {
+    const msg = [];
+    const message = resultMessage(result);
+    if (result.type === "error") {
+        msg.push(`; ERROR in ${result.ns}/${result.var} (line ${result.line}):`)
+        if (message) {
+            msg.push(`; ${message}`);
+        }
+        msg.push(`; error: ${result.error} (${result.file})`);
+        msg.push("; expected:");
+        msg.push(result.expected);
+    } else if (result.type === 'fail') {
+        msg.push(`; FAIL in ${result.ns}/${result.var} (${result.file}:${result.line}):`);
+        if (message) {
+            msg.push(`; ${message}`);
+        }
+        msg.push(`; expected:\n${result.expected}\n; actual:\n${result.actual}`);
+    }
+    return msg.join("\n");
+}
+
+// Return a short message that can be shown to user as a Diagnostic.
+export function diagnosticMessage(result: TestResult): string {
+    return `failure in test: ${result.var} context: ${result.context}, expected ${result.expected}, got: ${result.actual}`
 }
