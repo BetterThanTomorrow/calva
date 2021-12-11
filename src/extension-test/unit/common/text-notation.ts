@@ -1,4 +1,3 @@
-import * as mock from './mock';
 import * as model from '../../../cursor-doc/model';
 
 
@@ -47,10 +46,9 @@ function textNotationToTextAndSelection(s: string): [string, { anchor: number, a
 /**
  * Utility function to create a doc from text-notated strings
  */
-export function docFromTextNotation(s: string): mock.MockDocument {
+export function docFromTextNotation(s: string): model.StringDocument {
     const [text, selection] = textNotationToTextAndSelection(s);
-    const doc = new mock.MockDocument();
-    doc.insertString(text);
+    const doc = new model.StringDocument(text);
     doc.selection = new model.ModelEditSelection(selection.anchor, selection.active);
     return doc;
 }
@@ -60,7 +58,7 @@ export function docFromTextNotation(s: string): mock.MockDocument {
  * @param doc
  * @returns string
  */
-export function text(doc: mock.MockDocument): string {
+export function text(doc: model.StringDocument): string {
     return doc.model.getText(0, Infinity);
 }
 
@@ -68,6 +66,6 @@ export function text(doc: mock.MockDocument): string {
  * Utility function to create a comparable structure with the text and
  * selection from a document
  */
-export function textAndSelection(doc: mock.MockDocument): [string, [number, number]] {
+export function textAndSelection(doc: model.StringDocument): [string, [number, number]] {
     return [text(doc), [doc.selection.anchor, doc.selection.active]]
 }

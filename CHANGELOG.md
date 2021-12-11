@@ -4,6 +4,10 @@ Changes to Calva.
 
 ## [Unreleased]
 - [Prevent warning during deps.edn jack-in](https://github.com/BetterThanTomorrow/calva/issues/1355)
+- Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
+- [Inform about conflict with the Clojure extension](https://github.com/BetterThanTomorrow/calva/issues/1427)
+- Fix: [Run All Tests command doesn't run tests in .cljc file with reader conditional in ns](https://github.com/BetterThanTomorrow/calva/issues/1328).
+- Fix: [Allow LSP features on jar files](https://github.com/BetterThanTomorrow/calva/issues/1421)
 
 ## [2.0.228] - 2021-12-02
 - Revert: Parinfer Experimental

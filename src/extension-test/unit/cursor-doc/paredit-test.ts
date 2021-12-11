@@ -1,8 +1,10 @@
 import * as expect from 'expect';
 import * as paredit from '../../../cursor-doc/paredit';
-import * as mock from '../common/mock';
+import * as model from '../../../cursor-doc/model';
 import { docFromTextNotation, textAndSelection, text } from '../common/text-notation';
 import { ModelEditSelection } from '../../../cursor-doc/model';
+
+model.initScanner(20000);
 
 /**
  * TODO: Use text-notation for these tests
@@ -10,12 +12,11 @@ import { ModelEditSelection } from '../../../cursor-doc/model';
 
 describe('paredit', () => {
     const docText = '(def foo [:foo :bar :baz])';
-    let doc: mock.MockDocument,
+    let doc: model.StringDocument,
         startSelection = new ModelEditSelection(0, 0);
 
     beforeEach(() => {
-        doc = new mock.MockDocument();
-        doc.insertString(docText);
+        doc = new model.StringDocument(docText);
         doc.selection = startSelection.clone();
     });
 
@@ -377,11 +378,10 @@ describe('paredit', () => {
         });
         describe('Stacked readers', () => {
             const docText = '(c\n#f\n(#b \n[:f :b :z])\n#x\n#y\n1)';
-            let doc: mock.MockDocument;
+            let doc: model.StringDocument;
 
             beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
+                doc = new model.StringDocument(docText);
             });
             it('dragSexprBackward', () => {
                 const a = docFromTextNotation('(c•#f•(#b •[:f :b :z])•#x•#y•|1)');
@@ -398,11 +398,10 @@ describe('paredit', () => {
         })
         describe('Top Level Readers', () => {
             const docText = '#f\n(#b \n[:f :b :z])\n#x\n#y\n1\n#å#ä#ö';
-            let doc: mock.MockDocument;
+            let doc: model.StringDocument;
 
             beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
+                doc = new model.StringDocument(docText);
             });
             it('dragSexprBackward: #f•(#b •[:f :b :z])•#x•#y•|1•#å#ä#ö => #x•#y•1•#f•(#b •[:f :b :z])•#å#ä#ö', () => {
                 doc.selection = new ModelEditSelection(26, 26);
@@ -506,11 +505,10 @@ describe('paredit', () => {
     describe('dragSexpr', () => {
         describe('forwardAndBackwardSexpr', () => {
             // (comment\n  ['(0 1 2 "t" "f")•   "b"•             {:s "h"}•             :f]•  [:f '(0 "t") "b" :s]•  [:f 0•   "b" :s•   4 :b]•  {:e '(e o ea)•   3 {:w? 'w}•   :t '(t i o im)•   :b 'b})
-            let doc: mock.MockDocument;
+            let doc: model.StringDocument;
 
             beforeEach(() => {
-                doc = new mock.MockDocument();
-                doc.insertString(docText);
+                doc = new model.StringDocument(docText);
             });
 
             it('drags forward in regular lists', () => {

@@ -11,42 +11,30 @@ import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-
 function reportTests(results: cider.TestResults[]) {
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
     diagnosticCollection.clear();
+
+    const recordDiagnostic = (result: cider.TestResult) => {
+        const msg = cider.diagnosticMessage(result);
+        const err = new vscode.Diagnostic(new vscode.Range(result.line - 1, 0, result.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
+        if (!diagnostics[result.file])
+            diagnostics[result.file] = [];
+        diagnostics[result.file].push(err);
+    }
 
     for (let result of results) {
         for (const ns in result.results) {
             let resultSet = result.results[ns];
             for (const test in resultSet) {
                 for (const a of resultSet[test]) {
-                    for (const prop in a) {
-                        if (typeof (a[prop]) === 'string') {
-                            a[prop] = a[prop].replace(/\r?\n$/, "");
-                        }
-                    }
 
-                    const message = cider.resultMessage(a);
+                    cider.cleanUpWhiteSpace(a);
 
-                    if (a.type === "error") {
-                        outputWindow.append(`; ERROR in ${ns}/${test} (line ${a.line}):`);
-                        if (message !== '') {
-                            outputWindow.append(`; ${message}`);
-                        }
-                        outputWindow.append(`; error: ${a.error} (${a.file})\n; expected:\n${a.expected}`);
-                    }
+                    outputWindow.append(cider.detailedMessage(a));
+
                     if (a.type === "fail") {
-                        let msg = `failure in test: ${test} context: ${a.context}, expected ${a.expected}, got: ${a.actual}`,
-                            err = new vscode.Diagnostic(new vscode.Range(a.line - 1, 0, a.line - 1, 1000), msg, vscode.DiagnosticSeverity.Error);
-                        if (!diagnostics[a.file])
-                            diagnostics[a.file] = [];
-                        diagnostics[a.file].push(err);
-                        outputWindow.append(`; FAIL in ${ns}/${test} (${a.file}:${a.line}):`);
-                        if (message !== '') {
-                            outputWindow.append(`; ${message}`);
-                        }
-                        outputWindow.append(`; expected:\n${a.expected}\n; actual:\n${a.actual}`);
+                        recordDiagnostic(a);
                     }
                 }
             }
