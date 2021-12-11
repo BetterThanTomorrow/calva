@@ -40,4 +40,57 @@ describe('test result processing', () => {
 
     });
 
+    it('can produce detailed messages', () => {
+
+        expect(cider.detailedMessage({
+            type: 'pass',
+            ns: 'core',
+            context: 'ctx',
+            index: 0,
+            var: 'test',
+            message: ''
+        })).toBe('');
+
+        expect(cider.detailedMessage({
+            type: 'fail',
+            ns: 'core',
+            context: 'ctx',
+            index: 1,
+            expected: 'apple',
+            actual: 'orange',
+            var: 'test',
+            file: 'core.clj',
+            line: 7,
+            message: 'an extra message'
+        })).toBe(
+            `; FAIL in core/test (core.clj:7):
+; ctx: an extra message
+; expected:
+apple
+; actual:
+orange`);
+
+
+        expect(cider.detailedMessage({
+            type: 'error',
+            ns: 'core',
+            context: 'ctx',
+            index: 1,
+            expected: 'apple',
+            actual: 'orange',
+            var: 'test',
+            error: 'shoes fell off',
+            file: 'impl.clj',
+            line: 9,
+            message: 'an extra message'
+        })).toBe(
+            `; ERROR in core/test (line 9):
+; ctx: an extra message
+; error: shoes fell off (impl.clj)
+; expected:
+apple`);
+
+
+    });
+
 });
