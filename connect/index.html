@@ -16,7 +16,7 @@
         
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.0.5+insiders-4.3.0">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.0+insiders-4.4.0">
     
     
       
@@ -24,13 +24,13 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.64294754.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.127369dd.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.fe799546.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
         
       
-      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.9c0dc1da.min.css">
+      <link rel="preload" as="style" href="../assets/stylesheets/vendor/mermaid.733f213f.min.css">
       
     
     
@@ -388,6 +388,13 @@
           <li class="md-nav__item">
   <a href="#command-not-found-errors-when-jacking-in" class="md-nav__link">
     Command Not Found Errors When Jacking In
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#go-to-definition-not-working-for-java-definitions" class="md-nav__link">
+    Go to Definition Not Working for Java Definitions
   </a>
   
 </li>
@@ -1310,6 +1317,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#go-to-definition-not-working-for-java-definitions" class="md-nav__link">
+    Go to Definition Not Working for Java Definitions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#environment-variables-are-not-readable-from-repl" class="md-nav__link">
     Environment Variables Are Not Readable From REPL
   </a>
@@ -1400,6 +1414,8 @@ Jack-in process exited. Status: <span class="m">127</span>
 </code></pre></div>
 <p>You might need to first run the <strong>Shell Command: Install <code>code</code> command in PATH</strong>.</p>
 <p>This will also make sure your REPL has access to the environment you probably expect it to have access to. See below.</p>
+<h3 id="go-to-definition-not-working-for-java-definitions">Go to Definition Not Working for Java Definitions</h3>
+<p>On some systems, the Java source may not be installed along with the JDK. The source must be present on your system in order to navigate to Java definitions. See <a href="https://github.com/clojure-emacs/orchard/issues/103#issuecomment-764936527">this comment</a> for more details.</p>
 <h3 id="environment-variables-are-not-readable-from-repl">Environment Variables Are Not Readable From REPL</h3>
 <p>If you've added environment variables in your OS, such as in your <code>~/.bashrc</code> file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run <code>echo $SOME_VAR</code> and see the value there, then open VS Code from that terminal with <code>code &lt;project path&gt;</code>.</p>
 <h3 id="viewing-the-communication-between-nrepl-and-calva">Viewing the Communication Between nREPL and Calva</h3>
@@ -1479,7 +1495,7 @@ Jack-in process exited. Status: <span class="m">127</span>
     <script id="__config" type="application/json">{"base": "..", "features": ["search.share"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.51301f06.min.js"}</script>
     
     
-      <script src="../assets/javascripts/bundle.bb54cbc5.min.js"></script>
+      <script src="../assets/javascripts/bundle.6edb327c.min.js"></script>
       
     
   </body>
