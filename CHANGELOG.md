@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Hover broken when repl is connected but cider-nrelp is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
 
 ## [2.0.229] - 2021-12-12
 - Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
