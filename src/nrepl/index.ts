@@ -447,7 +447,13 @@ export class NReplSession {
         return new Promise<cider.TestResults>((resolve, reject) => {
             let id = this.client.nextId;
             this.messageHandlers[id] = resultHandler(resolve, reject);
-            this.client.write({ op: "test-all", id, session: this.sessionId, "load?": true });
+            this.client.write({
+                op: "test-var-query", id, session: this.sessionId, "var-query": {
+                    "ns-query": {
+                        'test?': true
+                    }
+                }
+            });
         })
     }
 
@@ -829,7 +835,14 @@ export class NReplEvaluation {
                     this.session.stacktrace().then((stacktrace) => {
                         this._stacktrace = stacktrace;
                         this.doReject(this.exception);
-                    }).catch(() => { });
+                    }).catch((e) => {
+                        // This failure occurs  when the `stacktrace` cider-nrepl
+                        // middleware is not available. In this case we can still
+                        // display the error message, but we won't have a stacktrace
+                        // to show.
+                        // https://docs.cider.mx/cider-nrepl/nrepl-api/ops.html#stacktrace
+                        this.doReject(this.exception);
+                    });
                 } else if (this.pprintOut) {
                     this.doResolve(this.pprintOut)
                 } else if (this.stacktrace) {
