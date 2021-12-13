@@ -414,7 +414,14 @@ export async function isDocumentWritable(document: vscode.TextDocument): Promise
     return (fileStat.permissions & vscode.FilePermission.Readonly) !== 1;
 }
 
+// Returns the elements of coll with duplicates removed
+// (See clojure.core/distinct).
+function distinct<T>(coll: T[]): T[] {
+    return [... new Set(coll)];
+}
+
 export {
+    distinct,
     getWordAtPosition,
     getDocument,
     getFileType,

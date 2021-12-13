@@ -330,26 +330,21 @@ function initialize(context: vscode.ExtensionContext): vscode.TestController {
                 return;
             }
 
-            if (request.include.length > 1) {
+            const runItems = request.include.map(req => {
+                // Split into [namespace, var]
+                return req.id.split('/', 2);
+            });
 
-                const runItems = request.include.map(req => {
-                    return req.id.split('/').slice(0, 2);
-                })
-
-                const namespaces = runItems.filter(ri => ri.length === 1).map( ri => ri[0]);
-                const namespaceAndVars = runItems.filter(ri => ri.length === 2);
-
-                const doc = vscode.window.activeTextEditor.document
-                runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
-                    vscode.window.showWarningMessage(msg)
-                });
-
-
-            }
+            // TODO.marc: We don't support running specific vars right now.
+            // We run the entire namespace for any tests selected.
+            const namespaces = util.distinct(runItems.map(ri => ri[0]));
+            const doc = vscode.window.activeTextEditor.document
+            runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
+                vscode.window.showWarningMessage(msg)
+            });
 
         },
         true);
-
 
     controller.resolveHandler = (item: vscode.TestItem | undefined) => {
         // Currently unused
