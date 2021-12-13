@@ -4,6 +4,16 @@ Changes to Calva.
 
 ## [Unreleased]
 
+## [2.0.230] - 2021-12-13
+- Fix: [Hover broken when repl is connected but cider-nrelp is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
+- Fix: [Some valid floats are highlighted incorrectly](https://github.com/BetterThanTomorrow/calva/issues/1378)
+
+## [2.0.229] - 2021-12-12
+- Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
+- [Inform about conflict with the Clojure extension](https://github.com/BetterThanTomorrow/calva/issues/1427)
+- Fix: [Run All Tests command doesn't run tests in .cljc file with reader conditional in ns](https://github.com/BetterThanTomorrow/calva/issues/1328).
+- Fix: [Allow LSP features on jar files](https://github.com/BetterThanTomorrow/calva/issues/1421)
+
 ## [2.0.228] - 2021-12-02
 - Revert: Parinfer Experimental
 - Revert: Full Format Experimental

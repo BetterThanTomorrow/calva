@@ -108,11 +108,16 @@
         'name': 'constant.language.boolean.clojure'
       }
       {
+        'match': '(##(?:Inf|-Inf|NaN))'
+        'name': 'constant.numeric.symbol.clojure'
+      }
+      {
         'match': '([-+]?\\d+/\\d+)'
         'name': 'constant.numeric.ratio.clojure'
       }
       {
-        'match': '([-+]?\\d+[rR]\\w+)'
+        # Only Radixes between 2 and 36 are allowed
+        'match': '([-+]?(?:(?:3[0-6])|(?:[12]\\d)|[2-9])[rR][0-9A-Za-z]+N?)'
         'name': 'constant.numeric.arbitrary-radix.clojure'
       }
       {
@@ -120,35 +125,16 @@
         'name': 'constant.numeric.hexadecimal.clojure'
       }
       {
-        'match': '([-+]?0[xX][g-zG-Z]+)'
-        'name': 'constant.numeric.invalid.clojure'
-      }
-      {
-        'match': '([-+]?\\d+M)'
-        'name': 'constant.numeric.bigdecimal.clojure'
-      }
-      {
         'match': '([-+]?0[0-7]+N?)'
         'name': 'constant.numeric.octal.clojure'
       }
       {
-        'match': '([-+]?0[89]+)'
-        'name': 'constant.numeric.invalid.clojure'
-      }
-      {
-        'match': '([-+]?\\d+\\.\\d+([eE][+-]?\\d+)?M)'
-        'name': 'constant.numeric.bigdecimal.clojure'
-      }
-      {
-        'match': '([-+]?\\d+\\.\\d+([eE][+-]?\\d+)?)'
+        # The decimal separator is optional only when followed by e, E or M! 
+        'match': '([-+]?[0-9]+(?:(\\.|(?=[eEM]))[0-9]*([eE][-+]?[0-9]+)?)M?)'
         'name': 'constant.numeric.double.clojure'
       }
       {
-        'match': '([-+]?\\d+N)'
-        'name': 'constant.numeric.bigint.clojure'
-      }
-      {
-        'match': '([-+]?\\d+)'
+        'match': '([-+]?\\d+N?)'
         'name': 'constant.numeric.long.clojure'
       }
       { # separating the pattern for reuse
