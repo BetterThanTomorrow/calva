@@ -62,16 +62,13 @@ describe "Clojure grammar", ->
 
   it "tokenizes numerics", ->
     numbers =
-      "constant.numeric.ratio.clojure": ["1/2", "123/456"]
-      "constant.numeric.arbitrary-radix.clojure": ["2R1011", "16rDEADBEEF", "56råäöÅÄÖπ"]
-      "constant.numeric.hexadecimal.clojure": ["0xDEADBEEF", "0XDEADBEEF", "0xCafeBabeN", "-0xCafeBabeN"]
-      "constant.numeric.octal.clojure": ["0123", "0123N", "+0123", "-0123N"]
-      "constant.numeric.bigdecimal.clojure": ["123.456M", "123M", "0123M", "-0123M"]
-      "constant.numeric.double.clojure": ["123.45", "123.45e6", "123.45E6"]
-      "constant.numeric.bigint.clojure": ["123N"]
-      "constant.numeric.long.clojure": ["123", "12321"]
-      "constant.numeric.invalid.clojure": ["0xg", "0Xg", "0XG", "0Xg"]
-      "constant.numeric.invalid.clojure": ["08", "09"]
+      "constant.numeric.ratio.clojure": ["1/2", "123/456", "+0/2", "-23/1"]
+      "constant.numeric.arbitrary-radix.clojure": ["2R1011", "16rDEADBEEF", "16rDEADBEEFN", "36rZebra"]
+      "constant.numeric.hexadecimal.clojure": ["0xDEADBEEF", "0XDEADBEEF", "0xDEADBEEFN", "0x0"]
+      "constant.numeric.octal.clojure": ["0123", "0123N", "00"]
+      "constant.numeric.double.clojure": ["123.45", "123.45e6", "123.45E6", "123.456M", "42.", "42.M", "42E+9M", "42E-0", "0M", "+0M", "42.E-23M"]
+      "constant.numeric.long.clojure": ["123", "12321", "123N", "+123N", "-123", "0"]
+      "constant.numeric.symbol.clojure": ["##Inf", "##-Inf", "##NaN"]
 
     for scope, nums of numbers
       for num in nums
