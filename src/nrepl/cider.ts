@@ -135,7 +135,7 @@ export function shortMessage(result: TestResult): string {
             return 'Error running test: ' + result.message + ' ' + result.error;
         case 'fail':
             if (result.message) {
-                return 'Expected ' + result.expected + ' actual' + result.actual
+                return 'Expected ' + result.expected + ' actual ' + result.actual
             } else {
                 return result.message + ' expected ' + result.expected + ' actual' + result.actual;
             }

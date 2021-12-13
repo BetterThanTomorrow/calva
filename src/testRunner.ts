@@ -176,7 +176,7 @@ function runAllTestsCommand(controller: vscode.TestController) {
     });
 }
 
-async function considerTestNS(ns: string, session: NReplSession, nss: string[]): Promise<string[]> {
+async function considerTestNS(ns: string, session: NReplSession): Promise<string[]> {
     if (!ns.endsWith('-test')) {
         const testNS = ns + '-test';
         const nsPath = await session.nsPath(testNS);
@@ -186,40 +186,52 @@ async function considerTestNS(ns: string, session: NReplSession, nss: string[]):
             let loadForms = `(load-file "${filePath}")`;
             await session.eval(loadForms, testNS).value;
         }
-        nss.push(testNS);
-        return nss;
+
+        return [ns, testNS];
     }
-    return nss;
+    return [ns];
 }
 
-async function runNamespaceTests(controller: vscode.TestController, document = {}) {
-    const doc = util.getDocument(document);
-    if (outputWindow.isResultsDoc(doc)) {
-        return;
-    }
+async function runNamespaceTestsImpl(controller: vscode.TestController, document: vscode.TextDocument, nss: string[]) {
     if (!util.getConnectedState()) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    const session = getSession(util.getFileType(document));
-    const ns = namespace.getNamespace(doc);
-    let nss = [ns];
-    await evaluate.loadFile({}, disabledPrettyPrinter);
-    outputWindow.append(`; Running tests for ${ns}...`);
-    nss = await considerTestNS(ns, session, nss);
-    const resultPromises = [session.testNs(nss[0])];
-    if (nss.length > 1) {
-        resultPromises.push(session.testNs(nss[1]));
+
+    if (nss.length === 0) {
+        vscode.window.showInformationMessage('No namespace selected.')
+        return;
     }
+
+    const session = getSession(util.getFileType(document));
+
+    // TODO.marc: Should we be passing the `document` argument to `loadFile`?
+    await evaluate.loadFile({}, disabledPrettyPrinter);
+    outputWindow.append(`; Running tests for ${nss[0]}...`);
+
+    const resultPromises = nss.map((ns) => {
+        return session.testNs(ns);
+    });
     try {
         reportTests(controller, await Promise.all(resultPromises));
     } catch (e) {
         outputWindow.append('; ' + e)
     }
 
-    outputWindow.setSession(session, ns);
+    outputWindow.setSession(session, nss[0]);
     updateReplSessionType();
     outputWindow.appendPrompt();
+}
+
+async function runNamespaceTests(controller: vscode.TestController, document: vscode.TextDocument) {
+    const doc = util.getDocument(document);
+    if (outputWindow.isResultsDoc(doc)) {
+        return;
+    }
+    const session = getSession(util.getFileType(document));
+    const ns = namespace.getNamespace(doc);
+    const nss = await considerTestNS(ns, session);
+    runNamespaceTestsImpl(controller, document, nss);
 }
 
 function getTestUnderCursor() {
@@ -264,7 +276,7 @@ function runNamespaceTestsCommand(controller: vscode.TestController) {
         vscode.window.showInformationMessage('You must connect to a REPL server to run this command.')
         return;
     }
-    runNamespaceTests(controller).catch((msg) => {
+    runNamespaceTests(controller, vscode.window.activeTextEditor.document).catch((msg) => {
         vscode.window.showWarningMessage(msg)
     });
 }
@@ -301,12 +313,40 @@ function initialize(context: vscode.ExtensionContext): vscode.TestController {
         vscode.TestRunProfileKind.Run,
 
         (request: vscode.TestRunRequest, token: vscode.CancellationToken) => {
-            // Currently unused
-            console.log('in test run handler');
-            if (!request.include) {
-                vscode.commands.executeCommand('calva.runAllTests');
+
+            if (!util.getConnectedState()) {
+                vscode.window.showInformationMessage('You must connect to a REPL server to run tests.')
                 return;
             }
+
+            if (request.exclude && request.exclude.length > 0) {
+                vscode.window.showWarningMessage("Excluding tests from a test run is not currently supported - running all tests.");
+            }
+
+            if (!request.include) {
+                runAllTests(controller).catch((msg) => {
+                    vscode.window.showWarningMessage(msg)
+                });
+                return;
+            }
+
+            if (request.include.length > 1) {
+
+                const runItems = request.include.map(req => {
+                    return req.id.split('/').slice(0, 2);
+                })
+
+                const namespaces = runItems.filter(ri => ri.length === 1).map( ri => ri[0]);
+                const namespaceAndVars = runItems.filter(ri => ri.length === 2);
+
+                const doc = vscode.window.activeTextEditor.document
+                runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
+                    vscode.window.showWarningMessage(msg)
+                });
+
+
+            }
+
         },
         true);
 
