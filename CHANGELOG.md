@@ -3,6 +3,7 @@
 Changes to Calva.
 
 ## [Unreleased]
+- Fix: [Calva randomly edits file while in Live Share](https://github.com/BetterThanTomorrow/calva/issues/1434)
 
 ## [2.0.230] - 2021-12-13
 - Fix: [Hover broken when repl is connected but cider-nrelp is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
