@@ -3,6 +3,8 @@
 Changes to Calva.
 
 ## [Unreleased]
+
+## [2.0.231] - 2021-12-14
 - Fix: [Calva randomly edits file while in Live Share](https://github.com/BetterThanTomorrow/calva/issues/1434)
 
 ## [2.0.230] - 2021-12-13
