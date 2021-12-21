@@ -137,7 +137,7 @@ export function shortMessage(result: TestResult): string {
             if (result.message) {
                 return 'Expected ' + result.expected + ' actual ' + result.actual
             } else {
-                return result.message + ' expected ' + result.expected + ' actual' + result.actual;
+                return result.message + ' expected ' + result.expected + ' actual ' + result.actual;
             }
     }
 }

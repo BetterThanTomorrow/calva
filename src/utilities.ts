@@ -21,6 +21,10 @@ export function escapeStringRegexp(s: string): string {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export function isNonEmptyString(value: any): boolean {
+    return typeof (value) == 'string' && value.length > 0
+}
+
 async function quickPickSingle(opts: { values: string[], saveAs?: string, placeHolder: string, autoSelect?: boolean }) {
     if (opts.values.length == 0)
         return;

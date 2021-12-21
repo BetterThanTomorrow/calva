@@ -5,14 +5,17 @@ import { disabledPrettyPrinter } from './printer';
 import * as outputWindow from './results-output/results-doc';
 import { NReplSession } from './nrepl';
 import * as cider from './nrepl/cider'
+import * as lsp from './lsp/types'
 import * as namespace from './namespace';
 import { getSession, updateReplSessionType } from './nrepl/repl-session';
 import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
-function guessFileName(namespace: string): string {
-    return namespace.replace(/\./g, "/").replace(/-/g, "_");
+async function uriForNamespace(namespace: string): Promise<vscode.Uri> {
+    const path = namespace.replace(/\./g, "/").replace(/-/g, "_");
+    const uris = await vscode.workspace.findFiles('**/' + path + ".{clj,cljs}", null, 1);
+    return uris[0];
 }
 
 async function uriForFile(fileName: string): Promise<vscode.Uri> {
@@ -21,35 +24,70 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
     }
     // Sometimes we don't get the full path for some reason. (This is a very inexact
     // way of dealing with that. Maybe check for the right `ns`in the file?)
-    const uris = await vscode.workspace.findFiles('**/' + fileName);
+    const uris = await vscode.workspace.findFiles('**/' + fileName, null, 1);
     return uris[0];
 }
 
-async function onTestResult(controller: vscode.TestController, run: vscode.TestRun, nsName: string, varName: string, assertions: cider.TestResult[]) {
+
+function upsertNamespace(controller: vscode.TestController, uri: vscode.Uri, nsName: string, range?: vscode.Range): vscode.TestItem {
     let ns = controller.items.get(nsName);
     if (!ns) {
-        const uri = await uriForFile(guessFileName(nsName));
         ns = controller.createTestItem(nsName, nsName, uri);
-        ns.description = "Namespace";
-        controller.items.add(ns);
     }
+    if (range) {
+        ns.range = range;
+    }
+    controller.items.add(ns);
+    return ns;
+}
 
+function upsertTest(controller: vscode.TestController, uri: vscode.Uri, nsName: string, varName: string, range?: vscode.Range): vscode.TestItem {
+    const ns = upsertNamespace(controller, uri, nsName);
     let testId = nsName + '/' + varName;
-
     let test = ns.children.get(testId);
-
     if (!test) {
-        const uri = await uriForFile(guessFileName(nsName));
         test = controller.createTestItem(testId, varName, uri);
-        test.description = "Var";
-        ns.children.add(test);
+
+    }
+    if (range) {
+        test.range = range;
+    }
+    ns.children.add(test);
+    return test;
+}
+
+// Cider 0.26 and 0.27 have an issue where context can be an empty array.
+// https://github.com/clojure-emacs/cider-nrepl/issues/728#issuecomment-996002988
+export function assertionName(result: cider.TestResult): string {
+    if (util.isNonEmptyString(result.context)) {
+        return result.context;
+    }
+    return "assertion";
+}
+
+async function onTestResult(controller: vscode.TestController, run: vscode.TestRun, nsName: string, varName: string, assertions: cider.TestResult[]) {
+
+    const uri = await uriForNamespace(nsName);
+
+    // TODO - where is the best place to log?
+    if (!uri) {
+        console.warn('Test Runner: Unable to find file corresponding to namespace: ' + nsName);
     }
 
-    const lines = assertions.map(a => a.line).filter(x => x).sort();
-    if (lines.length > 0) {
-        test.range = new vscode.Range(lines[0] - 1, 0, lines[lines.length - 1], 1000);
+    const ns = upsertNamespace(controller, uri, nsName);
+    const test = upsertTest(controller, uri, nsName, varName)
+
+    // LSP will do a better job at knowing the Range for the test.
+    // If the range is empty though (LSP might not be running), we can make a
+    // rough guess at the range.
+    if (!test.range || test.range.isEmpty) {
+        const lines = assertions.map(a => a.line).filter(x => x).sort();
+        if (lines.length > 0) {
+            test.range = new vscode.Range(lines[0] - 1, 0, lines[lines.length - 1], 1000);
+        }
     }
 
+    // Clear all children, which are assertions left over from previous runs.
     test.children.replace([]);
 
     const failures = assertions.filter(result => {
@@ -61,12 +99,9 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
         return;
     }
 
-    const x = failures.map(async function (result) {
-        let assertionId = testId + '/' + result.index;
-        const uri = await uriForFile(result.file); // todo - cache this.
-        const label = result.context + " " + result.index;
-        const assertion = controller.createTestItem(assertionId, label, uri);
-        assertion.description = 'is';
+    failures.forEach(result => {
+        let assertionId = test.id + '/' + result.index;
+        const assertion = controller.createTestItem(assertionId, assertionName(result), uri);
         test.children.add(assertion);
         assertion.range = new vscode.Range(result.line - 1, 0, result.line - 1, 1000);
 
@@ -80,8 +115,6 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
                 break;
         }
     });
-
-    const y = await Promise.all(x);
 }
 
 
@@ -100,6 +133,9 @@ async function onTestResults(controller: vscode.TestController, results: cider.T
     run.end();
 }
 
+function useTestExplorer(): boolean {
+    return vscode.workspace.getConfiguration('calva').get('useTestExplorer');
+}
 
 function reportTests(controller: vscode.TestController, results: cider.TestResults[]) {
     let diagnostics: { [key: string]: vscode.Diagnostic[] } = {};
@@ -114,9 +150,7 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
     }
 
 
-    const useTestExplorer: boolean = vscode.workspace.getConfiguration('calva').get('useTestExplorer');
-
-    if (useTestExplorer) {
+    if (useTestExplorer()) {
         onTestResults(controller, results).catch(e => {
             vscode.window.showErrorMessage("Error in test explorer: " + e);
         });
@@ -131,7 +165,10 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
 
                     cider.cleanUpWhiteSpace(a);
 
-                    outputWindow.append(cider.detailedMessage(a));
+                    const detail = cider.detailedMessage(a);
+                    if (detail) {
+                        outputWindow.append(cider.detailedMessage(a));
+                    }
 
                     if (a.type === "fail") {
                         recordDiagnostic(a);
@@ -144,7 +181,7 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
     const summary = cider.totalSummary(results.map(r => r.summary));
     outputWindow.append("; " + cider.summaryMessage(summary));
 
-    if (!useTestExplorer) {
+    if (!useTestExplorer()) {
         for (const fileName in diagnostics) {
             uriForFile(fileName).then(uri => {
                 diagnosticCollection.set(uri, diagnostics[fileName]);
@@ -305,11 +342,9 @@ function rerunTestsCommand(controller: vscode.TestController) {
     });
 }
 
-function initialize(context: vscode.ExtensionContext): vscode.TestController {
-    const controller = vscode.tests.createTestController('calvaTestController', 'Clojure Cider')
-    context.subscriptions.push(controller);
+function initialize(controller: vscode.TestController): void {
 
-    controller.createRunProfile('Clojure Run Profile',
+    const profile = controller.createRunProfile('Clojure Run Profile',
         vscode.TestRunProfileKind.Run,
 
         (request: vscode.TestRunRequest, token: vscode.CancellationToken) => {
@@ -346,14 +381,36 @@ function initialize(context: vscode.ExtensionContext): vscode.TestController {
         },
         true);
 
-    controller.resolveHandler = (item: vscode.TestItem | undefined) => {
-        // Currently unused
-        console.log('in test resolve handler');
-    }
 
-    return controller;
+    controller.resolveHandler = (item: vscode.TestItem | undefined) => {
+        console.log('in test resolve handler');
+        controller.label = "foo";
+    }
 }
 
+function createRange(test: lsp.TestTreeNode): vscode.Range {
+    return new vscode.Range(
+        test.range.start.line,
+        test.range.start.character,
+        test.range.end.line,
+        test.range.end.character);
+}
+
+function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreeParams) {
+    if (!useTestExplorer()) {
+        return;
+    }
+    try {
+        const uri = vscode.Uri.parse(testTree.uri)
+        const ns = upsertNamespace(controller, uri, testTree.tree.name, createRange(testTree.tree));
+        ns.canResolveChildren = true;
+        testTree.tree.children.forEach(c => {
+            const test = upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
+        });
+    } catch (e) {
+        vscode.window.showErrorMessage('Error in test tree parsing', e);
+    }
+}
 
 export default {
     initialize,
@@ -361,5 +418,6 @@ export default {
     runNamespaceTestsCommand,
     runAllTestsCommand,
     rerunTestsCommand,
-    runTestUnderCursorCommand
+    runTestUnderCursorCommand,
+    onTestTree
 };
