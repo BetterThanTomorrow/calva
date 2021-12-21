@@ -99,6 +99,7 @@ async function activate(context: vscode.ExtensionContext) {
     model.initScanner(vscode.workspace.getConfiguration('editor').get('maxTokenizationLineLength'));
 
     const chan = state.outputChannel();
+
     const legacyExtension = vscode.extensions.getExtension('cospaia.clojure4vscode');
     const fmtExtension = vscode.extensions.getExtension('cospaia.calva-fmt');
     const pareEditExtension = vscode.extensions.getExtension('cospaia.paredit-revived');

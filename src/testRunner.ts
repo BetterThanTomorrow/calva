@@ -108,12 +108,10 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
         switch (result.type) {
             case "error":
                 run.errored(assertion, new vscode.TestMessage(cider.shortMessage(result)));
-                run.appendOutput(cider.detailedMessage(result), null, assertion);
                 break;
             case "fail":
             default:
                 run.failed(assertion, new vscode.TestMessage(cider.shortMessage(result)));
-                run.appendOutput(cider.detailedMessage(result), null, assertion);
                 break;
         }
     });
@@ -150,6 +148,7 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
             diagnostics[result.file] = [];
         diagnostics[result.file].push(err);
     }
+
 
     if (useTestExplorer()) {
         onTestResults(controller, results).catch(e => {
