@@ -26,9 +26,9 @@ export function activationGreetings(chan: vscode.OutputChannel) {
         chan.appendLine(`    ${dep}: ${jackInDependencyVersions[dep]}`)
     }
     if (clojureLspPath) {
-        chan.appendLine(` clojure-lsp path configured: ${clojureLspPath}`);
+        chan.appendLine(`  clojure-lsp path configured: ${clojureLspPath}`);
     } else {
-        chan.appendLine(` clojure-lsp version configured: ${clojureLspVersion}`);
+        chan.appendLine(`  clojure-lsp version configured: ${clojureLspVersion}`);
     }
     chan.appendLine("");
     chan.appendLine("If you are new to Calva, please consider starting with the command:");

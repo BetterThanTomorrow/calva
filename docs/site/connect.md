@@ -83,6 +83,10 @@ You might need to first run the **Shell Command: Install `code` command in PATH*
 
 This will also make sure your REPL has access to the environment you probably expect it to have access to. See below.
 
+### Go to Definition Not Working for Java Definitions
+
+On some systems, the Java source may not be installed along with the JDK. The source must be present on your system in order to navigate to Java definitions. See [this comment](https://github.com/clojure-emacs/orchard/issues/103#issuecomment-764936527) for more details.
+
 ### Environment Variables Are Not Readable From REPL
 
 If you've added environment variables in your OS, such as in your `~/.bashrc` file (Linux), in order for them to be read in a REPL created by Calva's jackin command, VS Code must be started from a shell where the environment variables are defined. For example, if you can open a bash terminal and run `echo $SOME_VAR` and see the value there, then open VS Code from that terminal with `code <project path>`.
