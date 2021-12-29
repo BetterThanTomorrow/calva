@@ -5,6 +5,10 @@
                 :vowels      "aeiou"
                 :pirate-char "o"})
 
+(def swedish-o {:alphabet    "abcdefghijklmnopqrstuvwxyz"
+                :vowels      "aeiouåäö"
+                :pirate-char "o"})
+
 (defn- configure
   [{:keys [alphabet vowels pirate-char]}]
   (let [alphabet   (set (seq (string/upper-case alphabet)))

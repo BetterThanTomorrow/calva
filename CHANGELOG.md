@@ -5,6 +5,7 @@ Changes to Calva.
 ## [Unreleased]
 - [Prevent warning during deps.edn jack-in](https://github.com/BetterThanTomorrow/calva/issues/1355)
 - Fix: [Connecting to an out-of-process nREPL server and a merged Figwheel-main build](https://github.com/BetterThanTomorrow/calva/issues/1386)
+- Fix: [Empty lines in output.calva-repl when running tests](https://github.com/BetterThanTomorrow/calva/issues/1448)
 
 ## [2.0.231] - 2021-12-14
 - Fix: [Calva randomly edits file while in Live Share](https://github.com/BetterThanTomorrow/calva/issues/1434)
