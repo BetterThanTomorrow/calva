@@ -187,7 +187,7 @@ This is usually true when use an (open source) Java library and you want to set 
 For those cases and others, you need to start the JVM in debug mode.
 And for that you nee
 
-Tipical use cases:
+Typical use cases:
 
 * Change java logger configuration for the REPL via java system properties: e.g `-Dorg.slf4j.simpleLogger.defaultLogLevel=TRACE`
 * Enable JVM debugger, change VM memory size, etc
