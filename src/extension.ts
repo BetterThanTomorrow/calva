@@ -90,6 +90,7 @@ async function activate(context: vscode.ExtensionContext) {
 
     const controller = vscode.tests.createTestController('calvaTestController', 'Clojure Cider')
     context.subscriptions.push(controller);
+    testRunner.initialize(controller);
 
     lsp.activate(context, testTree => { testRunner.onTestTree(controller, testTree) });
 
@@ -126,7 +127,7 @@ async function activate(context: vscode.ExtensionContext) {
             })
     }
 
-    testRunner.initialize(controller);
+
 
     if (legacyExtension) {
         vscode.window.showErrorMessage("Calva Legacy extension detected. Things will break. Please uninstall, or disable, the old Calva extension.", "Roger that. Right away!")

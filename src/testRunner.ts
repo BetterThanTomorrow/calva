@@ -12,6 +12,11 @@ import * as getText from './util/get-text';
 
 let diagnosticCollection = vscode.languages.createDiagnosticCollection('calva');
 
+// Given a Clojure namespace name, in the form `foo.bar-baz` find a URI for the
+// matching source file in the workflows. We do this by:
+// - replacing . with /
+// - replace - with _
+// - search for .clj or cljs files that match.
 async function uriForNamespace(namespace: string): Promise<vscode.Uri> {
     const path = namespace.replace(/\./g, "/").replace(/-/g, "_");
     const uris = await vscode.workspace.findFiles('**/' + path + ".{clj,cljs}", null, 1);
@@ -28,7 +33,9 @@ async function uriForFile(fileName: string): Promise<vscode.Uri> {
     return uris[0];
 }
 
-
+// Return a valid TestItem for the namespace.
+// Creates a new item if one does not exist, othrwise we find the existing entry.
+// If a Range is supplied, that we set the range on the returned item.
 function upsertNamespace(controller: vscode.TestController, uri: vscode.Uri, nsName: string, range?: vscode.Range): vscode.TestItem {
     let ns = controller.items.get(nsName);
     if (!ns) {
@@ -41,6 +48,9 @@ function upsertNamespace(controller: vscode.TestController, uri: vscode.Uri, nsN
     return ns;
 }
 
+// Return a valid TestItem for the test var.
+// Creates a new item if one does not exist, othrwise we find the existing entry.
+// If a Range is supplied, that we set the range on the returned item.
 function upsertTest(controller: vscode.TestController, uri: vscode.Uri, nsName: string, varName: string, range?: vscode.Range): vscode.TestItem {
     const ns = upsertNamespace(controller, uri, nsName);
     let testId = nsName + '/' + varName;
@@ -74,12 +84,14 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
         console.warn('Test Runner: Unable to find file corresponding to namespace: ' + nsName);
     }
 
-    const ns = upsertNamespace(controller, uri, nsName);
     const test = upsertTest(controller, uri, nsName, varName)
 
-    // LSP will do a better job at knowing the Range for the test.
-    // If the range is empty though (LSP might not be running), we can make a
-    // rough guess at the range.
+    // The Clojure LSP gives a very accurate range for a test. In some cases, this
+    // function will be called before Clojure LSP has analysed the file, so we might
+    // have a test item with no range set. In this case, we can look at the line
+    // data in the assertions collection and produce a good approximation of the
+    // range. If the LSP subsequently scans the file, upsertTest will be called,
+    // which will set the range correctly.
     if (!test.range || test.range.isEmpty) {
         const lines = assertions.map(a => a.line).filter(x => x).sort();
         if (lines.length > 0) {
@@ -87,7 +99,7 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
         }
     }
 
-    // Clear all children, which are assertions left over from previous runs.
+    // Clear any children, which are assertions left over from previous runs.
     test.children.replace([]);
 
     const failures = assertions.filter(result => {
@@ -117,20 +129,23 @@ async function onTestResult(controller: vscode.TestController, run: vscode.TestR
     });
 }
 
-
-
-async function onTestResults(controller: vscode.TestController, results: cider.TestResults[]) {
+function onTestResults(controller: vscode.TestController, results: cider.TestResults[]) {
     const run = controller.createTestRun(new vscode.TestRunRequest(), "Clojure", false);
+    const promises: Promise<unknown>[] = []
     for (const result of results) {
         for (const namespace in result.results) {
             const tests = result.results[namespace];
             for (const test in tests) {
-                // slow?
-                await onTestResult(controller, run, namespace, test, tests[test]);
+                promises.push(onTestResult(controller, run, namespace, test, tests[test]));
             }
         }
     }
-    run.end();
+    Promise.all(promises).then( x => {
+        run.end();
+    }).catch( ex => {
+        vscode.window.showErrorMessage("Error in test explorer: " + ex);
+        run.end();
+    });
 }
 
 function useTestExplorer(): boolean {
@@ -149,13 +164,9 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
         diagnostics[result.file].push(err);
     }
 
-
     if (useTestExplorer()) {
-        onTestResults(controller, results).catch(e => {
-            vscode.window.showErrorMessage("Error in test explorer: " + e);
-        });
+        onTestResults(controller, results);
     }
-
 
     for (let result of results) {
         for (const ns in result.results) {
@@ -370,7 +381,9 @@ function initialize(controller: vscode.TestController): void {
             });
 
             // TODO.marc: We don't support running specific vars right now.
-            // We run the entire namespace for any tests selected.
+            // If the user selects to run subset of tests, we run the whole namespace.
+            // The next steps here would be to turn request.exclude and requst.include
+            // into a Cider var-query that can be passed to test-var query directly.
             const namespaces = util.distinct(runItems.map(ri => ri[0]));
             const doc = vscode.window.activeTextEditor.document
             runNamespaceTestsImpl(controller, doc, namespaces).catch((msg) => {
@@ -380,10 +393,8 @@ function initialize(controller: vscode.TestController): void {
         },
         true);
 
-
     controller.resolveHandler = (item: vscode.TestItem | undefined) => {
-        console.log('in test resolve handler');
-        controller.label = "foo";
+        // currently unused
     }
 }
 
@@ -404,7 +415,7 @@ function onTestTree(controller: vscode.TestController, testTree: lsp.TestTreePar
         const ns = upsertNamespace(controller, uri, testTree.tree.name, createRange(testTree.tree));
         ns.canResolveChildren = true;
         testTree.tree.children.forEach(c => {
-            const test = upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
+             upsertTest(controller, uri, testTree.tree.name, c.name, createRange(c));
         });
     } catch (e) {
         vscode.window.showErrorMessage('Error in test tree parsing', e);

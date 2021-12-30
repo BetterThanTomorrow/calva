@@ -21,10 +21,12 @@ const SERVER_NOT_RUNNING_OR_INITIALIZED_MESSAGE = 'The clojure-lsp server is not
 const lspStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -1);
 let serverVersion: string;
 
+// The Node LSP client requires the client code to jump through a few hoops in
+// order to enable an experimental feature. This class exists solely to set
+// enable the `experimental.testTree` feature.
 class TestTreeFeature implements StaticFeature {
 
     initialize(capabilities: ServerCapabilities, documentSelector: DocumentSelector | undefined): void {
-        capabilities.experimental = {testTree: true };
     }
 
     fillClientCapabilities(capabilities: ClientCapabilities): void {
@@ -90,7 +92,7 @@ function createClient(clojureLspPath: string): LanguageClient {
                 try {
                     hover = await provideHover(document, position);
                 } catch (e) {}
-                
+
                 if (hover) {
                     return null;
                 } else {
