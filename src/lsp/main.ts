@@ -13,7 +13,6 @@ import * as path from 'path';
 import * as state from '../state';
 import { provideHover } from '../providers/hover';
 import { provideSignatureHelp } from '../providers/signature';
-import { CodeAction } from 'vscode';
 import * as cider from '../nrepl/cider'
 
 const LSP_CLIENT_KEY = 'lspClient';
@@ -65,14 +64,6 @@ function createClient(clojureLspPath: string): LanguageClient {
             provideLinkedEditingRange: async (_document, _position, _token, _next): Promise<vscode.LinkedEditingRanges> => {
                 return null;
             },
-            async resolveCodeAction(item, token, next): Promise<CodeAction> {
-                const { command } = await next(item, token);
-                if (command) {
-                    sendCommandRequest(command.command, command.arguments);
-                    return null;
-                }
-                return next(item, token);
-            },
             handleDiagnostics(uri, diagnostics, next) {
                 if (uri.path.endsWith(config.REPL_FILE_EXT)) {
                     return;
@@ -95,7 +86,11 @@ function createClient(clojureLspPath: string): LanguageClient {
                 return null;
             },
             async provideHover(document, position, token, next) {
-                const hover: vscode.Hover = await provideHover(document, position);
+                let hover: vscode.Hover;
+                try {
+                    hover = await provideHover(document, position);
+                } catch (e) {}
+                
                 if (hover) {
                     return null;
                 } else {

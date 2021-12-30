@@ -381,6 +381,7 @@ async function makeCljsSessionClone(session, repl: ReplType, projectTypeName: st
                 state.analytics().logEvent("REPL", "StartedCLJS", repl.name).send();
                 outputWindow.append("; Cljs builds started");
                 newCljsSession = await session.clone();
+                newCljsSession.replType = 'cljs';
             } else {
                 state.analytics().logEvent("REPL", "FailedStartingCLJS", repl.name).send();
                 outputWindow.append("; Failed starting cljs repl");

@@ -162,12 +162,11 @@ function reportTests(controller: vscode.TestController, results: cider.TestResul
             let resultSet = result.results[ns];
             for (const test in resultSet) {
                 for (const a of resultSet[test]) {
-
                     cider.cleanUpWhiteSpace(a);
 
-                    const detail = cider.detailedMessage(a);
-                    if (detail) {
-                        outputWindow.append(cider.detailedMessage(a));
+                    const messages = cider.detailedMessage(a);
+                    if (messages) {
+                        outputWindow.append(messages);
                     }
 
                     if (a.type === "fail") {

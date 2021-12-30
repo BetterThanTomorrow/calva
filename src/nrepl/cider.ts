@@ -102,24 +102,24 @@ export function totalSummary(summaries: TestSummary[]): TestSummary {
 // The message contains "comment" lines that are prepended with ;
 // and "data" lines that should be printed verbatim into the REPL.
 export function detailedMessage(result: TestResult): string {
-    const msg = [];
+    const messages = [];
     const message = resultMessage(result);
     if (result.type === "error") {
-        msg.push(`; ERROR in ${result.ns}/${result.var} (line ${result.line}):`)
+        messages.push(`; ERROR in ${result.ns}/${result.var} (line ${result.line}):`)
         if (message) {
-            msg.push(`; ${message}`);
+            messages.push(`; ${message}`);
         }
-        msg.push(`; error: ${result.error} (${result.file})`);
-        msg.push("; expected:");
-        msg.push(result.expected);
+        messages.push(`; error: ${result.error} (${result.file})`);
+        messages.push("; expected:");
+        messages.push(result.expected);
     } else if (result.type === 'fail') {
-        msg.push(`; FAIL in ${result.ns}/${result.var} (${result.file}:${result.line}):`);
+        messages.push(`; FAIL in ${result.ns}/${result.var} (${result.file}:${result.line}):`);
         if (message) {
-            msg.push(`; ${message}`);
+            messages.push(`; ${message}`);
         }
-        msg.push(`; expected:\n${result.expected}\n; actual:\n${result.actual}`);
+        messages.push(`; expected:\n${result.expected}\n; actual:\n${result.actual}`);
     }
-    return msg.join("\n");
+    return messages.length > 0 ? messages.join("\n") : null;
 }
 
 // Return a short message that can be shown to user as a Diagnostic.

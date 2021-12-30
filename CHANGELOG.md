@@ -3,10 +3,22 @@
 Changes to Calva.
 
 ## [Unreleased]
+- [Prevent warning during deps.edn jack-in](https://github.com/BetterThanTomorrow/calva/issues/1355)
+- Fix: [Connecting to an out-of-process nREPL server and a merged Figwheel-main build](https://github.com/BetterThanTomorrow/calva/issues/1386)
+- Fix: [Empty lines in output.calva-repl when running tests](https://github.com/BetterThanTomorrow/calva/issues/1448)
+
+## [2.0.231] - 2021-12-14
+- Fix: [Calva randomly edits file while in Live Share](https://github.com/BetterThanTomorrow/calva/issues/1434)
+
+## [2.0.230] - 2021-12-13
+- Fix: [Hover broken when repl is connected but cider-nrelp is not present](https://github.com/BetterThanTomorrow/calva/issues/1432)
+- Fix: [Some valid floats are highlighted incorrectly](https://github.com/BetterThanTomorrow/calva/issues/1378)
+
+## [2.0.229] - 2021-12-12
 - Fix: [Babashka Jack-In REPL doesn't show eval errors](https://github.com/BetterThanTomorrow/calva/issues/1413)
 - [Inform about conflict with the Clojure extension](https://github.com/BetterThanTomorrow/calva/issues/1427)
+- Fix: [Run All Tests command doesn't run tests in .cljc file with reader conditional in ns](https://github.com/BetterThanTomorrow/calva/issues/1328).
 - Fix: [Allow LSP features on jar files](https://github.com/BetterThanTomorrow/calva/issues/1421)
-
 
 ## [2.0.228] - 2021-12-02
 - Revert: Parinfer Experimental
